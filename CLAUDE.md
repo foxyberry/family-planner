@@ -1,0 +1,59 @@
+# Family Planner
+
+iPad family schedule app. SwiftUI + TCA, Swift 6, Bazel 8.8.2 + Makefile (no Xcode GUI). Public repo.
+Monorepo: `ios/` today; other parts (backend, web) go next to it later.
+
+## Privacy (public repo)
+- Never put real personal data in code, defaults, tests, previews, docs, commit messages, or PR/issue text:
+  home location, bus stop IDs or routes, children's names/ages/schools, API keys. Use fake values
+  (stop `12345`, `Example Primary School`, `Kid A`).
+- Real values live only in git-ignored files: `docs/private/`, `.private-terms`, `LocalConfig.*`, `user.bazelrc`.
+- If gitleaks or the private-term check blocks you, replace the data. Never bypass (`--no-verify`).
+- Design doc and research: `docs/private/` (git-ignored). Do not quote them in tracked files or @-import them.
+- Publishing text (commit/PR/issue bodies): pass literal text or `--body-file <file>`; shell expansion is blocked.
+
+## Machine limits (8 GB Mac)
+- One Bazel build/test at a time, one simulator. `make sim-stop` when done.
+- `make run` builds first, then boots the simulator. Shut down idle Bazel servers of other projects.
+- Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
+
+## Commands
+make setup | build | run | test | lint | fmt | xcodeproj | sim-stop | clean
+Single test target:
+`bazel test //ios/AppCore/Tests:AppCoreTests --ios_simulator_device="iPad Pro 13-inch (M5)" --ios_simulator_version=26.5`
+Guard tests: `bash scripts/tests/check-private-terms-test.sh`, `bash scripts/tests/claude-hooks-test.sh`
+
+## Module rules
+- `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients). Keep it under 20 code lines.
+- Screens, state and lifecycle live in `ios/AppCore` (and later `ios/Features/*`) as TCA reducers;
+  lifecycle callbacks become actions (`AppDelegateBase`, `AppScene`).
+- Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__` only.
+- Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
+
+## Git flow
+- `feature/*` from `develop`, PR into `develop`. `release/*` and `hotfix/*` go to `main`.
+- English conventional commits. Ask before pushing. This repo's git flow overrides generic
+  branch-finishing skills. See the `git-flow-delivery` skill.
+
+## Versions
+Bazel 8.8.2; rules_apple 4.3.3, rules_swift 3.6.0, apple_support 1.24.5,
+rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bumps here.
+
+## Known gotchas
+1. `repo_name` is mandatory for apple/swift deps in MODULE.bazel.
+2. `apple_cc_configure` must reference `@build_bazel_apple_support`.
+3. `.buildifier.json` `warnings` must be a string.
+4. Resolve simulator UUIDs by name + OS; never hardcode.
+5. rules_swift_package_manager must stay >= 1.19: older versions compile Swift packages with the
+   app's iOS 26 minimum and break swift-perception's obsoleted back-ports.
+6. `bazel build //ios/Clients/X` alone compiles for the macOS host; check iOS through app or test targets.
+7. The xctestrun runner takes `--ios_simulator_device/--ios_simulator_version`, not `--test_arg=--device_type`.
+8. TCA TestStore: assert pushed stack elements with `$0.path[id: 0] = ...`, not `append`.
+9. `Package.swift` needs `swift-tools-version: 6.2` for `.iOS(.v26)`.
+10. Project hooks in `.claude/settings.json` load when a session starts; restart to pick up changes.
+
+## Agent harness
+- `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
+- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`.
+- Hooks block private terms in file writes and in commit/tag/PR/issue/release text.
+- Show the command and its output as evidence before saying a build or test passed.
