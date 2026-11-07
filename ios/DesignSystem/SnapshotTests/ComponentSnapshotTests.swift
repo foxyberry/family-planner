@@ -1,3 +1,4 @@
+import CrayonKit
 import DesignSystem
 import KitArt
 import SnapshotTesting
@@ -107,6 +108,18 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testSlideToGoWidths() {
         for (name, width) in Self.widths { snap(slide(.idle), width: width, named: name) }
+    }
+
+    /// Wrist-flick colouring (ST-13) on a filled card and a filled button.
+    func testFlickFills() {
+        snap(HStack(alignment: .top, spacing: Spacing.l) {
+            Text("Swimming").crayonType(.title)
+                .frame(width: 360, height: 200)
+                .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.apricot, seed: 11)
+            Text("Go!").crayonType(.head)
+                .frame(width: 200, height: 96)
+                .crayonBackground(.capsule, fill: CrayonStyle.blueCrayon, seed: 12)
+        })
     }
 
     // MARK: - 0c Content

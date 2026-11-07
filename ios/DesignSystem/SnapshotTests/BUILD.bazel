@@ -6,6 +6,7 @@ fp_swift_library(
     name = "ComponentSnapshotTestsLib",
     testonly = True,
     deps = [
+        "//ios/CrayonKit",
         "//ios/DesignSystem",
         "//ios/KitArt",
         "@swiftpkg_swift_snapshot_testing//:SnapshotTesting",

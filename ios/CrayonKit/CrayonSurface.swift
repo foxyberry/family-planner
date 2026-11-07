@@ -44,12 +44,8 @@ public struct CrayonSurface: View {
                 if let hachure = fill.hachure {
                     context.fill(wash, with: .color(fill.color.opacity(hachure.washOpacity)))
                     var strokes = Path()
-                    for s in g.hachureLines {
-                        strokes.move(to: s.a)
-                        strokes.addLine(to: s.b)
-                    }
-                    context.stroke(strokes, with: .color(fill.color),
-                                   style: StrokeStyle(lineWidth: hachure.weight, lineCap: .round))
+                    for flick in g.flicks { strokes.addLines(flick.outline); strokes.closeSubpath() }
+                    context.fill(strokes, with: .color(fill.color))
                 } else {
                     context.fill(wash, with: .color(fill.color))
                 }
