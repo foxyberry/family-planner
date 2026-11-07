@@ -1,0 +1,8 @@
+# iOS-specific Bazel configuration.
+# Used by Makefile iOS commands and imported by xcodeproj.bazelrc for Xcode builds.
+
+build --apple_platform_type=ios
+build --features=swift.use_global_module_cache
+build --features=swift.cacheable_swiftmodules
+build --features=swift.vfsoverlay
+build --features=-swift.index_while_building_v2

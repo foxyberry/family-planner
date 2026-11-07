@@ -1,0 +1,54 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl", "ios_xctestrun_runner")
+load("@rules_xcodeproj//xcodeproj:defs.bzl", "top_level_target", "xcodeproj")
+load("//:project.bzl", "APP_NAME", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+package(default_visibility = ["//ios:__subpackages__"])
+
+# --- App target: entry point + dependency bootstrap only ---
+
+fp_swift_library(
+    name = "FamilyPlannerApp",
+    srcs = glob(["App/**/*.swift"]),
+)
+
+ios_application(
+    name = APP_NAME,
+    bundle_id = BUNDLE_ID,
+    bundle_name = APP_NAME,
+    families = ["ipad"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = MINIMUM_OS_VERSION,
+    visibility = [
+        "//:__pkg__",
+        "@rules_xcodeproj//xcodeproj:generated",
+    ],
+    deps = [":FamilyPlannerApp"],
+)
+
+# --- Tests ---
+
+# Shared runner for every ios_unit_test: reuses one simulator instead of creating a
+# new one per run (8 GB Mac), and writes no .xcresult bundle (CI keeps no artifacts).
+ios_xctestrun_runner(
+    name = "test_runner",
+    create_xcresult_bundle = False,
+    reuse_simulator = True,
+)
+
+# --- Xcode project (only when Xcode is really needed: `make xcodeproj`) ---
+
+xcodeproj(
+    name = "xcodeproj",
+    bazel_env = {"PATH": "/opt/homebrew/bin:/bin:/usr/bin"},
+    import_index_build_indexstores = True,
+    project_name = APP_NAME,
+    tags = ["manual"],
+    top_level_targets = [
+        top_level_target(
+            label = ":" + APP_NAME,
+            target_environments = ["simulator"],
+        ),
+    ],
+)

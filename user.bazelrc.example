@@ -1,0 +1,14 @@
+# Machine-specific Bazel limits. Copy to user.bazelrc (git-ignored); `make setup` does it for you.
+# Tuned for an 8 GB Mac where Bazel, swiftc and the Simulator compete for memory.
+
+# Cap the Bazel server's JVM heap.
+startup --host_jvm_args=-Xmx2g
+# Shut the Bazel server down after 10 idle minutes to give the memory back.
+startup --max_idle_secs=600
+
+# Let Bazel schedule work as if it only had half the RAM and 4 cores.
+# If memory pressure stays red during a cold build, lower cpu to 2.
+common --local_resources=memory=HOST_RAM*.5
+common --local_resources=cpu=4
+# One persistent Swift compiler worker instead of several.
+common --worker_max_instances=1
