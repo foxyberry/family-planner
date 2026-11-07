@@ -5,15 +5,16 @@
 # Usage:
 #   check-private-terms.sh --staged     check lines added in the staged diff (pre-commit)
 #   check-private-terms.sh <file>...    check whole files
-# Exit code: 0 = clean, 1 = a private term was found.
+# Exit code: 0 = clean, 1 = a private term was found or .private-terms is missing.
 set -u
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 TERMS_FILE="$ROOT/.private-terms"
 
+# Fail closed: a missing list must not silently let private words through.
 if [ ! -f "$TERMS_FILE" ]; then
-  echo "warning: .private-terms not found; skipping private-term check" >&2
-  exit 0
+  echo "error: .private-terms not found. Create it from .private-terms.example (make setup does this)." >&2
+  exit 1
 fi
 
 found=0
@@ -33,10 +34,15 @@ check_text() {
 }
 
 if [ "${1:-}" = "--staged" ]; then
-  while IFS= read -r file; do
+  # NUL-separated, unquoted paths so names with spaces, quotes or non-ASCII characters
+  # reach the per-file diff exactly as staged.
+  while IFS= read -r -d '' file; do
+    # Keep only added lines that come after the first hunk header, minus their leading "+".
+    # (Filtering on "^+++" would also drop real content lines that start with "++".)
     # Process substitution (not a pipe) so check_text runs in this shell and can set $found.
-    check_text "$file" < <(git diff --cached -U0 --diff-filter=ACM -- "$file" | grep '^+' | grep -v '^+++')
-  done < <(git diff --cached --name-only --diff-filter=ACM)
+    check_text "$file" < <(git -c core.quotePath=false diff --cached -U0 --diff-filter=ACM -- "$file" \
+      | awk '/^@@/ { in_hunk = 1; next } in_hunk && /^\+/ { print substr($0, 2) }')
+  done < <(git -c core.quotePath=false diff --cached -z --name-only --diff-filter=ACM)
 else
   for file in "$@"; do
     [ -f "$file" ] && check_text "$file" < "$file"

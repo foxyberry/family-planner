@@ -52,13 +52,33 @@ test_ignores_comments_and_blank_lines() {
   assert test_ignores_comments_and_blank_lines $?
 }
 
-test_missing_terms_file_warns() {
+test_missing_terms_file_fails_closed() {
   new_repo
   printf 'hello\n' > "$REPO/notes.md"
   git -C "$REPO" add notes.md
   run_check --staged
-  [ "$CODE" -eq 0 ] && [[ "$ERR" == *".private-terms not found"* ]]
-  assert test_missing_terms_file_warns $?
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *".private-terms not found"* ]] && [[ "$ERR" == *".private-terms.example"* ]]
+  assert test_missing_terms_file_fails_closed $?
+}
+
+test_blocks_term_in_unusual_filename() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  printf 'zebra stop 99999\n' > "$REPO/my notes \"ü\".md"
+  git -C "$REPO" add -A
+  run_check --staged
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"private term found: Zebra Stop 99999"* ]]
+  assert test_blocks_term_in_unusual_filename $?
+}
+
+test_blocks_term_on_line_starting_with_plus() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  printf '++ zebra stop 99999\n' > "$REPO/notes.md"
+  git -C "$REPO" add notes.md
+  run_check --staged
+  [ "$CODE" -eq 1 ]
+  assert test_blocks_term_on_line_starting_with_plus $?
 }
 
 test_checks_named_files() {
@@ -74,7 +94,9 @@ test_checks_named_files() {
 test_blocks_staged_term
 test_passes_clean_change
 test_ignores_comments_and_blank_lines
-test_missing_terms_file_warns
+test_missing_terms_file_fails_closed
+test_blocks_term_in_unusual_filename
+test_blocks_term_on_line_starting_with_plus
 test_checks_named_files
 
 echo "$PASS passed, $FAIL failed"
