@@ -31,11 +31,11 @@ final class AppFeatureTests: XCTestCase {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()
         } withDependencies: {
-            $0.parentAuth.authenticate = { _ in true }
+            $0.parentAuth.authenticate = { _ in .success }
         }
 
         await store.send(.parentButtonTapped)
-        await store.receive(\.parentAuthResponse, true) {
+        await store.receive(\.parentAuthResponse, .success) {
             // Address the element by its ID: append() here would draw a second ID (#1)
             // from the test's stack-ID generator.
             $0.path[id: 0] = .parentHome(ParentHomeFeature.State())
@@ -46,11 +46,11 @@ final class AppFeatureTests: XCTestCase {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()
         } withDependencies: {
-            $0.parentAuth.authenticate = { _ in false }
+            $0.parentAuth.authenticate = { _ in .notRecognised }
         }
 
         await store.send(.parentButtonTapped)
-        await store.receive(\.parentAuthResponse, false)
+        await store.receive(\.parentAuthResponse, .notRecognised)
         XCTAssertTrue(store.state.path.isEmpty)
     }
 
@@ -86,12 +86,12 @@ final class AppFeatureTests: XCTestCase {
         } withDependencies: {
             $0.parentAuth.authenticate = { received in
                 reason.setValue(received)
-                return false
+                return .notRecognised
             }
         }
 
         await store.send(.parentButtonTapped)
-        await store.receive(\.parentAuthResponse, false)
+        await store.receive(\.parentAuthResponse, .notRecognised)
         XCTAssertEqual(reason.value, "Open parent mode")
     }
 

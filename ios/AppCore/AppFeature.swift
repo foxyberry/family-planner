@@ -32,7 +32,7 @@ public struct AppFeature {
         case task
         case tick(Date)
         case parentButtonTapped
-        case parentAuthResponse(Bool)
+        case parentAuthResponse(ParentAuthOutcome)
         case path(StackActionOf<Path>)
     }
 
@@ -69,11 +69,11 @@ public struct AppFeature {
                     await send(.parentAuthResponse(parentAuth.authenticate("Open parent mode")))
                 }
 
-            case .parentAuthResponse(true):
+            case .parentAuthResponse(.success):
                 state.path.append(.parentHome(ParentHomeFeature.State()))
                 return .none
 
-            case .parentAuthResponse(false):
+            case .parentAuthResponse:
                 return .none
 
             case .path(.element(id: _, action: .parentHome(.galleryButtonTapped))):
