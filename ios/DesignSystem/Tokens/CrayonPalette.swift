@@ -33,6 +33,13 @@ public enum CrayonPalette {
     public static let card = RGB(hex: 0xFFFFFF)
     public static let doneGreen = RGB(hex: 0x9ED39A)
     public static let kidPurple = RGB(hex: 0x9B6BD6)
+    // Clock slot colours (board A1). Text never sits on these, so contrast rules do not apply.
+    public static let mint = RGB(hex: 0x7FD6B5)
+    public static let orange = RGB(hex: 0xF7A84B)
+    public static let green = RGB(hex: 0xA8DB7A)
+    public static let coral = RGB(hex: 0xF9A88A)
+    public static let lilac = RGB(hex: 0xB9A3F0)
+    public static let pink = RGB(hex: 0xF7A8CF)
     // Text (darker shades that pass contrast on paper)
     public static let ink = RGB(hex: 0x2B2833)
     public static let onTimeText = RGB(hex: 0x17744D)

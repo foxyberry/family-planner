@@ -71,6 +71,23 @@ public struct ComponentGallery: View {
                         KidDot(color: CrayonColor.kidBOrange, size: 28)
                     }
                 }
+                section("M2 · Home and lock") {
+                    PieClock(sectors: [
+                        ClockSector(start: 0, end: 420, style: .sleep, iconName: "actSleep", isCurrent: false,
+                                    showsStar: false, priority: 0),
+                        ClockSector(start: 480, end: 900, style: .school, iconName: "actSchool", isCurrent: false,
+                                    showsStar: false, priority: 0),
+                        ClockSector(start: 930, end: 990, style: .afterSchool, iconName: "actSwim", isCurrent: true,
+                                    showsStar: false, priority: 1),
+                        ClockSector(start: 1230, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false,
+                                    showsStar: false, priority: 0),
+                    ], now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30"))
+                    .scaleEffect(0.5)
+                    .frame(width: 480, height: 480)
+                    KidNowNext(now: "teddy", next: "actPlay")
+                    ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",
+                                isDestructive: false, onCancel: {}, onConfirm: {})
+                }
                 section("0f · Frames") {
                     let morning = Capped(["Wake up", "Toilet", "Get dressed", "Breakfast", "Brush teeth"], max: 3)
                     KidScreen {

@@ -1,0 +1,16 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# The kids' home screen: the 24-hour pie clock and the right panel (boards A1, E1, E3).
+fp_swift_library(
+    name = "Home",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Clients/HolidayProvider",
+        "//ios/Clients/ScheduleStore",
+        "//ios/CrayonKit",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/KitArt",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

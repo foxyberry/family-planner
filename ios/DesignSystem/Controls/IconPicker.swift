@@ -2,14 +2,15 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// Picture picker: 88 pt cells, a blue ring on the chosen one, and a final "+" that asks the
-/// child to draw a new picture.
+/// Picture picker: 88 pt cells, a blue ring on the chosen one, and (when `onRequestDrawing` is
+/// given) a final "+" that asks the child to draw a new picture. Drawings arrive in M6; until then
+/// screens leave it out.
 public struct IconPicker: View {
     @Binding private var selection: KitSlot?
     private let slots: [KitSlot]
-    private let onRequestDrawing: () -> Void
+    private let onRequestDrawing: (() -> Void)?
 
-    public init(selection: Binding<KitSlot?>, slots: [KitSlot], onRequestDrawing: @escaping () -> Void) {
+    public init(selection: Binding<KitSlot?>, slots: [KitSlot], onRequestDrawing: (() -> Void)? = nil) {
         _selection = selection
         self.slots = slots
         self.onRequestDrawing = onRequestDrawing
@@ -32,6 +33,7 @@ public struct IconPicker: View {
                 .accessibilityLabel(slot.rawValue)
                 .accessibilityAddTraits(isOn ? .isSelected : [])
             }
+            if let onRequestDrawing {
             Button(action: onRequestDrawing) {
                 Image(systemName: "plus")
                     .font(CrayonType.head.font.weight(.bold))
@@ -41,6 +43,7 @@ public struct IconPicker: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Draw a new picture")
+            }
         }
     }
 }

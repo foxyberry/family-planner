@@ -1,12 +1,16 @@
 import AppCore
 import ComposableArchitecture
+import Domain
+import Grownup
+import ScheduleStore
 import ParentAuthClient
 import SwiftUI
 import XCTest
 
 @MainActor
 final class AppFeatureTests: XCTestCase {
-    private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)
+    private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)   // 08:00 UTC
+    private let minuteOfFixedDate = 480
 
     func testClockTicksEverySecondUntilCancelled() async {
         let clock = TestClock()
@@ -15,6 +19,11 @@ final class AppFeatureTests: XCTestCase {
         } withDependencies: {
             $0.continuousClock = clock
             $0.date.now = fixedDate
+            $0.calendar = {
+                var calendar = Calendar(identifier: .gregorian)
+                calendar.timeZone = TimeZone(identifier: "UTC")!
+                return calendar
+            }()
         }
 
         let task = await store.send(.task)
@@ -22,77 +31,98 @@ final class AppFeatureTests: XCTestCase {
         await store.receive(\.tick, fixedDate) {
             $0.now = self.fixedDate
         }
+        // Before the home screen's first load a tick only moves its minute.
+        await store.receive(\.home.tick, fixedDate) {
+            $0.home.minute = self.minuteOfFixedDate
+        }
         await clock.advance(by: .seconds(1))
         await store.receive(\.tick, fixedDate)
+        await store.receive(\.home.tick, fixedDate)
         await task.cancel()
     }
 
-    func testParentButtonAuthorizedPushesParentHome() async {
-        let store = TestStore(initialState: AppFeature.State()) {
-            AppFeature()
-        } withDependencies: {
-            $0.parentAuth.authenticate = { _ in true }
-        }
-
-        await store.send(.parentButtonTapped)
-        await store.receive(\.parentAuthResponse, true) {
-            // Address the element by its ID: append() here would draw a second ID (#1)
-            // from the test's stack-ID generator.
-            $0.path[id: 0] = .parentHome(ParentHomeFeature.State())
-        }
-    }
-
-    func testParentButtonDeniedStaysHome() async {
-        let store = TestStore(initialState: AppFeature.State()) {
-            AppFeature()
-        } withDependencies: {
-            $0.parentAuth.authenticate = { _ in false }
-        }
-
-        await store.send(.parentButtonTapped)
-        await store.receive(\.parentAuthResponse, false)
-        XCTAssertTrue(store.state.path.isEmpty)
-    }
-
-    func testParentHomeDoneDismisses() async {
+    func testHubBackGoesHome() async {
         var state = AppFeature.State()
-        state.path.append(.parentHome(ParentHomeFeature.State()))
+        state.path.append(.hub(GrownupHubFeature.State()))
+        state.lastGrownupTouch = fixedDate
         let store = TestStore(initialState: state) {
             AppFeature()
+        } withDependencies: {
+            $0.date.now = self.fixedDate
         }
 
-        await store.send(\.path[id: 0].parentHome.doneButtonTapped)
-        await store.receive(\.path.popFrom) {
+        await store.send(\.path[id: 0].hub.backTapped) {
             $0.path = StackState()
+            $0.lastGrownupTouch = nil
         }
     }
 
     func testGalleryButtonPushesGallery() async {
         var state = AppFeature.State()
-        state.path.append(.parentHome(ParentHomeFeature.State()))
+        state.path.append(.hub(GrownupHubFeature.State()))
         let store = TestStore(initialState: state) {
             AppFeature()
+        } withDependencies: {
+            $0.date.now = self.fixedDate
         }
 
-        await store.send(\.path[id: 0].parentHome.galleryButtonTapped) {
+        await store.send(\.path[id: 0].hub.galleryButtonTapped) {
+            $0.lastGrownupTouch = self.fixedDate
             $0.path[id: 1] = .gallery(GalleryFeature.State())
         }
     }
 
-    func testAuthenticateReceivesReason() async {
-        let reason = LockIsolated<String?>(nil)
-        let store = TestStore(initialState: AppFeature.State()) {
+    func testHubAddEveryWeekPushesEditorForTheTabKid() async {
+        var hub = GrownupHubFeature.State()
+        hub.selectedKid = SeedData.kidB.id
+        var state = AppFeature.State()
+        state.path.append(.hub(hub))
+        let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
-            $0.parentAuth.authenticate = { received in
-                reason.setValue(received)
-                return false
-            }
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
         }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].hub.addWeeklyTapped)
+        guard case let .editor(editor) = store.state.path[id: 1] else { return XCTFail("no editor") }
+        XCTAssertEqual(editor.mode, .add(.kid(SeedData.kidB.id)))
+        XCTAssertEqual(editor.form.repeats, .weekly)
+    }
 
-        await store.send(.parentButtonTapped)
-        await store.receive(\.parentAuthResponse, false)
-        XCTAssertEqual(reason.value, "Open parent mode")
+    func testHubJustOnceItemOpensEditOnce() async {
+        let party = ScheduleItem(id: UUID(), title: "Party", iconName: "cake", audience: .both, start: 960, end: 1020,
+                                 recurrence: .once(Day(year: 2027, month: 1, day: 2)), skippedDays: [],
+                                 skipsHolidays: false, showsStar: true)
+        var hub = GrownupHubFeature.State()
+        hub.snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: [party])
+        var state = AppFeature.State()
+        state.path.append(.hub(hub))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].hub.onceItemTapped, party.id)
+        guard case let .editor(editor) = store.state.path[id: 1] else { return XCTFail("no editor") }
+        XCTAssertEqual(editor.mode, .editOnce(party))
+    }
+
+    func testEditorFinishedPopsBackToHub() async {
+        var state = AppFeature.State()
+        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: fixedDate,
+                                                          calendar: Calendar(identifier: .gregorian))))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = self.fixedDate
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 1].editor.delegate.finished)
+        XCTAssertEqual(store.state.path.count, 1)
     }
 
     func testDidFinishLaunchingHasNoSideEffects() async {

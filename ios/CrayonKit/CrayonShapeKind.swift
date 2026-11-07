@@ -7,6 +7,9 @@ public enum CrayonShapeKind: Hashable, Sendable {
     case circle
     /// A rounded box with a tail at the bottom. `tailX` is a 0...1 fraction of the width.
     case speechBubble(tailX: CGFloat, tailHeight: CGFloat)
+    /// A pie slice of the circle that fits the rect, clockwise from 12 o'clock. `endDegrees` may pass
+    /// 360 for a slice across the top (a night that runs past midnight).
+    case sector(startDegrees: Double, endDegrees: Double)
 }
 
 /// Marker line settings. Design defaults: roughness 1.2, bowing 1.4, width 4.

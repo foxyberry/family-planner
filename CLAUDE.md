@@ -24,11 +24,17 @@ Single test target (same flags as `make test`, keeps caches warm):
 Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).
 
 ## Module rules
-- `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients). Keep it under 20 code lines.
+- `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients, one line each).
+  Keep it under 20 code lines, not counting imports.
 - Screens, state and lifecycle live in `ios/AppCore` (and later `ios/Features/*`) as TCA reducers;
   lifecycle callbacks become actions (`AppDelegateBase`, `AppScene`).
 - Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__` only.
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
+- `ios/Domain`: pure rules (Foundation only): kids, routines, schedule items, `DayPlanner`, `SeriesEdits`,
+  copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor).
+- Time comes only from `@Dependency(\.date)`, `\.calendar`, `\.continuousClock`; days are `Day` values
+  and minutes after midnight (0–1440). Tests pin `Asia/Singapore` and a fixed date.
+- Kids are fake seed data (`SeedData`, Kid A / Kid B) until first-run setup (M4).
 
 ## Design system (crayon)
 - Screens use only `DesignSystem` tokens, parts and frames. No color hex, font size numbers or

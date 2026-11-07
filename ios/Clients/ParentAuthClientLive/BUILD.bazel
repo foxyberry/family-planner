@@ -4,6 +4,9 @@ load("//ios:build_defs.bzl", "fp_swift_library")
 # can never depend on it directly (they use //ios/Clients/ParentAuthClient).
 fp_swift_library(
     name = "ParentAuthClientLive",
-    visibility = ["//ios:__pkg__"],
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/Clients/ParentAuthClientLive/Tests:__pkg__",
+    ],
     deps = ["//ios/Clients/ParentAuthClient"],
 )

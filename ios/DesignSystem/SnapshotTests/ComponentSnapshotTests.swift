@@ -188,6 +188,63 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    // MARK: - M2
+
+    private static let seedDay: [ClockSector] = [
+        ClockSector(start: 0, end: 420, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 420, end: 465, style: .morning, iconName: "actBreakfast", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 480, end: 900, style: .school, iconName: "actSchool", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 900, end: 930, style: .play, iconName: "actPlay", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 930, end: 990, style: .afterSchool, iconName: "actSwim", isCurrent: true, showsStar: false, priority: 1),
+        ClockSector(start: 990, end: 1080, style: .play, iconName: "actPlay", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 1080, end: 1140, style: .dinner, iconName: "actDinner", isCurrent: false, showsStar: true, priority: 2),
+        ClockSector(start: 1140, end: 1230, style: .evening, iconName: "actShower", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 1230, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
+    ]
+
+    func testPieClockSeedDay() {
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30"))
+            .padding(110))
+    }
+
+    func testPieClockEmpty() {
+        snap(PieClock(sectors: [], now: nil, hub: .init(title: "Nothing planned", subtitle: nil)).padding(110))
+    }
+
+    func testHubLongTitle() {
+        snap(PieClock(sectors: Self.seedDay, now: 945,
+                      hub: .init(title: "Swimming with the whole class", subtitle: "until 4:30"), holdProgress: 0.6)
+            .padding(110))
+    }
+
+    func testHubLongSingleWord() {
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Supercalifragilistic", subtitle: "until 4:30"))
+            .padding(110))
+    }
+
+    func testKidNowNext() {
+        snap(HStack(spacing: Spacing.xl) {
+            KidNowNext(now: "teddy", next: "actPlay")
+            KidNowNext(now: "actPlay", next: nil)
+        })
+    }
+
+    func testConfirmCard() {
+        snap(ConfirmCard(title: "Remove Swimming every week?",
+                         message: "It leaves Kid A's clock from Mon 16 Nov. Days before stay in the diary.",
+                         cancel: "Keep", confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {}))
+    }
+
+    func testLockOverlayStates() {
+        let states: [(String, LockOverlay.State)] = [
+            ("scanning", .scanning), ("notRecognised", .notRecognised),
+            ("notAvailable", .notAvailable(touchID: false)), ("lockedOut", .lockedOut),
+        ]
+        for (name, state) in states {
+            snap(LockOverlay(state: state, onPrimary: {}, onCancel: {}).frame(width: 1000, height: 600), named: name)
+        }
+    }
+
     // MARK: - Helpers
 
     private func slide(_ state: SlideToGoModel.Phase) -> SlideToGo {

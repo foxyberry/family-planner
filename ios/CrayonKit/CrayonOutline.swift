@@ -14,6 +14,8 @@ extension CrayonGeometry {
             return CGPath(ellipseIn: rect, transform: nil)
         case let .speechBubble(tailX, tailHeight):
             return speechBubblePath(rect: rect, tailX: tailX, tailHeight: tailHeight)
+        case let .sector(start, end):
+            return sectorPath(rect: rect, start: start, end: end)
         }
     }
 
@@ -21,6 +23,19 @@ extension CrayonGeometry {
     /// the size, so large and small shapes wobble alike).
     public static func idealOutline(kind: CrayonShapeKind, in rect: CGRect, spacing: CGFloat) -> [CGPoint] {
         resample(polyline(of: idealPath(kind: kind, in: rect)), spacing: spacing)
+    }
+
+    private static func sectorPath(rect: CGRect, start: Double, end: Double) -> CGPath {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        // Clockwise from 12 o'clock on screen equals the y-down arc from -90° in Core Graphics terms.
+        let toRadians = { (degrees: Double) in CGFloat((degrees - 90) * .pi / 180) }
+        let path = CGMutablePath()
+        path.move(to: center)
+        path.addArc(center: center, radius: radius, startAngle: toRadians(start), endAngle: toRadians(end),
+                    clockwise: false)
+        path.closeSubpath()
+        return path
     }
 
     private static func speechBubblePath(rect: CGRect, tailX: CGFloat, tailHeight: CGFloat) -> CGPath {

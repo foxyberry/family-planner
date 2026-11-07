@@ -1,0 +1,8 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Pure rules of the family's day: kids, routines, schedule items, the day planner, series edits
+# and copy formats. Foundation only: no SwiftUI, TCA or other app modules.
+fp_swift_library(
+    name = "Domain",
+    visibility = ["//ios:__subpackages__"],
+)
