@@ -982,7 +982,7 @@
     },
     "@@rules_xcodeproj+//xcodeproj:extensions.bzl%internal": {
       "general": {
-        "bzlTransitiveDigest": "4jzkeLbFY5apdnm7rZnde5ZrX6A/iPb2HNvX7Eitg28=",
+        "bzlTransitiveDigest": "lY9iWNGstbmcvAL2fHvKX94R5Z0lP5g1VLh6QpDXo4A=",
         "usagesDigest": "jIGu7MPpZAcKPpVjk3pGsqEPKZOcQtfsSDnxMlE7c50=",
         "recordedInputs": [
           "REPO_MAPPING:bazel_features+,bazel_features_globals bazel_features++version_extension+bazel_features_globals",
