@@ -5,6 +5,7 @@
 # Usage:
 #   check-private-terms.sh --staged          check lines added in the staged diff (pre-commit)
 #   check-private-terms.sh --stdin <label>   check text on stdin (commit messages, Claude hooks)
+#   check-private-terms.sh --commits <rev>... check each commit in a range: diff, file names, message, author (pre-push)
 #   check-private-terms.sh <file>...         check whole files
 # Exit code: 0 = clean, 1 = a private term was found, or .private-terms is missing or empty.
 set -u
@@ -40,7 +41,14 @@ check_text() {
   [ -z "$text" ] && return
   while IFS= read -r term || [ -n "$term" ]; do
     case "$term" in ''|\#*) continue ;; esac
-    if printf '%s\n' "$text" | grep -qiF -- "$term"; then
+    # A term made only of digits (a bus stop code) counts only as a whole number, so the
+    # same digits inside a longer number or after a decimal point (SVG coordinates) are not a match.
+    if [[ "$term" =~ ^[0-9]+$ ]]; then
+      # Skip only the fractional part of a decimal ("12.54321"); "no.54321" is still a match.
+      printf '%s\n' "$text" | grep -qE -- "(^|[^0-9.])$term([^0-9]|\$)|(^|[^0-9])\.$term([^0-9]|\$)" || continue
+      echo "private term found: $term in $label" >&2
+      found=1
+    elif printf '%s\n' "$text" | grep -qiF -- "$term"; then
       echo "private term found: $term in $label" >&2
       found=1
     fi
@@ -63,6 +71,21 @@ elif [ "${1:-}" = "--staged" ]; then
     check_text "$file" < <(git -c core.quotePath=false diff --cached -U0 --no-renames --diff-filter=ACMRT -- "$file" \
       | awk '/^@@/ { in_hunk = 1; next } in_hunk && /^\+/ { print substr($0, 2) }')
   done < <(git -c core.quotePath=false diff --cached -z --name-only --no-renames --diff-filter=ACMRT)
+elif [ "${1:-}" = "--commits" ]; then
+  # Every commit that a push publishes, one by one, so a term added in one commit and removed
+  # in the next still counts: history is public too. Args go to git rev-list ("A..B", "B --not --remotes=origin").
+  shift
+  while IFS= read -r commit; do
+    short="${commit:0:12}"
+    check_text "commit $short message" < <(git log -1 --format='%B' "$commit")
+    check_text "commit $short author/committer" < <(git log -1 --format='%an%n%ae%n%cn%n%ce' "$commit")
+    # Merges are compared with their first parent, so content written during the merge is seen.
+    check_text "commit $short file names" < <(git -c core.quotePath=false diff-tree -r --root --no-commit-id \
+      --name-only --no-renames --diff-filter=ACMRT --diff-merges=first-parent "$commit")
+    check_text "commit $short changes" < <(git -c core.quotePath=false diff-tree -p -U0 --root --no-commit-id \
+      --no-renames --diff-filter=ACMRT --diff-merges=first-parent "$commit" \
+      | awk '/^diff --git / { in_hunk = 0; next } /^@@/ { in_hunk = 1; next } in_hunk && /^\+/ { print substr($0, 2) }')
+  done < <(git rev-list "$@")
 else
   for file in "$@"; do
     [ -f "$file" ] && check_text "$file" < "$file"

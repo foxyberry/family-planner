@@ -1,0 +1,34 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "ComponentSnapshotTestsLib",
+    testonly = True,
+    deps = [
+        "//ios/DesignSystem",
+        "//ios/KitArt",
+        "@swiftpkg_swift_snapshot_testing//:SnapshotTesting",
+    ],
+)
+
+# Baselines travel as runfiles (TEST_SRCDIR reaches the simulator process), so the PNGs are
+# compared byte for byte as committed. `make snapshots-record` writes new ones into the source
+# tree through SNAPSHOT_RECORD_DIR.
+ios_unit_test(
+    name = "ComponentSnapshotTests",
+    bundle_id = BUNDLE_ID + ".designsystem.snapshottests",
+    data = glob(
+        ["__Snapshots__/**"],
+        allow_empty = True,
+    ),
+    env_inherit = [
+        "SNAPSHOT_ARTIFACTS",
+        "SNAPSHOT_RECORD_DIR",
+    ],
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    # Designs still change often, so CI (the required check) skips pictures; run them locally.
+    tags = ["snapshot"],
+    deps = [":ComponentSnapshotTestsLib"],
+)

@@ -9,6 +9,10 @@ struct ParentHomeView: View {
             Text("Parent mode").font(.largeTitle)
             Button("Done") { store.send(.doneButtonTapped) }
                 .buttonStyle(.borderedProminent)
+            #if DEBUG
+                Button("Design gallery") { store.send(.galleryButtonTapped) }
+                    .buttonStyle(.bordered)
+            #endif
         }
         .navigationBarBackButtonHidden()
     }

@@ -1,0 +1,11 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Crayon renderer: seeded marker outlines and hachure fills computed on the fly,
+# plus the SwiftUI surface that draws them. No TCA, no other app modules.
+fp_swift_library(
+    name = "CrayonKit",
+    srcs = glob(
+        ["*.swift"],
+    ),
+    visibility = ["//ios:__subpackages__"],
+)

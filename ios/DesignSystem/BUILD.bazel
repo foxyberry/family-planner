@@ -1,0 +1,30 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("//:project.bzl", "BUNDLE_ID")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Playpen Sans (SIL OFL 1.1). See Resources/Fonts/SOURCE.md for origin and checksums.
+apple_resource_bundle(
+    name = "DesignSystemResources",
+    # UIKit and Core Text find resources only in a bundle whose Info.plist has an identifier.
+    bundle_id = BUNDLE_ID + ".designsystem",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = glob(["Resources/Fonts/**"]),
+)
+
+# Crayon design system: tokens, components and screen frames. No TCA dependency.
+fp_swift_library(
+    name = "DesignSystem",
+    srcs = glob(
+        ["**/*.swift"],
+        exclude = [
+            "Tests/**",
+            "SnapshotTests/**",
+        ],
+    ),
+    data = [":DesignSystemResources"],
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/CrayonKit",
+        "//ios/KitArt",
+    ],
+)

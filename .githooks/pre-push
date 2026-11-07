@@ -1,0 +1,78 @@
+#!/bin/bash
+# Pre-push guard for this public repo. Checks exactly what this push publishes:
+#   1. gitleaks: secrets in every commit new to the remote
+#   2. check-private-terms.sh: private words in those commits (diff, file names, message,
+#      author), in the pushed branch or tag names, and in annotated tag messages
+#   3. make lint: when a Bazel file changed (BUILD, .bzl, MODULE.bazel)
+#   4. check-kid-screens.sh: when Swift under ios/ changed (kid screens never scroll)
+#   5. guard tests (scripts/tests/*-test.sh): when a guard script or hook changed
+# pre-commit already checks each commit as it is made; this catches amended, rebased and
+# merged history and anything committed while the hooks were off.
+# Enable with: git config core.hooksPath .githooks   (make setup does this)
+set -euo pipefail
+
+remote="$1"
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+TERMS="$ROOT/scripts/check-private-terms.sh"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-push: gitleaks is not installed. Run: brew install gitleaks" >&2
+  exit 1
+fi
+
+# Read every ref first: the checks below must not eat the hook's stdin.
+refs=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  refs+="$local_ref $local_sha $remote_ref $remote_sha"$'\n'
+done
+
+status=0
+changed=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_ref" ] && continue
+  # Deleting a remote ref publishes nothing new.
+  [[ "$local_sha" =~ ^0+$ ]] && continue
+
+  printf '%s\n%s\n' "$remote_ref" "$local_ref" | "$TERMS" --stdin "ref name" || status=1
+  if [ "$(git cat-file -t "$local_sha")" = tag ]; then
+    git cat-file -p "$local_sha" | "$TERMS" --stdin "tag $remote_ref" || status=1
+  fi
+
+  # New commits only: an update is remote..local; a new ref (or a remote tip we have not
+  # fetched) is everything not already on this remote.
+  if [[ "$remote_sha" =~ ^0+$ ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    range=("$local_sha" --not "--remotes=$remote")
+  else
+    range=("$remote_sha..$local_sha")
+  fi
+  [ -z "$(git rev-list -n 1 "${range[@]}")" ] && continue
+
+  gitleaks git --log-opts="${range[*]}" --redact --no-banner "$ROOT" </dev/null || status=1
+  "$TERMS" --commits "${range[@]}" </dev/null || status=1
+  changed+="$(git log --format= --name-only --no-renames --diff-merges=first-parent "${range[@]}")"$'\n'
+done <<< "$refs"
+
+if printf '%s' "$changed" | grep -Eq '(^|/)(BUILD|BUILD\.bazel|MODULE\.bazel)$|\.bzl$'; then
+  echo "pre-push: Bazel files changed, running make lint" >&2
+  make -s lint </dev/null || status=1
+fi
+
+if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
+  "$ROOT/scripts/check-kid-screens.sh" </dev/null || status=1
+fi
+
+# (pre-push-test.sh pushes too, but from scratch repos that hold no tests, so this never recurses.)
+if printf '%s' "$changed" | grep -Eq '^(scripts/|\.githooks/|\.claude/hooks/|tools/crayon-art/|ios/KitArt/Resources/)'; then
+  for test in scripts/tests/*-test.sh; do
+    [ -f "$test" ] || continue
+    out="$(bash "$test" </dev/null 2>&1)" || {
+      echo "pre-push: guard test failed: $test" >&2
+      printf '%s\n' "$out" | grep -E '^FAIL' >&2 || printf '%s\n' "$out" | tail -5 >&2
+      status=1
+    }
+  done
+fi
+
+[ "$status" -eq 0 ] || echo "pre-push: blocked. Fix the findings above (never --no-verify)." >&2
+exit "$status"

@@ -1,0 +1,3 @@
+# SwiftPM resolve cache and npm installs carry their own BUILD files; keep them out of //...
+.build
+tools/crayon-art/node_modules

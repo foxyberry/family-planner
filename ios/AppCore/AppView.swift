@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import SwiftUI
 
 public struct AppView: View {
@@ -22,6 +23,8 @@ public struct AppView: View {
             switch store.case {
             case let .parentHome(store):
                 ParentHomeView(store: store)
+            case .gallery:
+                ComponentGallery()
             }
         }
     }
