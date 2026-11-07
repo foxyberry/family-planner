@@ -94,8 +94,49 @@ test_public_text_guard_ignores_other_commands() {
   assert test_public_text_guard_ignores_other_commands $?
 }
 
+test_public_text_guard_blocks_gh_api_body() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "gh api repos/o/r/issues -f title=x -f body='near $TERM_TEXT'")"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_gh_api_body $?
+}
+
+test_public_text_guard_blocks_gh_called_by_path() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "/opt/homebrew/bin/gh pr create --title x --body 'near $TERM_TEXT'")"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_gh_called_by_path $?
+}
+
+test_public_text_guard_blocks_positional_gist_file() {
+  new_repo
+  printf 'near %s\n' "$TERM_TEXT" > "$REPO/notes.md"
+  run_hook public-text-guard.sh "$(bash_json "gh gist create --public notes.md")"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_positional_gist_file $?
+}
+
+test_public_text_guard_blocks_command_substitution() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json 'gh pr create --title x --body "$(cat body.txt)"')"
+  [ "$CODE" -eq 2 ] && [[ "$ERR" == *"--body-file"* ]]
+  assert test_public_text_guard_blocks_command_substitution $?
+}
+
+test_public_text_guard_allows_heredoc_commit() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "$(printf 'git commit -m "$(cat <<%sEOF%s\nfeat: add clock\nEOF\n)"' "'" "'")")"
+  [ "$CODE" -eq 0 ]
+  assert test_public_text_guard_allows_heredoc_commit $?
+}
+
 test_write_guard_blocks_term_in_tracked_file
 test_write_guard_allows_term_in_gitignored_file
+test_public_text_guard_blocks_gh_api_body
+test_public_text_guard_blocks_gh_called_by_path
+test_public_text_guard_blocks_positional_gist_file
+test_public_text_guard_blocks_command_substitution
+test_public_text_guard_allows_heredoc_commit
 test_write_guard_allows_clean_write
 test_write_guard_blocks_term_in_edit
 test_write_guard_ignores_files_outside_any_repo
