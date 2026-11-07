@@ -32,10 +32,11 @@ run: build
 	xcrun simctl install booted "$$APP" && \
 	xcrun simctl launch booted $(BUNDLE_ID)
 
+# The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.
 test:
 	$(IOS_BAZEL) test //ios/... \
-	  --test_arg=--device_type --test_arg="$(SIM_DEVICE)" \
-	  --test_arg=--os_version --test_arg="$(SIM_OS)"
+	  --ios_simulator_device="$(SIM_DEVICE)" \
+	  --ios_simulator_version="$(SIM_OS)"
 
 # Give the Simulator's memory back when you are done looking.
 sim-stop:
