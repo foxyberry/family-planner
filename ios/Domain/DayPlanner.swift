@@ -1,0 +1,85 @@
+import Foundation
+
+/// Turns a kid's routine and schedule items into the slots of one day.
+public enum DayPlanner {
+    public static func dayKind(on day: Day, kid: Kid, holidays: Set<Day>, calendar: Calendar) -> DayKind {
+        if holidays.contains(day) { return .dayOff }
+        let days = kid.school?.days ?? Weekday.schoolDays
+        return days.contains(day.weekday(calendar)) ? .schoolDay : .dayOff
+    }
+
+    /// Whether `item` is on `kid`'s day `day`.
+    public static func occurs(_ item: ScheduleItem, on day: Day, kid: Kid.ID, holidays: Set<Day>,
+                              calendar: Calendar) -> Bool {
+        item.audience.includes(kid) && matches(item, on: day, holidays: holidays, calendar: calendar)
+    }
+
+    /// Whether `item` falls on `day` for whoever it is for.
+    static func matches(_ item: ScheduleItem, on day: Day, holidays: Set<Day>, calendar: Calendar) -> Bool {
+        if item.skippedDays.contains(day) { return false }
+        if item.skipsHolidays && holidays.contains(day) { return false }
+        switch item.recurrence {
+        case let .once(date):
+            return date == day
+        case let .weekly(days, from, until):
+            return days.contains(day.weekday(calendar)) && day >= from && (until.map { day <= $0 } ?? true)
+        }
+    }
+
+    /// The day's slots, sorted, never overlapping. When two things share time the higher priority wins
+    /// (just once > every week > routine); between equals the later start wins. Lower ones are cut around it.
+    public static func slots(on day: Day, kid: Kid, routines: [Routine], items: [ScheduleItem],
+                             holidays: Set<Day>, calendar: Calendar) -> [Slot] {
+        let kind = dayKind(on: day, kid: kid, holidays: holidays, calendar: calendar)
+        var candidates: [(priority: Int, slot: Slot)] = []
+        for block in routines.first(where: { $0.kid == kid.id && $0.dayKind == kind })?.blocks ?? [] {
+            candidates.append((0, Slot(title: block.title, iconName: block.iconName, kind: block.kind,
+                                       start: block.start, end: block.end, source: .routine, showsStar: false)))
+        }
+        for item in items where occurs(item, on: day, kid: kid.id, holidays: holidays, calendar: calendar) {
+            let source: Slot.Source = item.isWeekly ? .weekly(item.id) : .once(item.id)
+            candidates.append((item.isWeekly ? 1 : 2,
+                               Slot(title: item.title, iconName: item.iconName, kind: item.kind, start: item.start,
+                                    end: item.end, source: source, showsStar: item.showsStar && !item.isWeekly)))
+        }
+        candidates.sort { ($0.priority, $0.slot.start) > ($1.priority, $1.slot.start) }
+
+        var claimed: [Range<Int>] = []
+        var result: [Slot] = []
+        for (_, slot) in candidates {
+            let start = max(0, slot.start), end = min(1440, slot.end)
+            guard start < end else { continue }
+            for piece in subtract(claimed, from: start..<end) {
+                var part = slot
+                part.start = piece.lowerBound
+                part.end = piece.upperBound
+                result.append(part)
+                claimed.append(piece)
+            }
+        }
+        return result.sorted { $0.start < $1.start }
+    }
+
+    /// The slot running at `minute` and the one after it (or after the gap `minute` is in).
+    public static func now(at minute: Int, in slots: [Slot]) -> (current: Slot?, next: Slot?) {
+        let current = slots.first { $0.start <= minute && minute < $0.end }
+        let after = current?.end ?? minute
+        let next = slots.first { $0.start >= after && $0.start > minute }
+        return (current, next)
+    }
+
+    /// The parts of `range` not covered by any of `taken`.
+    private static func subtract(_ taken: [Range<Int>], from range: Range<Int>) -> [Range<Int>] {
+        var pieces = [range]
+        for cut in taken {
+            pieces = pieces.flatMap { piece -> [Range<Int>] in
+                guard piece.overlaps(cut) else { return [piece] }
+                var parts: [Range<Int>] = []
+                if piece.lowerBound < cut.lowerBound { parts.append(piece.lowerBound..<cut.lowerBound) }
+                if cut.upperBound < piece.upperBound { parts.append(cut.upperBound..<piece.upperBound) }
+                return parts
+            }
+        }
+        return pieces
+    }
+}
