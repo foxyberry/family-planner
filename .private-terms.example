@@ -1,0 +1,4 @@
+# one term per line, case-insensitive, matched as a plain substring
+# copy to .private-terms (git-ignored) and replace with real values
+12345
+Example Primary School

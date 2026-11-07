@@ -1,0 +1,16 @@
+#!/bin/bash
+# Pre-commit guard for this public repo:
+#   1. gitleaks: secrets (API keys, tokens) in the staged changes
+#   2. check-private-terms.sh: private words (home stops, school names, children's names)
+# Enable with: git config core.hooksPath .githooks   (make setup does this)
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed. Run: brew install gitleaks" >&2
+  exit 1
+fi
+gitleaks git --pre-commit --staged --redact --no-banner "$ROOT"
+
+"$ROOT/scripts/check-private-terms.sh" --staged
