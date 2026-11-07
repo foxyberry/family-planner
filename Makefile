@@ -13,7 +13,7 @@ SIM_OS     ?= 26.5
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run test test-one sim-stop xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run test test-one snapshots-record sim-stop art art-private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios
 
 # =============================================================================
@@ -24,17 +24,23 @@ build:
 	$(IOS_BAZEL) build $(APP_TARGET)
 
 # Build first, then boot the simulator, so Bazel and the Simulator never compete
-# for memory at the same time (8 GB Mac).
+# for memory at the same time (8 GB Mac). Tests leave their own BAZEL_TEST_* simulator
+# running, so shut everything down first and address the dev simulator by its UDID.
 run: build
 	@APP=$$(find bazel-bin/ios -name "$(APP_NAME).app" -type d | head -1) && \
+	xcrun simctl shutdown all 2>/dev/null; \
 	xcrun simctl boot "$(SIMULATOR)" 2>/dev/null || true && \
 	open -a Simulator && \
-	xcrun simctl install booted "$$APP" && \
-	xcrun simctl launch booted $(BUNDLE_ID)
+	xcrun simctl install "$(SIMULATOR)" "$$APP" && \
+	xcrun simctl launch "$(SIMULATOR)" $(BUNDLE_ID)
 
 # The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.
+# Failed snapshots leave their new picture in the git-ignored __Diffs__ folder (local runs
+# only: CI does not set SNAPSHOT_ARTIFACTS, keeps no artifacts and logs one line per failure).
+SNAPSHOT_ENV := $(if $(CI),,SNAPSHOT_ARTIFACTS="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Diffs__")
+
 test:
-	$(IOS_BAZEL) test //ios/... \
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test //ios/... \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
@@ -42,9 +48,19 @@ test:
 #   make test-one TARGET=//ios/AppCore/Tests:AppCoreTests
 test-one:
 	@[ -n "$(TARGET)" ] || { echo "usage: make test-one TARGET=//ios/<Pkg>/Tests:<Target>"; exit 2; }
-	$(IOS_BAZEL) test $(TARGET) \
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(TARGET) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
+
+# Re-record the design system snapshot baselines into the source tree (the run itself fails:
+# recording is not a pass). Compare the new pictures with the design boards before committing.
+SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
+snapshots-record:
+	SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Snapshots__" \
+	$(IOS_BAZEL) test $(SNAPSHOT_TARGET) --nocache_test_results \
+	  --ios_simulator_device="$(SIM_DEVICE)" \
+	  --ios_simulator_version="$(SIM_OS)" || true
+	@ls ios/DesignSystem/SnapshotTests/__Snapshots__ | wc -l | xargs echo "baselines:"
 
 # Give the Simulator's memory back when you are done looking.
 sim-stop:
@@ -58,6 +74,18 @@ xcodeproj:
 	fi
 	$(IOS_BAZEL) run //ios:xcodeproj
 	open ios/$(APP_NAME).xcodeproj
+
+# =============================================================================
+# Crayon kit pictures
+# =============================================================================
+
+# Regenerate the public crayon kit (v0 of every drawing slot). Same input, same files.
+art:
+	cd tools/crayon-art && npm ci --no-audit --no-fund && node kit.js . ../../ios/KitArt/Resources/KitArt.xcassets
+
+# Build the local-only override catalog from git-ignored ios/KitArt/Private/<slot>.svg.
+art-private:
+	@./scripts/kitart-private.sh
 
 # =============================================================================
 # Shared

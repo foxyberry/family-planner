@@ -10,6 +10,7 @@ public struct AppFeature {
     @Reducer
     public enum Path {
         case parentHome(ParentHomeFeature)
+        case gallery(GalleryFeature)
     }
 
     @ObservableState
@@ -73,6 +74,10 @@ public struct AppFeature {
                 return .none
 
             case .parentAuthResponse(false):
+                return .none
+
+            case .path(.element(id: _, action: .parentHome(.galleryButtonTapped))):
+                state.path.append(.gallery(GalleryFeature.State()))
                 return .none
 
             case .path:

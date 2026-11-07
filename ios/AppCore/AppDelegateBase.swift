@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import UIKit
 
 /// Owns the root store and turns UIKit lifecycle callbacks into `AppFeature` actions.
@@ -23,6 +24,7 @@ open class AppDelegateBase: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        FontRegistrar.registerAll()
         store.send(.appDelegate(.didFinishLaunching))
         return true
     }

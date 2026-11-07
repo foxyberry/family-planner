@@ -531,7 +531,7 @@
           "REPO_MAPPING:rules_swift_package_manager+,bazel_skylib bazel_skylib+",
           "REPO_MAPPING:rules_swift_package_manager+,bazel_tools bazel_tools",
           "REPO_MAPPING:rules_swift_package_manager+,cgrindel_bazel_starlib cgrindel_bazel_starlib+",
-          "FILE:@@//Package.resolved 0691e07df69abab0afb6986a3d34b29b4e05dccee69ad8e97088089b4f3ad0ba"
+          "FILE:@@//Package.resolved 81c17cfb1b9e432a6a383a06aad67c0ce3041bc11163ea7178bb131f70f0af6f"
         ],
         "generatedRepoSpecs": {
           "swift_package": {
@@ -557,6 +557,7 @@
                 "swiftpkg_swift_navigation",
                 "swiftpkg_swift_perception",
                 "swiftpkg_swift_sharing",
+                "swiftpkg_swift_snapshot_testing",
                 "swiftpkg_swift_syntax",
                 "swiftpkg_xctest_dynamic_overlay"
               ]
@@ -569,6 +570,35 @@
               "commit": "377da4061db10d26337a71bb279c506bb951f50f",
               "remote": "https://github.com/pointfreeco/swift-composable-architecture",
               "version": "1.26.2",
+              "env": {},
+              "env_inherit": [],
+              "cached_json_directory": "",
+              "init_submodules": false,
+              "make_files_read_only": false,
+              "recursive_init_submodules": true,
+              "patch_args": [
+                "-p0"
+              ],
+              "patch_cmds": [],
+              "patch_cmds_win": [],
+              "patch_tool": "",
+              "patches": [],
+              "publicly_expose_all_targets": false,
+              "replace_scm_with_registry": false,
+              "target_deps": {},
+              "module_aliases": {},
+              "dep_module_aliases": "",
+              "bazel_target_mods": "",
+              "package_repos": "@@rules_swift_package_manager++swift_deps+swift_deps_package_repos//:package_repos.json"
+            }
+          },
+          "swiftpkg_swift_snapshot_testing": {
+            "repoRuleId": "@@rules_swift_package_manager+//swiftpkg/internal:swift_package.bzl%swift_package",
+            "attributes": {
+              "bazel_package_name": "swiftpkg_swift_snapshot_testing",
+              "commit": "1488390b0735e726564b948bf08b384398bdab5c",
+              "remote": "https://github.com/pointfreeco/swift-snapshot-testing",
+              "version": "1.19.7",
               "env": {},
               "env_inherit": [],
               "cached_json_directory": "",
@@ -972,6 +1002,7 @@
         "moduleExtensionMetadata": {
           "explicitRootModuleDirectDeps": [
             "swiftpkg_swift_composable_architecture",
+            "swiftpkg_swift_snapshot_testing",
             "swift_package"
           ],
           "explicitRootModuleDirectDevDeps": [],

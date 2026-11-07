@@ -2,7 +2,7 @@
 name: bazel-ios
 description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/lint/fmt/sim-stop, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.1.0
+  version: 0.4.0
   status: experimental
 ---
 
@@ -16,6 +16,21 @@ metadata:
 - "Another command is running" means wait; Bazel serializes commands in one workspace.
 - If memory pressure stays red during a cold build, set `common --local_resources=cpu=2` in
   `user.bazelrc` (git-ignored; created from `user.bazelrc.example` by `make setup`).
+- Tests boot their own `BAZEL_TEST_<device>_<os>` simulator and leave it running. `make run`
+  shuts all simulators down first; after `make test`, run `make sim-stop` if you are not
+  launching the app. Never address a simulator as `booted` when two may be running: use its UDID.
+
+## Simulator Face ID (parent mode)
+
+```bash
+UDID=$(xcrun simctl list devices booted | grep -o '[0-9A-F-]\{36\}' | head -1)
+xcrun simctl spawn $UDID notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
+xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit.enrollmentChanged   # enrolled
+# tap Parent, wait until the Face ID sheet shows, then:
+xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit_Sim.pearl.match      # matching face
+```
+
+Sending the match before the sheet appears does nothing; send it again.
 
 ## Commands
 
@@ -26,6 +41,8 @@ metadata:
 | All tests | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
 | One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |
 | Test log | `bazel-testlogs/ios/<Pkg>/Tests/<Target>/test.log` |
+| Force a re-run | add `--nocache_test_results` (a `(cached) PASSED` line means the test did not run) |
+| See what went into a test bundle | `find -L bazel-out/ios_sim_arm64-fastbuild-*/bin/ios/<Pkg>/Tests -name '*.xctest' -path '*archive-root*'` |
 | BUILD lint / format | `make lint` / `make fmt` |
 | What depends on what | `bazel query 'deps(//ios/AppCore)' --output=label` |
 | Xcode (only when needed) | `make xcodeproj` |
@@ -45,9 +62,47 @@ fp_swift_library(
 Tests live in `<Pkg>/Tests` with an `ios_unit_test` that sets `runner = "//ios:test_runner"`
 (reuses one simulator, writes no .xcresult).
 
+## Resources (pictures, fonts)
+
+```starlark
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+
+apple_resource_bundle(
+    name = "KitArtResources",
+    bundle_id = BUNDLE_ID + ".kitart",
+    infoplists = ["ResourceBundle-Info.plist"],   # must contain CFBundleIdentifier
+    resources = glob(["Resources/KitArt.xcassets/**"]),
+)
+
+fp_swift_library(name = "KitArt", data = [":KitArtResources"])
+```
+
+- The bundle's Info.plist needs `CFBundleIdentifier` set to `${PRODUCT_BUNDLE_IDENTIFIER}`. Without
+  it the bundle is copied (Assets.car is there) but UIKit never finds an image in it.
+- Find the bundle from code with `Bundle(for: <a class in the module>)`: that is the app in the
+  app and the `.xctest` bundle in unhosted tests (`Bundle.main` is the test runner there).
+- Optional local-only resources: `glob([...], allow_empty = True)`; an empty bundle builds fine.
+- Show catalog pictures with SwiftUI `Image(name, bundle:)`. `Image(uiImage:)` rasterizes the
+  asset at its natural size, so preserved vectors blur when scaled up.
+- Check a compiled catalog: `xcrun --sdk iphonesimulator assetutil --info <bundle>/Assets.car`.
+
+## Snapshot tests
+
+- Baselines are `data` runfiles of the `ios_unit_test`; the test reads them under
+  `$TEST_SRCDIR/_main/<package>/__Snapshots__` (the xctestrun runner forwards `TEST_SRCDIR`).
+  Keep PNGs out of resource bundles: rules_apple may recompress them.
+- `#filePath` is relative under Bazel, so never let swift-snapshot-testing pick the folder.
+- Record: `make snapshots-record` (passes `SNAPSHOT_RECORD_DIR` through `env_inherit`; the run
+  reports failures because recording is not a pass). Then run the target again to compare.
+- Unhosted tests render SwiftUI fine through swift-snapshot-testing's `.image(layout:traits:)`.
+- `.sizeThatFits` proposes a zero size: wrap the view in `.fixedSize(...)` or text gets squeezed
+  and truncated. Pin `\.locale` and `\.timeZone` so the simulator's settings never change a picture.
+- Open the recorded PNGs and look at them before committing; a "passing" baseline can be wrong.
+
 ## Adding a Swift package
 
-1. Add it to `Package.swift`, run `swift package resolve`.
+1. Add it to `Package.swift`, run `swift package resolve`, then `rm -rf .build` (its checkouts
+   carry BUILD files that `make lint` would scan; `.bazelignore` keeps them out of `//...`).
 2. Add `swiftpkg_<identity>` to `use_repo(swift_deps, ...)` in `MODULE.bazel` if you depend on it directly.
 3. Build, then commit `Package.swift`, `Package.resolved`, `MODULE.bazel`, `MODULE.bazel.lock`.
 4. Large clones (swift-syntax) can time out on weak networks; retry on a stable connection.
@@ -62,6 +117,8 @@ Tests live in `<Pkg>/Tests` with an `ios_unit_test` that sets `runner = "//ios:t
 | `Unsupported argument '--device_type'` | Use `--ios_simulator_device/--ios_simulator_version` |
 | Library builds but app does not | Building a library alone targets macOS; build the app or a test target |
 | Swift 6 Sendable errors in our code | Capture dependencies explicitly in `.run { [dep] send in ... }` |
+| `call to main actor-isolated static method` warning in tests | Pure helpers inside a `View` inherit main-actor isolation; mark them `nonisolated` |
+| `UIImage(named:in:)` returns nil though the asset exists | Resource bundle Info.plist lacks `CFBundleIdentifier` (see Resources) |
 
 ## CI differences
 

@@ -11,6 +11,7 @@ xcuserdata/
 .swiftpm/
 
 # Private, never published (this is a public repo)
+ios/KitArt/Private/
 docs/private/
 .private-terms
 LocalConfig.*
@@ -34,3 +35,9 @@ CLAUDE.local.md
 
 # macOS
 .DS_Store
+
+# Node (crayon-art generator)
+node_modules/
+
+# Snapshot diffs are produced locally only
+ios/DesignSystem/SnapshotTests/__Diffs__/

@@ -1,0 +1,33 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("//:project.bzl", "BUNDLE_ID")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# The public crayon kit (v0 of every drawing slot). Regenerate with `make art`.
+apple_resource_bundle(
+    name = "KitArtResources",
+    # UIKit only reads an asset catalog from a bundle that has an Info.plist.
+    bundle_id = BUNDLE_ID + ".kitart",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = glob(["Resources/KitArt.xcassets/**"]),
+)
+
+# Private overrides (school mascot, real home) exist only on a developer's machine; the folder
+# is git-ignored, so CI and clones build without them. Build them with `make art-private`.
+apple_resource_bundle(
+    name = "KitArtPrivateResources",
+    bundle_id = BUNDLE_ID + ".kitart.private",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = glob(
+        ["Private/KitArtPrivate.xcassets/**"],
+        allow_empty = True,
+    ),
+)
+
+fp_swift_library(
+    name = "KitArt",
+    data = [
+        ":KitArtPrivateResources",
+        ":KitArtResources",
+    ],
+    visibility = ["//ios:__subpackages__"],
+)

@@ -67,6 +67,18 @@ final class AppFeatureTests: XCTestCase {
         }
     }
 
+    func testGalleryButtonPushesGallery() async {
+        var state = AppFeature.State()
+        state.path.append(.parentHome(ParentHomeFeature.State()))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        }
+
+        await store.send(\.path[id: 0].parentHome.galleryButtonTapped) {
+            $0.path[id: 1] = .gallery(GalleryFeature.State())
+        }
+    }
+
     func testAuthenticateReceivesReason() async {
         let reason = LockIsolated<String?>(nil)
         let store = TestStore(initialState: AppFeature.State()) {

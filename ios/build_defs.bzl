@@ -2,7 +2,7 @@
 
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
-def fp_swift_library(name, srcs = None, deps = [], visibility = None, testonly = False):
+def fp_swift_library(name, srcs = None, deps = [], data = [], visibility = None, testonly = False):
     """A Swift 6 module named after its target.
 
     Every module in ios/ uses this so language mode and naming stay uniform.
@@ -14,6 +14,7 @@ def fp_swift_library(name, srcs = None, deps = [], visibility = None, testonly =
       deps: other modules this one imports.
       visibility: Bazel visibility (who may depend on this module).
       testonly: True for test-only helper modules.
+      data: resource bundles (apple_resource_bundle) this module needs at runtime.
     """
     swift_library(
         name = name,
@@ -22,6 +23,7 @@ def fp_swift_library(name, srcs = None, deps = [], visibility = None, testonly =
         copts = ["-swift-version", "6"],
         tags = ["manual"],
         deps = deps,
+        data = data,
         visibility = visibility,
         testonly = testonly,
     )

@@ -52,6 +52,36 @@ test_stdin_passes_clean_text() {
   assert test_stdin_passes_clean_text $?
 }
 
+test_numeric_term_inside_longer_number_is_ignored() {
+  new_repo
+  printf '54321\n' > "$REPO/.private-terms"
+  printf '<path d="M1.543219 2.0654321 L12.54321"/>\n' > "$REPO/art.svg"
+  git -C "$REPO" add art.svg
+  run_check --staged
+  [ "$CODE" -eq 0 ]
+  assert test_numeric_term_inside_longer_number_is_ignored $?
+}
+
+test_numeric_term_after_word_and_dot_is_blocked() {
+  new_repo
+  printf '54321\n' > "$REPO/.private-terms"
+  printf 'take bus no.54321 home\n' > "$REPO/notes.md"
+  git -C "$REPO" add notes.md
+  run_check --staged
+  [ "$CODE" -eq 1 ]
+  assert test_numeric_term_after_word_and_dot_is_blocked $?
+}
+
+test_numeric_term_on_its_own_is_blocked() {
+  new_repo
+  printf '54321\n' > "$REPO/.private-terms"
+  printf 'wait at stop 54321.\nstop:54321\n' > "$REPO/notes.md"
+  git -C "$REPO" add notes.md
+  run_check --staged
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"private term found: 54321"* ]]
+  assert test_numeric_term_on_its_own_is_blocked $?
+}
+
 test_blocks_staged_term() {
   new_repo
   printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
@@ -161,9 +191,86 @@ test_checks_named_files() {
   assert test_checks_named_files $?
 }
 
+commit_file() { # path, content, message
+  printf '%s\n' "$2" > "$REPO/$1"
+  git -C "$REPO" add -- "$1" && git -C "$REPO" commit -q -m "$3"
+}
+
+test_commits_blocks_term_added_then_removed() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  commit_file notes.md base base
+  local BASE; BASE="$(git -C "$REPO" rev-parse HEAD)"
+  commit_file notes.md 'zebra stop 99999' add
+  commit_file notes.md 'gone again' remove
+  run_check --commits "$BASE..HEAD"
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"private term found: Zebra Stop 99999 in commit "*" changes"* ]]
+  assert test_commits_blocks_term_added_then_removed $?
+}
+
+test_commits_blocks_term_in_message() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  commit_file notes.md clean 'docs: near zebra stop 99999'
+  run_check --commits HEAD
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"message"* ]]
+  assert test_commits_blocks_term_in_message $?
+}
+
+test_commits_blocks_term_in_author() {
+  new_repo
+  printf 'Kid Zebra\n' > "$REPO/.private-terms"
+  printf 'clean\n' > "$REPO/notes.md"
+  git -C "$REPO" add notes.md
+  git -C "$REPO" -c user.name='Kid Zebra' commit -q -m clean
+  run_check --commits HEAD
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"author"* ]]
+  assert test_commits_blocks_term_in_author $?
+}
+
+test_commits_blocks_term_in_file_name() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  commit_file 'zebra stop 99999.md' clean clean
+  run_check --commits HEAD
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"file names"* ]]
+  assert test_commits_blocks_term_in_file_name $?
+}
+
+test_commits_skips_commits_outside_range() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  commit_file notes.md 'zebra stop 99999' old
+  local BASE; BASE="$(git -C "$REPO" rev-parse HEAD)"
+  commit_file other.md clean new
+  run_check --commits "$BASE..HEAD"
+  [ "$CODE" -eq 0 ]
+  assert test_commits_skips_commits_outside_range $?
+}
+
+test_commits_blocks_term_in_merge_resolution() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  commit_file notes.md base base
+  local BASE; BASE="$(git -C "$REPO" rev-parse HEAD)"
+  git -C "$REPO" switch -q -c side
+  commit_file side.md side side
+  git -C "$REPO" switch -q -
+  commit_file main.md main main
+  git -C "$REPO" merge -q --no-commit side >/dev/null 2>&1
+  printf 'zebra stop 99999\n' > "$REPO/evil.md"
+  git -C "$REPO" add evil.md && git -C "$REPO" commit -q -m merge
+  run_check --commits "$BASE..HEAD"
+  [ "$CODE" -eq 1 ]
+  assert test_commits_blocks_term_in_merge_resolution $?
+}
+
 test_worktree_uses_main_checkout_terms
 test_stdin_blocks_term
 test_stdin_passes_clean_text
+test_numeric_term_inside_longer_number_is_ignored
+test_numeric_term_on_its_own_is_blocked
+test_numeric_term_after_word_and_dot_is_blocked
 test_blocks_staged_term
 test_passes_clean_change
 test_ignores_comments_and_blank_lines
@@ -175,6 +282,12 @@ test_missing_terms_file_fails_closed
 test_blocks_term_in_unusual_filename
 test_blocks_term_on_line_starting_with_plus
 test_checks_named_files
+test_commits_blocks_term_added_then_removed
+test_commits_blocks_term_in_message
+test_commits_blocks_term_in_author
+test_commits_blocks_term_in_file_name
+test_commits_skips_commits_outside_range
+test_commits_blocks_term_in_merge_resolution
 
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

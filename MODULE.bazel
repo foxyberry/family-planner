@@ -53,4 +53,5 @@ use_repo(
     swift_deps,
     "swift_package",
     "swiftpkg_swift_composable_architecture",
+    "swiftpkg_swift_snapshot_testing",
 )

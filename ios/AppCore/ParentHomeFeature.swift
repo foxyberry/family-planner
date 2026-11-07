@@ -10,6 +10,8 @@ public struct ParentHomeFeature {
 
     public enum Action {
         case doneButtonTapped
+        /// Debug builds only: opens the design-system gallery (handled by AppFeature).
+        case galleryButtonTapped
     }
 
     @Dependency(\.dismiss) var dismiss
@@ -21,6 +23,9 @@ public struct ParentHomeFeature {
             switch action {
             case .doneButtonTapped:
                 return .run { [dismiss] _ in await dismiss() }
+
+            case .galleryButtonTapped:
+                return .none
             }
         }
     }

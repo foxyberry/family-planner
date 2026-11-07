@@ -18,10 +18,10 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
 
 ## Commands
-make setup | build | run | test | test-one | lint | fmt | xcodeproj | sim-stop | clean
+make setup | build | run | test | test-one | snapshots-record | art | lint | fmt | xcodeproj | sim-stop | clean
 Single test target (same flags as `make test`, keeps caches warm):
 `make test-one TARGET=//ios/AppCore/Tests:AppCoreTests`. Plain `bazel test` skips `ios/.bazelrc`.
-Guard tests: `bash scripts/tests/check-private-terms-test.sh`, `bash scripts/tests/claude-hooks-test.sh`
+Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).
 
 ## Module rules
 - `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients). Keep it under 20 code lines.
@@ -29,6 +29,17 @@ Guard tests: `bash scripts/tests/check-private-terms-test.sh`, `bash scripts/tes
   lifecycle callbacks become actions (`AppDelegateBase`, `AppScene`).
 - Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__` only.
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
+
+## Design system (crayon)
+- Screens use only `DesignSystem` tokens, parts and frames. No color hex, font size numbers or
+  (in kid screens) `ScrollView` outside the part files (`scripts/check-kid-screens.sh` enforces the last).
+- A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
+- Every crayon shape has a fixed seed per part (`CrayonStyle.Seed`).
+- Pictures only through `KitIcon(slot)`, so kid drawings can replace them later.
+- Public pictures come only from `make art`; never hand-edit generated SVGs. The school mascot
+  and home drawings live in git-ignored `ios/KitArt/Private/` (`make art-private`).
+- Snapshots: `make snapshots-record`, then open the PNGs and compare with the design boards
+  before committing. CI logs one line per failed snapshot; diffs stay in local `__Diffs__`.
 
 ## Git flow
 - `feature/*` from `develop`, PR into `develop`. `release/*` and `hotfix/*` go to `main`.
@@ -56,4 +67,7 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
 - Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`.
 - Hooks block private terms in file writes and in commit/tag/PR/issue/release text.
+- Git hooks (`.githooks`, enabled by `make setup`): pre-commit (gitleaks + terms on staged lines),
+  commit-msg, pre-push (gitleaks + terms on every new commit, ref and tag; `make lint` on Bazel
+  changes; guard tests on guard changes).
 - Show the command and its output as evidence before saying a build or test passed.

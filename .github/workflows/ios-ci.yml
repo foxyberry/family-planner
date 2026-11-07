@@ -17,6 +17,8 @@ on:
       - project.bzl
       - BUILD.bazel
       - .github/workflows/ios-ci.yml
+      - .bazelignore
+      - tools/crayon-art/**
   pull_request:
     paths:
       - ios/**
@@ -30,6 +32,8 @@ on:
       - project.bzl
       - BUILD.bazel
       - .github/workflows/ios-ci.yml
+      - .bazelignore
+      - tools/crayon-art/**
   # Manual re-run button (for example, to check how much the cache saves).
   workflow_dispatch:
 
@@ -94,6 +98,8 @@ jobs:
 
       # Test logs are printed only for failures (--test_output=errors in .bazelrc).
       # No artifacts are uploaded and no environment is printed: CI logs of a public
-      # repo are public.
+      # repo are public. A failed snapshot prints one line (its name and the share of
+      # pixels that changed); diff images are written only on local runs, into the
+      # git-ignored ios/DesignSystem/SnapshotTests/__Diffs__ (SNAPSHOT_ARTIFACTS).
       - name: Test
         run: make test SIM_DEVICE="$SIM_DEVICE" SIM_OS="$SIM_OS"

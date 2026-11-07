@@ -1,0 +1,9 @@
+{
+  "name": "crayon-art",
+  "private": true,
+  "description": "Generates the public crayon kit (KitArt.xcassets). Run via `make art`.",
+  "license": "MIT",
+  "dependencies": {
+    "roughjs": "4.6.6"
+  }
+}

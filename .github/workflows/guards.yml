@@ -38,3 +38,9 @@ jobs:
         run: bash scripts/tests/check-private-terms-test.sh
       - name: Claude hook tests
         run: bash scripts/tests/claude-hooks-test.sh
+      - name: Pre-push hook tests
+        run: bash scripts/tests/pre-push-test.sh
+      - name: Crayon kit catalog test
+        run: bash scripts/tests/kitart-catalog-test.sh
+      - name: Kid screen check tests
+        run: bash scripts/tests/check-kid-screens-test.sh
