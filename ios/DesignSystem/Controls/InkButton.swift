@@ -16,6 +16,7 @@ public struct InkButton: View {
             Text(title)
                 .crayonType(.head)
                 .foregroundStyle(CrayonColor.card)
+                .padding(.horizontal, Spacing.l)
                 .frame(maxWidth: .infinity, minHeight: 96)
                 .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.ink, seed: CrayonStyle.Seed.inkButton)
         }

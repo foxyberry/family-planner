@@ -19,7 +19,7 @@ public struct ComponentGallery: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
                 section("0b · Controls") {
-                    InkButton("Missions →") {}
+                    InkButton("Missions") {}
                     HStack(spacing: Spacing.m) {
                         KidPillButton("Swimming", icon: .actSwim) {}
                         RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back") {}

@@ -25,7 +25,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
     // MARK: - 0b Controls
 
-    func testInkButton() { snap(InkButton("Missions →") {}) }
+    func testInkButton() { snap(InkButton("Missions") {}) }
 
     func testKidPillButton() { snap(KidPillButton("Swimming", icon: .actSwim) {}) }
 

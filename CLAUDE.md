@@ -36,6 +36,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
 - Every crayon shape has a fixed seed per part (`CrayonStyle.Seed`).
 - Pictures only through `KitIcon(slot)`, so kid drawings can replace them later.
+- Playpen Sans has no arrows or ticks (→ ← ✓). The system fallback for them differs between
+  iOS versions (snapshots break on CI), so draw them with a part or symbol, never in text.
 - Public pictures come only from `make art`; never hand-edit generated SVGs. The school mascot
   and home drawings live in git-ignored `ios/KitArt/Private/` (`make art-private`).
 - Snapshots: `make snapshots-record`, then open the PNGs and compare with the design boards
