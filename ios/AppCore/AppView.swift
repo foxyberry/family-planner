@@ -6,6 +6,7 @@ import SwiftUI
 
 public struct AppView: View {
     @Bindable var store: StoreOf<AppFeature>
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(store: StoreOf<AppFeature>) {
         self.store = store
@@ -14,7 +15,9 @@ public struct AppView: View {
     public var body: some View {
         ZStack {
             navigation
-            if store.coversGrownupScreens {
+            // Also read the scene phase here, so the cover is drawn before the system takes its snapshot
+            // even if the reducer has not seen the change yet.
+            if store.coversGrownupScreens || (scenePhase != .active && !store.path.isEmpty) {
                 CrayonColor.paper.ignoresSafeArea()
             }
             if let lock = store.lock {

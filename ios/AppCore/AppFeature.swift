@@ -33,9 +33,13 @@ public struct AppFeature {
 
         public init() {}
 
+        /// Set when the app stops being active with grown-up screens open; cleared only once it is
+        /// active again, so the cover outlasts the relock that empties `path` during backgrounding.
+        public var coverUntilActive = false
+
         /// Grown-up screens are hidden whenever the app is not active, so the app-switcher snapshot
         /// and brief interruptions (Control Center) never show them to a child.
-        public var coversGrownupScreens: Bool { scenePhase != .active && !path.isEmpty }
+        public var coversGrownupScreens: Bool { scenePhase != .active && (coverUntilActive || !path.isEmpty) }
     }
 
     public enum AppDelegateAction: Equatable {
@@ -79,6 +83,11 @@ public struct AppFeature {
 
             case let .scenePhaseChanged(phase):
                 state.scenePhase = phase
+                if phase == .active {
+                    state.coverUntilActive = false
+                } else if !state.path.isEmpty {
+                    state.coverUntilActive = true
+                }
                 if phase == .background { relock(&state) }
                 return .none
 
