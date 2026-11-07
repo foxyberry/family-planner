@@ -67,7 +67,8 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testIconPicker() {
         snap(IconPicker(selection: .constant(.actSwim),
-                        slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {})
+                        slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {},
+             width: Self.rowWidth)
     }
 
     func testTimeLeft() {
