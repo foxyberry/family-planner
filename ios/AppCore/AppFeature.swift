@@ -1,8 +1,10 @@
 import ComposableArchitecture
+import DesignSystem
 import Foundation
 import Home
 import ParentAuthClient
 import SwiftUI
+import UIKit
 
 /// Root of the app. Lifecycle events arrive here as actions so they can be tested
 /// like any other feature; the app target only forwards them.
@@ -20,6 +22,12 @@ public struct AppFeature {
         public var scenePhase: ScenePhase = .inactive
         public var path = StackState<Path.State>()
         public var home = HomeFeature.State()
+        /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
+        public var lock: LockOverlay.State?
+        /// When a grown-up last touched a grown-up screen; grown-up screens close 2 minutes after it.
+        public var lastGrownupTouch: Date?
+        /// "Locks in 0:30" during the last 30 seconds, shown instead of "Grown-ups only".
+        public var relockCaption: String?
 
         public init() {}
     }
@@ -34,6 +42,9 @@ public struct AppFeature {
         case task
         case tick(Date)
         case parentAuthResponse(ParentAuthOutcome)
+        case lockPrimaryTapped
+        case lockCancelTapped
+        case grownupTouched
         case path(StackActionOf<Path>)
         case home(HomeFeature.Action)
     }
@@ -41,6 +52,13 @@ public struct AppFeature {
     @Dependency(\.continuousClock) var clock
     @Dependency(\.date) var date
     @Dependency(\.parentAuth) var parentAuth
+    @Dependency(\.openURL) var openURL
+
+    /// Grown-up screens close after this long without a touch.
+    static let idleLimit: TimeInterval = 120
+    /// The countdown caption shows for this long before they close.
+    static let countdown: TimeInterval = 30
+    static let settingsURL = URL(string: UIApplication.openSettingsURLString)!
 
     public init() {}
 
@@ -54,6 +72,7 @@ public struct AppFeature {
 
             case let .scenePhaseChanged(phase):
                 state.scenePhase = phase
+                if phase == .background { relock(&state) }
                 return .none
 
             case .task:
@@ -65,18 +84,63 @@ public struct AppFeature {
 
             case let .tick(now):
                 state.now = now
+                if !state.path.isEmpty, let last = state.lastGrownupTouch {
+                    let idle = now.timeIntervalSince(last)
+                    if idle >= Self.idleLimit {
+                        relock(&state)
+                    } else if idle >= Self.idleLimit - Self.countdown {
+                        state.relockCaption = "Locks in 0:\(String(format: "%02d", Int(Self.idleLimit - idle)))"
+                    } else {
+                        state.relockCaption = nil
+                    }
+                }
                 return .send(.home(.tick(now)))
 
             case .home(.clockHoldCompleted):
-                return .run { [parentAuth] send in
-                    await send(.parentAuthResponse(parentAuth.authenticate("Open parent mode")))
-                }
+                state.lock = .scanning
+                return authenticate()
 
             case .parentAuthResponse(.success):
+                state.lock = nil
+                state.lastGrownupTouch = date.now
                 state.path.append(.parentHome(ParentHomeFeature.State()))
                 return .none
 
-            case .parentAuthResponse:
+            case .parentAuthResponse(.notRecognised):
+                state.lock = .notRecognised
+                return .none
+
+            case .parentAuthResponse(.cancelled):
+                state.lock = nil
+                return .none
+
+            case .parentAuthResponse(.notAvailable):
+                state.lock = .notAvailable(touchID: parentAuth.biometry() == .touchID)
+                return .none
+
+            case .parentAuthResponse(.lockedOut):
+                state.lock = .lockedOut
+                return .none
+
+            case .lockPrimaryTapped:
+                switch state.lock {
+                case .notRecognised:
+                    state.lock = .scanning
+                    return authenticate()
+                case .notAvailable:
+                    state.lock = nil
+                    return .run { [openURL] _ in await openURL(Self.settingsURL) }
+                default:
+                    return .none
+                }
+
+            case .lockCancelTapped:
+                state.lock = nil
+                return .none
+
+            case .grownupTouched:
+                state.lastGrownupTouch = date.now
+                state.relockCaption = nil
                 return .none
 
             case .path(.element(id: _, action: .parentHome(.galleryButtonTapped))):
@@ -88,6 +152,20 @@ public struct AppFeature {
             }
         }
         .forEach(\.path, action: \.path)
+    }
+
+    private func authenticate() -> Effect<Action> {
+        .run { [parentAuth] send in
+            await send(.parentAuthResponse(parentAuth.authenticate("Open grown-up screens")))
+        }
+    }
+
+    /// Back to the home screen; the next grown-up screen needs Face ID again. Unsaved forms are dropped.
+    private func relock(_ state: inout State) {
+        state.path.removeAll()
+        state.lastGrownupTouch = nil
+        state.relockCaption = nil
+        state.lock = nil
     }
 }
 

@@ -42,3 +42,8 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
         .foregroundStyle(CrayonColor.ink)
     }
 }
+
+extension EnvironmentValues {
+    /// Replaces the "Grown-ups only" header caption during the relock countdown ("Locks in 0:30").
+    @Entry public var relockCaption: String? = nil
+}

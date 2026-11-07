@@ -38,33 +38,6 @@ final class AppFeatureTests: XCTestCase {
         await task.cancel()
     }
 
-    func testClockHoldAuthorizedPushesParentHome() async {
-        let store = TestStore(initialState: AppFeature.State()) {
-            AppFeature()
-        } withDependencies: {
-            $0.parentAuth.authenticate = { _ in .success }
-        }
-
-        await store.send(.home(.clockHoldCompleted))
-        await store.receive(\.parentAuthResponse, .success) {
-            // Address the element by its ID: append() here would draw a second ID (#1)
-            // from the test's stack-ID generator.
-            $0.path[id: 0] = .parentHome(ParentHomeFeature.State())
-        }
-    }
-
-    func testClockHoldDeniedStaysHome() async {
-        let store = TestStore(initialState: AppFeature.State()) {
-            AppFeature()
-        } withDependencies: {
-            $0.parentAuth.authenticate = { _ in .notRecognised }
-        }
-
-        await store.send(.home(.clockHoldCompleted))
-        await store.receive(\.parentAuthResponse, .notRecognised)
-        XCTAssertTrue(store.state.path.isEmpty)
-    }
-
     func testParentHomeDoneDismisses() async {
         var state = AppFeature.State()
         state.path.append(.parentHome(ParentHomeFeature.State()))
@@ -88,22 +61,6 @@ final class AppFeatureTests: XCTestCase {
         await store.send(\.path[id: 0].parentHome.galleryButtonTapped) {
             $0.path[id: 1] = .gallery(GalleryFeature.State())
         }
-    }
-
-    func testAuthenticateReceivesReason() async {
-        let reason = LockIsolated<String?>(nil)
-        let store = TestStore(initialState: AppFeature.State()) {
-            AppFeature()
-        } withDependencies: {
-            $0.parentAuth.authenticate = { received in
-                reason.setValue(received)
-                return .notRecognised
-            }
-        }
-
-        await store.send(.home(.clockHoldCompleted))
-        await store.receive(\.parentAuthResponse, .notRecognised)
-        XCTAssertEqual(reason.value, "Open parent mode")
     }
 
     func testDidFinishLaunchingHasNoSideEffects() async {

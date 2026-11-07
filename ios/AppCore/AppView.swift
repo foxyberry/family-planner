@@ -11,6 +11,16 @@ public struct AppView: View {
     }
 
     public var body: some View {
+        ZStack {
+            navigation
+            if let lock = store.lock {
+                LockOverlay(state: lock, onPrimary: { store.send(.lockPrimaryTapped) },
+                            onCancel: { store.send(.lockCancelTapped) })
+            }
+        }
+    }
+
+    private var navigation: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             HomeView(store: store.scope(state: \.home, action: \.home))
                 .toolbar(.hidden, for: .navigationBar)
@@ -23,5 +33,10 @@ public struct AppView: View {
                 ComponentGallery()
             }
         }
+        // Any touch on a grown-up screen keeps it open for another 2 minutes.
+        .simultaneousGesture(DragGesture(minimumDistance: 0).onEnded { _ in
+            if !store.path.isEmpty { store.send(.grownupTouched) }
+        })
+        .environment(\.relockCaption, store.relockCaption)
     }
 }
