@@ -1,0 +1,17 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Grown-up screens behind the Face ID lock: the Our kids hub and the schedule editor
+# (boards C1, E6, C3, C4, C3k, E5).
+fp_swift_library(
+    name = "Grownup",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Clients/HolidayProvider",
+        "//ios/Clients/ScheduleStore",
+        "//ios/CrayonKit",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/KitArt",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

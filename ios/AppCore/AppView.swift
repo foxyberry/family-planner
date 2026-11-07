@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import DesignSystem
+import Grownup
 import Home
 import SwiftUI
 
@@ -27,8 +28,8 @@ public struct AppView: View {
                 .task { await store.send(.task).finish() }
         } destination: { store in
             switch store.case {
-            case let .parentHome(store):
-                ParentHomeView(store: store)
+            case let .hub(store):
+                GrownupHubView(store: store)
             case .gallery:
                 ComponentGallery()
             }

@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import DesignSystem
 import Foundation
+import Grownup
 import Home
 import ParentAuthClient
 import SwiftUI
@@ -12,7 +13,7 @@ import UIKit
 public struct AppFeature {
     @Reducer
     public enum Path {
-        case parentHome(ParentHomeFeature)
+        case hub(GrownupHubFeature)
         case gallery(GalleryFeature)
     }
 
@@ -103,7 +104,7 @@ public struct AppFeature {
             case .parentAuthResponse(.success):
                 state.lock = nil
                 state.lastGrownupTouch = date.now
-                state.path.append(.parentHome(ParentHomeFeature.State()))
+                state.path.append(.hub(GrownupHubFeature.State()))
                 return .none
 
             case .parentAuthResponse(.notRecognised):
@@ -143,7 +144,13 @@ public struct AppFeature {
                 state.relockCaption = nil
                 return .none
 
-            case .path(.element(id: _, action: .parentHome(.galleryButtonTapped))):
+            case .path(.element(id: _, action: .hub(.backTapped))):
+                state.path.removeAll()
+                state.lastGrownupTouch = nil
+                state.relockCaption = nil
+                return .none
+
+            case .path(.element(id: _, action: .hub(.galleryButtonTapped))):
                 state.path.append(.gallery(GalleryFeature.State()))
                 return .none
 

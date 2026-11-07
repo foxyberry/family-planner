@@ -1,5 +1,6 @@
 import AppCore
 import ComposableArchitecture
+import Grownup
 import ParentAuthClient
 import SwiftUI
 import XCTest
@@ -38,27 +39,28 @@ final class AppFeatureTests: XCTestCase {
         await task.cancel()
     }
 
-    func testParentHomeDoneDismisses() async {
+    func testHubBackGoesHome() async {
         var state = AppFeature.State()
-        state.path.append(.parentHome(ParentHomeFeature.State()))
+        state.path.append(.hub(GrownupHubFeature.State()))
+        state.lastGrownupTouch = fixedDate
         let store = TestStore(initialState: state) {
             AppFeature()
         }
 
-        await store.send(\.path[id: 0].parentHome.doneButtonTapped)
-        await store.receive(\.path.popFrom) {
+        await store.send(\.path[id: 0].hub.backTapped) {
             $0.path = StackState()
+            $0.lastGrownupTouch = nil
         }
     }
 
     func testGalleryButtonPushesGallery() async {
         var state = AppFeature.State()
-        state.path.append(.parentHome(ParentHomeFeature.State()))
+        state.path.append(.hub(GrownupHubFeature.State()))
         let store = TestStore(initialState: state) {
             AppFeature()
         }
 
-        await store.send(\.path[id: 0].parentHome.galleryButtonTapped) {
+        await store.send(\.path[id: 0].hub.galleryButtonTapped) {
             $0.path[id: 1] = .gallery(GalleryFeature.State())
         }
     }

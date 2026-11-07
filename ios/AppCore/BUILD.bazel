@@ -8,6 +8,7 @@ fp_swift_library(
     deps = [
         "//ios/Clients/ParentAuthClient",
         "//ios/DesignSystem",
+        "//ios/Features/Grownup",
         "//ios/Features/Home",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],

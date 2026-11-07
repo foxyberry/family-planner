@@ -1,5 +1,6 @@
 @testable import AppCore
 import ComposableArchitecture
+import Grownup
 import DesignSystem
 import Foundation
 import ParentAuthClient
@@ -12,7 +13,7 @@ final class ParentLockTests: XCTestCase {
 
     private func unlockedState() -> AppFeature.State {
         var state = AppFeature.State()
-        state.path.append(.parentHome(ParentHomeFeature.State()))
+        state.path.append(.hub(GrownupHubFeature.State()))
         state.lastGrownupTouch = start
         return state
     }
@@ -34,7 +35,7 @@ final class ParentLockTests: XCTestCase {
         await store.receive(\.parentAuthResponse, .success) {
             $0.lock = nil
             $0.lastGrownupTouch = self.start
-            $0.path[id: 0] = .parentHome(ParentHomeFeature.State())
+            $0.path[id: 0] = .hub(GrownupHubFeature.State())
         }
         XCTAssertEqual(reason.value, "Open grown-up screens")
     }
