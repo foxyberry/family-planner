@@ -11,6 +11,12 @@ package(default_visibility = ["//ios:__subpackages__"])
 fp_swift_library(
     name = "FamilyPlannerApp",
     srcs = glob(["App/**/*.swift"]),
+    deps = [
+        "//ios/AppCore",
+        "//ios/Clients/ParentAuthClient",
+        "//ios/Clients/ParentAuthClientLive",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
 )
 
 ios_application(
