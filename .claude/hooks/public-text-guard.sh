@@ -19,9 +19,17 @@ printf '%s' "$CMD" | grep -Eq "$GH|$GIT_TEXT" || exit 0
 
 # Text produced by command substitution is invisible here. A literal heredoc ($(cat <<'EOF' ...))
 # is fine because its text is part of the command line; anything else must go through a file.
+# Any other shell expansion ($VAR, ${...}, `...`, <(...)) hides the real text too.
 WITHOUT_HEREDOC="$(printf '%s' "$CMD" | sed -E 's/\$\(cat <<//g')"
-if printf '%s' "$WITHOUT_HEREDOC" | grep -Eq '\$\(|`'; then
-  echo "Blocked: published text built with \$(...) or backticks cannot be checked for private terms. Write it to a file and pass --body-file / -F <file> instead." >&2
+if printf '%s' "$WITHOUT_HEREDOC" | grep -Eq '\$\(|`|\$\{|\$[A-Za-z_0-9]|<\(|>\('; then
+  echo "Blocked: published text built with shell expansion (\$VAR, \${...}, \$(...), backticks, <(...)) cannot be checked for private terms. Write it to a file and pass --body-file / -F <file> instead." >&2
+  exit 2
+fi
+
+# Text read from stdin ("-F -", "--body-file -", "@-") is only visible when it is a literal heredoc.
+if printf '%s' "$CMD" | grep -Eq '(--body-file|--notes-file|--file|--input|-F)[= ]+-([[:space:]]|$)|@-([[:space:]]|$)' \
+  && ! printf '%s' "$CMD" | grep -q '<<'; then
+  echo "Blocked: published text read from stdin cannot be checked for private terms. Write it to a file and pass --body-file / -F <file> instead." >&2
   exit 2
 fi
 
@@ -35,6 +43,7 @@ printf '%s\n' "$CMD" | "$CHECK" --stdin "command text" || blocked=1
 # gh gist create <file>, release notes files...). Scan every token that is a file.
 while IFS= read -r f || [ -n "$f" ]; do
   f="${f#*=}"; f="${f#\"}"; f="${f%\"}"; f="${f#\'}"; f="${f%\'}"
+  f="${f#@}"  # gh api -F body=@file reads the file
   [ -n "$f" ] && [ -f "$f" ] && { "$CHECK" "$f" || blocked=1; }
 done < <(printf '%s' "$CMD" | tr -s ' \t\n;&|' '\n')
 

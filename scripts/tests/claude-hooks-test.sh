@@ -130,8 +130,49 @@ test_public_text_guard_allows_heredoc_commit() {
   assert test_public_text_guard_allows_heredoc_commit $?
 }
 
+test_public_text_guard_blocks_at_file_reference() {
+  new_repo
+  printf 'near %s\n' "$TERM_TEXT" > "$REPO/note.md"
+  run_hook public-text-guard.sh "$(bash_json "gh api repos/o/r/issues -f title=x -F body=@note.md")"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_at_file_reference $?
+}
+
+test_public_text_guard_blocks_variable_expansion() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json 'gh pr create --title x --body "$BODY"')"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_variable_expansion $?
+}
+
+test_public_text_guard_blocks_process_substitution() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json 'gh pr create --title x --body-file <(make_body)')"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_process_substitution $?
+}
+
+test_public_text_guard_blocks_piped_stdin_body() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json 'make_body | gh pr create --title x --body-file -')"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_piped_stdin_body $?
+}
+
+test_public_text_guard_allows_heredoc_stdin_body() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "$(printf 'gh pr create --title x --body-file - <<%sEOF%s\nSummary: add clock\nEOF' "'" "'")")"
+  [ "$CODE" -eq 0 ]
+  assert test_public_text_guard_allows_heredoc_stdin_body $?
+}
+
 test_write_guard_blocks_term_in_tracked_file
 test_write_guard_allows_term_in_gitignored_file
+test_public_text_guard_blocks_at_file_reference
+test_public_text_guard_blocks_variable_expansion
+test_public_text_guard_blocks_process_substitution
+test_public_text_guard_blocks_piped_stdin_body
+test_public_text_guard_allows_heredoc_stdin_body
 test_public_text_guard_blocks_gh_api_body
 test_public_text_guard_blocks_gh_called_by_path
 test_public_text_guard_blocks_positional_gist_file
