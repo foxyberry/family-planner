@@ -24,7 +24,8 @@ Single test target (same flags as `make test`, keeps caches warm):
 Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).
 
 ## Module rules
-- `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients). Keep it under 20 code lines.
+- `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients, one line each).
+  Keep it under 20 code lines, not counting imports.
 - Screens, state and lifecycle live in `ios/AppCore` (and later `ios/Features/*`) as TCA reducers;
   lifecycle callbacks become actions (`AppDelegateBase`, `AppScene`).
 - Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__` only.

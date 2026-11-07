@@ -13,6 +13,8 @@ fp_swift_library(
     srcs = glob(["App/**/*.swift"]),
     deps = [
         "//ios/AppCore",
+        "//ios/Clients/HolidayProvider",
+        "//ios/Clients/HolidayProviderLive",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ParentAuthClientLive",
         "//ios/Clients/ScheduleStore",

@@ -1,0 +1,24 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("//:project.bzl", "BUNDLE_ID")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Singapore public holidays from MOM's published list (see Resources/SOURCE.md).
+apple_resource_bundle(
+    name = "HolidayProviderResources",
+    bundle_id = BUNDLE_ID + ".holidays",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = ["Resources/sg-public-holidays.json"],
+)
+
+fp_swift_library(
+    name = "HolidayProviderLive",
+    data = [":HolidayProviderResources"],
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/Clients/HolidayProviderLive/Tests:__pkg__",
+    ],
+    deps = [
+        "//ios/Clients/HolidayProvider",
+        "//ios/Domain",
+    ],
+)
