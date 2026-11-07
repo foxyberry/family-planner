@@ -1,0 +1,14 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# SwiftData store on the device. Visible to the app target (and its own tests) only.
+fp_swift_library(
+    name = "ScheduleStoreLive",
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/Clients/ScheduleStoreLive/Tests:__pkg__",
+    ],
+    deps = [
+        "//ios/Clients/ScheduleStore",
+        "//ios/Domain",
+    ],
+)

@@ -1,0 +1,11 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Interface only. The on-device store lives in ScheduleStoreLive, which only the app target may use.
+fp_swift_library(
+    name = "ScheduleStore",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Domain",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

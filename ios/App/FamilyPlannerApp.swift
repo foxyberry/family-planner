@@ -4,11 +4,14 @@ import AppCore
 import ComposableArchitecture
 import ParentAuthClient
 import ParentAuthClientLive
+import ScheduleStore
+import ScheduleStoreLive
 import SwiftUI
 
 final class AppDelegate: AppDelegateBase {
     override func bootstrap(_ dependencies: inout DependencyValues) {
         dependencies.parentAuth = .live
+        dependencies.scheduleStore = .live(directory: .applicationSupportDirectory, calendar: .current, now: { Date() })
     }
 }
 
