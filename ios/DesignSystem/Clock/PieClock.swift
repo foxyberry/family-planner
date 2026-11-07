@@ -148,6 +148,8 @@ public struct PieClock: View {
                     ForEach(Self.hubTitleCandidates(title), id: \.self) { candidate in
                         Text(candidate).crayonType(.head).fixedSize()
                     }
+                    // A word too long for the hub: cut it with "…" rather than spill past the disc.
+                    Text(title).crayonType(.head).lineLimit(1).truncationMode(.tail)
                 }
                 .foregroundStyle(CrayonColor.ink)
                 .frame(maxWidth: 260)

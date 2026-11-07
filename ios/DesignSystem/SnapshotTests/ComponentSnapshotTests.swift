@@ -217,6 +217,11 @@ final class ComponentSnapshotTests: XCTestCase {
             .padding(110))
     }
 
+    func testHubLongSingleWord() {
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Supercalifragilistic", subtitle: "until 4:30"))
+            .padding(110))
+    }
+
     func testKidNowNext() {
         snap(HStack(spacing: Spacing.xl) {
             KidNowNext(now: "teddy", next: "actPlay")

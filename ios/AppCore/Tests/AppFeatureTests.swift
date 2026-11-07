@@ -47,6 +47,8 @@ final class AppFeatureTests: XCTestCase {
         state.lastGrownupTouch = fixedDate
         let store = TestStore(initialState: state) {
             AppFeature()
+        } withDependencies: {
+            $0.date.now = self.fixedDate
         }
 
         await store.send(\.path[id: 0].hub.backTapped) {
@@ -60,9 +62,12 @@ final class AppFeatureTests: XCTestCase {
         state.path.append(.hub(GrownupHubFeature.State()))
         let store = TestStore(initialState: state) {
             AppFeature()
+        } withDependencies: {
+            $0.date.now = self.fixedDate
         }
 
         await store.send(\.path[id: 0].hub.galleryButtonTapped) {
+            $0.lastGrownupTouch = self.fixedDate
             $0.path[id: 1] = .gallery(GalleryFeature.State())
         }
     }
@@ -112,6 +117,8 @@ final class AppFeatureTests: XCTestCase {
                                                           calendar: Calendar(identifier: .gregorian))))
         let store = TestStore(initialState: state) {
             AppFeature()
+        } withDependencies: {
+            $0.date.now = self.fixedDate
         }
         store.exhaustivity = .off
         await store.send(\.path[id: 1].editor.delegate.finished)

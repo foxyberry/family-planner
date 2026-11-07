@@ -31,6 +31,8 @@ public struct ItemEditorFeature {
         public var datePage = 0
         public var confirm: Confirm?
         public var saveError: String?
+        /// A save, skip or remove is on its way to the store; further taps wait for it.
+        public var isSaving = false
         /// The every-week item as saved right now (skips are saved at once, board E5).
         public var weeklyItem: ScheduleItem?
         /// The date "Skip just …" skipped, while it can still be undone.
@@ -67,7 +69,11 @@ public struct ItemEditorFeature {
 
         public var title: String { isAdding ? "Add to the day" : "Edit \(original.name)" }
         public var primaryTitle: String { isAdding ? "Add to the clock" : "Save changes" }
-        public var problem: FormProblem? { form.problem(today: today, nowMinute: nowMinute) }
+        /// While editing, an event that already started keeps its start time without "That time has passed".
+        public var problem: FormProblem? {
+            let keptStart = !isAdding && form.date == original.date ? original.start : nil
+            return form.problem(today: today, nowMinute: nowMinute, keptStart: keptStart)
+        }
         public var hasChanges: Bool { form != original }
 
         /// Five dates from today, a week per page (board C4).
@@ -78,7 +84,7 @@ public struct ItemEditorFeature {
         public var overlapCaption: String? {
             guard let snapshot else { return nil }
             return form.overlapCaption(items: snapshot.items, kids: snapshot.kids, holidays: holidays,
-                                       editing: editingItem?.id, calendar: calendar)
+                                       editing: editingItem?.id, today: today, calendar: calendar)
         }
 
         public var confirmTitle: String? {
@@ -197,7 +203,8 @@ public struct ItemEditorFeature {
                 return .none
 
             case .saveTapped:
-                guard state.problem == nil else { return .none }
+                guard state.problem == nil, !state.isSaving else { return .none }
+                state.isSaving = true
                 state.saveError = nil
                 let id = state.editingItem?.id ?? uuid()
                 var item = state.form.item(id: id, today: state.today)
@@ -222,14 +229,17 @@ public struct ItemEditorFeature {
                 }
 
             case .skipNextTapped:
-                guard let weekly = state.weeklyItem, let day = state.skipCandidate else { return .none }
+                guard !state.isSaving, let weekly = state.weeklyItem, let day = state.skipCandidate else { return .none }
+                state.isSaving = true
                 return save(SeriesEdits.skipping(weekly, day: day), skipped: day)
 
             case .undoSkipTapped:
-                guard let weekly = state.weeklyItem, let day = state.skippedDay else { return .none }
+                guard !state.isSaving, let weekly = state.weeklyItem, let day = state.skippedDay else { return .none }
+                state.isSaving = true
                 return save(SeriesEdits.unskipping(weekly, day: day), skipped: nil)
 
             case let .skipSaved(item, skipped):
+                state.isSaving = false
                 state.weeklyItem = item
                 state.skippedDay = skipped
                 return .none
@@ -239,9 +249,11 @@ public struct ItemEditorFeature {
                 return .none
 
             case .saved(true):
+                // Stays "saving": the screen is leaving, and a late second tap must not save again.
                 return .send(.delegate(.finished))
 
             case .saved(false):
+                state.isSaving = false
                 state.saveError = "Couldn't save. Try again."
                 return .none
 
@@ -261,14 +273,22 @@ public struct ItemEditorFeature {
             case .confirmAccepted:
                 let confirm = state.confirm
                 state.confirm = nil
+                if confirm != .leave {
+                    guard !state.isSaving else { return .none }
+                    state.isSaving = true
+                }
                 switch confirm {
                 case .leave:
                     return .send(.delegate(.finished))
                 case .removeOnce:
                     guard let id = state.editingItem?.id else { return .none }
                     return .run { [scheduleStore] send in
-                        try? await scheduleStore.delete(id)
-                        await send(.removed)
+                        do {
+                            try await scheduleStore.delete(id)
+                            await send(.removed)
+                        } catch {
+                            await send(.saved(false))
+                        }
                     }
                 case .removeSeries:
                     guard let weekly = state.weeklyItem else { return .none }

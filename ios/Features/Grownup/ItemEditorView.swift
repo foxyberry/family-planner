@@ -36,8 +36,8 @@ public struct ItemEditorView: View {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     InkButton(store.primaryTitle) { store.send(.saveTapped) }
                         .frame(width: 382)
-                        .opacity(store.problem == nil ? 1 : 0.4)
-                        .disabled(store.problem != nil)
+                        .opacity(store.problem == nil && !store.isSaving ? 1 : 0.4)
+                        .disabled(store.problem != nil || store.isSaving)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                     }

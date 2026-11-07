@@ -88,6 +88,24 @@ final class ItemFormTests: XCTestCase {
                        "Party shows on the clock then.")
     }
 
+    func testNoOverlapCaptionForEndedSeriesOrPastEvents() {
+        let ended = F.weekly(until: Day(year: 2026, month: 11, day: 8))
+        XCTAssertNil(form().overlapCaption(items: [ended], kids: SeedData.kids, holidays: [], editing: nil,
+                                           calendar: F.calendar))
+        let pastParty = F.once("Party", on: Day(year: 2026, month: 11, day: 4), start: 900, end: 1080)
+        XCTAssertNil(form().overlapCaption(items: [pastParty], kids: SeedData.kids, holidays: [], editing: nil,
+                                           calendar: F.calendar))
+    }
+
+    func testNoOverlapCaptionWithOwnOldHalfAfterSplit() {
+        // The old half ends today; the new half (being edited) starts tomorrow.
+        let old = F.weekly(until: F.monday)
+        var newHalf = form()
+        newHalf.date = Day(year: 2026, month: 11, day: 10)
+        XCTAssertNil(newHalf.overlapCaption(items: [old], kids: SeedData.kids, holidays: [], editing: UUID(),
+                                            calendar: F.calendar))
+    }
+
     func testNoOverlapCaptionForOtherKidOrEditedItem() {
         let swimB = F.weekly(kid: SeedData.kidB)
         XCTAssertNil(form().overlapCaption(items: [swimB], kids: SeedData.kids, holidays: [], editing: nil,

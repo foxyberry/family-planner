@@ -170,6 +170,23 @@ final class ParentLockTests: XCTestCase {
         XCTAssertFalse(store.state.coversGrownupScreens)
     }
 
+    func testWorkingInAGrownupScreenCountsAsActivity() async {
+        var state = unlockedState()
+        state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: start,
+                                                          calendar: Calendar(identifier: .gregorian))))
+        state.relockCaption = "Locks in 0:10"
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: { [start] in
+            $0.date.now = start.addingTimeInterval(110)
+        }
+        store.exhaustivity = .off
+        // Typing never reaches the touch gesture (the keyboard is another window); the reducer sees it.
+        await store.send(\.path[id: 1].editor.binding, .set(\.form.name, "Pottery"))
+        XCTAssertEqual(store.state.lastGrownupTouch, start.addingTimeInterval(110))
+        XCTAssertNil(store.state.relockCaption)
+    }
+
     func testIdleTimerIgnoredOnHome() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()

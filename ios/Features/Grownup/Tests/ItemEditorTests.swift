@@ -113,6 +113,71 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.visibleDates.first, Day(year: 2026, month: 11, day: 16))
     }
 
+    func testDoubleTapSavesOnce() async {
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let store = store(mode: .add(kidA), saved: saved)
+        await fill(store)
+        await store.send(.saveTapped)
+        await store.send(.saveTapped)
+        await store.finish()
+        XCTAssertEqual(saved.value.count, 1)
+    }
+
+    func testSaveRetryAfterFailureSaves() async {
+        let fail = LockIsolated(true)
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let now = F.monday.date(minute: 600, calendar: F.calendar)
+        let store = TestStore(initialState: ItemEditorFeature.State(mode: .add(kidA), now: now, calendar: F.calendar)) {
+            ItemEditorFeature()
+        } withDependencies: {
+            $0.calendar = F.calendar
+            $0.date.now = now
+            $0.uuid = .incrementing
+            $0.scheduleStore.save = { item in
+                if fail.value { throw CocoaError(.fileWriteUnknown) }
+                saved.withValue { $0.append(item) }
+            }
+        }
+        store.exhaustivity = .off
+        await fill(store)
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        fail.setValue(false)
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        await store.receive(\.delegate.finished)
+        XCTAssertEqual(saved.value.count, 1)
+    }
+
+    func testDeleteFailureStaysAndSaysSo() async {
+        let party = F.once("Party", on: Day(year: 2026, month: 11, day: 14))
+        let now = F.monday.date(minute: 600, calendar: F.calendar)
+        let store = TestStore(initialState: ItemEditorFeature.State(mode: .editOnce(party), now: now,
+                                                                    calendar: F.calendar)) {
+            ItemEditorFeature()
+        } withDependencies: {
+            $0.calendar = F.calendar
+            $0.date.now = now
+            $0.scheduleStore.delete = { _ in throw CocoaError(.fileWriteUnknown) }
+        }
+        store.exhaustivity = .off
+        await store.send(.removeTapped)
+        await store.send(.confirmAccepted)
+        await store.receive(\.saved)
+        XCTAssertEqual(store.state.saveError, "Couldn't save. Try again.")
+    }
+
+    func testEditingARunningEventIsAllowed() {
+        // Party 8:00–10:00 pm today; at 9:00 pm a grown-up stretches it to 11:00.
+        let party = F.once("Party", on: F.monday, start: 1200, end: 1320)
+        var state = ItemEditorFeature.State(mode: .editOnce(party), now: F.monday.date(minute: 1260, calendar: F.calendar),
+                                            calendar: F.calendar)
+        state.form.end = 1380
+        XCTAssertNil(state.problem)
+        state.form.start = 1230
+        XCTAssertEqual(state.problem, .timePassed, "moving the start into the past is still blocked")
+    }
+
     func testEditOnceRemoveAsksAndDeletes() async {
         let party = F.once("Party", on: Day(year: 2026, month: 11, day: 14))
         let deleted = LockIsolated<[UUID]>([])

@@ -75,6 +75,15 @@ public struct AppFeature {
 
     public var body: some ReducerOf<Self> {
         Scope(state: \.home, action: \.home) { HomeFeature() }
+        // Working in a grown-up screen (typing, picking, saving) keeps it open: the keyboard is a separate
+        // window, so the touch gesture never sees typing.
+        Reduce { state, action in
+            if case .path(.element) = action, !state.path.isEmpty {
+                state.lastGrownupTouch = date.now
+                state.relockCaption = nil
+            }
+            return .none
+        }
         Reduce { state, action in
             switch action {
             case .appDelegate(.didFinishLaunching):

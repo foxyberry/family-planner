@@ -90,11 +90,12 @@ public struct ItemForm: Equatable, Sendable {
     }
 
     /// The first problem, in the order the rows read.
-    public func problem(today: Day, nowMinute: Int) -> FormProblem? {
+    /// `keptStart`: when editing, the saved start time, which may already have passed.
+    public func problem(today: Day, nowMinute: Int, keptStart: Int? = nil) -> FormProblem? {
         if name.trimmingCharacters(in: .whitespaces).isEmpty { return .noName }
         if end <= start { return .endsBeforeStart }
         if repeats == .weekly && days.isEmpty { return .noDay }
-        if repeats == .once && date == today && start < nowMinute { return .timePassed }
+        if repeats == .once && date == today && start < nowMinute && start != keptStart { return .timePassed }
         return nil
     }
 
@@ -102,12 +103,15 @@ public struct ItemForm: Equatable, Sendable {
     public var durationCaption: String? { end > start ? TimeText.duration(end - start) : nil }
 
     /// A note under "When" if another item for the same kid shares this time (not blocking).
+    /// Only items still ahead count: a stopped series or a past event says nothing.
     public func overlapCaption(items: [ScheduleItem], kids: [Kid], holidays: Set<Day>, editing: ScheduleItem.ID?,
-                               calendar: Calendar) -> String? {
+                               today: Day? = nil, calendar: Calendar) -> String? {
         let mine = kids.filter { audience.includes($0.id) }.map(\.id)
+        let from = max(date, today ?? date)
         for other in items where other.id != editing && other.start < end && start < other.end {
             let shared = mine.filter { other.audience.includes($0) }
-            guard let kid = shared.first, sharesDay(with: other, kid: kid, holidays: holidays, calendar: calendar)
+            guard let kid = shared.first,
+                  sharesDay(with: other, kid: kid, from: from, holidays: holidays, calendar: calendar)
             else { continue }
             let myPriority = repeats == .once ? 2 : 1
             let otherPriority = other.isWeekly ? 1 : 2
@@ -119,14 +123,15 @@ public struct ItemForm: Equatable, Sendable {
         return nil
     }
 
-    private func sharesDay(with other: ScheduleItem, kid: Kid.ID, holidays: Set<Day>, calendar: Calendar) -> Bool {
+    private func sharesDay(with other: ScheduleItem, kid: Kid.ID, from: Day, holidays: Set<Day>,
+                           calendar: Calendar) -> Bool {
         switch (repeats, other.recurrence) {
         case (.once, _):
             return DayPlanner.occurs(other, on: date, kid: kid, holidays: holidays, calendar: calendar)
-        case let (.weekly, .weekly(otherDays, _, _)):
-            return !days.isDisjoint(with: otherDays)
+        case let (.weekly, .weekly(otherDays, _, until)):
+            return !days.isDisjoint(with: otherDays) && (until.map { $0 >= from } ?? true)
         case let (.weekly, .once(day)):
-            return days.contains(day.weekday(calendar))
+            return day >= from && days.contains(day.weekday(calendar))
         }
     }
 
