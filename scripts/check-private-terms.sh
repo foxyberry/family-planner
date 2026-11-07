@@ -3,13 +3,21 @@
 # Terms live in the git-ignored .private-terms file: one per line, case-insensitive substring match.
 #
 # Usage:
-#   check-private-terms.sh --staged     check lines added in the staged diff (pre-commit)
-#   check-private-terms.sh <file>...    check whole files
+#   check-private-terms.sh --staged          check lines added in the staged diff (pre-commit)
+#   check-private-terms.sh --stdin <label>   check text on stdin (commit messages, Claude hooks)
+#   check-private-terms.sh <file>...         check whole files
 # Exit code: 0 = clean, 1 = a private term was found or .private-terms is missing.
 set -u
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 TERMS_FILE="$ROOT/.private-terms"
+# A linked git worktree has no git-ignored files of its own; fall back to the main checkout's list.
+if [ ! -f "$TERMS_FILE" ]; then
+  COMMON_DIR="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+  if [ -n "$COMMON_DIR" ] && [ -f "$(dirname "$COMMON_DIR")/.private-terms" ]; then
+    TERMS_FILE="$(dirname "$COMMON_DIR")/.private-terms"
+  fi
+fi
 
 # Fail closed: a missing list must not silently let private words through.
 if [ ! -f "$TERMS_FILE" ]; then
@@ -33,7 +41,9 @@ check_text() {
   done < "$TERMS_FILE"
 }
 
-if [ "${1:-}" = "--staged" ]; then
+if [ "${1:-}" = "--stdin" ]; then
+  check_text "${2:-stdin}"
+elif [ "${1:-}" = "--staged" ]; then
   # NUL-separated, unquoted paths so names with spaces, quotes or non-ASCII characters
   # reach the per-file diff exactly as staged.
   while IFS= read -r -d '' file; do

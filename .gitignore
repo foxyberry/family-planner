@@ -21,10 +21,16 @@ LocalConfig.*
 # Agent working files
 .superpowers/
 .claude/*
+!.claude/settings.json
+!.claude/hooks/
+!.claude/hooks/**
+!.claude/agents/
+!.claude/agents/**
 !.claude/rules/
 !.claude/rules/**
 !.claude/skills/
 !.claude/skills/**
+CLAUDE.local.md
 
 # macOS
 .DS_Store

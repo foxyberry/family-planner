@@ -22,6 +22,36 @@ assert() { # name, condition result (0 = ok)
   if [ "$2" -eq 0 ]; then PASS=$((PASS + 1)); echo "PASS $1"; else FAIL=$((FAIL + 1)); echo "FAIL $1 (code=$CODE err=$ERR)"; fi
 }
 
+test_worktree_uses_main_checkout_terms() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  printf 'base\n' > "$REPO/README.md"
+  git -C "$REPO" add README.md && git -C "$REPO" commit -q -m base
+  local WT="$REPO-wt"
+  git -C "$REPO" worktree add -q "$WT" -b wt-test
+  printf 'zebra stop 99999\n' > "$WT/notes.md"
+  git -C "$WT" add notes.md
+  ERR="$(cd "$WT" && bash "$SCRIPT" --staged 2>&1 >/dev/null)"; CODE=$?
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"private term found: Zebra Stop 99999"* ]]
+  assert test_worktree_uses_main_checkout_terms $?
+}
+
+test_stdin_blocks_term() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  ERR="$(cd "$REPO" && printf 'title\nmeet at ZEBRA stop 99999\n' | bash "$SCRIPT" --stdin "commit message" 2>&1 >/dev/null)"; CODE=$?
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"private term found: Zebra Stop 99999 in commit message"* ]]
+  assert test_stdin_blocks_term $?
+}
+
+test_stdin_passes_clean_text() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  ERR="$(cd "$REPO" && printf 'feat: add clock\n' | bash "$SCRIPT" --stdin "commit message" 2>&1 >/dev/null)"; CODE=$?
+  [ "$CODE" -eq 0 ]
+  assert test_stdin_passes_clean_text $?
+}
+
 test_blocks_staged_term() {
   new_repo
   printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
@@ -91,6 +121,9 @@ test_checks_named_files() {
   assert test_checks_named_files $?
 }
 
+test_worktree_uses_main_checkout_terms
+test_stdin_blocks_term
+test_stdin_passes_clean_text
 test_blocks_staged_term
 test_passes_clean_change
 test_ignores_comments_and_blank_lines
