@@ -13,7 +13,7 @@ SIM_OS     ?= 26.5
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run test sim-stop xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run test test-one sim-stop xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios
 
 # =============================================================================
@@ -35,6 +35,14 @@ run: build
 # The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.
 test:
 	$(IOS_BAZEL) test //ios/... \
+	  --ios_simulator_device="$(SIM_DEVICE)" \
+	  --ios_simulator_version="$(SIM_OS)"
+
+# One test target with the same flags as `make test` (keeps Bazel's caches warm):
+#   make test-one TARGET=//ios/AppCore/Tests:AppCoreTests
+test-one:
+	@[ -n "$(TARGET)" ] || { echo "usage: make test-one TARGET=//ios/<Pkg>/Tests:<Target>"; exit 2; }
+	$(IOS_BAZEL) test $(TARGET) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 

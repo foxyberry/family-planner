@@ -74,12 +74,52 @@ test_passes_clean_change() {
 
 test_ignores_comments_and_blank_lines() {
   new_repo
-  printf '# comment\n\n' > "$REPO/.private-terms"
-  printf 'anything at all\n' > "$REPO/notes.md"
+  printf '# comment\n\nZebra Stop 99999\n' > "$REPO/.private-terms"
+  printf 'comment and blank lines are not terms\n' > "$REPO/notes.md"
   git -C "$REPO" add notes.md
   run_check --staged
   [ "$CODE" -eq 0 ]
   assert test_ignores_comments_and_blank_lines $?
+}
+
+test_list_without_terms_fails_closed() {
+  new_repo
+  printf '# comment\n\n' > "$REPO/.private-terms"
+  printf 'anything at all\n' > "$REPO/notes.md"
+  git -C "$REPO" add notes.md
+  run_check --staged
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"no terms"* ]]
+  assert test_list_without_terms_fails_closed $?
+}
+
+test_blocks_term_in_renamed_file() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  printf 'line one\nline two\nline three\nline four\n' > "$REPO/notes.md"
+  git -C "$REPO" add notes.md && git -C "$REPO" commit -q -m base
+  git -C "$REPO" mv notes.md renamed.md
+  printf 'zebra stop 99999\n' >> "$REPO/renamed.md"
+  git -C "$REPO" add renamed.md
+  run_check --staged
+  [ "$CODE" -eq 1 ]
+  assert test_blocks_term_in_renamed_file $?
+}
+
+test_blocks_term_in_file_name() {
+  new_repo
+  printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
+  mkdir -p "$REPO/routes"
+  printf 'clean content\n' > "$REPO/routes/zebra stop 99999.md"
+  git -C "$REPO" add routes
+  run_check --staged
+  [ "$CODE" -eq 1 ]
+  assert test_blocks_term_in_file_name $?
+}
+
+test_example_list_has_no_active_terms() {
+  ! grep -Ev '^[[:space:]]*(#|$)' "$(dirname "$SCRIPT")/../.private-terms.example" >/dev/null
+  CODE=$?; ERR="example has active terms"
+  assert test_example_list_has_no_active_terms $CODE
 }
 
 test_missing_terms_file_fails_closed() {
@@ -95,7 +135,7 @@ test_blocks_term_in_unusual_filename() {
   new_repo
   printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
   printf 'zebra stop 99999\n' > "$REPO/my notes \"ü\".md"
-  git -C "$REPO" add -A
+  git -C "$REPO" add -- "my notes \"ü\".md"
   run_check --staged
   [ "$CODE" -eq 1 ] && [[ "$ERR" == *"private term found: Zebra Stop 99999"* ]]
   assert test_blocks_term_in_unusual_filename $?
@@ -127,6 +167,10 @@ test_stdin_passes_clean_text
 test_blocks_staged_term
 test_passes_clean_change
 test_ignores_comments_and_blank_lines
+test_list_without_terms_fails_closed
+test_blocks_term_in_renamed_file
+test_blocks_term_in_file_name
+test_example_list_has_no_active_terms
 test_missing_terms_file_fails_closed
 test_blocks_term_in_unusual_filename
 test_blocks_term_on_line_starting_with_plus

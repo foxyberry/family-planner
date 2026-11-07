@@ -18,9 +18,9 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
 
 ## Commands
-make setup | build | run | test | lint | fmt | xcodeproj | sim-stop | clean
-Single test target:
-`bazel test //ios/AppCore/Tests:AppCoreTests --ios_simulator_device="iPad Pro 13-inch (M5)" --ios_simulator_version=26.5`
+make setup | build | run | test | test-one | lint | fmt | xcodeproj | sim-stop | clean
+Single test target (same flags as `make test`, keeps caches warm):
+`make test-one TARGET=//ios/AppCore/Tests:AppCoreTests`. Plain `bazel test` skips `ios/.bazelrc`.
 Guard tests: `bash scripts/tests/check-private-terms-test.sh`, `bash scripts/tests/claude-hooks-test.sh`
 
 ## Module rules

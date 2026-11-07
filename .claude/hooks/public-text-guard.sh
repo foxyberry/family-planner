@@ -21,14 +21,18 @@ printf '%s' "$CMD" | grep -Eq "$GH|$GIT_TEXT" || exit 0
 # is fine because its text is part of the command line; anything else must go through a file.
 # Any other shell expansion ($VAR, ${...}, `...`, <(...)) hides the real text too.
 WITHOUT_HEREDOC="$(printf '%s' "$CMD" | sed -E 's/\$\(cat <<//g')"
-if printf '%s' "$WITHOUT_HEREDOC" | grep -Eq '\$\(|`|\$\{|\$[A-Za-z_0-9]|<\(|>\('; then
+if printf '%s' "$WITHOUT_HEREDOC" | grep -Eq "\\\$\\(|\`|\\\$\\{|\\\$[A-Za-z_0-9]|\\\$'|\\\$\"|<\\(|>\\("; then
   echo "Blocked: published text built with shell expansion (\$VAR, \${...}, \$(...), backticks, <(...)) cannot be checked for private terms. Write it to a file and pass --body-file / -F <file> instead." >&2
   exit 2
 fi
 
-# Text read from stdin ("-F -", "--body-file -", "@-") is only visible when it is a literal heredoc.
-if printf '%s' "$CMD" | grep -Eq '(--body-file|--notes-file|--file|--input|-F)[= ]+-([[:space:]]|$)|@-([[:space:]]|$)' \
-  && ! printf '%s' "$CMD" | grep -q '<<'; then
+# Text read from stdin ("-F -", "--body-file -", "@-", a bare "-" argument) is only visible when
+# it is a literal heredoc on a single command. A pipe means another command produced it.
+STDIN_BODY='(--body-file|--notes-file|--file|--input|-F)[= ]+-([[:space:]]|$)|@-([[:space:]]|$)'
+# A bare "-" means stdin only for gh gist create; elsewhere " - " is ordinary text (bullets).
+GIST_STDIN='gh[[:space:]]+gist[[:space:]].*[[:space:]]-([[:space:]]|$)'
+if printf '%s' "$CMD" | grep -Eq "$STDIN_BODY|$GIST_STDIN" \
+  && { ! printf '%s' "$CMD" | grep -q '<<' || printf '%s' "$CMD" | grep -q '|'; }; then
   echo "Blocked: published text read from stdin cannot be checked for private terms. Write it to a file and pass --body-file / -F <file> instead." >&2
   exit 2
 fi

@@ -166,8 +166,40 @@ test_public_text_guard_allows_heredoc_stdin_body() {
   assert test_public_text_guard_allows_heredoc_stdin_body $?
 }
 
+test_public_text_guard_blocks_ansi_c_quoting() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "gh pr create --title x --body \$'line\\nmore'")"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_ansi_c_quoting $?
+}
+
+test_public_text_guard_blocks_piped_body_even_with_heredoc_elsewhere() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "$(printf 'make_body | gh pr create --title x --body-file - && cat <<%sEOF%s\nunrelated\nEOF' "'" "'")")"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_piped_body_even_with_heredoc_elsewhere $?
+}
+
+test_public_text_guard_blocks_positional_stdin() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "gh gist create --public - < body.md")"
+  [ "$CODE" -eq 2 ]
+  assert test_public_text_guard_blocks_positional_stdin $?
+}
+
+test_public_text_guard_allows_bulleted_commit_message() {
+  new_repo
+  run_hook public-text-guard.sh "$(bash_json "$(printf 'git commit -m "feat: add guards\n\n- first - item\n- second item"')")"
+  [ "$CODE" -eq 0 ]
+  assert test_public_text_guard_allows_bulleted_commit_message $?
+}
+
 test_write_guard_blocks_term_in_tracked_file
 test_write_guard_allows_term_in_gitignored_file
+test_public_text_guard_allows_bulleted_commit_message
+test_public_text_guard_blocks_ansi_c_quoting
+test_public_text_guard_blocks_piped_body_even_with_heredoc_elsewhere
+test_public_text_guard_blocks_positional_stdin
 test_public_text_guard_blocks_at_file_reference
 test_public_text_guard_blocks_variable_expansion
 test_public_text_guard_blocks_process_substitution

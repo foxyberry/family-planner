@@ -23,6 +23,11 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Keep findings out of public places: no SARIF artifact, no PR comments, no job
+          # summary. A failing run still fails the check; read details locally with gitleaks.
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          GITLEAKS_ENABLE_SUMMARY: "false"
 
   # Unit tests for the privacy guards themselves (they use fake terms only).
   guard-tests:

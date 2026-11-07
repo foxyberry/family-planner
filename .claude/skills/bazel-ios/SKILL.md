@@ -24,7 +24,7 @@ metadata:
 | Build app | `make build` |
 | Build + launch on simulator | `make run` |
 | All tests | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
-| One test target | `bazel test //ios/<Pkg>/Tests:<Target> --ios_simulator_device="iPad Pro 13-inch (M5)" --ios_simulator_version=26.5` |
+| One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |
 | Test log | `bazel-testlogs/ios/<Pkg>/Tests/<Target>/test.log` |
 | BUILD lint / format | `make lint` / `make fmt` |
 | What depends on what | `bazel query 'deps(//ios/AppCore)' --output=label` |

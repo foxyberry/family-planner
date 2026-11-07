@@ -14,6 +14,8 @@ on:
       - Package.swift
       - Package.resolved
       - Makefile
+      - project.bzl
+      - BUILD.bazel
       - .github/workflows/ios-ci.yml
   pull_request:
     paths:
@@ -25,6 +27,8 @@ on:
       - Package.swift
       - Package.resolved
       - Makefile
+      - project.bzl
+      - BUILD.bazel
       - .github/workflows/ios-ci.yml
   # Manual re-run button (for example, to check how much the cache saves).
   workflow_dispatch:
@@ -49,14 +53,19 @@ jobs:
       # Bazel's disk cache holds compiled outputs; the repository cache holds downloaded
       # dependencies. The key changes only when the lock files or Bazel version change,
       # so most runs restore a warm cache instead of recompiling everything.
+      # Compiled outputs depend on the Xcode version too. Without it in the key, an Xcode
+      # update on the runner image would keep restoring a cache that never hits again.
+      - name: Xcode version for the cache key
+        run: echo "XCODE_KEY=$(xcodebuild -version | shasum | cut -c1-12)" >> "$GITHUB_ENV"
+
       - name: Restore Bazel caches
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/bazel-disk
             ~/.cache/bazel-repo
-          key: bazel-ios-${{ hashFiles('MODULE.bazel.lock', '.bazelversion', 'Package.resolved') }}
-          restore-keys: bazel-ios-
+          key: bazel-ios-${{ env.XCODE_KEY }}-${{ hashFiles('MODULE.bazel.lock', '.bazelversion', 'Package.resolved') }}
+          restore-keys: bazel-ios-${{ env.XCODE_KEY }}-
 
       # Pick an iPad simulator that this runner image actually has, instead of hard-coding
       # one that may not exist. Only the chosen device name and OS are printed.
