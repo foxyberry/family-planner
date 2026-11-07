@@ -2,6 +2,7 @@ import CrayonKit
 import SwiftUI
 
 /// The grown-up lock over the home screen (board C0). Face ID only: there is no passcode button.
+/// An iPad without Face ID set up offers "Enter", since the 2-second hold already chose grown-up screens.
 public struct LockOverlay: View {
     public enum State: Equatable, Sendable {
         case scanning
@@ -14,7 +15,7 @@ public struct LockOverlay: View {
             case .scanning: "Look at the iPad to unlock."
             case .notRecognised: "That didn't unlock."
             case let .notAvailable(touchID):
-                "\(touchID ? "Touch ID" : "Face ID") is off on this iPad. Turn it on in Settings to open grown-up screens."
+                "\(touchID ? "Touch ID" : "Face ID") is off on this iPad, so anyone who holds the clock can come in. Turn it on in Settings to keep these screens for grown-ups."
             case .lockedOut: "Too many tries. Unlock the iPad with its passcode, then try again."
             }
         }
@@ -24,7 +25,7 @@ public struct LockOverlay: View {
             switch self {
             case .scanning, .lockedOut: nil
             case .notRecognised: "Try again"
-            case .notAvailable: "Open Settings"
+            case .notAvailable: "Enter"
             }
         }
 

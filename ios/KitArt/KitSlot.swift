@@ -18,4 +18,6 @@ public enum KitSlot: String, CaseIterable, Sendable {
     // Feelings and energy
     case feelVeryHappy, feelHappy, feelOK, feelSad, feelVerySad
     case energyLots, energyGood, energyTired, energyNone
+    // Developer tools (debug builds)
+    case debugLadybug
 }

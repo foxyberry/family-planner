@@ -35,6 +35,13 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Time comes only from `@Dependency(\.date)`, `\.calendar`, `\.continuousClock`; days are `Day` values
   and minutes after midnight (0–1440). Tests pin `Asia/Singapore` and a fixed date.
 - Kids are fake seed data (`SeedData`, Kid A / Kid B) until first-run setup (M4).
+- Grown-up screens: hold the clock 2 s, then Face ID (no passcode). An iPad without Face ID set up
+  gets an "Enter" button (the hold is the gate). The 2-minute relock counts real 1-second ticks,
+  never `date` differences.
+- `ios/DebugTools`: debug builds only (`#if DEBUG` in every file). Floating bubble + menu: time
+  machine (feeds `\.date`; `make run NOW=2026-11-09T07:30 SPEED=60`), layout grid, flags
+  (Skip Face ID). New developer switches go here, never into release code paths. System UI is
+  fine there; product screens still use only `DesignSystem`.
 
 ## Design system (crayon)
 - Screens use only `DesignSystem` tokens, parts and frames. No color hex, font size numbers or

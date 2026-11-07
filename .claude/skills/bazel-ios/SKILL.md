@@ -30,7 +30,8 @@ xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit.enrollmentChanged 
 xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit_Sim.pearl.match      # matching face
 ```
 
-Sending the match before the sheet appears does nothing; send it again.
+Sending the match before the sheet appears does nothing; send it again. Easier in debug builds:
+turn on "Skip Face ID" in the debug bubble's menu, or just tap "Enter" when Face ID is not enrolled.
 
 ## Real iPad (`make device`)
 
@@ -52,6 +53,7 @@ Sending the match before the sheet appears does nothing; send it again.
 | Build app | `make build` |
 | Build + launch on simulator | `make run` |
 | Build + sign + launch on a cabled iPad | `make device` (see Real iPad) |
+| Start the app clock at another time (debug builds) | `make run NOW=2026-11-09T07:30 SPEED=60` (same for `make device`), or the debug bubble's Time machine |
 | All tests | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
 | One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |
 | Test log | `bazel-testlogs/ios/<Pkg>/Tests/<Target>/test.log` |
@@ -134,6 +136,7 @@ fp_swift_library(name = "KitArt", data = [":KitArtResources"])
 | `call to main actor-isolated static method` warning in tests | Pure helpers inside a `View` inherit main-actor isolation; mark them `nonisolated` |
 | `cannot be registered to your development team because it is not available` | Placeholder bundle IDs (com.example.*) are taken; use the real `BUNDLE_ID` in `project.bzl` |
 | Device install: `not a valid bundle ... CFBundleName` | The simulator ignores a missing `CFBundleName`; a real iPad does not. Keep it in `ios/Info.plist` |
+| A view's `@Dependency(\.x)` is the default, not what `bootstrap` injected | Views read `DependencyValues._current`, not the store's; pass the value in or expose it (e.g. `DebugModel.installed`) |
 | Device launch: `profile has not been explicitly trusted` | Trust the developer once in Settings > General > VPN & Device Management |
 | `UIImage(named:in:)` returns nil though the asset exists | Resource bundle Info.plist lacks `CFBundleIdentifier` (see Resources) |
 

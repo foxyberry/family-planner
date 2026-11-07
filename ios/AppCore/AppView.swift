@@ -1,4 +1,7 @@
 import ComposableArchitecture
+#if DEBUG
+import DebugTools
+#endif
 import DesignSystem
 import Grownup
 import Home
@@ -24,6 +27,9 @@ public struct AppView: View {
                 LockOverlay(state: lock, onPrimary: { store.send(.lockPrimaryTapped) },
                             onCancel: { store.send(.lockCancelTapped) })
             }
+            #if DEBUG
+            if let debugTools = DebugModel.installed { DebugOverlay(model: debugTools) }
+            #endif
         }
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
         // the home disappear, which would cancel its task and stop the idle relock.
@@ -40,8 +46,9 @@ public struct AppView: View {
                 GrownupHubView(store: store)
             case let .editor(store):
                 ItemEditorView(store: store)
-            case .gallery:
-                ComponentGallery()
+            case let .gallery(store):
+                ComponentGallery(onBack: { store.send(.backTapped) })
+                    .toolbar(.hidden, for: .navigationBar)
             }
         }
         // Any touch on a grown-up screen keeps it open for another 2 minutes.

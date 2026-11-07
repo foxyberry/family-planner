@@ -44,7 +44,7 @@ final class AppFeatureTests: XCTestCase {
     func testHubBackGoesHome() async {
         var state = AppFeature.State()
         state.path.append(.hub(GrownupHubFeature.State()))
-        state.lastGrownupTouch = fixedDate
+        state.grownupIdleSeconds = 0
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
@@ -53,7 +53,7 @@ final class AppFeatureTests: XCTestCase {
 
         await store.send(\.path[id: 0].hub.backTapped) {
             $0.path = StackState()
-            $0.lastGrownupTouch = nil
+            $0.grownupIdleSeconds = nil
         }
     }
 
@@ -67,8 +67,23 @@ final class AppFeatureTests: XCTestCase {
         }
 
         await store.send(\.path[id: 0].hub.galleryButtonTapped) {
-            $0.lastGrownupTouch = self.fixedDate
+            $0.grownupIdleSeconds = 0
             $0.path[id: 1] = .gallery(GalleryFeature.State())
+        }
+    }
+
+    func testGalleryBackPopsToHub() async {
+        var state = AppFeature.State()
+        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.gallery(GalleryFeature.State()))
+        state.grownupIdleSeconds = 5
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        }
+
+        await store.send(\.path[id: 1].gallery.backTapped) {
+            $0.grownupIdleSeconds = 0
+            $0.path.pop(from: 1)
         }
     }
 

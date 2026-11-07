@@ -10,6 +10,8 @@ APP_TARGET  := //ios:$(APP_NAME)
 #   make run SIM_DEVICE="iPad Pro 11-inch (M5)" SIM_OS=26.5
 SIM_DEVICE ?= iPad Pro 13-inch (M5)
 SIM_OS     ?= 26.5
+# Debug builds start the app clock elsewhere (time machine): make run NOW=2026-11-09T07:30 SPEED=60
+LAUNCH_ARGS = $(if $(NOW),-fpNow $(NOW)) $(if $(SPEED),-fpSpeed $(SPEED))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
@@ -32,7 +34,7 @@ run: build
 	xcrun simctl boot "$(SIMULATOR)" 2>/dev/null || true && \
 	open -a Simulator && \
 	xcrun simctl install "$(SIMULATOR)" "$$APP" && \
-	xcrun simctl launch "$(SIMULATOR)" $(BUNDLE_ID)
+	xcrun simctl launch --terminate-running-process "$(SIMULATOR)" $(BUNDLE_ID) $(LAUNCH_ARGS)
 
 # Build, sign and install on a real iPad connected by cable. With a free Apple ID the
 # profile lasts 7 days: run this again to renew it (installing over keeps the app's data).
@@ -43,7 +45,7 @@ device:
 	rm -rf bazel-device && mkdir bazel-device && \
 	unzip -q bazel-bin/ios/$(APP_NAME).ipa -d bazel-device && \
 	xcrun devicectl device install app --device "$$UDID" bazel-device/Payload/$(APP_NAME).app && \
-	xcrun devicectl device process launch --device "$$UDID" $(BUNDLE_ID)
+	xcrun devicectl device process launch --terminate-existing --device "$$UDID" $(BUNDLE_ID) $(LAUNCH_ARGS)
 
 # The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.
 # Failed snapshots leave their new picture in the git-ignored __Diffs__ folder (local runs

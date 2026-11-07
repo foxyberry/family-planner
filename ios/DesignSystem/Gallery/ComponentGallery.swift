@@ -12,12 +12,22 @@ public struct ComponentGallery: View {
     @State private var time = Date(timeIntervalSince1970: 7 * 3600 + 30 * 60)
     @State private var picture: KitSlot? = .actSwim
     @State private var choice = "Every week"
+    private let onBack: (() -> Void)?
 
-    public init() {}
+    /// `onBack` shows the crayon Back button in a header (parent mode); previews leave it out.
+    public init(onBack: (() -> Void)? = nil) {
+        self.onBack = onBack
+    }
 
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
+                if let onBack {
+                    HStack(spacing: Spacing.m) {
+                        RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back", action: onBack)
+                        Text("Design gallery").crayonType(.title)
+                    }
+                }
                 section("0b · Controls") {
                     InkButton("Missions") {}
                     HStack(spacing: Spacing.m) {
