@@ -10,7 +10,7 @@ public enum KitSlot: String, CaseIterable, Sendable {
     // Evening
     case actShower, pyjamas, teddy, actSleep
     // Children
-    case kidGirl, kidBoy, milk
+    case kidGirl, kidBoy, milk, babyBottle
     // Getting there
     case busMini, busSingle, busDouble, car, taxi
     // Rewards and events

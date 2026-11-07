@@ -4,7 +4,7 @@ import XCTest
 
 final class CrayonGeometryTests: XCTestCase {
     private let rect = CGRect(x: 0, y: 0, width: 400, height: 120)
-    private let hachure = HachureStyle(degrees: -30, gap: 5.5, weight: 2.6, washOpacity: 0.32)
+    private let hachure = HachureStyle(degrees: -30)
 
     private func geometry(_ kind: CrayonShapeKind = .roundedRect(cornerRadius: 24),
                           rect: CGRect? = nil, seed: UInt32 = 7) -> CrayonGeometry {
@@ -44,7 +44,7 @@ final class CrayonGeometryTests: XCTestCase {
         let a = geometry(), b = geometry()
         XCTAssertEqual(a.outline, b.outline)
         XCTAssertEqual(a.washOutline, b.washOutline)
-        XCTAssertEqual(a.hachureLines, b.hachureLines)
+        XCTAssertEqual(a.flicks, b.flicks)
     }
 
     func testDifferentSeedDifferentGeometry() {
@@ -79,28 +79,4 @@ final class CrayonGeometryTests: XCTestCase {
         }
     }
 
-    func testHachureSpacingMatchesGap() {
-        let g = geometry(.roundedRect(cornerRadius: 8))
-        // Project each segment midpoint onto the hachure normal and look at neighbour gaps.
-        let radians = -30.0 * .pi / 180
-        let normal = CGPoint(x: -sin(radians), y: cos(radians))
-        let offsets = g.hachureLines
-            .map { s in ((s.a.x + s.b.x) / 2) * normal.x + ((s.a.y + s.b.y) / 2) * normal.y }
-            .sorted()
-        var gaps: [CGFloat] = []
-        for i in 1..<offsets.count where offsets[i] - offsets[i - 1] > 1 {
-            gaps.append(offsets[i] - offsets[i - 1])
-        }
-        let median = gaps.sorted()[gaps.count / 2]
-        XCTAssertEqual(median, hachure.gap, accuracy: 1)
-    }
-
-    func testHachureStaysMostlyInside() {
-        let kind = CrayonShapeKind.roundedRect(cornerRadius: 24)
-        let g = geometry(kind)
-        let path = CrayonGeometry.idealPath(kind: kind, in: rect)
-        let ends = g.hachureLines.flatMap { [$0.a, $0.b] }
-        let outside = ends.filter { !path.contains($0) }
-        XCTAssertLessThanOrEqual(maxDeviation(outside, kind: kind, rect: rect), 2)
-    }
 }

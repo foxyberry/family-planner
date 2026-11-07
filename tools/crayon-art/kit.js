@@ -5,7 +5,10 @@ const path = require('path');
 const fs = require('fs');
 const { createRequire } = require('module');
 const [depsDir, outDir, shapesOut] = process.argv.slice(2);
-const rough = createRequire(path.join(path.resolve(depsDir), 'package.json'))('roughjs');
+const depRequire = createRequire(path.join(path.resolve(depsDir), 'package.json'));
+const rough = depRequire('roughjs');
+// points-on-path ships with roughjs and is an ES module; require() of it needs Node 22.12 or newer.
+const { pointsOnPath } = depRequire('points-on-path');
 const gen = rough.generator();
 
 const INK = '#1E1B22';
@@ -17,6 +20,13 @@ const K = {
 const rr = (x, y, w, h, r) => `M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
 const cap = (x, y, w, h) => rr(x, y, w, h, Math.min(w, h) / 2);
 const circ = (cx, cy, r) => `M${cx - r} ${cy}A${r} ${r} 0 1 0 ${cx + r} ${cy}A${r} ${r} 0 1 0 ${cx - r} ${cy}Z`;
+// ellipse turned by rot degrees (clockwise)
+const ell = (cx, cy, rx, ry, rot = 0) => {
+  const t = (rot * Math.PI) / 180;
+  const ax = (cx + rx * Math.cos(t)).toFixed(1), ay = (cy + rx * Math.sin(t)).toFixed(1);
+  const bx = (cx - rx * Math.cos(t)).toFixed(1), by = (cy - rx * Math.sin(t)).toFixed(1);
+  return `M${ax} ${ay}A${rx} ${ry} ${rot} 1 0 ${bx} ${by}A${rx} ${ry} ${rot} 1 0 ${ax} ${ay}Z`;
+};
 const star = (cx, cy, R, r, rot = -90) => {
   let d = '';
   for (let i = 0; i < 10; i += 1) {
@@ -30,7 +40,7 @@ const star = (cx, cy, R, r, rot = -90) => {
 // layer kinds: shape (crayon fill + marker outline), solid (marker-filled dark area), line (marker stroke only)
 const S = (d, color, angle) => ({ kind: 'shape', d, color, angle });
 const B = (d) => ({ kind: 'solid', d });
-const Ln = (d, w = 4.5) => ({ kind: 'line', d, w });
+const Ln = (d, w = 4.5, color) => ({ kind: 'line', d, w, ...(color ? { color } : {}) });   // color: a coloured line (trim, cheeks); default is the ink
 // Faces: plain marker dots for eyes, no whites, no lashes
 const eye = (cx, cy, r = 13) => [B(circ(cx, cy, Math.max(4.5, r * 0.42)))];
 const smile = (cx, cy, w) => Ln(`M${cx - w / 2} ${cy}Q${cx} ${cy + w * 0.5} ${cx + w / 2} ${cy}`, 4);
@@ -239,9 +249,10 @@ const ITEMS = {
   actFootball: [
     S('M12 202C60 190 180 190 228 202V228H12Z', K.green, -30),
     S(circ(120, 116, 86), K.white, 0),
-    Ln('M120.0 88.0L120.0 51.6 M146.6 107.3L181.2 96.1 M136.5 138.7L157.9 168.1 M103.5 138.7L82.1 168.1 M93.4 107.3L58.8 96.1', 4),
-    B('M120.0 88.0L146.6 107.3L136.5 138.7L103.5 138.7L93.4 107.3Z'),
-    B('M120.0 55.6L107.6 46.7L112.4 32.1L127.6 32.1L132.4 46.7Z'), B('M177.4 97.3L182.1 82.8L197.4 82.8L202.1 97.3L189.8 106.3Z'), B('M155.5 164.8L170.8 164.8L175.5 179.4L163.1 188.3L150.8 179.4Z'), B('M84.5 164.8L89.2 179.4L76.9 188.3L64.5 179.4L69.2 164.8Z'), B('M62.6 97.3L50.2 106.3L37.9 97.3L42.6 82.8L57.9 82.8Z'),
+    // made by tools/football.py: central patch, five rim patches cut by the ball's edge, seams between them
+    Ln('M120.0 86.0L120.0 66.0 M148.5 106.7L167.6 100.5 M137.6 140.3L149.4 156.5 M102.4 140.3L90.6 156.5 M91.5 106.7L72.4 100.5 M142.8 49.4L176.3 73.7 M190.4 117.1L177.6 156.5 M140.7 183.3L99.3 183.3 M62.4 156.5L49.6 117.1 M63.7 73.7L97.2 49.4', 4),
+    B('M120.0 86.0L148.5 106.7L137.6 140.3L102.4 140.3L91.5 106.7Z'),
+    B('M120.0 66.0L97.2 49.4L102.6 33.3L111.5 31.9L120.0 31.5L128.5 31.9L137.4 33.3L142.8 49.4Z'), B('M167.6 100.5L176.3 73.7L193.2 73.9L197.3 82.0L200.4 89.9L202.6 98.1L204.0 107.0L190.4 117.1Z'), B('M149.4 156.5L177.6 156.5L182.7 172.6L176.3 179.0L169.7 184.4L162.6 189.0L154.5 193.1L140.7 183.3Z'), B('M90.6 156.5L99.3 183.3L85.5 193.1L77.4 189.0L70.3 184.4L63.7 179.0L57.3 172.6L62.4 156.5Z'), B('M72.4 100.5L49.6 117.1L36.0 107.0L37.4 98.1L39.6 89.9L42.7 82.0L46.8 73.9L63.7 73.7Z'),
   ],
   actPiano: [
     S(rr(16, 52, 208, 44, 12), K.purple, -40),
@@ -302,22 +313,50 @@ const ITEMS = {
   ],
   // Evening and sleep (for later)
   pyjamas: [
-    S('M88 40L36 70l22 42 26-10v100h72V102l26 10 22-42-52-30a32 32 0 0 1-64 0Z', K.purple, -50),
-    S(star(98, 140, 14, 6), K.yellow, 30), S(star(144, 174, 12, 5), K.yellow, -30),
-    S('M150 120A16 16 0 1 0 150 150A12 12 0 1 1 150 120Z', K.yellow, 0),
+    // long cream-yellow pyjamas with a lilac scalloped neck and a fluffy puppy.
+    // Trousers start at the top's hem (crayon shows the paper, so nothing may hide under the top).
+    S('M78 122H162L170 228H128L120 162L112 228H70Z', '#FBE6A2', 50),
+    S('M94 22Q120 40 146 22L178 32L208 104L184 114L162 70V122H78V70L56 114L32 104L62 32Z', '#FBE6A2', -50),
+    Ln('M94.0 28.0Q97.7 34.7 101.4 32.4Q105.1 38.4 108.9 35.3Q112.6 40.6 116.3 36.8Q120.0 41.3 123.7 36.8Q127.4 40.6 131.1 35.3Q134.9 38.4 138.6 32.4Q142.3 34.7 146.0 28.0', 4, '#B993E3'),
+    Ln('M180 106L203 96.5', 4), Ln('M60 106L37 96.5', 4), Ln('M74 210H113', 4), Ln('M127 210H166', 4),
+    S('M71.3 57.0Q75.8 44.7 88.7 47.0Q84.2 59.3 71.3 57.0Z', K.green, 30), S('M143.1 106.2Q154.9 106.2 156.9 117.8Q145.1 117.8 143.1 106.2Z', K.orange, -30),
+    S('M89.5 176.2Q100.5 180.2 98.5 191.8Q87.5 187.8 89.5 176.2Z', K.orange, 20), S('M141.6 177.7Q141.6 164.6 154.4 162.3Q154.4 175.4 141.6 177.7Z', K.green, -20),
+    // puppy (shiba-like): small pointed ears, a softly fluffy round head, small white muzzle, lilac cheeks
+    S('M95 82L98 58Q100 54 104 57L116 68Z', '#E9AE6E', 30), S('M145 82L142 58Q140 54 136 57L124 68Z', '#E9AE6E', -30),
+    S('M120.0 61.0Q129.1 59.8 135.9 66.2Q143.9 70.6 145.7 79.7Q149.6 88.0 145.7 96.3Q143.9 105.4 135.9 109.8Q129.1 116.2 120.0 115.0Q110.9 116.2 104.1 109.8Q96.1 105.4 94.3 96.3Q90.4 88.0 94.3 79.7Q96.1 70.6 104.1 66.2Q110.9 59.8 120.0 61.0Z', '#E9AE6E', -40),
+    S('M109 98A11 8 0 1 0 131 98A11 8 0 1 0 109 98Z', K.white, 0),
+    B(circ(111, 84, 3.2)), B(circ(129, 84, 3.2)), B('M117 94A3 2.3 0 1 0 123 94A3 2.3 0 1 0 117 94Z'),
+    Ln('M117 99.5Q120 101.5 123 99.5', 2),
+    Ln('M105 93H105.1', 7, '#B993E3'), Ln('M135 93H135.1', 7, '#B993E3'),
   ],
   teddy: [
-    S(circ(120, 182, 46), '#C08A5A', -40),
-    S(circ(76, 60, 20), '#C08A5A', 30), S(circ(164, 60, 20), '#C08A5A', -30),
-    S(circ(120, 100, 54), '#C08A5A', -35),
-    S(circ(120, 120, 22), '#F1D3B0', 0),
-    ...eye(98, 94, 14), ...eye(142, 94, 14), B(circ(120, 112, 7)), Ln('M110 128Q120 136 130 128', 3.5),
+    // sitting bear: ears and arms behind, then body, legs in front, head on top
+    S(circ(78, 58, 19), '#C08A5A', 30), S(circ(162, 58, 19), '#C08A5A', -30),
+    S(ell(80, 172, 15, 30, 28), '#C08A5A', 60), S(ell(160, 172, 15, 30, -28), '#C08A5A', -60),
+    S(ell(120, 176, 44, 42), '#C08A5A', -40),
+    S(ell(120, 182, 22, 20), '#F1D3B0', 0),
+    S(ell(88, 212, 23, 18, -10), '#C08A5A', 40), S(ell(152, 212, 23, 18, 10), '#C08A5A', -40),
+    S(circ(84, 214, 9), '#F1D3B0', 0), S(circ(156, 214, 9), '#F1D3B0', 0),
+    S(circ(120, 98, 52), '#C08A5A', -35),
+    S(circ(120, 118, 21), '#F1D3B0', 0),
+    ...eye(98, 92, 14), ...eye(142, 92, 14), B(circ(120, 110, 7)), Ln('M110 126Q120 134 130 126', 3.5),
   ],
   // Toddler items
   milk: [
-    S('M66 40H174L160 208H80Z', K.white, 0),
-    S('M72 96H168L159 208H81Z', K.sky, -50),
-    Ln('M70 96H170', 4),
+    // a glass of milk: one outline only (two near-identical outlines drift apart and read as two cups),
+    // creamy milk (pure white vanishes on the white tile), a single line for the milk's surface and a pale-blue shine on the glass
+    S('M66 40H174L160 208H80Z', '#FFF0CF', -50),
+    Ln('M70 64Q120 74 170 64', 3.5),
+    Ln('M86 86L95 186', 6, '#BFE6F7'),
+  ],
+  babyBottle: [
+    // milk in a baby bottle: peach teat, mint collar, creamy milk body with a surface line and measuring marks
+    S('M104 60Q103 30 120 24Q137 30 136 60Z', '#F6C89A', 20),
+    S(rr(86, 74, 68, 144, 24), '#FFF0CF', -50),
+    S(rr(88, 52, 64, 28, 9), K.mint, -30),
+    Ln('M91 104Q120 111 149 104', 3.5),
+    Ln('M136 132H148 M140 152H148 M136 172H148 M140 192H148', 3),
+    Ln('M101 122L101 196', 6, '#BFE6F7'),
   ],
   // One-off events
   cake: [
@@ -383,6 +422,60 @@ const toSvg = (drawable, extra = '') => gen.toPaths(drawable).map((p) => {
   return `<path d="${d}" fill="${fill}"${stroke}${extra}/>`;
 }).join('');
 
+// Freehand outlines: long straight runs bow a little and every edge drifts slowly, so no line is ruler-straight.
+// Closed shapes bow mostly outward; an open line bows to one side. Same seed, same picture.
+const MAX_BOW = 2.2;   // largest bow in viewBox units (240 per picture), whatever the edge length
+const WOBBLE = { outline: { amp: 1.5, radius: 360 }, line: { amp: 1.1, radius: 300 } };
+function wobble(d, s, { amp, radius }) {
+  let r = s;
+  const rnd = () => { r = (r * 48271) % 2147483647; return r / 2147483647; };
+  const closedPath = /z\s*$/i.test(d.trim());
+  const side = rnd() < 0.5 ? 1 : -1;
+  return pointsOnPath(d, 0.3, 0.4).map((poly) => {
+    const n = poly.length;
+    let area = 0;
+    for (let i = 0; i < n; i += 1) { const [x1, y1] = poly[i]; const [x2, y2] = poly[(i + 1) % n]; area += x1 * y2 - x2 * y1; }
+    const outward = area > 0 ? -1 : 1;
+    const pts = [];
+    let len = 0;
+    for (let i = 0; i < n - 1; i += 1) {
+      const [ax, ay] = poly[i];
+      const [bx, by] = poly[i + 1];
+      const L = Math.hypot(bx - ax, by - ay);
+      if (L === 0) continue;
+      const k = Math.max(1, Math.ceil(L / 3));
+      const nx = -(by - ay) / L;
+      const ny = (bx - ax) / L;
+      const dir = closedPath ? (rnd() < 0.9 ? outward : -outward) : side;
+      const sag = L > 18 ? dir * Math.min((L * L) / (8 * radius), MAX_BOW) * (0.5 + rnd() * 0.9) : 0;   // long edges (buttons) bow a little, never a lot
+      for (let j = 0; j < k; j += 1) {
+        const u = j / k;
+        const b = sag * 4 * u * (1 - u);
+        pts.push([ax + (bx - ax) * u + nx * b, ay + (by - ay) * u + ny * b, len + L * u]);
+      }
+      len += L;
+    }
+    pts.push([poly[n - 1][0], poly[n - 1][1], len]);
+    // On closed shapes the wavelengths divide the perimeter, so the seam meets without a step.
+    const fit = (lam) => (closedPath && len > 0 ? len / Math.max(1, Math.round(len / lam)) : lam);
+    const l1 = fit(48 + rnd() * 30);
+    const l2 = fit(16 + rnd() * 8);
+    const p1 = rnd() * 6.283;
+    const p2 = rnd() * 6.283;
+    const xy = pts.map((p, i) => {
+      const a = pts[Math.max(0, i - 1)];
+      const b = pts[Math.min(pts.length - 1, i + 1)];
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const m = Math.hypot(dx, dy) || 1;
+      const off = amp * (0.7 * Math.sin((p[2] * 6.283) / l1 + p1) + 0.3 * Math.sin((p[2] * 6.283) / l2 + p2));
+      return `${(p[0] - (dy / m) * off).toFixed(1)} ${(p[1] + (dx / m) * off).toFixed(1)}`;
+    });
+    return `M${xy.join('L')}${closedPath ? 'Z' : ''}`;
+  }).join('');
+}
+const inkPath = (d, width, fill = 'none', stroke = INK) => `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
+
 function render(layers) {
   let out = '';
   for (const l of layers) {
@@ -394,13 +487,13 @@ function render(layers) {
         out += toSvg(gen.path(l.d, { seed: nextSeed(), roughness: 2.4, bowing: 2, fill: l.color, fillStyle: 'hachure', hachureAngle: l.angle, hachureGap: 4.2, fillWeight: 2.8, stroke: 'none' }));
         out += `</g>`;
       }
-      out += toSvg(gen.path(l.d, { seed: nextSeed(), roughness: 1.3, bowing: 1.6, stroke: INK, strokeWidth: 5, disableMultiStroke: true, fill: l.color === K.white ? K.white : undefined, fillStyle: 'solid' }));
+      out += inkPath(wobble(l.d, nextSeed(), WOBBLE.outline), 5, l.color === K.white ? K.white : 'none');
     } else if (l.kind === 'eye') {
       out += toSvg(gen.path(l.d, { seed: nextSeed(), roughness: 0.8, stroke: INK, strokeWidth: 3.5, disableMultiStroke: true, fill: K.white, fillStyle: 'solid' }));
     } else if (l.kind === 'solid') {
       out += toSvg(gen.path(l.d, { seed: nextSeed(), roughness: 1, stroke: INK, strokeWidth: 3, disableMultiStroke: true, fill: INK, fillStyle: 'solid' }));
     } else if (l.kind === 'line') {
-      out += toSvg(gen.path(l.d, { seed: nextSeed(), roughness: 1.2, bowing: 1.5, stroke: INK, strokeWidth: l.w, disableMultiStroke: true }));
+      out += inkPath(wobble(l.d, nextSeed(), WOBBLE.line), l.w, 'none', l.color);
     }
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}">${out}</svg>\n`;
@@ -430,12 +523,12 @@ if (shapesOut) {
   for (const [name, layers] of Object.entries(ITEMS)) {
     items[name] = layers.map((l) => {
       if (l.kind === 'shape') return { kind: 'shape', d: l.d, color: l.color, hatchAngle: l.angle };
-      if (l.kind === 'line') return { kind: 'line', d: l.d, width: l.w };
+      if (l.kind === 'line') return { kind: 'line', d: l.d, width: l.w, ...(l.color ? { color: l.color } : {}) };
       return { kind: 'solid', d: l.d };                 // 'solid' and 'eye' both render as filled marker shapes
     });
   }
   const shapes = {
-    version: 1,
+    version: 2,
     viewBox: SIZE,
     ink: INK,
     palette: K,
@@ -444,9 +537,10 @@ if (shapesOut) {
       crayon: {
         wash: { opacity: 0.28, roughness: 2.2, bowing: 2, offset: [3, 2] },
         hachure: { roughness: 2.4, bowing: 2, gap: 4.2, weight: 2.8, offset: [3, 2] },
-        outline: { roughness: 1.3, bowing: 1.6, width: 5 },
+        outline: { wobble: WOBBLE.outline, width: 5 },
         solid: { roughness: 1, width: 3 },
-        line: { roughness: 1.2, bowing: 1.5 },
+        line: { wobble: WOBBLE.line },
+        wobble: 'resample every 3pt; segments over 18pt bow by sagitta min(L*L/(8*radius), 2.2) * (0.5..1.4), 90% outward on closed shapes, one side on open lines; then offset along the normal by amp * (0.7 sin(2*pi*s/l1 + p1) + 0.3 sin(2*pi*s/l2 + p2)), l1 48..78, l2 16..24, fitted to the perimeter on closed shapes',
       },
     },
     items,

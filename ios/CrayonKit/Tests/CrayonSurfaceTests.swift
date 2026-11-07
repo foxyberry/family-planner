@@ -47,7 +47,7 @@ final class CrayonSurfaceTests: XCTestCase {
 
     func testPaperFillHasNoHachure() {
         let g = geometry(width: 300, fill: .paper(), cache: GeometryCache())
-        XCTAssertTrue(g.hachureLines.isEmpty)
+        XCTAssertTrue(g.flicks.isEmpty)
         XCTAssertFalse(g.outline.isEmpty)
     }
 }

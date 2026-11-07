@@ -25,20 +25,45 @@ public struct MarkerStyle: Hashable, Sendable {
     public static let thin = MarkerStyle(width: 3.5, roughness: 1.2, bowing: 1.4)
 }
 
-/// Crayon hatching settings. Design defaults: gap 5.5, weight 2.6, wash 0.32.
+/// Crayon colouring settings (design ST-13, "wrist flicks"): rows `gap` apart at `degrees`, each
+/// cut into short strokes that bend one way, taper at both ends and overlap their neighbours.
 public struct HachureStyle: Hashable, Sendable {
-    /// Direction of the hatch lines in degrees (screen coordinates, y down).
+    /// Direction of the rows in degrees (screen coordinates, y down).
     public var degrees: Double
+    /// Distance between rows.
     public var gap: CGFloat
+    /// Widest point of a stroke.
     public var weight: CGFloat
     public var washOpacity: Double
+    /// Length of one stroke before it is clipped to the row.
+    public var strokeLength: ClosedRange<CGFloat>
+    /// Radius of a stroke's bend (sagitta = chord² / (8 · radius)).
+    public var bendRadius: CGFloat
+    /// Stroke width at its ends, as a share of `weight`.
+    public var taper: CGFloat
+    /// Waxy edge: each side moves by up to ± half this share of its width.
+    public var edgeJitter: CGFloat
+    /// The whole shape's rows tilt by up to ± this many degrees.
+    public var angleJitter: Double
 
-    public init(degrees: Double, gap: CGFloat = 5.5, weight: CGFloat = 2.6, washOpacity: Double = 0.32) {
+    public init(degrees: Double, gap: CGFloat = 4.1, weight: CGFloat = 4.6, washOpacity: Double = 0.32,
+                strokeLength: ClosedRange<CGFloat> = 30...56, bendRadius: CGFloat = 120, taper: CGFloat = 0.3,
+                edgeJitter: CGFloat = 0.5, angleJitter: Double = 4) {
         self.degrees = degrees
         self.gap = gap
         self.weight = weight
         self.washOpacity = washOpacity
+        self.strokeLength = strokeLength
+        self.bendRadius = bendRadius
+        self.taper = taper
+        self.edgeJitter = edgeJitter
+        self.angleJitter = angleJitter
     }
+}
+
+/// One colouring stroke, as a filled outline (left edge, then the right edge back).
+public struct CrayonFlick: Hashable, Sendable {
+    public let outline: [CGPoint]
 }
 
 /// One hatch stroke.

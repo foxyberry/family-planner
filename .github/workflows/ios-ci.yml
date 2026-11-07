@@ -75,8 +75,11 @@ jobs:
       - name: Xcode version for the cache key
         run: echo "XCODE_KEY=$(xcodebuild -version | shasum | cut -c1-12)" >> "$GITHUB_ENV"
 
+      # Restore and save are separate steps so the build cache is saved even when a test fails;
+      # a single red test must not send the next run back to a cold build.
       - name: Restore Bazel caches
-        uses: actions/cache@v4
+        id: bazel-cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cache/bazel-disk
@@ -111,8 +114,16 @@ jobs:
 
       # Test logs are printed only for failures (--test_output=errors in .bazelrc).
       # No artifacts are uploaded and no environment is printed: CI logs of a public
-      # repo are public. A failed snapshot prints one line (its name and the share of
-      # pixels that changed); diff images are written only on local runs, into the
-      # git-ignored ios/DesignSystem/SnapshotTests/__Diffs__ (SNAPSHOT_ARTIFACTS).
+      # repo are public. Snapshot tests (tag "snapshot") are skipped here while the designs
+      # keep changing; they run locally with make test.
       - name: Test
         run: make test SIM_DEVICE="$SIM_DEVICE" SIM_OS="$SIM_OS"
+
+      - name: Save Bazel caches
+        if: always() && steps.bazel-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+          key: ${{ steps.bazel-cache.outputs.cache-primary-key }}
