@@ -6,3 +6,7 @@ build --features=swift.use_global_module_cache
 build --features=swift.cacheable_swiftmodules
 build --features=swift.vfsoverlay
 build --features=-swift.index_while_building_v2
+
+# Simulator tests run one target at a time: parallel targets fight over the simulator and
+# time out on small CI runners (and an 8 GB Mac has room for one simulator anyway).
+test --local_test_jobs=1

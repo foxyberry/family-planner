@@ -41,7 +41,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Public pictures come only from `make art`; never hand-edit generated SVGs. The school mascot
   and home drawings live in git-ignored `ios/KitArt/Private/` (`make art-private`).
 - Snapshots: `make snapshots-record`, then open the PNGs and compare with the design boards
-  before committing. CI logs one line per failed snapshot; diffs stay in local `__Diffs__`.
+  before committing. CI skips snapshot tests (tag `snapshot`) while designs keep changing;
+  run them locally with `make test`. Diffs stay in local `__Diffs__`.
 
 ## Git flow
 - `feature/*` from `develop`, PR into `develop`. `release/*` and `hotfix/*` go to `main`.

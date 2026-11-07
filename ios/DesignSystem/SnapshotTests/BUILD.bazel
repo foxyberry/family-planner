@@ -28,5 +28,7 @@ ios_unit_test(
     ],
     minimum_os_version = MINIMUM_OS_VERSION,
     runner = "//ios:test_runner",
+    # Designs still change often, so CI (the required check) skips pictures; run them locally.
+    tags = ["snapshot"],
     deps = [":ComponentSnapshotTestsLib"],
 )

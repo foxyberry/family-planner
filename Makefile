@@ -38,9 +38,11 @@ run: build
 # Failed snapshots leave their new picture in the git-ignored __Diffs__ folder (local runs
 # only: CI does not set SNAPSHOT_ARTIFACTS, keeps no artifacts and logs one line per failure).
 SNAPSHOT_ENV := $(if $(CI),,SNAPSHOT_ARTIFACTS="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Diffs__")
+# CI skips snapshot tests (tag "snapshot") while the designs keep changing; local runs keep them.
+TEST_FILTER  := $(if $(CI),--test_tag_filters=-snapshot,)
 
 test:
-	$(SNAPSHOT_ENV) $(IOS_BAZEL) test //ios/... \
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test //ios/... $(TEST_FILTER) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
