@@ -1,0 +1,5 @@
+#!/bin/bash
+# Commit messages are public in this repo; block private terms in them too.
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+"$ROOT/scripts/check-private-terms.sh" --stdin "commit message" < "$1"

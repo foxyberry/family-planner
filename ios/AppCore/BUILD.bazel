@@ -1,0 +1,12 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Screens, state and lifecycle of the app. Depends on Clients *interfaces* only;
+# the app target (//ios:FamilyPlannerApp) injects the Live implementations.
+fp_swift_library(
+    name = "AppCore",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Clients/ParentAuthClient",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

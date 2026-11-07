@@ -1,0 +1,8 @@
+# rules_xcodeproj Bazel configuration
+# Automatically imported by the generated xcodeproj.bazelrc.
+
+try-import %workspace%/ios/.bazelrc
+
+# ios/.bazelrc turns index-while-building off for faster CLI builds; turn it back on
+# for Xcode so the index build can reuse .indexstore outputs from the disk cache.
+build:rules_xcodeproj --features=swift.index_while_building_v2

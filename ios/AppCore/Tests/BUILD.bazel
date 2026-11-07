@@ -1,0 +1,21 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "AppCoreTestsLib",
+    testonly = True,
+    deps = [
+        "//ios/AppCore",
+        "//ios/Clients/ParentAuthClient",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)
+
+ios_unit_test(
+    name = "AppCoreTests",
+    bundle_id = BUNDLE_ID + ".appcore.tests",
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    deps = [":AppCoreTestsLib"],
+)

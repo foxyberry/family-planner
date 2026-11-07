@@ -1,0 +1,8 @@
+# Copy to .private-terms (git-ignored) and list your real private words, one per line:
+# home area, bus stop codes and names, school and childcare names, children's names.
+# Matching is case-insensitive and by plain substring. Lines starting with # are ignored.
+# The check refuses to run while this list has no active terms.
+#
+# Examples of the format (keep them commented):
+# 12345
+# Example Primary School

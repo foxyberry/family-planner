@@ -1,0 +1,9 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Live Face ID / passcode implementation. Visible to the app target only, so features
+# can never depend on it directly (they use //ios/Clients/ParentAuthClient).
+fp_swift_library(
+    name = "ParentAuthClientLive",
+    visibility = ["//ios:__pkg__"],
+    deps = ["//ios/Clients/ParentAuthClient"],
+)
