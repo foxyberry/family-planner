@@ -27,7 +27,10 @@ public struct ItemEditorView: View {
                 HStack(alignment: .top, spacing: Spacing.m) {
                     PaperCard(seed: 31) { form.padding(Spacing.m) }
                         .frame(width: 818)
-                    sideColumn.frame(maxWidth: .infinity, alignment: .leading)
+                    Group {
+                        if case .editWeekly = store.mode { weeklySide } else { sideColumn }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } primaryAction: {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -201,6 +204,40 @@ public struct ItemEditorView: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+
+    // MARK: Side column (every-week item, board E5)
+
+    private var weeklySide: some View {
+        VStack(alignment: .leading, spacing: Spacing.s) {
+            Text(Self.everyTitle(store.form.days)).crayonType(.head).foregroundStyle(CrayonColor.ink)
+            Text("Changes start from the next one.").crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            if let title = store.skipRowTitle {
+                Button { store.send(store.skippedDay == nil ? .skipNextTapped : .undoSkipTapped) } label: {
+                    Text(title).crayonType(.body)
+                        .foregroundStyle(store.skippedDay == nil ? CrayonColor.ink : CrayonColor.link)
+                        .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            Button { store.send(.removeSeriesTapped) } label: {
+                Text("Remove every week").crayonType(.head).foregroundStyle(CrayonColor.lateText)
+                    .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            Text("Removed by mistake? Add it back from Our kids.").crayonType(.caption)
+                .foregroundStyle(CrayonColor.softText)
+        }
+    }
+
+    /// "Every Mon and Wed", "Every Mon, Wed and Fri", "Every school day".
+    static func everyTitle(_ days: Set<Weekday>) -> String {
+        if days == Weekday.schoolDays { return "Every school day" }
+        let names = days.sorted().map(DayText.shortName)
+        guard names.count > 1 else { return "Every \(names.first ?? "")" }
+        return "Every " + names.dropLast().joined(separator: ", ") + " and " + names.last!
     }
 
     // MARK: Side column (preview)

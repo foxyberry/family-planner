@@ -31,6 +31,10 @@ public struct ItemEditorFeature {
         public var datePage = 0
         public var confirm: Confirm?
         public var saveError: String?
+        /// The every-week item as saved right now (skips are saved at once, board E5).
+        public var weeklyItem: ScheduleItem?
+        /// The date "Skip just …" skipped, while it can still be undone.
+        public var skippedDay: Day?
 
         public init(mode: Mode, repeats: ItemForm.Repeat = .weekly, now: Date, calendar: Calendar) {
             self.mode = mode
@@ -49,6 +53,7 @@ public struct ItemEditorFeature {
             }
             form = initial
             original = initial
+            if case let .editWeekly(item) = mode { weeklyItem = item }
         }
 
         public var isAdding: Bool { if case .add = mode { true } else { false } }
@@ -87,9 +92,35 @@ public struct ItemEditorFeature {
 
         public var confirmMessage: String? {
             switch confirm {
-            case .removeOnce: "It leaves the clock on \(DayText.long(original.date, calendar: calendar))."
-            default: nil
+            case .removeOnce:
+                return "It leaves the clock on \(DayText.long(original.date, calendar: calendar))."
+            case .removeSeries:
+                let from = DayText.short(skipCandidate ?? today, calendar: calendar)
+                return "It leaves \(clockOwner) from \(from). Days before stay in the diary."
+            default:
+                return nil
             }
+        }
+
+        /// "Kid A's clock", or "both kids' clocks".
+        private var clockOwner: String {
+            switch form.audience {
+            case let .kid(id): "\(snapshot?.kids.first { $0.id == id }?.name ?? "the")'s clock"
+            case .both: "both kids' clocks"
+            }
+        }
+
+        /// The next date of the series that has not ended yet (board E5 "Skip just …").
+        public var skipCandidate: Day? {
+            weeklyItem.flatMap {
+                SeriesEdits.nextOccurrence(of: $0, from: today, nowMinute: nowMinute, holidays: holidays,
+                                           calendar: calendar)
+            }
+        }
+
+        public var skipRowTitle: String? {
+            if let skippedDay { return "Skipped \(DayText.short(skippedDay, calendar: calendar)) · Undo" }
+            return skipCandidate.map { "Skip just \(DayText.short($0, calendar: calendar))" }
         }
     }
 
@@ -108,6 +139,10 @@ public struct ItemEditorFeature {
         case confirmAccepted
         case confirmCancelled
         case removed
+        case skipNextTapped
+        case undoSkipTapped
+        case skipSaved(ScheduleItem, skipped: Day?)
+        case removeSeriesTapped
         case delegate(Delegate)
 
         @CasePathable
@@ -166,19 +201,42 @@ public struct ItemEditorFeature {
                 state.saveError = nil
                 let id = state.editingItem?.id ?? uuid()
                 var item = state.form.item(id: id, today: state.today)
-                if case let .editWeekly(original) = state.mode, case let .weekly(_, from, until) = original.recurrence,
+                var items = [item]
+                if let weekly = state.weeklyItem, case let .weekly(_, from, until) = weekly.recurrence,
                    case let .weekly(days, _, _) = item.recurrence {
+                    // Changes start from the next time; a run that already started today keeps its times.
                     item.recurrence = .weekly(days, from: from, until: until)
-                    item.skippedDays = original.skippedDays
+                    item.skippedDays = weekly.skippedDays
+                    items = SeriesEdits.applying(edit: item, to: weekly, today: state.today, nowMinute: state.nowMinute,
+                                                 newID: uuid(), holidays: state.holidays, calendar: state.calendar)
                 }
-                return .run { [scheduleStore, item] send in
+                return .run { [scheduleStore, items] send in
                     do {
-                        try await scheduleStore.save(item)
+                        if items.count == 1 { try await scheduleStore.save(items[0]) } else {
+                            try await scheduleStore.saveAll(items)
+                        }
                         await send(.saved(true))
                     } catch {
                         await send(.saved(false))
                     }
                 }
+
+            case .skipNextTapped:
+                guard let weekly = state.weeklyItem, let day = state.skipCandidate else { return .none }
+                return save(SeriesEdits.skipping(weekly, day: day), skipped: day)
+
+            case .undoSkipTapped:
+                guard let weekly = state.weeklyItem, let day = state.skippedDay else { return .none }
+                return save(SeriesEdits.unskipping(weekly, day: day), skipped: nil)
+
+            case let .skipSaved(item, skipped):
+                state.weeklyItem = item
+                state.skippedDay = skipped
+                return .none
+
+            case .removeSeriesTapped:
+                state.confirm = .removeSeries
+                return .none
 
             case .saved(true):
                 return .send(.delegate(.finished))
@@ -212,7 +270,19 @@ public struct ItemEditorFeature {
                         try? await scheduleStore.delete(id)
                         await send(.removed)
                     }
-                case .removeSeries, nil:
+                case .removeSeries:
+                    guard let weekly = state.weeklyItem else { return .none }
+                    let ended = SeriesEdits.ending(weekly, before: state.skipCandidate ?? state.today,
+                                                   calendar: state.calendar)
+                    return .run { [scheduleStore] send in
+                        do {
+                            try await scheduleStore.save(ended)
+                            await send(.saved(true))
+                        } catch {
+                            await send(.saved(false))
+                        }
+                    }
+                case nil:
                     return .none
                 }
 
@@ -221,6 +291,18 @@ public struct ItemEditorFeature {
 
             case .delegate:
                 return .none
+            }
+        }
+    }
+
+    /// Skips are saved at once, without "Save changes" (board E5).
+    private func save(_ item: ScheduleItem, skipped: Day?) -> Effect<Action> {
+        .run { [scheduleStore] send in
+            do {
+                try await scheduleStore.save(item)
+                await send(.skipSaved(item, skipped: skipped))
+            } catch {
+                await send(.saved(false))
             }
         }
     }
