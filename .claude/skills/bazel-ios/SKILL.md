@@ -1,8 +1,8 @@
 ---
 name: bazel-ios
-description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/lint/fmt/sim-stop, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
+description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/device/lint/fmt/sim-stop, signed builds on a real iPad, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.4.0
+  version: 0.5.0
   status: experimental
 ---
 
@@ -32,12 +32,26 @@ xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit_Sim.pearl.match   
 
 Sending the match before the sheet appears does nothing; send it again.
 
+## Real iPad (`make device`)
+
+- Works with a free Apple ID (Personal Team). The profile lasts 7 days; run `make device` again
+  to renew it. Installing over the old app keeps its data. One device holds 3 such apps.
+- `scripts/device-profile.sh` makes Xcode create "iOS Team Provisioning Profile: <bundle id>"
+  by building a throwaway xcodegen stub with automatic signing; `//ios:device_profile`
+  (rules_apple `local_provisioning_profile`) finds it in `~/Library`. Team and device IDs are
+  read on this Mac and never written into the repo.
+- `--config=device` (ios/.bazelrc) builds arm64 and selects the profile; plain builds stay unsigned.
+- First time on an iPad: pair (`xcrun devicectl manage pair --device <id>`, tap Trust),
+  run `make device` once so Settings shows Developer Mode, turn it on and restart, then after
+  the first install trust the developer in Settings > General > VPN & Device Management.
+
 ## Commands
 
 | Need | Command |
 |---|---|
 | Build app | `make build` |
 | Build + launch on simulator | `make run` |
+| Build + sign + launch on a cabled iPad | `make device` (see Real iPad) |
 | All tests | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
 | One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |
 | Test log | `bazel-testlogs/ios/<Pkg>/Tests/<Target>/test.log` |
@@ -118,6 +132,9 @@ fp_swift_library(name = "KitArt", data = [":KitArtResources"])
 | Library builds but app does not | Building a library alone targets macOS; build the app or a test target |
 | Swift 6 Sendable errors in our code | Capture dependencies explicitly in `.run { [dep] send in ... }` |
 | `call to main actor-isolated static method` warning in tests | Pure helpers inside a `View` inherit main-actor isolation; mark them `nonisolated` |
+| `cannot be registered to your development team because it is not available` | Placeholder bundle IDs (com.example.*) are taken; use the real `BUNDLE_ID` in `project.bzl` |
+| Device install: `not a valid bundle ... CFBundleName` | The simulator ignores a missing `CFBundleName`; a real iPad does not. Keep it in `ios/Info.plist` |
+| Device launch: `profile has not been explicitly trusted` | Trust the developer once in Settings > General > VPN & Device Management |
 | `UIImage(named:in:)` returns nil though the asset exists | Resource bundle Info.plist lacks `CFBundleIdentifier` (see Resources) |
 
 ## CI differences

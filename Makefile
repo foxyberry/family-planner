@@ -3,7 +3,7 @@
 # =============================================================================
 IOS_BAZEL   := bazel --bazelrc=.bazelrc --bazelrc=ios/.bazelrc
 APP_NAME    := FamilyPlanner
-BUNDLE_ID   := com.example.familyplanner
+BUNDLE_ID   := io.github.foxyberry.familyplanner
 APP_TARGET  := //ios:$(APP_NAME)
 
 # Simulator config — override via CLI:
@@ -13,7 +13,7 @@ SIM_OS     ?= 26.5
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run test test-one snapshots-record sim-stop art art-private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one snapshots-record sim-stop art art-private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios
 
 # =============================================================================
@@ -33,6 +33,17 @@ run: build
 	open -a Simulator && \
 	xcrun simctl install "$(SIMULATOR)" "$$APP" && \
 	xcrun simctl launch "$(SIMULATOR)" $(BUNDLE_ID)
+
+# Build, sign and install on a real iPad connected by cable. With a free Apple ID the
+# profile lasts 7 days: run this again to renew it (installing over keeps the app's data).
+device:
+	@UDID=$$(scripts/connected-ipad.sh) && \
+	scripts/device-profile.sh $(BUNDLE_ID) "$$UDID" && \
+	$(IOS_BAZEL) build $(APP_TARGET) --config=device && \
+	rm -rf bazel-device && mkdir bazel-device && \
+	unzip -q bazel-bin/ios/$(APP_NAME).ipa -d bazel-device && \
+	xcrun devicectl device install app --device "$$UDID" bazel-device/Payload/$(APP_NAME).app && \
+	xcrun devicectl device process launch --device "$$UDID" $(BUNDLE_ID)
 
 # The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.
 # Failed snapshots leave their new picture in the git-ignored __Diffs__ folder (local runs
