@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import Home
 import ParentAuthClient
 import SwiftUI
 
@@ -18,6 +19,7 @@ public struct AppFeature {
         public var now: Date?
         public var scenePhase: ScenePhase = .inactive
         public var path = StackState<Path.State>()
+        public var home = HomeFeature.State()
 
         public init() {}
     }
@@ -31,9 +33,9 @@ public struct AppFeature {
         case scenePhaseChanged(ScenePhase)
         case task
         case tick(Date)
-        case parentButtonTapped
         case parentAuthResponse(ParentAuthOutcome)
         case path(StackActionOf<Path>)
+        case home(HomeFeature.Action)
     }
 
     @Dependency(\.continuousClock) var clock
@@ -43,6 +45,7 @@ public struct AppFeature {
     public init() {}
 
     public var body: some ReducerOf<Self> {
+        Scope(state: \.home, action: \.home) { HomeFeature() }
         Reduce { state, action in
             switch action {
             case .appDelegate(.didFinishLaunching):
@@ -62,9 +65,9 @@ public struct AppFeature {
 
             case let .tick(now):
                 state.now = now
-                return .none
+                return .send(.home(.tick(now)))
 
-            case .parentButtonTapped:
+            case .home(.clockHoldCompleted):
                 return .run { [parentAuth] send in
                     await send(.parentAuthResponse(parentAuth.authenticate("Open parent mode")))
                 }
@@ -80,7 +83,7 @@ public struct AppFeature {
                 state.path.append(.gallery(GalleryFeature.State()))
                 return .none
 
-            case .path:
+            case .path, .home:
                 return .none
             }
         }

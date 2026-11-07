@@ -6,7 +6,8 @@ import XCTest
 
 @MainActor
 final class AppFeatureTests: XCTestCase {
-    private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)
+    private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)   // 08:00 UTC
+    private let minuteOfFixedDate = 480
 
     func testClockTicksEverySecondUntilCancelled() async {
         let clock = TestClock()
@@ -15,6 +16,11 @@ final class AppFeatureTests: XCTestCase {
         } withDependencies: {
             $0.continuousClock = clock
             $0.date.now = fixedDate
+            $0.calendar = {
+                var calendar = Calendar(identifier: .gregorian)
+                calendar.timeZone = TimeZone(identifier: "UTC")!
+                return calendar
+            }()
         }
 
         let task = await store.send(.task)
@@ -22,19 +28,24 @@ final class AppFeatureTests: XCTestCase {
         await store.receive(\.tick, fixedDate) {
             $0.now = self.fixedDate
         }
+        // Before the home screen's first load a tick only moves its minute.
+        await store.receive(\.home.tick, fixedDate) {
+            $0.home.minute = self.minuteOfFixedDate
+        }
         await clock.advance(by: .seconds(1))
         await store.receive(\.tick, fixedDate)
+        await store.receive(\.home.tick, fixedDate)
         await task.cancel()
     }
 
-    func testParentButtonAuthorizedPushesParentHome() async {
+    func testClockHoldAuthorizedPushesParentHome() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()
         } withDependencies: {
             $0.parentAuth.authenticate = { _ in .success }
         }
 
-        await store.send(.parentButtonTapped)
+        await store.send(.home(.clockHoldCompleted))
         await store.receive(\.parentAuthResponse, .success) {
             // Address the element by its ID: append() here would draw a second ID (#1)
             // from the test's stack-ID generator.
@@ -42,14 +53,14 @@ final class AppFeatureTests: XCTestCase {
         }
     }
 
-    func testParentButtonDeniedStaysHome() async {
+    func testClockHoldDeniedStaysHome() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()
         } withDependencies: {
             $0.parentAuth.authenticate = { _ in .notRecognised }
         }
 
-        await store.send(.parentButtonTapped)
+        await store.send(.home(.clockHoldCompleted))
         await store.receive(\.parentAuthResponse, .notRecognised)
         XCTAssertTrue(store.state.path.isEmpty)
     }
@@ -90,7 +101,7 @@ final class AppFeatureTests: XCTestCase {
             }
         }
 
-        await store.send(.parentButtonTapped)
+        await store.send(.home(.clockHoldCompleted))
         await store.receive(\.parentAuthResponse, .notRecognised)
         XCTAssertEqual(reason.value, "Open parent mode")
     }

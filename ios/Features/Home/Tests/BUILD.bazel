@@ -1,0 +1,24 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "HomeTestsLib",
+    testonly = True,
+    deps = [
+        "//ios/Clients/HolidayProvider",
+        "//ios/Clients/ScheduleStore",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/Features/Home",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)
+
+ios_unit_test(
+    name = "HomeTests",
+    bundle_id = BUNDLE_ID + ".home.tests",
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    deps = [":HomeTestsLib"],
+)

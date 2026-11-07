@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import DesignSystem
+import Home
 import SwiftUI
 
 public struct AppView: View {
@@ -11,14 +12,9 @@ public struct AppView: View {
 
     public var body: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
-            VStack(spacing: 32) {
-                Text(store.now?.formatted(date: .omitted, time: .standard) ?? "--:--:--")
-                    .font(.system(size: 72, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                Button("Parent") { store.send(.parentButtonTapped) }
-                    .buttonStyle(.bordered)
-            }
-            .task { await store.send(.task).finish() }
+            HomeView(store: store.scope(state: \.home, action: \.home))
+                .toolbar(.hidden, for: .navigationBar)
+                .task { await store.send(.task).finish() }
         } destination: { store in
             switch store.case {
             case let .parentHome(store):
