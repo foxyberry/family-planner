@@ -12,7 +12,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_swift",
-    version = "3.4.2",
+    version = "3.6.0",
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(
@@ -21,7 +21,10 @@ bazel_dep(
     repo_name = "build_bazel_rules_apple",
 )
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
-bazel_dep(name = "rules_swift_package_manager", version = "1.12.0")
+# >= 1.19.0 compiles each Swift package with its own minimum OS (rules_swift_package_manager#892).
+# Older versions compiled TCA's dependencies with the app's iOS 26 minimum, which broke
+# swift-perception's back-ported APIs that are marked obsoleted after iOS 17.
+bazel_dep(name = "rules_swift_package_manager", version = "1.25.0")
 
 bazel_dep(
     name = "rules_xcodeproj",

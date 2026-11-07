@@ -1,0 +1,9 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Interface only. The real Face ID implementation lives in ParentAuthClientLive,
+# which only the app target may depend on.
+fp_swift_library(
+    name = "ParentAuthClient",
+    visibility = ["//ios:__subpackages__"],
+    deps = ["@swiftpkg_swift_composable_architecture//:ComposableArchitecture"],
+)
