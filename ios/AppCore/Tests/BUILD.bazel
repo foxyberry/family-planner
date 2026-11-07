@@ -8,6 +8,8 @@ fp_swift_library(
     deps = [
         "//ios/AppCore",
         "//ios/Clients/ParentAuthClient",
+        "//ios/Clients/ScheduleStore",
+        "//ios/Domain",
         "//ios/Features/Grownup",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],

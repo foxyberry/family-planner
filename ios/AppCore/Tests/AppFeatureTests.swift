@@ -1,6 +1,8 @@
 import AppCore
 import ComposableArchitecture
+import Domain
 import Grownup
+import ScheduleStore
 import ParentAuthClient
 import SwiftUI
 import XCTest
@@ -63,6 +65,57 @@ final class AppFeatureTests: XCTestCase {
         await store.send(\.path[id: 0].hub.galleryButtonTapped) {
             $0.path[id: 1] = .gallery(GalleryFeature.State())
         }
+    }
+
+    func testHubAddEveryWeekPushesEditorForTheTabKid() async {
+        var hub = GrownupHubFeature.State()
+        hub.selectedKid = SeedData.kidB.id
+        var state = AppFeature.State()
+        state.path.append(.hub(hub))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].hub.addWeeklyTapped)
+        guard case let .editor(editor) = store.state.path[id: 1] else { return XCTFail("no editor") }
+        XCTAssertEqual(editor.mode, .add(.kid(SeedData.kidB.id)))
+        XCTAssertEqual(editor.form.repeats, .weekly)
+    }
+
+    func testHubJustOnceItemOpensEditOnce() async {
+        let party = ScheduleItem(id: UUID(), title: "Party", iconName: "cake", audience: .both, start: 960, end: 1020,
+                                 recurrence: .once(Day(year: 2027, month: 1, day: 2)), skippedDays: [],
+                                 skipsHolidays: false, showsStar: true)
+        var hub = GrownupHubFeature.State()
+        hub.snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: [party])
+        var state = AppFeature.State()
+        state.path.append(.hub(hub))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].hub.onceItemTapped, party.id)
+        guard case let .editor(editor) = store.state.path[id: 1] else { return XCTFail("no editor") }
+        XCTAssertEqual(editor.mode, .editOnce(party))
+    }
+
+    func testEditorFinishedPopsBackToHub() async {
+        var state = AppFeature.State()
+        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: fixedDate,
+                                                          calendar: Calendar(identifier: .gregorian))))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 1].editor.delegate.finished)
+        XCTAssertEqual(store.state.path.count, 1)
     }
 
     func testDidFinishLaunchingHasNoSideEffects() async {

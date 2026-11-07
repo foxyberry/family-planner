@@ -14,6 +14,7 @@ public struct AppFeature {
     @Reducer
     public enum Path {
         case hub(GrownupHubFeature)
+        case editor(ItemEditorFeature)
         case gallery(GalleryFeature)
     }
 
@@ -54,6 +55,7 @@ public struct AppFeature {
         case home(HomeFeature.Action)
     }
 
+    @Dependency(\.calendar) var calendar
     @Dependency(\.continuousClock) var clock
     @Dependency(\.date) var date
     @Dependency(\.parentAuth) var parentAuth
@@ -152,6 +154,26 @@ public struct AppFeature {
                 state.path.removeAll()
                 state.lastGrownupTouch = nil
                 state.relockCaption = nil
+                return .none
+
+            case let .path(.element(id: id, action: .hub(.addWeeklyTapped))),
+                 let .path(.element(id: id, action: .hub(.addOnceTapped))):
+                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
+                let repeats: ItemForm.Repeat = if case .path(.element(_, .hub(.addOnceTapped))) = action { .once } else { .weekly }
+                state.path.append(.editor(ItemEditorFeature.State(mode: .add(.kid(kid)), repeats: repeats,
+                                                                  now: date.now, calendar: calendar)))
+                return .none
+
+            case let .path(.element(id: id, action: .hub(.onceItemTapped(itemID)))),
+                 let .path(.element(id: id, action: .hub(.weeklyItemTapped(itemID)))):
+                guard case let .hub(hub) = state.path[id: id],
+                      let item = hub.snapshot?.items.first(where: { $0.id == itemID }) else { return .none }
+                let mode: ItemEditorFeature.Mode = item.isWeekly ? .editWeekly(item) : .editOnce(item)
+                state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar)))
+                return .none
+
+            case let .path(.element(id: id, action: .editor(.delegate(.finished)))):
+                state.path.pop(from: id)
                 return .none
 
             case .path(.element(id: _, action: .hub(.galleryButtonTapped))):

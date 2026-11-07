@@ -33,6 +33,8 @@ public struct AppView: View {
             switch store.case {
             case let .hub(store):
                 GrownupHubView(store: store)
+            case let .editor(store):
+                ItemEditorView(store: store)
             case .gallery:
                 ComponentGallery()
             }
