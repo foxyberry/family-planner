@@ -25,13 +25,15 @@ public struct AppView: View {
                             onCancel: { store.send(.lockCancelTapped) })
             }
         }
+        // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
+        // the home disappear, which would cancel its task and stop the idle relock.
+        .task { await store.send(.task).finish() }
     }
 
     private var navigation: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             HomeView(store: store.scope(state: \.home, action: \.home))
                 .toolbar(.hidden, for: .navigationBar)
-                .task { await store.send(.task).finish() }
         } destination: { store in
             switch store.case {
             case let .hub(store):
