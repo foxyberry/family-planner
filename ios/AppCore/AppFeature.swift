@@ -31,6 +31,10 @@ public struct AppFeature {
         public var relockCaption: String?
 
         public init() {}
+
+        /// Grown-up screens are hidden whenever the app is not active, so the app-switcher snapshot
+        /// and brief interruptions (Control Center) never show them to a child.
+        public var coversGrownupScreens: Bool { scenePhase != .active && !path.isEmpty }
     }
 
     public enum AppDelegateAction: Equatable {

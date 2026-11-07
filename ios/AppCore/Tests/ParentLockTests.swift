@@ -143,6 +143,17 @@ final class ParentLockTests: XCTestCase {
         XCTAssertNil(store.state.lastGrownupTouch)
     }
 
+    func testGrownupScreensCoveredWhileNotActive() {
+        var state = unlockedState()
+        state.scenePhase = .active
+        XCTAssertFalse(state.coversGrownupScreens)
+        state.scenePhase = .inactive   // app switcher snapshot, Control Center
+        XCTAssertTrue(state.coversGrownupScreens)
+        var home = AppFeature.State()
+        home.scenePhase = .inactive
+        XCTAssertFalse(home.coversGrownupScreens, "the kids' home needs no cover")
+    }
+
     func testIdleTimerIgnoredOnHome() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()

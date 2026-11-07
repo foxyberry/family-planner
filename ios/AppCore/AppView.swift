@@ -14,6 +14,9 @@ public struct AppView: View {
     public var body: some View {
         ZStack {
             navigation
+            if store.coversGrownupScreens {
+                CrayonColor.paper.ignoresSafeArea()
+            }
             if let lock = store.lock {
                 LockOverlay(state: lock, onPrimary: { store.send(.lockPrimaryTapped) },
                             onCancel: { store.send(.lockCancelTapped) })
