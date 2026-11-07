@@ -1,0 +1,35 @@
+import CrayonKit
+import KitArt
+import SwiftUI
+
+/// The younger kid's day on the home screen (board A1): a big "now" picture and a smaller "next" one.
+public struct KidNowNext: View {
+    private let now: KitSlot
+    private let next: KitSlot?
+
+    /// Pictures are `KitSlot` raw values; an unknown name falls back to play.
+    public init(now: String, next: String?) {
+        self.now = KitSlot(rawValue: now) ?? .actPlay
+        self.next = next.map { KitSlot(rawValue: $0) ?? .actPlay }
+    }
+
+    public var body: some View {
+        HStack(alignment: .bottom, spacing: Spacing.l) {
+            circle(now, diameter: 160, picture: 104, fill: CrayonStyle.apricot, caption: "now", seed: 3101)
+            if let next {
+                circle(next, diameter: 104, picture: 64, fill: CrayonStyle.paper, caption: "next", seed: 3102)
+            }
+        }
+    }
+
+    private func circle(_ slot: KitSlot, diameter: CGFloat, picture: CGFloat, fill: CrayonFill, caption: String,
+                        seed: UInt32) -> some View {
+        VStack(spacing: Spacing.xs) {
+            KitIcon(slot, size: picture)
+                .frame(width: diameter, height: diameter)
+                .crayonBackground(.circle, fill: fill, seed: seed)
+            Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
