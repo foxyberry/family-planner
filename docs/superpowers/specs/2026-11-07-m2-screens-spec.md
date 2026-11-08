@@ -3,6 +3,13 @@
 Boards: A1, E1, E3, C0, C1, C3, C4, C3k, E5, E6 (design canvas, page "v3 · Crayon").
 Public-safe: children are **Kid A** (older, school) and **Kid B** (toddler, at home). No school, stop, route or bus numbers appear here. Times in examples are seed values, not real ones.
 
+## Change log
+The repo copy of this file must match this one. Each change is dated; the newest is last.
+- 2026-11-07: first version.
+- 2026-11-07: hub text on M1 type steps (24 / 48 / 30); midnight day change; sleep stored as two slots and merged; E5 save rule.
+- 2026-11-08: E3 shows the day above both kids; C1 "Day" opens C6, "Holidays" opens C7 (later); new C6 and C7 sections.
+- 2026-11-08: seed templates with exact times (Mon–Fri, Sat, Sun) and every-week items; day types are only Mon–Fri / Sat / Sun; a weekday school holiday uses Sun (E3, C6, model); free time drawn as plain paper; slot picture sizes 104 / 84 / 56 with radii 0.68R / 0.8R; snack and play share green, sky stays for after-school items.
+
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
 - **[proposed]**: the board does not show it; this is the design decision for M2. Change it here first if you disagree.
@@ -27,13 +34,38 @@ Markers used below:
 - Side column: columns 9–12 (x 930, w 382, the 400 span inset 18 so the crayon spill stays inside).
 - Main button: `InkButton`, side column, y 872–968.
 
-### Seed data in M2 [proposed]
-- Two kids from a fixed seed, editable only through C3, C4 and E5. Adding a child is M4 (S1).
-- Kid A: school days Mon–Fri, school hours, wake-up, bedtime, two every-week items, one just-once item.
-- Kid B: nap, bedtime, no every-week items, the same just-once item (made for "Both").
+### Seed data in M2
+- Two kids from a fixed seed, editable through C3, C4, E5 and C6. Adding a child is M4 (S1).
+- **Kid A, Mon–Fri template** (user-approved 2026-11-08; generic canvas values, safe for the public repo). It matches boards A1, E1 and C6:
+
+  | slot | time | kind (colour) | picture |
+  |---|---|---|---|
+  | Sleep | 20:00–6:30 | sleep | actSleep |
+  | Breakfast | 6:30–7:30 | morning routine | actBreakfast |
+  | School | 7:30–15:00 (includes the trip) | school, edges locked | actSchool |
+  | Snack | 15:00–16:00 | play / free (green) | snack |
+  | free | 16:00–17:00 | free time (paper) | — |
+  | Play | 17:00–18:30 | play / free (green) | blocks |
+  | Dinner | 18:30–19:15 | dinner | actDinner |
+  | Shower | 19:15–20:00 | evening routine | actShower |
+
+- **Kid A, every-week items**:
+  - "Swimming", Mon and Wed 15:30–16:30, after-school (sky), actSwim, skip school holidays on.
+  - "Art club", Fri 15:00–16:00, actArt.
+  - On a Monday the clock shows snack 15:00–15:30, swimming 15:30–16:30, free 16:30–17:00.
+- **Kid A, just-once item**: "Birthday", the coming Saturday 14:00–16:00, for both kids, star on.
+- **Kid B**: nap 13:00–15:00, bed 19:30, wake 6:30; morning cards Wake up · Milk (babyBottle) · Shoes. No every-week items.
+- **Sat and Sun templates** (seed; the same for both days; matches board E3):
+  - Sleep 20:45–7:30, Breakfast 7:30–8:30, Play 8:30–19:00, Dinner 19:00–20:15, Shower 20:15–20:45.
+  - On the seed Saturday the Birthday (14:00–16:00) sits on top, so at 9:15 the hub says "Play" / "until 2:00", as on E3.
+  - The family's real weekend school and church times are not in the repo; grown-ups add them in C6 with `actLanguageSchool` and `actChurch`.
+- Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30" and Kid A "Leave in 34 min" (M3), as on the board.
 
 ### Schedule model the screens assume [proposed]
-- Each kid has a **day template** (sleep, morning routine, school or nursery block, dinner, evening, bedtime) from seed data, plus **every-week items** and **just-once items**.
+- Each kid has **three day templates**, one per day type, plus **every-week items** and **just-once items**. A template covers sleep, routines, the school or nursery block, dinner, evening and bedtime.
+  - Day types: **Mon–Fri**, **Sat**, **Sun**. There are no others.
+  - **A weekday school holiday uses the Sun template** (user decision, 2026-11-08). Holidays come from the holiday list (seed in M2, C7 later).
+  - "Free time" is a real template slot with no picture; it is drawn as plain paper.
 - Priority when two things share time on one kid's clock: just-once > every-week > day template. The higher one is drawn and named; the lower one is cut around it. Nothing is deleted by an overlap.
 - "Skip school holidays" on an every-week item hides it on dates in the holiday list. M2 uses seed holidays; importing them is later.
 - The clock's day changes at **midnight**. A just-once item is on the clock on its date only, so it leaves at midnight. The C1/E6 "Just once" list keeps it until the kid's next wake-up time, so a grown-up can still see last night's event in the morning. (Agreed with the main session, 2026-11-07.)
@@ -58,7 +90,7 @@ Markers used below:
   - 12 (midnight, top), 6 (right, 6 am), 12 (noon, bottom) and 6 (left, 6 pm) are 30 pt semibold `ink`. The rest are 24 pt semibold `softText`.
   - A 40 pt moon picture sits above the top 12, and a 44 pt sun below the bottom 12.
 - **Slots**: one sector per schedule slot, from its start angle to its end angle. Touching slots of the same kind (the two halves of sleep) are merged into one sector first.
-  - Fill: crayon fill (wash + flicks, as in M1 `CrayonSurface`) in the slot colour.
+  - Fill: crayon fill (wash + flicks, as in M1 `CrayonSurface`) in the slot colour. **Free time has no fill**: plain paper with the normal radial edges, and no picture.
   - Edges: radial marker line 2.5 pt between slots, outer ring 4.5 pt.
   - The **current slot** gets a 6 pt outline.
 - **Slot colours** (new token group `ClockSlot`; hex from the board):
@@ -74,10 +106,14 @@ Markers used below:
   | evening routine | lilac #B9A3F0 | −60° |
   | just-once event | pink #F7A8CF | 50° |
 
+  - Snack and play share the green; sky is kept for after-school every-week items (2026-11-08).
+  - Free time has no colour (paper).
+
   - mint, orange, green, coral, lilac and pink are new palette entries.
   - Text is never placed on these fills, so contrast rules do not apply to them.
-- **Slot pictures**: each slot's kit picture (`KitIcon`, from the item's slot) at the slot's middle angle, radius 0.7R (about 260). Keep it between the hub (r 160) and the rim (r R − 8).
-  - Size by slot length: ≥ 3 h → 104; 1–3 h → 84; 30–60 min → 68; under 30 min → no picture.
+- **Slot pictures**: each slot's kit picture (`KitIcon`, from the item's slot) at the slot's middle angle. Keep it between the hub (r 160) and the rim (r R − 8).
+  - Size by slot length: ≥ 3 h → 104; 1–3 h → 84; 30–60 min → 56; under 30 min → no picture. (Board A1, 2026-11-08: 68 overflowed a 45-minute slice.)
+  - Radius: 0.68R (about 253) for 104 and 84; 0.8R (about 298) for 56, where the slice is wider.
 - **Hub**: white disc r 152, 4 pt marker outline, on top of the slots.
 - **Hand**: the "lollipop" in `handRed` #E5484D.
   - Line 9 pt from r 154 to r 312 at the current time's angle.
@@ -131,11 +167,11 @@ Markers used below:
 - Empty Next [proposed]: "Next" + "Nothing else today" (body, `softText`).
 
 ## E3 · Home, weekend or holiday [board]
-- Same clock. Weekend slots come from the weekend day template.
-- Right panel:
-  - `KidDot` + Kid A name (head).
-  - Day name, e.g. "Saturday" (body, `softText`).
-  - "No school, no bus" (48 bold). On a school holiday that falls on a weekday the line is the same; the day name shows the weekday.
+- Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
+- Right panel (the day comes first because it is the same for both kids; changed 2026-11-08):
+  - Day name, e.g. "Saturday" (title 48).
+  - "No school, no bus" (body, `softText`), 4 below. On a school holiday that falls on a weekday the line is the same; the day name shows the weekday.
+  - 48 below: `KidDot` + Kid A name (head).
   - The next just-once or every-week item for Kid A: 72 picture + title (body bold) over "{start} – {end}" (caption). Only one.
   - Kid B block as A1.
 - Main button "Diary →" → B2. **[later M5]**: hidden in M2.
@@ -205,12 +241,12 @@ Markers used below:
 ### Rows (Kid A)
 - **About**:
   - "Age" → "{age} · {school year}".
-  - "Day" → wake picture "Up {h:mm} · " + sleep picture "Bed {h:mm}". **[later M4]** editing; no "›" in M2.
+  - "Day" → wake picture "Up {h:mm} · " + sleep picture "Bed {h:mm}", "›" → **C6 Our day**.
 - **School**:
   - "School" → school picture + school name (from settings).
   - "Days" → seven read-only `DayChip` 56 (on = school day).
   - "Hours" → "{start} – {end}" in "h:mm am" form.
-  - "Holidays" → "Term {n} ends {Day d Mon}" or "No holidays set". **[later]** "›".
+  - "Holidays" → "Term {n} ends {Day d Mon}" or "No holidays set", "›" → C7 (later; hidden in M2).
 - **Getting there** **[later M3]**: hidden in M2.
   - "To school" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2.
   - "Home time" → "{h:mm} · pick-up at the gate", "›" → C2.
@@ -389,3 +425,74 @@ any grown-up screen --2 min idle or app backgrounded--> home
   - Screens: `KidScreen`, `GrownupScreen`
   - Controls: `CrayonTabs`, `DayChip`, `DateChip`, `CrayonField`, `TimeField`, `IconPicker`, `CheckMark`, `InkButton`, `RoundButton`
   - Content: `ListRow`, `TodayRow`, `PaperCard`, `KidDot`, `TimeLeft` (M3)
+
+---
+
+## C6 · Our day: drag the times on the clock (new 2026-11-08) [board]
+
+Edits a kid's **day template**: wake-up, routines, school block, dinner, shower, sleep. Opened from the "Day" row in C1/E6.
+Every-week and just-once items are not edited here. They sit on top of the template on the real clock.
+
+### Layout
+- Header:
+  - `RoundButton` "←" → C1.
+  - "Our day" (title).
+  - `CrayonTabs` Kid A | Kid B.
+  - "Undo" button 182 × 72 at the right end.
+- Edit clock: `PieClock` in edit mode, columns 1–8 (x 64–888, y 176–968). Centre (476, 572), R 340, hub r 130.
+  - Hour labels at R + 40; ticks at R + 4…16. Same 0:00-top, clockwise rule as A1.
+- Right column (columns 9–12):
+  - Day-type tabs: "Mon–Fri" 150, "Sat" 110, "Sun" 110 (gap 6). Each day type has its own template, so Saturday and Sunday can hold their own morning (weekend school, church).
+  - These are the only day types. **A weekday school holiday uses the Sun template**, so editing Sun also changes holidays. Under the tabs, the caption "Sun is also used on school holidays." (caption, `softText`) shows while Sun is selected.
+  - Slice card 382 × 440:
+    - picture 64 + name (head)
+    - "Starts" `TimeField` 170
+    - "Ends" `TimeField` 170. The field being dragged is outlined in `kidABlue`.
+    - The effect on the neighbour (caption), e.g. "Shower now starts at 7:30 and is 30 min."
+    - "Make this free time" (body bold, `lateText`)
+  - Hint caption: "Drag a ● on the rim to move a time. Tap a slice to edit it. Tap + to fill free time."
+  - "Changes start tomorrow." (caption)
+  - `InkButton` "Save the day".
+
+### Drag rules
+- Every boundary between two slices has a **knob on the rim**: 36 pt drawn, 64 pt touch target.
+- **Dragging a knob moves the shared edge**: the end of one slice and the start of the next move together, so the day stays gap-free unless a slice is made free on purpose.
+- **Snap**:
+  - Times snap to 5 minutes.
+  - Light haptic per step, a stronger one on the hour.
+  - At 340 pt radius, 5 minutes is about 7.4 pt along the rim.
+- **Feedback**:
+  - While dragging, the knob turns `kidABlue` with a ring.
+  - A dashed line stays at the old position.
+  - **The hub shows the time** ("7:30 pm", title 48 `kidABlue`) between "Dinner ends" and "Shower starts" (caption). The finger covers the knob, so the time is never shown under it.
+- **Limits**:
+  - A slice cannot get shorter than 15 minutes. The knob stops there with a bump haptic.
+  - A knob cannot cross another knob.
+- **Locked edges**: the school block's start and end come from School (S2) and Our buses (C2).
+  - Those knobs are grey with a padlock and do not move.
+  - Tapping one shows "School hours are set in School." (caption) with a link to S2.
+- **Tap a slice** → it becomes selected (6 pt outline) and the slice card shows it. Typing a time in the card moves the knob the same way, with the same limits.
+- **Free time**:
+  - "Make this free time" turns the slice into blank paper with a "+" in the middle.
+  - **Tapping "+"** opens a new slice in the card for exactly that free span. The time is prefilled; you pick a picture and a name.
+  - Free time on the real clock shows as "Free time" in the hub (A1 NOW rule).
+- **Undo** steps back one change at a time (drag, typed time, make free, add), back to the last save.
+- **Save the day** applies the template **from tomorrow**. Leaving with unsaved changes asks "Leave without saving?" (Keep editing / Leave).
+- **VoiceOver**: each knob is an adjustable element, "Dinner ends, 7:30 pm", with increment and decrement of 5 minutes.
+
+## C7 · School calendar: add from a photo or PDF (new 2026-11-08) [board, later]
+Backlog DA-1; not in M2. Opened from the "Holidays" row in C1.
+- Left card:
+  - "Found in {file name}" (head).
+  - "Read on this iPad. Tick what to add; tap a row to fix it." (caption).
+  - Rows 88: `CheckMark` 48, date or range (body bold, 230), title (body, ellipsis), kind (caption: event · change · holiday · other class).
+  - Rows the reader is unsure of are marked and start unticked.
+- Right column:
+  - "Add from" with four buttons 182 × 72: "Photo", "PDF", "Paste text", "Link".
+  - Summary "Adds {n} · changes {m}" (head), then two captions:
+    - "Holidays hide school mornings and the bus. Every-week items set to skip holidays hide too."
+    - "No Apple Intelligence on this iPad? The text is still read, and you pick the dates by hand."
+  - `InkButton` "Add {n} dates".
+- Reading: PDFKit / Vision `RecognizeDocumentsRequest` → Foundation Models `@Generable` items behind `ScheduleExtractor`.
+  - When `SystemLanguageModel.availability` is not available, the rows are empty date fields prefilled with the recognised text lines.
+  - This is the only feature that needs Apple Intelligence.
