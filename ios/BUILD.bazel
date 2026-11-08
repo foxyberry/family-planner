@@ -56,6 +56,8 @@ config_setting(
 local_provisioning_profile(
     name = "device_profile",
     profile_name = "iOS Team Provisioning Profile: " + BUNDLE_ID,
+    # Only `--config=device` builds use it; CI and `//ios/...` have no profile.
+    tags = ["manual"],
 )
 
 # --- Tests ---
