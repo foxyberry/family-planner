@@ -109,6 +109,23 @@ jobs:
           echo "SIM_OS=$OS" >> "$GITHUB_ENV"
           echo "Using ${DEVICE//_/ } / iOS $OS"
 
+      # Boot the test simulator before the build, under the name the rules_apple test runner
+      # reuses (BAZEL_TEST_<device>_<os>; //ios:test_runner sets reuse_simulator), so the Test
+      # step finds it booted instead of paying the cold boot inside the first test target.
+      - name: Boot test simulator
+        timeout-minutes: 10
+        run: |
+          NAME="BAZEL_TEST_${SIM_DEVICE}_${SIM_OS}"
+          RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-${SIM_OS//./-}"
+          UDID=$(xcrun simctl list devices -j | NAME="$NAME" RUNTIME="$RUNTIME" python3 -c '
+          import json, os, sys
+          devices = json.load(sys.stdin)["devices"].get(os.environ["RUNTIME"], [])
+          print(next((d["udid"] for d in devices if d["name"] == os.environ["NAME"]), ""))
+          ')
+          [ -n "$UDID" ] || UDID=$(xcrun simctl create "$NAME" "$SIM_DEVICE" "$RUNTIME")
+          xcrun simctl bootstatus "$UDID" -b > /dev/null
+          echo "Booted $NAME"
+
       - name: Build
         run: make build
 
