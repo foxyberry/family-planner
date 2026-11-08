@@ -194,14 +194,16 @@ final class DebugModelTests: XCTestCase {
 
 @MainActor
 final class DebugInstallTests: XCTestCase {
-    private func installed(outcome: ParentAuthOutcome, arguments: [String] = ["App"]) throws -> DependencyValues {
+    private func installed(outcome: ParentAuthOutcome, arguments: [String] = ["App"],
+                           allowsSkipFaceID: Bool = true) throws -> DependencyValues {
         let suite = "fp.debug.tests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         var dependencies = DependencyValues()
         dependencies.calendar = Calendar(identifier: .gregorian)
         dependencies.parentAuth.authenticate = { _ in outcome }
-        DebugModel.install(into: &dependencies, arguments: arguments, defaults: defaults)
+        DebugModel.install(into: &dependencies, arguments: arguments, defaults: defaults,
+                           allowsSkipFaceID: allowsSkipFaceID)
         return dependencies
     }
 
@@ -210,6 +212,15 @@ final class DebugInstallTests: XCTestCase {
         dependencies.debugTools?.settings.skipsFaceID = true
         let outcome = await dependencies.parentAuth.authenticate("Open grown-up screens")
         XCTAssertEqual(outcome, .success)
+    }
+
+    /// On a real iPad a forgotten switch would leave grown-up screens open for good, so it does nothing there.
+    func testSkipFlagIsIgnoredOnADevice() async throws {
+        let dependencies = try installed(outcome: .notRecognised, allowsSkipFaceID: false)
+        dependencies.debugTools?.settings.skipsFaceID = true
+        let outcome = await dependencies.parentAuth.authenticate("Open grown-up screens")
+        XCTAssertEqual(outcome, .notRecognised)
+        XCTAssertEqual(dependencies.debugTools?.allowsSkipFaceID, false)
     }
 
     func testLaunchArgumentDrivesTheAppDate() throws {

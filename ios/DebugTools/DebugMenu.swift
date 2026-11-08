@@ -23,11 +23,15 @@ struct DebugMenu: View {
                     Toggle("12-column grid and bands", isOn: $model.settings.showsLayoutGrid)
                 }
                 Section {
-                    Toggle("Skip Face ID", isOn: $model.settings.skipsFaceID)
+                    if model.allowsSkipFaceID {
+                        Toggle("Skip Face ID", isOn: $model.settings.skipsFaceID)
+                    } else {
+                        Text("Skip Face ID works on a simulator only.").foregroundStyle(.secondary)
+                    }
                 } header: {
                     Text("Flags")
                 } footer: {
-                    Text("Holding the clock opens grown-up screens without the Face ID check (handy on a simulator).")
+                    Text("Holding the clock opens grown-up screens without the Face ID check.")
                 }
                 Section("Network") {
                     Text("No network clients yet. Bus arrivals (M3) will log their requests here.")
