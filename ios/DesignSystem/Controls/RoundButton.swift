@@ -3,13 +3,20 @@ import SwiftUI
 
 /// An 80 pt paper circle holding a symbol or a short text (back, close, +).
 public struct RoundButton: View {
-    private enum Content { case symbol(String), text(String) }
+    private enum Content { case symbol(String), text(String), glyph(MarkerGlyph) }
     private let content: Content
     private let label: String
     private let action: () -> Void
 
     public init(systemImage: String, accessibilityLabel: String, action: @escaping () -> Void) {
         content = .symbol(systemImage)
+        label = accessibilityLabel
+        self.action = action
+    }
+
+    /// A marker glyph at 40 (back chevron, plus, minus).
+    public init(glyph: MarkerGlyph, accessibilityLabel: String, action: @escaping () -> Void) {
+        content = .glyph(glyph)
         label = accessibilityLabel
         self.action = action
     }
@@ -26,6 +33,7 @@ public struct RoundButton: View {
                 switch content {
                 case let .symbol(name): Image(systemName: name).font(CrayonType.head.font.weight(.bold))
                 case let .text(text): Text(text).crayonType(.head)
+                case let .glyph(glyph): MarkerIcon(glyph, size: 40)
                 }
             }
             .foregroundStyle(CrayonColor.ink)

@@ -1,8 +1,10 @@
 import ComposableArchitecture
 import DesignSystem
+import Domain
 import Foundation
 import Grownup
 import Home
+import Missions
 import ParentAuthClient
 import Strings
 import SwiftUI
@@ -15,6 +17,8 @@ public struct AppFeature {
     public enum Path {
         case hub(GrownupHubFeature)
         case editor(ItemEditorFeature)
+        case ourDay(OurDayFeature)
+        case missionEditor(MissionEditorFeature)
         case gallery(GalleryFeature)
     }
 
@@ -24,6 +28,8 @@ public struct AppFeature {
         public var scenePhase: ScenePhase = .inactive
         public var path = StackState<Path.State>()
         public var home = HomeFeature.State()
+        /// A2-MVP over the home screen. A kids' screen, so it is not on `path` (grown-up screens).
+        @Presents public var missions: MissionsFeature.State?
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
         public var lock: LockOverlay.State?
         /// Real seconds since a grown-up last touched a grown-up screen (`nil` on the home screen);
@@ -59,6 +65,7 @@ public struct AppFeature {
         case grownupTouched
         case path(StackActionOf<Path>)
         case home(HomeFeature.Action)
+        case missions(PresentationAction<MissionsFeature.Action>)
     }
 
     @Dependency(\.calendar) var calendar
@@ -121,6 +128,14 @@ public struct AppFeature {
                     }
                 }
                 return .send(.home(.tick(now)))
+
+            case .home(.missionsTapped):
+                state.missions = MissionsFeature.State()
+                return .none
+
+            case .missions(.presented(.delegate(.finished))):
+                state.missions = nil
+                return .none
 
             case .home(.clockHoldCompleted):
                 state.lock = .scanning
@@ -190,6 +205,25 @@ public struct AppFeature {
                 state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar)))
                 return .none
 
+            case let .path(.element(id: id, action: .hub(.dayRowTapped))):
+                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
+                state.path.append(.ourDay(OurDayFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                              calendar: calendar)))
+                return .none
+
+            case let .path(.element(id: id, action: .hub(.missionsRowTapped))):
+                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
+                state.path.append(.missionEditor(MissionEditorFeature.State(kid: kid)))
+                return .none
+
+            case let .path(.element(id: id, action: .missionEditor(.delegate(.finished)))):
+                state.path.pop(from: id)
+                return .none
+
+            case let .path(.element(id: id, action: .ourDay(.delegate(.finished)))):
+                state.path.pop(from: id)
+                return .none
+
             case let .path(.element(id: id, action: .editor(.delegate(.finished)))):
                 state.path.pop(from: id)
                 return .none
@@ -202,11 +236,12 @@ public struct AppFeature {
                 state.path.append(.gallery(GalleryFeature.State()))
                 return .none
 
-            case .path, .home:
+            case .path, .home, .missions:
                 return .none
             }
         }
         .forEach(\.path, action: \.path)
+        .ifLet(\.$missions, action: \.missions) { MissionsFeature() }
     }
 
     private func authenticate() -> Effect<Action> {

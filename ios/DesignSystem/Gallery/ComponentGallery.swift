@@ -29,8 +29,8 @@ public struct ComponentGallery: View {
                     InkButton("Missions") {}
                     HStack(spacing: Spacing.m) {
                         KidPillButton("Swimming", icon: .actSwim) {}
-                        RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back") {}
-                        RoundButton(text: "+", accessibilityLabel: "Add") {}
+                        RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
+                        RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }
@@ -74,8 +74,6 @@ public struct ComponentGallery: View {
                         Medal(.gold, size: 104)
                         Medal(.silver, size: 104)
                         Medal(.bronze, size: 104)
-                        KidDot(color: CrayonColor.kidABlue)
-                        KidDot(color: CrayonColor.kidBOrange, size: 28)
                         KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
                         KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
                     }
@@ -96,6 +94,30 @@ public struct ComponentGallery: View {
                     KidNowNext(now: "teddy", next: "actPlay")
                     ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",
                                 isDestructive: false, onCancel: {}, onConfirm: {})
+                }
+                section("0b · Marker glyphs") {
+                    HStack(spacing: Spacing.m) {
+                        ForEach(MarkerGlyph.allCases, id: \.self) { MarkerIcon($0, size: 40) }
+                    }
+                }
+                section("0c2 · Kid parts") {
+                    HStack(spacing: Spacing.m) {
+                        CrayonRing(progress: 0.5, colorIndex: 0)
+                        KidBand(colorIndex: 1).frame(width: 340, height: 100)
+                        MissionCircle(picture: .toothbrush, name: "Teeth", colorIndex: 0, isDone: true, isCurrent: false)
+                        MissionCircle(picture: .shirt, name: "Get dressed", colorIndex: 0, isDone: false, isCurrent: true)
+                        MissionCircle(.tick, name: "3 done", colorIndex: 0)
+                        MissionCircle(.text("+3"), name: "3 more", colorIndex: 0)
+                    }
+                    GlyphText("Drag %@ to change the order.", glyph: .handle, color: CrayonColor.softText)
+                }
+                section("C6 · Edit clock parts") {
+                    HStack(spacing: Spacing.m) {
+                        ClockKnob(.idle)
+                        ClockKnob(.dragging)
+                        ClockKnob(.locked)
+                        PlusGlyph(size: 40)
+                    }
                 }
                 section("0g3 · Picture rigs (tap to play)") {
                     RigPlayground()

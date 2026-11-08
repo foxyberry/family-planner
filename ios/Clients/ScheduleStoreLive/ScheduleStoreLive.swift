@@ -35,7 +35,14 @@ extension ScheduleStore {
             load: { try database.run { try $0.snapshot() } },
             save: { item in try database.run { try $0.put([item]) } },
             saveAll: { items in try database.run { try $0.put(items) } },
-            delete: { id in try database.run { try $0.delete(id) } }
+            delete: { id in try database.run { try $0.delete(id) } },
+            saveRoutine: { routine in try database.run { try $0.put(routine) } },
+            saveMissions: { kid, missions in try database.run { try $0.put(missions, of: kid) } },
+            missionDay: { kid, date in try database.run { try $0.missionDay(kid: kid, date: date) } },
+            saveMissionDay: { day in
+                @Dependency(\.calendar) var calendar
+                try database.run { try $0.put(day, calendar: calendar) }
+            }
         )
     }
 }
@@ -88,17 +95,21 @@ private struct Records {
             try insert("kid:\(kid.id)", group: "kid", order: index, kid)
         }
         for (index, routine) in SeedData.routines.enumerated() {
-            try insert("routine:\(routine.kid):\(routine.dayType.rawValue):\(routine.from.year)-\(routine.from.month)-\(routine.from.day)", group: "routine", order: index, routine)
+            try insert(Self.key(routine), group: "routine", order: index, routine)
         }
         for item in SeedData.items(today: today, calendar: calendar) {
             try insert("item:\(item.id)", group: "item", order: 0, item)
+        }
+        for mission in SeedData.missions {
+            try insert("mission:\(mission.id)", group: "mission", order: mission.order, mission)
         }
         try insert("meta:seeded", group: "meta", order: 0, SeedData.version)
         try context.save()
     }
 
     func snapshot() throws -> ScheduleSnapshot {
-        ScheduleSnapshot(kids: try values("kid"), routines: try values("routine"), items: try values("item"))
+        ScheduleSnapshot(kids: try values("kid"), routines: try values("routine"), items: try values("item"),
+                         missions: try values("mission"))
     }
 
     func put(_ items: [ScheduleItem]) throws {
@@ -107,6 +118,55 @@ private struct Records {
             try insert("item:\(item.id)", group: "item", order: 0, item)
         }
         try context.save()
+    }
+
+    func put(_ routine: Routine) throws {
+        let key = Self.key(routine)
+        let existing = try fetch("routine")
+        for old in existing where old.key == key { context.delete(old) }
+        try insert(key, group: "routine", order: existing.count, routine)
+        try context.save()
+    }
+
+    func put(_ missions: [Mission], of kid: Kid.ID) throws {
+        for old in try fetch("mission") {
+            if let mission = try? decoder.decode(Mission.self, from: old.payload), mission.kid == kid {
+                context.delete(old)
+            }
+        }
+        for mission in missions {
+            try insert("mission:\(mission.id)", group: "mission", order: mission.order, mission)
+        }
+        try context.save()
+    }
+
+    func missionDay(kid: Kid.ID, date: Day) throws -> MissionDay {
+        let key = Self.dayKey(kid: kid, date: date)
+        guard let record = try fetch("missionDay").first(where: { $0.key == key }) else {
+            return MissionDay(kid: kid, date: date)
+        }
+        return try decoder.decode(MissionDay.self, from: record.payload)
+    }
+
+    /// Saves the day and drops days older than `MissionDay.kept` before it.
+    func put(_ day: MissionDay, calendar: Calendar) throws {
+        let oldest = day.date.adding(days: -MissionDay.kept, calendar: calendar)
+        for record in try fetch("missionDay") {
+            guard let stored = try? decoder.decode(MissionDay.self, from: record.payload) else { continue }
+            if record.key == Self.dayKey(kid: day.kid, date: day.date) || stored.date < oldest {
+                context.delete(record)
+            }
+        }
+        try insert(Self.dayKey(kid: day.kid, date: day.date), group: "missionDay", order: 0, day)
+        try context.save()
+    }
+
+    static func dayKey(kid: Kid.ID, date: Day) -> String {
+        "missionDay:\(kid):\(date.year)-\(date.month)-\(date.day)"
+    }
+
+    static func key(_ routine: Routine) -> String {
+        "routine:\(routine.kid):\(routine.dayType.rawValue):\(routine.from.year)-\(routine.from.month)-\(routine.from.day)"
     }
 
     func delete(_ id: ScheduleItem.ID) throws {

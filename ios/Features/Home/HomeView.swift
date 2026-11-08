@@ -25,7 +25,9 @@ public struct HomeView: View {
                 clockArea
                 rightPanel
                     .frame(width: 384, alignment: .leading)
+                    .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 96)
+                    .padding(.bottom, Spacing.xl)
                 Spacer(minLength: 0)
             }
         }
@@ -97,6 +99,10 @@ public struct HomeView: View {
                 if store.days.count > 1 {
                     kidBBlock(store.days[1])
                 }
+                if store.isMissionMorning {
+                    Spacer(minLength: 0)
+                    InkButton(L10n.tr("home.missions"), arrow: true) { store.send(.missionsTapped) }
+                }
             }
         }
     }
@@ -116,14 +122,25 @@ public struct HomeView: View {
         let timeLeft = HomeModel.timeLeft(to: next, minute: store.minute)
         return VStack(alignment: .leading, spacing: 0) {
             kidHeader(day.kid)
-            if let next {
+            if let outing = store.morningOuting, let heading = store.outingHeading {
+                // Board A1-MVP: "{Place} in" with the way picture, then the minutes to the start.
+                HStack(alignment: .center) {
+                    Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
+                    Spacer(minLength: Spacing.s)
+                    KitPlate(look: store.look, size: 80) {
+                        KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: 80)
+                    }
+                }
+                .padding(.top, Spacing.m)
+                TimeLeft(minutes: outing.slot.start - store.minute, look: store.look)
+            } else if let next {
                 Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
-                    .padding(.top, 24)
-                nextRow(next).padding(.top, 8)
+                    .padding(.top, Spacing.m)
+                nextRow(next).padding(.top, Spacing.xs)
             }
-            if let timeLeft {
+            if store.morningOuting == nil, !store.isMissionMorning, let timeLeft {
                 Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
-                    .padding(.top, 24)
+                    .padding(.top, Spacing.m)
                 TimeLeft(minutes: timeLeft.minutes, look: store.look)
             }
         }
@@ -138,14 +155,14 @@ public struct HomeView: View {
     }
 
     private func nextRow(_ row: NextRow) -> some View {
-        HStack(spacing: 20) {
+        HStack(spacing: Spacing.m) {
             KitPlate(look: store.look, size: 104) {
                 KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: 104)
                     .overlay(alignment: .topTrailing) {
                         if row.showsStar { KitIcon(.star, size: 36) }
                     }
             }
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(row.title).crayonType(.head).foregroundStyle(store.look.ink)
                     .lineLimit(1).truncationMode(.tail)
                 Text(row.at).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)

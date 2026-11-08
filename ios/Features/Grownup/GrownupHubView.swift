@@ -62,6 +62,17 @@ public struct GrownupHubView: View {
                     ListRow(leading: row.key) {
                         Text(row.value).crayonType(.body).foregroundStyle(CrayonColor.ink)
                     }
+                case let .link(row, link):
+                    Button { store.send(link == .day ? .dayRowTapped : .missionsRowTapped) } label: {
+                        ListRow(leading: row.key) {
+                            HStack {
+                                Text(row.value).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                                Spacer()
+                                MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
                 case let .schoolDays(key, days):
                     ListRow(leading: key) {
                         HStack(spacing: Spacing.xs) {
@@ -99,12 +110,12 @@ public struct GrownupHubView: View {
             Button { onTap(row.id) } label: {
                 HStack(spacing: Spacing.s) {
                     KitIcon(KitSlot(iconName: row.iconName), size: 56)
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xxs) {
                         Text(row.title).crayonType(.body)
                         Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     }
                     Spacer()
-                    Image(systemName: "chevron.right").foregroundStyle(CrayonColor.softText)
+                    MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
                 }
                 .contentShape(Rectangle())
             }
@@ -115,7 +126,7 @@ public struct GrownupHubView: View {
     private func addLink(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: Spacing.s) {
-                RoundButton(text: "+", accessibilityLabel: title, action: action).allowsHitTesting(false)
+                RoundButton(glyph: .plus, accessibilityLabel: title, action: action).allowsHitTesting(false)
                 Text(title).crayonType(.body).foregroundStyle(CrayonColor.link)
             }
         }

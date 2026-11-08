@@ -32,6 +32,9 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-08: weekday moves from the hub to the top of the right panel on every kid home screen (head 36, 24 below; "· Holiday" on weekday holidays); hub = title (540, or 512/550) + until (590 / 594). (User decision.)
 - 2026-11-08: principle audit of every board. Type sizes off the scale moved onto it (26 → 24, 28 → 30, 32 → 30, 44 → 48); gaps moved onto the tokens, which now include 4 and 12 (inside one part only); bus bubble unit "min" at 24 so "29 min" fits; Next row gap 24; `KidFace` 48 + gap 16 in the A1/E3 kid blocks, 40 in tabs; E3 keeps the weekday line (stale "no day name" removed). New board 00 Principles (rules, also under Shared rules) and 0c2 kid parts; 0a/0b/0c updated (NowRow, KidDot, "for Kid B" and "wakes up once missions are done" removed).
 - 2026-11-08: one colour per kid, day and night: `kidA` #56B4E9, `kidB` #E69F00. #2E8FE0 is renamed `pickBlue` (✓, picked, focus, any kid); #F28C28 dropped.
+- 2026-11-08: build step 5 data: missions (seed lists, name = circle caption), trips (`way` + `leaveBefore` on any slot or item; an outing = has a trip; seed school bus 5, weekend school car 25, swimming car 10), done state per kid per date (resets at midnight, 14 days kept), "Missions →" on home in the mission morning (wake-up to 12:00 pm, board A1-MVP: "{Place} in" + time left), C5 section, E6 "Cards" shown from step 5. Editing trips is N1.
+- 2026-11-08: step 5 review of the main session's calls: full-screen cover, centred C5 editor, mover rule, "1 mission" / "Nothing yet" accepted; changed: C5 footer uses an inline `MarkerGlyph.handle`, way line "on foot" and "· timetable" only for bus and shuttle, "+n" circle in the kid's crayon colour with "{n} more".
+- 2026-11-08: A2-MVP back circle on the last page: kid's crayon circle, chevron, caption "Back" (main session's call, accepted).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -218,7 +221,12 @@ Every board and the app follow these. Change them here and on board 00 first.
     - "now": 160 circle in crayon `kidApricot` with a 104 picture inside, caption "now" under it.
     - "next": 104 white circle with a 64 picture inside, caption "next".
   - Bottom-aligned.
-- **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2. **[later M3]**: hidden in M2.
+- **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2-MVP (MVP) / A2 (M3). Hidden in M2.
+- **Mission morning (MVP, build step 5; board A1-MVP)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
+  - "Missions →" shows at the bottom of the panel (E3's "Diary →" is M5, so there is no clash).
+  - Kid A block: face + name, then, if Kid A has an outing (see "MVP data") that has not started and starts within 3 h: "{Place} in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the outing's start ("38 min", "1 h 20 min"). This is the A1 board layout with "{Place} in" instead of "Leave in" and no "On time" line. Otherwise: the Next row without the time left.
+  - Kid B block unchanged.
+  - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. M3 later swaps "{Place} in" for "Leave in" + "On time".
 
 ### States
 - Weekend or holiday → E3 layout. One child → E1 layout.
@@ -233,14 +241,30 @@ The MVP mission screen: the A2 layout with **no live data** (no LTA times, bubbl
   - Destination picture = the outing's picture: `wolfie` for school, the flag for weekend school, `actChurch`, `actSwim`, …
   - The mover on the road = how the kid goes, from the plan: bus (`busDouble` / `busSingle`, no passengers, no number plate), school shuttle, car, taxi, or on foot (`shoe`). It rocks gently like on A2 (Reduce Motion: still).
   - By car, taxi or on foot the road has no bus stops, and the home stem is labelled "Home"; by bus the stops and "Our stop" show as on A2 (board A2-MVP-w shows Saturday weekend school by car).
-  - Its place on the road comes from the clock only: home at "leave" minus 10 min, the destination at the start time; in between it moves linearly. No live position.
-  - A `CrayonCard` on the strip: "{Place} at {h:mm am}" (head 36) over "by {way} · timetable" (caption).
-  - The next outing is the next slot or item today that has a place (school, weekend school, church, swimming…). No outing left today: the strip is left out and the missions move up.
+  - Its place on the road comes from the clock only: home at "leave" minus 10 min, the destination at the start time; in between it moves linearly. No live position. "leave" = the outing's start minus its "leave before" minutes (see "MVP data").
+  - A `CrayonCard` on the strip: "{Place} at {h:mm am}" (head 36) over the way line (caption): "by bus · timetable" / "by shuttle · timetable" (only these run on a timetable), "by car", "by taxi", "on foot". The data value for walking stays `walk`.
+  - The strip, the header countdown and "leave at" belong to **the chosen kid's** next outing: the next slot or item today, for that kid, that has a trip and has not started. No outing left today (or a kid with none, like the seed Kid B): the strip is left out, the missions move up, and the header and "leave at" are empty.
 - **Kids and missions** (536–968): the A2 family layout. Kid list on the left (`CrayonRing` 76 + face, `KidBand` on the chosen kid), the chosen kid's name + "leave at {h:mm am}" and one row of 112 mission circles on the right (6 a kid; fold / "+n" rule of A2m beyond that).
 - **All done!** (bottom right, 400 × 96 `KidPillButton` in the chosen kid's colour, star sticker 56): always active; missions help but never lock it. Tap: the kid's row turns "Ready!" (full ring, check badge, no medal), crayon confetti (Reduce Motion: none), then the next unfinished kid is chosen. Everyone ready: the button reads "Back to the clock".
+- **Presentation**: A2-MVP opens over home as a full-screen cover, not on the grown-up stack (no relock, no app-switcher hiding). Ways out: "←" and "Back to the clock". (Main session's call, accepted 2026-11-08.)
+- **Folded and "+n" circles** (board A2m): the folded circle is the kid's 112 crayon circle with the done tick, caption "{n} done". The "+n" circle is **also the kid's crayon circle** (not paper), "+{n}" title 48 bold, caption "{n} more"; tapping it turns the page. On the last page that place holds the back circle: the kid's crayon circle with `MarkerGlyph.chevronLeft`, caption "Back"; tapping it returns to the previous page (with at most 8 missions that is page 1).
 - **Tapping a mission** toggles it (undo allowed); the check draws itself in 0.35 s (Reduce Motion: appears).
 - **VoiceOver**: the strip reads "On the way to school by bus, 38 minutes, school starts at 7:30 am"; kid rows are tabs; missions are toggles.
 - **M3 / N1** swaps the timetable strip for the live map: bubbles, crowding, "Leave in" and slide-to-go come in the same frame.
+
+
+### MVP data: missions, trips, done state (2026-11-08, answers for build step 5) [proposed]
+- **Missions**: `Mission { id, kid, name, picture: KitSlot, order }`. Morning only, at most 8 per kid, kept in the local store with the schedule.
+  - The circle caption is the name itself (caption 24, one line within the 136 pitch, "…" if longer); the first mission not done is bold. C5 limits a name to 14 characters.
+  - Seed Kid A: Wake up (`sun`) · Brush teeth (`toothbrush`) · Get dressed (`shirt`) · Breakfast (`actBreakfast`) · Pack bag (`backpack`) · Shoes on (`shoe`).
+  - Seed Kid B: Wake up (`sun`) · Milk (`babyBottle`) · Shoes (`shoe`).
+- **Trip** (what makes something an outing): an optional `Trip { way, leaveBefore }` on a template slot, an every-week item or a just-once item. **An outing is anything with a trip**; the picture or the name does not decide it.
+  - `way`: walk, bus, car, taxi, and shuttle (shuttle stays hidden until N1b). Mover picture: walk `shoe`, bus `busDouble`, car `car`, taxi `taxi`, shuttle `busShuttle`.
+  - `leaveBefore`: minutes, 0–90 in steps of 5. leave = start − leaveBefore. The clock still draws the slot or item from its start; the start is the time at the place.
+  - Seed: Kid A School slot (Mon–Fri) bus, 5 → "leave at 7:25 am". Kid A Weekend school (Sat) car, 25 → "leave at 8:35 am". Kid A Swimming car, 10. Art club, Birthday and all of Kid B: no trip.
+  - Editing trips is **N1**: C1 "Getting there" (school) and a "Going" row on C3/C4/E5 (board to come). In the MVP, trips come from the seed only; an item without a trip shows no strip, which is fine.
+- **Done state**: per kid **per date**: `{ kid, date, doneMissionIds, ready: Bool }`, in the local store. A new date starts at **midnight**, like the clock, so every morning starts empty. Keep 14 days (N2 medals and the M5 diary can read it later); drop older ones. Renaming a mission keeps its done state (it is keyed by id); removing it drops it.
+- **Entry**: home "Missions →" in the mission morning (A1 above). Grown-ups reach C5 from C1 "More → Morning missions" (Kid A) and E6 "Cards" (Kid B).
 
 ## E1 · Home, one child [board]
 - Same clock and hub as A1.
@@ -427,6 +451,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - **Getting there** **[later M3]**: hidden in M2.
   - "To school" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2.
   - "Home time" → "{h:mm} · pick-up at the gate", "›" → C2.
+- **More** (board, 2026-11-08): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0) (the board's "ready by" line is N2), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
 
 ### Side column
 - "After school" (head, h 52), then one `ListRow`-style item per every-week item:
@@ -452,9 +477,21 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - Next row: link "Add when they start" → S2. **[later M4]**: hidden in M2.
   - Use "they" in public copy.
 - **Morning**:
-  - "Cards" → "Wake up · Milk · Shoes", "›" → C5. **[later M3]**: hidden in M2.
+  - "Cards" → "Wake up · Milk · Shoes" ("Nothing yet" when empty), "›" → C5 with the Kid B tab. Shown from build step 5 (MVP); hidden before.
   - "Taps" → "A grown-up taps for now".
 - Side column: "Every week" with "Nothing yet" when empty, "Add every week", then "Just once" with items and "Add once". Same rules as C1.
+
+
+## C5 · Morning missions (grown-up editor; MVP, build step 5) [board C5, details proposed]
+- `GrownupScreen`. Header: `RoundButton` "←" 80 → C1 (or E6), "Morning missions" (title 48), kid `CrayonTabs` (Kid A, Kid B with `KidFace` 40) at the right.
+- Left: `PaperCard` columns 1–8, y 176–968:
+  - Caption "Same order as {Kid}'s morning screen".
+  - One row per mission, 72 tall, divider lines: drag handle `MarkerGlyph` ≡ (soft), `KitIcon` 48, name (body), "›" (body `softText`). Drag ≡ to reorder; the order is the circle order on A2-MVP.
+  - "+ Add a mission ({n} of 8)" (`MarkerGlyph.plus` in a 40 ring + body `link`). At 8 the row is replaced by "8 is the most" (caption).
+  - Footer caption: "Drag {handle} to change the order. Tap a row to rename it or change its picture. Up to 8 fit on the morning screen; fewer is easier." {handle} is `MarkerGlyph.handle` drawn inline at the text size (24, `softText`), the same rule as inline arrows; never the ≡ character, which Playpen Sans lacks.
+- Tap a row or "Add" → a `ConfirmCard`-style editor, **centred over a dimmed screen** (tapping the dim area cancels without saving; main session's call, accepted 2026-11-08): Name `CrayonField` (max 14), `IconPicker` (kit pictures, no "+" until M6), "Remove" (`lateText`, edit only; asks "Remove {name}?" / "Remove" / "Keep") and "Save" (`InkButton`). A new mission defaults to `star` and an empty name; Save is off while the name is empty.
+- Right column (cols 9–12): Kid B note "Picture cards. A grown-up taps them for now." (on the Kid B tab) and "Evening · coming later". The board's "Ready by" block is **N2** (hidden).
+- Main button "Done" → back. Changes save at once and show on today's morning screen; done marks of kept missions stay.
 
 ---
 

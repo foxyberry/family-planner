@@ -17,6 +17,8 @@ public struct HubSection: Equatable, Sendable {
     public enum Row: Equatable, Sendable {
         case text(HubRow)
         case schoolDays(key: String, days: Set<Weekday>)
+        /// A row that opens a screen: "Day" opens C6 Our day, "Morning missions" and "Cards" open C5.
+        case link(HubRow, to: HubLink)
     }
 
     public var title: String
@@ -28,6 +30,12 @@ public struct HubSection: Equatable, Sendable {
     }
 }
 
+/// Where a hub link row goes.
+public enum HubLink: Equatable, Sendable {
+    case day
+    case missions
+}
+
 public struct HubItemRow: Equatable, Identifiable, Sendable {
     public var id: ScheduleItem.ID
     public var iconName: String
@@ -37,20 +45,34 @@ public struct HubItemRow: Equatable, Identifiable, Sendable {
 
 /// The text of the Our kids hub (boards C1, E6).
 public enum HubModel {
-    /// About, then School for a school kid, or Nursery and Morning for a kid at home.
-    public static func sections(kid: Kid, routines: [Routine]) -> [HubSection] {
-        let about = HubSection(title: L10n.tr("hub.about"), rows: aboutRows(kid: kid, routines: routines).map(HubSection.Row.text))
+    /// About, then School and More for a school kid, or Nursery and Morning for a kid at home.
+    /// `missions` are every kid's; the kid's own count or names go on the C5 link row.
+    public static func sections(kid: Kid, routines: [Routine], missions: [Mission] = []) -> [HubSection] {
+        let about = HubSection(title: L10n.tr("hub.about"), rows: aboutRows(kid: kid, routines: routines).map { row in
+            row.key == L10n.tr("hub.about.day") ? .link(row, to: .day) : .text(row)
+        })
+        let own = missions.filter { $0.kid == kid.id }.sorted { $0.order < $1.order }
         guard let school = kid.school else {
+            let cards = own.isEmpty ? L10n.tr("hub.empty") : own.map(\.name).joined(separator: " · ")
             return [about,
                     HubSection(title: L10n.tr("hub.nursery"),
                                rows: [.text(HubRow(key: L10n.tr("hub.nursery"), value: L10n.tr("hub.nursery.not_yet")))]),
                     HubSection(title: L10n.tr("hub.morning"),
-                               rows: [.text(HubRow(key: L10n.tr("hub.morning.taps"),
+                               rows: [.link(HubRow(key: L10n.tr("hub.morning.cards"), value: cards), to: .missions),
+                                      .text(HubRow(key: L10n.tr("hub.morning.taps"),
                                                    value: L10n.tr("hub.morning.taps.value")))])]
         }
         var rows = schoolRows(kid: kid).map(HubSection.Row.text)
         rows.insert(.schoolDays(key: L10n.tr("hub.school.days"), days: school.days), at: 1)
-        return [about, HubSection(title: L10n.tr("hub.school"), rows: rows)]
+        let count = switch own.count {
+        case 0: L10n.tr("hub.empty")
+        case 1: L10n.tr("hub.more.missions.one")
+        default: L10n.tr("hub.more.missions.count", own.count)
+        }
+        let more = HubSection(title: L10n.tr("hub.more"), rows: [
+            .link(HubRow(key: L10n.tr("hub.more.missions"), value: count), to: .missions),
+        ])
+        return [about, HubSection(title: L10n.tr("hub.school"), rows: rows), more]
     }
 
     /// The heading over the every-week items.

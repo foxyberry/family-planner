@@ -169,6 +169,37 @@ final class HomeFeatureTests: XCTestCase {
         await store.receive(\.playEnded)
     }
 
+    /// Spec A1 "Mission morning": wake-up to noon, with Kid A's outing when it starts within 3 hours.
+    func testMissionMorningShowsTheOutingAndTheButton() async {
+        let early = store(on: tuesday, minute: 412)   // 6:52 am
+        await early.send(.task)
+        await early.receive(\.loaded)
+        XCTAssertTrue(early.state.isMissionMorning)
+        XCTAssertEqual(early.state.morningOuting?.slot.title, "School")
+        XCTAssertEqual(early.state.outingHeading, "School in")
+        XCTAssertEqual(early.state.morningOuting?.trip.way, .bus)
+
+        let beforeWake = store(on: tuesday, minute: 380)
+        await beforeWake.send(.task)
+        await beforeWake.receive(\.loaded)
+        XCTAssertFalse(beforeWake.state.isMissionMorning)
+
+        let noon = store(on: tuesday, minute: 720)
+        await noon.send(.task)
+        await noon.receive(\.loaded)
+        XCTAssertFalse(noon.state.isMissionMorning)
+        XCTAssertNil(noon.state.morningOuting)
+    }
+
+    func testAnOutingMoreThanThreeHoursAwayShowsTheNextRowInstead() async {
+        // Monday 10:00 am: school has started; swimming at 3:30 pm is more than 3 hours away.
+        let store = store(on: Day(year: 2026, month: 11, day: 16), minute: 600)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertTrue(store.state.isMissionMorning)
+        XCTAssertNil(store.state.morningOuting)
+    }
+
     func testOneKidLayout() async {
         let store = store(on: wednesday, minute: 600, snapshot: snapshot(kids: [SeedData.kidA]))
         await store.send(.task)

@@ -23,6 +23,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 - 2026-11-08: review: status table updated; "Design to finish before the build reaches it" added (CrayonKit primitives list, MVP mission screen without the bus, mission spec).
 - 2026-11-08: A2-MVP way strip (destination + how the kid goes, by the clock); N9 taxi ETA typed by a grown-up (no Grab API).
 - 2026-11-08: principle audit: board 00 Principles (time, kids, who is who, type and space, drawing, privacy); 0c2 kid parts; type and gap tokens applied to every board; one colour per kid day and night (`kidA` #56B4E9, `kidB` #E69F00) and `pickBlue` #2E8FE0 for ✓/picked/focus. Details in the screen spec change log.
+- 2026-11-08: step 5 questions answered in the spec (missions, trips, done state, home entry A1-MVP, C5); trip editing moved to N1.
 
 ## The MVP (the user's definition)
 > **See today's schedule on this iPad, and do today's missions.**
@@ -78,7 +79,9 @@ Everything below is sorted against that sentence. "Local" means: one iPad, no ac
 | step 2 (now) | `CrayonKit` primitives the boards now use | done 2026-11-08: M2 spec "CrayonKit UI parts", reference in `handover/crayon-ui-ref/` |
 | step 5 | **MVP mission screen without the bus** | done 2026-11-08: board A2-MVP |
 | step 5 | Mission screen spec section | done: M2 spec "A2-MVP" |
-| step 5 | C5 mission editor: "up to 8", per-kid picture cards | board done, spec partial |
+| step 5 | C5 mission editor: "up to 8", per-kid picture cards | done 2026-11-08: spec "C5" |
+| step 5 | Mission data, trips, done state, home entry | done 2026-11-08: spec "MVP data" + board A1-MVP |
+| N1 | "Going" row on C3/C4/E5 and C1 "Getting there" to edit a trip (way + leave before) | to do |
 | N1 | Bus map, crowding, wheels, shuttle | boards done ahead of time (fine; no build impact) |
 
 ---

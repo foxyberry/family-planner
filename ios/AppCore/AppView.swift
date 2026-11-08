@@ -5,6 +5,7 @@ import DebugTools
 import DesignSystem
 import Grownup
 import Home
+import Missions
 import KitArt
 import SwiftUI
 
@@ -51,12 +52,19 @@ public struct AppView: View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             HomeView(store: store.scope(state: \.home, action: \.home))
                 .toolbar(.hidden, for: .navigationBar)
+                .fullScreenCover(item: $store.scope(state: \.missions, action: \.missions)) { store in
+                    MissionsView(store: store)
+                }
         } destination: { store in
             switch store.case {
             case let .hub(store):
                 GrownupHubView(store: store)
             case let .editor(store):
                 ItemEditorView(store: store)
+            case let .ourDay(store):
+                OurDayView(store: store)
+            case let .missionEditor(store):
+                MissionEditorView(store: store)
             case let .gallery(store):
                 ComponentGallery(onBack: { store.send(.backTapped) })
             }

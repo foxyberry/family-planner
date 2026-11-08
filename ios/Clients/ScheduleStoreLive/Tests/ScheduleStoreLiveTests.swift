@@ -97,6 +97,62 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertFalse(items.contains { $0.id == pottery.id })
     }
 
+    /// C6 "Save the day": a template saved from tomorrow leaves today on the old one.
+    func testSavedTemplateStartsOnItsDay() async throws {
+        let store = store()
+        let old = try await store.load().routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!
+        var new = old
+        new.from = Day(year: 2026, month: 11, day: 10)
+        new.blocks[1].end = 460
+        new.blocks[2].start = 460
+        try await store.saveRoutine(new)
+        let routines = try await store.load().routines
+        XCTAssertTrue(routines.contains(old))
+        XCTAssertTrue(routines.contains(new))
+        XCTAssertEqual(DayPlanner.template(for: SeedData.kidA.id, on: monday, routines: routines, holidays: [],
+                                           calendar: calendar), old)
+        XCTAssertEqual(DayPlanner.template(for: SeedData.kidA.id, on: new.from, routines: routines, holidays: [],
+                                           calendar: calendar), new)
+        // Saving again for the same day replaces it.
+        new.blocks[1].end = 455
+        new.blocks[2].start = 455
+        try await store.saveRoutine(new)
+        let again = try await self.store().load().routines   // a fresh store, like an app restart
+        XCTAssertEqual(again.filter { $0.from == new.from && $0.kid == new.kid && $0.dayType == .weekday }, [new])
+    }
+
+    // MARK: Missions (spec "MVP data")
+
+    func testSeedMissionsLoadAndASavedListReplacesTheKids() async throws {
+        let store = store()
+        let missions = try await store.load().missions
+        XCTAssertEqual(Set(missions), Set(SeedData.missions))
+        var kidA = missions.filter { $0.kid == SeedData.kidA.id }.sorted { $0.order < $1.order }
+        kidA.removeLast()
+        kidA.swapAt(0, 1)
+        for index in kidA.indices { kidA[index].order = index }
+        try await store.saveMissions(SeedData.kidA.id, kidA)
+        let again = try await self.store().load().missions
+        XCTAssertEqual(again.filter { $0.kid == SeedData.kidA.id }.sorted { $0.order < $1.order }.map(\.name),
+                       ["Brush teeth", "Wake up", "Get dressed", "Breakfast", "Pack bag"])
+        XCTAssertEqual(again.filter { $0.kid == SeedData.kidB.id }.count, 3, "Kid B untouched")
+    }
+
+    func testMissionDayRoundTripsAndOldDaysAreDropped() async throws {
+        let store = store()
+        let empty = try await store.missionDay(SeedData.kidA.id, monday)
+        XCTAssertEqual(empty, MissionDay(kid: SeedData.kidA.id, date: monday))
+        let old = MissionDay(kid: SeedData.kidA.id, date: monday.adding(days: -20, calendar: calendar), done: [UUID()])
+        try await store.saveMissionDay(old)
+        let today = MissionDay(kid: SeedData.kidA.id, date: monday, done: [SeedData.missions[0].id], ready: true)
+        try await store.saveMissionDay(today)
+        let reloaded = self.store()
+        let loaded = try await reloaded.missionDay(SeedData.kidA.id, monday)
+        XCTAssertEqual(loaded, today)
+        let dropped = try await reloaded.missionDay(SeedData.kidA.id, old.date)
+        XCTAssertEqual(dropped.done, [], "older than 14 days")
+    }
+
     func testCorruptFileThrowsAndKeepsFile() async throws {
         _ = try await store().load()
         let file = directory.appendingPathComponent(ScheduleStore.liveFileName)

@@ -26,7 +26,7 @@ public struct VoiceNote: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isPlaying ? L10n.tr("voice.pause") : L10n.tr("voice.play"))
-            HStack(spacing: 4) {
+            HStack(spacing: Spacing.xxs) {
                 ForEach(Array([10, 22, 16, 30, 18, 26, 12, 20].enumerated()), id: \.offset) { _, h in
                     Capsule().fill(CrayonColor.ink).frame(width: 5, height: CGFloat(h))
                 }

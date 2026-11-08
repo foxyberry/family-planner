@@ -48,7 +48,7 @@ public struct LockOverlay: View {
             VStack(spacing: Spacing.m) {
                 Text(L10n.tr("lock.held")).crayonType(.body).foregroundStyle(CrayonColor.nightText)
                 PaperCard(seed: CrayonStyle.Seed.card + 11) {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: Spacing.m) {
                         HStack(spacing: Spacing.s) {
                             Image(systemName: "lock.fill").font(.system(size: 40, weight: .bold))
                             Text(L10n.tr("lock.title")).crayonType(.title)
@@ -61,8 +61,9 @@ public struct LockOverlay: View {
                             CardButton(state.cancel, action: onCancel)
                         }
                     }
-                    .padding(.horizontal, Spacing.l)
-                    .padding(.vertical, Spacing.m)
+                    // Board C0: padding 40 × 64, gap 24.
+                    .padding(.horizontal, Spacing.xl)
+                    .padding(.vertical, Spacing.l)
                 }
                 .frame(width: 818)
             }

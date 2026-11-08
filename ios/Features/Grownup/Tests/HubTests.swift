@@ -27,10 +27,11 @@ final class HubModelTests: XCTestCase {
     }
 
     func testSectionsForSchoolKid() {
-        let sections = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines)
-        XCTAssertEqual(sections.map(\.title), ["About", "School"])
+        let sections = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines, missions: SeedData.missions)
+        XCTAssertEqual(sections.map(\.title), ["About", "School", "More"])
         XCTAssertEqual(sections[0].rows, [.text(HubRow(key: "Age", value: "8 · Year 3")),
-                                          .text(HubRow(key: "Day", value: "Up 6:30 am · Bed 8:00 pm"))])
+                                          .link(HubRow(key: "Day", value: "Up 6:30 am · Bed 8:00 pm"), to: .day)])
+        XCTAssertEqual(sections[2].rows, [.link(HubRow(key: "Morning missions", value: "6 missions"), to: .missions)])
         XCTAssertEqual(sections[1].rows, [
             .text(HubRow(key: "School", value: "Example Primary School")),
             .schoolDays(key: "Days", days: Weekday.schoolDays),
@@ -40,10 +41,11 @@ final class HubModelTests: XCTestCase {
     }
 
     func testSectionsForHomeKid() {
-        let sections = HubModel.sections(kid: SeedData.kidB, routines: SeedData.routines)
+        let sections = HubModel.sections(kid: SeedData.kidB, routines: SeedData.routines, missions: SeedData.missions)
         XCTAssertEqual(sections.map(\.title), ["About", "Nursery", "Morning"])
         XCTAssertEqual(sections[1].rows, [.text(HubRow(key: "Nursery", value: "Not yet"))])
-        XCTAssertEqual(sections[2].rows, [.text(HubRow(key: "Taps", value: "A grown-up taps for now"))])
+        XCTAssertEqual(sections[2].rows, [.link(HubRow(key: "Cards", value: "Wake up · Milk · Shoes"), to: .missions),
+                                          .text(HubRow(key: "Taps", value: "A grown-up taps for now"))])
     }
 
     func testWeeklyHeading() {
@@ -126,7 +128,7 @@ final class GrownupHubFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.weeklyRows.map(\.title), ["Swimming"])
         XCTAssertEqual(store.state.onceRows.map(\.detail), ["Wed 11 Nov · 4:00–5:00 pm"])
         XCTAssertEqual(store.state.weeklyHeading, "After school")
-        XCTAssertEqual(store.state.sections.map(\.title), ["About", "School"])
+        XCTAssertEqual(store.state.sections.map(\.title), ["About", "School", "More"])
         await store.send(.kidTabTapped(SeedData.kidB.id))
         XCTAssertEqual(store.state.weeklyRows, [])
         XCTAssertEqual(store.state.onceRows, [])

@@ -35,7 +35,7 @@ public struct BusBubble: View {
             }
             Text(L10n.tr("duration.min", minutes)).crayonType(.body).monospacedDigit()
             if let crowd {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xxs) {
                     ForEach(0..<crowd.happyFaces, id: \.self) { _ in KitIcon(.feelHappy, size: 32) }
                 }
                 .accessibilityLabel(crowdLabel(crowd))
@@ -43,7 +43,7 @@ public struct BusBubble: View {
         }
         .foregroundStyle(CrayonColor.ink)
         .padding(Spacing.s)
-        .padding(.bottom, 16)
+        .padding(.bottom, Spacing.s)
         .crayonBackground(.speechBubble(tailX: 0.5, tailHeight: 16), fill: CrayonStyle.paper,
                           seed: CrayonStyle.Seed.bubble)
     }
