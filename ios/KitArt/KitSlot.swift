@@ -7,6 +7,8 @@ public enum KitSlot: String, CaseIterable, Sendable {
     case actSchool, homework, actPlay, blocks, playground, snack, actDinner, tv
     // After-school activities
     case actCCA, actArt, actMusic, actPiano, actDance, actFootball, actSwim, actStory
+    // Weekend
+    case actLanguageSchool, actChurch
     // Evening
     case actShower, pyjamas, teddy, actSleep
     // Children

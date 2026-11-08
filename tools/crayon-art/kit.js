@@ -121,15 +121,20 @@ const ITEMS = {
     Ln('M44 92q30-8 56 4M44 126q30-8 56 4M140 96q26-12 56-4M140 130q26-12 56-4', 3.5),
   ],
   actDinner: [
+    // dinner plate with a spoon and chopsticks (sujeo) in steel grey
     S(circ(120, 124, 76), K.white, 0),
     S(circ(120, 124, 46), K.green, -45),
-    Ln('M24 52v60M14 52v28q10 14 20 0V52M24 112v100', 5),
-    S(cap(206, 52, 22, 64), K.orange, 80), Ln('M217 116v96', 5),
+    S(ell(30, 62, 15, 22), '#C9CED6', 60), S(cap(25, 80, 10, 134), '#C9CED6', 60),
+    S(cap(198, 36, 12, 178), '#C9CED6', -70), S(cap(217, 36, 12, 178), '#C9CED6', -70),
   ],
   actShower: [
-    S('M120 24C96 66 70 92 70 128a50 50 0 0 0 100 0C170 92 144 66 120 24Z', K.sky, -60),
-    S('M56 150C46 166 38 176 38 190a18 18 0 0 0 36 0C74 176 66 166 56 150Z', K.blue, 70),
-    S('M186 146C176 162 168 172 168 186a18 18 0 0 0 36 0C204 172 196 162 186 146Z', K.blue, 70),
+    // shower: a pipe up the wall, a steel shower head, blue water streaks, a rubber duck below
+    Ln('M44 226V62Q44 30 76 30H112', 9),
+    S('M104 28h36l28 46H76z', '#C9CED6', 30),
+    Ln('M92 92l-9 34M110 94l-4 40M128 94v42M146 94l4 40M164 92l9 34', 6, K.blue),
+    Ln('M100 150l-5 18M138 156v18', 6, K.blue),
+    S('M128 214a34 20 0 0 1 64 -22l10 -2a6 6 0 0 1 2 12l-8 4a34 20 0 0 1 -68 8z', K.yellow, -40),
+    S(circ(184, 170, 15), K.yellow, -40), S('M196 168l16 3-15 7z', K.orange, 0), B(circ(186, 166, 3)),
   ],
   feelVeryHappy: [
     S(circ(120, 122, 92), K.yellow, -45),
@@ -224,6 +229,25 @@ const ITEMS = {
     S(star(80, 106, 30, 13), K.yellow, 30),
     S('M128 146V102H140V90H152V102H164V90H176V102H188V146Z', K.pink, -45),
     S(rr(150, 120, 16, 26, 7), K.white, 0),
+  ],
+  // Weekend: a Saturday language school (a different school with a 가 sign) and Sunday church
+  actLanguageSchool: [
+    S(rr(48, 100, 144, 112, 8), K.mint, -50),
+    S(rr(40, 84, 160, 24, 8), K.purple, 30),
+    S(rr(84, 24, 72, 54, 10), K.white, 0),
+    Ln('M100 78v8M140 78v8', 4),
+    Ln('M96 40H114Q116 58 104 68M130 34V70M130 52H142', 5),
+    S(rr(64, 128, 36, 30, 5), K.sky, 40), S(rr(140, 128, 36, 30, 5), K.sky, 40),
+    S(rr(104, 152, 32, 60, 6), K.blue, 80),
+  ],
+  actChurch: [
+    S(rr(100, 54, 40, 58, 4), K.white, 0),
+    S('M92 58L120 32L148 58Z', K.purple, -40),
+    Ln('M120 32V8M110 17H130', 5),
+    S(rr(54, 124, 132, 92, 6), K.white, 0),
+    S('M38 130L120 78L202 130Z', K.purple, -40),
+    S('M104 216V184a16 16 0 0 1 32 0V216Z', K.orange, 70),
+    S(circ(120, 146, 11), K.sky, 40),
   ],
   actSwim: [
     S(circ(120, 104, 62), K.orange, 40),
