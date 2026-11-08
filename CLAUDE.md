@@ -65,7 +65,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Playpen Sans has no arrows or ticks (→ ← ✓). The system fallback for them differs between
   iOS versions (snapshots break on CI), so draw them with a part or symbol, never in text.
 - Public pictures come only from `make art`; never hand-edit generated SVGs. The school mascot
-  and home drawings live in git-ignored `ios/KitArt/Private/` (`make art-private`).
+  `wolfie` is public (user's choice, 2026-11-08); the real home drawing lives in git-ignored
+  `ios/KitArt/Private/` (`make art-private`).
 - Snapshots: `make snapshots-record`, then open the PNGs and compare with the design boards
   before committing. CI skips snapshot tests (tag `snapshot`) while designs keep changing;
   run them locally with `make test`. Diffs stay in local `__Diffs__`.

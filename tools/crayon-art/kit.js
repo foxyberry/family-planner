@@ -38,13 +38,63 @@ const star = (cx, cy, R, r, rot = -90) => {
 };
 
 // layer kinds: shape (crayon fill + marker outline), solid (marker-filled dark area), line (marker stroke only)
-const S = (d, color, angle) => ({ kind: 'shape', d, color, angle });
+const S = (d, color, angle, ow) => ({ kind: 'shape', d, color, angle, ...(ow ? { ow } : {}) });   // ow: thinner outline for small parts
 const B = (d) => ({ kind: 'solid', d });
 const Ln = (d, w = 4.5, color) => ({ kind: 'line', d, w, ...(color ? { color } : {}) });   // color: a coloured line (trim, cheeks); default is the ink
 // Faces: plain marker dots for eyes, no whites, no lashes
 const eye = (cx, cy, r = 13) => [B(circ(cx, cy, Math.max(4.5, r * 0.42)))];
 const smile = (cx, cy, w) => Ln(`M${cx - w / 2} ${cy}Q${cx} ${cy + w * 0.5} ${cx + w / 2} ${cy}`, 4);
 const wheel = (cx, cy) => [B(circ(cx, cy, 18))];
+// Passengers in bus windows, drawn as overlays that sit exactly on the bus picture (same 240 box).
+// level 1 = seats free (a few heads), 2 = standing room (every window), 3 = nearly full (two heads per window).
+// The passengers are the same happy face as feelHappy (the crowd faces the bubbles used), drawn small.
+const happy = (cx, cy, r) => {
+  // small enough for a bus window: thin outline, dot eyes as round marker taps, a thin smile
+  const k = r / 92, f = (v) => v.toFixed(1), ex = 26 * k, ey = cy - 16 * k;
+  return [S(circ(cx, cy, r), K.gold, -45, 2.4),
+    Ln(`M${f(cx - ex)} ${f(ey)}h0.1M${f(cx + ex)} ${f(ey)}h0.1`, 3.4),
+    Ln(`M${f(cx - 25 * k)} ${f(cy + 24 * k)}Q${f(cx)} ${f(cy + 49 * k)} ${f(cx + 25 * k)} ${f(cy + 24 * k)}`, 2)];
+};
+const pax = (windows, level, few) => windows.flatMap(([x, y, w, h], i) => {
+  if (level === 1 && !few.includes(i)) return [];
+  if (level < 3) return happy(x + w / 2, y + h - 13, 12.5);
+  const n = w > 40 ? 3 : 2, gap = 13;   // nearly full: two or three heads side by side, overlapping a little
+  return Array.from({ length: n }, (_, k) => happy(x + w / 2 + (k - (n - 1) / 2) * gap, y + h - 11, 10.5)).flat();
+});
+const WIN = {
+  busMini: [[60, 104, 34, 32], [102, 104, 34, 32]],
+  busSingle: [[30, 102, 32, 34], [70, 102, 32, 34], [110, 102, 32, 34]],
+  busDouble: [[58, 44, 30, 30], [96, 44, 30, 30], [134, 44, 46, 30], [58, 92, 30, 30], [96, 92, 30, 30]],
+};
+const FEW = { busMini: [0], busSingle: [1], busDouble: [0, 3] };
+
+
+// Flags for the weekend school: a steel pole, then a cloth that waves (top and bottom edges follow one sine).
+// Every country part is cut from the same cloth, so swapping the flag swaps only the cloth layers.
+const FL = { x0: 50, x1: 214, top: 34, h: 108, amp: 7 };
+const wave = (x) => FL.top + FL.amp * Math.sin(((x - FL.x0) / (FL.x1 - FL.x0)) * 2 * Math.PI);
+// part of the cloth: columns x0..x1 (0..1) and rows t0..t1 (0..1)
+const cloth = (a = 0, b = 1, t0 = 0, t1 = 1) => {
+  const xa = FL.x0 + a * (FL.x1 - FL.x0), xb = FL.x0 + b * (FL.x1 - FL.x0), n = Math.max(2, Math.round((xb - xa) / 8));
+  const xs = Array.from({ length: n + 1 }, (_, i) => xa + ((xb - xa) * i) / n);
+  const y = (x, t) => (wave(x) + t * FL.h).toFixed(1);
+  return `M${xs.map((x) => `${x.toFixed(1)} ${y(x, t0)}`).join('L')}L${xs.slice().reverse().map((x) => `${x.toFixed(1)} ${y(x, t1)}`).join('L')}Z`;
+};
+const at = (u, t) => [FL.x0 + u * (FL.x1 - FL.x0), wave(FL.x0 + u * (FL.x1 - FL.x0)) + t * FL.h];
+const pole = () => [S(cap(36, 22, 12, 204), '#C9CED6', 80), S(circ(42, 20, 9), K.gold, 30)];
+const RED = '#E0393E', NAVY = '#24408E', SAFFRON = '#F39A2B', FGREEN = '#1F8A4C';
+const flag = (parts) => [...pole(), ...parts];
+const atS = (u, t, R, r, rot) => { const [x, y] = at(u, t); return star(x, y, R, r, rot); };
+const atC = (u, t, r) => { const [x, y] = at(u, t); return circ(x, y, r); };
+// trigram: three bars (broken = two halves) turned to face the centre
+const trigram = (u, t, angle, broken) => {
+  const [cx, cy] = at(u, t), a = (angle * Math.PI) / 180, ux = Math.cos(a), uy = Math.sin(a), px = -uy, py = ux;
+  return [-7, 0, 7].map((o, i) => {
+    const bx = cx + ux * o, by = cy + uy * o, L = 13;
+    if (!broken[i]) return `M${(bx - px * L).toFixed(1)} ${(by - py * L).toFixed(1)}L${(bx + px * L).toFixed(1)} ${(by + py * L).toFixed(1)}`;
+    return `M${(bx - px * L).toFixed(1)} ${(by - py * L).toFixed(1)}L${(bx - px * 3).toFixed(1)} ${(by - py * 3).toFixed(1)}M${(bx + px * 3).toFixed(1)} ${(by + py * 3).toFixed(1)}L${(bx + px * L).toFixed(1)} ${(by + py * L).toFixed(1)}`;
+  }).join('');
+};
 
 const ITEMS = {
   busMini: [
@@ -66,6 +116,16 @@ const ITEMS = {
     ...eye(146, 108, 11), ...eye(172, 106, 11), smile(159, 136, 16),
     ...wheel(82, 190), ...wheel(160, 190),
   ],
+  // Passenger overlays for the bus map: crowding shown in the windows (live data only; no data = no overlay).
+  busMiniPax1: pax(WIN.busMini, 1, FEW.busMini),
+  busMiniPax2: pax(WIN.busMini, 2, FEW.busMini),
+  busMiniPax3: pax(WIN.busMini, 3, FEW.busMini),
+  busSinglePax1: pax(WIN.busSingle, 1, FEW.busSingle),
+  busSinglePax2: pax(WIN.busSingle, 2, FEW.busSingle),
+  busSinglePax3: pax(WIN.busSingle, 3, FEW.busSingle),
+  busDoublePax1: pax(WIN.busDouble, 1, FEW.busDouble),
+  busDoublePax2: pax(WIN.busDouble, 2, FEW.busDouble),
+  busDoublePax3: pax(WIN.busDouble, 3, FEW.busDouble),
   medalGold: [
     S('M80 12H118L136 104L104 112Z', K.blue, 70),
     S('M160 12H122L104 104L136 112Z', K.pink, -70),
@@ -233,15 +293,58 @@ const ITEMS = {
     S('M128 146V102H140V90H152V102H164V90H176V102H188V146Z', K.pink, -45),
     S(rr(150, 120, 16, 26, 7), K.white, 0),
   ],
-  // Weekend: a Saturday language school (a different school with a 가 sign) and Sunday church
-  actLanguageSchool: [
-    S(rr(48, 100, 144, 112, 8), K.mint, -50),
-    S(rr(40, 84, 160, 24, 8), K.purple, 30),
-    S(rr(84, 24, 72, 54, 10), K.white, 0),
-    Ln('M100 78v8M140 78v8', 4),
-    Ln('M96 40H114Q116 58 104 68M130 34V70M130 52H142', 5),
-    S(rr(64, 128, 36, 30, 5), K.sky, 40), S(rr(140, 128, 36, 30, 5), K.sky, 40),
-    S(rr(104, 152, 32, 60, 6), K.blue, 80),
+  // Weekend school: a plain flag; grown-ups swap it for a country flag (flagKR … flagVN) in C3.
+  actLanguageSchool: flag([S(cloth(), K.sky, -40), S(atS(0.5, 0.5, 30, 13), K.white, 0)]),
+  flagKR: (() => {
+    const [cx, cy] = at(0.5, 0.5);
+    return flag([
+      S(cloth(), K.white, 0),
+      S(`M${cx - 26} ${cy}A26 26 0 0 1 ${cx + 26} ${cy}A13 13 0 0 1 ${cx} ${cy}A13 13 0 0 0 ${cx - 26} ${cy}Z`, RED, -40),
+      S(`M${cx - 26} ${cy}A13 13 0 0 0 ${cx} ${cy}A13 13 0 0 1 ${cx + 26} ${cy}A26 26 0 0 1 ${cx - 26} ${cy}Z`, NAVY, 40),
+      Ln(trigram(0.17, 0.2, 45 + 180, [0, 0, 0]) + trigram(0.83, 0.8, 45, [1, 1, 1]) + trigram(0.83, 0.2, -45, [1, 0, 1]) + trigram(0.17, 0.8, 135, [0, 1, 0]), 4.5),
+    ]);
+  })(),
+  flagJP: flag([S(cloth(), K.white, 0), S(atC(0.5, 0.5, 30), RED, -45)]),
+  flagUK: flag([
+    S(cloth(), NAVY, -40),
+    Ln(`M${at(0.03, 0.05).join(' ')}L${at(0.97, 0.95).join(' ')}M${at(0.03, 0.95).join(' ')}L${at(0.97, 0.05).join(' ')}`, 16, '#FFFFFF'),
+    Ln(`M${at(0.03, 0.05).join(' ')}L${at(0.97, 0.95).join(' ')}M${at(0.03, 0.95).join(' ')}L${at(0.97, 0.05).join(' ')}`, 5, RED),
+    S(cloth(0.43, 0.57), K.white, 0), S(cloth(0, 1, 0.38, 0.62), K.white, 0),
+    S(cloth(0.46, 0.54), RED, 80), S(cloth(0, 1, 0.42, 0.58), RED, 10),
+  ]),
+  flagFR: flag([S(cloth(0, 1 / 3), NAVY, 80), S(cloth(1 / 3, 2 / 3), K.white, 0), S(cloth(2 / 3, 1), RED, 80)]),
+  flagIN: flag([
+    S(cloth(0, 1, 0, 1 / 3), SAFFRON, 10), S(cloth(0, 1, 1 / 3, 2 / 3), K.white, 0), S(cloth(0, 1, 2 / 3, 1), FGREEN, 10),
+    Ln(atC(0.5, 0.5, 14) + (() => { const [x, y] = at(0.5, 0.5); return [0, 45, 90, 135].map((d) => { const a = (d * Math.PI) / 180; return `M${(x - 14 * Math.cos(a)).toFixed(1)} ${(y - 14 * Math.sin(a)).toFixed(1)}L${(x + 14 * Math.cos(a)).toFixed(1)} ${(y + 14 * Math.sin(a)).toFixed(1)}`; }).join(''); })(), 3, NAVY),
+  ]),
+  flagCN: flag([
+    S(cloth(), RED, -40),
+    S(atS(0.17, 0.3, 20, 8), K.yellow, 20),
+    S(atS(0.34, 0.12, 7, 3, -60), K.yellow, 0), S(atS(0.41, 0.25, 7, 3, -75), K.yellow, 0),
+    S(atS(0.41, 0.44, 7, 3, -100), K.yellow, 0), S(atS(0.34, 0.57, 7, 3, -115), K.yellow, 0),
+  ]),
+  flagTH: flag([
+    S(cloth(0, 1, 0, 1 / 6), RED, 10), S(cloth(0, 1, 1 / 6, 2 / 6), K.white, 0), S(cloth(0, 1, 2 / 6, 4 / 6), NAVY, 10),
+    S(cloth(0, 1, 4 / 6, 5 / 6), K.white, 0), S(cloth(0, 1, 5 / 6, 1), RED, 10),
+  ]),
+  flagVN: flag([S(cloth(), RED, -40), S(atS(0.5, 0.5, 30, 12), K.yellow, 20)]),
+  // School mascot (public by the user's choice, 2026-11-08); the default School picture in the seed
+  wolfie: [
+    S('M64 214Q120 238 176 214L182 238H58Z', '#2B3A67', -40),
+    S('M50 104L62 18L114 70Z', '#9A9AA6', -50), S('M188 104L176 18L124 70Z', '#9A9AA6', 50),
+    S('M66 84L72 40L98 70Z', K.pink, 30), S('M172 84L166 40L140 70Z', K.pink, -30),
+    S('M28 140C28 84 70 56 120 56C170 56 212 84 212 140C212 192 172 222 120 222C68 222 28 192 28 140Z', '#9A9AA6', -45),
+    S('M120 186C108 186 100 176 100 160C100 138 106 120 102 106C86 98 66 104 58 126C50 150 58 178 80 194C98 206 142 206 160 194C182 178 190 150 182 126C174 104 154 98 138 106C134 120 140 138 140 160C140 176 132 186 120 186Z', K.white, 0),
+    ...eye(84, 140, 22), ...eye(156, 140, 22),
+    B('M108 156C108 149 132 149 132 156C132 165 126 171 120 171C114 171 108 165 108 156Z'),
+  ],
+  // School shuttle: the single-decker shape in school-bus yellow with a black stripe; no live data, so no passengers
+  busShuttle: [
+    S(rr(14, 84, 212, 102, 26), K.yellow, -50),
+    Ln('M18 160H222', 6),
+    S(rr(30, 102, 32, 34, 8), K.sky, 75), S(rr(70, 102, 32, 34, 8), K.sky, 75), S(rr(110, 102, 32, 34, 8), K.sky, 75),
+    ...eye(172, 118, 12), ...eye(200, 116, 12), smile(186, 146, 18),
+    ...wheel(58, 190), ...wheel(182, 190),
   ],
   actChurch: [
     S(rr(100, 54, 40, 58, 4), K.white, 0),
@@ -549,7 +652,7 @@ function render(layers) {
         out += toSvg(gen.path(l.d, { seed: nextSeed(), roughness: 2.4, bowing: 2, fill: l.color, fillStyle: 'hachure', hachureAngle: l.angle, hachureGap: 4.2, fillWeight: 2.8, stroke: 'none' }));
         out += `</g>`;
       }
-      out += inkPath(wobble(l.d, nextSeed(), WOBBLE.outline), 5, l.color === K.white ? K.white : 'none');
+      out += inkPath(wobble(l.d, nextSeed(), WOBBLE.outline), l.ow || 5, l.color === K.white ? K.white : 'none');
     } else if (l.kind === 'eye') {
       out += toSvg(gen.path(l.d, { seed: nextSeed(), roughness: 0.8, stroke: INK, strokeWidth: 3.5, disableMultiStroke: true, fill: K.white, fillStyle: 'solid' }));
     } else if (l.kind === 'solid') {
@@ -565,11 +668,8 @@ function render(layers) {
 // For each rigged slot, make art writes the picture again as ordered runs of layers (one imageset per run,
 // drawn with the same seeds, so stacked runs equal the normal picture) and KitRigs.dataset/rigs.json.
 const RIGS = {
- "version": 1,
- "scale": 1,
- "maxSeconds": 1.2,
- "rules": "Rigid parts only (rotate or move a whole part; never bend or stretch). Faces move only with their head part; eyes may blink once. Rotations <= 15 deg, moves <= 20 units in the 240 box. One play per tap, <= 1.2 s, then still. Pivots sit where the part is attached. A picture without a rig gets 'hop'.",
- "moves": {
+ "_rules": "Rigid parts only (rotate or move a whole part; never bend or stretch). Faces move only with their head part; eyes may blink once. Rotations <= 15 deg, moves <= 20 units in the 240 box. One play per tap, <= 1.2 s, then still. Pivots sit where the part is attached. A picture without a rig gets 'hop'.",
+ "_moves": {
   "hop": "whole picture up 14 and down, a 5% squash on landing (origin: bottom centre)",
   "rock": "rotate +deg, -deg, ... 'times' swings, settling to 0",
   "bob": "move up 'px' and back, 'times' times",
@@ -1325,21 +1425,211 @@ const RIGS = {
   "actLanguageSchool": {
    "parts": [
     {
-     "name": "sign",
+     "name": "flag",
+     "layers": [
+      2,
+      3
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagKR": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagJP": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      2,
+      3
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagUK": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagFR": {
+   "parts": [
+    {
+     "name": "flag",
      "layers": [
       2,
       3,
       4
      ],
      "origin": [
-      120,
-      86
+      50,
+      40
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 6,
-       "times": 2
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagIN": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagCN": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      2,
+      3,
+      4,
+      5,
+      6
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagTH": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      2,
+      3,
+      4,
+      5,
+      6
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "flagVN": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      2,
+      3
+     ],
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
       }
      ]
     }
