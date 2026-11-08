@@ -1,7 +1,9 @@
 import SwiftUI
 
 /// Board A1n: at night, kit pictures off the clock sit on a paper plate (a light circle with a
-/// 3.5 pt chalk ring), because their black outlines need a light ground. By day they sit as they are.
+/// 3.5 pt chalk ring), because their black outlines need a light ground. The plate is the part's
+/// box (its ring's outer edge on the frame) and the picture shrinks to 64 of 104 inside it.
+/// By day the picture fills the box as it is.
 public struct KitPlate<Picture: View>: View {
     private let look: KidLook
     private let size: CGFloat
@@ -13,15 +15,19 @@ public struct KitPlate<Picture: View>: View {
         self.picture = picture()
     }
 
+    /// Board A1n: a 64 picture on a 104 plate.
+    public static var nightPicture: CGFloat { 64.0 / 104.0 }
+
     public var body: some View {
         picture
             .frame(width: size, height: size)
+            .scaleEffect(look == .night ? Self.nightPicture : 1)
             .background {
                 if look == .night {
                     Circle().fill(CrayonColor.plate)
-                        .overlay(Circle().stroke(CrayonColor.nightText, lineWidth: 3.5))
-                        .frame(width: size * 1.15, height: size * 1.15)
+                        .overlay(Circle().strokeBorder(CrayonColor.nightText, lineWidth: 3.5))
                 }
             }
+            .frame(width: size, height: size)
     }
 }

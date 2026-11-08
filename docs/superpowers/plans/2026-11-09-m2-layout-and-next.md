@@ -22,7 +22,7 @@ backlog `docs/superpowers/specs/2026-11-08-product-backlog.md` (build order).
 | # | Work | Boards | Done when |
 |---|---|---|---|
 | 1 | Merge PR #15 (sizing) and PR #16 (morning) | — | both on develop |
-| 2 | Home on the contract: `HomeLayout` from A1, A1m, A1n, E1, E3, E3b; layout test; grid check with `OPEN=home` at the morning, day, evening and night times and on a weekend | A1 family | every part on its line on the iPad |
+| 2 | Home on the contract: `HomeLayout` from A1, A1m, A1n, E1, E3, E3b; layout test; grid check with `OPEN=home` at the morning, day, evening and night times and on a weekend | A1 family | done: Kid A block per board (A1/A1m leave, A1n time left, E3 next); `HomeLayoutTests`; checked on the 12.9" with the grid at 6:52, 10:30, 19:30 and a Saturday |
 | 3 | Grown-up screens on the contract: a `GrownupLayout` (form card 64–882, labels 104, controls 232, side column 930–1312, action button 930, 872); debug-only deep links to C1, C2, C3, C5, C6 (behind "Skip Face ID") so they can be opened and captured | C1, E6, C2, C3, C3g, C4, E5, C5, C6 | every part on its line on the iPad |
 | 4 | After the morning, backlog order: E1 one child (check), then first-run setup S1–S4 (S3 "Getting to school" is designed), then the rest of step 6 as the design session hands it over | E1, S1–S4 | per spec |
 

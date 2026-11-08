@@ -62,7 +62,7 @@ final class HomeFeatureTests: XCTestCase {
         let store = store(on: wednesday, minute: 945)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.layout, .twoKids)
+        XCTAssertEqual(store.state.days.count, 2)
         XCTAssertEqual(store.state.today, wednesday)
         XCTAssertEqual(store.state.minute, 945)
         XCTAssertTrue(store.state.days.first?.slots.contains { $0.title == "Swimming" } ?? false)
@@ -221,25 +221,50 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertNil(store.state.morningOuting)
     }
 
-    func testOneKidLayout() async {
-        let store = store(on: wednesday, minute: 600, snapshot: snapshot(kids: [SeedData.kidA]))
-        await store.send(.task)
-        await store.receive(\.loaded)
-        XCTAssertEqual(store.state.layout, .oneKid)
+    /// Spec "Now and next on home": Kid A's block per time of day (boards A1, A1n, E3).
+    func testKidABlockFollowsTheTimeOfDay() async {
+        let morning = store(on: tuesday, minute: 412)   // 6:52 am, leaving for school
+        await morning.send(.task)
+        await morning.receive(\.loaded)
+        XCTAssertEqual(morning.state.kidABlock, .leave)
+        XCTAssertEqual(morning.state.kidAShape, .leave(hasStatus: false))
+
+        let school = store(on: tuesday, minute: 630)    // 10:30 am, at school: the Next row only
+        await school.send(.task)
+        await school.receive(\.loaded)
+        guard case let .next(row) = school.state.kidABlock else { return XCTFail("\(school.state.kidABlock)") }
+        XCTAssertEqual(school.state.kidAShape, .next)
+        XCTAssertGreaterThan(row.start, 630)
+
+        let evening = store(on: tuesday, minute: 1170)  // 7:30 pm: bed within 3 hours
+        await evening.send(.task)
+        await evening.receive(\.loaded)
+        guard case let .timeLeft(left, next) = evening.state.kidABlock else {
+            return XCTFail("\(evening.state.kidABlock)")
+        }
+        XCTAssertEqual(left.minutes, next.start - 1170)
+        XCTAssertEqual(evening.state.kidAShape, .timeLeft)
     }
 
-    func testWeekendIsDayOffLayout() async {
+    /// E1: one kid keeps the Next row under "Leave in" on a leaving morning.
+    func testOneKidKeepsTheNextRowWhenLeaving() async {
+        let store = store(on: tuesday, minute: 412, snapshot: snapshot(kids: [SeedData.kidA]))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.kidABlock, .leave)
+        XCTAssertNotNil(store.state.leaveNext)
+
+        let two = self.store(on: tuesday, minute: 412)
+        await two.send(.task)
+        await two.receive(\.loaded)
+        XCTAssertNil(two.state.leaveNext)
+    }
+
+    func testWeekendShowsTheNextRow() async {
         let store = store(on: saturday, minute: 600)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.layout, .dayOff)
-    }
-
-    func testHolidayIsDayOffLayout() async {
-        let store = store(on: wednesday, minute: 600, holidays: [Holiday(day: wednesday, name: "Holiday")])
-        await store.send(.task)
-        await store.receive(\.loaded)
-        XCTAssertEqual(store.state.layout, .dayOff)
+        guard case .next = store.state.kidABlock else { return XCTFail("\(store.state.kidABlock)") }
     }
 
     func testLoadFailureShowsAnEmptyDay() async {

@@ -2,13 +2,6 @@ import DesignSystem
 import XCTest
 
 final class SlideToGoModelTests: XCTestCase {
-    func testLockedIgnoresDrag() {
-        var model = SlideToGoModel(phase: .locked(remaining: 3))
-        model.dragChanged(progress: 0.5)
-        XCTAssertEqual(model.phase, .locked(remaining: 3))
-        XCTAssertFalse(model.dragEnded())
-    }
-
     func testDragClampsToUnitRange() {
         var model = SlideToGoModel(phase: .idle)
         model.dragChanged(progress: 1.7)

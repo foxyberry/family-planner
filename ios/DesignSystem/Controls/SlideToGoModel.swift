@@ -1,7 +1,6 @@
 /// Decisions behind `SlideToGo`, kept out of the view so they can be tested.
 public struct SlideToGoModel: Equatable, Sendable {
     public enum Phase: Equatable, Sendable {
-        case locked(remaining: Int)
         case idle
         case dragging(progress: Double)
         case done
@@ -16,10 +15,10 @@ public struct SlideToGoModel: Equatable, Sendable {
         self.phase = phase
     }
 
-    /// Ignored while locked or done; otherwise clamps to 0...1.
+    /// Ignored when done; otherwise clamps to 0...1.
     public mutating func dragChanged(progress: Double) {
         switch phase {
-        case .locked, .done: return
+        case .done: return
         case .idle, .dragging: phase = .dragging(progress: min(max(progress, 0), 1))
         }
     }

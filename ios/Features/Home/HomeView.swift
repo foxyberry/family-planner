@@ -6,7 +6,7 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// The kids' home screen (boards A1, E1, E3). Kids never scroll here: the lists are capped.
+/// The kids' home screen (boards A1, A1m, A1n, E1, E3, E3b). Kids never scroll here: the lists are capped.
 public struct HomeView: View {
     let store: StoreOf<HomeFeature>
     @Environment(\.rigScale) private var rigScale
@@ -21,9 +21,6 @@ public struct HomeView: View {
 
     public var body: some View {
         KidFullScreen(look: store.look, wipeFrom: store.isSkyAnimating ? skySwitchCentre : nil) {
-            // Board A1 through spec "Sizing formulas": the clock (R 372 s) centred at
-            // (448 s, y(528)); the sky switch at (40 s, y(36)); the right panel stretches from
-            // 928 s to W − 64 s, y(96) … y(968).
             // Boards A1 / A1m / E1 (docs/superpowers/layout) through "Sizing formulas": every part
             // placed from HomeLayout; the panel's parts all start on 928 and end on 1312.
             let layout = HomeLayout(sizing: sizing)
@@ -46,11 +43,10 @@ public struct HomeView: View {
 
     private var firstDay: HomeFeature.KidDay? { store.days.first }
 
-    /// Board 0g: the switch sits at x 40, y 36 of the clock area, clear of the hour labels.
-    private static let skySwitchOrigin = CGPoint(x: 40, y: 36)
+    /// The night wipe starts from the sky switch's centre (board 0g).
     private var skySwitchCentre: CGPoint {
-        CGPoint(x: Self.skySwitchOrigin.x * sizing.s + SkySwitch.size.width / 2,
-                y: sizing.y(Self.skySwitchOrigin.y) + SkySwitch.size.height / 2)
+        let origin = HomeLayout(sizing: sizing).skySwitch.origin
+        return CGPoint(x: origin.x + SkySwitch.size.width / 2, y: origin.y + SkySwitch.size.height / 2)
     }
 
     // MARK: Clock
@@ -97,18 +93,16 @@ public struct HomeView: View {
                     .place(left: layout.panelLeft, baseline: layout.weekdayBaseline)
             }
             kidHeader(first.kid, top: layout.kidATop, layout: layout)
-            kidABlock(first, layout: layout)
+            kidABlock(layout: layout)
             if store.days.count > 1 {
-                let top = layout.kidBTop(hasStatus: store.status != nil)
+                let top = HomeLayout.kidBTop(store.kidAShape)
                 kidHeader(store.days[1].kid, top: top, layout: layout)
                 let now = DayPlanner.now(at: store.minute, in: store.days[1].slots)
                 KidNowNext(now: now.current?.iconName ?? "actPlay", next: now.next?.iconName, look: store.look)
                     .place(topLeft: layout.nowNext(kidBTop: top))
-            } else if let next = HomeModel.next(first.slots, minute: store.minute) {
-                // E1, one kid: the Next row under Kid A.
-                Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
-                    .place(left: layout.panelLeft, baseline: layout.nextLabelBaseline)
-                nextRow(next, layout: layout)
+            } else if let next = store.leaveNext {
+                nextCaption(baseline: layout.leaveNextCaptionBaseline, layout: layout)
+                nextRow(next, at: layout.leaveNextRow)
             }
             if store.isMissionMorning {
                 InkButton(L10n.tr("home.missions"), arrow: true) { store.send(.missionsTapped) }
@@ -128,42 +122,55 @@ public struct HomeView: View {
         }
     }
 
-    /// Kid A: "Leave in" (or "{next} in") with the way picture, the minutes, and the live status.
-    @ViewBuilder private func kidABlock(_ day: HomeFeature.KidDay, layout: HomeLayout) -> some View {
-        if let outing = store.morningOuting, let heading = store.outingHeading {
-            Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
-                .place(left: layout.panelLeft, baseline: layout.labelBaseline)
-            KitPlate(look: store.look, size: layout.way.width) {
-                KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: layout.way.width)
+    /// Kid A (spec "Now and next on home"): A1 "Leave in", A1n time left over the Next row, E3 Next row.
+    @ViewBuilder private func kidABlock(layout: HomeLayout) -> some View {
+        switch store.kidABlock {
+        case .leave:
+            if let outing = store.morningOuting, let heading = store.outingHeading {
+                Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
+                    .place(left: layout.panelLeft, baseline: layout.labelBaseline)
+                KitPlate(look: store.look, size: layout.way.width) {
+                    KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: layout.way.width)
+                }
+                .place(layout.way)
+                TimeLeft(minutes: store.minutesToLeave ?? 0, look: store.look)
+                    .place(left: layout.panelLeft, baseline: layout.timeBaseline)
+                if let status = store.status {
+                    StatusDot(status.text, tone: status.tone)
+                        .place(left: layout.panelLeft, baseline: layout.statusBaseline)
+                }
             }
-            .place(layout.way)
-            TimeLeft(minutes: store.minutesToLeave ?? outing.slot.start - store.minute, look: store.look)
-                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
-            if let status = store.status {
-                StatusDot(status.text, tone: status.tone)
-                    .place(left: layout.panelLeft, baseline: layout.statusBaseline)
-            }
-        } else if let timeLeft = HomeModel.timeLeft(to: HomeModel.next(day.slots, minute: store.minute),
-                                                    minute: store.minute) {
+        case let .timeLeft(timeLeft, next):
             Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
-                .place(left: layout.panelLeft, baseline: layout.labelBaseline)
+                .place(left: layout.panelLeft, baseline: layout.timeLeftLabelBaseline)
             TimeLeft(minutes: timeLeft.minutes, look: store.look)
-                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
+                .place(left: layout.panelLeft, baseline: layout.timeLeftBaseline)
+            nextRow(next, at: layout.timeLeftRow)
+        case let .next(next):
+            nextCaption(baseline: layout.nextCaptionBaseline, layout: layout)
+            nextRow(next, at: layout.nextRow)
+        case .nothing:
+            EmptyView()
         }
     }
 
-    /// E1: the next picture (104) at 928, its title and time on their baselines at 1056.
-    @ViewBuilder private func nextRow(_ row: NextRow, layout: HomeLayout) -> some View {
-        KitPlate(look: store.look, size: layout.nextPicture.width) {
-            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: layout.nextPicture.width)
+    private func nextCaption(baseline: CGFloat, layout: HomeLayout) -> some View {
+        Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
+            .place(left: layout.panelLeft, baseline: baseline)
+    }
+
+    /// The Next row: the picture (104), its title and "at …" on their baselines.
+    @ViewBuilder private func nextRow(_ row: NextRow, at place: HomeLayout.RowPlace) -> some View {
+        KitPlate(look: store.look, size: place.picture.width) {
+            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: place.picture.width)
                 .overlay(alignment: .topTrailing) {
                     if row.showsStar { KitIcon(.star, size: 36 * sizing.s) }
                 }
         }
-        .place(layout.nextPicture)
+        .place(place.picture)
         Text(row.title).crayonType(.head).foregroundStyle(store.look.ink).lineLimit(1)
-            .place(left: layout.nextTextLeft, baseline: layout.nextTitleBaseline)
+            .place(left: place.textLeft, baseline: place.titleBaseline)
         Text(row.at).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
-            .place(left: layout.nextTextLeft, baseline: layout.nextTimeBaseline)
+            .place(left: place.textLeft, baseline: place.atBaseline)
     }
 }

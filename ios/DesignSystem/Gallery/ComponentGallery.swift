@@ -49,13 +49,10 @@ public struct ComponentGallery: View {
                         TimeLeft(minutes: 19)
                         TimeLeft(minutes: -2)
                     }
-                    SlideToGo(state: .locked(remaining: 3), lockedTitle: "3 more, then slide",
-                              idleTitle: "Slide to go", doneTitle: "On our way!") {}
-                    SlideToGo(state: .idle, lockedTitle: "", idleTitle: "Slide to go", doneTitle: "On our way!") {}
-                    SlideToGo(state: .done, lockedTitle: "", idleTitle: "", doneTitle: "On our way!") {}
+                    SlideToGo(state: .idle, idleTitle: "Slide to go", doneTitle: "On our way!") {}
+                    SlideToGo(state: .done, idleTitle: "", doneTitle: "On our way!") {}
                 }
                 section("0c · Content") {
-                    NowRow(title: "Brush teeth", icon: .toothbrush, isDone: false) {}
                     ListRow(leading: "7:30") { Text("Bus to school") }
                     TodayRow(leading: "Today") { Text("Swimming 15:30") }
                     PaperCard { Text("A sheet of paper").crayonType(.body) }

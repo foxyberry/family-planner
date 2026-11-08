@@ -10,8 +10,8 @@ import SecretStore
 import Strings
 
 /// A2-MVP · Morning missions (spec "A2-MVP", "MVP data"): the way to the chosen kid's next outing,
-/// the kid list, the chosen kid's mission circles and "All done!". Kids are never locked: missions
-/// only help, "All done!" is always on.
+/// the kid list, the chosen kid's mission circles and the slide. Kids are never locked: missions
+/// only help, the slide is always on.
 @Reducer
 public struct MissionsFeature {
     /// One place in the mission row: a mission, the done ones folded into one ✓, or "+n" for the next page.
@@ -278,7 +278,7 @@ public struct MissionsFeature {
             }
         }
 
-        /// The chosen kid is ready (the slide shows its done look; the pill reads "Ready!").
+        /// The chosen kid is ready (the slide shows its done look, "Ready!").
         public var chosenIsReady: Bool { chosen.map { day(of: $0).ready } ?? false }
 
         /// "Ready, Kid A!" once the chosen kid is ready; else "Good morning!".
@@ -477,7 +477,7 @@ public struct MissionsFeature {
                 .cancellable(id: CancelID.refresh, cancelInFlight: true)
 
             case let .kidTapped(kid):
-                // Tapping a ready kid's row shows their done view again (undo is on the slide or pill).
+                // Tapping a ready kid's row shows their done view again (undo is on the slide).
                 state.chosen = kid
                 state.page = 0
                 return .cancel(id: CancelID.advance)
