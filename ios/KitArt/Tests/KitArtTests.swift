@@ -102,4 +102,15 @@ final class KitArtTests: XCTestCase {
         let i = (y * image.width + x) * 4
         return (Double(data[i]) / 255, Double(data[i + 1]) / 255)
     }
+
+    /// Kit pictures carry an empty margin; the way strip stands them on stems by their drawn bottom.
+    func testDrawnBottomFindsTheInkNotTheBox() {
+        let art = BundledKitArt(includePrivate: false)
+        for slot in [KitSlot.home, .wolfie, .actLanguageSchool] {
+            let bottom = art.drawnBottom(for: slot)
+            XCTAssertGreaterThan(bottom, 0.6, "\(slot)")
+            XCTAssertLessThanOrEqual(bottom, 1, "\(slot)")
+        }
+        XCTAssertLessThan(art.drawnBottom(for: .home), 0.95)
+    }
 }

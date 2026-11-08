@@ -82,9 +82,8 @@ public struct WayStrip: View {
         if isHomeAllDay {
             ZStack(alignment: .topLeading) {
                 scenery
-                stems(at: [Self.homeAllDayX], foot: { _ in 250 })
-                KitIcon(.home, size: 150).frame(width: 150, height: 150)
-                    .offset(x: Self.homeAllDayX - 75, y: 250 - 48 - 150)
+                stems([(Self.homeAllDayX, 250)])
+                picture(KitIcon(.home, size: 150), slot: .home, size: 150, x: Self.homeAllDayX, stemFoot: 250)
                 // At (120, 38), clear of the house (549–699 × 52–202).
                 card.fixedSize().offset(x: 120, y: 38)
             }
@@ -99,11 +98,12 @@ public struct WayStrip: View {
     private var tripBoard: some View {
         ZStack(alignment: .topLeading) {
             scenery
-            stems(at: [Self.homeX, Self.destinationX], foot: Self.roadY)
+            stems([(Self.homeX, Self.homeStemFoot), (Self.destinationX, Self.destinationStemFoot)])
             road
             stops
-            picture(KitIcon(.home, size: 150), size: 150, x: Self.homeX)
-            picture(KitIcon(destination, size: 120), size: 120, x: Self.destinationX)
+            picture(KitIcon(.home, size: 150), slot: .home, size: 150, x: Self.homeX, stemFoot: Self.homeStemFoot)
+            picture(KitIcon(destination, size: 120), slot: destination, size: 120, x: Self.destinationX,
+                    stemFoot: Self.destinationStemFoot)
             label(homeLabel, x: Self.homeX)
             label(destinationLabel, x: Self.destinationX)
             moverView
@@ -163,17 +163,22 @@ public struct WayStrip: View {
 
     // MARK: Road, stems, stops
 
-    /// Dotted stems 48 long from the foot (the road) up, dashes 5 long every 12.
-    private func stems(at xs: [CGFloat], foot: @escaping (CGFloat) -> CGFloat) -> some View {
+    /// Stems start at the top edge of their own stop marker (home r 28, destination r 15), so both
+    /// look the same length wherever the wave puts the stop.
+    static var homeStemFoot: CGFloat { roadY(homeX) - 28 }
+    static var destinationStemFoot: CGFloat { roadY(destinationX) - 15 }
+    static let stemLength: CGFloat = 32
+
+    /// Dotted stems 32 long from their foot up, dashes 5 long every 10.
+    private func stems(_ feet: [(x: CGFloat, foot: CGFloat)]) -> some View {
         Canvas { context, _ in
             var path = Path()
-            for x in xs {
-                let road = foot(x)
-                var y = road - 48
-                while y < road - 4 {
+            for (x, foot) in feet {
+                var y = foot - Self.stemLength
+                while y + 5 <= foot {
                     path.move(to: CGPoint(x: x, y: y))
                     path.addLine(to: CGPoint(x: x, y: y + 5))
-                    y += 12
+                    y += 10
                 }
             }
             context.stroke(path, with: .color(CrayonColor.marker), style: StrokeStyle(lineWidth: 5, lineCap: .round))
@@ -215,10 +220,11 @@ public struct WayStrip: View {
 
     // MARK: Pictures, labels, mover, card
 
-    /// A picture standing on its stem: its bottom on the stem top (road − 48).
-    private func picture(_ view: some View, size: CGFloat, x: CGFloat) -> some View {
-        view.frame(width: size, height: size)
-            .offset(x: x - size / 2, y: Self.roadY(x) - 48 - size)
+    /// A picture standing on its stem: its drawn bottom (not its box) on the stem top.
+    private func picture(_ view: some View, slot: KitSlot, size: CGFloat, x: CGFloat, stemFoot: CGFloat) -> some View {
+        let bottom = size * BundledKitArt().drawnBottom(for: slot)
+        return view.frame(width: size, height: size)
+            .offset(x: x - size / 2, y: stemFoot - Self.stemLength - bottom)
     }
 
     private func label(_ text: String, x: CGFloat) -> some View {
