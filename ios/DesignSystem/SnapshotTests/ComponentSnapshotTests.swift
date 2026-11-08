@@ -162,14 +162,6 @@ final class ComponentSnapshotTests: XCTestCase {
                            anchor: 0.3), width: 360)
     }
 
-    func testBusBubbles() {
-        snap(HStack(alignment: .bottom, spacing: Spacing.l) {
-            BusBubble(route: "123", minutes: 4, crowd: .seats, isMine: true, transferTo: nil)
-            BusBubble(route: "45", minutes: 9, crowd: .standing, isMine: false, transferTo: "67")
-            BusBubble(route: "123", minutes: 19, crowd: .full, isMine: true, transferTo: nil)
-        })
-    }
-
     func testLeagueProgress() {
         snap(LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
                             nextName: "Double-Decker"), width: Self.rowWidth)

@@ -12,39 +12,6 @@
         }
       }
     },
-    "bus.crowd.full" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Full"
-          }
-        }
-      }
-    },
-    "bus.crowd.seats" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seats free"
-          }
-        }
-      }
-    },
-    "bus.crowd.standing" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standing room"
-          }
-        }
-      }
-    },
     "c2.buses" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1537,17 +1504,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "in"
-          }
-        }
-      }
-    },
-    "home.place_in" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ in"
           }
         }
       }

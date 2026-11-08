@@ -33,8 +33,7 @@ public struct DrivingKitIcon: View {
     }
 
     @ViewBuilder private var picture: some View {
-        let usesRuns = BundledKitArt().source(for: slot) == .public
-        if usesRuns, let rig = KitRigs.shared.rig(for: slot), rig.parts.keys.contains(where: Self.isWheel) {
+        if let rig = Self.wheeledRig(for: slot) {
             ZStack {
                 ForEach(Array(rig.runs.enumerated()), id: \.offset) { _, run in
                     let image = BundledKitArt.runImage(named: run.image).resizable().scaledToFit()
@@ -56,6 +55,13 @@ public struct DrivingKitIcon: View {
 
     /// Wheel parts are tagged "back wheel" / "front wheel" in kit.js.
     static func isWheel(_ part: String) -> Bool { part.hasSuffix("wheel") }
+
+    /// The public picture's rig when it has wheels (drawn run by run); nil draws the plain `KitIcon`.
+    static func wheeledRig(for slot: KitSlot) -> KitRig? {
+        guard BundledKitArt().source(for: slot) == .public, let rig = KitRigs.shared.rig(for: slot),
+              rig.parts.keys.contains(where: isWheel) else { return nil }
+        return rig
+    }
 }
 
 /// A rig part (the bus body) playing its rig moves on a loop, one play after another.

@@ -74,8 +74,6 @@ public struct MissionsFeature {
         public var cardCaption: String
         /// The destination's name under its stop ("School").
         public var place: String
-        public var headerPlace: String
-        public var headerMinutes: String
         /// Whose outing it is: the card starts with this kid's face.
         public var owner: Kid
         public var spoken: String
@@ -173,7 +171,6 @@ public struct MissionsFeature {
             let wayLine = isBusFallback ? L10n.tr("missions.way.no_live", Self.wayPhrase(.bus))
                 : Self.wayLine(outing.trip.way)
             let time = TimeText.withPeriod(outing.slot.start)
-            let minutes = TimeLeft.presentation(minutes: max(outing.slot.start - minute, 0)).text
             // Only buses and shuttles stop on the way (spec A2-MVP "Way strip").
             let stops = outing.trip.way == .bus || outing.trip.way == .shuttle
             return Way(destination: outing.slot.iconName, mover: outing.trip.way.moverPicture,
@@ -182,7 +179,6 @@ public struct MissionsFeature {
                        showsStops: stops,
                        cardTitle: L10n.tr("missions.card.title", outing.slot.title, time),
                        cardCaption: wayLine, place: outing.slot.title,
-                       headerPlace: L10n.tr("home.place_in", outing.slot.title), headerMinutes: minutes,
                        owner: owner,
                        spoken: L10n.tr("missions.way.spoken", owner.name, outing.slot.title,
                                        Self.wayPhrase(outing.trip.way),

@@ -61,11 +61,6 @@ public struct ComponentGallery: View {
                     PaperCard { Text("A sheet of paper").crayonType(.body) }
                     PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: $choice, anchor: 0.3)
                         .frame(width: 360)
-                    HStack(alignment: .bottom, spacing: Spacing.l) {
-                        BusBubble(route: "123", minutes: 4, crowd: .seats, isMine: true, transferTo: nil)
-                        BusBubble(route: "45", minutes: 9, crowd: .standing, isMine: false, transferTo: "67")
-                        BusBubble(route: "123", minutes: 19, crowd: .full, isMine: true, transferTo: nil)
-                    }
                     LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
                                    nextName: "Double-Decker")
                     VoiceNote(duration: .seconds(12), isPlaying: false) {}
@@ -169,16 +164,6 @@ public struct ComponentGallery: View {
                     RigPlayground()
                 }
                 section("0f · Frames") {
-                    let morning = Capped(["Wake up", "Toilet", "Get dressed", "Breakfast", "Brush teeth"], max: 3)
-                    KidScreen {
-                        Text("Good morning, Kid A").crayonType(.title)
-                    } body: { _ in
-                        VStack(alignment: .leading, spacing: Spacing.s) {
-                            ForEach(morning.visible, id: \.self) { Text($0).crayonType(.body) }
-                            if morning.overflow > 0 { Text("+\(morning.overflow)").crayonType(.caption) }
-                        }
-                    }
-                    .frame(height: 420)
                     KidFullScreen {
                         Text("Home: the clock uses the whole screen").crayonType(.head).padding(Spacing.m)
                     }
