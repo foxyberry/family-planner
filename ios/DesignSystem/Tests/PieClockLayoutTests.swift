@@ -72,8 +72,11 @@ final class PieClockLayoutTests: XCTestCase {
         XCTAssertEqual(PieClock.hubTitleCandidates("Breakfast"), ["Breakfast"])
     }
 
-    func testEveryStyleHasAFill() {
-        XCTAssertEqual(ClockSlotStyle.allCases.count, 8)
-        for style in ClockSlotStyle.allCases { XCTAssertNotNil(style.fill.hachure, "\(style)") }
+    func testEveryStyleButFreeHasAFill() {
+        XCTAssertEqual(ClockSlotStyle.allCases.count, 9)
+        for style in ClockSlotStyle.allCases where style != .free {
+            XCTAssertNotNil(style.fill?.hachure, "\(style)")
+        }
+        XCTAssertNil(ClockSlotStyle.free.fill, "free time is plain paper")
     }
 }

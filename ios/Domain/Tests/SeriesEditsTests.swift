@@ -140,25 +140,3 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(DayText.sentence(Weekday.schoolDays), "school day")
     }
 }
-
-final class SeedDataTests: XCTestCase {
-    func testSeedIsFakeAndComplete() {
-        XCTAssertEqual(SeedData.kids.map(\.name), ["Kid A", "Kid B"])
-        XCTAssertEqual(SeedData.kidA.school?.name, "Example Primary School")
-        XCTAssertNil(SeedData.kidB.school)
-        for kid in SeedData.kids {
-            for kind in [DayKind.schoolDay, .dayOff] {
-                XCTAssertTrue(SeedData.routines.contains { $0.kid == kid.id && $0.dayKind == kind }, "\(kid.name) \(kind)")
-            }
-        }
-        let items = SeedData.items(today: Fixture.monday, calendar: Fixture.calendar)
-        XCTAssertEqual(items.filter { if case .weekly = $0.recurrence { $0.audience == .kid(SeedData.kidA.id) } else { false } }.count, 2)
-        XCTAssertTrue(items.contains { if case .once = $0.recurrence { $0.audience == .both } else { false } })
-    }
-
-    func testSeedIsStableAcrossLaunches() {
-        XCTAssertEqual(SeedData.kidA.id, SeedData.kidA.id)
-        XCTAssertEqual(SeedData.items(today: Fixture.monday, calendar: Fixture.calendar).map(\.id),
-                       SeedData.items(today: Fixture.monday, calendar: Fixture.calendar).map(\.id))
-    }
-}

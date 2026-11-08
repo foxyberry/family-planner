@@ -20,28 +20,30 @@ public enum HomeModel {
             case .weekly: 1
             case .once: 2
             }
-            return ClockSector(start: slot.start, end: slot.end, style: ClockSlotStyle(rawValue: slot.kind.rawValue)!,
-                               iconName: slot.iconName, isCurrent: slot.start <= minute && minute < slot.end,
+            return ClockSector(start: slot.start, end: slot.end, style: ClockSlotStyle(rawValue: slot.kind.rawValue) ?? .play,
+                               iconName: slot.kind == .free || slot.iconName.isEmpty ? nil : slot.iconName, isCurrent: slot.start <= minute && minute < slot.end,
                                showsStar: slot.showsStar, priority: priority)
         }
     }
 
-    /// The NOW rule: the slot's name "until" its end; in a gap "Free time" until the next slot;
-    /// with no slots at all "Nothing planned". Sleep before midnight runs on to the morning's wake-up.
-    public static func hub(_ slots: [Slot], minute: Int) -> PieClock.Hub {
-        guard !slots.isEmpty else { return PieClock.Hub(title: L10n.tr("home.hub.nothing"), subtitle: nil) }
+    /// The day rule (board A1): the weekday, then the slot's name "until" its end (12-hour with am/pm);
+    /// in a gap or free time "Free time" until the next slot; with no slots at all "Nothing planned".
+    /// Sleep before midnight runs on to the morning's wake-up.
+    public static func hub(_ slots: [Slot], minute: Int, day: String?) -> PieClock.Hub {
+        guard !slots.isEmpty else { return PieClock.Hub(day: day, title: L10n.tr("home.hub.nothing"), subtitle: nil) }
         let now = DayPlanner.now(at: minute, in: slots)
+        let until = { (minute: Int) in L10n.tr("home.hub.until", TimeText.withPeriod(minute)) }
         if let current = now.current {
-            return PieClock.Hub(title: current.title, subtitle: L10n.tr("home.hub.until", TimeText.clock(end(of: current, in: slots))))
+            let title = current.kind == .free ? L10n.tr("home.hub.free") : current.title
+            return PieClock.Hub(day: day, title: title, subtitle: until(end(of: current, in: slots)))
         }
-        return PieClock.Hub(title: L10n.tr("home.hub.free"),
-                            subtitle: now.next.map { L10n.tr("home.hub.until", TimeText.clock($0.start)) })
+        return PieClock.Hub(day: day, title: L10n.tr("home.hub.free"), subtitle: now.next.map { until($0.start) })
     }
 
     /// Up to `limit` slots after the current one (or after now in a gap).
     public static func nextRows(_ slots: [Slot], minute: Int, limit: Int = 2) -> [NextRow] {
         let after = DayPlanner.now(at: minute, in: slots).current?.end ?? minute
-        return slots.filter { $0.start >= after && $0.start > minute }.prefix(limit)
+        return slots.filter { $0.start >= after && $0.start > minute && $0.kind != .free }.prefix(limit)
             .map { NextRow(iconName: $0.iconName, title: $0.title, start: $0.start, end: $0.end) }
     }
 
@@ -51,9 +53,10 @@ public enum HomeModel {
             .map { NextRow(iconName: $0.iconName, title: $0.title, start: $0.start, end: $0.end) }
     }
 
-    public static func accessibilityLabel(kidName: String, slots: [Slot], minute: Int) -> String {
-        let current = DayPlanner.now(at: minute, in: slots).current?.title ?? L10n.tr("home.hub.free")
-        return L10n.tr("home.clock.label", kidName, TimeText.clock(minute), current)
+    public static func accessibilityLabel(kidName: String, day: String, slots: [Slot], minute: Int) -> String {
+        let now = DayPlanner.now(at: minute, in: slots).current
+        let current = now.map { $0.kind == .free ? L10n.tr("home.hub.free") : $0.title } ?? L10n.tr("home.hub.free")
+        return L10n.tr("home.clock.label", kidName, day, TimeText.clock(minute), current)
     }
 
     /// A slot that ends at midnight continues into the same kind of slot that starts the day.

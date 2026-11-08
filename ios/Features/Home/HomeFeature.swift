@@ -18,7 +18,7 @@ public struct HomeFeature {
 
     public struct KidDay: Equatable, Sendable {
         public var kid: Kid
-        public var dayKind: DayKind
+        public var dayType: DayType
         public var slots: [Slot]
     }
 
@@ -37,7 +37,7 @@ public struct HomeFeature {
         public var dayName: String? { weekday.map(DayText.name) }
 
         public var layout: Layout {
-            if days.first?.dayKind == .dayOff { return .dayOff }
+            if let type = days.first?.dayType, type != .weekday { return .dayOff }
             return days.count == 1 ? .oneKid : .twoKids
         }
     }
@@ -93,7 +93,7 @@ public struct HomeFeature {
                 let holidayDays = Set(holidays.map(\.day))
                 state.days = snapshot.kids.map { kid in
                     KidDay(kid: kid,
-                           dayKind: DayPlanner.dayKind(on: today, kid: kid, holidays: holidayDays, calendar: calendar),
+                           dayType: DayPlanner.dayType(on: today, holidays: holidayDays, calendar: calendar),
                            slots: DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines,
                                                    items: snapshot.items, holidays: holidayDays, calendar: calendar))
                 }

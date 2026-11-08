@@ -203,22 +203,38 @@ final class ComponentSnapshotTests: XCTestCase {
     ]
 
     func testPieClockSeedDay() {
-        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30"))
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(day: "Tuesday", title: "Swimming", subtitle: "until 4:30 pm"))
             .padding(110))
     }
 
+    /// Board A1 on a school day at 16:40: free time is plain paper between its edges, with no picture.
+    func testPieClockFreeSlot() {
+        let day: [ClockSector] = [
+            ClockSector(start: 0, end: 390, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
+            ClockSector(start: 390, end: 450, style: .morning, iconName: "actBreakfast", isCurrent: false, showsStar: false, priority: 0),
+            ClockSector(start: 450, end: 900, style: .school, iconName: "actSchool", isCurrent: false, showsStar: false, priority: 0),
+            ClockSector(start: 900, end: 960, style: .play, iconName: "snack", isCurrent: false, showsStar: false, priority: 0),
+            ClockSector(start: 960, end: 1020, style: .free, iconName: nil, isCurrent: true, showsStar: false, priority: 0),
+            ClockSector(start: 1020, end: 1110, style: .play, iconName: "blocks", isCurrent: false, showsStar: false, priority: 0),
+            ClockSector(start: 1110, end: 1155, style: .dinner, iconName: "actDinner", isCurrent: false, showsStar: false, priority: 0),
+            ClockSector(start: 1155, end: 1200, style: .evening, iconName: "actShower", isCurrent: false, showsStar: false, priority: 0),
+            ClockSector(start: 1200, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
+        ]
+        snap(PieClock(sectors: day, now: 1000, hub: .init(day: "Tuesday", title: "Free time", subtitle: "until 5:00 pm")).padding(110))
+    }
+
     func testPieClockEmpty() {
-        snap(PieClock(sectors: [], now: nil, hub: .init(title: "Nothing planned", subtitle: nil)).padding(110))
+        snap(PieClock(sectors: [], now: nil, hub: .init(day: "Tuesday", title: "Nothing planned", subtitle: nil)).padding(110))
     }
 
     func testHubLongTitle() {
         snap(PieClock(sectors: Self.seedDay, now: 945,
-                      hub: .init(title: "Swimming with the whole class", subtitle: "until 4:30"), holdProgress: 0.6)
+                      hub: .init(day: "Tuesday", title: "Swimming with the whole class", subtitle: "until 4:30 pm"), holdProgress: 0.6)
             .padding(110))
     }
 
     func testHubLongSingleWord() {
-        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Supercalifragilistic", subtitle: "until 4:30"))
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(day: "Tuesday", title: "Supercalifragilistic", subtitle: "until 4:30 pm"))
             .padding(110))
     }
 

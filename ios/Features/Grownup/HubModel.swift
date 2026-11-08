@@ -59,7 +59,9 @@ public enum HubModel {
     }
 
     public static func aboutRows(kid: Kid, routines: [Routine]) -> [HubRow] {
-        let blocks = routines.first { $0.kid == kid.id && $0.dayKind == .schoolDay }?.blocks ?? []
+        // The newest Mon–Fri template: the kid's usual school-day rhythm.
+        let blocks = routines.filter { $0.kid == kid.id && $0.dayType == .weekday }
+            .max { $0.from < $1.from }?.blocks ?? []
         let sleeps = blocks.filter { $0.kind == .sleep }
         let wake = sleeps.first { $0.start == 0 }?.end
         let bed = sleeps.first { $0.end == 1440 }?.start
@@ -102,8 +104,7 @@ public enum HubModel {
     /// kid's next wake-up after its day.
     public static func onceRows(kid: Kid, items: [ScheduleItem], routines: [Routine], today: Day, nowMinute: Int,
                                 calendar: Calendar) -> [HubItemRow] {
-        let kind = DayPlanner.dayKind(on: today, kid: kid, holidays: [], calendar: calendar)
-        let wake = routines.first { $0.kid == kid.id && $0.dayKind == kind }?.blocks
+        let wake = DayPlanner.template(for: kid.id, on: today, routines: routines, holidays: [], calendar: calendar)?.blocks
             .first { $0.kind == .sleep && $0.start == 0 }?.end ?? 0
         let yesterday = today.adding(days: -1, calendar: calendar)
         return items.compactMap { item -> (ScheduleItem, Day)? in

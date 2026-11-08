@@ -74,18 +74,26 @@ private struct Records {
         self.context = context
     }
 
+    /// Seeds an empty store. A store written by an older seed (a lower or missing `meta:seeded`
+    /// version, or routines in an old shape) is cleared and seeded again: the data is fake until M4.
     func seedIfNeeded(today: Day, calendar: Calendar) throws {
-        guard try fetch("meta").isEmpty else { return }
+        let meta = try fetch("meta")
+        if !meta.isEmpty {
+            let version = meta.first { $0.key == "meta:seeded" }.flatMap { try? decoder.decode(Int.self, from: $0.payload) }
+            let routinesDecode = (try? values("routine") as [Routine]) != nil
+            if let version, version >= SeedData.version, routinesDecode { return }
+        }
+        for record in try context.fetch(FetchDescriptor<StoredRecord>()) { context.delete(record) }
         for (index, kid) in SeedData.kids.enumerated() {
             try insert("kid:\(kid.id)", group: "kid", order: index, kid)
         }
         for (index, routine) in SeedData.routines.enumerated() {
-            try insert("routine:\(routine.kid):\(routine.dayKind)", group: "routine", order: index, routine)
+            try insert("routine:\(routine.kid):\(routine.dayType.rawValue):\(routine.from.year)-\(routine.from.month)-\(routine.from.day)", group: "routine", order: index, routine)
         }
         for item in SeedData.items(today: today, calendar: calendar) {
             try insert("item:\(item.id)", group: "item", order: 0, item)
         }
-        try insert("meta:seeded", group: "meta", order: 0, 1)
+        try insert("meta:seeded", group: "meta", order: 0, SeedData.version)
         try context.save()
     }
 

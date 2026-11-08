@@ -88,7 +88,7 @@ public struct ComponentGallery: View {
                                     showsStar: false, priority: 1),
                         ClockSector(start: 1230, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false,
                                     showsStar: false, priority: 0),
-                    ], now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30"))
+                    ], now: 945, hub: .init(day: "Tuesday", title: "Swimming", subtitle: "until 4:30 pm"))
                     .scaleEffect(0.5)
                     .frame(width: 480, height: 480)
                     KidNowNext(now: "teddy", next: "actPlay")

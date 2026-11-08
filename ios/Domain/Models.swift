@@ -53,9 +53,9 @@ public enum Recurrence: Hashable, Codable, Sendable {
     case weekly(Set<Weekday>, from: Day, until: Day?)
 }
 
-/// What a slot is, which decides its colour on the clock.
+/// What a slot is, which decides its colour on the clock. `free` is free time: plain paper, no picture.
 public enum SlotKind: String, CaseIterable, Codable, Sendable {
-    case sleep, morning, school, afterSchool, play, dinner, evening, event
+    case sleep, morning, school, afterSchool, play, dinner, evening, event, free
 }
 
 public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
@@ -92,36 +92,42 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var kind: SlotKind { isWeekly ? .afterSchool : .event }
 }
 
-/// A school day uses the kid's weekday routine; weekends and holidays use the day-off routine.
-public enum DayKind: Hashable, Codable, Sendable {
-    case schoolDay, dayOff
+/// The three kinds of day a kid has a template for. A weekday school holiday uses `sunday`.
+public enum DayType: String, Codable, CaseIterable, Sendable {
+    case weekday, saturday, sunday
 }
 
 public struct RoutineBlock: Hashable, Codable, Sendable {
     public var title: String
+    /// A `KitSlot` raw value; empty for free time.
     public var iconName: String
     public var kind: SlotKind
     public var start: Int
     public var end: Int
+    /// A locked edge (school) cannot be dragged in the day editor.
+    public var isLocked: Bool
 
-    public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int) {
+    public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, isLocked: Bool = false) {
         self.title = title
         self.iconName = iconName
         self.kind = kind
         self.start = start
         self.end = end
+        self.isLocked = isLocked
     }
 }
 
-/// One kid's day template for one kind of day.
+/// One kid's day template for one day type, used from `from` until a newer template of the same type starts.
 public struct Routine: Hashable, Codable, Sendable {
     public var kid: Kid.ID
-    public var dayKind: DayKind
+    public var dayType: DayType
+    public var from: Day
     public var blocks: [RoutineBlock]
 
-    public init(kid: Kid.ID, dayKind: DayKind, blocks: [RoutineBlock]) {
+    public init(kid: Kid.ID, dayType: DayType, from: Day, blocks: [RoutineBlock]) {
         self.kid = kid
-        self.dayKind = dayKind
+        self.dayType = dayType
+        self.from = from
         self.blocks = blocks
     }
 }

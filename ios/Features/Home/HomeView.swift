@@ -40,7 +40,7 @@ public struct HomeView: View {
         let slots = firstDay?.slots ?? []
         return PieClock(sectors: HomeModel.sectors(slots, minute: store.minute),
                         now: slots.isEmpty ? nil : store.minute,
-                        hub: HomeModel.hub(slots, minute: store.minute),
+                        hub: HomeModel.hub(slots, minute: store.minute, day: store.dayName),
                         holdProgress: holdProgress)
             .contentShape(Circle())
             .onLongPressGesture(minimumDuration: 2) {
@@ -55,7 +55,8 @@ public struct HomeView: View {
                 }
             }
             .accessibilityElement()
-            .accessibilityLabel(HomeModel.accessibilityLabel(kidName: firstDay?.kid.name ?? "", slots: slots,
+            .accessibilityLabel(HomeModel.accessibilityLabel(kidName: firstDay?.kid.name ?? "", day: store.dayName ?? "",
+                                                             slots: slots,
                                                              minute: store.minute))
             .frame(width: 900, height: 1032)
     }

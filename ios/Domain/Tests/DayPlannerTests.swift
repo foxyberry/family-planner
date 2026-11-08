@@ -10,19 +10,73 @@ final class DayPlannerTests: XCTestCase {
             .map { "\($0.title) \($0.start)-\($0.end)" }
     }
 
-    func testWeekdayIsSchoolDayAndWeekendIsDayOff() {
-        XCTAssertEqual(DayPlanner.dayKind(on: F.monday, kid: F.kidA, holidays: [], calendar: F.calendar), .schoolDay)
-        XCTAssertEqual(DayPlanner.dayKind(on: F.saturday, kid: F.kidA, holidays: [], calendar: F.calendar), .dayOff)
+    private func dayType(_ day: Day, holidays: Set<Day> = []) -> DayType {
+        DayPlanner.dayType(on: day, holidays: holidays, calendar: F.calendar)
     }
 
-    func testPublicHolidayIsDayOff() {
-        XCTAssertEqual(DayPlanner.dayKind(on: F.monday, kid: F.kidA, holidays: [F.monday], calendar: F.calendar),
-                       .dayOff)
+    func testWeekdayHolidayUsesSunday() {
+        XCTAssertEqual(dayType(F.monday), .weekday)
+        XCTAssertEqual(dayType(F.monday, holidays: [F.monday]), .sunday)
+        let slots = F.slots(on: F.monday, holidays: [F.monday])
+        XCTAssertTrue(slots.contains { $0.title == "Lazy" }, "a weekday holiday draws the Sun template")
+        XCTAssertFalse(slots.contains { $0.title == "School" })
     }
 
-    func testHomeKidUsesWeekdayRoutineOnWeekdays() {
-        XCTAssertEqual(DayPlanner.dayKind(on: F.monday, kid: F.kidB, holidays: [], calendar: F.calendar), .schoolDay)
-        XCTAssertEqual(DayPlanner.dayKind(on: F.saturday, kid: F.kidB, holidays: [], calendar: F.calendar), .dayOff)
+    func testSaturdayAndSundayTypes() {
+        XCTAssertEqual(dayType(F.saturday), .saturday)
+        XCTAssertEqual(dayType(F.sunday), .sunday)
+        XCTAssertEqual(dayType(F.saturday, holidays: [F.saturday]), .saturday, "a Saturday holiday is still Sat")
+        XCTAssertEqual(DayType.allCases, [.weekday, .saturday, .sunday])
+    }
+
+    func testIsDayOffOnWeekendAndHoliday() {
+        XCTAssertFalse(DayPlanner.isDayOff(on: F.monday, holidays: [], calendar: F.calendar))
+        XCTAssertTrue(DayPlanner.isDayOff(on: F.monday, holidays: [F.monday], calendar: F.calendar))
+        XCTAssertTrue(DayPlanner.isDayOff(on: F.saturday, holidays: [], calendar: F.calendar))
+        XCTAssertTrue(DayPlanner.isDayOff(on: F.sunday, holidays: [], calendar: F.calendar))
+    }
+
+    func testNewestTemplateOnOrBeforeTheDay() {
+        let first = Routine(kid: F.kidA.id, dayType: .weekday, from: F.templatesFrom,
+                            blocks: [F.block("Old", .play, 600, 700)])
+        let second = Routine(kid: F.kidA.id, dayType: .weekday, from: F.thursday,
+                             blocks: [F.block("New", .play, 600, 700)])
+        let other = Routine(kid: F.kidB.id, dayType: .weekday, from: F.thursday,
+                            blocks: [F.block("Other kid", .play, 600, 700)])
+        let routines = [second, other, first]
+        func template(_ day: Day) -> Routine? {
+            DayPlanner.template(for: F.kidA.id, on: day, routines: routines, holidays: [], calendar: F.calendar)
+        }
+        XCTAssertEqual(template(F.wednesday), first, "a template from tomorrow does not apply today")
+        XCTAssertEqual(template(F.thursday), second)
+        XCTAssertNil(template(Day(year: 2026, month: 10, day: 30)), "nothing before the first template")
+        XCTAssertNil(template(F.saturday), "no Sat template in the list")
+        XCTAssertEqual(F.slots(on: F.wednesday, routines: routines).map(\.title), ["Old"])
+        XCTAssertEqual(F.slots(on: F.thursday, routines: routines).map(\.title), ["New"])
+    }
+
+    func testFreeSlotHasNoPictureButIsASlot() {
+        let routine = Routine(kid: F.kidA.id, dayType: .weekday, from: F.templatesFrom, blocks: [
+            F.block("Snack", .play, 900, 960),
+            RoutineBlock(title: "", iconName: "", kind: .free, start: 960, end: 1020),
+        ])
+        let slots = F.slots(routines: [routine])
+        XCTAssertEqual(slots.map(\.kind), [.play, .free])
+        XCTAssertEqual(slots.last?.iconName, "")
+        XCTAssertEqual(slots.last?.source, .routine)
+        // Something added on top of free time cuts it like any template slot.
+        let cut = F.slots(routines: [routine], items: [F.weekly(start: 930, end: 990)])
+        XCTAssertEqual(titles(cut, in: 900..<1020), ["Snack 900-930", "Swimming 930-990", " 990-1020"])
+    }
+
+    func testBlocksAreUnlockedUnlessSaid() throws {
+        XCTAssertFalse(F.block("Play", .play, 0, 60).isLocked)
+        let school = RoutineBlock(title: "School", iconName: "actSchool", kind: .school, start: 450, end: 900,
+                                  isLocked: true)
+        XCTAssertTrue(school.isLocked)
+        let routine = Routine(kid: F.kidA.id, dayType: .weekday, from: F.monday, blocks: [school])
+        let decoded = try JSONDecoder().decode(Routine.self, from: JSONEncoder().encode(routine))
+        XCTAssertEqual(decoded, routine)
     }
 
     func testWeeklyItemOnItsWeekdaysOnly() {

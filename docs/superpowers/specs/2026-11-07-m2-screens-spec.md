@@ -14,6 +14,11 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-08: Sky switch (kid day/night switch on home screens, looks, tap rule, 1.2 s animation, Reduce Motion); Motion catalogue with what is in M2; B2n diary at night (M5).
 - 2026-11-08: Sky switch looks are kit slots skyDay / skyDusk / skyNight (kit now 62 slots).
 - 2026-11-08: Picture rigs proposed (tap a slot to play its picture; rigid-part rules; 18 rigs + default hop; draft rigs.json). Not decided yet.
+- 2026-11-08: Picture rigs approved; pipeline (rig run imagesets + KitRigs.dataset/rigs.json from kit.js); scale 1 by default with a debug slider 1.0–1.5; the dancer now has long hair (part of the head).
+- 2026-11-08: rig scale default 1.5 (user checked the × 1.5 board).
+- 2026-11-08: Seed data: Kid B day table, picture choices (actPlay on weekends, blocks on weekdays), "Free time" title, school hours 7:30–3:00, birthday over the nap (values set by the main session, accepted).
+- 2026-11-08: Hub first line is the weekday instead of "NOW" (A1, A1n, E1, E3, E3b boards). Seed School picture is wolfie (public kit, user choice). Weekend school picture is a swappable flag (8 country flags, kit 0d3).
+- 2026-11-08: hub "until" line uses 12-hour time with am/pm.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -47,7 +52,7 @@ Markers used below:
   |---|---|---|---|
   | Sleep | 20:00–6:30 | sleep | actSleep |
   | Breakfast | 6:30–7:30 | morning routine | actBreakfast |
-  | School | 7:30–15:00 (includes the trip) | school, edges locked | actSchool |
+  | School | 7:30–15:00 (includes the trip) | school, edges locked | wolfie |
   | Snack | 15:00–16:00 | play / free (green) | snack |
   | free | 16:00–17:00 | free time (paper) | — |
   | Play | 17:00–18:30 | play / free (green) | blocks |
@@ -58,15 +63,31 @@ Markers used below:
   - "Swimming", Mon and Wed 15:30–16:30, after-school (sky), actSwim, skip school holidays on.
   - "Art club", Fri 15:00–16:00, actArt.
   - "Weekend school", Sat 9:00–12:00, actLanguageSchool, skip school holidays off (its breaks are not the school's).
+    - actLanguageSchool is a flag on a pole with a plain cloth. Grown-ups can swap it for a country flag in C3: flagKR, flagJP, flagCN, flagUK, flagFR, flagIN, flagTH, flagVN (kit 0d3). The seed keeps the plain flag.
   - Weekend activities are **every-week items, not template slots**. A weekday holiday uses the Sun template, so anything in it would also appear on holidays. A Sunday activity (e.g. church, actChurch) is added by grown-ups as an every-week item; the seed has none, on purpose.
   - On a Monday the clock shows snack 15:00–15:30, swimming 15:30–16:30, free 16:30–17:00.
 - **Kid A, just-once item**: "Birthday", the coming Saturday 14:00–16:00, for both kids, star on.
-- **Kid B**: nap 13:00–15:00, bed 19:30, wake 6:30; morning cards Wake up · Milk (babyBottle) · Shoes. No every-week items.
+- **Kid B** (one template for every day; morning cards Wake up · Milk (babyBottle) · Shoes; no every-week items):
+
+  | slot | time | picture |
+  |---|---|---|
+  | Sleep | 19:30–6:30 | actSleep |
+  | Breakfast | 6:30–7:30 | actBreakfast |
+  | Play | 7:30–13:00 | blocks |
+  | Nap | 13:00–15:00 | teddy |
+  | Snack | 15:00–16:00 | snack |
+  | Play | 16:00–18:00 | blocks |
+  | Dinner | 18:00–18:45 | actDinner |
+  | Shower | 18:45–19:30 | actShower |
+
+  - On the seed Saturday the Birthday (14:00–16:00) covers the second half of the nap; that follows the priority rule.
+- Pictures: Kid A weekday Play = blocks, weekend Play = actPlay, Snack = snack. The empty slot is titled "Free time" and has no picture.
+- School hours (C4 "Hours") in the seed: 7:30 am – 3:00 pm, the same as the School slot.
 - **Sat and Sun templates** (seed; the same for both days; matches board E3):
   - Sleep 20:45–7:30, Breakfast 7:30–8:30, Play 8:30–19:00, Dinner 19:00–20:15, Shower 20:15–20:45.
-  - On the seed Saturday, Weekend school (9:00–12:00) and the Birthday (14:00–16:00) sit on top. At 9:15 the hub says "Weekend school" (head 36, because it is wider than 260) / "until 12:00", as on E3.
+  - On the seed Saturday, Weekend school (9:00–12:00) and the Birthday (14:00–16:00) sit on top. At 9:15 the hub says "Weekend school" (head 36, because it is wider than 260) / "until 12:00 pm", as on E3.
   - Real Sunday activity times are not in the repo; grown-ups add a Sunday every-week item in C3 (e.g. with `actChurch`).
-- Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30" and Kid A "Leave in 34 min" (M3), as on the board.
+- Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30 am" and Kid A "Leave in 34 min" (M3), as on the board.
 
 ### Schedule model the screens assume [proposed]
 - Each kid has **three day templates**, one per day type, plus **every-week items** and **just-once items**. A template covers sleep, routines, the school or nursery block, dinner, evening and bedtime.
@@ -76,7 +97,7 @@ Markers used below:
 - Priority when two things share time on one kid's clock: just-once > every-week > day template. The higher one is drawn and named; the lower one is cut around it. Nothing is deleted by an overlap.
 - "Skip school holidays" on an every-week item hides it on dates in the holiday list. M2 uses seed holidays; importing them is later.
 - The clock's day changes at **midnight**. A just-once item is on the clock on its date only, so it leaves at midnight. The C1/E6 "Just once" list keeps it until the kid's next wake-up time, so a grown-up can still see last night's event in the morning. (Agreed with the main session, 2026-11-07.)
-- **Sleep across midnight** is stored as two slots, 0:00–wake and bedtime–24:00. The clock merges touching slots of the same kind into one sector with no edge line between them, and the merged slot is what "current", the 6 pt outline and "until" use (at 23:00 the hub says "until 7:00").
+- **Sleep across midnight** is stored as two slots, 0:00–wake and bedtime–24:00. The clock merges touching slots of the same kind into one sector with no edge line between them, and the merged slot is what "current", the 6 pt outline and "until" use (at 23:00 the hub says "until 7:00 am").
 
 ---
 
@@ -126,18 +147,19 @@ Markers used below:
   - Line 9 pt from r 154 to r 312 at the current time's angle.
   - Disc r 24 at r 336, crayon-filled red with a 4 pt outline.
   - Moves once a minute (`TimelineView(.everyMinute)` / `@Dependency(\.date)`).
-- Accessibility label for the whole clock: "Kid A's day as a 24-hour clock. Midnight at the top, noon at the bottom. Now {h:mm}, {slot}." On a school morning, M3 appends " Leave at {h:mm}.".
+- Accessibility label for the whole clock: "Kid A's day as a 24-hour clock. Midnight at the top, noon at the bottom. {weekday} {h:mm}, {slot}." On a school morning, M3 appends " Leave at {h:mm}.".
 
-### Hub text (NOW rule)
+### Hub text (day rule)
 - Three centred lines, M1 type steps only (agreed 2026-11-07):
-  - "NOW": caption 24 `softText`, baseline about y 488.
+  - The weekday ("Monday" … "Sunday", from the device locale's standalone weekday name): body 30, weight 600, `softText`, baseline about y 490. It replaced "NOW" on 2026-11-08 because "NOW" was unclear to the family.
+  - Weekends show "Saturday" / "Sunday" the same way. A weekday school holiday still shows its weekday (e.g. "Monday"); the Sun-template clock and the right column ("No school today") say it is a holiday, the hub does not.
   - slot title: title 48 `ink`, baseline about 548.
-  - "until {end h:mm}": body 30 `softText`, baseline about 596.
+  - "until {end h:mm am/pm}": body 30 `softText`, baseline about 596. Always the 12-hour time with a lowercase "am"/"pm" ("until 7:30 am", "until 8:00 pm"), never 24-hour: a 7-year-old cannot read 24-hour times yet (user, 2026-11-08). Same for the gap line "until {next start}".
   - The board's 44 and 26 were not type steps; these replace them.
 - Slot title = the item's name (e.g. "Breakfast", "School", "Swimming", "Sleep").
 - If the title is wider than 260 pt, use head 36. If it is still too wide, cut it at a word and end with "…". Never wrap.
 - **Gap (no slot covers now)** [proposed]: title "Free time", second line "until {next start}". If nothing else is planned today: "Free time" with no second line.
-- **No schedule at all** [proposed]: the disc is plain paper with ticks and labels, no slots and no hand change. Hub: "NOW" / "Nothing planned". No instruction to the child.
+- **No schedule at all** [proposed]: the disc is plain paper with ticks and labels, no slots and no hand change. Hub: "{weekday}" / "Nothing planned". No instruction to the child.
 
 ### Overlap and short slots [proposed]
 - Overlaps resolve by the priority in section 0 before drawing, so sectors never overlap.
@@ -255,19 +277,25 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 
 - In M2: Sky switch, New slot, On the hour and Idle wink. The rest belong to the milestone of their screen.
 
-## Picture rigs: tap a slot, its picture plays (new 2026-11-08) [board 0g3, proposed, waiting for the user's review]
+## Picture rigs: tap a slot, its picture plays (new 2026-11-08) [board 0g3 / 0g3b, approved by the user 2026-11-08; shipped at scale 1.5]
 - Tapping a slot on the kid clock (A1, E1, E3, E3b) plays that slot's picture once: ≤ 1.2 s, then still. A second tap during the play is ignored.
 - **Rules**, so nothing looks strange:
   - Only rigid parts move: a part is rotated or moved whole, never bent or stretched.
   - Faces move only with their head part; eyes may blink once.
   - Rotation ≤ 15°; movement ≤ 20 units in the 240 box.
   - Pivots sit where the part is attached (flag on the pole, spoon at the handle end, arms at the shoulders).
-- **Data**: handover/crayon-art/rigs.json, a draft. For each slot it lists parts (kit layer indices), a pivot, and moves from a small set: hop, rock, bob, slide, spin, rise, fall, press, blink, flicker, twinkle.
+- **Data**: inside kit.js (`RIGS`), so `make art` writes it as `KitRigs.dataset/rigs.json`. For each slot it lists parts (kit layer indices), a pivot, and moves from a small set: hop, rock, bob, slide, spin, rise, fall, press, blink, flicker, twinkle.
   - 18 slots have rigs.
   - Any other slot gets "hop": up 14 and down, with a 5 % squash on landing.
-- **Pipeline** (after approval):
-  - `make art` would also write one imageset per rig part plus `rigs.json`, from the same seeds, so the parts line up exactly with the normal picture.
-  - `KitIcon` would stack the parts and animate them.
+- **Pipeline**:
+  - For each rigged slot, `make art` splits the picture into ordered **runs** (consecutive layers that belong to the same part, or to no part). It writes one imageset per run, named `rig-<slot>-<n>`, drawn with the same seeds. Stacked in order, the runs equal the normal picture exactly; this is checked for all 18.
+  - `rigs.json` lists, per slot, `runs` (`{image, part}` in draw order, `part: null` = still), and `parts` (`{origin, moves}`).
+  - The app stacks the runs and animates every run of a part with that part's moves.
+  - The dancer's head part has two runs (hair behind the arms, face in front), which move together.
+- **Size**:
+  - The user liked the motion and wants to try bigger moves. Board 0g3b shows every move × 1.5 (≈ 21°, ≈ 27 units).
+  - The user checked × 1.5 and finds it fine, so `rigs.json` ships `"scale": 1.5` (≈ 22° / 30 units at most). The app multiplies rock/bob/slide/rise/fall/press/hop amounts by it.
+  - Keep the **debug-menu slider "Rig scale" (1.0–1.5)** for checking on the iPad; its default is the value from rigs.json.
 - **Reduce Motion**: no movement; the slot's outline thickens for 0.3 s instead.
 
 ## B2n · Diary at night (new 2026-11-08) [board, M5]
@@ -573,7 +601,7 @@ Every-week and just-once items are not edited here. They sit on top of the templ
 - **Free time**:
   - "Make this free time" turns the slice into blank paper with a "+" in the middle.
   - **Tapping "+"** opens a new slice in the card for exactly that free span. The time is prefilled; you pick a picture and a name.
-  - Free time on the real clock shows as "Free time" in the hub (A1 NOW rule).
+  - Free time on the real clock shows as "Free time" in the hub (A1 day rule).
 - **Undo** steps back one change at a time (drag, typed time, make free, add), back to the last save.
 - **Save the day** applies the template **from tomorrow**. Leaving with unsaved changes asks "Leave without saving?" (Keep editing / Leave).
 - **VoiceOver**: each knob is an adjustable element, "Dinner ends, 7:30 pm", with increment and decrement of 5 minutes.
