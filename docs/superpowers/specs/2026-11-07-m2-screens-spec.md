@@ -60,6 +60,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: the slide's knob picture animates while it is held and dragged (bus rocks, wheels turn with the finger; star twinkles) (user; boards A2, 0b, 0g2).
 - 2026-11-09: done view geometry and Kid B's done view written out; safe top is read from the system (12.9" under iPadOS 26 reports 32, s 0.984); the way strip fills its region (x proportional, sizes by s, nothing stretched).
 - 2026-11-09: home boards put on fixed panel lines (132 / 187 / 301 / 402 / 446 / 584 / 825, circles bottom 792); layout v5.
+- 2026-11-09: first-run setup S1–S4 brought to the current rules and moved to "Building now" (new section "S1–S4"; S3 moved there; S1 uses the kit home picture, no draw-a-face slot; S4 rows for later features hidden, side summary and "Start →"). A1n night order written as on the board (time left, then Tomorrow). C3/C4 "What": 5 slots + "More" popover. C4 date paging (‹ at 104, › at 772). C6 bottom stack placed from the button up. Layout v6 (adds S1–S4).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -253,7 +254,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - 8 below: Next row: `KitIcon` 104, gap 24, then the title **head 36 bold** over "at {h:mm am/pm}" body 30 `softText`. Both lines are one line: start time only (the range is on the clock), no wrap; a long title ends with "…". A just-once item keeps its star sticker on the picture.
   - 24 below: time left to that thing: "in" body 30 `softText`, then `TimeLeft` display 96 ("38 min"). Over 60 minutes: "1 h 20 min" in the same size; over 3 h: leave the time left out.
   - **With the live bus (build step 5, "A2 live look")** on bus mornings the time left becomes "Leave in" + `TimeLeft` to the leave time + "On time" (boards A1, E1). Same place and sizes; only the words and the target time change. On A1 (two kids) the Next row is hidden on school mornings to leave room for Kid B; E1 (one kid) keeps it under "On time".
-- **Night** (A1n look): the same rule. Next is usually Sleep ("at 8:00 pm") and the time left reads "Bed in" instead of "in". The "Tomorrow · School, leave 7:25 am" row comes with the live bus (build step 5).
+- **Night** (A1n look; board order confirmed 2026-11-09): the time left comes first: "Bed in" (first line, baseline 301) + `TimeLeft` (baseline 403) to Sleep. Then the "Tomorrow" row: a 64 picture on a 104 plate at y 436, "Tomorrow" (body bold, baseline 484) over "School, leave {h:mm}" (caption, baseline 516). There is no Next row at night: Next would be Sleep, which the time left already says.
 - Kid B block: unchanged (now 160 / next 104 circles, captions "now" / "next").
 
 ### Right panel
@@ -367,15 +368,6 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
 - Privacy: stop codes, bus numbers and the key never go into the repo, the seed or tests (tests use made-up values such as stop "00000", bus "1").
 - Entry: first-run setup step S3 "Getting to school" (below) sets it up; until then, and for later changes, C1 "Getting there" (Kid A) → C2. The stop, buses, walk and ride are each family's own data; the local config holds only the LTA key.
 
-### S3 · Setup: getting to school (new 2026-11-08) [board S3; first-run setup, built after the morning]
-- Third first-run step, right after the school (S2), for each kid with a school; it replaces the old map step (home address and nearest stops, now archived).
-- **Going**: `ChoiceCircles` Walk · Bus · Car · Taxi (shuttle comes with N1b). Default Bus.
-- **Stop** (Bus only): a 200 × 80 field for the 5-digit stop code; when it matches the LTA stop list the stop's name shows beside it with a check ("Opp Sunny Park" on the board, a made-up name). Caption: "The 5-digit code on the stop pole." No match: "No stop with that code" (caption `hurry`), Next stays on.
-- **Buses** (Bus only): pills (180 × 72) for the numbers that call at that stop; pick one or more. Caption "Buses that stop there. Pick the ones to school."
-- **Walk** and **Ride**: −/+ steppers, minutes (default 10 each). Car, taxi or walk: only "Leave {n} min before" (as the Going row).
-- Side column: "On school mornings" — "Leave in" = her bus at the stop − the walk; arrive-by and latest come from S2 and set the medals; change it later in Our kids › Getting there. Next → S4.
-- Footnote: "Live bus times are built into the app. If they are off, the morning shows the timetable instead."
-
 ### Trips on items: the "Going" row [board C3g]
 - C3, C4 and E5 get two rows at the end of the form, under "Skip school holidays" (the form card scrolls to them; board C3g shows it scrolled down, with the top edge fading into the card):
   - **Going** (label as the other rows; part `ChoiceCircles`, also usable for any one-of picker with pictures): five 88 slot circles with a caption under each, gap 24: None ("–" in `softText`), Walk (`shoe`), Bus (`busDouble`), Car (`car`), Taxi (`taxi`). The chosen one has the pick-blue ring and a bold caption, like "What". Default None.
@@ -383,6 +375,60 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - By Bus the Leave row reads "Uses Our buses ›" (body) and opens C2: the stop, buses and walk time come from there.
 - The preview line under the day list adds "Leave {h:mm am} by {way}."
 - Until it is built, trips come from the seed.
+
+## S1–S4 · First-run setup (boards S1–S4 on "Building now", 2026-11-09; build step 6) [board]
+- Shown once, on an iPad with no family yet, before any kid screen. Four steps, one screen each, on the grown-up frame and lines (layout `grown`: form card 64–882 from 176, labels 104, controls 232, side column 930–1312, action button 930 / 872, 382 × 96).
+- Header: "←" `RoundButton` 80 goes back one step (S2–S4; S1 has none), title (title 48) at 168 (64 on S1), then on the right "Step {n} of 4" (caption) and four 28 dots, filled up to the current step.
+- No grown-up lock during setup (there is no family yet). S4 turns it on.
+- Going back keeps every value. Nothing is saved until "Start" on S4; if the app quits before that, setup starts again at S1.
+- Joining a family from another iPad (sync, backlog) comes later. The "Start a new family / Join" choice is not shown yet.
+
+### S1 · Family [board S1]
+- Title "Hello! Who's in the family?".
+- One form card per kid (64–882, 296 tall, 32 apart):
+  - "Name": `CrayonField` 352 × 72 with the kid's `KidFace` 40 inside; "Age": field 112 × 72.
+  - "Colour": four swatches 56 (blue, orange, green, purple); picked = ring. Two kids never share a colour: picking a taken one swaps the two kids' colours.
+  - "Face": `kidGirl` and `kidBoy` 64; picked = 72 ring. A face the kid draws is M6 (hidden).
+  - Defaults: first kid blue, second orange; face not picked until tapped (the field shows the colour dot until then).
+- Under the cards: "Add a child" (plus 72 + link body) and the caption "One child? Every screen shows just one panel." Up to 4 kids (3–4 kids use the A2f family layout). A card after the first has "Remove" (caption bold, `lateText`) at its top right [proposed].
+- Side column: the kit `home` picture 280, "This iPad is for the whole family." (head), "Names, ages and colours show on every screen." (body). The family's own home drawing is never used here.
+- "Next →" is off until every card has a name and an age.
+
+### S2 · School [board S2]
+- Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1.
+- Rows (label 104, control 232):
+  - "School": field 610 × 80 (232–842) with the school picture; caption "Picked from the MOE school list". Tapping opens a search sheet over the bundled school list.
+  - "Days": seven `DayChip` 56 (Mon–Fri on).
+  - "Hours": `TimeField` → `TimeField`.
+  - "Arrive by": `TimeField` + caption "school opens". "Latest": `TimeField` + caption "class starts".
+  - `CheckMark` + "Use MOE school terms for holidays" (fills the holiday list; on by default).
+- A kid with no school yet: the card's last line reads "{Name}: no school yet. Skip, or add nursery later." (caption). On that kid's tab the rows are hidden, and the line shows at the top of the card.
+- Side column "Medals come from these times" (head): Gold, Silver and Bronze, each with its medal picture 56, the name (body bold) and one caption line filled from the fields ("ready 5 min before it's time to leave", "ready when it's time to leave, in by {arrive by}", "ready in time to be in by {latest}"). Then: "Later than that: just "Ready!". No medal, and never a sad face." The rule itself is in "A2 live look", Medal.
+- "Next →" goes to S3 for each kid with a school, in tab order. Kids without a school skip S3.
+
+### S3 · Getting to school (new 2026-11-08) [board S3]
+- Third first-run step, right after the school (S2), for each kid with a school; it replaces the old map step (home address and nearest stops, now archived).
+- **Going**: `ChoiceCircles` Walk · Bus · Car · Taxi (shuttle comes with N1b). Default Bus.
+- **Stop** (Bus only): a 200 × 80 field for the 5-digit stop code; when it matches the LTA stop list the stop's name shows beside it with a check ("Opp Sunny Park" on the board, a made-up name). Caption: "The 5-digit code on the stop pole." No match: "No stop with that code" (caption `hurry`), Next stays on.
+- **Buses** (Bus only): pills (180 × 72) for the numbers that call at that stop; pick one or more. Caption "Buses that stop there. Pick the ones to school."
+- **Walk** and **Ride**: −/+ steppers, minutes (default 10 each). Car, taxi or walk: only "Leave {n} min before" (as the Going row).
+- Side column: "On school mornings" — "Leave in" = her bus at the stop − the walk; arrive-by and latest come from S2 and set the medals; change it later in Our kids › Getting there. Next → S4.
+- Footnote: "Live bus times are built into the app. If they are off, the morning shows the timetable instead."
+- Bus pills on the board read 12 / 34 / 56: made-up numbers. The real list comes from the LTA stop.
+
+### S4 · Almost done [board S4]
+- Rows 120 tall on a 140 pitch from y 216: picture 56 at x 104, title (body bold) over a caption, the control ending at 842.
+  - "Grown-up lock", "Face ID or passcode for grown-up screens": a check and "On". It is always on; it is how grown-up screens open (C0).
+  - "Notifications", "A nudge when it's time to leave": "Allow" asks the system. **Shown once the nudge is built** (step 6); hidden before.
+  - "Microphone" **[later M5]**, "Camera and photos" **[later M6]**, "Screen Time" **[later]**: hidden.
+  - Hidden rows leave no gap; the rows that show fill from the top.
+  - Caption at y 912: "Skip any of these now; turn them on later in Our kids."
+- Side column "You're set up" (head), gap 24:
+  - the kids' faces 40 and names (body);
+  - the school picture 56 with "School" (body) over "{start} – {end}" (caption);
+  - the way picture 56 (bus, car, taxi or shoe) with "Bus from Our stop" over "walk {n} min · ride {n} min" (car, taxi, walk: "Leave {n} min before");
+  - caption "Change any of this later in Our kids."
+- "Start →" saves everything, turns the lock on and opens the home (A1, or E1 with one kid).
 
 ## E1 · Home, one child [board]
 - Same clock and hub as A1.
@@ -625,15 +671,14 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   | y | label | control |
   |---|---|---|
   | 200 | For | `CrayonTabs` single-select, 3 options of 180 × 72: Kid A, Kid B (each with `KidFace` 40), "Both" |
-  | 296 | What | `IconPicker`: slots 88 with gap 16. The picked one gets a 104 ring. The last slot is "+". |
+  | 296 | What | `IconPicker`: 5 slots 88 with gap 16, then a "More" slot. The picked one gets a 104 ring. |
   | 412 | Name | `CrayonField` 610 × 80 |
   | 524 | When | `TimeField` 200 × 80, "→" (head `softText`), `TimeField` 200 × 80, then the duration caption ("1 hour", "1 hr 30 min", "45 min") |
   | 636 | Repeat | `CrayonTabs` 2 options of 220 × 72: "Just once", "Every week" (on) |
   | 732 | — | seven `DayChip` 72, multi-select, M T W T F S S |
   | 836 | — | `CheckMark` 48 + "Skip school holidays" (body) |
 
-  - What: the "+" slot asks for a drawing (D1). **[later M6]**: hidden in M2.
-  - What: the picker slides sideways when the kit grows (0f).
+  - **What** (board, changed 2026-11-09): one row of 5 picture slots, then a **"More"** slot (88 circle, "More" caption bold). The 5 are the pictures this kid uses most, with the picked one first. "More" opens a `PickerPopover` pointing at it with every item picture, 6 per row (slots 88, gap 16). Picking one closes it and puts that picture, picked, in the row's first slot. The row never wraps or scrolls, so the rows below keep their lines and C3k still fits. Asking for a drawing (D1, the old "+" slot) moves into the popover in M6.
 - Side column:
   - Preview heading "{Kid}'s {weekday}" (head, h 56), e.g. "Kid A's Monday". The weekday is the first picked day. For "Both", the heading is the weekday only.
   - `TodayRow`s, 72 tall: start time (caption `ink`, w 72), 48 picture, title (body).
@@ -670,7 +715,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - Same header and form as C3, with:
   - Repeat → "Just once" on.
   - At y 732, a row of `DateChip` 96 × 104 instead of day chips: weekday (24 `softText`) over date number (36 bold). One date picked.
-    - Shows 5 dates starting today; "‹ ›" buttons 80 page by one week (0f).
+    - Shows 5 dates starting today. **Paging** (board, 2026-11-09): "‹" `RoundButton` 64 in the free label column at x 104, and "›" `RoundButton` 64 at x 772 (12 after the fifth chip, ending at 836). Both are centred on the chip row (y 752). The chips stay 96 wide and 12 apart, from x 232. "›" moves 5 days on. "‹" moves 5 days back and hides on the first page, since past dates are not shown.
     - Past dates are not shown.
   - At y 864: `CheckMark` 48 + "A star on the clock that day" (body). On by default for events. It adds a star picture at the slot on the clock.
 - Side column:
@@ -812,6 +857,7 @@ Every-week and just-once items are not edited here. They sit on top of the templ
   - Hint caption: "Drag a ● on the rim to move a time. Tap a slice to edit it. Tap + to fill free time."
   - "Changes start tomorrow." (caption)
   - `InkButton` "Save the day".
+  - **Bottom stack** (board, 2026-11-09): "Changes start tomorrow." sits just above the Save button (layout v6 box 822–858), and the hint sits above that (box 720–818). They are placed from the button up, not from the slice card down. If the hint would come closer than 8 to the slice card's bottom (on short iPads captions stay 24), leave the hint out and use it as the edit clock's VoiceOver hint.
 
 ### Drag rules
 - Every boundary between two slices has a **knob on the rim**: 36 pt drawn, 64 pt touch target.

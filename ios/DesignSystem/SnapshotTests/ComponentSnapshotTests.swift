@@ -65,6 +65,17 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// Board C3 "What": five slots and "More", closed and open (every picture, 6 per row).
+    func testPictureRow() {
+        let row = [KitSlot.actSwim, .actArt, .actMusic, .actPiano, .actDance]
+        snap(PictureRow(slots: row, selection: .constant(.actSwim), all: row, isShowingAll: false,
+                        moreTitle: "More", moreLabel: "More pictures") {}, width: Self.rowWidth, named: "closed")
+        snap(PictureRow(slots: row, selection: .constant(.actSwim),
+                        all: row + [.actFootball, .actStory, .actCCA, .actPlay, .homework, .doctor, .cake],
+                        isShowingAll: true, moreTitle: "More", moreLabel: "More pictures") {}
+            .frame(height: 440, alignment: .top), width: Self.rowWidth, named: "open")
+    }
+
     func testIconPicker() {
         snap(IconPicker(selection: .constant(.actSwim),
                         slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {},

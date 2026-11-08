@@ -18,6 +18,18 @@ public struct NextRow: Equatable, Sendable {
     public var at: String { L10n.tr("home.next.at", TimeText.withPeriod(start)) }
 }
 
+/// Board A1n "Tomorrow" row: tomorrow's first outing, "Tomorrow" over "School, leave 7:25 am".
+public struct TomorrowRow: Equatable, Sendable {
+    public var iconName: String
+    public var title: String { L10n.tr("home.tomorrow") }
+    public var line: String
+
+    public init(_ outing: Outing) {
+        iconName = outing.slot.iconName
+        line = L10n.tr("home.tomorrow.leave", outing.slot.title, TimeText.withPeriod(outing.leave))
+    }
+}
+
 /// What the home screen says about a kid's day, kept free of views so the copy rules are tested.
 public enum HomeModel {
     public static func sectors(_ slots: [Slot], minute: Int) -> [ClockSector] {

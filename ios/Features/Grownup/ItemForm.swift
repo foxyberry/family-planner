@@ -208,4 +208,21 @@ public struct ItemForm: Equatable, Sendable {
                                 showsStar: showsStar, trip: trip)
         }
     }
+
+    /// Board C3 "What" row (layout v6): `count` pictures, the picked one first, then the ones used
+    /// most (ties keep the kit's order), then the rest of the kit's list. Never repeats a picture.
+    public static func rowPictures(picked: String?, used: [String], all: [String], count: Int = 5) -> [String] {
+        var row: [String] = []
+        func add(_ name: String) { if !row.contains(name), row.count < count { row.append(name) } }
+        if let picked { add(picked) }
+        let counts = Dictionary(used.map { ($0, 1) }, uniquingKeysWith: +)
+        let order = Dictionary(all.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
+        let byUse = counts.keys.filter { order[$0] != nil }.sorted {
+            counts[$0, default: 0] != counts[$1, default: 0] ? counts[$0, default: 0] > counts[$1, default: 0]
+                : order[$0, default: 0] < order[$1, default: 0]
+        }
+        byUse.forEach(add)
+        all.forEach(add)
+        return row
+    }
 }

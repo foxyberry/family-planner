@@ -1,5 +1,5 @@
 {
- "version": "5",
+ "version": "6",
  "board": "C4",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -276,15 +276,16 @@
    "text": "shower"
   },
   {
-   "id": "main.row.what.button",
-   "kind": "button",
+   "id": "main.row.what.choice.6",
+   "kind": "choice",
    "x": 752,
    "y": 296,
    "w": 88,
    "h": 88,
    "region": "main",
    "anchor": "left",
-   "align": "inside"
+   "align": "inside",
+   "text": "More pictures"
   },
   {
    "id": "side.picture.2",
@@ -661,6 +662,30 @@
    "align": "start",
    "baseline": 792,
    "font": 24
+  },
+  {
+   "id": "main.pageEarlier",
+   "kind": "button",
+   "x": 104,
+   "y": 752,
+   "w": 64,
+   "h": 64,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Earlier dates"
+  },
+  {
+   "id": "main.pageLater",
+   "kind": "button",
+   "x": 772,
+   "y": 752,
+   "w": 64,
+   "h": 64,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Later dates"
   },
   {
    "id": "main.picture",

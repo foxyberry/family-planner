@@ -44,6 +44,8 @@ public struct ComponentGallery: View {
                         CrayonField("Activity name", text: $name).frame(width: 480)
                         TimeField(label: "7:30 am", time: $time)
                     }
+                    PictureRow(slots: [.actSwim, .actArt, .actMusic, .actPiano, .actDance], selection: .constant(.actSwim),
+                               all: [.actSwim, .actArt], isShowingAll: false, moreTitle: "More", moreLabel: "More pictures") {}
                     IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {}
                     HStack(spacing: Spacing.xl) {
                         TimeLeft(minutes: 19)

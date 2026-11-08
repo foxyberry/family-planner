@@ -59,6 +59,11 @@ public struct HomeLayout: Equatable, Sendable {
     /// A1n: "Bed in" on 301 and the time left on 402, then the row at 436.
     public var timeLeftRow: RowPlace { row(top: 436) }
 
+    /// A1n "Tomorrow" row: the plate (104) at 436, its two lines at 1048 on 484 and 516.
+    public var tomorrowTextLeft: CGFloat { sizing.left(1048) }
+    public var tomorrowTitleBaseline: CGFloat { sizing.y(484) }
+    public var tomorrowLineBaseline: CGFloat { sizing.y(516) }
+
     /// E1 (one kid, leaving): "Next" on 584 (Kid B's name line), the row at 598.
     public var leaveNextCaptionBaseline: CGFloat { sizing.y(584) }
     public var leaveNextRow: RowPlace { row(top: 598) }
