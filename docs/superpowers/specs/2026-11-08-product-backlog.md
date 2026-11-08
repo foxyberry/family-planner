@@ -1,4 +1,4 @@
-# Product backlog: MVP, Next, Later
+# Product backlog: build plan and Later
 
 The one categorised backlog for the app. Public-safe: Kid A / Kid B, no real places or times.
 Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-screens-spec.md`.
@@ -24,17 +24,22 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 - 2026-11-08: A2-MVP way strip (destination + how the kid goes, by the clock); N9 taxi ETA typed by a grown-up (no Grab API).
 - 2026-11-08: principle audit: board 00 Principles (time, kids, who is who, type and space, drawing, privacy); 0c2 kid parts; type and gap tokens applied to every board; one colour per kid day and night (`kidA` #56B4E9, `kidB` #E69F00) and `pickBlue` #2E8FE0 for ✓/picked/focus. Details in the screen spec change log.
 - 2026-11-08: step 5 questions answered in the spec (missions, trips, done state, home entry A1-MVP, C5); trip editing moved to N1.
+- 2026-11-08: N10 portrait and resizable windows added (landscape sizing formulas are in the M2 spec now; user chose landscape first).
+- 2026-11-08: scope change (user): live bus (N1 core) and medals + slide to go (N2) move into the MVP as rows 10–11 and build step 6; crowding, shuttle, plan B screen and nudge stay Next; step 5 is finished as built, the timetable strip becomes the no-live / car / walk fallback.
+- 2026-11-08: step 6 design: A2-live board and spec, C2 MVP cut, "Going" row spec; a real bus number in N1a replaced by a placeholder.
+- 2026-11-08: **no MVP stage** (user): one build plan; the morning (missions, timetable look, live bus, C2, slide and medals, "Going" row) is one step 5; Next is "after the morning", step 6 on. Board ids renamed: A2-live → A2, A2-MVP → A2t, A2-MVP-w → A2t-w, A1-MVP → A1m, old A2 (plan B and crowding) → A2b, E4 retired (the timetable look replaces it).
+- 2026-11-08: build status from the main session: steps 1–2 merged, 3–4 built in open PRs, step 5 partly built.
 
-## The MVP (the user's definition)
+## Goal (the user's words)
 > **See today's schedule on this iPad, and do today's missions.**
 
-Everything below is sorted against that sentence. "Local" means: one iPad, no account, no network needed.
+**No MVP stage** (user, 2026-11-08): there is one build plan, in order. Nothing is designed or built twice as a cut-down version first. "Later" means not planned yet. The bus needs the network; without live times the morning screen shows its timetable look, so everything else still works offline.
 
 ---
 
-## 1. MVP (must)
+## 1. In the build plan
 
-| # | Feature | Boards | Why it is MVP | Notes |
+| # | Feature | Boards | Why | Notes |
 |---|---|---|---|---|
 | 1 | Home clock, two kids: 24 h pie, hand, weekday / until, Kid B now and next | A1 | This *is* "see today's schedule" | Right panel: Kid A Next row + time left ("now and next" rule, spec) |
 | 2 | Weekend and holiday home | E3, E3b | The view must work every day | Same clock with the Sat or Sun template |
@@ -42,64 +47,62 @@ Everything below is sorted against that sentence. "Local" means: one iPad, no ac
 | 4 | Edit the day template: drag times on the clock | C6 | Seed times never match real life; without this the clock is wrong | Agreed for M2 |
 | 5 | Add and edit items: every week, just once, skip one, remove | C3, C4, C3k, E5 | Real weeks need changes | — |
 | 6 | Grown-up lock (Face ID) and the kids hub | C0, C1, E6 | Kids must not edit the plan | C1 rows for later features stay hidden |
-| 7 | Morning missions: Kid A checklist, Kid B picture cards (a grown-up taps), "All done!" | A2 (missions part), A3 (no medal), C5 | This *is* "do today's missions" | **No bus map, no live times, no medal**: the mission list fills the screen. See "M3 split" below. |
+| 7 | Morning missions: Kid A checklist, Kid B picture cards (a grown-up taps), "All done!" for a kid with no outing | A2, A2t, A3, C5 | This *is* "do today's missions" | The same screen carries the way there (rows 10–11) |
 | 8 | Crayon design system and kit pictures | 0a–0f, kit | Already built (M1) | — |
 | 9 | Basic accessibility: VoiceOver labels, Reduce Motion respected, contrast | all | Required for any release | — |
+| 10 | Live bus: LTA arrivals for the family's stop and bus numbers, the toy-town map with the live bus coming to our stop, bubbles (number, minutes, "my bus"), "Leave in" + "On time" / hurry on the mission screen and on home | A2 (live look), A1 (Leave in), C2 (stop, buses, walk time); no live times → A2t (timetable look) | Getting to the bus is the point of the morning (user, 2026-11-08) | No crowding, no shuttle, no plan B screen. No live data → the timetable look (A2t) with "no live times". Stop code and API key are entered on the iPad and stored there, never in the repo. |
+| 11 | Medals and slide to go: Kid A slides "Ready? Slide to go" (always awake, never locked by missions); medal from the time only; Kid B (no trip) taps "All done!" | A3, 0b SlideToGo, A2 | Same screen as 10; splitting it meant building the end of the morning twice | Medal rules: M2 spec "A2 live look" |
 
-### M3 split (recommendation)
-- **Missions are MVP**: the checklist, cards, "All done!" and the mission editor (C5).
-- **Bus arrivals are Next**: LTA live times, the map, plan B, "Leave in", the medal timing that depends on the leave time, and slide-to-go.
-  - The MVP mission screen ends with a big "All done!" (`KidPillButton`) instead of slide-to-go.
-  - Slide-to-go comes back with the bus, where "go" means leaving for the stop.
-
-### Kept in the current scope, beyond the strict MVP (the user's choice, 2026-11-08)
+### Also in the build (the user's choice, 2026-11-08)
 | Item | Boards | Decision |
 |---|---|---|
 | New-slot hop | 0g2 | **keep** (current scope) |
 | Picture rigs, debug "Rig scale" slider, default 1.5 | 0g3, 0g3b | **keep** |
 | Night look + sky switch | A1n, 0g | **keep** |
 | School holidays: bundled holiday list, "skip school holidays", weekday holiday → Sun | E3 rule, C3 | **keep**: already built, and there is no UX reason to hide it. It only needs the holiday list to be visible to grown-ups: C1 "Holidays" shows the next holiday from the bundled list. |
-| One-child layout | E1 | **Next** |
-| Other motion extras: hour pulse, idle wink | 0g2 | **Next** |
+| One-child layout | E1 | **after the morning** (step 6) |
+| Other motion extras: hour pulse, idle wink | 0g2 | **after the morning** |
 
 ## Build order and status
 | # | Step | Status |
 |---|---|---|
-| 1 | Day templates and the new seed | seed in, domain tests green (main session, 2026-11-08); merge pending |
-| 2 | Home: A1 and E3/E3b in `KidScreen`, picture size and radius rules, free time as paper, new-slot hop, night look, sky switch, now/next rule, `KidFace` | in progress |
-| 3 | Picture rigs playback + debug "Rig scale" slider (default 1.5 from rigs.json) | to do |
-| 4 | C6 Our day | to do |
-| 5 | Morning missions without the bus: Kid A checklist, Kid B cards, "All done!", C5 editor (**the MVP is done here**) | to do |
-| 6 | Next: E1, N1 bus, N2 medals and slide-to-go, N4 reference time zone, N5 rest, N6 first run, N7 nudge | later |
+| 1 | Day templates and the new seed | done (PR #10 merged) |
+| 2 | Home: A1 and E3/E3b in `KidScreen`, picture size and radius rules, free time as paper, new-slot hop, night look, sky switch, now/next rule, `KidFace` | done (PR #11 merged) |
+| 3 | Picture rigs playback + debug "Rig scale" slider (default 1.5 from rigs.json) | built (PR #13 open; with the app icon and school-roof flags) |
+| 4 | C6 Our day | built (PR #14 open, with board 00 principles) |
+| 5 | **Morning** (one step): Kid A checklist, Kid B cards, "All done!", C5 editor; the way strip with its timetable look (car, taxi, walk, no live times) and its live look (bus service module for LTA arrivals, key and stop stored on the iPad); C2 bus settings; "Leave in" + "On time" on A2 and A1; slide to go and medals; the "Going" row on C3/C4/E5 | partly built (PR #14): missions, C5, timetable look, fixed regions, status bar; sizing formulas on feature/m2-sizing. To build: straight way strip (v130), live look (LTA, A2 live strip, Leave in / On time), C2, slide to go and medals, A1 live line, Going row (C3g) |
+| 6 | After the morning, proposed order: E1 one child, first-run setup (S1–S4), school shuttle, bus crowding, "time to leave" nudge, reference time zone, the rest of the delight pack, taxi ETA, portrait and windows | later |
 
 
 ### Design to finish before the build reaches it (added 2026-11-08 review)
 | Needed by | Item | State |
 |---|---|---|
 | step 2 (now) | `CrayonKit` primitives the boards now use | done 2026-11-08: M2 spec "CrayonKit UI parts", reference in `handover/crayon-ui-ref/` |
-| step 5 | **MVP mission screen without the bus** | done 2026-11-08: board A2-MVP |
-| step 5 | Mission screen spec section | done: M2 spec "A2-MVP" |
+| step 5 | Mission screen, timetable look | done 2026-11-08: board A2t |
+| step 5 | Mission screen spec section | done: M2 spec "A2 · Morning" |
 | step 5 | C5 mission editor: "up to 8", per-kid picture cards | done 2026-11-08: spec "C5" |
-| step 5 | Mission data, trips, done state, home entry | done 2026-11-08: spec "MVP data" + board A1-MVP |
-| N1 | "Going" row on C3/C4/E5 and C1 "Getting there" to edit a trip (way + leave before) | to do |
-| N1 | Bus map, crowding, wheels, shuttle | boards done ahead of time (fine; no build impact) |
+| step 5 | Mission data, trips, done state, home entry | done 2026-11-08: spec "Morning data" + board A1m |
+| step 5 | "Going" row on C3/C4/E5 and C1 "Getting there" to edit a trip (way + leave before) | done 2026-11-08: board C3g + spec |
+| step 5 | A2 live spec (map in the strip region, bubbles, "Leave in", On time / hurry, fallback to the timetable strip), medal + slide spec, C2 details (stop, buses, walk time, key) | done 2026-11-08: board A2, spec "A2 live look" and "Bus settings" |
+| later steps | Crowding, shuttle, plan B | boards done ahead of time (A2b, A2s, A3s; no build impact) |
 
 ---
 
-## 2. Next (right after the MVP)
+## 2. After the morning (the build plan continues)
 
 | # | Feature | Boards | Category |
 |---|---|---|---|
-| N1 | Bus: LTA live arrivals, toy-town map, plan B, "Leave in" countdown, no-live fallback | A2 (map), C2, E4 | bus |
-| N1a | Bus crowding in the windows: live load → passenger overlay on each bus (busSinglePax1–3, busDoublePax1–3, busMiniPax1–3; 1 seats free, 2 standing, 3 nearly full). Passengers are the feelHappy face drawn small, and the overlay sits in the same view as the bus, so it moves with the bus (map rock and tap rig). No data → plain bus. Bubbles keep only number, minutes, "my bus" dot and "→ 33". Buses rock on the map (0.9 s loop, 1°/2 pt) and their wheels turn all the time (360° every 0.9 s, linear); both off with Reduce Motion. Wheels have a white spoke and a steel hub so the turn is visible; bus rigs (busDouble, busSingle, busMini, busShuttle) have body + back wheel + front wheel parts, so the map draws the body run and spins the two wheel runs around their centres. | A2, A3, E2, E4, kit 0d3 | bus |
+| N1 | Bus: in build step 5 (live look, C2, timetable fallback). Left for later: the plan B buses on the map and the plan B switch screen | A2b, C2 | bus |
+| N1a | Bus crowding in the windows: live load → passenger overlay on each bus (busSinglePax1–3, busDoublePax1–3, busMiniPax1–3; 1 seats free, 2 standing, 3 nearly full). Passengers are the feelHappy face drawn small, and the overlay sits in the same view as the bus, so it moves with the bus (map rock and tap rig). No data → plain bus. Bubbles keep only number, minutes, "my bus" dot and "→ {change bus}". Buses rock on the map (0.9 s loop, 1°/2 pt) and their wheels turn all the time (360° every 0.9 s, linear); both off with Reduce Motion. Wheels have a white spoke and a steel hub so the turn is visible; bus rigs (busDouble, busSingle, busMini, busShuttle) have body + back wheel + front wheel parts, so the map draws the body run and spins the two wheel runs around their centres. | A2, A3, E2, E4, kit 0d3 | bus |
 | N1b | School shuttle as a way to go, chosen for the whole term, not per day (user, 2026-11-08: a shuttle is booked for a term): Public bus or School shuttle in C1 Getting there / C2, with the term dates; car or taxi stay one-off changes. A shuttle term and a bus term never share a morning screen; shuttle = pickup name, time, walk time; going home chosen separately. A2s: one busShuttle on the map, "Shuttle at 7:20", "Leave in" from the timetable, Hurry chip, missed → "Ask a grown-up" (no plan B), no bubble or passengers. | A2s, C1, C2 | bus |
-| N2 | Medals (gold / silver / bronze from the leave time) and slide-to-go. Slide to go is always awake ("Ready? Slide to go"); missions help but never lock it (user, 2026-11-08: busy mornings). Medals come from the time only. Missions for both kids are one row of 112 pt crayon circles in the kid's colour (Kid A sky, Kid B apricot) with a caption and a blue check when done; the current one has a bold caption. No big "now" band (user, 2026-11-08: less pushy, matches Kid B). Too many missions: no sideways scrolling (kids never scroll). The row holds 6 a kid with two kids, 8 with one; done missions fold into one ✓ circle with a count at the start of the row; if it still does not fit, the last circle is "+n" and tapping it turns the row to the next page (whole page, no half scroll). C5 suggests at most 8 missions a kid. Each kid finishes on their own (user, 2026-11-08, option A): Kid A slides, Kid B taps "All done!"; a finished kid's column turns into its done state (medal, "Ready to go!") while the other keeps going; nobody waits for a sibling and there is no shared finish (A3, A3s). 3–4 kids (draft A2f): kids listed down the left (face, progress ring, "3 of 6 done", medal when ready); the chosen kid's missions and go button on the right; first up = who leaves first and is not done; tap a name to switch. From 2 kids up every morning screen uses this layout (A2, A2s, A3, A3s, E4 updated 2026-11-08); 1 kid keeps E2. The chosen kid has a crayon band in their colour with a notch toward the missions; progress rings are crayon (tools/crayon-ring.js, crayon-pick.js); Slide to go is the 864-wide crayon pill. Open: whether the youngest should come first. Wording: each kid shows only their own leave time, "leave at 7:25 am" (from the bus or shuttle plan and the time to be in); no comparing words like "leaves first"; a kid with no trip today shows "home today". The order of the list does the comparing. | A3, 0b SlideToGo | missions, rewards |
+| N2 | (in build step 5; kept here as the full rule) Medals (gold / silver / bronze from the leave time) and slide-to-go. Slide to go is always awake ("Ready? Slide to go"); missions help but never lock it (user, 2026-11-08: busy mornings). Medals come from the time only. Missions for both kids are one row of 112 pt crayon circles in the kid's colour (Kid A sky, Kid B apricot) with a caption and a blue check when done; the current one has a bold caption. No big "now" band (user, 2026-11-08: less pushy, matches Kid B). Too many missions: no sideways scrolling (kids never scroll). The row holds 6 a kid with two kids, 8 with one; done missions fold into one ✓ circle with a count at the start of the row; if it still does not fit, the last circle is "+n" and tapping it turns the row to the next page (whole page, no half scroll). C5 suggests at most 8 missions a kid. Each kid finishes on their own (user, 2026-11-08, option A): Kid A slides, Kid B taps "All done!"; a finished kid's column turns into its done state (medal, "Ready to go!") while the other keeps going; nobody waits for a sibling and there is no shared finish (A3, A3s). 3–4 kids (draft A2f): kids listed down the left (face, progress ring, "3 of 6 done", medal when ready); the chosen kid's missions and go button on the right; first up = who leaves first and is not done; tap a name to switch. From 2 kids up every morning screen uses this layout (A2, A2s, A3, A3s, E4 updated 2026-11-08); 1 kid keeps E2. The chosen kid has a crayon band in their colour with a notch toward the missions; progress rings are crayon (tools/crayon-ring.js, crayon-pick.js); Slide to go is the 864-wide crayon pill. Open: whether the youngest should come first. Wording: each kid shows only their own leave time, "leave at 7:25 am" (from the bus or shuttle plan and the time to be in); no comparing words like "leaves first"; a kid with no trip today shows "home today". The order of the list does the comparing. | A3, 0b SlideToGo | missions, rewards |
 | N4 | **Reference time zone**: show the family's schedule in a chosen zone (e.g. view Korea time from Singapore) | new: setting in C1, a zone chip on the clock | schedule, settings |
 | N5 | Rest of the delight pack: hour pulse, idle wink | 0g2 | delight |
 | N8 | One-child layout (also used by an iPad set to show one kid) | E1 | kids |
 | N6 | First-run setup (family, school, home and stop, permissions) | S1–S4 | setup |
 | N7 | "Time to leave" nudge (local notification) | — | bus |
-| N9 | Taxi day: a grown-up types the ride-hailing ETA once ("taxi in 7 min"); the way strip counts down to it. No ride-hailing API: Grab has no public API for a rider's own booking (checked 2026-11-08). | A2-MVP way strip | bus |
+| N10 | Portrait and resizable windows (iPadOS 26 cannot refuse them): layout switch by free space (two columns → stacked → clock only), boards for 12.9" portrait and a half window; see the research report "아이패드 화면 크기 대응 레이아웃" | — | sizing formulas (landscape) |
+| N9 | Taxi day: a grown-up types the ride-hailing ETA once ("taxi in 7 min"); the way strip counts down to it. No ride-hailing API: Grab has no public API for a rider's own booking (checked 2026-11-08). | A2t way strip | bus |
 
 ### N4 · Reference time zone (UX)
 - **Family time zone**: the zone the plan is written in. It is set once in C1 → "About the family" (default: this iPad's zone at first run). Every template slot and item is stored in family time.

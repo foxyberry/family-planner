@@ -11,6 +11,7 @@ import SwiftUI
 public struct MissionsView: View {
     let store: StoreOf<MissionsFeature>
     @State private var ticks = 0
+    @Environment(\.sizing) private var sizing
 
     public init(store: StoreOf<MissionsFeature>) {
         self.store = store
@@ -22,21 +23,20 @@ public struct MissionsView: View {
         KidFullScreen {
             ZStack(alignment: .topLeading) {
                 header
-                    .frame(width: Self.width, height: 80)
-                    .offset(x: GridMetrics.margin, y: 48)
+                    .frame(width: sizing.stretchWidth, height: 80 * sizing.s)
+                    .offset(x: sizing.margin, y: sizing.y(48))
                 strip
-                    .frame(width: Self.width, height: 340)
-                    .offset(x: GridMetrics.margin, y: 176)
+                    .frame(width: sizing.stretchWidth, height: 340 * sizing.s)
+                    .offset(x: sizing.margin, y: sizing.y(176))
                 missionsArea
-                    .frame(width: Self.width, height: 968 - 536, alignment: .topLeading)
-                    .offset(x: GridMetrics.margin, y: 536)
+                    .frame(width: sizing.stretchWidth, height: (968 - 536) * sizing.s, alignment: .topLeading)
+                    .offset(x: sizing.margin, y: sizing.y(536))
             }
+            .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
         }
         .sensoryFeedback(.success, trigger: ticks)
         .task { await store.send(.task).finish() }
     }
-
-    private static let width = BoardMetrics.size.width - 2 * GridMetrics.margin
 
     @ViewBuilder private var strip: some View {
         if let way = store.way {
@@ -52,7 +52,7 @@ public struct MissionsView: View {
     }
 
     private var header: some View {
-        HStack(spacing: Spacing.m) {
+        HStack(spacing: sizing.space(Spacing.m)) {
             RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("missions.back")) { store.send(.backTapped) }
             Text(L10n.tr("missions.title")).crayonType(.title).foregroundStyle(CrayonColor.ink)
             Spacer()
@@ -64,12 +64,12 @@ public struct MissionsView: View {
     }
 
     private var missionsArea: some View {
-        HStack(alignment: .top, spacing: Spacing.m) {
-            VStack(alignment: .leading, spacing: Spacing.s) {
+        HStack(alignment: .top, spacing: sizing.space(Spacing.m)) {
+            VStack(alignment: .leading, spacing: sizing.space(Spacing.s)) {
                 ForEach(store.rows) { row in kidRow(row) }
             }
-            .frame(width: 340, alignment: .topLeading)
-            VStack(alignment: .leading, spacing: Spacing.m) {
+            .frame(width: 340 * sizing.s, alignment: .topLeading)
+            VStack(alignment: .leading, spacing: sizing.space(Spacing.m)) {
                 if let kid = store.chosenKid {
                     HStack(alignment: .firstTextBaseline, spacing: Spacing.s) {
                         Text(kid.name).crayonType(.head).foregroundStyle(CrayonColor.ink)
@@ -77,7 +77,7 @@ public struct MissionsView: View {
                             Text(leaveAt).crayonType(.body).foregroundStyle(CrayonColor.softText)
                         }
                     }
-                    HStack(alignment: .top, spacing: Spacing.m) {
+                    HStack(alignment: .top, spacing: sizing.space(Spacing.m)) {
                         ForEach(store.circles) { circle in missionCircle(circle, colorIndex: kid.colorIndex) }
                     }
                     Spacer(minLength: 0)
@@ -87,7 +87,9 @@ public struct MissionsView: View {
                             ticks += 1
                             store.send(.allDoneTapped)
                         }
-                        .frame(width: 400)
+                        // 400 on the board; grows to fit "Back to the clock" rather than cutting it.
+                        .frame(minWidth: 400 * sizing.s)
+                        .fixedSize()
                     }
                 }
             }
@@ -99,9 +101,9 @@ public struct MissionsView: View {
         Button { store.send(.kidTapped(row.kid.id)) } label: {
             HStack(spacing: Spacing.s) {
                 ZStack {
-                    CrayonRing(progress: row.progress, colorIndex: row.kid.colorIndex)
+                    CrayonRing(progress: row.progress, colorIndex: row.kid.colorIndex, size: 76 * sizing.s)
                     KidFace(KidFace.Badge(face: row.kid.face, colorIndex: row.kid.colorIndex), name: row.kid.name,
-                            size: 56)
+                            size: 56 * sizing.s)
                 }
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     Text(row.kid.name).crayonType(.body).foregroundStyle(CrayonColor.ink)
@@ -110,7 +112,7 @@ public struct MissionsView: View {
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, Spacing.s)
-            .frame(width: 340, height: 100)
+            .frame(width: 340 * sizing.s, height: max(64, 100 * sizing.s))
             .background { if row.id == store.chosen { KidBand(colorIndex: row.kid.colorIndex) } }
         }
         .buttonStyle(.plain)

@@ -24,7 +24,7 @@ public struct ItemEditorView: View {
             GrownupScreen {
                 header
             } content: { grid in
-                HStack(alignment: .top, spacing: GridMetrics.gutter) {
+                HStack(alignment: .top, spacing: grid.screenGutter) {
                     PaperCard(seed: 31) { form.padding(Spacing.m) }
                         .frame(width: grid.span(8))
                     Group {

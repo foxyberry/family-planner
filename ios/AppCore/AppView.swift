@@ -34,6 +34,8 @@ public struct AppView: View {
             #endif
         }
         .environment(\.rigScale, Self.rigScale)
+        // Spec "Sizing formulas": one Sizing for the window, read once here.
+        .readsSizing()
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
         // the home disappear, which would cancel its task and stop the idle relock.
         .task { await store.send(.task).finish() }

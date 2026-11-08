@@ -21,7 +21,7 @@ public struct KidPillButton: View {
         Button(action: action) {
             HStack(spacing: Spacing.s) {
                 if let icon { KitIcon(icon, size: 56) }
-                Text(title).crayonType(.head)
+                Text(title).crayonType(.head).lineLimit(1).fixedSize()
             }
             .foregroundStyle(CrayonColor.ink)
             .padding(.horizontal, Spacing.l)

@@ -24,7 +24,7 @@ public struct MissionEditorView: View {
             GrownupScreen {
                 header
             } content: { grid in
-                HStack(alignment: .top, spacing: GridMetrics.gutter) {
+                HStack(alignment: .top, spacing: grid.screenGutter) {
                     PaperCard(seed: 41) { list.padding(Spacing.m) }
                         .frame(width: grid.span(8))
                     side.frame(maxWidth: .infinity, alignment: .leading)

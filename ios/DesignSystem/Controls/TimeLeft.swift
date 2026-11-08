@@ -36,6 +36,7 @@ public struct TimeLeft: View {
 
     private let minutes: Int
     private let look: KidLook
+    @Environment(\.sizing) private var sizing
 
     public init(minutes: Int, look: KidLook = .day) {
         self.minutes = minutes
@@ -49,8 +50,9 @@ public struct TimeLeft: View {
             .foregroundStyle(p.tone == .late ? CrayonColor.lateText : look.ink)
             .monospacedDigit()
             .lineLimit(1)
-            // Line height 1.0: the box is 96 tall as on the boards, not the font's taller default.
-            .frame(height: CrayonType.display.size * CrayonType.display.lineHeight)
+            // Line height 1.0: the box is as tall as the type (96 on the board), not the font's
+            // taller default.
+            .frame(height: sizing.size(of: .display) * CrayonType.display.lineHeight)
             .accessibilityLabel(Self.spoken(minutes: minutes))
     }
 }
