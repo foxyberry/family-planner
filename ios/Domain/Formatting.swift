@@ -29,6 +29,8 @@ public enum DayText {
 
     public static func name(_ weekday: Weekday) -> String { weekdayNames[weekday.rawValue - 1] }
     public static func shortName(_ weekday: Weekday) -> String { String(name(weekday).prefix(3)) }
+    /// "M": the letter on a day chip.
+    public static func initial(_ weekday: Weekday) -> String { String(name(weekday).prefix(1)) }
 
     /// "9 Nov"
     public static func dayMonth(_ day: Day, calendar: Calendar) -> String { "\(day.day) \(monthNames[day.month - 1])" }
@@ -50,8 +52,19 @@ public enum DayText {
     /// "Monday", "Monday and Wednesday", "Monday, Wednesday and Friday", or "school day".
     public static func sentence(_ days: Set<Weekday>) -> String {
         if days == Weekday.schoolDays { return "school day" }
-        let names = days.sorted().map(name)
-        guard names.count > 1 else { return names.first ?? "" }
-        return names.dropLast().joined(separator: ", ") + " and " + names.last!
+        return list(days.sorted().map(name))
+    }
+
+    /// "Every Mon", "Every Mon and Wed", "Every Mon, Wed and Fri", or "Every school day".
+    public static func every(_ days: Set<Weekday>) -> String {
+        if days == Weekday.schoolDays { return "Every school day" }
+        return "Every " + list(days.sorted().map(shortName))
+    }
+
+    /// "A", "A and B", "A, B and C".
+    private static func list(_ names: [String]) -> String {
+        guard let last = names.last else { return "" }
+        guard names.count > 1 else { return last }
+        return names.dropLast().joined(separator: ", ") + " and " + last
     }
 }

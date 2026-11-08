@@ -22,6 +22,12 @@ public struct Day: Hashable, Comparable, Codable, Sendable {
         (lhs.year, lhs.month, lhs.day) < (rhs.year, rhs.month, rhs.day)
     }
 
+    /// Minutes after midnight (0–1439) of `date` in `calendar`'s time zone.
+    public static func minute(of date: Date, calendar: Calendar) -> Int {
+        let parts = calendar.dateComponents([.hour, .minute], from: date)
+        return (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+    }
+
     /// Midnight at the start of this day, plus `minute` minutes.
     public func date(minute: Int = 0, calendar: Calendar) -> Date {
         let midnight = calendar.date(from: DateComponents(year: year, month: month, day: day))!
