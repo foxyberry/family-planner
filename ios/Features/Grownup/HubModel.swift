@@ -11,6 +11,22 @@ public struct HubRow: Equatable, Sendable {
     }
 }
 
+/// A titled block of the About card. The school's days are their own row kind, drawn as day chips.
+public struct HubSection: Equatable, Sendable {
+    public enum Row: Equatable, Sendable {
+        case text(HubRow)
+        case schoolDays(key: String, days: Set<Weekday>)
+    }
+
+    public var title: String
+    public var rows: [Row]
+
+    public init(title: String, rows: [Row]) {
+        self.title = title
+        self.rows = rows
+    }
+}
+
 public struct HubItemRow: Equatable, Identifiable, Sendable {
     public var id: ScheduleItem.ID
     public var iconName: String
@@ -20,6 +36,22 @@ public struct HubItemRow: Equatable, Identifiable, Sendable {
 
 /// The text of the Our kids hub (boards C1, E6).
 public enum HubModel {
+    /// About, then School for a school kid, or Nursery and Morning for a kid at home.
+    public static func sections(kid: Kid, routines: [Routine]) -> [HubSection] {
+        let about = HubSection(title: "About", rows: aboutRows(kid: kid, routines: routines).map(HubSection.Row.text))
+        guard let school = kid.school else {
+            return [about,
+                    HubSection(title: "Nursery", rows: [.text(HubRow(key: "Nursery", value: "Not yet"))]),
+                    HubSection(title: "Morning", rows: [.text(HubRow(key: "Taps", value: "A grown-up taps for now"))])]
+        }
+        var rows = schoolRows(kid: kid).map(HubSection.Row.text)
+        rows.insert(.schoolDays(key: "Days", days: school.days), at: 1)
+        return [about, HubSection(title: "School", rows: rows)]
+    }
+
+    /// The heading over the every-week items.
+    public static func weeklyHeading(kid: Kid) -> String { kid.school == nil ? "Every week" : "After school" }
+
     public static func aboutRows(kid: Kid, routines: [Routine]) -> [HubRow] {
         let blocks = routines.first { $0.kid == kid.id && $0.dayKind == .schoolDay }?.blocks ?? []
         let sleeps = blocks.filter { $0.kind == .sleep }
@@ -34,7 +66,7 @@ public enum HubModel {
         return [HubRow(key: "Age", value: age), HubRow(key: "Day", value: day.joined(separator: " · "))]
     }
 
-    /// School name, hours and holidays. The school days row is drawn as day chips by the view.
+    /// School name, hours and holidays (`sections` adds the school days after the name).
     public static func schoolRows(kid: Kid) -> [HubRow] {
         guard let school = kid.school else { return [] }
         return [
