@@ -1,5 +1,5 @@
 {
- "version": "5",
+ "version": "6",
  "board": "E5",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -253,15 +253,16 @@
    "text": "shower"
   },
   {
-   "id": "main.row.what.button",
-   "kind": "button",
+   "id": "main.row.what.choice.6",
+   "kind": "choice",
    "x": 752,
    "y": 296,
    "w": 88,
    "h": 88,
    "region": "main",
    "anchor": "left",
-   "align": "inside"
+   "align": "inside",
+   "text": "More pictures"
   },
   {
    "id": "side.button.1",

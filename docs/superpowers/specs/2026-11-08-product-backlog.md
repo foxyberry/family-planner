@@ -32,6 +32,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 - 2026-11-08: step 5 "Morning" built in full (live look, C2, slide and medals, A1 status line, Going row via a new `ChoiceCircles` part); waiting for the user's check on the iPad.
 - 2026-11-08: LTA key built in (git-ignored local config); stop and buses move to first-run setup S3 "Getting to school" (user).
 - 2026-11-09: slide and All done keep a "Ready!" done look with "Not yet" undo; no "Back to the clock"; local config = LTA key only (user).
+- 2026-11-09: step 6 started by the main session (E1, first-run setup). S1–S4 boards brought to the current rules and moved to "Building now" with E1; S4 asks only for what is built (lock now, notifications with the nudge; microphone M5, camera M6, Screen Time later stay hidden). Layout v6.
 
 ## Goal (the user's words)
 > **See today's schedule on this iPad, and do today's missions.**

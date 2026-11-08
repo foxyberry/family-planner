@@ -1,5 +1,5 @@
 {
- "version": "5",
+ "version": "6",
  "board": "C6",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -349,13 +349,13 @@
    "id": "side.line.8",
    "kind": "text",
    "x": 930,
-   "y": 729,
+   "y": 720,
    "w": 374,
    "h": 98,
    "region": "side",
    "anchor": "right",
    "align": "start",
-   "baseline": 819,
+   "baseline": 810,
    "font": 24
   },
   {
@@ -373,13 +373,13 @@
    "id": "side.line.9",
    "kind": "text",
    "x": 930,
-   "y": 829,
+   "y": 822,
    "w": 293,
    "h": 36,
    "region": "side",
    "anchor": "right",
    "align": "start",
-   "baseline": 857,
+   "baseline": 850,
    "font": 24,
    "text": "Changes start tomorrow."
   },

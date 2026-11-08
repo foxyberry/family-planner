@@ -20,7 +20,7 @@ One JSON file per board, measured in Chrome from the canvas boards (v135). Board
 - Grown-up (C1, E6, C2, C3, C3g, C4, E5, C5, C6): form card 64–882, row labels left 104, controls left 232, side column 930–1312, action button (930, 872, 382 × 96).
 
 ## Regenerate
-`tools/layout-export.py` + `tools/extract.js` (design session scratchpad; needs the canvas boards and Chrome). Not needed in the repo.
+`tools/layout-export.py` + `tools/extract.js` (design session scratchpad; needs the canvas boards and Chrome). Not needed in the repo. The tools hold no private words: the export reads them from `tools/private-terms.txt` (one per line, git-ignored, kept only on the design machine) and stops if that file is missing. Every text with a digit or a private word is dropped from the JSON. The Kid B board file is `KidProfileB` (renamed 2026-11-09).
 
 ## Contract (see the M2 spec, "Layout contract")
 1. Board = source. 2. These JSON files = the machine copy the app places parts from (one modifier; no stack spacing between parts). 3. Canvas page "Redlines" = the same lines drawn on every screen, generated from these files. 4. The app's layout test checks the shared lines on four iPads.
@@ -32,3 +32,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v3 (2026-11-09): A3 bottom control is now the slide for a kid with no outing (bottom.slide); the pill is retired.
 - v4 (2026-11-09): A3r done view named (missions.doneMedal / doneTitle / doneSubtitle, bottom.slide / knob / knobCheck / doneLabel); every slide captured as bottom.slide.
 - v5 (2026-11-09): home boards on fixed panel lines (baselines 132 / 187 / 301 / 402 / 446 / 584 / 825, circles bottom 792); home lines listed in lines.baselines.
+- v6 (2026-11-09): adds S1–S4 (first-run setup, grown-up lines); C4 date paging (`main.pageEarlier` at 104, `main.pageLater` at 772, 64 round, y 752); C3/C4/C3g/E5 "What" ends in a "More" slot; C6 bottom captions placed from the button up (`side.line.8` hint box 720–818, `side.line.9` "Changes start tomorrow." box 822–858).
