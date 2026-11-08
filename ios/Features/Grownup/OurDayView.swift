@@ -22,8 +22,8 @@ public struct OurDayView: View {
         ZStack {
             GrownupScreen {
                 header
-            } content: { grid in
-                HStack(alignment: .top, spacing: grid.screenGutter) {
+            } content: { layout in
+                HStack(alignment: .top, spacing: layout.gap) {
                     EditClock(sectors: store.sectors, knobs: store.knobs, dragging: store.dragging,
                               dragOrigin: store.dragOrigin, hub: store.hub,
                               onKnobDrag: { store.send(.knobDragged(index: $0, minute: $1)) },
@@ -32,18 +32,18 @@ public struct OurDayView: View {
                               onSliceTap: { store.send(.sliceTapped(start: $0)) },
                               onPlusTap: { store.send(.plusTapped(start: $0)) },
                               onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) })
-                        .frame(width: grid.span(8), alignment: .center)
-                    sideColumn.frame(width: grid.span(4), alignment: .topLeading)
+                        // Board C6: the clock and its hour labels fill the form box (64–882 × 176–968).
+                        .frame(width: layout.form.width, height: layout.form.height)
+                    sideColumn.frame(width: layout.side.width, alignment: .topLeading)
                 }
-            } primaryAction: { grid in
+            } primaryAction: { layout in
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     InkButton(L10n.tr("day.save")) { store.send(.saveTapped) }
-                        .frame(width: grid.span(4))
+                        .frame(width: layout.side.width)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if store.isConfirmingLeave {
                 CrayonColor.marker.opacity(0.3).ignoresSafeArea()
@@ -59,19 +59,19 @@ public struct OurDayView: View {
     }
 
     private var header: some View {
+        // Board C6: the kid tabs after the title; Undo on the right (1130–1312) instead of the caption.
         GrownupHeader(title: L10n.tr("day.title"), onBack: { store.send(.backTapped) }) {
-            HStack(spacing: Spacing.s) {
-                CrayonTabs(selection: Binding(get: { store.kid }, set: { store.send(.kidTabTapped($0)) }),
-                           items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
-                Button { store.send(.undoTapped) } label: {
-                    Text(L10n.tr("day.undo")).crayonType(.body).foregroundStyle(CrayonColor.ink)
-                        .frame(width: 182, height: 72)
-                        .crayonBackground(.capsule, fill: CrayonStyle.paper, seed: 71)
-                }
-                .buttonStyle(.plain)
-                .opacity(store.edit.isChanged ? 1 : 0.4)
-                .disabled(!store.edit.isChanged)
+            CrayonTabs(selection: Binding(get: { store.kid }, set: { store.send(.kidTabTapped($0)) }),
+                       items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
+        } trailing: {
+            Button { store.send(.undoTapped) } label: {
+                Text(L10n.tr("day.undo")).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                    .frame(width: 182, height: 72)
+                    .crayonBackground(.capsule, fill: CrayonStyle.paper, seed: 71)
             }
+            .buttonStyle(.plain)
+            .opacity(store.edit.isChanged ? 1 : 0.4)
+            .disabled(!store.edit.isChanged)
         }
     }
 
@@ -84,7 +84,7 @@ public struct OurDayView: View {
             if store.showsHolidayNote {
                 Text(L10n.tr("day.sun_holidays")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
-            PaperCard(seed: 61) { card.padding(Spacing.m) }
+            PaperCard(seed: 61) { card }
                 .frame(height: 440)
             Text(L10n.tr("day.hint")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 .fixedSize(horizontal: false, vertical: true)

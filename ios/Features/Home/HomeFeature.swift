@@ -11,13 +11,17 @@ import Strings
 /// The kids' home screen: each kid's slots for today and the time now (boards A1, E1, E3).
 @Reducer
 public struct HomeFeature {
-    public enum Layout: Equatable, Sendable {
-        /// A1: Kid A's clock, Kid A's next slots and Kid B's now/next pictures.
-        case twoKids
-        /// E1: one child, with the "Next" list.
-        case oneKid
-        /// E3: a weekend or holiday for Kid A.
-        case dayOff
+    /// Kid A's block on the right panel (spec "Now and next on home").
+    public enum KidABlock: Equatable, Sendable {
+        /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
+        case leave
+        /// A1n: the time left ("in", "Bed in") over the Next row; within 3 hours, after the
+        /// mission morning.
+        case timeLeft(HomeModel.TimeLeft, NextRow)
+        /// E3 / E3b: the Next row only (over 3 hours away, or a mission morning without an outing).
+        case next(NextRow)
+        /// Nothing next today: the row is left out (spec E3 "No item left today").
+        case nothing
     }
 
     public struct KidDay: Equatable, Sendable {
@@ -137,9 +141,29 @@ public struct HomeFeature {
         /// The switch's VoiceOver label: "Day. Tap for night." / "Night. Tap for day.".
         public var skySwitchLabel: String { look == .day ? L10n.tr("home.sky.day") : L10n.tr("home.sky.night") }
 
-        public var layout: Layout {
-            if let type = days.first?.dayType, type != .weekday { return .dayOff }
-            return days.count == 1 ? .oneKid : .twoKids
+        public var kidABlock: KidABlock {
+            guard let first = days.first else { return .nothing }
+            if morningOuting != nil { return .leave }
+            guard let next = HomeModel.next(first.slots, minute: minute) else { return .nothing }
+            if !isMissionMorning, let left = HomeModel.timeLeft(to: next, minute: minute) {
+                return .timeLeft(left, next)
+            }
+            return .next(next)
+        }
+
+        /// Which board's lines Kid A's block follows (it sets where Kid B starts).
+        public var kidAShape: HomeLayout.KidAShape {
+            switch kidABlock {
+            case .leave: .leave(hasStatus: status != nil)
+            case .timeLeft: .timeLeft
+            case .next, .nothing: .next
+            }
+        }
+
+        /// E1 (one kid): the Next row stays under "On time" on a leaving morning.
+        public var leaveNext: NextRow? {
+            guard days.count == 1, kidABlock == .leave, let first = days.first else { return nil }
+            return HomeModel.next(first.slots, minute: minute)
         }
     }
 

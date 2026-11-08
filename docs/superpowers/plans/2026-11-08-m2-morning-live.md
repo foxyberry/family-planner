@@ -1,5 +1,7 @@
 # Build step 5 "Morning": the rest (live bus, C2, slide to go, medals, Going)
 
+**Status (2026-11-09): done** in PR #16 (tasks 1–8), plus the decisions after it: every kid slides (no "All done!" pill), the done view (A3r) with the medal drop and confetti, undo by dragging back, only the LTA key built in. Next work: `2026-11-09-m2-layout-and-next.md`.
+
 Spec: `docs/superpowers/specs/2026-11-07-m2-screens-spec.md` › "A2 · Morning" (timetable look,
 "A2 live look"), "Bus settings (C2 "Our buses")", "Trips on items: the Going row", "Spoken times".
 Already built (PR #14): missions, C5, the timetable way strip, family outing, empty look.

@@ -3,11 +3,10 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// "Slide to go": a yellow crayon track with the bus as the handle. Locked (dim) until the
-/// morning steps are done, green with a tick once it reaches the end. Callers pass the words.
+/// "Slide to go": a yellow crayon track with the way picture as the handle, always on (missions
+/// help but never lock it), green with a tick once it reaches the end. Callers pass the words.
 /// Words wrap onto at most two lines and never shrink (0a rule); four columns is the narrowest width.
 public struct SlideToGo: View {
-    private let lockedTitle: String
     private let idleTitle: String
     private let doneTitle: String
     private let onGo: () -> Void
@@ -16,21 +15,20 @@ public struct SlideToGo: View {
     @State private var isHeld = false
     @State private var hops = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    /// The phase the parent asks for (locked → idle when the morning steps are done, idle again
-    /// the next morning). Drags in between live in `model`.
+    /// The phase the parent asks for (done once the kid is ready, idle again after an undo or
+    /// for the next kid). Drags in between live in `model`.
     private let state: SlideToGoModel.Phase
     @State private var model: SlideToGoModel
     private let handleSize: CGFloat = 80
 
     /// `onUndo`: dragging the knob back past the middle from done (spec "After the slide").
     /// `knob`: the way picture (bus, car, shoe) or the star sticker for a kid with no outing.
-    public init(state: SlideToGoModel.Phase, lockedTitle: String, idleTitle: String, doneTitle: String,
+    public init(state: SlideToGoModel.Phase, idleTitle: String, doneTitle: String,
                 knob: KitSlot = .busDouble, onUndo: (() -> Void)? = nil, onGo: @escaping () -> Void) {
         self.knob = knob
         self.onUndo = onUndo
         self.state = state
         _model = State(initialValue: SlideToGoModel(phase: state))
-        self.lockedTitle = lockedTitle
         self.idleTitle = idleTitle
         self.doneTitle = doneTitle
         self.onGo = onGo
@@ -92,12 +90,11 @@ public struct SlideToGo: View {
             }
         // @State keeps its first value, so a new phase from the parent has to be copied in.
         .onChange(of: state) { _, newState in model.phase = newState }
-        .opacity(isLocked ? 0.5 : 1)
         .sensoryFeedback(.success, trigger: isDone)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityAction(named: L10n.tr("slide.go")) {
-            guard !isLocked, !isDone else { return }
+            guard !isDone else { return }
             model.phase = .done
             onGo()
         }
@@ -121,7 +118,6 @@ public struct SlideToGo: View {
 
     private var title: String {
         switch model.phase {
-        case .locked: lockedTitle
         case .idle, .dragging: idleTitle
         case .done: doneTitle
         }
@@ -131,10 +127,9 @@ public struct SlideToGo: View {
         switch model.phase {
         case let .dragging(p): CGFloat(p)
         case .done: 1
-        case .idle, .locked: 0
+        case .idle: 0
         }
     }
 
-    private var isLocked: Bool { if case .locked = model.phase { true } else { false } }
     private var isDone: Bool { model.phase == .done }
 }

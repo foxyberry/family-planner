@@ -36,12 +36,11 @@ public struct RollingKitIcon: View {
     }
 
     @ViewBuilder private var picture: some View {
-        let usesRuns = BundledKitArt().source(for: slot) == .public
-        if usesRuns, let rig = KitRigs.shared.rig(for: slot), rig.parts.keys.contains(where: { $0.hasSuffix("wheel") }) {
+        if let rig = DrivingKitIcon.wheeledRig(for: slot) {
             ZStack {
                 ForEach(Array(rig.runs.enumerated()), id: \.offset) { _, run in
                     let image = BundledKitArt.runImage(named: run.image).resizable().scaledToFit()
-                    if let name = run.part, name.hasSuffix("wheel"), let part = rig.parts[name] {
+                    if let name = run.part, DrivingKitIcon.isWheel(name), let part = rig.parts[name] {
                         image.rotationEffect(.degrees(wheelDegrees),
                                              anchor: UnitPoint(x: part.origin.x / 240, y: part.origin.y / 240))
                     } else {

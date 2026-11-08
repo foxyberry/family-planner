@@ -50,6 +50,16 @@ final class LaunchOptionsTests: XCTestCase {
         XCTAssertNil(options.now)
         XCTAssertNil(options.speed)
     }
+
+    func testGridAndSkipFaceIDFlags() {
+        let options = LaunchOptions(arguments: ["App", "-fpGrid", "-fpSkipFaceID"], calendar: calendar)
+        XCTAssertTrue(options.grid)
+        XCTAssertTrue(options.skipsFaceID)
+        var settings = DebugSettings()
+        settings.apply(options, realNow: Date(timeIntervalSince1970: 0))
+        XCTAssertTrue(settings.skipsFaceID)
+        XCTAssertFalse(LaunchOptions(arguments: ["App"], calendar: calendar).skipsFaceID)
+    }
 }
 
 final class BubbleDockTests: XCTestCase {

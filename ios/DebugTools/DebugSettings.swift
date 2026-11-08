@@ -33,6 +33,9 @@ public struct LaunchOptions: Equatable, Sendable {
     public var speed: Double?
     /// `-fpGrid` (`make device GRID=1`): show the board lines over every screen.
     public var grid = false
+    /// `-fpSkipFaceID` (`make run SKIP_FACE_ID=1`): turn "Skip Face ID" on. It only works where the
+    /// switch exists (a simulator); a real iPad still asks for Face ID.
+    public var skipsFaceID = false
 
     public init(now: Date?, speed: Double?, grid: Bool = false) {
         self.now = now
@@ -53,6 +56,7 @@ public struct LaunchOptions: Equatable, Sendable {
         now = value(after: "-fpNow").flatMap(formatter.date(from:))
         speed = value(after: "-fpSpeed").flatMap(Double.init).flatMap { $0 > 0 ? $0 : nil }
         grid = arguments.contains("-fpGrid")
+        skipsFaceID = arguments.contains("-fpSkipFaceID")
     }
 }
 
@@ -121,6 +125,7 @@ public struct DebugSettings: Codable, Equatable, Sendable {
     /// Launch arguments win over the saved time: a new `-fpNow` starts from that moment.
     public mutating func apply(_ options: LaunchOptions, realNow: Date) {
         if options.grid { showsLayoutGrid = true }
+        if options.skipsFaceID { skipsFaceID = true }
         if let now = options.now {
             time = TimeTravel(anchor: now, realAnchor: realNow, speed: options.speed ?? 1)
         } else if let speed = options.speed {

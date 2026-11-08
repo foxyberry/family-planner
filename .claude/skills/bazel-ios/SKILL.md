@@ -2,7 +2,7 @@
 name: bazel-ios
 description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/device/lint/fmt/sim-stop, signed builds on a real iPad, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.9.0
+  version: 0.10.0
   status: experimental
 ---
 
@@ -22,15 +22,9 @@ metadata:
 
 ## Simulator Face ID (parent mode)
 
-```bash
-UDID=$(xcrun simctl list devices booted | grep -o '[0-9A-F-]\{36\}' | head -1)
-xcrun simctl spawn $UDID notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
-xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit.enrollmentChanged   # enrolled
-# tap Parent, wait until the Face ID sheet shows, then:
-xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit_Sim.pearl.match      # matching face
-```
-
-A match before the sheet shows does nothing. Easier: debug "Skip Face ID".
+`make run SKIP_FACE_ID=1` (or the debug "Skip Face ID") passes it. To test the real sheet: enrol with
+`simctl spawn <UDID> notifyutil -s com.apple.BiometricKit.enrollmentChanged 1` and `-p` the same key,
+then once the sheet shows, `notifyutil -p com.apple.BiometricKit_Sim.pearl.match`.
 
 ## Real iPad (`make device`)
 
@@ -50,6 +44,8 @@ A match before the sheet shows does nothing. Easier: debug "Skip Face ID".
   `bazel-device/screen.png`. Look at it; "Launched" proves nothing.
 - Layout check: `make device NOW=… OPEN=missions GRID=1` opens the screen by deep link with the
   board-line grid on; `pymobiledevice3 developer dvt screenshot x.png`; a part off its line is a bug.
+  Grown-up boards (`OPEN=c1`…`c6`, `e6`) need Face ID: use `make run … SKIP_FACE_ID=1 OPEN=c3`
+  and `simctl io booted screenshot`; relaunch the app before the next board.
 
 ## Commands
 

@@ -78,24 +78,24 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testSlideToGoStates() {
         let states: [(String, SlideToGoModel.Phase)] = [
-            ("locked", .locked(remaining: 3)), ("idle", .idle), ("dragging", .dragging(progress: 0.5)), ("done", .done),
+            ("idle", .idle), ("dragging", .dragging(progress: 0.5)), ("done", .done),
         ]
         for (name, state) in states {
             snap(slide(state), width: Self.rowWidth, named: name)
         }
     }
 
-    /// The parent unlocks the slider when the morning steps are done; it must not stay locked.
+    /// A new phase from the parent (undo: done → idle) replaces the slide's own.
     /// Compared with the idle picture of testSlideToGoStates.
     func testSlideToGoFollowsStateChanges() {
         snap(UnlockingSlider(), width: Self.rowWidth, named: "idle", testName: "testSlideToGoStates()")
     }
 
     private struct UnlockingSlider: View {
-        @State private var phase = SlideToGoModel.Phase.locked(remaining: 1)
+        @State private var phase = SlideToGoModel.Phase.done
 
         var body: some View {
-            SlideToGo(state: phase, lockedTitle: "3 more, then slide", idleTitle: "Slide to go",
+            SlideToGo(state: phase, idleTitle: "Slide to go",
                       doneTitle: "On our way!") {}
                 .onAppear { phase = .idle }
         }
@@ -123,25 +123,14 @@ final class ComponentSnapshotTests: XCTestCase {
 
     // MARK: - 0c Content
 
-    func testNowRowWidths() {
-        for (name, width) in Self.widths {
-            snap(NowRow(title: "Brush teeth", icon: .toothbrush, isDone: false) {}, width: width, named: name)
+    /// A grown-up form row: the label fills the 104 … 232 column, the control starts on 232.
+    func testFormLabel() {
+        snap(VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) { FormLabel("Name"); Text("Swimming").crayonType(.body) }
+            ListRow(leading: "Stop") { Text("00000") }
         }
-    }
-
-    func testNowRowLongTitleWrapsThenEllipsizes() {
-        for (name, width) in Self.widths where name != "wide" {
-            snap(NowRow(title: "Put on shoes and socks, then find your hat", icon: .shoe, isDone: false) {},
-                 width: width, named: name)
-        }
-    }
-
-    func testSlideToGoLockedNarrow() {
-        snap(slide(.locked(remaining: 3)), width: Self.grid.span(4))
-    }
-
-    func testNowRowDone() {
-        snap(NowRow(title: "Brush teeth", icon: .toothbrush, isDone: true) {}, width: Self.rowWidth)
+        .environment(\.formLabelWidth, 128)
+        .environment(\.cardInset, 40), width: Self.rowWidth)
     }
 
     func testPaperCardWidths() {
@@ -160,14 +149,6 @@ final class ComponentSnapshotTests: XCTestCase {
     func testPickerPopover() {
         snap(PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: .constant("Every week"),
                            anchor: 0.3), width: 360)
-    }
-
-    func testBusBubbles() {
-        snap(HStack(alignment: .bottom, spacing: Spacing.l) {
-            BusBubble(route: "123", minutes: 4, crowd: .seats, isMine: true, transferTo: nil)
-            BusBubble(route: "45", minutes: 9, crowd: .standing, isMine: false, transferTo: "67")
-            BusBubble(route: "123", minutes: 19, crowd: .full, isMine: true, transferTo: nil)
-        })
     }
 
     func testLeagueProgress() {
@@ -286,7 +267,7 @@ final class ComponentSnapshotTests: XCTestCase {
     // MARK: - Helpers
 
     private func slide(_ state: SlideToGoModel.Phase) -> SlideToGo {
-        SlideToGo(state: state, lockedTitle: "3 more, then slide", idleTitle: "Slide to go",
+        SlideToGo(state: state, idleTitle: "Slide to go",
                   doneTitle: "On our way!") {}
     }
 

@@ -152,12 +152,11 @@ public struct MissionsView: View {
         }
     }
 
-    // MARK: Bottom control (872–968): the slide spans the column; the pill ends at 1312.
+    // MARK: Bottom control (872–968): the slide spans the column, 448–1312.
 
     @ViewBuilder private func bottomControl(_ layout: MorningLayout) -> some View {
         if let kid = store.chosenKid {
-            SlideToGo(state: store.chosenIsReady ? .done : .idle, lockedTitle: store.slideTitle,
-                      idleTitle: store.slideTitle, doneTitle: L10n.tr("missions.ready"), knob: store.slideKnob,
+            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: L10n.tr("missions.ready"), knob: store.slideKnob,
                       onUndo: { store.send(.slideUndone) }) {
                 ticks += 1
                 store.send(.slid)

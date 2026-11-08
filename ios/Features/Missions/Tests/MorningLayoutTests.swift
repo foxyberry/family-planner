@@ -16,8 +16,8 @@ final class MorningLayoutTests: XCTestCase {
             // x 448: missions column = first circle = slide.
             XCTAssertEqual(layout.circleRect(0).minX, layout.columnLeft, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.slide.minX, layout.columnLeft, accuracy: 0.01, "\(w)")
-            // x 1312: header right = strip right = last circle = slide = pill.
-            for edge in [layout.strip.maxX, layout.circleRect(5).maxX, layout.slide.maxX, layout.pill.maxX] {
+            // x 1312: header right = strip right = last circle = slide.
+            for edge in [layout.strip.maxX, layout.circleRect(5).maxX, layout.slide.maxX] {
                 XCTAssertEqual(edge, layout.headerRight, accuracy: 0.01, "\(w)")
             }
             XCTAssertEqual(layout.headerRight, w - 64 * sizing.s, accuracy: 0.01, "\(w)")
@@ -38,6 +38,5 @@ final class MorningLayoutTests: XCTestCase {
         XCTAssertEqual(layout.circleRect(2).minX, 448 + 2 * 150.4, accuracy: 0.01)
         XCTAssertEqual(layout.kidFace(0), CGRect(x: 85, y: 553, width: 66, height: 66))
         XCTAssertEqual(layout.slide, CGRect(x: 448, y: 872, width: 864, height: 96))
-        XCTAssertEqual(layout.pill, CGRect(x: 912, y: 872, width: 400, height: 96))
     }
 }

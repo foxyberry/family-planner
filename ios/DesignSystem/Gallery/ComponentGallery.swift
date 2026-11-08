@@ -49,23 +49,20 @@ public struct ComponentGallery: View {
                         TimeLeft(minutes: 19)
                         TimeLeft(minutes: -2)
                     }
-                    SlideToGo(state: .locked(remaining: 3), lockedTitle: "3 more, then slide",
-                              idleTitle: "Slide to go", doneTitle: "On our way!") {}
-                    SlideToGo(state: .idle, lockedTitle: "", idleTitle: "Slide to go", doneTitle: "On our way!") {}
-                    SlideToGo(state: .done, lockedTitle: "", idleTitle: "", doneTitle: "On our way!") {}
+                    SlideToGo(state: .idle, idleTitle: "Slide to go", doneTitle: "On our way!") {}
+                    SlideToGo(state: .done, idleTitle: "", doneTitle: "On our way!") {}
                 }
                 section("0c · Content") {
-                    NowRow(title: "Brush teeth", icon: .toothbrush, isDone: false) {}
                     ListRow(leading: "7:30") { Text("Bus to school") }
+                    HStack(spacing: 0) {
+                        FormLabel("Name")
+                        Text("Swimming").crayonType(.body)
+                    }
+                    .environment(\.formLabelWidth, 128)
                     TodayRow(leading: "Today") { Text("Swimming 15:30") }
                     PaperCard { Text("A sheet of paper").crayonType(.body) }
                     PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: $choice, anchor: 0.3)
                         .frame(width: 360)
-                    HStack(alignment: .bottom, spacing: Spacing.l) {
-                        BusBubble(route: "123", minutes: 4, crowd: .seats, isMine: true, transferTo: nil)
-                        BusBubble(route: "45", minutes: 9, crowd: .standing, isMine: false, transferTo: "67")
-                        BusBubble(route: "123", minutes: 19, crowd: .full, isMine: true, transferTo: nil)
-                    }
                     LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
                                    nextName: "Double-Decker")
                     VoiceNote(duration: .seconds(12), isPlaying: false) {}
@@ -169,16 +166,6 @@ public struct ComponentGallery: View {
                     RigPlayground()
                 }
                 section("0f · Frames") {
-                    let morning = Capped(["Wake up", "Toilet", "Get dressed", "Breakfast", "Brush teeth"], max: 3)
-                    KidScreen {
-                        Text("Good morning, Kid A").crayonType(.title)
-                    } body: { _ in
-                        VStack(alignment: .leading, spacing: Spacing.s) {
-                            ForEach(morning.visible, id: \.self) { Text($0).crayonType(.body) }
-                            if morning.overflow > 0 { Text("+\(morning.overflow)").crayonType(.caption) }
-                        }
-                    }
-                    .frame(height: 420)
                     KidFullScreen {
                         Text("Home: the clock uses the whole screen").crayonType(.head).padding(Spacing.m)
                     }

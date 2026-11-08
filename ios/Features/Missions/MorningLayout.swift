@@ -6,7 +6,7 @@ import DesignSystem
 /// test checks the shared lines on the four iPads.
 ///
 /// Shared lines: x 64 (back button, strip, kid list), x 448 (missions column: name line, first
-/// circle, slide), x 1312 (header right, strip right, last circle, slide and pill right), x 172
+/// circle, slide), x 1312 (header right, strip right, last circle, slide right), x 172
 /// (text inside the kid rows); baselines 107 (header), 584 (row 1 name = missions name line),
 /// 757 (circle captions). The kid list is left-anchored; the missions column stretches from
 /// 448 s to W − 64 s.
@@ -75,5 +75,4 @@ public struct MorningLayout: Equatable, Sendable {
     // MARK: Bottom control (bottom 968)
 
     public var slide: CGRect { CGRect(x: columnLeft, y: sizing.y(872), width: columnWidth, height: 96 * s) }
-    public var pill: CGRect { CGRect(x: columnRight - 400 * s, y: sizing.y(872), width: 400 * s, height: 96 * s) }
 }

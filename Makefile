@@ -11,8 +11,10 @@ APP_TARGET  := //ios:$(APP_NAME)
 SIM_DEVICE ?= iPad Pro 13-inch (M5)
 SIM_OS     ?= 26.5
 # Debug builds start the app clock elsewhere (time machine): make run NOW=2026-11-09T07:30 SPEED=60
-LAUNCH_ARGS = $(if $(NOW),-fpNow $(NOW)) $(if $(SPEED),-fpSpeed $(SPEED)) $(if $(GRID),-fpGrid)
-# OPEN=missions opens a screen deep link (familyplanner://missions) on launch.
+LAUNCH_ARGS = $(if $(NOW),-fpNow $(NOW)) $(if $(SPEED),-fpSpeed $(SPEED)) $(if $(GRID),-fpGrid) \
+              $(if $(SKIP_FACE_ID),-fpSkipFaceID)
+# OPEN=missions opens a screen deep link (familyplanner://missions) on launch. Grown-up boards
+# (OPEN=c2, debug builds) open after the unlock; SKIP_FACE_ID=1 passes it on a simulator only.
 OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
@@ -30,13 +32,18 @@ build:
 # Build first, then boot the simulator, so Bazel and the Simulator never compete
 # for memory at the same time (8 GB Mac). Tests leave their own BAZEL_TEST_* simulator
 # running, so shut everything down first and address the dev simulator by its UDID.
+# The app's files all carry the 1980 build time, so an install can skip a new binary of the
+# same size (as on the iPad, see `device`); a touched copy in bazel-sim always installs.
 run: build
 	@APP=$$(find bazel-bin/ios -name "$(APP_NAME).app" -type d | head -1) && \
+	rm -rf bazel-sim && mkdir bazel-sim && cp -R "$$APP" bazel-sim/ && chmod -R u+w bazel-sim && \
+	find bazel-sim -exec touch {} + && \
 	xcrun simctl shutdown all 2>/dev/null; \
 	xcrun simctl boot "$(SIMULATOR)" 2>/dev/null || true && \
 	open -a Simulator && \
-	xcrun simctl install "$(SIMULATOR)" "$$APP" && \
-	xcrun simctl launch --terminate-running-process "$(SIMULATOR)" $(BUNDLE_ID) $(LAUNCH_ARGS)
+	xcrun simctl install "$(SIMULATOR)" bazel-sim/$(APP_NAME).app && \
+	xcrun simctl launch --terminate-running-process "$(SIMULATOR)" $(BUNDLE_ID) $(LAUNCH_ARGS) \
+	$(if $(OPEN),&& sleep 3 && xcrun simctl openurl "$(SIMULATOR)" familyplanner://$(OPEN))
 
 # Build, sign and install on a real iPad, by cable or over the same Wi-Fi once it has been
 # paired by cable. With a free Apple ID the

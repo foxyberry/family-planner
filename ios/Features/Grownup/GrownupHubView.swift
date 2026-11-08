@@ -18,13 +18,15 @@ public struct GrownupHubView: View {
     public var body: some View {
         GrownupScreen {
             header
-        } content: { grid in
+        } content: { layout in
             if store.kid != nil {
-                HStack(alignment: .top, spacing: grid.screenGutter) {
+                HStack(alignment: .top, spacing: layout.gap) {
+                    // C1 / E6: the About values start on 280.
                     PaperCard(seed: 21) { aboutCard }
-                        .frame(width: grid.span(8))
+                        .environment(\.formLabelWidth, layout.valueLeft - layout.labelLeft)
+                        .frame(width: layout.form.width)
                     sideColumn
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(width: layout.side.width, alignment: .topLeading)
                 }
             }
         } primaryAction: { _ in
@@ -50,7 +52,6 @@ public struct GrownupHubView: View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             ForEach(store.sections, id: \.title) { section($0) }
         }
-        .padding(Spacing.m)
     }
 
     private func section(_ section: HubSection) -> some View {

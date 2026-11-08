@@ -14,7 +14,6 @@ public enum CrayonStyle {
 
     enum Seed {
         static let inkButton: UInt32 = 101
-        static let kidPill: UInt32 = 201
         static let roundButton: UInt32 = 301
         static let checkMark: UInt32 = 401
         static let tabs: UInt32 = 501
@@ -24,7 +23,6 @@ public enum CrayonStyle {
         static let iconPicker: UInt32 = 901
         static let slider: UInt32 = 1001
         static let card: UInt32 = 1101
-        static let nowRow: UInt32 = 1201
         static let bubble: UInt32 = 1301
         static let league: UInt32 = 1401
         static let voice: UInt32 = 1501

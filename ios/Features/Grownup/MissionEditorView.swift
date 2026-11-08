@@ -23,21 +23,20 @@ public struct MissionEditorView: View {
         ZStack {
             GrownupScreen {
                 header
-            } content: { grid in
-                HStack(alignment: .top, spacing: grid.screenGutter) {
-                    PaperCard(seed: 41) { list.padding(Spacing.m) }
-                        .frame(width: grid.span(8))
-                    side.frame(maxWidth: .infinity, alignment: .leading)
+            } content: { layout in
+                HStack(alignment: .top, spacing: layout.gap) {
+                    PaperCard(seed: 41) { list }
+                        .frame(width: layout.form.width)
+                    side.frame(width: layout.side.width, alignment: .topLeading)
                 }
-            } primaryAction: { grid in
+            } primaryAction: { layout in
                 VStack(alignment: .trailing, spacing: Spacing.xs) {
                     InkButton(L10n.tr("c5.done")) { store.send(.doneTapped) }
-                        .frame(width: grid.span(4))
+                        .frame(width: layout.side.width)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if let draft = store.draft {
                 CrayonColor.marker.opacity(0.3).ignoresSafeArea()
@@ -144,7 +143,6 @@ public struct MissionEditorView: View {
                         .disabled(!draft.canSave)
                 }
             }
-            .padding(Spacing.m)
         }
     }
 }

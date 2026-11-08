@@ -30,7 +30,9 @@ public struct AppView: View {
                             onCancel: { store.send(.lockCancelTapped) })
             }
             #if DEBUG
-            if let debugTools = DebugModel.installed { DebugOverlay(model: debugTools) }
+            if let debugTools = DebugModel.installed {
+                DebugOverlay(model: debugTools, lines: store.path.isEmpty ? .kids : .grownup)
+            }
             #endif
         }
         .environment(\.rigScale, Self.rigScale)
