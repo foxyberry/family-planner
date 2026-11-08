@@ -158,6 +158,15 @@ final class DebugModelTests: XCTestCase {
         XCTAssertEqual(DebugSettings.load(from: defaults).time?.anchor, target)
     }
 
+    /// Spec "Picture rigs": the "Rig scale" slider defaults to the kit data's scale and is saved.
+    func testRigScaleDefaultsToTheKitAndIsSaved() throws {
+        let (model, defaults) = try model()
+        XCTAssertEqual(model.rigScale, 1.5)
+        model.settings.rigScale = 1.0
+        XCTAssertEqual(model.rigScale, 1.0)
+        XCTAssertEqual(DebugSettings.load(from: defaults).rigScale, 1.0)
+    }
+
     func testSpeedAloneStartsFromTheRealTime() throws {
         let (model, _) = try model()
         model.setSpeed(60)

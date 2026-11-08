@@ -1,6 +1,7 @@
 #if DEBUG
 import ComposableArchitecture
 import Foundation
+import KitArt
 import Observation
 import ParentAuthClient
 
@@ -47,6 +48,9 @@ public final class DebugModel {
     }
 
     public var isTravelling: Bool { settings.time != nil }
+
+    /// The rig scale the kid screens use: the slider's value, else the kit data's.
+    public var rigScale: Double { settings.rigScale ?? KitRigs.shared.scale }
 
     /// Opens the menu: at once on a simulator, after Face ID on a device (no Face ID set up opens it,
     /// like the grown-up lock).

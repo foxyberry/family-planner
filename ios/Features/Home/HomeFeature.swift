@@ -48,6 +48,10 @@ public struct HomeFeature {
         public var idleSeconds = 0
         /// Board 0g2 idle wink: one more each time 20 s pass without a touch.
         public var winks = 0
+        /// Spec "Picture rigs": a play id per drawn slot start; a slot plays when its id goes up.
+        public var plays: [Int: Int] = [:]
+        /// True for the 1.2 s of a play; taps meanwhile are ignored.
+        public var isPlaying = false
 
         /// Board A1n: the kid screens follow the clock kid's (the first kid's) evening and wake-up.
         public var plannedLook: KidLook {
@@ -99,6 +103,9 @@ public struct HomeFeature {
         case skyAnimationEnded
         /// Any touch on the kid screen; it restarts the idle count.
         case touched
+        /// The kid tapped the drawn slot that starts at this minute.
+        case slotTapped(Int)
+        case playEnded
     }
 
     @Dependency(\.calendar) var calendar
@@ -181,6 +188,20 @@ public struct HomeFeature {
 
             case .touched:
                 state.idleSeconds = 0
+                return .none
+
+            case let .slotTapped(start):
+                state.idleSeconds = 0
+                guard !state.isPlaying else { return .none }
+                state.plays[start, default: 0] += 1
+                state.isPlaying = true
+                return .run { [clock] send in
+                    try await clock.sleep(for: .milliseconds(1200))
+                    await send(.playEnded)
+                }
+
+            case .playEnded:
+                state.isPlaying = false
                 return .none
             }
         }

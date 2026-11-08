@@ -30,6 +30,8 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-08: hub title may wrap: title 48 on one line, else head 36 on up to two lines (284 wide), else "…" (user decision; "Weekend school" was cut to "Weekend…").
 - 2026-11-08: two-line hub spacing: title lines 38 apart (1.05), group gaps 44; baselines 466 / 510 / 548 / 592; alternative numbers if the weekday moves to the right panel.
 - 2026-11-08: weekday moves from the hub to the top of the right panel on every kid home screen (head 36, 24 below; "· Holiday" on weekday holidays); hub = title (540, or 512/550) + until (590 / 594). (User decision.)
+- 2026-11-08: principle audit of every board. Type sizes off the scale moved onto it (26 → 24, 28 → 30, 32 → 30, 44 → 48); gaps moved onto the tokens, which now include 4 and 12 (inside one part only); bus bubble unit "min" at 24 so "29 min" fits; Next row gap 24; `KidFace` 48 + gap 16 in the A1/E3 kid blocks, 40 in tabs; E3 keeps the weekday line (stale "no day name" removed). New board 00 Principles (rules, also under Shared rules) and 0c2 kid parts; 0a/0b/0c updated (NowRow, KidDot, "for Kid B" and "wakes up once missions are done" removed).
+- 2026-11-08: one colour per kid, day and night: `kidA` #56B4E9, `kidB` #E69F00. #2E8FE0 is renamed `pickBlue` (✓, picked, focus, any kid); #F28C28 dropped.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -40,13 +42,23 @@ Markers used below:
 
 ## 0. Shared rules
 
+### Principles (board 00, 2026-11-08)
+Every board and the app follow these. Change them here and on board 00 first.
+- **Time**: every time is 12-hour with am / pm. One now and one next per kid, never a list; Next skips free time and slots that only resume. Medals come from time only.
+- **Kids**: never locked (Slide to go and All done! are always on). Each kid finishes on their own. Kid screens never scroll; more turns a page ("+n"). No shame: late = no medal, never a sad face.
+- **Who is who**: a kid = face + name, colour never alone. One colour per kid day and night (#56B4E9 / #E69F00). Pick blue #2E8FE0 = ✓, picked, focus, for any kid. 2+ kids: list on the left, chosen kid's missions on the right.
+- **Type and space**: Playpen Sans, six sizes (144 · 96 · 48 · 36 · 30 · 24), nothing under 24. Gaps 4 · 8 · 12 · 16 · 24 · 40 · 64 (4 and 12 inside one part). 12 columns, margin 64; header 48–128, content 176–968.
+- **Drawing**: UI shapes are CrayonKit Shapes; pictures come from the kit only (`KitIcon`); the kid's own drawings swap into the same slot later. Motion 1.2 s, rigid parts; reduced motion = still.
+- **Privacy**: public repo uses Kid A / Kid B; no home, stops, routes, school names or keys; real family times stay on the canvas. Wolfie is public; the home drawing is not.
+- Parts: board 0b (controls), 0c (content), 0c2 (kid parts: `KidFace`, `MissionCircle`, `KidList`/`KidBand`, `NextRow`/`KidNowNext`, `WayCard`, `DonePill`).
+
 ### Grid and frame (iPad landscape 1376 × 1032 pt)
 - 12 columns of 82, gutter 24, margin 64 (`GridMetrics`). Column n (1-based) starts at x = 64 + (n − 1) × 106.
 - Header band y 48–128. Content y 176–968. Main button bottom edge at y 968.
-- Spacing tokens: 8 · 16 · 24 · 40 · 64.
+- Spacing tokens: **4 · 8 · 12 · 16 · 24 · 40 · 64** (changed 2026-11-08). 4 and 12 are for the inside of one part only (icon to label, chip padding, caption under a picture); between parts use 16 or more. No other gaps (2, 6, 10, 14, 20, 32, 48, 56 were mapped to the nearest token on every board). Line pitch inside a text block (e.g. the two-line hub, 38) is type, not spacing.
 - Type: `CrayonType` hero 144, display 96, title 48, head 36, body 30, caption 24. Nothing smaller than 24.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
-- Colour never carries meaning alone. Kid A is always blue (`kidABlue`) and Kid B orange (`kidBOrange`), always with the name next to the dot (`KidDot`).
+- Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
 
 ### Grown-up form layout (C3, C4, E5, C3k)
 - Form card: `PaperCard`, columns 1–8 (x 64, w 818 to keep the marker stroke inside 824), y 176–968.
@@ -187,9 +199,9 @@ Markers used below:
   - Kid B (and any other kid without the clock): the now / next circles.
 - **Next** = the next thing on that kid's clock after the current one, of any kind (template slot, every-week, just-once), after the priority rule. Skip free time (no picture) and a slot that only continues after an item ends (Play after Weekend school). On E3 at 9:15 that gives "Birthday · at 2:00 pm".
 - **Kid A block** (right panel, x 928–1312):
-  - `KidFace` 40 (face in the kid's colour ring, replaces `KidDot`) + name, head 36.
+  - `KidFace` 48 (face in the kid's colour ring, replaces `KidDot`), gap 16, name head 36.
   - 24 below: "Next" caption 24 `softText`.
-  - 8 below: Next row: `KitIcon` 104, gap 20, then the title **head 36 bold** over "at {h:mm am/pm}" body 30 `softText`. Both lines are one line: start time only (the range is on the clock), no wrap; a long title ends with "…". A just-once item keeps its star sticker on the picture.
+  - 8 below: Next row: `KitIcon` 104, gap 24, then the title **head 36 bold** over "at {h:mm am/pm}" body 30 `softText`. Both lines are one line: start time only (the range is on the clock), no wrap; a long title ends with "…". A just-once item keeps its star sticker on the picture.
   - 24 below: time left to that thing: "in" body 30 `softText`, then `TimeLeft` display 96 ("38 min"). Over 60 minutes: "1 h 20 min" in the same size; over 3 h: leave the time left out.
   - **[later M3]** on school mornings the time left becomes "Leave in" + `TimeLeft` to the leave time + "On time" (boards A1, E1). Same place and sizes, so M2 → M3 swaps the words and the target time. On A1 (two kids) the Next row is hidden on school mornings to leave room for Kid B; E1 (one kid) keeps it under "On time".
 - **Night** (A1n look): the same rule. Next is usually Sleep ("at 8:00 pm") and the time left reads "Bed in" instead of "in". The "Tomorrow · School, leave 7:25 am" row is **[later M3]**.
@@ -197,11 +209,11 @@ Markers used below:
 
 ### Right panel
 - **Kid A block** (spacing from the board):
-  - `KidDot` (Kid A) + name, head 36.
+  - `KidFace` 48 (Kid A), gap 16, name head 36.
   - **[later M3]** School mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).
   - **M2 instead**: Next row + time left, see "Now and next on home".
 - **Kid B block**, 64 below:
-  - `KidDot` (Kid B) + name, head 36.
+  - `KidFace` 48 (Kid B), gap 16, name head 36.
   - Row with gap 40:
     - "now": 160 circle in crayon `kidApricot` with a 104 picture inside, caption "now" under it.
     - "next": 104 white circle with a 64 picture inside, caption "next".
@@ -239,7 +251,7 @@ The MVP mission screen: the A2 layout with **no live data** (no LTA times, bubbl
 
 ## E3 · Home, weekend or holiday [board]
 - Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
-- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (Next row + time left, "Now and next on home"), then the Kid B block. No day name (the hub's first line already says "Saturday") and no "No bus today" (the bus is N1, so in the MVP the line only appeared on weekends and read oddly).
+- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (Next row + time left, "Now and next on home"), then the Kid B block. The weekday is the panel's first line, as on A1. No "No bus today" (the bus is N1, so in the MVP the line only appeared on weekends and read oddly).
   - **Weekday school holiday**: the panel's weekday line reads "{Weekday} · Holiday" (see Hub text). That is the only holiday sign on the kid screen; the clock already uses the Sun template.
   - Kid B block as A1.
 - Main button "Diary →" → B2. **[later M5]**: hidden in M2.
@@ -357,7 +369,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 ### Layout [board]
 - Overlay: marker colour #1E1B22 at 60 % over the home screen. The home stays visible underneath.
 - Line above the card: "Held the clock for 2 seconds" (body, `nightText`), centred, y 248.
-- Card: `PaperCard`, 818 × 352, centred horizontally, y 320. Padding 48 × 64, gap 20.
+- Card: `PaperCard`, 818 × 352, centred horizontally, y 320. Padding 40 × 64, gap 24.
   - Lock icon + "Grown-ups only" (title 48).
   - Message line (body).
   - Buttons row, gap 24: `RoundButton`-style tabs 240 × 72.
@@ -393,7 +405,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - `GrownupScreen`. Header row at x 64, y 48, h 80, gap 24:
   - `RoundButton` "←" 80 → home.
   - "Our kids" (title 48).
-  - `CrayonTabs` with Kid A and Kid B, each 200 × 72 with its `KidDot`. Exactly one is on.
+  - `CrayonTabs` with Kid A and Kid B, each 200 × 72 with its `KidFace` 40. Exactly one is on.
   - "Grown-ups only" caption at the right end.
 - Left: `PaperCard` columns 1–8, y 176–968. **This card scrolls; the header and tabs stay pinned (0f).**
   - Section headings at x 104 (head 36): "About", "School", "Getting there".
@@ -457,8 +469,8 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 
   | y | label | control |
   |---|---|---|
-  | 200 | For | `CrayonTabs` single-select, 3 options of 180 × 72: Kid A, Kid B (each with `KidDot`), "Both" |
-  | 296 | What | `IconPicker`: slots 88 with gap 14. The picked one gets a 104 ring. The last slot is "+". |
+  | 200 | For | `CrayonTabs` single-select, 3 options of 180 × 72: Kid A, Kid B (each with `KidFace` 40), "Both" |
+  | 296 | What | `IconPicker`: slots 88 with gap 16. The picked one gets a 104 ring. The last slot is "+". |
   | 412 | Name | `CrayonField` 610 × 80 |
   | 524 | When | `TimeField` 200 × 80, "→" (head `softText`), `TimeField` 200 × 80, then the duration caption ("1 hour", "1 hr 30 min", "45 min") |
   | 636 | Repeat | `CrayonTabs` 2 options of 220 × 72: "Just once", "Every week" (on) |
@@ -521,7 +533,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - When a text field has focus, the iPad keyboard covers about y 612–1032 (≈ 420 pt in landscape).
 - The form card shrinks to 818 × 352 at y 176 and becomes a scroll area. It keeps the field with focus in view.
 - Inside it, rows are tighter: label at card x 40, controls at card x 168, rows at 20 / 136 / 248 / 360.
-- Focus: the focused field gets the blue focus outline (`kidABlue`, 610 wide) and a 3 × 36 caret in `kidABlue`. Its label turns `kidABlue`.
+- Focus: the focused field gets the blue focus outline (`pickBlue`, 610 wide) and a 3 × 36 caret in `pickBlue`. Its label turns `pickBlue`.
 - Side column: the preview heading only; the rows are hidden.
 - "Add to the clock" moves up to y 488 (bottom 584, 28 above the keyboard). It is the only control that moves.
 - Keyboard return on Name = dismiss keyboard (not submit).
@@ -599,7 +611,7 @@ UI shapes are drawn in code by `CrayonKit` (roadmap rule); only pictures are kit
 |---|---|---|---|---|---|
 | `MarkerGlyph.chevronLeft` | 48 box: M30 10 L16 24 L30 38 | 5 | ink | back button (inside `RoundButton` 80): 40 | M2 |
 | `MarkerGlyph.chevronRight` | M18 10 L32 24 L18 38 | 5 | soft #625D6E | row end "›": 28 | M2 |
-| `MarkerGlyph.arrowRight` | M10 24 H38 M26 12 L38 24 L26 36 | 5 | white on ink buttons, ink or soft in text | "Missions →", "Next →": 32 after the label, gap 12; inline arrows at the text size (24 / 28 / 34) | M2 |
+| `MarkerGlyph.arrowRight` | M10 24 H38 M26 12 L38 24 L26 36 | 5 | white on ink buttons, ink or soft in text | "Missions →", "Next →": 32 after the label, gap 12; inline arrows at the text size (24 / 30 / 36) | M2 |
 | `MarkerGlyph.plus` / `minus` | M24 10 V38 M10 24 H38 / M10 24 H38 | 5 | ink | stepper buttons: 40 | M2 (C3, C4) |
 | `CrayonRing` (progress) | circle r 0.43 of the box | track 0.08 (paper-beige #E2D9C6); arc: wash 0.10 at 35 % + line 0.07 | kid colour | 0–100 % from 12 o'clock clockwise; kid chips 76 | M3 (missions) |
 | `KidFace` ring | `CrayonRing` at 100 %, seed per kid | as above | Kid A #56B4E9, Kid B #E69F00 | see `KidFace` | M2 |
@@ -616,7 +628,7 @@ Small marker icons that were inline SVG on the boards are now marker-drawn too: 
 - Everything else uses M1 parts:
   - Screens: `KidScreen`, `GrownupScreen`
   - Controls: `CrayonTabs`, `DayChip`, `DateChip`, `CrayonField`, `TimeField`, `IconPicker`, `CheckMark`, `InkButton`, `RoundButton`
-  - Content: `ListRow`, `TodayRow`, `PaperCard`, `KidDot`, `TimeLeft` (M3)
+  - Content: `ListRow`, `TodayRow`, `PaperCard`, `KidFace`, `TimeLeft` (M3)
 
 ---
 
@@ -634,12 +646,12 @@ Every-week and just-once items are not edited here. They sit on top of the templ
 - Edit clock: `PieClock` in edit mode, columns 1–8 (x 64–888, y 176–968). Centre (476, 572), R 340, hub r 130.
   - Hour labels at R + 40; ticks at R + 4…16. Same 0:00-top, clockwise rule as A1.
 - Right column (columns 9–12):
-  - Day-type tabs: "Mon–Fri" 150, "Sat" 110, "Sun" 110 (gap 6). Each day type has its own template, so Saturday and Sunday can hold their own morning (weekend school, church).
+  - Day-type tabs: "Mon–Fri" 150, "Sat" 110, "Sun" 110 (gap 8). Each day type has its own template, so Saturday and Sunday can hold their own morning (weekend school, church).
   - These are the only day types. **A weekday school holiday uses the Sun template**, so editing Sun also changes holidays. Under the tabs, the caption "Sun is also used on school holidays." (caption, `softText`) shows while Sun is selected.
   - Slice card 382 × 440:
     - picture 64 + name (head)
     - "Starts" `TimeField` 170
-    - "Ends" `TimeField` 170. The field being dragged is outlined in `kidABlue`.
+    - "Ends" `TimeField` 170. The field being dragged is outlined in `pickBlue`.
     - The effect on the neighbour (caption), e.g. "Shower now starts at 7:30 and is 30 min."
     - "Make this free time" (body bold, `lateText`)
   - Hint caption: "Drag a ● on the rim to move a time. Tap a slice to edit it. Tap + to fill free time."
@@ -654,9 +666,9 @@ Every-week and just-once items are not edited here. They sit on top of the templ
   - Light haptic per step, a stronger one on the hour.
   - At 340 pt radius, 5 minutes is about 7.4 pt along the rim.
 - **Feedback**:
-  - While dragging, the knob turns `kidABlue` with a ring.
+  - While dragging, the knob turns `pickBlue` with a ring.
   - A dashed line stays at the old position.
-  - **The hub shows the time** ("7:30 pm", title 48 `kidABlue`) between "Dinner ends" and "Shower starts" (caption). The finger covers the knob, so the time is never shown under it.
+  - **The hub shows the time** ("7:30 pm", title 48 `pickBlue`) between "Dinner ends" and "Shower starts" (caption). The finger covers the knob, so the time is never shown under it.
 - **Limits**:
   - A slice cannot get shorter than 15 minutes. The knob stops there with a bump haptic.
   - A knob cannot cross another knob.

@@ -42,11 +42,21 @@ public struct BundledKitArt: KitArtResolving {
         publicBundle.flatMap { UIImage(named: slot.rawValue, in: $0, with: nil) }
     }
 
+    /// A rig run image (`rig-<slot>-<n>`) from the public catalog.
+    public static func publicRunImage(named name: String) -> UIImage? {
+        publicBundle.flatMap { UIImage(named: name, in: $0, with: nil) }
+    }
+
+    /// The SwiftUI image for a rig run, keeping the catalog's vector data.
+    public static func runImage(named name: String) -> Image {
+        publicBundle.map { Image(name, bundle: $0) } ?? Image(systemName: "questionmark.square.dashed")
+    }
+
     static func privateImage(for slot: KitSlot) -> UIImage? {
         privateBundle.flatMap { UIImage(named: slot.rawValue, in: $0, with: nil) }
     }
 
-    private static let publicBundle = resourceBundle(named: "KitArtResources") // copy-ok: bundle name
+    static let publicBundle = resourceBundle(named: "KitArtResources") // copy-ok: bundle name
     private static let privateBundle = resourceBundle(named: "KitArtPrivateResources") // copy-ok: bundle name
 
     /// Resource bundles sit next to this module's code: inside the app, or inside a test bundle.

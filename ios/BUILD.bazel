@@ -27,6 +27,8 @@ fp_swift_library(
 
 ios_application(
     name = APP_NAME,
+    # App icon (board 0h): cream sun by day, a sleepy moon in dark mode, a grey sun tinted.
+    app_icons = glob(["AppIcon.icon/**"]),
     bundle_id = BUNDLE_ID,
     bundle_name = APP_NAME,
     families = ["ipad"],

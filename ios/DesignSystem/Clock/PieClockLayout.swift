@@ -112,6 +112,19 @@ public enum PieClockLayout {
         return (size, min(max(preferred, inner), outer))
     }
 
+    /// The drawn sector under `point` (in the clock's own 2R × 2R frame), between the hub and the rim;
+    /// `nil` on the hub or outside the disc. A sleep merged across midnight answers on both sides.
+    public static func sector(at point: CGPoint, in sectors: [ClockSector], radius: CGFloat,
+                              hub: CGFloat) -> ClockSector? {
+        let dx = point.x - radius, dy = point.y - radius
+        let distance = (dx * dx + dy * dy).squareRoot()
+        guard distance > hub, distance <= radius else { return nil }
+        var degrees = atan2(dx, -dy) * 180 / .pi
+        if degrees < 0 { degrees += 360 }
+        let minute = Int(degrees * 4)
+        return drawable(sectors).first { ($0.start..<$0.end).contains(minute) || ($0.start..<$0.end).contains(minute + 1440) }
+    }
+
     private static func mergeAcrossMidnight(_ sectors: [ClockSector]) -> [ClockSector] {
         guard let early = sectors.firstIndex(where: { $0.start == 0 }),
               let late = sectors.firstIndex(where: { $0.end == 1440 }),

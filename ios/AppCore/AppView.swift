@@ -5,6 +5,7 @@ import DebugTools
 import DesignSystem
 import Grownup
 import Home
+import KitArt
 import SwiftUI
 
 public struct AppView: View {
@@ -31,9 +32,19 @@ public struct AppView: View {
             if let debugTools = DebugModel.installed { DebugOverlay(model: debugTools) }
             #endif
         }
+        .environment(\.rigScale, Self.rigScale)
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
         // the home disappear, which would cancel its task and stop the idle relock.
         .task { await store.send(.task).finish() }
+    }
+
+    /// The debug menu's "Rig scale" in debug builds; the kit data's scale otherwise.
+    private static var rigScale: Double {
+        #if DEBUG
+        DebugModel.installed?.rigScale ?? KitRigs.shared.scale
+        #else
+        KitRigs.shared.scale
+        #endif
     }
 
     private var navigation: some View {

@@ -23,6 +23,15 @@ struct DebugMenu: View {
                     Toggle("12-column grid and bands", isOn: $model.settings.showsLayoutGrid)
                 }
                 Section {
+                    LabeledContent("Rig scale", value: String(format: "%.1f", model.rigScale))
+                    Slider(value: Binding(get: { model.rigScale }, set: { model.settings.rigScale = $0 }),
+                           in: 1.0...1.5, step: 0.1)
+                } header: {
+                    Text("Pictures")
+                } footer: {
+                    Text("How far a tapped slot's picture moves on the kid clock. The kit default is 1.5.")
+                }
+                Section {
                     if model.allowsSkipFaceID {
                         Toggle("Skip Face ID", isOn: $model.settings.skipsFaceID)
                     } else {

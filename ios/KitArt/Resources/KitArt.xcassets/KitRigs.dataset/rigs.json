@@ -842,13 +842,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -869,13 +869,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -896,13 +896,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -927,13 +927,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -954,13 +954,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -981,13 +981,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1012,13 +1012,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1039,13 +1039,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1066,13 +1066,13 @@
    "parts": {
     "flag": {
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]

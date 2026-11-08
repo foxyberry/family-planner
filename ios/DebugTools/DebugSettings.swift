@@ -97,6 +97,8 @@ public struct DebugSettings: Codable, Equatable, Sendable {
     public var showsLayoutGrid = false
     public var skipsFaceID = false
     public var bubble = BubbleDock()
+    /// Spec "Picture rigs": the debug "Rig scale" slider (1.0–1.5); `nil` keeps the kit data's scale.
+    public var rigScale: Double?
 
     public init() {}
 
