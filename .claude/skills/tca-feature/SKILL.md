@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   status: experimental
 ---
 
@@ -52,6 +52,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
 | a rule shared by screens (minute of day, day names) | Domain, with a unit test |
 | which kid, item or row is shown | State or a model function |
 | sizes, stacks, colours from tokens, animation progress | the view |
+| any word a person reads (labels, captions, accessibility text) | a key in `ios/Strings/Localizable.xcstrings`, read with `L10n.tr("area.thing")` |
 
 ## When a guard blocks
 
@@ -60,6 +61,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
 | `global read in …` | read it in the reducer from a dependency; store the result in State |
 | `view reads @Dependency in …` | move the value into State (a view gets the default, not the store's value) |
 | `kid screen scrolls` | cap the list with `Capped` |
+| `hard-coded copy in …` / `key not in the catalog` / `unused catalog key` | add the key to the catalog and use `L10n.tr`; remove keys nothing uses; a non-copy literal (bundle name) ends with `// copy-ok: <reason>` |
 
 ## Common mistakes
 - Passing `Date()` or `Calendar.current` into a Live value from `bootstrap`: it then ignores the time machine and the reference time zone.

@@ -37,8 +37,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   and their own `Tests` package only. Live values read `\.date`/`\.calendar` at call time, never
   take a clock from `bootstrap`.
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
-- `ios/Domain`: pure rules (Foundation only): kids, routines, schedule items, `DayPlanner`, `SeriesEdits`,
-  copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor).
+- `ios/Domain`: pure rules (Foundation and `//ios/Strings` only): kids, routines, schedule items,
+  `DayPlanner`, `SeriesEdits`, copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor).
 - Outside data (time, calendar and time zone, locale, device, bundle, settings, launch arguments)
   comes only through dependencies (`\.date`, `\.calendar`, `\.continuousClock`, clients), read in
   reducers or Live values; the reference time zone is set once in `bootstrap`.
@@ -61,6 +61,7 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
 - Every crayon shape has a fixed seed per part (`CrayonStyle.Seed`).
 - Pictures only through `KitIcon(slot)`, so kid drawings can replace them later.
+- Copy only through `L10n.tr("key")` and `ios/Strings/Localizable.xcstrings`; `scripts/check-strings.sh` enforces it.
 - Playpen Sans has no arrows or ticks (→ ← ✓). The system fallback for them differs between
   iOS versions (snapshots break on CI), so draw them with a part or symbol, never in text.
 - Public pictures come only from `make art`; never hand-edit generated SVGs. The school mascot
