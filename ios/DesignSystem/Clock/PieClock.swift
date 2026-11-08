@@ -3,7 +3,7 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// The 24-hour crayon pie clock (board A1). The view's frame is the disc (radius 372); hour labels,
+/// The 24-hour crayon pie clock (board A1). The view's frame is the disc (radius 372 × s); hour labels,
 /// the moon and the sun sit outside it, so give the clock room around its frame.
 public struct PieClock: View {
     /// The hub's text: the slot's name and "until 4:30 pm" (the weekday is on the right panel).
@@ -29,6 +29,7 @@ public struct PieClock: View {
     private let plays: [Int: Int]
     private let rigScale: Double
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.sizing) private var sizing
 
     /// Board 0g2 triggers, all from State: a new current slot (its picture hops, the hub text slides
     /// up), a new hour (the hand's disc pulses) and an idle wink (the sun or moon blinks).
@@ -61,7 +62,10 @@ public struct PieClock: View {
         self.motion = motion
     }
 
-    private let r = PieClock.radius
+    /// Spec "Sizing formulas": the clock and everything on it scale by s (R 372 s).
+    private var k: CGFloat { sizing.s }
+    private var r: CGFloat { PieClock.radius * k }
+    private var hubR: CGFloat { Self.hubRadius * k }
 
     public var body: some View {
         ZStack {
@@ -103,9 +107,9 @@ public struct PieClock: View {
             if holdProgress > 0 {
                 Circle()
                     .trim(from: 0, to: holdProgress)
-                    .stroke(CrayonColor.marker, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .stroke(CrayonColor.marker, style: StrokeStyle(lineWidth: 8 * k, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                    .frame(width: 320, height: 320)
+                    .frame(width: 320 * k, height: 320 * k)
             }
         }
         .frame(width: 2 * r, height: 2 * r)
@@ -121,8 +125,8 @@ public struct PieClock: View {
         Canvas { context, _ in
             var path = Path()
             for hour in 0..<24 {
-                path.move(to: point(radius: 378, degrees: Double(hour) * 15))
-                path.addLine(to: point(radius: 392, degrees: Double(hour) * 15))
+                path.move(to: point(radius: 378 * k, degrees: Double(hour) * 15))
+                path.addLine(to: point(radius: 392 * k, degrees: Double(hour) * 15))
             }
             context.stroke(path, with: .color(look.tick), style: StrokeStyle(lineWidth: 3, lineCap: .round))
         }
@@ -134,15 +138,15 @@ public struct PieClock: View {
         ForEach(0..<24, id: \.self) { hour in
             let major = hour % 6 == 0
             Text("\(hour % 12 == 0 ? 12 : hour % 12)")
-                .font(Font(FontRegistrar.font(size: major ? 30 : 24, weight: .semibold)))
+                .font(Font(FontRegistrar.font(size: major ? sizing.fluid(30, 24) : 24, weight: .semibold)))
                 .foregroundStyle(major ? look.majorLabel : look.minorLabel)
-                .position(point(radius: 412, degrees: Double(hour) * 15))
+                .position(point(radius: 412 * k, degrees: Double(hour) * 15))
         }
         .overlay {
-            KitIcon(.actSleep, size: 40).blink(look == .night ? motion.winks : nil, reduceMotion: reduceMotion)
-                .position(x: r, y: r - 412 - 44)
-            KitIcon(.sun, size: 44).blink(look == .day ? motion.winks : nil, reduceMotion: reduceMotion)
-                .position(x: r, y: r + 412 + 46)
+            KitIcon(.actSleep, size: 40 * k).blink(look == .night ? motion.winks : nil, reduceMotion: reduceMotion)
+                .position(x: r, y: r - (412 + 44) * k)
+            KitIcon(.sun, size: 44 * k).blink(look == .day ? motion.winks : nil, reduceMotion: reduceMotion)
+                .position(x: r, y: r + (412 + 46) * k)
         }
         .allowsHitTesting(false)
     }
@@ -151,15 +155,15 @@ public struct PieClock: View {
         ForEach(sectors, id: \.self) { sector in
             let middle = PieClockLayout.degrees(minute: (sector.start + sector.end) / 2)
             if let name = sector.iconName, let slot = KitSlot(rawValue: name),
-               let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: r,
+               let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: PieClock.radius,
                                                     hub: Self.hubRadius) {
-                RiggedKitIcon(slot, size: picture.size, playID: reduceMotion ? 0 : plays[sector.start] ?? 0,
+                RiggedKitIcon(slot, size: picture.size * k, playID: reduceMotion ? 0 : plays[sector.start] ?? 0,
                               scale: rigScale)
                     .hop(sector.isCurrent && !reduceMotion ? motion.slotStart : nil)
-                    .position(point(radius: picture.distance, degrees: middle))
+                    .position(point(radius: picture.distance * k, degrees: middle))
             }
             if sector.showsStar {
-                KitIcon(.star, size: 40).position(point(radius: Self.hubRadius + 36, degrees: middle))
+                KitIcon(.star, size: 40 * k).position(point(radius: (Self.hubRadius + 36) * k, degrees: middle))
             }
         }
         .allowsHitTesting(false)
@@ -169,20 +173,20 @@ public struct PieClock: View {
         let degrees = PieClockLayout.degrees(minute: minute)
         return ZStack {
             Path { path in
-                path.move(to: point(radius: 154, degrees: degrees))
-                path.addLine(to: point(radius: 312, degrees: degrees))
+                path.move(to: point(radius: 154 * k, degrees: degrees))
+                path.addLine(to: point(radius: 312 * k, degrees: degrees))
             }
-            .stroke(CrayonColor.handRed, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+            .stroke(CrayonColor.handRed, style: StrokeStyle(lineWidth: 9 * k, lineCap: .round))
             CrayonSurface(.circle, fill: CrayonFill(color: CrayonColor.handRed, hachure: HachureStyle(degrees: -40)),
                           seed: 3002)
-                .frame(width: 48, height: 48)
+                .frame(width: 48 * k, height: 48 * k)
                 .keyframeAnimator(initialValue: 1.0, trigger: reduceMotion ? 0 : motion.hour) { disc, scale in
                     disc.scaleEffect(scale)
                 } keyframes: { _ in
                     CubicKeyframe(1.3, duration: 0.25)
                     CubicKeyframe(1.0, duration: 0.35)
                 }
-                .position(point(radius: 336, degrees: degrees))
+                .position(point(radius: 336 * k, degrees: degrees))
         }
         .frame(width: 2 * r, height: 2 * r)
         .allowsHitTesting(false)
@@ -194,7 +198,7 @@ public struct PieClock: View {
     /// - two title lines (head 36, 38 apart): 512 and 550, "until" 594.
     /// Lines are placed by baseline, not stacked, because Playpen Sans has tall built-in line gaps.
     private var hubDisc: some View {
-        let title = hub.title.map(Self.hubTitleLines)
+        let title = hub.title.map { Self.hubTitleLines($0, sizing: sizing) }
         let isTwoLines = (title?.lines.count ?? 1) > 1
         let titleBaselines: [CGFloat] = isTwoLines ? [512, 550] : [540]
         let untilBaseline: CGFloat = isTwoLines ? 594 : 590
@@ -202,7 +206,7 @@ public struct PieClock: View {
             if let title {
                 ZStack {
                     ForEach(Array(zip(title.lines, titleBaselines)), id: \.1) { line, baseline in
-                        hubLine(line, size: title.isTitle ? CrayonType.title.size : CrayonType.head.size,
+                        hubLine(line, size: sizing.size(of: title.isTitle ? .title : .head),
                                 weight: .bold, color: CrayonColor.ink, baseline: baseline)
                     }
                 }
@@ -210,12 +214,12 @@ public struct PieClock: View {
                 .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
             }
             if let subtitle = hub.subtitle {
-                hubLine(subtitle, size: CrayonType.body.size, weight: .medium, color: CrayonColor.softText,
+                hubLine(subtitle, size: sizing.size(of: .body), weight: .medium, color: CrayonColor.softText,
                         baseline: untilBaseline)
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.4), value: motion.slotStart)
-        .frame(width: 2 * Self.hubRadius, height: 2 * Self.hubRadius)
+        .frame(width: 2 * hubR, height: 2 * hubR)
         .crayonBackground(.circle, fill: CrayonStyle.paper, seed: 3003)
         .accessibilityHidden(true)
     }
@@ -224,16 +228,18 @@ public struct PieClock: View {
     private func hubLine(_ text: String, size: CGFloat, weight: UIFont.Weight, color: Color,
                          baseline: CGFloat) -> some View {
         let font = FontRegistrar.font(size: size, weight: weight)
-        let top = Self.hubRadius + (baseline - 528) - font.ascender
+        let top = hubR + (baseline - 528) * k - font.ascender
         return Text(text).font(Font(font)).foregroundStyle(color)
             .lineLimit(1).truncationMode(.tail)
-            .frame(maxWidth: Self.headWidth)
-            .position(x: Self.hubRadius, y: top + font.lineHeight / 2)
+            .frame(maxWidth: Self.headWidth * k)
+            .position(x: hubR, y: top + font.lineHeight / 2)
     }
 
-    /// The start of the drawn slot under a tap at `location` in the clock's own frame, if any.
-    public static func slotStart(at location: CGPoint, in sectors: [ClockSector]) -> Int? {
-        PieClockLayout.sector(at: location, in: sectors, radius: radius, hub: hubRadius)?.start
+    /// The start of the drawn slot under a tap at `location` in the clock's own frame (drawn at
+    /// scale `s`), if any.
+    public static func slotStart(at location: CGPoint, in sectors: [ClockSector], scale s: CGFloat = 1) -> Int? {
+        PieClockLayout.sector(at: CGPoint(x: location.x / s, y: location.y / s), in: sectors, radius: radius,
+                              hub: hubRadius)?.start
     }
 
     static let titleWidth: CGFloat = 260
@@ -241,17 +247,20 @@ public struct PieClock: View {
 
     /// The hub title as drawn: title 48 on one line if it fits 260; else head 36 broken at words into
     /// at most two lines within 284 (the second line ends with "…" when the rest is too long).
-    public nonisolated static func hubTitleLines(_ title: String) -> (lines: [String], isTitle: Bool) {
+    public nonisolated static func hubTitleLines(_ title: String, sizing: Sizing = .thirteenInch)
+        -> (lines: [String], isTitle: Bool) {
+        let titleSize = sizing.size(of: .title), headSize = sizing.size(of: .head)
+        let titleWidth = Self.titleWidth * sizing.s, headWidth = Self.headWidth * sizing.s
         func width(_ text: String, _ size: CGFloat) -> CGFloat {
             let font = FontRegistrar.font(size: size, weight: .bold)
             return ceil((text as NSString).size(withAttributes: [.font: font]).width)
         }
-        if width(title, CrayonType.title.size) <= titleWidth { return ([title], true) }
-        if width(title, CrayonType.head.size) <= headWidth { return ([title], false) }
+        if width(title, titleSize) <= titleWidth { return ([title], true) }
+        if width(title, headSize) <= headWidth { return ([title], false) }
         let words = title.split(separator: " ").map(String.init)
         var first = words.first ?? title
         var used = 1
-        while used < words.count, width(first + " " + words[used], CrayonType.head.size) <= headWidth {
+        while used < words.count, width(first + " " + words[used], headSize) <= headWidth {
             first += " " + words[used]
             used += 1
         }

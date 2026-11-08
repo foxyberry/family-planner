@@ -100,6 +100,7 @@ public struct MissionCircle: View {
     private let isCurrent: Bool
 
     public static let size: CGFloat = 112
+    @Environment(\.sizing) private var sizing
 
     public init(picture: KitSlot, name: String, colorIndex: Int, isDone: Bool, isCurrent: Bool) {
         self.init(.picture(picture), name: name, colorIndex: colorIndex, isDone: isDone, isCurrent: isCurrent)
@@ -114,6 +115,9 @@ public struct MissionCircle: View {
         self.isCurrent = isCurrent
     }
 
+    /// 112 × s, never under the 64 kid tap target.
+    private var circle: CGFloat { max(64, Self.size * sizing.s) }
+
     public var body: some View {
         VStack(spacing: Spacing.xs) {
             ZStack {
@@ -121,16 +125,18 @@ public struct MissionCircle: View {
                               seed: CrayonStyle.Seed.mission + UInt32(max(0, colorIndex)))
                 inside
             }
-            .frame(width: Self.size, height: Self.size)
+            .frame(width: circle, height: circle)
             .overlay(alignment: .topTrailing) {
                 if isDone { CheckMark(isDone: true, size: 40).offset(x: Spacing.xxs, y: -Spacing.xxs) }
             }
             Text(name)
                 .font(Font(FontRegistrar.font(size: CrayonType.caption.size, weight: isCurrent ? .bold : .medium)))
                 .foregroundStyle(CrayonColor.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .frame(width: Self.size + Spacing.m)
+                // Never under the 24 floor (spec "Sizing formulas"): a long name wraps instead.
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(width: circle + Spacing.m)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(name)
@@ -140,10 +146,10 @@ public struct MissionCircle: View {
     @ViewBuilder
     private var inside: some View {
         switch content {
-        case let .picture(picture): KitIcon(picture, size: Self.size * 0.64)
+        case let .picture(picture): KitIcon(picture, size: circle * 0.64)
         case let .text(text): Text(verbatim: text).crayonType(.title).foregroundStyle(CrayonColor.ink)
-        case .tick: CheckMark(isDone: true, size: Self.size * 0.56)
-        case let .glyph(glyph): MarkerIcon(glyph, size: Self.size * 0.4)
+        case .tick: CheckMark(isDone: true, size: circle * 0.56)
+        case let .glyph(glyph): MarkerIcon(glyph, size: circle * 0.4)
         }
     }
 }

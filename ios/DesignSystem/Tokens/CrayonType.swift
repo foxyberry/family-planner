@@ -40,15 +40,27 @@ public enum CrayonType: CaseIterable, Sendable {
 }
 
 extension View {
-    /// Applies a crayon text style: font, size, weight and line spacing.
+    /// Applies a crayon text style: font, size, weight and line spacing, at this screen's size
+    /// (spec "Sizing formulas": hero … body shrink to their floors, caption stays 24).
     public func crayonType(_ type: CrayonType) -> some View {
-        font(type.font)
-            .lineSpacing(type.size * (type.lineHeight - 1))
+        modifier(CrayonTypeModifier(type: type, bold: type.weight == .bold))
     }
 
     /// A crayon text style in bold, for the few places a body or caption is bold (way strip labels).
     public func crayonType(_ type: CrayonType, bold: Bool) -> some View {
-        font(Font(FontRegistrar.font(size: type.size, weight: bold ? .bold : .medium)))
-            .lineSpacing(type.size * (type.lineHeight - 1))
+        modifier(CrayonTypeModifier(type: type, bold: bold))
+    }
+}
+
+private struct CrayonTypeModifier: ViewModifier {
+    let type: CrayonType
+    let bold: Bool
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View {
+        let size = sizing.size(of: type)
+        content
+            .font(Font(FontRegistrar.font(size: size, weight: bold ? .bold : .medium)))
+            .lineSpacing(size * (type.lineHeight - 1))
     }
 }

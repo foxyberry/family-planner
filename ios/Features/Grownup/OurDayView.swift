@@ -23,7 +23,7 @@ public struct OurDayView: View {
             GrownupScreen {
                 header
             } content: { grid in
-                HStack(alignment: .top, spacing: GridMetrics.gutter) {
+                HStack(alignment: .top, spacing: grid.screenGutter) {
                     EditClock(sectors: store.sectors, knobs: store.knobs, dragging: store.dragging,
                               dragOrigin: store.dragOrigin, hub: store.hub,
                               onKnobDrag: { store.send(.knobDragged(index: $0, minute: $1)) },

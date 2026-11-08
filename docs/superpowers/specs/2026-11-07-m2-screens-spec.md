@@ -42,6 +42,12 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-08: A2-MVP empty look card moved to (120, 38) so it clears the house; `TimeLeft` speaks full words ("38 minutes").
 - 2026-11-08: A2-MVP stems start at each stop marker's top edge and run 32 up (same visible length on the wave); pictures sit on the stem by their drawn bottom (boards updated, v127).
 - 2026-11-08: sizing formulas for landscape full screen on every iPad replace "Board = screen" and "Other screen sizes": one scale s = min(W/1376, H_safe/1008), positions from the safe top and per-region anchors (left / right / stretch; home panel stretches), type and spacing with floors (caption 24 fixed), pictures and strokes × s. Portrait and windows not covered yet (backlog N10).
+- 2026-11-08: A2-MVP last line: live bus, "Leave in", slide to go and medals are build step 6 of the MVP (user scope change); the timetable strip stays as the car / taxi / walk and no-live view.
+- 2026-11-08: new A2-live (board A2-live): live strip (our stop in the middle, next two buses placed by minutes, chosen bus = first one you can catch, "too soon" faded), header "Leave in" + On time / Leave now! / Ask a grown-up, 30 s refresh and 2 min fallback to the timetable strip, slide to go for kids with an outing, medals from the time only (L1 / L2 rule), done state gains medal; C2 MVP cut (Plan A only, stop code, buses, walk, ride, late grace, LTA key in the Keychain); "Going" row on C3/C4/E5 [proposed].
+- 2026-11-08: **no MVP stage** (user): the morning is one screen, "A2 · Morning", with a timetable look and a live look; ids renamed A2-live → A2, A2-MVP → A2t, A2-MVP-w → A2t-w, A1-MVP → A1m, the old plan-B board → A2b; "MVP data" → "Morning data"; E4 retired (the timetable look replaces it). Change log lines above keep the old names.
+- 2026-11-08: way strip back to the first design (user): straight road at y 240, our stop and home in the middle (x 860), destination at 1150, stops at 170 / 380 / 620 by bus, four trees, no hills; the same strip for the live and the timetable look; timetable mover rules and card place updated; stems and drawn-bottom rule kept. 0a gains "Sizes on every iPad".
+- 2026-11-08: "Going" row drawn (board C3g): Going slots None / Walk / Bus / Car / Taxi, Leave stepper 0–90 step 5 with the leave time, Bus → "Uses Our buses ›".
+- 2026-11-08: answers on the sizing build: the way strip keeps its 1248:340 shape (× s, centred in its region), mission captions take up to two lines in a pitch-wide label (never under 24), "All done!" grows to fit its title (min 400 s).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -78,7 +84,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - **Horizontal position**: every region has an anchor. Default, when a screen does not name one: a region that spans both margins (64 … 1312) **stretches** (left = 64 s, right = W − 64 s); otherwise it is **left**-anchored (x = x_board × s) when its board centre is left of 688, else **right**-anchored (x = W − (1376 − x_board) × s). Named exceptions: the home right panel (A1, A1n, E1, E3, E3b) stretches from 928 s to W − 64 s, so the extra width of a narrower-but-taller iPad goes to the text, not to a gap.
   - **Type**: hero `fluid(144, 96)`, display `fluid(96, 64)`, title `fluid(48, 36)`, head `fluid(36, 30)`, body `fluid(30, 24)`, caption **24 fixed** (still nothing under 24). Mini: 103 / 69 / 36 / 30 / 24 / 24. Use `Font.custom(_:size:relativeTo:)` with the scaled size so Dynamic Type still works on top; do not also use `@ScaledMetric` on the same size. Text that may not fit at its floor wraps or uses `ViewThatFits`; it never shrinks below the floor.
   - **Spacing**: 4, 8, 12 fixed (inside one part). 16 → `fluid(16, 12)`, 24 → `fluid(24, 16)`, 40 → `fluid(40, 28)`, 64 → `fluid(64, 40)`. Grid: margin `fluid(64, 40)`, gutter `fluid(24, 16)`, column = (W − 2 margin − 11 gutter) / 12 (82 at 13").
-  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip height 340 s, its x values × strip width / 1248, its y values × s). Kid tap targets stay ≥ 64 [proposed]. Crayon outlines × s; focus rings and hairlines fixed.
+  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip 1248 s × 340 s, keeping its shape, centred in its stretch region; the paper shows on both sides when the region is wider; labels and the card sit on top at their own type sizes). Kid tap targets stay ≥ 64 [proposed]. Crayon outlines × s; focus rings and hairlines fixed.
   - **Not covered yet**: portrait and resizable windows (iPadOS 26 cannot be refused). Until they are designed (backlog), the same formulas run with s floored at 0.70; content may clip in small windows.
 - **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
 - **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 64.
@@ -227,14 +233,14 @@ Every board and the app follow these. Change them here and on board 00 first.
   - 24 below: "Next" caption 24 `softText`.
   - 8 below: Next row: `KitIcon` 104, gap 24, then the title **head 36 bold** over "at {h:mm am/pm}" body 30 `softText`. Both lines are one line: start time only (the range is on the clock), no wrap; a long title ends with "…". A just-once item keeps its star sticker on the picture.
   - 24 below: time left to that thing: "in" body 30 `softText`, then `TimeLeft` display 96 ("38 min"). Over 60 minutes: "1 h 20 min" in the same size; over 3 h: leave the time left out.
-  - **[later M3]** on school mornings the time left becomes "Leave in" + `TimeLeft` to the leave time + "On time" (boards A1, E1). Same place and sizes, so M2 → M3 swaps the words and the target time. On A1 (two kids) the Next row is hidden on school mornings to leave room for Kid B; E1 (one kid) keeps it under "On time".
-- **Night** (A1n look): the same rule. Next is usually Sleep ("at 8:00 pm") and the time left reads "Bed in" instead of "in". The "Tomorrow · School, leave 7:25 am" row is **[later M3]**.
+  - **With the live bus (build step 5, "A2 live look")** on bus mornings the time left becomes "Leave in" + `TimeLeft` to the leave time + "On time" (boards A1, E1). Same place and sizes; only the words and the target time change. On A1 (two kids) the Next row is hidden on school mornings to leave room for Kid B; E1 (one kid) keeps it under "On time".
+- **Night** (A1n look): the same rule. Next is usually Sleep ("at 8:00 pm") and the time left reads "Bed in" instead of "in". The "Tomorrow · School, leave 7:25 am" row comes with the live bus (build step 5).
 - Kid B block: unchanged (now 160 / next 104 circles, captions "now" / "next").
 
 ### Right panel
 - **Kid A block** (spacing from the board):
   - `KidFace` 48 (Kid A), gap 16, name head 36.
-  - **[later M3]** School mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).
+  - **With the live bus (build step 5)** bus mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).
   - **M2 instead**: Next row + time left, see "Now and next on home".
 - **Kid B block**, 64 below:
   - `KidFace` 48 (Kid B), gap 16, name head 36.
@@ -242,13 +248,13 @@ Every board and the app follow these. Change them here and on board 00 first.
     - "now": 160 circle in crayon `kidApricot` with a 104 picture inside, caption "now" under it.
     - "next": 104 white circle with a 64 picture inside, caption "next".
   - Bottom-aligned.
-- **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2-MVP (MVP) / A2 (M3). Hidden in M2.
-- **Mission morning (MVP, build step 5; board A1-MVP)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
+- **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2. Shows only in the mission morning (below).
+- **Mission morning (board A1m)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
   - "Missions →" shows at the bottom of the panel (E3's "Diary →" is M5, so there is no clash).
-  - Kid A block: face + name, then, if Kid A has an outing (see "MVP data") that has not started and starts within 3 h: "{Place} in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the outing's start ("38 min", "1 h 20 min"). This is the A1 board layout with "{Place} in" instead of "Leave in" and no "On time" line. Otherwise: the Next row without the time left.
+  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: "{Place} in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the outing's start ("38 min", "1 h 20 min"). This is the A1 board layout with "{Place} in" instead of "Leave in" and no "On time" line. Otherwise: the Next row without the time left.
   - Kid B block unchanged.
-  - **Panel fit** (board A1-MVP; 2026-11-08): the panel is the column x 928–1312, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "{Place} in" row 72 (the 80 way picture may stand 8 above the row); 8; "38 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 24; now/next row 160 + 8 + caption. That ends at about y 650. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 220 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 64 → 40. The clock never moves.
-  - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. M3 later swaps "{Place} in" for "Leave in" + "On time".
+  - **Panel fit** (board A1m; 2026-11-08): the panel is the column x 928–1312, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "{Place} in" row 72 (the 80 way picture may stand 8 above the row); 8; "38 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 24; now/next row 160 + 8 + caption. That ends at about y 650. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 220 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 64 → 40. The clock never moves.
+  - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. On a bus morning with live times the Kid A block shows "Leave in" + "On time" instead (see "A2 live look").
 
 ### States
 - Weekend or holiday → E3 layout. One child → E1 layout.
@@ -256,48 +262,86 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 ---
 
-## A2-MVP · Morning missions without live bus data (build step 5; new 2026-11-08, way strip added the same day) [board A2-MVP]
-The MVP mission screen: the A2 layout with **no live data** (no LTA times, bubbles, crowding, "Leave in", slide-to-go or medal; those are N1 / N2). Going somewhere is still the point of the morning, so the top shows the way there (user, 2026-11-08).
+## A2 · Morning: missions and the way there (new 2026-11-08) [boards A2t, A2t-w (timetable look), A2 (live look), A3 (done), A2m (many missions)]
+One morning screen. Its strip region has two looks: the **timetable look** (this section: car, taxi, on foot, and the bus when there are no live times) and the **live look** (the bus with live times, see "A2 live look" below). Going somewhere is the point of the morning, so the top shows the way there (user, 2026-11-08).
 - **Header** (48–128): `RoundButton` 80 with `MarkerGlyph.chevronLeft` 40 → home; "Good morning!" title 48; right: "{Place} in" (body, `softText`) + "{n} min" (title 48), counting to the start of the next outing.
-- **Way strip** (x 64–1312, y 176–516; boards A2-MVP and A2-MVP-w, redrawn 2026-11-08): home on its stem at the left, the destination on its stem at the right, a gently waving crayon road between them. Reference SVGs and the script that drew them: `handover/crayon-ui-ref/way-strip.js` → `svg/way-bus.svg`, `svg/way-car.svg`. Coordinates below are in the strip's own frame (0–1248 × 0–340). Everything here is a `CrayonKit` shape (one `WayStrip` view) except the home, destination and mover pictures, which are `KitIcon`s. No new kit slot.
-  - **Layers, back to front**: ground → hills → trees → stems → road → stops → pictures (home, destination) → labels → mover → card.
+- **Way strip** (x 64–1312, y 176–516; boards A2, A2t, A2t-w, A3; the first design, back by user request 2026-11-08): a straight crayon road with our stop and home in the middle and the destination on the right. Reference: `handover/crayon-ui-ref/way-strip.js` → `svg/way-bus.svg` (with stops), `svg/way-car.svg` (no stops). Coordinates are in the strip's own frame (0–1248 × 0–340). Everything is one `CrayonKit` `WayStrip` view except the home, destination and mover pictures (`KitIcon`s). No new kit slot.
+  - **Layers, back to front**: ground → trees → stems → road → stops → pictures → labels → movers and bubbles → legend or card.
   - **Ground**: crayon rounded rectangle (4, 4, 1240 × 332, radius 36), fill #D6ECC3 (wash 0.22, hachure −35°, gap 12), marker edge 4 ink.
-  - **Hills** (the "background picture"): three crayon humps on a back line at y 170, each a quadratic curve from (a, 170) over the control point ((a + b) / 2, 170 − 2h) to (b, 170): (230, 520, h 86), (600, 860, h 70), (900, 1210, h 92). Fill #A8DB7A (wash 0.3, hachure 30°, gap 7); marker 3 ink on the arc only, no base line.
-  - **Trees**: four lollipop trees, crown circle (crayon #3FAE5A, hachure −40°, gap 4, marker 4 ink) on a trunk (marker 5 ink, from crown centre + r − 4 down 22): (330, 128, r 24), (760, 140, r 22) on the hills; (470, 296, r 20), (960, 296, r 20) under the road.
-  - **Road**: centre line y(x) = 250 + 16 · sin(2π (x − 40) / 584) for x 40–1208 (two gentle waves), drawn as a polyline sampled every 16 pt. Two strokes, round caps: ink #1E1B22 28 wide (roughness 1, bowing 0.6), then green #3FAE5A 17 wide on top (roughness 1.3). One pass each, no multi-stroke, no dashed centre line. Replaces the grey 36 road.
-  - **Home** at x 150 (road y 264.8), **destination** at x 1100 (road y 235.3). Each stands on a dotted stem that starts at the **top edge of its own stop marker** (road y − marker radius: home 28, destination 15) and runs **32** up: marker 5 ink dashes 5 long every 10. So both stems look the same length wherever the wave puts the stop (changed 2026-11-08, user: a fixed 48 from the road centre hid most of the home stem under its big marker). The picture's **drawn bottom** (its opaque bounds, not its box; kit pictures carry some empty margin) sits on the stem top. Home picture 150 (`home`; the canvas shows the private drawing, the app uses the kit slot), destination picture 120. Board values: home stem 380.8–412.8, house box top 252; school stem 364.3–396.3, wolfie box top 246; flag school box top 252.
-  - **Stops**: home stop = white circle r 28, marker 6, with an ink dot r 11 in the middle. Destination stop = white circle r 15, marker 4.5. By bus or shuttle only, three stops between at x 430, 640, 850 (white r 15, marker 4.5); a stop the mover has passed turns ink-filled (marker 3.5, ink fill). By car, taxi or on foot: no stops between.
-  - **Labels** (caption 24 bold, `ink`, centred on the stop, 200 wide): under the home stop, top at road y + 34 ("Our stop" by bus or shuttle, "Home" otherwise); under the destination stop, top at road y + 34 (the place name: "School", "Weekend school").
-  - **Mover** (bus 120, car or taxi 104, shoe 96): x runs linearly from home x + 90 (240) at "leave" − 10 min to destination x − 90 (1010) at the start time, clamped at both ends; y follows the road: the mover box's bottom = y(x) + 20. Before "leave" − 10 min it waits at x 240 (boards: bus waiting, 38 min to go). It rocks as on A2.
-  - **Card**: `CrayonCard` at (406, 38) on A2-MVP and (356, 30) on A2-MVP-w (longer place name); it may cover the hills, never a picture or the mover. It starts with the outing owner's `KidFace` 40 (gap 16), always, so it is clear whose way it is when another kid is chosen; then the two text lines. VoiceOver: "Kid A's way to school, by bus, …".
-  - Destination picture = the outing's picture: `wolfie` for school, the flag for weekend school, `actChurch`, `actSwim`, …
-  - The mover on the road = how the kid goes, from the plan: bus (`busDouble` / `busSingle`, no passengers, no number plate), school shuttle, car, taxi, or on foot (`shoe`). It rocks gently like on A2 (Reduce Motion: still).
-  - By car, taxi or on foot the road has no bus stops, and the home stem is labelled "Home"; by bus the stops and "Our stop" show as on A2 (board A2-MVP-w shows Saturday weekend school by car).
-  - Its place on the road comes from the clock only: home at "leave" minus 10 min, the destination at the start time; in between it moves linearly. No live position. "leave" = the outing's start minus its "leave before" minutes (see "MVP data").
-  - A `CrayonCard` on the strip: "{Place} at {h:mm am}" (head 36) over the way line (caption): "by bus · timetable" / "by shuttle · timetable" (only these run on a timetable), "by car", "by taxi", "on foot". The data value for walking stays `walk`.
-  - **Whose outing** (changed 2026-11-08, user: the road should not vanish when Kid B is chosen): the strip and the header countdown show **the family's next outing**: the earliest slot or item today, of any kid, that has a trip and has not started. It stays the same whichever kid is chosen (a younger kid goes along to the stop, so the morning has one road). "leave at {h:mm am}" next to the chosen kid's name shows only when the chosen kid has their own outing left today; otherwise nothing is there. No outing left for any kid today: the header countdown is empty and the strip region keeps its place and size (Fixed regions) with its **empty look** [proposed]: the same ground, hills and trees, no road, no stops, no mover; the home picture 150 on its stem in the middle (x 624, stem foot at y 250, no stop marker), and a `CrayonCard` "Home all day" (head 36) at (120, 38) with no face, clear of the house (549–699 × 52–202); it may cover the left hill tree. VoiceOver: "No more trips today". The kids and missions stay at 536–968.
+  - **Trees**: four lollipop trees, crown (crayon #3FAE5A, hachure −40°, gap 4, marker 4 ink) on a trunk (marker 5 ink, from the crown centre + r − 4 down 22): (745, 150, r 26), (1010, 120, r 24), (300, 300, r 20), (980, 300, r 22).
+  - **Road**: straight, y 240 from x 28 to 1220. Two strokes, round caps, one pass each: ink #1E1B22 28 wide (roughness 1, bowing 0.6), then green #3FAE5A 17 wide on top (roughness 1.3).
+  - **Our stop / home** at x 860, **destination** at x 1150. Each stands on a dotted stem that starts at the top edge of its stop marker and runs 32 up (marker 5 ink dashes 5 long every 10); the picture's drawn bottom (opaque bounds, not its box) sits on the stem top. Home picture 150 (`home`; the canvas shows the private drawing), destination picture 120: `wolfie` for school, the flag school for weekend school, `actChurch`, `actSwim`, …
+  - **Stops**: home stop = white r 28, marker 6, ink dot r 11. Destination stop = white r 15, marker 4.5. By bus, three stops before ours at x 170, 380, 620 (white r 15, marker 4.5). By car, taxi or on foot: no stops.
+  - **Labels** (caption 24 bold, `ink`, centred on the stop, top at y 274): "Our stop" by bus, "Home" otherwise; the place name under the destination. A label that would cross the strip's right edge (x 1232) is right-aligned to it ("Weekend school").
+  - **Timetable look, mover** (no live times):
+    - By bus: one bus (120, no number) on the road before our stop at x = 860 − min(minutes to "leave", 30) × 800 / 30 (30 min or more sits at x 60); it reaches our stop at "leave". Box bottom at y 260.
+    - By car, taxi or on foot (car or taxi 104, `shoe` 96): waits right of home at x 990 until "leave", then moves linearly to x 1070 at the start time. Box bottom at y 260.
+    - It rocks as on A2 (Reduce Motion: still).
+  - **Timetable look, card**: `CrayonCard` with the outing owner's `KidFace` 40 (gap 16), "{Place} at {h:mm am}" (head 36) over the way line (caption): "by bus · timetable", "by shuttle · timetable", "by car", "by taxi", "on foot". At (236, 38) by bus, (56, 30) otherwise; never over a picture or the mover.
+  - **Empty look** (no outing left for any kid): ground and trees only, no road; home picture 150 in the middle (x 624) on its own short stem; `CrayonCard` "Home all day" at (120, 38), no face.
+  - **Whose outing** (changed 2026-11-08, user: the road should not vanish when Kid B is chosen): the strip and the header countdown show **the family's next outing**: the earliest slot or item today, of any kid, that has a trip and has not started. It stays the same whichever kid is chosen (a younger kid goes along to the stop, so the morning has one road). "leave at {h:mm am}" next to the chosen kid's name shows only when the chosen kid has their own outing left today; otherwise nothing is there. No outing left for any kid today: the header countdown is empty and the strip region keeps its place and size (Fixed regions) with its **empty look** (see "Way strip") [proposed]. The kids and missions stay at 536–968.
 - **Kids and missions** (536–968): the A2 family layout. Kid list on the left (`CrayonRing` 76 + face, `KidBand` on the chosen kid), the chosen kid's name + "leave at {h:mm am}" and one row of 112 mission circles on the right (6 a kid; fold / "+n" rule of A2m beyond that).
-- **All done!** (bottom right, 400 × 96 `KidPillButton` in the chosen kid's colour, star sticker 56): always active; missions help but never lock it. Tap: the kid's row turns "Ready!" (full ring, check badge, no medal), crayon confetti (Reduce Motion: none), then the next unfinished kid is chosen. Everyone ready: the button reads "Back to the clock".
-- **Presentation**: A2-MVP opens over home as a full-screen cover, not on the grown-up stack (no relock, no app-switcher hiding). Ways out: "←" and "Back to the clock". (Main session's call, accepted 2026-11-08.)
+- **All done!** (bottom right, 96 tall, at least 400 s wide and as wide as its title needs, so "Back to the clock" fits at head 36; `KidPillButton` in the chosen kid's colour, star sticker 56): always active; missions help but never lock it. Tap: the kid's row turns "Ready!" (full ring, check badge, no medal), crayon confetti (Reduce Motion: none), then the next unfinished kid is chosen. Everyone ready: the button reads "Back to the clock".
+- **Presentation**: A2 opens over home as a full-screen cover, not on the grown-up stack (no relock, no app-switcher hiding). Ways out: "←" and "Back to the clock". (Main session's call, accepted 2026-11-08.)
 - **Folded and "+n" circles** (board A2m): the folded circle is the kid's 112 crayon circle with the done tick, caption "{n} done". The "+n" circle is **also the kid's crayon circle** (not paper), "+{n}" title 48 bold, caption "{n} more"; tapping it turns the page. On the last page that place holds the back circle: the kid's crayon circle with `MarkerGlyph.chevronLeft`, caption "Back"; tapping it returns to the previous page (with at most 8 missions that is page 1).
 - **Tapping a mission** toggles it (undo allowed); the check draws itself in 0.35 s (Reduce Motion: appears).
 - **Spoken times** (all screens): `TimeLeft` speaks full words, not the shown text: "38 minutes", "1 hour 20 minutes", "1 minute".
 - **VoiceOver**: the strip reads "Kid A's way to school, by bus, 38 minutes, school starts at 7:30 am"; kid rows are tabs; missions are toggles.
-- **M3 / N1** swaps the timetable strip for the live map: bubbles, crowding, "Leave in" and slide-to-go come in the same frame.
+- **Live look**: on a bus morning with live times the same region shows the live look (below); the timetable look is its fallback.
 
 
-### MVP data: missions, trips, done state (2026-11-08, answers for build step 5) [proposed]
+### Morning data: missions, trips, done state (2026-11-08) [proposed]
 - **Missions**: `Mission { id, kid, name, picture: KitSlot, order }`. Morning only, at most 8 per kid, kept in the local store with the schedule.
-  - The circle caption is the name itself (caption 24, one line within the 136 pitch, "…" if longer); the first mission not done is bold. C5 limits a name to 14 characters.
+  - The circle caption is the name itself: caption 24, centred under the circle in a label as wide as the circle's column (pitch 136 s, never under 112), **up to two lines**, broken between words; "…" only if it still does not fit after two lines. The first mission not done is bold. C5 limits a name to 14 characters, which fits two lines at 24 on every iPad. Never shrink below 24.
   - Seed Kid A: Wake up (`sun`) · Brush teeth (`toothbrush`) · Get dressed (`shirt`) · Breakfast (`actBreakfast`) · Pack bag (`backpack`) · Shoes on (`shoe`).
   - Seed Kid B: Wake up (`sun`) · Milk (`babyBottle`) · Shoes (`shoe`).
 - **Trip** (what makes something an outing): an optional `Trip { way, leaveBefore }` on a template slot, an every-week item or a just-once item. **An outing is anything with a trip**; the picture or the name does not decide it.
   - `way`: walk, bus, car, taxi, and shuttle (shuttle stays hidden until N1b). Mover picture: walk `shoe`, bus `busDouble`, car `car`, taxi `taxi`, shuttle `busShuttle`.
   - `leaveBefore`: minutes, 0–90 in steps of 5. leave = start − leaveBefore. The clock still draws the slot or item from its start; the start is the time at the place.
   - Seed: Kid A School slot (Mon–Fri) bus, 5 → "leave at 7:25 am". Kid A Weekend school (Sat) car, 25 → "leave at 8:35 am". Kid A Swimming car, 10. Art club, Birthday and all of Kid B: no trip.
-  - Editing trips is **N1**: C1 "Getting there" (school) and a "Going" row on C3/C4/E5 (board to come). In the MVP, trips come from the seed only; an item without a trip shows no strip, which is fine.
+  - Editing trips: C1 "Getting there" → C2 for the bus, and the "Going" row on C3/C4/E5 (below). Until those are built, trips come from the seed; an item without a trip shows no strip.
 - **Done state**: per kid **per date**: `{ kid, date, doneMissionIds, ready: Bool }`, in the local store. A new date starts at **midnight**, like the clock, so every morning starts empty. Keep 14 days (N2 medals and the M5 diary can read it later); drop older ones. Renaming a mission keeps its done state (it is keyed by id); removing it drops it.
 - **Entry**: home "Missions →" in the mission morning (A1 above). Grown-ups reach C5 from C1 "More → Morning missions" (Kid A) and E6 "Cards" (Kid B).
+
+### A2 live look: the bus with live times (new 2026-11-08) [board A2; A3 for the done state; C2 for settings]
+The same screen with live bus arrivals: same fixed regions, same kids-and-missions block; only the strip region, the header right and the bottom control change. Shuttle (A2s), crowding, the plan B buses (A2b) and the plan B screen come later (backlog).
+- **When**: the family's next outing (see "Whose outing" above) goes by bus, and live times for its stop are fresh (last good answer under 2 min old). Otherwise: the timetable look, whose card line reads "by bus · no live times"; the header then counts to "leave" from the trip's "leave before" with no status.
+- **Header right**: "Leave in" (body, `softText`) + "{n} min" (title 48, unit 24) + status (head 36 with a 28 dot, gap 16):
+  - "On time" (`onTimeText` #17744D, green dot) while the chosen bus still reaches the place by its start.
+  - "Leave now!" (`hurry`) once "Leave in" reaches 0, until the kid slides or the bus is gone.
+  - When the chosen bus can no longer be caught, the next one becomes the chosen bus and "Leave in" counts to it (no "late" word, no red face). No bus reaches the place by the latest time: status "Ask a grown-up" (`softText`), no dot.
+  - "Leave in" = the chosen bus's minutes to our stop − walk minutes (C2). "leave at {h:mm am}" next to the kid's name = now + "Leave in", rounded down to the minute.
+- **Strip region** (176–516), live look: the same way strip (straight road, our stop and home at x 860, stops at 170, 380, 620, destination at 1150; see "Way strip" above).
+  - **Buses**: the next two arrivals of the kid's bus numbers at our stop (LTA gives up to three per number). x = 860 − min(minutes, 30) × 800 / 30 (30 min or more sits at x 60); box bottom at y 260. Picture from the LTA bus type: double deck `busDouble`, single `busSingle`, bendy or mini `busMini`; 120 pt; no passengers (crowding is N1a). Wheels turn and the bus rocks as on A2 (Reduce Motion: still). Between refreshes a bus glides linearly to its new x over 1 s (Reduce Motion: jumps).
+  - **Chosen bus** = the first arrival whose minutes ≥ walk minutes. Bubble (`bubble` art, 220 × 132) above it: number plate (white, 76 × 40, 30 bold) + "{n} min" (head 36, unit 24); second line `KidFace` 32 + "my bus" (caption bold). An earlier arrival that cannot be caught: the bus at 50 % opacity with a small bubble (190 × 104: cream plate + "{n} min" body bold, caption "too soon"). Bubbles sit 8 above the bus, centred on it, kept inside the strip (x 8 … 1240 − width); if the two bubbles would overlap, the "too soon" bubble is left out.
+  - **Legend** at (946, 16): white plate + "my bus" (caption bold). No `CrayonCard` on the live look.
+  - A bus that has reached our stop leaves the map on the next refresh.
+  - VoiceOver: "Live bus map. Bus 1 in 29 minutes, your bus. Leave in 19 minutes, on time." (numbers from the data; full words, see "Spoken times").
+- **Refresh**: every 30 s while the screen is open, and on open; nothing in the background. A failed call keeps the last answer until it is 2 min old, then the timetable fallback shows (no error text for kids; C2 shows the state for grown-ups).
+- **Bottom control** (536–968 region, bottom 968, right-aligned 864 wide): for a kid with an outing today, `SlideToGo` 864 × 96, label "Ready? Slide to go", knob = the way picture (bus). Always awake; missions help but never lock it. A kid with no outing keeps "All done!" (above). On the timetable fallback the slide stays.
+- **After the slide** (board A3): the kid's row turns "Ready! Gold" / "Ready! Silver" / "Ready! Bronze" / "Ready!" (caption bold, `onTimeText`), the medal sits on the progress ring, the header title becomes "Ready, {name}!", crayon confetti (Reduce Motion: none), and the next unfinished kid is chosen. The header keeps counting "Leave in" for the family's outing. Undo: tap the ready row, "Not yet" (one confirm), the medal is dropped.
+- **Medal from the time only** (missions never count):
+  - arrive-by = the outing's start (seed school 7:30 am); latest = start + late grace (C2, default 15 min).
+  - L1 (ideal leave) = the leave time of the last bus (live, at the moment of the slide) whose arrival at our stop + ride minutes ≤ arrive-by. L2 = the same with latest.
+  - Gold: slid at or before L1 − 5 min. Silver: at or before L1. Bronze: at or before L2. After L2: "Ready!" with no medal, never a sad face.
+  - Timetable fallback: L1 = start − leave before; L2 = L1 + late grace.
+- **Done state** gains `readyAt` and `medal: gold | silver | bronze | none` (per kid per date, as in "Morning data").
+- **Home (A1)** on a live bus morning: the Kid A block shows "Leave in" with the 80 pt bus picture, `TimeLeft` display 96 and the status line (the A1 board look) instead of "{Place} in"; the fallback keeps "{Place} in".
+
+### Bus settings (C2 "Our buses") [board C2; first cut proposed]
+- One route per kid with a bus outing ("Plan A · usual"). The Plan B card and "+ Add a route" are hidden (plan B is Next).
+- Rows: **Stop**: type the 5-digit stop code; the app shows the stop's name from the LTA stop list to confirm ("Opp Blk 123" style). **My buses**: chips of the numbers that call at that stop; pick one or more. **Walk to the stop**: −/+ in minutes (S3 stepper, default 10). **Ride**: −/+ minutes (default 10). **Late grace**: 0–30, step 5 (default 15).
+- **Live bus times** row: "Add key" → a secure field for the LTA DataMall key; then "Working ✓" or "Not working · last tried 7:12 am" (caption). The key lives in the Keychain; the stop, numbers and minutes live in the local store.
+- Privacy: stop codes, bus numbers and the key never go into the repo, the seed or tests (tests use made-up values such as stop "00000", bus "1").
+- Entry: C1 "Getting there" (Kid A) → C2.
+
+### Trips on items: the "Going" row [board C3g]
+- C3, C4 and E5 get two rows at the end of the form, under "Skip school holidays" (the form card scrolls to them; board C3g shows it scrolled down, with the top edge fading into the card):
+  - **Going** (label as the other rows): five 88 slot circles with a caption under each, gap 24: None ("–" in `softText`), Walk (`shoe`), Bus (`busDouble`), Car (`car`), Taxi (`taxi`). The chosen one has the pick-blue ring and a bold caption, like "What". Default None.
+  - **Leave** (shown when Going is Walk, Car or Taxi): `−` 72 · "{n} min" (body bold, 112 wide) · `+` 72 · "before · {h:mm am}" (body `softText`, the leave time from the item's start). 0–90 in steps of 5; default 10.
+  - By Bus the Leave row reads "Uses Our buses ›" (body) and opens C2: the stop, buses and walk time come from there.
+- The preview line under the day list adds "Leave {h:mm am} by {way}."
+- Until it is built, trips come from the seed.
 
 ## E1 · Home, one child [board]
 - Same clock and hub as A1.
@@ -308,7 +352,7 @@ The MVP mission screen: the A2 layout with **no live data** (no LTA times, bubbl
 
 ## E3 · Home, weekend or holiday [board]
 - Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
-- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (Next row + time left, "Now and next on home"), then the Kid B block. The weekday is the panel's first line, as on A1. No "No bus today" (the bus is N1, so in the MVP the line only appeared on weekends and read oddly).
+- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (Next row + time left, "Now and next on home"), then the Kid B block. The weekday is the panel's first line, as on A1. No "No bus today" (the line only appeared on weekends and read oddly).
   - **Weekday school holiday**: the panel's weekday line reads "{Weekday} · Holiday" (see Hub text). That is the only holiday sign on the kid screen; the clock already uses the Sun template.
   - Kid B block as A1.
 - Main button "Diary →" → B2. **[later M5]**: hidden in M2.
@@ -377,8 +421,8 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 | Sky switch | as above | 1.2 s | crossfade 0.3 s |
 | New slot | the slot picture hops 1 → 1.15 → 1; hub text slides up | 0.4 s | text changes in place |
 | On the hour | the red hand disc pulses once | 0.6 s | none |
-| Mission done (M3) | the check draws itself, 6 crayon sparks | 0.35 s | check appears |
-| Slide to go (M3) | bus wheels spin while dragging; a hop and a green wash at the end | while dragging | colour change only |
+| Mission done | the check draws itself, 6 crayon sparks | 0.35 s | check appears |
+| Slide to go (build step 5) | bus wheels spin while dragging; a hop and a green wash at the end | while dragging | colour change only |
 | Gold (M3) | medal drops in and swings, crayon confetti | 1.5 s | medal fades in |
 | Living lines (later, ST-8) | outlines redraw in 3 frames at 6 fps, celebration screens only | 2 s | still |
 | Idle wink | after 20 s without a touch, the sun or moon picture on the clock blinks | 0.3 s | none |
@@ -481,10 +525,10 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - "Days" → seven read-only `DayChip` 56 (on = school day).
   - "Hours" → "{start} – {end}" in "h:mm am" form.
   - "Holidays" → "Term {n} ends {Day d Mon}" or "No holidays set", "›" → C7 (later; hidden in M2).
-- **Getting there** **[later M3]**: hidden in M2.
+- **Getting there** → C2 (build step 5, with the live bus); hidden until then.
   - "To school" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2.
   - "Home time" → "{h:mm} · pick-up at the gate", "›" → C2.
-- **More** (board, 2026-11-08): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0) (the board's "ready by" line is N2), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
+- **More** (board, 2026-11-08): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
 
 ### Side column
 - "After school" (head, h 52), then one `ListRow`-style item per every-week item:
@@ -510,16 +554,16 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - Next row: link "Add when they start" → S2. **[later M4]**: hidden in M2.
   - Use "they" in public copy.
 - **Morning**:
-  - "Cards" → "Wake up · Milk · Shoes" ("Nothing yet" when empty), "›" → C5 with the Kid B tab. Shown from build step 5 (MVP); hidden before.
+  - "Cards" → "Wake up · Milk · Shoes" ("Nothing yet" when empty), "›" → C5 with the Kid B tab. Shown once missions are built; hidden before.
   - "Taps" → "A grown-up taps for now".
 - Side column: "Every week" with "Nothing yet" when empty, "Add every week", then "Just once" with items and "Add once". Same rules as C1.
 
 
-## C5 · Morning missions (grown-up editor; MVP, build step 5) [board C5, details proposed]
+## C5 · Morning missions (grown-up editor) [board C5, details proposed]
 - `GrownupScreen`. Header: `RoundButton` "←" 80 → C1 (or E6), "Morning missions" (title 48), kid `CrayonTabs` (Kid A, Kid B with `KidFace` 40) at the right.
 - Left: `PaperCard` columns 1–8, y 176–968:
   - Caption "Same order as {Kid}'s morning screen".
-  - One row per mission, 72 tall, divider lines: drag handle `MarkerGlyph` ≡ (soft), `KitIcon` 48, name (body), "›" (body `softText`). Drag ≡ to reorder; the order is the circle order on A2-MVP.
+  - One row per mission, 72 tall, divider lines: drag handle `MarkerGlyph` ≡ (soft), `KitIcon` 48, name (body), "›" (body `softText`). Drag ≡ to reorder; the order is the circle order on A2t.
   - "+ Add a mission ({n} of 8)" (`MarkerGlyph.plus` in a 40 ring + body `link`). At 8 the row is replaced by "8 is the most" (caption).
   - Footer caption: "Drag {handle} to change the order. Tap a row to rename it or change its picture. Up to 8 fit on the morning screen; fewer is easier." {handle} is `MarkerGlyph.handle` drawn inline at the text size (24, `softText`), the same rule as inline arrows; never the ≡ character, which Playpen Sans lacks.
 - Tap a row or "Add" → a `ConfirmCard`-style editor, **centred over a dimmed screen** (tapping the dim area cancels without saving; main session's call, accepted 2026-11-08): Name `CrayonField` (max 14), `IconPicker` (kit pictures, no "+" until M6), "Remove" (`lateText`, edit only; asks "Remove {name}?" / "Remove" / "Keep") and "Save" (`InkButton`). A new mission defaults to `star` and an empty name; Save is off while the name is empty.

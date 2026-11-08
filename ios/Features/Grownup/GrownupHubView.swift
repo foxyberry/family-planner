@@ -20,7 +20,7 @@ public struct GrownupHubView: View {
             header
         } content: { grid in
             if store.kid != nil {
-                HStack(alignment: .top, spacing: GridMetrics.gutter) {
+                HStack(alignment: .top, spacing: grid.screenGutter) {
                     PaperCard(seed: 21) { aboutCard }
                         .frame(width: grid.span(8))
                     sideColumn

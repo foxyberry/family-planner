@@ -14,7 +14,7 @@ public struct KidScreen<Header: View, Body: View>: View {
 
     public var body: some View {
         GeometryReader { geometry in
-            let grid = GridMetrics(width: BoardMetrics.size.width)
+            let grid = GridMetrics(width: geometry.size.width)
             VStack(alignment: .leading, spacing: 0) {
                 header
                     .frame(maxWidth: .infinity,
@@ -30,7 +30,6 @@ public struct KidScreen<Header: View, Body: View>: View {
             .padding(.horizontal, GridMetrics.margin)
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
         }
-        .boardFrame()
         .background(CrayonColor.paper.ignoresSafeArea())
         .foregroundStyle(CrayonColor.ink)
     }
@@ -58,7 +57,7 @@ public struct KidFullScreen<Body: View>: View {
 
     public var body: some View {
         content()
-            .boardFrame()
+            .modifier(FullScreenFrame())
             .background { page.ignoresSafeArea() }
             .foregroundStyle(look.ink)
             // Status bar text: dark on day screens, light at night (spec "Status bar").
@@ -84,3 +83,18 @@ public struct KidFullScreen<Body: View>: View {
         }
     }
 }
+
+/// Kid full screens are laid out in full-screen space (spec "Sizing formulas"): y 0 is the top of
+/// the glass, the window's whole size, top-leading, clipped. Screens place their regions with
+/// `Sizing` (`y`, `left`, `right`, `stretch`), so content never grows or centres the frame.
+struct FullScreenFrame: ViewModifier {
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View {
+        content
+            .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
+            .clipped()
+            .ignoresSafeArea()
+    }
+}
+

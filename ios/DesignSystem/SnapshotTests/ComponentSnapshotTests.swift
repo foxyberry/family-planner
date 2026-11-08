@@ -436,9 +436,11 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     func testKidFullScreen() {
+        // The frame fills the window the Sizing describes, from its top-left corner.
         snap(KidFullScreen {
             Text("Home: the clock uses the whole screen").crayonType(.head).padding(Spacing.m)
         }
+        .environment(\.sizing, Sizing(width: 720, height: 160, safeTop: 0))
         .frame(width: 720, height: 160))
     }
 

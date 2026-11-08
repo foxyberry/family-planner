@@ -23,28 +23,30 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
         self.init(header: header, content: { _ in content() }, primaryAction: { _ in primaryAction() })
     }
 
+    @Environment(\.sizing) private var sizing
+
     public var body: some View {
         GeometryReader { geometry in
-            let grid = GridMetrics(width: geometry.size.width)
+            let grid = GridMetrics(width: geometry.size.width, sizing: sizing)
             VStack(alignment: .leading, spacing: 0) {
                 header
                     .frame(maxWidth: .infinity,
                            minHeight: GridMetrics.headerBottom - GridMetrics.headerTop,
                            alignment: .leading)
-                    .padding(.top, GridMetrics.headerTop)
-                    .padding(.horizontal, GridMetrics.margin)
+                    .padding(.top, sizing.y(GridMetrics.headerTop))
+                    .padding(.horizontal, grid.screenMargin)
                 ScrollView {
                     content(grid)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, GridMetrics.margin)
-                        .padding(.vertical, Spacing.m)
+                        .padding(.horizontal, grid.screenMargin)
+                        .padding(.vertical, sizing.space(Spacing.m))
                 }
                 .scrollDismissesKeyboard(.interactively)
             }
             .safeAreaInset(edge: .bottom) {
                 primaryAction(grid)
-                    .padding(.horizontal, GridMetrics.margin)
-                    .padding(.vertical, Spacing.m)
+                    .padding(.horizontal, grid.screenMargin)
+                    .padding(.vertical, sizing.space(Spacing.m))
                     .frame(maxWidth: .infinity)
                     .background(CrayonColor.paper)
             }

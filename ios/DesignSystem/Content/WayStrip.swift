@@ -65,15 +65,33 @@ public struct WayStrip: View {
 
     static let roadPoints: [CGPoint] = stride(from: CGFloat(40), through: 1208, by: 16).map { CGPoint(x: $0, y: roadY($0)) }
 
+    /// The drawing (no text) is laid out on the 1248 × 340 board and scaled down to the strip;
+    /// the labels and the card are set on top at their scaled places in real type sizes, so they
+    /// stay crisp and keep their floors (spec "Sizing formulas").
     public var body: some View {
         GeometryReader { geometry in
-            let scale = min(geometry.size.width / Self.size.width, geometry.size.height / Self.size.height)
-            board
-                .frame(width: Self.size.width, height: Self.size.height)
-                .scaleEffect(scale, anchor: .topLeading)
+            let k = min(geometry.size.width / Self.size.width, geometry.size.height / Self.size.height)
+            ZStack(alignment: .topLeading) {
+                board
+                    .frame(width: Self.size.width, height: Self.size.height)
+                    .scaleEffect(k, anchor: .topLeading)
+                texts(k)
+            }
+            .frame(width: Self.size.width * k, height: Self.size.height * k, alignment: .topLeading)
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
-        .aspectRatio(Self.size.width / Self.size.height, contentMode: .fit)
         .accessibilityElement(children: .ignore)
+    }
+
+    @ViewBuilder private func texts(_ k: CGFloat) -> some View {
+        if isHomeAllDay {
+            // At (120, 38), clear of the house (549–699 × 52–202).
+            card.offset(x: 120 * k, y: 38 * k)
+        } else {
+            label(homeLabel, x: Self.homeX, k: k)
+            label(destinationLabel, x: Self.destinationX, k: k)
+            card.frame(width: Self.size.width * k, alignment: .center).offset(y: 38 * k)
+        }
     }
 
     private var moverX: CGFloat { Self.moverStart + (Self.moverEnd - Self.moverStart) * progress }
@@ -84,8 +102,6 @@ public struct WayStrip: View {
                 scenery
                 stems([(Self.homeAllDayX, 250)])
                 picture(KitIcon(.home, size: 150), slot: .home, size: 150, x: Self.homeAllDayX, stemFoot: 250)
-                // At (120, 38), clear of the house (549–699 × 52–202).
-                card.fixedSize().offset(x: 120, y: 38)
             }
             .frame(width: Self.size.width, height: Self.size.height, alignment: .topLeading)
         } else {
@@ -104,10 +120,7 @@ public struct WayStrip: View {
             picture(KitIcon(.home, size: 150), slot: .home, size: 150, x: Self.homeX, stemFoot: Self.homeStemFoot)
             picture(KitIcon(destination, size: 120), slot: destination, size: 120, x: Self.destinationX,
                     stemFoot: Self.destinationStemFoot)
-            label(homeLabel, x: Self.homeX)
-            label(destinationLabel, x: Self.destinationX)
             moverView
-            tripCard
         }
         .frame(width: Self.size.width, height: Self.size.height, alignment: .topLeading)
     }
@@ -227,11 +240,12 @@ public struct WayStrip: View {
             .offset(x: x - size / 2, y: stemFoot - Self.stemLength - bottom)
     }
 
-    private func label(_ text: String, x: CGFloat) -> some View {
+    private func label(_ text: String, x: CGFloat, k: CGFloat) -> some View {
         Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink)
             .multilineTextAlignment(.center)
-            .frame(width: 200)
-            .offset(x: x - 100, y: Self.roadY(x) + 34)
+            .fixedSize()
+            .frame(width: 200 * k)
+            .offset(x: (x - 100) * k, y: (Self.roadY(x) + 34) * k)
     }
 
     /// Bus 120, car or taxi 104, shoe 96; the box bottom sits 20 below the road line.
@@ -248,11 +262,6 @@ public struct WayStrip: View {
         return DrivingKitIcon(mover, size: size)
             .frame(width: size, height: size)
             .offset(x: x - size / 2, y: Self.roadY(x) + 20 - size)
-    }
-
-    /// The trip card sits over the hills, centred across the strip, 38 from the top.
-    private var tripCard: some View {
-        card.frame(width: Self.size.width, alignment: .center).offset(y: 38)
     }
 
     private var card: some View {
