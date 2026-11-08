@@ -12,6 +12,10 @@ public final class DebugModel {
     public let core: DebugCore
     public let calendar: Calendar
     @ObservationIgnored private let defaults: UserDefaults
+    /// On a real iPad the bubble sits over the kids' screens, so the menu asks for the grown-up unlock.
+    @ObservationIgnored private let requiresUnlock: Bool
+    /// The real Face ID check, never the "Skip Face ID" wrapper.
+    @ObservationIgnored private let unlock: @Sendable (String) async -> ParentAuthOutcome
 
     public var settings: DebugSettings {
         didSet {
@@ -26,15 +30,30 @@ public final class DebugModel {
     /// `bootstrap` gave the store, so `DebugOverlay` finds the model here.
     public private(set) static var installed: DebugModel?
 
-    public init(core: DebugCore, defaults: UserDefaults, calendar: Calendar) {
+    public init(core: DebugCore, defaults: UserDefaults, calendar: Calendar, requiresUnlock: Bool = false,
+                unlock: @escaping @Sendable (String) async -> ParentAuthOutcome = { _ in .success }) {
         self.core = core
         self.defaults = defaults
         self.calendar = calendar
+        self.requiresUnlock = requiresUnlock
+        self.unlock = unlock
         settings = DebugSettings.load(from: defaults)
         core.update(settings)
     }
 
     public var isTravelling: Bool { settings.time != nil }
+
+    /// Opens the menu: at once on a simulator, after Face ID on a device (no Face ID set up opens it,
+    /// like the grown-up lock).
+    public func menuTapped() async {
+        if requiresUnlock {
+            switch await unlock("Open the debug menu") {
+            case .success, .notAvailable: break
+            case .notRecognised, .cancelled, .lockedOut: return
+            }
+        }
+        isMenuShown = true
+    }
 
     public func travel(to date: Date) {
         settings.time = TimeTravel(anchor: date, realAnchor: core.realDate(), speed: settings.time?.speed ?? 1)
@@ -62,11 +81,17 @@ extension DebugModel {
                                arguments: [String] = ProcessInfo.processInfo.arguments,
                                defaults: UserDefaults = .standard) {
         let core = DebugCore(settings: DebugSettings())
-        let model = DebugModel(core: core, defaults: defaults, calendar: dependencies.calendar)
+        let live = dependencies.parentAuth
+        #if targetEnvironment(simulator)
+        let requiresUnlock = false
+        #else
+        let requiresUnlock = true
+        #endif
+        let model = DebugModel(core: core, defaults: defaults, calendar: dependencies.calendar,
+                               requiresUnlock: requiresUnlock, unlock: live.authenticate)
         model.settings.apply(LaunchOptions(arguments: arguments, calendar: dependencies.calendar),
                              realNow: core.realDate())
         dependencies.date = DateGenerator { core.now() }
-        let live = dependencies.parentAuth
         dependencies.parentAuth.authenticate = { reason in
             core.skipsFaceID ? .success : await live.authenticate(reason)
         }

@@ -220,3 +220,56 @@ final class DebugInstallTests: XCTestCase {
         XCTAssertEqual([parts.year, parts.month, parts.day, parts.hour, parts.minute], [2026, 11, 9, 7, 30])
     }
 }
+
+/// On a real iPad the bubble sits over the kids' screens, so its menu (Skip Face ID, time machine)
+/// needs the same grown-up unlock. Simulators open it at once.
+@MainActor
+final class DebugMenuGateTests: XCTestCase {
+    private func model(outcome: ParentAuthOutcome, requiresUnlock: Bool,
+                       asked: LockIsolated<[String]> = .init([])) throws -> DebugModel {
+        let suite = "fp.debug.tests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        return DebugModel(core: DebugCore(settings: DebugSettings()), defaults: defaults,
+                          calendar: Calendar(identifier: .gregorian), requiresUnlock: requiresUnlock,
+                          unlock: { reason in
+                              asked.withValue { $0.append(reason) }
+                              return outcome
+                          })
+    }
+
+    func testSimulatorOpensWithoutAsking() async throws {
+        let asked = LockIsolated<[String]>([])
+        let model = try model(outcome: .notRecognised, requiresUnlock: false, asked: asked)
+        await model.menuTapped()
+        XCTAssertTrue(model.isMenuShown)
+        XCTAssertEqual(asked.value, [])
+    }
+
+    func testDeviceOpensAfterFaceID() async throws {
+        let asked = LockIsolated<[String]>([])
+        let model = try model(outcome: .success, requiresUnlock: true, asked: asked)
+        await model.menuTapped()
+        XCTAssertTrue(model.isMenuShown)
+        XCTAssertEqual(asked.value, ["Open the debug menu"])
+    }
+
+    func testDeviceStaysClosedForAWrongFace() async throws {
+        let model = try model(outcome: .notRecognised, requiresUnlock: true)
+        await model.menuTapped()
+        XCTAssertFalse(model.isMenuShown)
+    }
+
+    func testDeviceWithoutFaceIDOpensLikeTheGrownUpLock() async throws {
+        let model = try model(outcome: .notAvailable, requiresUnlock: true)
+        await model.menuTapped()
+        XCTAssertTrue(model.isMenuShown)
+    }
+
+    func testTheGateIgnoresSkipFaceID() async throws {
+        let model = try model(outcome: .notRecognised, requiresUnlock: true)
+        model.settings.skipsFaceID = true
+        await model.menuTapped()
+        XCTAssertFalse(model.isMenuShown, "Skip Face ID must not open its own switch")
+    }
+}

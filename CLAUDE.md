@@ -40,7 +40,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   never `date` differences.
 - `ios/DebugTools`: debug builds only (`#if DEBUG` in every file). Floating bubble + menu: time
   machine (feeds `\.date`; `make run NOW=2026-11-09T07:30 SPEED=60`), layout grid, flags
-  (Skip Face ID). New developer switches go here, never into release code paths. System UI is
+  (Skip Face ID). On a real iPad the menu opens only after Face ID (the bubble sits over kids'
+  screens). New developer switches go here, never into release code paths. System UI is
   fine there; product screens still use only `DesignSystem`.
 
 ## Design system (crayon)

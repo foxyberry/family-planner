@@ -29,7 +29,7 @@ public struct DebugOverlay: View {
 }
 
 /// Drag it anywhere; it settles on the nearer edge, or tucks half away when pushed into it.
-/// Tap a tucked bubble to bring it out, tap again for the menu.
+/// Tap a tucked bubble to bring it out, tap again for the menu (Face ID first on a real iPad).
 struct DebugBubble: View {
     @Bindable var model: DebugModel
     let screen: CGSize
@@ -73,7 +73,7 @@ struct DebugBubble: View {
             if dock.tucked {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) { model.settings.bubble.tucked = false }
             } else {
-                model.isMenuShown = true
+                Task { await model.menuTapped() }
             }
         }
         .frame(width: screen.width, height: screen.height)
