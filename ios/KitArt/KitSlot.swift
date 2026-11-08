@@ -23,3 +23,10 @@ public enum KitSlot: String, CaseIterable, Sendable {
     // Developer tools (debug builds)
     case debugLadybug
 }
+
+public extension KitSlot {
+    /// The picture saved under `iconName`, or the play picture when the name is unknown.
+    init(iconName: String) {
+        self = KitSlot(rawValue: iconName) ?? .actPlay
+    }
+}

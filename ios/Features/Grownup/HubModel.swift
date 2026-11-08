@@ -1,5 +1,6 @@
 import Domain
 import Foundation
+import Strings
 
 public struct HubRow: Equatable, Sendable {
     public var key: String
@@ -8,6 +9,22 @@ public struct HubRow: Equatable, Sendable {
     public init(key: String, value: String) {
         self.key = key
         self.value = value
+    }
+}
+
+/// A titled block of the About card. The school's days are their own row kind, drawn as day chips.
+public struct HubSection: Equatable, Sendable {
+    public enum Row: Equatable, Sendable {
+        case text(HubRow)
+        case schoolDays(key: String, days: Set<Weekday>)
+    }
+
+    public var title: String
+    public var rows: [Row]
+
+    public init(title: String, rows: [Row]) {
+        self.title = title
+        self.rows = rows
     }
 }
 
@@ -20,27 +37,50 @@ public struct HubItemRow: Equatable, Identifiable, Sendable {
 
 /// The text of the Our kids hub (boards C1, E6).
 public enum HubModel {
+    /// About, then School for a school kid, or Nursery and Morning for a kid at home.
+    public static func sections(kid: Kid, routines: [Routine]) -> [HubSection] {
+        let about = HubSection(title: L10n.tr("hub.about"), rows: aboutRows(kid: kid, routines: routines).map(HubSection.Row.text))
+        guard let school = kid.school else {
+            return [about,
+                    HubSection(title: L10n.tr("hub.nursery"),
+                               rows: [.text(HubRow(key: L10n.tr("hub.nursery"), value: L10n.tr("hub.nursery.not_yet")))]),
+                    HubSection(title: L10n.tr("hub.morning"),
+                               rows: [.text(HubRow(key: L10n.tr("hub.morning.taps"),
+                                                   value: L10n.tr("hub.morning.taps.value")))])]
+        }
+        var rows = schoolRows(kid: kid).map(HubSection.Row.text)
+        rows.insert(.schoolDays(key: L10n.tr("hub.school.days"), days: school.days), at: 1)
+        return [about, HubSection(title: L10n.tr("hub.school"), rows: rows)]
+    }
+
+    /// The heading over the every-week items.
+    public static func weeklyHeading(kid: Kid) -> String {
+        kid.school == nil ? L10n.tr("hub.weekly.every_week") : L10n.tr("hub.weekly.after_school")
+    }
+
     public static func aboutRows(kid: Kid, routines: [Routine]) -> [HubRow] {
         let blocks = routines.first { $0.kid == kid.id && $0.dayKind == .schoolDay }?.blocks ?? []
         let sleeps = blocks.filter { $0.kind == .sleep }
         let wake = sleeps.first { $0.start == 0 }?.end
         let bed = sleeps.first { $0.end == 1440 }?.start
         let nap = sleeps.first { $0.start != 0 && $0.end != 1440 }
-        let age = kid.school == nil ? "\(kid.age) · at home" : "\(kid.age) · \(kid.schoolYear ?? "")"
+        let age = kid.school == nil
+            ? L10n.tr("hub.about.age.home", kid.age) : L10n.tr("hub.about.age.school", kid.age, kid.schoolYear ?? "")
         var day: [String] = []
-        if kid.school != nil, let wake { day.append("Up \(TimeText.clock(wake))") }
-        if let nap { day.append("Nap \(TimeText.clock(nap.start))–\(TimeText.clock(nap.end))") }
-        if let bed { day.append("Bed \(TimeText.clock(bed))") }
-        return [HubRow(key: "Age", value: age), HubRow(key: "Day", value: day.joined(separator: " · "))]
+        if kid.school != nil, let wake { day.append(L10n.tr("hub.about.up", TimeText.clock(wake))) }
+        if let nap { day.append(L10n.tr("hub.about.nap", TimeText.clock(nap.start), TimeText.clock(nap.end))) }
+        if let bed { day.append(L10n.tr("hub.about.bed", TimeText.clock(bed))) }
+        return [HubRow(key: L10n.tr("hub.about.age"), value: age),
+                HubRow(key: L10n.tr("hub.about.day"), value: day.joined(separator: " · "))]
     }
 
-    /// School name, hours and holidays. The school days row is drawn as day chips by the view.
+    /// School name, hours and holidays (`sections` adds the school days after the name).
     public static func schoolRows(kid: Kid) -> [HubRow] {
         guard let school = kid.school else { return [] }
         return [
-            HubRow(key: "School", value: school.name),
-            HubRow(key: "Hours", value: "\(TimeText.withPeriod(school.start)) – \(TimeText.withPeriod(school.end))"),
-            HubRow(key: "Holidays", value: "No holidays set"),
+            HubRow(key: L10n.tr("hub.school"), value: school.name),
+            HubRow(key: L10n.tr("hub.school.hours"), value: "\(TimeText.withPeriod(school.start)) – \(TimeText.withPeriod(school.end))"),
+            HubRow(key: L10n.tr("hub.school.holidays"), value: L10n.tr("hub.school.no_holidays")),
         ]
     }
 

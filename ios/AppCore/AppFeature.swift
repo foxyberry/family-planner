@@ -4,6 +4,7 @@ import Foundation
 import Grownup
 import Home
 import ParentAuthClient
+import Strings
 import SwiftUI
 
 /// Root of the app. Lifecycle events arrive here as actions so they can be tested
@@ -114,7 +115,7 @@ public struct AppFeature {
                     if idle >= Self.idleLimit {
                         relock(&state)
                     } else if idle >= Self.idleLimit - Self.countdown {
-                        state.relockCaption = "Locks in 0:\(String(format: "%02d", Self.idleLimit - idle))"
+                        state.relockCaption = L10n.tr("relock.countdown", Self.idleLimit - idle)
                     } else {
                         state.relockCaption = nil
                     }
@@ -210,7 +211,7 @@ public struct AppFeature {
 
     private func authenticate() -> Effect<Action> {
         .run { [parentAuth] send in
-            await send(.parentAuthResponse(parentAuth.authenticate("Open grown-up screens")))
+            await send(.parentAuthResponse(parentAuth.authenticate(L10n.tr("auth.reason"))))
         }
     }
 

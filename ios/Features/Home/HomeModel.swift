@@ -1,6 +1,7 @@
 import DesignSystem
 import Domain
 import Foundation
+import Strings
 
 /// A row of the "Next" list or the day-off item (boards E1, E3).
 public struct NextRow: Equatable, Sendable {
@@ -28,12 +29,13 @@ public enum HomeModel {
     /// The NOW rule: the slot's name "until" its end; in a gap "Free time" until the next slot;
     /// with no slots at all "Nothing planned". Sleep before midnight runs on to the morning's wake-up.
     public static func hub(_ slots: [Slot], minute: Int) -> PieClock.Hub {
-        guard !slots.isEmpty else { return PieClock.Hub(title: "Nothing planned", subtitle: nil) }
+        guard !slots.isEmpty else { return PieClock.Hub(title: L10n.tr("home.hub.nothing"), subtitle: nil) }
         let now = DayPlanner.now(at: minute, in: slots)
         if let current = now.current {
-            return PieClock.Hub(title: current.title, subtitle: "until \(TimeText.clock(end(of: current, in: slots)))")
+            return PieClock.Hub(title: current.title, subtitle: L10n.tr("home.hub.until", TimeText.clock(end(of: current, in: slots))))
         }
-        return PieClock.Hub(title: "Free time", subtitle: now.next.map { "until \(TimeText.clock($0.start))" })
+        return PieClock.Hub(title: L10n.tr("home.hub.free"),
+                            subtitle: now.next.map { L10n.tr("home.hub.until", TimeText.clock($0.start)) })
     }
 
     /// Up to `limit` slots after the current one (or after now in a gap).
@@ -50,9 +52,8 @@ public enum HomeModel {
     }
 
     public static func accessibilityLabel(kidName: String, slots: [Slot], minute: Int) -> String {
-        let current = DayPlanner.now(at: minute, in: slots).current?.title ?? "Free time"
-        return "\(kidName)'s day as a 24-hour clock. Midnight at the top, noon at the bottom. "
-            + "Now \(TimeText.clock(minute)), \(current)."
+        let current = DayPlanner.now(at: minute, in: slots).current?.title ?? L10n.tr("home.hub.free")
+        return L10n.tr("home.clock.label", kidName, TimeText.clock(minute), current)
     }
 
     /// A slot that ends at midnight continues into the same kind of slot that starts the day.

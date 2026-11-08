@@ -245,6 +245,18 @@ final class ComponentSnapshotTests: XCTestCase {
         }
     }
 
+    /// Board 0f: the shared grown-up header (Back, title, optional tabs, "Grown-ups only" or the countdown).
+    func testGrownupHeader() {
+        let width = Self.grid.span(12)
+        snap(GrownupHeader(title: "Our kids", onBack: {}) {
+            CrayonTabs(selection: .constant(0), items: [(0, "Kid A", CrayonColor.kidABlue), (1, "Kid B", CrayonColor.kidBOrange)])
+        }, width: width, named: "tabs")
+        snap(GrownupHeader(title: "Edit Swimming", caption: "Grown-ups only · behind the parent lock", onBack: {}),
+             width: width, named: "caption")
+        snap(GrownupHeader(title: "Edit Saturday language school and lunch with grandparents", onBack: {})
+            .environment(\.relockCaption, "Locks in 0:12"), width: width, named: "countdownLongTitle")
+    }
+
     // MARK: - Helpers
 
     private func slide(_ state: SlideToGoModel.Phase) -> SlideToGo {

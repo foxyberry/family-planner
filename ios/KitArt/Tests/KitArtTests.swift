@@ -13,6 +13,11 @@ final class KitArtTests: XCTestCase {
         }
     }
 
+    func testIconNameFallsBackToPlay() {
+        XCTAssertEqual(KitSlot(iconName: "actSwim"), .actSwim)
+        XCTAssertEqual(KitSlot(iconName: "notAPicture"), .actPlay)
+    }
+
     func testEverySlotHasAnAsset() {
         for slot in KitSlot.allCases {
             XCTAssertNotNil(BundledKitArt.publicImage(for: slot), "\(slot.rawValue) has no picture")

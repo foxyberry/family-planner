@@ -17,7 +17,7 @@ final class AppDelegate: AppDelegateBase {
     override func bootstrap(_ dependencies: inout DependencyValues) {
         dependencies.parentAuth = .live
         dependencies.holidays = .live
-        dependencies.scheduleStore = .live(directory: .applicationSupportDirectory, calendar: .current, now: { Date() })
+        dependencies.scheduleStore = .live(directory: .applicationSupportDirectory)
         #if DEBUG
         DebugModel.install(into: &dependencies)
         #endif

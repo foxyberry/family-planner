@@ -25,13 +25,18 @@ public final class DebugModel {
     }
 
     public var isMenuShown = false
+    /// "Skip Face ID" exists only on a simulator: on a real iPad a forgotten switch would leave
+    /// grown-up screens open for good.
+    public let allowsSkipFaceID: Bool
 
     /// The installed model for views: a view's `@Dependency` reads the default values, not the ones
     /// `bootstrap` gave the store, so `DebugOverlay` finds the model here.
     public private(set) static var installed: DebugModel?
 
     public init(core: DebugCore, defaults: UserDefaults, calendar: Calendar, requiresUnlock: Bool = false,
+                allowsSkipFaceID: Bool = true,
                 unlock: @escaping @Sendable (String) async -> ParentAuthOutcome = { _ in .success }) {
+        self.allowsSkipFaceID = allowsSkipFaceID
         self.core = core
         self.defaults = defaults
         self.calendar = calendar
@@ -79,26 +84,32 @@ extension DebugModel {
     /// "Skip Face ID" flag opens grown-up screens at once. Launch arguments `-fpNow` / `-fpSpeed` set the time.
     public static func install(into dependencies: inout DependencyValues,
                                arguments: [String] = ProcessInfo.processInfo.arguments,
-                               defaults: UserDefaults = .standard) {
+                               defaults: UserDefaults = .standard,
+                               allowsSkipFaceID: Bool = isSimulator) {
         let core = DebugCore(settings: DebugSettings())
         let live = dependencies.parentAuth
-        #if targetEnvironment(simulator)
-        let requiresUnlock = false
-        #else
-        let requiresUnlock = true
-        #endif
         let model = DebugModel(core: core, defaults: defaults, calendar: dependencies.calendar,
-                               requiresUnlock: requiresUnlock, unlock: live.authenticate)
+                               requiresUnlock: !isSimulator, allowsSkipFaceID: allowsSkipFaceID,
+                               unlock: live.authenticate)
         model.settings.apply(LaunchOptions(arguments: arguments, calendar: dependencies.calendar),
                              realNow: core.realDate())
         dependencies.date = DateGenerator { core.now() }
-        dependencies.parentAuth.authenticate = { reason in
-            core.skipsFaceID ? .success : await live.authenticate(reason)
+        if allowsSkipFaceID {
+            dependencies.parentAuth.authenticate = { reason in
+                core.skipsFaceID ? .success : await live.authenticate(reason)
+            }
         }
         dependencies.debugTools = model
         installed = model
     }
 }
+
+/// True when this debug build runs on a simulator.
+#if targetEnvironment(simulator)
+public let isSimulator = true
+#else
+public let isSimulator = false
+#endif
 
 private enum DebugToolsKey: DependencyKey {
     static let liveValue: DebugModel? = nil

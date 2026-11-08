@@ -11,6 +11,7 @@ fp_swift_library(
         "//ios/DesignSystem",
         "//ios/Features/Grownup",
         "//ios/Features/Home",
+        "//ios/Strings",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )

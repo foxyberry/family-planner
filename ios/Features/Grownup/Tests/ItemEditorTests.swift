@@ -192,4 +192,118 @@ final class ItemEditorTests: XCTestCase {
         await store.receive(\.delegate.finished)
         XCTAssertEqual(deleted.value, [party.id])
     }
+
+    // MARK: State the view renders
+
+    func testAudienceTabsOfferBothOnlyForTwoKids() async {
+        let store = store(mode: .add(kidA))
+        XCTAssertEqual(store.state.audienceTabs, [], "no kids before loading")
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.audienceTabs, [
+            .init(audience: kidA, title: "Kid A", colorIndex: 0),
+            .init(audience: .kid(SeedData.kidB.id), title: "Kid B", colorIndex: 1),
+            .init(audience: .both, title: "Both", colorIndex: nil),
+        ])
+        var oneKid = store.state
+        oneKid.snapshot = ScheduleSnapshot(kids: [SeedData.kidA], routines: SeedData.routines, items: [])
+        XCTAssertEqual(oneKid.audienceTabs.map(\.title), ["Kid A"])
+    }
+
+    func testAudienceTapSetsWhoItIsFor() async {
+        let store = store(mode: .add(kidA), saveError: true)
+        await fill(store)
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        await store.send(.audienceTapped(.both))
+        XCTAssertEqual(store.state.form.audience, .both)
+        XCTAssertNil(store.state.saveError, "a change clears the old save error")
+    }
+
+    func testCanSaveFollowsProblemAndSaving() async {
+        let store = store(mode: .add(kidA))
+        XCTAssertFalse(store.state.canSave, "no name yet")
+        await fill(store)
+        XCTAssertTrue(store.state.canSave)
+        await store.send(.saveTapped)
+        XCTAssertFalse(store.state.canSave, "already saving")
+    }
+
+    func testConfirmLabels() async {
+        let party = F.once("Party", on: Day(year: 2026, month: 11, day: 14))
+        let store = store(mode: .editOnce(party), items: [party])
+        await store.send(.binding(.set(\.form.name, "Big party")))
+        await store.send(.backTapped)
+        XCTAssertEqual([store.state.confirmCancelTitle, store.state.confirmAcceptTitle], ["Keep editing", "Leave"])
+        XCTAssertFalse(store.state.confirmIsDestructive)
+        await store.send(.confirmCancelled)
+        await store.send(.removeTapped)
+        XCTAssertEqual([store.state.confirmCancelTitle, store.state.confirmAcceptTitle], ["Keep", "Remove"])
+        XCTAssertTrue(store.state.confirmIsDestructive)
+    }
+
+    func testProblemShowsUnderItsRowOnly() async {
+        let store = store(mode: .add(kidA))
+        XCTAssertEqual(store.state.problem(for: .name), .noName)
+        XCTAssertNil(store.state.problem(for: .when))
+        await fill(store)
+        await store.send(.binding(.set(\.form.end, 900)))
+        XCTAssertNil(store.state.problem(for: .name))
+        XCTAssertEqual(store.state.problem(for: .when), .endsBeforeStart)
+        XCTAssertNil(store.state.problem(for: .days))
+    }
+
+    func testDateChipsNameTheWeekdayAndPageEarlierOnlyAfterPagingOn() async {
+        let store = store(mode: .add(kidA), repeats: .once)
+        XCTAssertEqual(store.state.dateChips.map(\.weekday), ["Mon", "Tue", "Wed", "Thu", "Fri"])
+        XCTAssertEqual(store.state.dateChips.map(\.day), store.state.visibleDates)
+        XCTAssertEqual(store.state.dateChips.map(\.isOn), [true, false, false, false, false])
+        XCTAssertFalse(store.state.canPageEarlier)
+        await store.send(.datePageTapped(1))
+        XCTAssertTrue(store.state.canPageEarlier)
+        XCTAssertEqual(store.state.dateChips.map(\.isOn), [false, false, false, false, false])
+    }
+
+    func testDayToggledAddsAndRemovesADay() async {
+        let store = store(mode: .add(kidA))
+        await store.send(.dayToggled(.wednesday))
+        XCTAssertEqual(store.state.form.days, [.monday, .wednesday])
+        await store.send(.dayToggled(.monday))
+        XCTAssertEqual(store.state.form.days, [.wednesday])
+    }
+
+    func testTimePickedSetsMinutesOfTheDay() async {
+        let store = store(mode: .add(kidA))
+        await store.send(.startPicked(F.monday.date(minute: 945, calendar: F.calendar)))
+        await store.send(.endPicked(F.monday.date(minute: 1005, calendar: F.calendar)))
+        XCTAssertEqual([store.state.form.start, store.state.form.end], [945, 1005])
+        XCTAssertEqual(store.state.startTime, F.monday.date(minute: 945, calendar: F.calendar))
+        XCTAssertEqual(store.state.endTime, F.monday.date(minute: 1005, calendar: F.calendar))
+    }
+
+    func testNowMinuteUsesTheCalendar() {
+        let state = ItemEditorFeature.State(mode: .add(kidA), now: F.monday.date(minute: 615, calendar: F.calendar),
+                                            calendar: F.calendar)
+        XCTAssertEqual(state.nowMinute, 615)
+    }
+
+    func testPreviewMarksTheDraftWithItsOwnID() async throws {
+        let swim = F.weekly(days: [.wednesday])
+        let store = store(mode: .add(kidA), items: [swim])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        let draftID = try XCTUnwrap(store.state.draftID)
+        XCTAssertNotEqual(draftID, swim.id)
+        XCTAssertEqual(store.state.preview?.rows.filter(\.isNew), [], "no draft while the form has a problem")
+        await fill(store)
+        XCTAssertEqual(store.state.preview?.heading, "Kid A's Monday")
+        XCTAssertEqual(store.state.preview?.rows.filter(\.isNew).map(\.slot.title), ["Art"])
+        XCTAssertEqual(store.state.preview?.rows.filter(\.isNew).first?.slot.source, .weekly(draftID))
+    }
+
+    func testAddingShowsThePreviewColumn() {
+        let store = store(mode: .add(kidA))
+        XCTAssertFalse(store.state.isEditingWeekly)
+        XCTAssertNotNil(store.state.preview)
+    }
 }

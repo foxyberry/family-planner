@@ -37,9 +37,11 @@ final class WeeklyEditTests: XCTestCase {
         let saved = LockIsolated<[[ScheduleItem]]>([])
         let store = store(saved: saved)
         XCTAssertEqual(store.state.skipRowTitle, "Skip just Mon 9 Nov")
-        await store.send(.skipNextTapped)
+        XCTAssertFalse(store.state.skipRowIsUndo)
+        await store.send(.skipRowTapped)
         await store.receive(\.skipSaved)
         XCTAssertEqual(store.state.skipRowTitle, "Skipped Mon 9 Nov · Undo")
+        XCTAssertTrue(store.state.skipRowIsUndo)
         XCTAssertEqual(saved.value.last?.first?.skippedDays, [F.monday])
         XCTAssertFalse(store.state.hasChanges, "skipping is saved on its own, not a form change")
     }
@@ -47,12 +49,13 @@ final class WeeklyEditTests: XCTestCase {
     func testUndoRemovesException() async {
         let saved = LockIsolated<[[ScheduleItem]]>([])
         let store = store(saved: saved)
-        await store.send(.skipNextTapped)
+        await store.send(.skipRowTapped)
         await store.receive(\.skipSaved)
-        await store.send(.undoSkipTapped)
+        await store.send(.skipRowTapped)
         await store.receive(\.skipSaved)
         XCTAssertEqual(saved.value.last?.first?.skippedDays, [])
         XCTAssertEqual(store.state.skipRowTitle, "Skip just Mon 9 Nov")
+        XCTAssertFalse(store.state.skipRowIsUndo)
     }
 
     func testSkipOffersDateAfterAlreadySkipped() {
@@ -103,6 +106,13 @@ final class WeeklyEditTests: XCTestCase {
         XCTAssertEqual(saved.value.last?.count, 1)
         XCTAssertEqual(saved.value.last?.first?.id, swim.id)
         XCTAssertEqual(saved.value.last?.first?.end, 1020)
+    }
+
+    func testSideColumnTitleAndNoPreview() {
+        let store = store()
+        XCTAssertTrue(store.state.isEditingWeekly)
+        XCTAssertEqual(store.state.everyTitle, "Every Mon and Wed")
+        XCTAssertNil(store.state.preview, "the every-week side column shows no preview")
     }
 
     func testRepeatCannotSwitchToJustOnce() async {

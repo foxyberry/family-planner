@@ -1,3 +1,4 @@
+import Strings
 import SwiftUI
 
 /// Minutes left, big: ink while there is time, late red at zero or below ("−2 min").
@@ -12,7 +13,7 @@ public struct TimeLeft: View {
     /// The label and tone for `minutes`. Negative values use the true minus sign (U+2212).
     nonisolated public static func presentation(minutes: Int) -> Presentation {
         let number = minutes < 0 ? "\u{2212}\(-minutes)" : "\(minutes)"
-        return Presentation(text: "\(number) min", tone: minutes > 0 ? .normal : .late)
+        return Presentation(text: L10n.tr("time_left.min", number), tone: minutes > 0 ? .normal : .late)
     }
 
     private let minutes: Int

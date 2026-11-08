@@ -1,5 +1,6 @@
 import CrayonKit
 import KitArt
+import Strings
 import SwiftUI
 
 /// The younger kid's day on the home screen (board A1): a big "now" picture and a smaller "next" one.
@@ -15,9 +16,9 @@ public struct KidNowNext: View {
 
     public var body: some View {
         HStack(alignment: .bottom, spacing: Spacing.l) {
-            circle(now, diameter: 160, picture: 104, fill: CrayonStyle.apricot, caption: "now", seed: 3101)
+            circle(now, diameter: 160, picture: 104, fill: CrayonStyle.apricot, caption: L10n.tr("kid.now"), seed: 3101)
             if let next {
-                circle(next, diameter: 104, picture: 64, fill: CrayonStyle.paper, caption: "next", seed: 3102)
+                circle(next, diameter: 104, picture: 64, fill: CrayonStyle.paper, caption: L10n.tr("kid.next"), seed: 3102)
             }
         }
     }

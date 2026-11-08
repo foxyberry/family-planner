@@ -1,5 +1,6 @@
 import CrayonKit
 import KitArt
+import Strings
 import SwiftUI
 
 /// Progress to the next bus league. The bar only grows, never shrinks.
@@ -27,8 +28,8 @@ public struct LeagueProgress: View {
     /// "12 more Go! days to the Double-Decker".
     nonisolated public static func remainingText(done: Int, goal: Int, nextName: String) -> String {
         let left = max(goal - done, 0)
-        guard left > 0 else { return "Next stop: the \(nextName)!" }
-        return "\(left) more Go! \(left == 1 ? "day" : "days") to the \(nextName)"
+        guard left > 0 else { return L10n.tr("league.next_stop", nextName) }
+        return left == 1 ? L10n.tr("league.left.one", left, nextName) : L10n.tr("league.left.other", left, nextName)
     }
 
     public var body: some View {

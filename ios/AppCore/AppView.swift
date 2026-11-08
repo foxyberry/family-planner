@@ -48,7 +48,6 @@ public struct AppView: View {
                 ItemEditorView(store: store)
             case let .gallery(store):
                 ComponentGallery(onBack: { store.send(.backTapped) })
-                    .toolbar(.hidden, for: .navigationBar)
             }
         }
         // Any touch on a grown-up screen keeps it open for another 2 minutes.

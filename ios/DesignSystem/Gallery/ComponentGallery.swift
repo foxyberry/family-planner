@@ -23,10 +23,7 @@ public struct ComponentGallery: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
                 if let onBack {
-                    HStack(spacing: Spacing.m) {
-                        RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back", action: onBack)
-                        Text("Design gallery").crayonType(.title)
-                    }
+                    GrownupHeader(title: "Design gallery", onBack: onBack)
                 }
                 section("0b · Controls") {
                     InkButton("Missions") {}
@@ -124,8 +121,9 @@ public struct ComponentGallery: View {
             .padding(GridMetrics.margin)
             .foregroundStyle(CrayonColor.ink)
         }
-        .background(CrayonColor.paper)
-        .navigationTitle("Design gallery")
+        .background(CrayonColor.paper.ignoresSafeArea())
+        .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {

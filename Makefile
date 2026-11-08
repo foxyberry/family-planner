@@ -36,7 +36,8 @@ run: build
 	xcrun simctl install "$(SIMULATOR)" "$$APP" && \
 	xcrun simctl launch --terminate-running-process "$(SIMULATOR)" $(BUNDLE_ID) $(LAUNCH_ARGS)
 
-# Build, sign and install on a real iPad connected by cable. With a free Apple ID the
+# Build, sign and install on a real iPad, by cable or over the same Wi-Fi once it has been
+# paired by cable. With a free Apple ID the
 # profile lasts 7 days: run this again to renew it (installing over keeps the app's data).
 device:
 	@UDID=$$(scripts/connected-ipad.sh) && \

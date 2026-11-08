@@ -3,6 +3,7 @@ import CrayonKit
 import DesignSystem
 import Domain
 import KitArt
+import Strings
 import SwiftUI
 
 /// The kids' home screen (boards A1, E1, E3). Kids never scroll here: the lists are capped.
@@ -82,7 +83,7 @@ public struct HomeView: View {
 
     private func kidHeader(_ kid: Kid) -> some View {
         HStack(spacing: Spacing.s) {
-            KidDot(color: CrayonColor.kidPalette[kid.colorIndex % CrayonColor.kidPalette.count])
+            KidDot(color: CrayonColor.kid(kid.colorIndex))
             Text(kid.name).crayonType(.head).foregroundStyle(CrayonColor.ink)
         }
     }
@@ -90,9 +91,9 @@ public struct HomeView: View {
     private func nextList(_ slots: [Slot]) -> some View {
         let rows = HomeModel.nextRows(slots, minute: store.minute)
         return VStack(alignment: .leading, spacing: Spacing.s) {
-            Text("Next").crayonType(.head).foregroundStyle(CrayonColor.ink)
+            Text(L10n.tr("home.next")).crayonType(.head).foregroundStyle(CrayonColor.ink)
             if rows.isEmpty {
-                Text("Nothing else today").crayonType(.body).foregroundStyle(CrayonColor.softText)
+                Text(L10n.tr("home.next.empty")).crayonType(.body).foregroundStyle(CrayonColor.softText)
             }
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                 if index == 0 {
@@ -107,11 +108,11 @@ public struct HomeView: View {
     private func dayOffBlock(_ day: HomeFeature.KidDay) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             kidHeader(day.kid)
-            if let today = store.today {
-                Text(DayText.name(today.weekday(Calendar.current))).crayonType(.body)
+            if let dayName = store.dayName {
+                Text(dayName).crayonType(.body)
                     .foregroundStyle(CrayonColor.softText)
             }
-            Text("No school, no bus").crayonType(.title).foregroundStyle(CrayonColor.ink)
+            Text(L10n.tr("home.day_off")).crayonType(.title).foregroundStyle(CrayonColor.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let item = HomeModel.nextItem(day.slots, minute: store.minute) {
                 rowView(item, picture: 72, title: .body,

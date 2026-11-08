@@ -25,11 +25,16 @@ public struct HomeFeature {
     @ObservableState
     public struct State: Equatable {
         public var today: Day?
+        /// Today's weekday in the app's calendar (set with `today`).
+        public var weekday: Weekday?
         public var minute = 0
         /// One entry per kid, in the order the store keeps them. Empty when nothing could be loaded.
         public var days: [KidDay] = []
 
         public init() {}
+
+        /// "Saturday" (E3), from the app's calendar, never the device's.
+        public var dayName: String? { weekday.map(DayText.name) }
 
         public var layout: Layout {
             if days.first?.dayKind == .dayOff { return .dayOff }
@@ -58,7 +63,9 @@ public struct HomeFeature {
             switch action {
             case .task:
                 let now = date.now
-                state.today = Day(now, calendar: calendar)
+                let day = Day(now, calendar: calendar)
+                state.today = day
+                state.weekday = day.weekday(calendar)
                 state.minute = minute(of: now)
                 return .send(.reload)
 
@@ -68,6 +75,7 @@ public struct HomeFeature {
                 // Before the first load `.task` sets the day; only a real day change reloads.
                 guard let today = state.today, day != today else { return .none }
                 state.today = day
+                state.weekday = day.weekday(calendar)
                 return .send(.reload)
 
             case .reload:

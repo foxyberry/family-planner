@@ -26,6 +26,31 @@ final class HubModelTests: XCTestCase {
         XCTAssertEqual(HubModel.schoolRows(kid: SeedData.kidB), [])
     }
 
+    func testSectionsForSchoolKid() {
+        let sections = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines)
+        XCTAssertEqual(sections.map(\.title), ["About", "School"])
+        XCTAssertEqual(sections[0].rows, [.text(HubRow(key: "Age", value: "8 · Year 3")),
+                                          .text(HubRow(key: "Day", value: "Up 7:00 · Bed 8:30"))])
+        XCTAssertEqual(sections[1].rows, [
+            .text(HubRow(key: "School", value: "Example Primary School")),
+            .schoolDays(key: "Days", days: Weekday.schoolDays),
+            .text(HubRow(key: "Hours", value: "8:00 am – 3:00 pm")),
+            .text(HubRow(key: "Holidays", value: "No holidays set")),
+        ])
+    }
+
+    func testSectionsForHomeKid() {
+        let sections = HubModel.sections(kid: SeedData.kidB, routines: SeedData.routines)
+        XCTAssertEqual(sections.map(\.title), ["About", "Nursery", "Morning"])
+        XCTAssertEqual(sections[1].rows, [.text(HubRow(key: "Nursery", value: "Not yet"))])
+        XCTAssertEqual(sections[2].rows, [.text(HubRow(key: "Taps", value: "A grown-up taps for now"))])
+    }
+
+    func testWeeklyHeading() {
+        XCTAssertEqual(HubModel.weeklyHeading(kid: SeedData.kidA), "After school")
+        XCTAssertEqual(HubModel.weeklyHeading(kid: SeedData.kidB), "Every week")
+    }
+
     func testWeeklyRowsText() {
         let rows = HubModel.weeklyRows(kid: SeedData.kidA, items: [
             F.weekly(), F.weekly("Reading", days: Weekday.schoolDays, start: 960, end: 1000),
@@ -90,6 +115,39 @@ final class GrownupHubFeatureTests: XCTestCase {
         await store.send(.kidTabTapped(SeedData.kidB.id))
         XCTAssertEqual(store.state.selectedKid, SeedData.kidB.id)
         XCTAssertEqual(store.state.snapshot?.items.count, 1)
+    }
+
+    func testRowsFollowTheSelectedKid() async {
+        let party = F.once("Party", on: Day(year: 2026, month: 11, day: 11), audience: .kid(SeedData.kidA.id))
+        let store = store(items: [F.weekly(), party])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.calendar, F.calendar)
+        XCTAssertEqual(store.state.weeklyRows.map(\.title), ["Swimming"])
+        XCTAssertEqual(store.state.onceRows.map(\.detail), ["Wed 11 Nov · 4:00–5:00"])
+        XCTAssertEqual(store.state.weeklyHeading, "After school")
+        XCTAssertEqual(store.state.sections.map(\.title), ["About", "School"])
+        await store.send(.kidTabTapped(SeedData.kidB.id))
+        XCTAssertEqual(store.state.weeklyRows, [])
+        XCTAssertEqual(store.state.onceRows, [])
+        XCTAssertEqual(store.state.weeklyHeading, "Every week")
+        XCTAssertEqual(store.state.sections.map(\.title), ["About", "Nursery", "Morning"])
+    }
+
+    func testNoJustOnceRowsBeforeTodayIsKnown() {
+        var state = GrownupHubFeature.State()
+        state.snapshot = F.snapshot(items: [F.weekly(), F.once("Party", on: F.monday)])
+        state.selectedKid = SeedData.kidA.id
+        XCTAssertNil(state.today)
+        XCTAssertEqual(state.onceRows, [])
+        XCTAssertEqual(state.weeklyRows.map(\.title), ["Swimming"], "every-week rows need no date")
+    }
+
+    func testNothingToShowBeforeLoading() {
+        let state = GrownupHubFeature.State()
+        XCTAssertEqual(state.sections, [])
+        XCTAssertEqual(state.weeklyRows, [])
+        XCTAssertEqual(state.onceRows, [])
     }
 
     func testReloadKeepsSelectedKid() async {

@@ -1,0 +1,17 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "StringsTestsLib",
+    testonly = True,
+    deps = ["//ios/Strings"],
+)
+
+ios_unit_test(
+    name = "StringsTests",
+    bundle_id = BUNDLE_ID + ".strings.tests",
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    deps = [":StringsTestsLib"],
+)

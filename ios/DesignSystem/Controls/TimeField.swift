@@ -1,4 +1,5 @@
 import CrayonKit
+import Strings
 import SwiftUI
 
 /// A time on paper, 80 tall; tapping opens an hour/minute wheel.
@@ -21,7 +22,7 @@ public struct TimeField: View {
         }
         .buttonStyle(.plain)
         .popover(isPresented: $isPicking) {
-            DatePicker("Time", selection: $time, displayedComponents: .hourAndMinute)
+            DatePicker(L10n.tr("time.field"), selection: $time, displayedComponents: .hourAndMinute)
                 .datePickerStyle(.wheel)
                 .labelsHidden()
                 .padding(Spacing.m)
