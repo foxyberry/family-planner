@@ -1,8 +1,9 @@
 import CoreGraphics
 import DesignSystem
 
-/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout) through "Sizing formulas": the home
-/// screen's parts as screen rects, lines and baselines. The clock area is left-anchored (disc
+/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v5 "Home panel lines") through
+/// "Sizing formulas": the home screen's parts as screen rects, lines and baselines. The panel lines
+/// are fixed: a block with less content leaves space below it, nothing moves up. The clock area is left-anchored (disc
 /// centre (448, 528), R 372); the panel stretches from 928 s to W − 64 s with every part's left
 /// on 928 and the way picture's right on 1312.
 public struct HomeLayout: Equatable, Sendable {
@@ -32,7 +33,6 @@ public struct HomeLayout: Equatable, Sendable {
     public let kidATop: CGFloat = 163
     /// The way picture (80) ends on the panel's right edge.
     public var way: CGRect { CGRect(x: panelRight - 80 * s, y: sizing.y(227), width: 80 * s, height: 80 * s) }
-    public var labelBaseline: CGFloat { sizing.y(301) }
     public var timeBaseline: CGFloat { sizing.y(402) }
     public var statusBaseline: CGFloat { sizing.y(446) }
 
@@ -50,30 +50,23 @@ public struct HomeLayout: Equatable, Sendable {
                  textLeft: sizing.left(1056), titleBaseline: sizing.y(top + 48), atBaseline: sizing.y(top + 86))
     }
 
-    /// E3 / E3b: "Next" (caption) then the row, Kid B 64 below it.
-    public var nextCaptionBaseline: CGFloat { sizing.y(260) }
-    public var nextRow: RowPlace { row(top: 274) }
+    /// Kid A's first line ("Leave in", "Bed in", "Next") on 301 on every home board (layout v5).
+    public var firstLineBaseline: CGFloat { sizing.y(301) }
 
-    /// A1n: the time left ("in", "Bed in") first, then the row at 401.
-    public var timeLeftLabelBaseline: CGFloat { sizing.y(266) }
-    public var timeLeftBaseline: CGFloat { sizing.y(368) }
-    public var timeLeftRow: RowPlace { row(top: 401) }
+    /// E3 / E3b: "Next" (caption) on 301, then the row at 315.
+    public var nextRow: RowPlace { row(top: 315) }
 
-    /// E1 (one kid, leaving): the Next row under "On time".
-    public var leaveNextCaptionBaseline: CGFloat { sizing.y(554) }
-    public var leaveNextRow: RowPlace { row(top: 568) }
+    /// A1n: "Bed in" on 301 and the time left on 402, then the row at 436.
+    public var timeLeftRow: RowPlace { row(top: 436) }
 
-    /// Kid B's badge top under each Kid A shape: A1 529 (with the status), A1m 475, A1n 569, E3 442.
-    public enum KidAShape: Equatable, Sendable { case leave(hasStatus: Bool), timeLeft, next }
-    public static func kidBTop(_ shape: KidAShape) -> CGFloat {
-        switch shape {
-        case .leave(let hasStatus): hasStatus ? 529 : 475
-        case .timeLeft: 569
-        case .next: 442
-        }
-    }
+    /// E1 (one kid, leaving): "Next" on 584 (Kid B's name line), the row at 598.
+    public var leaveNextCaptionBaseline: CGFloat { sizing.y(584) }
+    public var leaveNextRow: RowPlace { row(top: 598) }
 
-    /// Now (160) and next (104) circles, bottoms aligned, 72 below Kid B's badge top.
+    /// Kid B's badge top: 560 on every home board (name on 584; layout v5), whatever Kid A shows.
+    public let kidBTop: CGFloat = 560
+
+    /// Now (160) and next (104) circles, bottoms aligned on 792, 72 below Kid B's badge top.
     public func nowNext(kidBTop: CGFloat) -> CGPoint { CGPoint(x: panelLeft, y: sizing.y(kidBTop + 72)) }
 
     /// "Missions →", the panel's width, bottom 968.

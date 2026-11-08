@@ -95,7 +95,7 @@ public struct HomeView: View {
             kidHeader(first.kid, top: layout.kidATop, layout: layout)
             kidABlock(layout: layout)
             if store.days.count > 1 {
-                let top = HomeLayout.kidBTop(store.kidAShape)
+                let top = layout.kidBTop
                 kidHeader(store.days[1].kid, top: top, layout: layout)
                 let now = DayPlanner.now(at: store.minute, in: store.days[1].slots)
                 KidNowNext(now: now.current?.iconName ?? "actPlay", next: now.next?.iconName, look: store.look)
@@ -128,7 +128,7 @@ public struct HomeView: View {
         case .leave:
             if let outing = store.morningOuting, let heading = store.outingHeading {
                 Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
-                    .place(left: layout.panelLeft, baseline: layout.labelBaseline)
+                    .place(left: layout.panelLeft, baseline: layout.firstLineBaseline)
                 KitPlate(look: store.look, size: layout.way.width) {
                     KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: layout.way.width)
                 }
@@ -142,12 +142,12 @@ public struct HomeView: View {
             }
         case let .timeLeft(timeLeft, next):
             Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
-                .place(left: layout.panelLeft, baseline: layout.timeLeftLabelBaseline)
+                .place(left: layout.panelLeft, baseline: layout.firstLineBaseline)
             TimeLeft(minutes: timeLeft.minutes, look: store.look)
-                .place(left: layout.panelLeft, baseline: layout.timeLeftBaseline)
+                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
             nextRow(next, at: layout.timeLeftRow)
         case let .next(next):
-            nextCaption(baseline: layout.nextCaptionBaseline, layout: layout)
+            nextCaption(baseline: layout.firstLineBaseline, layout: layout)
             nextRow(next, at: layout.nextRow)
         case .nothing:
             EmptyView()

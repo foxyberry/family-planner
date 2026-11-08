@@ -1,5 +1,5 @@
 {
- "version": "4",
+ "version": "5",
  "board": "E1",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -47,7 +47,17 @@
   "panelLeft": 928,
   "panelTop": 96,
   "right": 1312,
-  "mainButtonBottom": 968
+  "mainButtonBottom": 968,
+  "baselines": {
+   "weekday": 132,
+   "kidAName": 187,
+   "kidAFirstLine": 301,
+   "timeLeft": 402,
+   "status": 446,
+   "kidBName": 584,
+   "nowNextCaptions": 825
+  },
+  "nowNextBottom": 792
  },
  "regions": {
   "skySwitch": {
@@ -246,20 +256,6 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.2",
-   "kind": "text",
-   "x": 928,
-   "y": 526,
-   "w": 56,
-   "h": 36,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start",
-   "baseline": 554,
-   "font": 24,
-   "text": "Next"
-  },
-  {
    "id": "clock.slotPicture.6",
    "kind": "picture",
    "x": 650,
@@ -271,10 +267,24 @@
    "align": "inside"
   },
   {
+   "id": "panel.kidALabel.2",
+   "kind": "text",
+   "x": 928,
+   "y": 556,
+   "w": 56,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start",
+   "baseline": 584,
+   "font": 24,
+   "text": "Next"
+  },
+  {
    "id": "panel.picture",
    "kind": "picture",
    "x": 928,
-   "y": 568,
+   "y": 598,
    "w": 104,
    "h": 104,
    "region": "panel",
@@ -285,13 +295,13 @@
    "id": "panel.kidName.2",
    "kind": "text",
    "x": 1056,
-   "y": 574,
+   "y": 604,
    "w": 119,
    "h": 54,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 616,
+   "baseline": 646,
    "font": 36,
    "text": "School"
   },
@@ -310,13 +320,13 @@
    "id": "panel.text",
    "kind": "text",
    "x": 1056,
-   "y": 619,
+   "y": 649,
    "w": 165,
    "h": 45,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 654,
+   "baseline": 684,
    "font": 30
   },
   {

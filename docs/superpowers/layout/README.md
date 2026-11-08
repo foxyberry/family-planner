@@ -31,3 +31,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v2 (2026-11-09): adds A3r (the ready kid's done view); `version` field in every file; board file names removed.
 - v3 (2026-11-09): A3 bottom control is now the slide for a kid with no outing (bottom.slide); the pill is retired.
 - v4 (2026-11-09): A3r done view named (missions.doneMedal / doneTitle / doneSubtitle, bottom.slide / knob / knobCheck / doneLabel); every slide captured as bottom.slide.
+- v5 (2026-11-09): home boards on fixed panel lines (baselines 132 / 187 / 301 / 402 / 446 / 584 / 825, circles bottom 792); home lines listed in lines.baselines.

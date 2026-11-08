@@ -12,7 +12,7 @@ public struct DebugOverlay: View {
     @Environment(\.sizing) private var sizing
 
     /// `lines`: which family's board lines the grid draws (kid screens or grown-up screens).
-    public init(model: DebugModel, lines: GridLines = .kids) {
+    public init(model: DebugModel, lines: GridLines) {
         self.model = model
         self.lines = lines
     }
@@ -97,8 +97,10 @@ struct DebugBubble: View {
 /// screens), and the bands 48 / 128 / 176 / 516 / 536 / 872 / 968; baselines 107 / 584 / 757 dashed.
 /// The board lines a screen family shares (docs/superpowers/layout/README.md).
 public enum GridLines: Sendable {
-    /// Home and morning: 64, 172, 448, 928, 1312; the header, strip and bottom bands.
-    case kids
+    /// Home (layout v5 panel lines): 64, 448, 928, 1312; baselines 132 … 825, circles' bottom 792.
+    case home
+    /// Morning: 64, 172, 448, 1312; the header, strip and bottom bands, baselines 107 / 584 / 757.
+    case morning
     /// Grown-up screens: 64, 104, 232, 280, 882, 930, 1312; header, content and action bands.
     case grownup
 }
@@ -138,21 +140,24 @@ struct LayoutGridOverlay: View {
 
     private var verticals: [CGFloat] {
         switch lines {
-        case .kids: [sizing.left(64), sizing.left(448), sizing.left(928), sizing.left(172), sizing.right(1312)]
+        case .home: [sizing.left(64), sizing.left(448), sizing.left(928), sizing.right(1312)]
+        case .morning: [sizing.left(64), sizing.left(172), sizing.left(448), sizing.right(1312)]
         case .grownup: [64, 104, 232, 280, 882].map(sizing.left) + [sizing.right(930), sizing.right(1312)]
         }
     }
 
     private var bands: [CGFloat] {
         switch lines {
-        case .kids: [48, 128, 176, 516, 536, 872, 968].map(sizing.y)
+        case .home: [96, 792, 872, 968].map(sizing.y)
+        case .morning: [48, 128, 176, 516, 536, 872, 968].map(sizing.y)
         case .grownup: [48, 128, 176, 872, 968].map(sizing.y)
         }
     }
 
     private var baselines: [CGFloat] {
         switch lines {
-        case .kids: [107, 584, 757].map(sizing.y)
+        case .home: [132, 187, 301, 402, 446, 584, 825].map(sizing.y)
+        case .morning: [107, 584, 757].map(sizing.y)
         case .grownup: [107].map(sizing.y)
         }
     }

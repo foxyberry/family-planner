@@ -227,13 +227,11 @@ final class HomeFeatureTests: XCTestCase {
         await morning.send(.task)
         await morning.receive(\.loaded)
         XCTAssertEqual(morning.state.kidABlock, .leave)
-        XCTAssertEqual(morning.state.kidAShape, .leave(hasStatus: false))
 
         let school = store(on: tuesday, minute: 630)    // 10:30 am, at school: the Next row only
         await school.send(.task)
         await school.receive(\.loaded)
         guard case let .next(row) = school.state.kidABlock else { return XCTFail("\(school.state.kidABlock)") }
-        XCTAssertEqual(school.state.kidAShape, .next)
         XCTAssertGreaterThan(row.start, 630)
 
         let evening = store(on: tuesday, minute: 1170)  // 7:30 pm: bed within 3 hours
@@ -243,7 +241,6 @@ final class HomeFeatureTests: XCTestCase {
             return XCTFail("\(evening.state.kidABlock)")
         }
         XCTAssertEqual(left.minutes, next.start - 1170)
-        XCTAssertEqual(evening.state.kidAShape, .timeLeft)
     }
 
     /// E1: one kid keeps the Next row under "Leave in" on a leaving morning.
