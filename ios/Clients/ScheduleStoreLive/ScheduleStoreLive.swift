@@ -42,7 +42,8 @@ extension ScheduleStore {
             saveMissionDay: { day in
                 @Dependency(\.calendar) var calendar
                 try database.run { try $0.put(day, calendar: calendar) }
-            }
+            },
+            saveBusPlan: { plan in try database.run { try $0.put(plan) } }
         )
     }
 }
@@ -109,7 +110,13 @@ private struct Records {
 
     func snapshot() throws -> ScheduleSnapshot {
         ScheduleSnapshot(kids: try values("kid"), routines: try values("routine"), items: try values("item"),
-                         missions: try values("mission"))
+                         missions: try values("mission"), busPlans: try values("busPlan"))
+    }
+
+    func put(_ plan: BusPlan) throws {
+        for old in try fetch("busPlan").filter({ $0.key == "busPlan:\(plan.kid)" }) { context.delete(old) }
+        try insert("busPlan:\(plan.kid)", group: "busPlan", order: 0, plan)
+        try context.save()
     }
 
     func put(_ items: [ScheduleItem]) throws {

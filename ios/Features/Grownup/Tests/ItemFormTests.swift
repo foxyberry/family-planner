@@ -209,4 +209,25 @@ final class ItemFormTests: XCTestCase {
                                    today: F.monday, calendar: F.calendar)
         XCTAssertEqual(empty.rows, [])
     }
+
+    /// Board C3g: Going and Leave, and the preview line.
+    func testGoingKeepsTheLeaveMinutesAndShowsTheLine() {
+        var form = ItemForm(audience: .kid(SeedData.kidA.id), iconName: "actSwim", name: "Swimming", start: 990,
+                            end: 1050, repeats: .weekly, days: [.wednesday], date: Day(year: 2026, month: 11, day: 11),
+                            skipsHolidays: true, showsStar: true)
+        XCTAssertNil(form.trip)
+        form.setGoing(.car)
+        XCTAssertEqual(form.trip, Trip(way: .car, leaveBefore: 10))
+        form.stepLeave(1)
+        XCTAssertEqual(form.leaveText, "15 min")
+        XCTAssertEqual(form.leaveCaption, "before · 4:15 pm")
+        XCTAssertEqual(form.leaveLine, "Leave 4:15 pm by car.")
+        form.setGoing(.taxi)
+        XCTAssertEqual(form.trip?.leaveBefore, 15)
+        for _ in 0..<30 { form.stepLeave(1) }
+        XCTAssertEqual(form.trip?.leaveBefore, 90)
+        form.setGoing(nil)
+        XCTAssertNil(form.leaveLine)
+        XCTAssertEqual(form.item(id: UUID(), today: Day(year: 2026, month: 11, day: 9)).trip, nil)
+    }
 }

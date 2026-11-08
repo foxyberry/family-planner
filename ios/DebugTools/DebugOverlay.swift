@@ -8,6 +8,8 @@ import SwiftUI
 public struct DebugOverlay: View {
     @Bindable var model: DebugModel
 
+    @Environment(\.sizing) private var sizing
+
     public init(model: DebugModel) {
         self.model = model
     }
@@ -16,7 +18,7 @@ public struct DebugOverlay: View {
         GeometryReader { geometry in
             ZStack {
                 if model.settings.showsLayoutGrid {
-                    LayoutGridOverlay(size: geometry.size)
+                    LayoutGridOverlay(size: geometry.size, sizing: sizing)
                 }
                 DebugBubble(model: model, screen: geometry.size)
             }
@@ -85,26 +87,29 @@ struct DebugBubble: View {
     static let space = "debug-bubble"
 }
 
-/// The 12-column grid and the header/content bands of `KidScreen` (`GridMetrics`), plus the screen size.
+/// The board's lines over the screen (spec "Sizing formulas", docs/superpowers/layout): margins
+/// 64 / 1312, the morning column 448, the home panel 928 (left-anchored or right-anchored like the
+/// screens), and the bands 48 / 128 / 176 / 516 / 536 / 872 / 968; baselines 107 / 584 / 757 dashed.
 struct LayoutGridOverlay: View {
     let size: CGSize
+    let sizing: Sizing
 
     var body: some View {
-        let grid = GridMetrics(width: size.width)
         ZStack(alignment: .topLeading) {
-            ForEach(0..<GridMetrics.columns, id: \.self) { column in
-                Rectangle()
-                    .fill(Color.red.opacity(0.10))
-                    .frame(width: grid.columnWidth, height: size.height)
-                    .offset(x: grid.x(column: column))
+            ForEach(verticals, id: \.self) { x in
+                Rectangle().fill(Color.red.opacity(0.7)).frame(width: 1, height: size.height).offset(x: x)
             }
             ForEach(bands, id: \.self) { y in
-                Rectangle()
-                    .fill(Color.blue.opacity(0.5))
-                    .frame(width: size.width, height: 1)
-                    .offset(y: y)
+                Rectangle().fill(Color.blue.opacity(0.6)).frame(width: size.width, height: 1).offset(y: y)
             }
-            Text("\(Int(size.width)) × \(Int(size.height)) pt · column \(grid.columnWidth, format: .number.precision(.fractionLength(1))) · gutter \(Int(GridMetrics.gutter)) · margin \(Int(GridMetrics.margin))")
+            ForEach(baselines, id: \.self) { y in
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: size.width, y: y))
+                }
+                .stroke(Color.green.opacity(0.8), style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+            }
+            Text(verbatim: "\(Int(size.width)) × \(Int(size.height)) pt · s \(String(format: "%.3f", sizing.s)) · safe top \(Int(sizing.safeTop))") // copy-ok: debug
                 .font(.system(size: 12, weight: .semibold).monospacedDigit())
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
@@ -117,9 +122,11 @@ struct LayoutGridOverlay: View {
         .allowsHitTesting(false)
     }
 
-    private var bands: [CGFloat] {
-        [GridMetrics.headerTop, GridMetrics.headerBottom, GridMetrics.contentTop,
-         size.height - GridMetrics.contentBottomInset]
+    private var verticals: [CGFloat] {
+        [sizing.left(64), sizing.left(448), sizing.left(928), sizing.left(172), sizing.right(1312)]
     }
+
+    private var bands: [CGFloat] { [48, 128, 176, 516, 536, 872, 968].map(sizing.y) }
+    private var baselines: [CGFloat] { [107, 584, 757].map(sizing.y) }
 }
 #endif

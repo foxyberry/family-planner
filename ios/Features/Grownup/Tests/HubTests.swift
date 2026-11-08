@@ -31,7 +31,12 @@ final class HubModelTests: XCTestCase {
         XCTAssertEqual(sections.map(\.title), ["About", "School", "More"])
         XCTAssertEqual(sections[0].rows, [.text(HubRow(key: "Age", value: "8 · Year 3")),
                                           .link(HubRow(key: "Day", value: "Up 6:30 am · Bed 8:00 pm"), to: .day)])
-        XCTAssertEqual(sections[2].rows, [.link(HubRow(key: "Morning missions", value: "6 missions"), to: .missions)])
+        XCTAssertEqual(sections[2].rows, [.link(HubRow(key: "Morning missions", value: "6 missions"), to: .missions),
+                                          .link(HubRow(key: "Getting there", value: "Not set yet"), to: .buses)])
+        // C1 "Getting there" with a made-up plan (privacy rule).
+        let planned = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines,
+                                        busPlan: BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1", "2"]))
+        XCTAssertEqual(planned[2].rows.last, .link(HubRow(key: "Getting there", value: "Bus 1, 2 · walk 10 min"), to: .buses))
         XCTAssertEqual(sections[1].rows, [
             .text(HubRow(key: "School", value: "Example Primary School")),
             .schoolDays(key: "Days", days: Weekday.schoolDays),

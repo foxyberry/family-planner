@@ -1,0 +1,14 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "BusClientLive",
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/Clients/BusClientLive/Tests:__pkg__",
+    ],
+    deps = [
+        "//ios/Clients/BusClient",
+        "//ios/Domain",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

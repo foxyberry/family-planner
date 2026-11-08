@@ -9,8 +9,12 @@ public struct ScheduleSnapshot: Equatable, Sendable {
     public var items: [ScheduleItem]
     /// Every kid's morning missions (spec "MVP data"), in no particular order; sort by `order`.
     public var missions: [Mission]
+    /// Each kid's bus route (C2 "Our buses", plan A). Stop codes and bus numbers stay on the iPad.
+    public var busPlans: [BusPlan]
 
-    public init(kids: [Kid], routines: [Routine], items: [ScheduleItem], missions: [Mission] = []) {
+    public init(kids: [Kid], routines: [Routine], items: [ScheduleItem], missions: [Mission] = [],
+                busPlans: [BusPlan] = []) {
+        self.busPlans = busPlans
         self.kids = kids
         self.routines = routines
         self.items = items
@@ -37,6 +41,8 @@ public struct ScheduleStore: Sendable {
     public var missionDay: @Sendable (_ kid: Kid.ID, _ date: Day) async throws -> MissionDay
     /// Saves a kid's marks for a date and drops days older than `MissionDay.kept` before it.
     public var saveMissionDay: @Sendable (_ day: MissionDay) async throws -> Void
+    /// Saves a kid's bus route (C2), replacing the old one.
+    public var saveBusPlan: @Sendable (_ plan: BusPlan) async throws -> Void
 }
 
 extension ScheduleStore: TestDependencyKey {
@@ -49,6 +55,7 @@ extension ScheduleStore: TestDependencyKey {
         let routines = LockIsolated(SeedData.routines)
         let missions = LockIsolated(SeedData.missions)
         let days = LockIsolated<[MissionDay]>([])
+        let plans = LockIsolated<[BusPlan]>([])
         @Sendable func seeded() -> [ScheduleItem] {
             @Dependency(\.date.now) var now
             @Dependency(\.calendar) var calendar
@@ -59,7 +66,7 @@ extension ScheduleStore: TestDependencyKey {
         }
         return Self(
             load: { ScheduleSnapshot(kids: SeedData.kids, routines: routines.value, items: seeded(),
-                                     missions: missions.value) },
+                                     missions: missions.value, busPlans: plans.value) },
             save: { item in
                 _ = seeded()
                 items.withValue { $0?.removeAll { $0.id == item.id }; $0?.append(item) }
@@ -94,6 +101,12 @@ extension ScheduleStore: TestDependencyKey {
                 days.withValue { list in
                     list.removeAll { $0.kid == day.kid && $0.date == day.date }
                     list.append(day)
+                }
+            },
+            saveBusPlan: { plan in
+                plans.withValue { list in
+                    list.removeAll { $0.kid == plan.kid }
+                    list.append(plan)
                 }
             }
         )

@@ -141,6 +141,7 @@ public struct ItemEditorView: View {
         row("") {
             checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
         }
+        goingRows
     }
 
     @ViewBuilder private var onceRows: some View {
@@ -158,6 +159,32 @@ public struct ItemEditorView: View {
         }
         row("") {
             checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar) { store.form.showsStar.toggle() }
+        }
+        goingRows
+    }
+
+    /// Board C3g: how the kid goes, and when they leave (Walk, Car, Taxi) or "Uses Our buses ›".
+    @ViewBuilder private var goingRows: some View {
+        row(L10n.tr("going.label")) {
+            ChoiceCircles(store.goingChoices) { id in store.send(.goingTapped(Domain.Way(rawValue: id))) }
+        }
+        if let trip = store.form.trip {
+            row(L10n.tr("going.leave")) {
+                if trip.way == .bus {
+                    Button { store.send(.busesRowTapped) } label: {
+                        GlyphText(L10n.tr("going.uses_buses"), glyph: .chevronRight, type: .body, color: CrayonColor.link)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    HStack(spacing: Spacing.m) {
+                        RoundButton(glyph: .minus, accessibilityLabel: L10n.tr("going.leave")) { store.send(.leaveStepped(-1)) }
+                        Text(store.form.leaveText ?? "").crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
+                            .frame(width: 112)
+                        RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("going.leave")) { store.send(.leaveStepped(1)) }
+                        Text(store.form.leaveCaption ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+                    }
+                }
+            }
         }
     }
 
@@ -217,6 +244,10 @@ public struct ItemEditorView: View {
             }
             if let summary = preview.summary {
                 Text(summary).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let leave = preview.leave {
+                Text(leave).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

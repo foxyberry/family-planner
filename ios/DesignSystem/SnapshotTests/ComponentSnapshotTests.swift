@@ -28,7 +28,6 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testInkButton() { snap(InkButton("Missions") {}) }
 
-    func testKidPillButton() { snap(KidPillButton("Swimming", icon: .actSwim) {}) }
 
     func testRoundButtons() {
         snap(HStack(spacing: Spacing.m) {
@@ -399,15 +398,17 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Board A2-MVP: to school by bus (stops, "Our stop") and A2-MVP-w: weekend school by car ("Home").
     func testWayStrip() {
         snap(VStack(spacing: Spacing.m) {
-            WayStrip(destination: .wolfie, mover: .busDouble, progress: 0.4, homeLabel: "Our stop",
-                     destinationLabel: "School", showsStops: true,
-                     cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable",
-                     owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
+            // A2t: 12 min to leave, the bus on the road before our stop.
+            WayStrip(trip: .init(destination: .wolfie, destinationLabel: "School", homeLabel: "Our stop",
+                                 showsStops: true, mover: .busDouble, moverX: WayStrip.liveX(minutes: 12),
+                                 cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable",
+                                 owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A"))
                 .frame(width: 1248, height: 340)
-            WayStrip(destination: .actLanguageSchool, mover: .car, progress: 0.7, homeLabel: "Home",
-                     destinationLabel: "Weekend school", showsStops: false,
-                     cardTitle: "Weekend school at 9:00 am", cardCaption: "by car",
-                     owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
+            // A2t-w: the car waits right of home; the long place name is right-aligned.
+            WayStrip(trip: .init(destination: .actLanguageSchool, destinationLabel: "Weekend school", homeLabel: "Home",
+                                 showsStops: false, mover: .car, moverX: 990, cardTitle: "Weekend school at 9:00 am",
+                                 cardCaption: "by car", owner: KidFace.Badge(face: "kidGirl", colorIndex: 0),
+                                 ownerName: "Kid A"))
                 .frame(width: 1248, height: 340)
             WayStrip(homeAllDay: "Home all day")
                 .frame(width: 1248, height: 340)
@@ -424,6 +425,52 @@ final class ComponentSnapshotTests: XCTestCase {
             DrivingKitIcon(.shoe, size: 96)
         }
         .padding(Spacing.m), width: 760)
+    }
+
+    /// Spec "A2 live look": bus 1 in 4 min (too soon, faded) and the kid's bus in 28 min; made-up
+    /// numbers only.
+    func testWayStripLive() {
+        let live = WayStrip.Live(
+            buses: [WayStrip.LiveBus(id: "0", x: WayStrip.liveX(minutes: 4), picture: .busSingle, service: "1",
+                                     minutes: "4 min", isMine: false, isTooSoon: true, showsBubble: true),
+                    WayStrip.LiveBus(id: "1", x: WayStrip.liveX(minutes: 28), picture: .busDouble, service: "1",
+                                     minutes: "28 min", isMine: true, isTooSoon: false, showsBubble: true)],
+            destination: .wolfie, destinationLabel: "School", ourStopLabel: "Our stop",
+            owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A", myBus: "my bus",
+            tooSoon: "too soon")
+        snap(WayStrip(live: live).frame(width: 1248, height: 340), width: 1300)
+    }
+
+    /// Board C3g: the Going row with Car picked.
+    func testChoiceCircles() {
+        snap(ChoiceCircles([.init(id: "none", picture: nil, caption: "None", isPicked: false),
+                            .init(id: "walk", picture: .shoe, caption: "Walk", isPicked: false),
+                            .init(id: "bus", picture: .busDouble, caption: "Bus", isPicked: false),
+                            .init(id: "car", picture: .car, caption: "Car", isPicked: true),
+                            .init(id: "taxi", picture: .taxi, caption: "Taxi", isPicked: false)]) { _ in }, width: 640)
+    }
+
+    /// Board A3: the medal badge on a full ring, gold, silver and bronze (at rest).
+    func testMedalBadges() {
+        snap(HStack(spacing: Spacing.l) {
+            ForEach(MedalKind.allCases, id: \.self) { kind in
+                ZStack {
+                    CrayonRing(progress: 1, colorIndex: 0)
+                    KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A", size: 56)
+                }
+                .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76, dropsIn: false) }
+            }
+        }
+        .transaction { $0.disablesAnimations = true }, width: 420)
+    }
+
+    /// Spec "Header right": the live status after "Leave in".
+    func testStatusDots() {
+        snap(HStack(spacing: Spacing.l) {
+            StatusDot("On time", tone: .onTime)
+            StatusDot("Leave now!", tone: .hurry)
+            StatusDot("Ask a grown-up", tone: .quiet)
+        }, width: 900)
     }
 
     func testClockKnobsAndPlus() {

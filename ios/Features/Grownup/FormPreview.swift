@@ -25,12 +25,15 @@ public struct FormPreview: Equatable, Sendable {
     public var rows: [Row]
     /// Every week only: "On the clock every Monday from 9 Nov."
     public var summary: String?
+    /// "Leave 4:20 pm by car." under the day list (board C3g).
+    public var leave: String?
 
-    public init(heading: String, note: String?, rows: [Row], summary: String?) {
+    public init(heading: String, note: String?, rows: [Row], summary: String?, leave: String? = nil) {
         self.heading = heading
         self.note = note
         self.rows = rows
         self.summary = summary
+        self.leave = leave
     }
 }
 
@@ -76,6 +79,6 @@ extension ItemForm {
                 }
         }
         return FormPreview(heading: heading, note: note, rows: rows,
-                           summary: summaryCaption(today: today, calendar: calendar))
+                           summary: summaryCaption(today: today, calendar: calendar), leave: leaveLine)
     }
 }

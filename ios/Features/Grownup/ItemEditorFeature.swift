@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import DesignSystem
 import Domain
+import KitArt
 import Foundation
 import HolidayProvider
 import ScheduleStore
@@ -56,6 +57,22 @@ public struct ItemEditorFeature {
         public var today: Day
         public var nowMinute: Int
         public var snapshot: ScheduleSnapshot?
+
+        /// Board C3g "Going": None, Walk, Bus, Car, Taxi; the item's way is picked.
+        public var goingChoices: [ChoiceCircles.Choice] {
+            let way = form.trip?.way
+            return [
+                ChoiceCircles.Choice(id: "none", picture: nil, caption: L10n.tr("going.none"), isPicked: way == nil),
+                ChoiceCircles.Choice(id: Domain.Way.walk.rawValue, picture: .shoe, caption: L10n.tr("going.walk"),
+                                     isPicked: way == .walk),
+                ChoiceCircles.Choice(id: Domain.Way.bus.rawValue, picture: .busDouble, caption: L10n.tr("going.bus"),
+                                     isPicked: way == .bus),
+                ChoiceCircles.Choice(id: Domain.Way.car.rawValue, picture: .car, caption: L10n.tr("going.car"),
+                                     isPicked: way == .car),
+                ChoiceCircles.Choice(id: Domain.Way.taxi.rawValue, picture: .taxi, caption: L10n.tr("going.taxi"),
+                                     isPicked: way == .taxi),
+            ]
+        }
         public var holidays: Set<Day> = []
         /// Weeks forward in the just-once date chips; never before this week.
         public var datePage = 0
@@ -239,6 +256,11 @@ public struct ItemEditorFeature {
         case removed
         /// "Skip just …", or "Skipped … · Undo" once skipped.
         case skipRowTapped
+        /// Going row (board C3g): None, Walk, Bus, Car or Taxi.
+        case goingTapped(Domain.Way?)
+        case leaveStepped(Int)
+        /// "Uses Our buses ›": the app opens C2 for the item's kid.
+        case busesRowTapped
         case skipSaved(ScheduleItem, skipped: Day?)
         case removeSeriesTapped
         case delegate(Delegate)
@@ -247,6 +269,8 @@ public struct ItemEditorFeature {
         public enum Delegate: Equatable {
             /// Saved, removed or left: the app pops this screen.
             case finished
+            /// "Uses Our buses ›": open C2 for this kid.
+            case openBuses(Kid.ID)
         }
     }
 
@@ -340,6 +364,21 @@ public struct ItemEditorFeature {
                         await send(.saved(false))
                     }
                 }
+
+            case let .goingTapped(way):
+                state.form.setGoing(way)
+                return .none
+
+            case let .leaveStepped(step):
+                state.form.stepLeave(step)
+                return .none
+
+            case .busesRowTapped:
+                let kid: Kid.ID? = switch state.form.audience {
+                case let .kid(id): id
+                case .both: state.snapshot?.kids.first?.id
+                }
+                return kid.map { .send(.delegate(.openBuses($0))) } ?? .none
 
             case .skipRowTapped:
                 guard !state.isSaving, let weekly = state.weeklyItem else { return .none }

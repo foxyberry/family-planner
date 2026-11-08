@@ -42,6 +42,10 @@ public struct ItemForm: Equatable, Sendable {
     public var date: Day
     public var skipsHolidays: Bool
     public var showsStar: Bool
+    /// "Going" (board C3g): how the kid goes and how long before the start they leave; nil = None.
+    public var trip: Trip?
+
+    public static let defaultLeave = 10
 
     /// Board C3 defaults: the next full hour for an hour, every week on today's weekday, holidays skipped.
     public static func defaults(audience: Audience, now: Date, calendar: Calendar) -> ItemForm {
@@ -53,7 +57,8 @@ public struct ItemForm: Equatable, Sendable {
     }
 
     public init(audience: Audience, iconName: String?, name: String, start: Int, end: Int, repeats: Repeat,
-                days: Set<Weekday>, date: Day, skipsHolidays: Bool, showsStar: Bool) {
+                days: Set<Weekday>, date: Day, skipsHolidays: Bool, showsStar: Bool, trip: Trip? = nil) {
+        self.trip = trip
         self.audience = audience
         self.iconName = iconName
         self.name = name
@@ -72,11 +77,11 @@ public struct ItemForm: Equatable, Sendable {
         case let .once(day):
             self.init(audience: item.audience, iconName: item.iconName, name: item.title, start: item.start,
                       end: item.end, repeats: .once, days: [], date: day, skipsHolidays: true,
-                      showsStar: item.showsStar)
+                      showsStar: item.showsStar, trip: item.trip)
         case let .weekly(days, from, _):
             self.init(audience: item.audience, iconName: item.iconName, name: item.title, start: item.start,
                       end: item.end, repeats: .weekly, days: days, date: from, skipsHolidays: item.skipsHolidays,
-                      showsStar: true)
+                      showsStar: true, trip: item.trip)
         }
     }
 
@@ -109,6 +114,42 @@ public struct ItemForm: Equatable, Sendable {
         if repeats == .weekly && days.isEmpty { return .noDay }
         if repeats == .once && date == today && start < nowMinute && start != keptStart { return .timePassed }
         return nil
+    }
+
+    /// Picks how the kid goes; the leave minutes stay when the way changes (default 10).
+    public mutating func setGoing(_ way: Domain.Way?) {
+        trip = way.map { Trip(way: $0, leaveBefore: trip?.leaveBefore ?? Self.defaultLeave) }
+    }
+
+    /// −/+ on the Leave row: 0–90 in steps of 5.
+    public mutating func stepLeave(_ step: Int) {
+        guard let trip else { return }
+        self.trip = Trip(way: trip.way, leaveBefore: min(max(trip.leaveBefore + 5 * step, 0), 90))
+    }
+
+    /// "10 min" on the Leave row.
+    public var leaveText: String? { trip.map { L10n.tr("going.leave.minutes", $0.leaveBefore) } }
+
+    /// "before · 4:20 pm" after the Leave row's minutes.
+    public var leaveCaption: String? {
+        trip.map { L10n.tr("going.leave.before", TimeText.withPeriod(max(start - $0.leaveBefore, 0))) }
+    }
+
+    /// The preview's line: "Leave 4:20 pm by car." (none without a trip).
+    public var leaveLine: String? {
+        guard let trip else { return nil }
+        return L10n.tr("going.preview", TimeText.withPeriod(max(start - trip.leaveBefore, 0)),
+                       Self.wayWord(trip.way))
+    }
+
+    static func wayWord(_ way: Domain.Way) -> String {
+        switch way {
+        case .walk: L10n.tr("way.on_foot")
+        case .bus: L10n.tr("way.by_bus")
+        case .car: L10n.tr("way.by_car")
+        case .taxi: L10n.tr("way.by_taxi")
+        case .shuttle: L10n.tr("way.by_shuttle")
+        }
     }
 
     /// "1 hour", "1 hr 30 min", or nothing while the times are the wrong way round.
@@ -160,11 +201,11 @@ public struct ItemForm: Equatable, Sendable {
         case .weekly:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .weekly(days, from: today, until: nil), skippedDays: [],
-                                skipsHolidays: skipsHolidays, showsStar: false)
+                                skipsHolidays: skipsHolidays, showsStar: false, trip: trip)
         case .once:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .once(date), skippedDays: [], skipsHolidays: false,
-                                showsStar: showsStar)
+                                showsStar: showsStar, trip: trip)
         }
     }
 }

@@ -59,6 +59,38 @@ final class SizingTests: XCTestCase {
         }
     }
 
+    /// Placed parts land where their rects say, even next to text placed by baseline from the right
+    /// (that once shifted the whole screen right by the text's width).
+    func testPlacedPartsStayPutBesideBaselineText() throws {
+        let view = ZStack(alignment: .topLeading) {
+            Color.black.place(CGRect(x: 100, y: 50, width: 20, height: 20))
+            Text(verbatim: "Leave in 33 min").crayonType(.title).place(right: 480, baseline: 300)
+            Text(verbatim: "Kid A").crayonType(.head).place(left: 300, baseline: 200)
+        }
+        .frame(width: 500, height: 400, alignment: .topLeading)
+        .background(Color.white)
+        let rows = try inkRows(of: view, size: CGSize(width: 500, height: 400))
+        let columns = try inkColumns(of: view, size: CGSize(width: 500, height: 400), rows: 50..<70)
+        XCTAssertEqual(rows.firstIndex(of: true), 50, "the box's top")
+        XCTAssertEqual(columns.firstIndex(of: true), 100, "the box's left")
+    }
+
+    /// For each pixel column, whether it has a dark pixel inside `rows`.
+    private func inkColumns(of view: some View, size: CGSize, rows: Range<Int>) throws -> [Bool] {
+        let renderer = ImageRenderer(content: view.frame(width: size.width, height: size.height))
+        renderer.scale = 1
+        let image = try XCTUnwrap(renderer.cgImage)
+        let width = image.width, height = image.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let context = try XCTUnwrap(CGContext(data: &pixels, width: width, height: height, bitsPerComponent: 8,
+                                              bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                                              bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return (0..<width).map { column in
+            rows.contains { row in let i = (row * width + column) * 4; return pixels[i] < 60 && pixels[i + 3] > 200 }
+        }
+    }
+
     /// For each pixel row, whether it holds any dark pixel.
     private func inkRows(of view: some View, size: CGSize) throws -> [Bool] {
         let renderer = ImageRenderer(content: view.frame(width: size.width, height: size.height))

@@ -6,8 +6,10 @@ fp_swift_library(
     name = "HomeTestsLib",
     testonly = True,
     deps = [
+        "//ios/Clients/BusClient",
         "//ios/Clients/HolidayProvider",
         "//ios/Clients/ScheduleStore",
+        "//ios/Clients/SecretStore",
         "//ios/DesignSystem",
         "//ios/Domain",
         "//ios/Features/Home",

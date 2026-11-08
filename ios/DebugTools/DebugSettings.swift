@@ -31,10 +31,13 @@ public struct TimeTravel: Codable, Equatable, Sendable {
 public struct LaunchOptions: Equatable, Sendable {
     public var now: Date?
     public var speed: Double?
+    /// `-fpGrid` (`make device GRID=1`): show the board lines over every screen.
+    public var grid = false
 
-    public init(now: Date?, speed: Double?) {
+    public init(now: Date?, speed: Double?, grid: Bool = false) {
         self.now = now
         self.speed = speed
+        self.grid = grid
     }
 
     public init(arguments: [String], calendar: Calendar) {
@@ -49,6 +52,7 @@ public struct LaunchOptions: Equatable, Sendable {
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
         now = value(after: "-fpNow").flatMap(formatter.date(from:))
         speed = value(after: "-fpSpeed").flatMap(Double.init).flatMap { $0 > 0 ? $0 : nil }
+        grid = arguments.contains("-fpGrid")
     }
 }
 
@@ -116,6 +120,7 @@ public struct DebugSettings: Codable, Equatable, Sendable {
 
     /// Launch arguments win over the saved time: a new `-fpNow` starts from that moment.
     public mutating func apply(_ options: LaunchOptions, realNow: Date) {
+        if options.grid { showsLayoutGrid = true }
         if let now = options.now {
             time = TimeTravel(anchor: now, realAnchor: realNow, speed: options.speed ?? 1)
         } else if let speed = options.speed {

@@ -34,4 +34,28 @@ public struct SlideToGoModel: Equatable, Sendable {
         phase = .idle
         return false
     }
+
+    /// From done, dragging the knob back (spec "After the slide"): `progress` 1 → 0.
+    public mutating func undoDragChanged(progress: Double) {
+        guard phase == .done || isUndoing else { return }
+        phase = .dragging(progress: min(max(progress, 0), 1))
+        isUndoing = true
+    }
+
+    /// Past the middle the slide lets go (returns true: undo); otherwise it springs back to done.
+    public mutating func undoDragEnded() -> Bool {
+        guard isUndoing, case let .dragging(progress) = phase else { return false }
+        isUndoing = false
+        if progress < Self.undoThreshold {
+            phase = .idle
+            return true
+        }
+        phase = .done
+        return false
+    }
+
+    /// Dragging back past the middle undoes.
+    public static let undoThreshold = 0.5
+    /// A drag that started from done.
+    public var isUndoing = false
 }

@@ -2,8 +2,11 @@ import ComposableArchitecture
 import DesignSystem
 import Domain
 import Foundation
+import BusClient
 import HolidayProvider
+import KitArt
 import ScheduleStore
+import SecretStore
 import Strings
 
 /// A2-MVP · Morning missions (spec "A2-MVP", "MVP data"): the way to the chosen kid's next outing,
@@ -29,11 +32,32 @@ public struct MissionsFeature {
         }
     }
 
+    public struct Done: Equatable, Sendable {
+        public var medal: MedalKind?
+        public var title: String
+        public var subtitle: String?
+    }
+
+    /// The header's right side: "Leave in" / "{Place} in", the minutes, and the live status.
+    public struct Header: Equatable, Sendable {
+        public var label: String
+        public var minutes: String
+        public var status: StatusLine?
+    }
+
+    public struct StatusLine: Equatable, Sendable {
+        public enum Tone: Equatable, Sendable { case onTime, hurry, quiet }
+        public var text: String
+        public var tone: Tone
+    }
+
     public struct KidRow: Equatable, Sendable, Identifiable {
         public var kid: Kid
         public var done: Int
         public var total: Int
         public var isReady: Bool
+        /// The medal on the ring after sliding (board A3); nil before, or for "Ready!" with no medal.
+        public var medal: MedalKind? = nil
         public var id: Kid.ID { kid.id }
         public var progress: Double { isReady ? 1 : total == 0 ? 0 : Double(done) / Double(total) }
     }
@@ -42,7 +66,8 @@ public struct MissionsFeature {
     public struct Way: Equatable, Sendable {
         public var destination: String
         public var mover: String
-        public var progress: Double
+        /// The mover's x on the strip board (spec "Timetable look, mover").
+        public var moverX: CGFloat
         public var homeLabel: String
         public var showsStops: Bool
         public var cardTitle: String
@@ -66,6 +91,13 @@ public struct MissionsFeature {
         public var days: [Kid.ID: MissionDay] = [:]
         public var chosen: Kid.ID?
         public var page = 0
+        /// Each kid's bus route (C2).
+        public var busPlans: [Kid.ID: BusPlan] = [:]
+        /// The last good live answer and when it came (spec "Refresh").
+        public var arrivals: [BusArrival]?
+        public var arrivalsAt: Date?
+        public var now: Date?
+        /// "Not yet" asks once before a ready kid is undone.
 
         public init() {}
 
@@ -83,13 +115,28 @@ public struct MissionsFeature {
             kids.map { kid in
                 let list = missions(of: kid.id), day = day(of: kid.id)
                 return KidRow(kid: kid, done: list.filter { day.done.contains($0.id) }.count, total: list.count,
-                              isReady: day.ready)
+                              isReady: day.ready, medal: day.ready ? Self.medalKind(day.medal) : nil)
+            }
+        }
+
+        static func medalKind(_ medal: MorningMedal?) -> MedalKind? {
+            switch medal {
+            case .gold?: .gold
+            case .silver?: .silver
+            case .bronze?: .bronze
+            case .none?, nil: nil
             }
         }
 
         /// "3 of 6 done", or "Ready!".
         public func caption(_ row: KidRow) -> String {
-            row.isReady ? L10n.tr("missions.ready") : L10n.tr("missions.done_count", row.done, row.total)
+            guard row.isReady else { return L10n.tr("missions.done_count", row.done, row.total) }
+            switch day(of: row.kid.id).medal {
+            case .gold: return L10n.tr("missions.ready.gold")
+            case .silver: return L10n.tr("missions.ready.silver")
+            case .bronze: return L10n.tr("missions.ready.bronze")
+            case .none?, nil: return L10n.tr("missions.ready")
+            }
         }
 
         /// The chosen kid's own next outing (for "leave at").
@@ -106,20 +153,31 @@ public struct MissionsFeature {
         }
 
         /// "leave at 7:25 am" under the chosen kid's name.
-        public var leaveAt: String? { outing.map { L10n.tr("missions.leave_at", TimeText.withPeriod($0.leave)) } }
+        /// On the live look it is now + "Leave in" for the kid whose bus it is (spec "Header right").
+        public var leaveAt: String? {
+            guard let outing else { return nil }
+            if let live, let leaveIn = live.leaveIn, familyOuting?.kid.id == chosen {
+                return L10n.tr("missions.leave_at", TimeText.withPeriod(minute + max(leaveIn, 0)))
+            }
+            return L10n.tr("missions.leave_at", TimeText.withPeriod(outing.leave))
+        }
 
         /// The mover sits at home 10 minutes before leaving and at the place at the start (clock only).
         public var way: Way? {
             guard let (owner, outing) = familyOuting else { return nil }
-            let from = outing.leave - 10, to = outing.slot.start
-            let progress = to > from ? Double(minute - from) / Double(to - from) : 1
-            let wayLine = Self.wayLine(outing.trip.way)
+            // By bus the one bus reaches our stop at "leave"; a car, taxi or walk leaves home at
+            // "leave" and reaches 1070 at the start.
+            let moverX = outing.trip.way == .bus || outing.trip.way == .shuttle
+                ? WayStrip.liveX(minutes: outing.leave - minute)
+                : WayStrip.vehicleX(minute: minute, leave: outing.leave, start: outing.slot.start)
+            let wayLine = isBusFallback ? L10n.tr("missions.way.no_live", Self.wayPhrase(.bus))
+                : Self.wayLine(outing.trip.way)
             let time = TimeText.withPeriod(outing.slot.start)
             let minutes = TimeLeft.presentation(minutes: max(outing.slot.start - minute, 0)).text
             // Only buses and shuttles stop on the way (spec A2-MVP "Way strip").
             let stops = outing.trip.way == .bus || outing.trip.way == .shuttle
             return Way(destination: outing.slot.iconName, mover: outing.trip.way.moverPicture,
-                       progress: min(max(progress, 0), 1),
+                       moverX: moverX,
                        homeLabel: stops ? L10n.tr("missions.our_stop") : L10n.tr("missions.home"),
                        showsStops: stops,
                        cardTitle: L10n.tr("missions.card.title", outing.slot.title, time),
@@ -129,6 +187,130 @@ public struct MissionsFeature {
                        spoken: L10n.tr("missions.way.spoken", owner.name, outing.slot.title,
                                        Self.wayPhrase(outing.trip.way),
                                        TimeLeft.spoken(minutes: max(outing.slot.start - minute, 0)), outing.slot.title, time))
+        }
+
+        /// Live times count while the last good answer is under 2 minutes old.
+        public static let liveFreshness: TimeInterval = 120
+
+        /// The live look's numbers for the family's bus outing, or nil for the timetable look.
+        public var live: LiveMorning? {
+            guard let (owner, outing) = familyOuting, outing.trip.way == .bus,
+                  let plan = busPlans[owner.id], let arrivals, let arrivalsAt, let now,
+                  now.timeIntervalSince(arrivalsAt) < Self.liveFreshness else { return nil }
+            return LiveMorning(arrivals: arrivals, plan: plan, minute: minute, start: outing.slot.start)
+        }
+
+        /// The live strip (spec "A2 live look"): the next two arrivals, plus the kid's bus when it is
+        /// later; bubbles over the kid's bus and an earlier "too soon" one unless they would overlap.
+        public var liveStrip: WayStrip.Live? {
+            guard let live, let (owner, outing) = familyOuting else { return nil }
+            var arrivals = live.shown
+            if let chosen = live.chosen, !arrivals.contains(chosen) { arrivals.append(chosen) }
+            let mineX = live.chosen.map { WayStrip.liveX(minutes: $0.minutes) }
+            let buses = arrivals.enumerated().map { index, arrival in
+                let isMine = arrival == live.chosen, isTooSoon = arrival == live.tooSoon
+                let x = WayStrip.liveX(minutes: arrival.minutes)
+                let clear = mineX.map { abs($0 - x) >= 220 } ?? true
+                return WayStrip.LiveBus(id: "\(index)", x: x, picture: Self.busPicture(arrival.type),
+                                        service: arrival.service,
+                                        minutes: TimeLeft.presentation(minutes: arrival.minutes).text,
+                                        isMine: isMine, isTooSoon: isTooSoon && !isMine,
+                                        showsBubble: isMine || (isTooSoon && clear))
+            }
+            return WayStrip.Live(buses: buses, destination: KitSlot(iconName: outing.slot.iconName),
+                                 destinationLabel: outing.slot.title, ourStopLabel: L10n.tr("missions.our_stop"),
+                                 owner: KidFace.Badge(face: owner.face, colorIndex: owner.colorIndex),
+                                 ownerName: owner.name, myBus: L10n.tr("missions.my_bus"),
+                                 tooSoon: L10n.tr("missions.too_soon"))
+        }
+
+        /// "Live bus map. Bus 1 in 28 minutes, your bus. Leave in 18 minutes, on time."
+        public var liveSpoken: String? {
+            guard let live, let chosen = live.chosen, let leaveIn = live.leaveIn else { return nil }
+            return L10n.tr("missions.live.spoken", chosen.service, TimeLeft.spoken(minutes: chosen.minutes),
+                           TimeLeft.spoken(minutes: max(leaveIn, 0)), live.status.map { Self.statusLine($0).text } ?? "")
+        }
+
+        static func busPicture(_ type: BusType) -> KitSlot {
+            switch type {
+            case .double: .busDouble
+            case .single: .busSingle
+            case .bendy: .busMini
+            }
+        }
+
+        /// The timetable look of the strip for the family's outing.
+        public var wayTrip: WayStrip.Trip? {
+            guard let way else { return nil }
+            return WayStrip.Trip(destination: KitSlot(iconName: way.destination), destinationLabel: way.place,
+                                 homeLabel: way.homeLabel, showsStops: way.showsStops,
+                                 mover: KitSlot(iconName: way.mover), moverX: way.moverX, cardTitle: way.cardTitle,
+                                 cardCaption: way.cardCaption,
+                                 owner: KidFace.Badge(face: way.owner.face, colorIndex: way.owner.colorIndex),
+                                 ownerName: way.owner.name)
+        }
+
+        /// The family outing goes by bus but there are no fresh live times.
+        public var isBusFallback: Bool { familyOuting?.outing.trip.way == .bus && live == nil }
+
+        /// The chosen kid has an outing today: slide to go instead of "All done!".
+        /// Every kid slides (user, 2026-11-09): "Ready? Slide to go" with an outing, "All done? Slide!"
+        /// without; the slide keeps its done look and undoes by dragging back.
+        public var slides: Bool { chosen != nil }
+
+        /// The chosen kid has an outing today (their medal comes from its time).
+        public var hasOuting: Bool {
+            guard let chosen else { return false }
+            return (slots[chosen] ?? []).contains { $0.trip != nil }
+        }
+
+        /// Board A3r: the chosen kid's done view in place of the missions (the medal and "Gold!" /
+        /// "Ready in good time!", or the check and "Ready!" with no medal).
+        public var done: Done? {
+            guard let chosen, day(of: chosen).ready else { return nil }
+            switch day(of: chosen).medal {
+            case .gold?: return Done(medal: .gold, title: L10n.tr("missions.done.gold"),
+                                     subtitle: L10n.tr("missions.done.in_time"))
+            case .silver?: return Done(medal: .silver, title: L10n.tr("missions.done.silver"),
+                                       subtitle: L10n.tr("missions.done.in_time"))
+            case .bronze?: return Done(medal: .bronze, title: L10n.tr("missions.done.bronze"),
+                                       subtitle: L10n.tr("missions.done.in_time"))
+            case .none?, nil:
+                // No medal: the check and "Ready!"; a kid with no outing hears "All done for the morning!".
+                return Done(medal: nil, title: L10n.tr("missions.ready"),
+                            subtitle: hasOuting ? nil : L10n.tr("missions.done.all_done"))
+            }
+        }
+
+        /// The chosen kid is ready (the slide shows its done look; the pill reads "Ready!").
+        public var chosenIsReady: Bool { chosen.map { day(of: $0).ready } ?? false }
+
+        /// "Ready, Kid A!" once the chosen kid is ready; else "Good morning!".
+        public var title: String {
+            guard let kid = chosenKid, day(of: kid.id).ready else { return L10n.tr("missions.title") }
+            return L10n.tr("missions.ready_title", kid.name)
+        }
+
+        /// Header right: "Leave in" with the status on the live look and the bus fallback,
+        /// "{Place} in" otherwise.
+        public var header: Header? {
+            guard let (_, outing) = familyOuting else { return nil }
+            if let live {
+                return Header(label: L10n.tr("missions.leave_in"),
+                              minutes: live.leaveIn.map { TimeLeft.presentation(minutes: max($0, 0)).text } ?? "",
+                              status: live.status.map(Self.statusLine))
+            }
+            // The timetable look counts to "leave" (start − leave before) with no status.
+            return Header(label: L10n.tr("missions.leave_in"),
+                          minutes: TimeLeft.presentation(minutes: max(outing.leave - minute, 0)).text, status: nil)
+        }
+
+        static func statusLine(_ status: LiveMorning.Status) -> StatusLine {
+            switch status {
+            case .onTime: StatusLine(text: L10n.tr("missions.status.on_time"), tone: .onTime)
+            case .leaveNow: StatusLine(text: L10n.tr("missions.status.leave_now"), tone: .hurry)
+            case .askGrownup: StatusLine(text: L10n.tr("missions.status.ask"), tone: .quiet)
+            }
         }
 
         /// "by bus", "on foot".
@@ -180,10 +362,21 @@ public struct MissionsFeature {
 
         public var everyoneReady: Bool { !kids.isEmpty && kids.allSatisfy { day(of: $0.id).ready } }
 
-        /// "All done!", or "Back to the clock" once every kid is ready.
-        public var buttonTitle: String {
-            everyoneReady ? L10n.tr("missions.back") : L10n.tr("missions.all_done")
+        /// "Ready? Slide to go" for a kid with an outing, "All done? Slide!" otherwise (board A3).
+        public var slideTitle: String {
+            hasOuting ? L10n.tr("missions.slide") : L10n.tr("missions.slide.all_done")
         }
+
+        /// The knob: the way picture for a kid with an outing, the star sticker otherwise.
+        public var slideKnob: KitSlot {
+            guard let chosen, let trip = (slots[chosen] ?? []).first(where: { $0.trip != nil })?.trip else { return .star }
+            return KitSlot(iconName: trip.way.moverPicture)
+        }
+
+        /// The picture plays its rig once each time a mission is tapped (spec, with the check).
+        public var plays: [Mission.ID: Int] = [:]
+        /// Crayon confetti plays once per slide (board 0g2).
+        public var confetti = 0
     }
 
     public enum Action: Equatable {
@@ -194,7 +387,13 @@ public struct MissionsFeature {
         case missionTapped(Mission.ID)
         case moreTapped
         case backPageTapped
-        case allDoneTapped
+        case slid
+        /// The done slide was dragged back past the middle: not ready any more, the medal goes.
+        case slideUndone
+        /// 3 s after a slide: on to the next unfinished kid (board A3).
+        case readyShown
+        case refresh
+        case arrivalsLoaded([BusArrival]?, at: Date)
         case backTapped
         case delegate(Delegate)
 
@@ -207,6 +406,8 @@ public struct MissionsFeature {
 
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
+    @Dependency(\.bus) var bus
+    @Dependency(\.secrets) var secrets
     @Dependency(\.calendar) var calendar
     @Dependency(\.date) var date
     @Dependency(\.continuousClock) var clock
@@ -221,6 +422,7 @@ public struct MissionsFeature {
                 let today = Day(now, calendar: calendar)
                 state.today = today
                 state.minute = Day.minute(of: now, calendar: calendar)
+                state.now = now
                 return .merge(
                     .run { [scheduleStore, holidays] send in
                         let snapshot = try? await scheduleStore.load()
@@ -238,6 +440,24 @@ public struct MissionsFeature {
 
             case let .tick(now):
                 state.minute = Day.minute(of: now, calendar: calendar)
+                state.now = now
+                return .none
+
+            case .refresh:
+                guard let (owner, outing) = state.familyOuting, outing.trip.way == .bus,
+                      let plan = state.busPlans[owner.id] else { return .none }
+                return .run { [bus, secrets, date] send in
+                    guard let key = await secrets.read(.busKey) else { return }
+                    let arrivals = try? await bus.arrivals(plan.stop, key)
+                    await send(.arrivalsLoaded(arrivals, at: date.now))
+                }
+
+            case let .arrivalsLoaded(arrivals, at):
+                // A failed call keeps the last good answer until it is too old (spec "Refresh").
+                guard let arrivals else { return .none }
+                state.arrivals = arrivals
+                state.arrivalsAt = at
+                state.now = at
                 return .none
 
             case let .loaded(snapshot, holidays, days):
@@ -250,12 +470,48 @@ public struct MissionsFeature {
                                               holidays: holidayDays, calendar: calendar))
                 })
                 state.days = Dictionary(uniqueKeysWithValues: days.map { ($0.kid, $0) })
+                state.busPlans = Dictionary(snapshot.busPlans.map { ($0.kid, $0) }, uniquingKeysWith: { $1 })
                 state.chosen = nextKid(in: state)
                 state.page = 0
-                return .none
+                // Live times on open and every 30 s while the screen is open; nothing in the background.
+                return .run { [clock] send in
+                    await send(.refresh)
+                    for await _ in clock.timer(interval: .seconds(30)) { await send(.refresh) }
+                }
+                .cancellable(id: CancelID.refresh, cancelInFlight: true)
 
             case let .kidTapped(kid):
+                // Tapping a ready kid's row shows their done view again (undo is on the slide or pill).
                 state.chosen = kid
+                state.page = 0
+                return .cancel(id: CancelID.advance)
+
+            case .slid:
+                guard let kid = state.chosen else { return .none }
+                var day = state.day(of: kid)
+                day.ready = true
+                day.readyAt = state.minute
+                day.medal = medal(for: kid, in: state)
+                state.days[kid] = day
+                state.confetti += 1
+                // The kid stays chosen and sees their done view; 3 s later the next kid comes up.
+                return .merge(save(day), .run { [clock] send in
+                    try await clock.sleep(for: .seconds(3))
+                    await send(.readyShown)
+                }
+                .cancellable(id: CancelID.advance, cancelInFlight: true))
+
+            case .slideUndone:
+                guard let kid = state.chosen else { return .none }
+                var day = state.day(of: kid)
+                day.ready = false
+                day.readyAt = nil
+                day.medal = nil
+                state.days[kid] = day
+                return .merge(.cancel(id: CancelID.advance), save(day))
+
+            case .readyShown:
+                state.chosen = nextKid(in: state) ?? state.chosen
                 state.page = 0
                 return .none
 
@@ -264,6 +520,7 @@ public struct MissionsFeature {
                 var day = state.day(of: kid)
                 if day.done.contains(id) { day.done.remove(id) } else { day.done.insert(id) }
                 state.days[kid] = day
+                state.plays[id, default: 0] += 1
                 return save(day)
 
             case .moreTapped:
@@ -274,18 +531,8 @@ public struct MissionsFeature {
                 state.page = 0
                 return .none
 
-            case .allDoneTapped:
-                if state.everyoneReady { return .send(.delegate(.finished)) }
-                guard let kid = state.chosen else { return .none }
-                var day = state.day(of: kid)
-                day.ready = true
-                state.days[kid] = day
-                state.chosen = nextKid(in: state) ?? kid
-                state.page = 0
-                return save(day)
-
             case .backTapped:
-                return .send(.delegate(.finished))
+                return .merge(.cancel(id: CancelID.refresh), .send(.delegate(.finished)))
 
             case .delegate:
                 return .none
@@ -302,6 +549,27 @@ public struct MissionsFeature {
             return la < lb
         }
         return (leaving ?? state.kids.first)?.id
+    }
+
+    private enum CancelID { case refresh, advance }
+
+    /// Spec "Medal from the time only": from the live arrivals when the kid's own outing is the
+    /// live one, else from the timetable.
+    private func medal(for kid: Kid.ID, in state: State) -> MorningMedal {
+        guard let outing = DayPlanner.nextOuting(in: state.slots[kid] ?? [], after: state.minute)
+                ?? (state.slots[kid] ?? []).first(where: { $0.trip != nil }).flatMap({ slot in
+                    slot.trip.map { Outing(slot: slot, trip: $0) } })
+        else { return .none }
+        let plan = state.busPlans[kid]
+        let grace = plan?.lateGrace ?? BusPlan.defaultLateGrace
+        if outing.trip.way == .bus, state.live != nil, let plan, let arrivals = state.arrivals,
+           let targets = LiveMorning.leaveTargets(arrivals: arrivals, plan: plan, minute: state.minute,
+                                                  start: outing.slot.start) {
+            return LiveMorning.medal(readyAt: state.minute, ideal: targets.ideal, latest: targets.latest)
+        }
+        let targets = LiveMorning.timetableTargets(start: outing.slot.start, leaveBefore: outing.trip.leaveBefore,
+                                                   lateGrace: grace)
+        return LiveMorning.medal(readyAt: state.minute, ideal: targets.ideal, latest: targets.latest)
     }
 
     private func save(_ day: MissionDay) -> Effect<Action> {

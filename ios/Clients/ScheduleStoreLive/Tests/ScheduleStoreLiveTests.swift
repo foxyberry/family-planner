@@ -88,6 +88,23 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertTrue(items.contains(b))
     }
 
+    /// C2: one bus route a kid, replaced on save; made-up stop and buses (privacy rule).
+    func testBusPlanSavesAndReplaces() async throws {
+        let kid = SeedData.kidA.id
+        try await store().saveBusPlan(BusPlan(kid: kid, stop: "00000", services: ["1"]))
+        try await store().saveBusPlan(BusPlan(kid: kid, stop: "00000", services: ["1", "2"], walk: 8))
+        let plans = try await store().load().busPlans
+        XCTAssertEqual(plans, [BusPlan(kid: kid, stop: "00000", services: ["1", "2"], walk: 8)])
+    }
+
+    func testMissionDayKeepsTheSlideTimeAndMedal() async throws {
+        let day = MissionDay(kid: SeedData.kidA.id, date: Day(year: 2026, month: 11, day: 10), ready: true,
+                             readyAt: 418, medal: .gold)
+        try await store().saveMissionDay(day)
+        let loaded = try await store().missionDay(day.kid, day.date)
+        XCTAssertEqual(loaded, day)
+    }
+
     func testDeleteRemoves() async throws {
         let store = store()
         let pottery = item("Pottery")

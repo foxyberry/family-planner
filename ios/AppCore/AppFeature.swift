@@ -19,6 +19,7 @@ public struct AppFeature {
         case editor(ItemEditorFeature)
         case ourDay(OurDayFeature)
         case missionEditor(MissionEditorFeature)
+        case busSettings(BusSettingsFeature)
         case gallery(GalleryFeature)
     }
 
@@ -66,6 +67,8 @@ public struct AppFeature {
         case path(StackActionOf<Path>)
         case home(HomeFeature.Action)
         case missions(PresentationAction<MissionsFeature.Action>)
+        /// A screen deep link (`familyplanner://missions`).
+        case linkOpened(ScreenLink)
     }
 
     @Dependency(\.calendar) var calendar
@@ -128,6 +131,15 @@ public struct AppFeature {
                     }
                 }
                 return .send(.home(.tick(now)))
+
+            case let .linkOpened(link):
+                // Kid screens only; an open grown-up screen keeps its lock rules.
+                guard state.path.isEmpty else { return .none }
+                switch link {
+                case .home: state.missions = nil
+                case .missions: state.missions = MissionsFeature.State()
+                }
+                return .none
 
             case .home(.missionsTapped):
                 state.missions = MissionsFeature.State()
@@ -220,8 +232,21 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
+            case let .path(.element(id: id, action: .hub(.busesRowTapped))):
+                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
+                state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
+                return .none
+
+            case let .path(.element(id: id, action: .busSettings(.delegate(.finished)))):
+                state.path.pop(from: id)
+                return .none
+
             case let .path(.element(id: id, action: .ourDay(.delegate(.finished)))):
                 state.path.pop(from: id)
+                return .none
+
+            case let .path(.element(id: _, action: .editor(.delegate(.openBuses(kid))))):
+                state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
                 return .none
 
             case let .path(.element(id: id, action: .editor(.delegate(.finished)))):

@@ -56,6 +56,10 @@ public struct AppView: View {
                 .toolbar(.hidden, for: .navigationBar)
                 .fullScreenCover(item: $store.scope(state: \.missions, action: \.missions)) { store in
                     MissionsView(store: store)
+                    #if DEBUG
+                        // The cover sits above the root's debug overlay; give it its own.
+                        .overlay { if let debugTools = DebugModel.installed { DebugOverlay(model: debugTools) } }
+                    #endif
                 }
         } destination: { store in
             switch store.case {
@@ -67,6 +71,8 @@ public struct AppView: View {
                 OurDayView(store: store)
             case let .missionEditor(store):
                 MissionEditorView(store: store)
+            case let .busSettings(store):
+                BusSettingsView(store: store)
             case let .gallery(store):
                 ComponentGallery(onBack: { store.send(.backTapped) })
             }

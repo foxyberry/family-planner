@@ -1,3 +1,4 @@
+import BusClient
 import ComposableArchitecture
 import DesignSystem
 import Domain
@@ -5,6 +6,7 @@ import Foundation
 import HolidayProvider
 import Home
 import ScheduleStore
+import SecretStore
 import XCTest
 
 @MainActor
@@ -33,9 +35,27 @@ final class HomeFeatureTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.scheduleStore.load = { snapshot }
             $0.holidays.holidays = { _ in holidays }
+            $0.secrets = .inMemory([.busKey: "test-key"])
+            $0.bus.arrivals = { _, _ in
+                [BusArrival(service: "1", minutes: 4, type: .single), BusArrival(service: "1", minutes: 28, type: .double)]
+            }
         }
         store.exhaustivity = .off
         return store
+    }
+
+    /// Board A1 on a live bus morning: "Leave in" counts to the chosen bus and the status shows.
+    /// Made-up stop and bus numbers (privacy rule).
+    func testLiveBusMorningShowsTheStatus() async {
+        var snapshot = snapshot()
+        snapshot.busPlans = [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])]
+        let store = store(on: tuesday, minute: 412, snapshot: snapshot)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.refresh)
+        await store.receive(\.arrivalsLoaded)
+        XCTAssertEqual(store.state.minutesToLeave, 18)
+        XCTAssertEqual(store.state.status?.text, "On time")
     }
 
     func testLoadsTwoKidsLayout() async {
@@ -176,7 +196,8 @@ final class HomeFeatureTests: XCTestCase {
         await early.receive(\.loaded)
         XCTAssertTrue(early.state.isMissionMorning)
         XCTAssertEqual(early.state.morningOuting?.slot.title, "School")
-        XCTAssertEqual(early.state.outingHeading, "School in")
+        XCTAssertEqual(early.state.outingHeading, "Leave in")
+        XCTAssertEqual(early.state.minutesToLeave, 33)
         XCTAssertEqual(early.state.morningOuting?.trip.way, .bus)
 
         let beforeWake = store(on: tuesday, minute: 380)
@@ -257,6 +278,8 @@ final class HomeFeatureTests: XCTestCase {
         await store.send(.tick(wednesday.date(minute: 601, calendar: calendar))) {
             $0.minute = 601
             $0.idleSeconds = 1
+            $0.now = self.wednesday.date(minute: 601, calendar: self.calendar)
+            $0.secondsSinceRefresh = 1
         }
     }
 
@@ -272,6 +295,8 @@ final class HomeFeatureTests: XCTestCase {
         await store.send(.tick(wednesday.date(minute: 601, calendar: calendar))) {
             $0.minute = 601
             $0.idleSeconds = 1
+            $0.now = self.wednesday.date(minute: 601, calendar: self.calendar)
+            $0.secondsSinceRefresh = 1
         }
     }
 }

@@ -48,6 +48,17 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-08: way strip back to the first design (user): straight road at y 240, our stop and home in the middle (x 860), destination at 1150, stops at 170 / 380 / 620 by bus, four trees, no hills; the same strip for the live and the timetable look; timetable mover rules and card place updated; stems and drawn-bottom rule kept. 0a gains "Sizes on every iPad".
 - 2026-11-08: "Going" row drawn (board C3g): Going slots None / Walk / Bus / Car / Taxi, Leave stepper 0–90 step 5 with the leave time, Bus → "Uses Our buses ›".
 - 2026-11-08: answers on the sizing build: the way strip keeps its 1248:340 shape (× s, centred in its region), mission captions take up to two lines in a pitch-wide label (never under 24), "All done!" grows to fit its title (min 400 s).
+- 2026-11-08: full check after the cleanup: stale M3 / N2 / E4 / "Next" wording fixed; board 0c2 re-cut from the current boards; home "Missions →" points to A2. "{Place} in" is gone: home and the morning header always say "Leave in" (to start − "leave before", or to the chosen bus when live). A kid with an outing slides to go on the timetable look too (boards A2t, A2t-w, A1m, 0b, 0c2 updated).
+- 2026-11-08: bus setup (user): the LTA key is built into the app from a git-ignored local config; C2 only offers "Change key". The stop and buses are set in first-run setup: new S3 "Getting to school" (stop code with name check, bus pills, walk, ride); the old map step is archived.
+- 2026-11-09: after the slide (user): the slide stays green "Ready!" and a tap offers "Not yet"; "All done!" turns "Ready!" the same way; no "Back to the clock" button (← is the way back). The local config holds the LTA key only; no pre-filled route.
+- 2026-11-09: medal badge size and place on the kid row ring written out (from board A3).
+- 2026-11-09: A2 redlines (shared lines x 64 / 448 / 1312, baselines 107 / 584 / 757, kid rows, KidBand notch, circle pitch = (column − 112) / 5, slide and pill boxes); missions column stretches; boards A2, A2t, A2t-w, A3 now place circles on that even pitch (v135).
+- 2026-11-09: done view restored (user: it was on the earlier A3, around canvas v40): medal 200 + "Gold!" in the missions area, the slide stays green "Ready!" (board A3r, new); the next kid is chosen after 3 s. Undo is dragging the knob back past the middle (no tap, no dialog).
+- 2026-11-09: mission taps play the picture's rig (user); new rigs shirt, backpack, shoe, babyBottle in kit.js RIGS (boards 0g3 / 0g3b redrawn smaller to fit 35 tiles).
+- 2026-11-09: Layout contract (board → layout JSON → redlines page → layout test); canvas page "Redlines" added; layout v2 adds A3r.
+- 2026-11-09: "All done!" pill retired (user): every kid slides; a kid with no outing reads "All done? Slide!" with a star knob, done look "Ready!" with the check picture, undo by dragging back (boards A3, 0b, 0c2, 00, 0f).
+- 2026-11-09: the slide's knob picture animates while it is held and dragged (bus rocks, wheels turn with the finger; star twinkles) (user; boards A2, 0b, 0g2).
+- 2026-11-09: done view geometry and Kid B's done view written out; safe top is read from the system (12.9" under iPadOS 26 reports 32, s 0.984); the way strip fills its region (x proportional, sizes by s, nothing stretched).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -61,7 +72,7 @@ Markers used below:
 ### Principles (board 00, 2026-11-08)
 Every board and the app follow these. Change them here and on board 00 first.
 - **Time**: every time is 12-hour with am / pm. One now and one next per kid, never a list; Next skips free time and slots that only resume. Medals come from time only.
-- **Kids**: never locked (Slide to go and All done! are always on). Each kid finishes on their own. Kid screens never scroll; more turns a page ("+n"). No shame: late = no medal, never a sad face.
+- **Kids**: never locked (every kid's slide is always on). Each kid finishes on their own. Kid screens never scroll; more turns a page ("+n"). No shame: late = no medal, never a sad face.
 - **Who is who**: a kid = face + name, colour never alone. One colour per kid day and night (#56B4E9 / #E69F00). Pick blue #2E8FE0 = ✓, picked, focus, for any kid. 2+ kids: list on the left, chosen kid's missions on the right.
 - **Type and space**: Playpen Sans, six sizes (144 · 96 · 48 · 36 · 30 · 24), nothing under 24. Gaps 4 · 8 · 12 · 16 · 24 · 40 · 64 (4 and 12 inside one part). 12 columns, margin 64; header 48–128, content 176–968.
 - **Drawing**: UI shapes are CrayonKit Shapes; pictures come from the kit only (`KitIcon`); the kid's own drawings swap into the same slot later. Motion 1.2 s, rigid parts; reduced motion = still.
@@ -72,19 +83,26 @@ Every board and the app follow these. Change them here and on board 00 first.
 - 12 columns of 82, gutter 24, margin 64 (`GridMetrics`). Column n (1-based) starts at x = 64 + (n − 1) × 106.
 - Header band y 48–128. Content y 176–968. Main button bottom edge at y 968.
 - **Fixed regions** (2026-11-08, user): every screen is a fixed frame of named regions taken from its board (for example header 48–128, strip 176–516, kids and missions 536–968). A region's place and size never come from its content, and a region never disappears so that the regions below can move up: when it has nothing to show, it shows its empty look (each screen names one). Content inside a region is top-aligned (or aligned as the board shows) and capped to the region; it never pushes, centres or resizes the frame. The y values are board coordinates, which already sit below the 24 pt status bar band (see "Status bar"); on other iPads they turn into screen values through "Sizing formulas" below.
+- **Layout contract** (user, 2026-11-09: screens kept drifting off the board lines). One source, three views, one check:
+  1. **Source**: the board. Every part of every screen sits on a named line or in a named region; a part that needs a new line gets the line named first (board + this spec), never an ad-hoc offset.
+  2. **Machine copy**: `handover/layout/<board>.json` (exported from the boards, versioned `layout vN`; public-safe). The app copies it as its layout table and places every listed part from it through one modifier. Inside a part, padding is the part's own; between parts, only the table decides. No stack spacing, no centring, no guessed offsets for anything that is in the table.
+  3. **Human view**: the canvas page "Redlines" shows every screen with its lines, regions and part boxes, generated from the same JSON (do not edit by hand). Read a screen's redline before building or fixing it.
+  4. **Check**: the app's layout test compares part frames with the table (shared lines ±1 pt after scaling) on 1376 × 1032, 1366 × 1024, 1180 × 820 and 1133 × 744, and a debug overlay draws the same lines on the device.
+  - Any board change re-exports the JSON and the redlines together and bumps `layout vN`; the message to the main session names the version and the changed ids. A part missing from the table is a question to the design session, not a guess.
+  - Global lines (all screens): status band 0–24, margins 64 / 1312, header 48–128 with baseline 107, content 176–968. Screen lines (home 928; morning 172 / 448, baselines 584 / 757; grown-up 104 / 232 / 930) belong to their screens and are listed in each JSON.
 - Spacing tokens: **4 · 8 · 12 · 16 · 24 · 40 · 64** (changed 2026-11-08). 4 and 12 are for the inside of one part only (icon to label, chip padding, caption under a picture); between parts use 16 or more. No other gaps (2, 6, 10, 14, 20, 32, 48, 56 were mapped to the nearest token on every board). Line pitch inside a text block (e.g. the two-line hub, 38) is type, not spacing.
 - Type: `CrayonType` hero 144, display 96, title 48, head 36, body 30, caption 24. Nothing smaller than 24.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
 - **Status bar** (user decision, 2026-11-08): the iPad status bar shows on **every** screen, kid and grown-up. Its band, y 0–24, holds nothing; only full-bleed backgrounds (paper, night sky) run under it. Status bar text is dark on day screens and light on night screens (A1n, B2n).
 - **Sizing formulas: landscape, full screen, every iPad** (2026-11-08, user: "the design language is fixed to the 13 inch"; research report "아이패드 화면 크기 대응 레이아웃"). The boards stay drawn at 1376 × 1032; these formulas turn a board value into a value on any landscape iPad, from the mini (1133 × 744) to the 13" (1376 × 1032). At 13" every formula gives the board value back.
-  - **Inputs**: W = window width, H = window height, `safe.top` = the top safe-area inset (the status bar, 24 on current iPads). H_safe = H − safe.top. Lay the screen out in full-screen space; the band 0 … `safe.top` holds nothing but full-bleed backgrounds.
-  - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (the family's, 1366 × 1024): 0.992 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714. The reference height is 1008 (the 13" safe area), not 1032: this is the fix for the overflow bug. Never `scaleEffect` the whole screen (blurry text, wrong hit areas); multiply each value by s instead.
+  - **Inputs**: W = window width, H = window height, `safe.top` = the top safe-area inset as the system reports it (24 on the 13"; 32 on the 12.9" under iPadOS 26, measured on the family's iPad 2026-11-09). Never hard-code it. H_safe = H − safe.top. Lay the screen out in full-screen space; the band 0 … `safe.top` holds nothing but full-bleed backgrounds.
+  - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (the family's, 1366 × 1024, safe top 32): 0.984 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714. The reference height is 1008 (the 13" safe area), not 1032: this is the fix for the overflow bug. Never `scaleEffect` the whole screen (blurry text, wrong hit areas); multiply each value by s instead.
   - **Floors**: `fluid(ref, lo) = max(lo, ref × s)`. Floors are design choices, not research values: check them on the family iPad and on a mini simulator [proposed].
   - **Vertical position**: y = safe.top + (y_board − 24) × s. Header top 48 → 24 + 24 s; main button bottom 968 → 24 + 944 s (mini: 41 and 698, leaving 46 below).
   - **Horizontal position**: every region has an anchor. Default, when a screen does not name one: a region that spans both margins (64 … 1312) **stretches** (left = 64 s, right = W − 64 s); otherwise it is **left**-anchored (x = x_board × s) when its board centre is left of 688, else **right**-anchored (x = W − (1376 − x_board) × s). Named exceptions: the home right panel (A1, A1n, E1, E3, E3b) stretches from 928 s to W − 64 s, so the extra width of a narrower-but-taller iPad goes to the text, not to a gap.
   - **Type**: hero `fluid(144, 96)`, display `fluid(96, 64)`, title `fluid(48, 36)`, head `fluid(36, 30)`, body `fluid(30, 24)`, caption **24 fixed** (still nothing under 24). Mini: 103 / 69 / 36 / 30 / 24 / 24. Use `Font.custom(_:size:relativeTo:)` with the scaled size so Dynamic Type still works on top; do not also use `@ScaledMetric` on the same size. Text that may not fit at its floor wraps or uses `ViewThatFits`; it never shrinks below the floor.
   - **Spacing**: 4, 8, 12 fixed (inside one part). 16 → `fluid(16, 12)`, 24 → `fluid(24, 16)`, 40 → `fluid(40, 28)`, 64 → `fluid(64, 40)`. Grid: margin `fluid(64, 40)`, gutter `fluid(24, 16)`, column = (W − 2 margin − 11 gutter) / 12 (82 at 13").
-  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip 1248 s × 340 s, keeping its shape, centred in its stretch region; the paper shows on both sides when the region is wider; labels and the card sit on top at their own type sizes). Kid tap targets stay ≥ 64 [proposed]. Crayon outlines × s; focus rings and hairlines fixed.
+  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip: the ground and the road fill the strip region (64 s … W − 64 s) and its height is 340 s; stop, stem and picture **x** positions are proportional to the strip width, every **size and y** uses s, and nothing is stretched (a tree stays round); labels and the card sit on top at their own type sizes (changed 2026-11-09 from keep-aspect, which left a 6 pt gap per side)). Kid tap targets stay ≥ 64 [proposed]. Crayon outlines × s; focus rings and hairlines fixed.
   - **Not covered yet**: portrait and resizable windows (iPadOS 26 cannot be refused). Until they are designed (backlog), the same formulas run with s floored at 0.70; content may clip in small windows.
 - **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
 - **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 64.
@@ -140,7 +158,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - Sleep 20:45–7:30, Breakfast 7:30–8:30, Play 8:30–19:00, Dinner 19:00–20:15, Shower 20:15–20:45.
   - On the seed Saturday, Weekend school (9:00–12:00) and the Birthday (14:00–16:00) sit on top. At 9:15 the hub says "Weekend / school" (head 36 on two lines, because it does not fit 260 on one) / "until 12:00 pm", as on E3.
   - Real Sunday activity times are not in the repo; grown-ups add a Sunday every-week item in C3 (e.g. with `actChurch`).
-- Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30 am" and Kid A "Leave in 34 min" (M3), as on the board.
+- Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30 am" and Kid A "Leave in 34 min" (live look, build step 5), as on the board.
 
 ### Schedule model the screens assume [proposed]
 - Each kid has **three day templates**, one per day type, plus **every-week items** and **just-once items**. A template covers sleep, routines, the school or nursery block, dinner, evening and bedtime.
@@ -241,7 +259,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Kid A block** (spacing from the board):
   - `KidFace` 48 (Kid A), gap 16, name head 36.
   - **With the live bus (build step 5)** bus mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).
-  - **M2 instead**: Next row + time left, see "Now and next on home".
+  - **Otherwise**: Next row + time left, see "Now and next on home".
 - **Kid B block**, 64 below:
   - `KidFace` 48 (Kid B), gap 16, name head 36.
   - Row with gap 40:
@@ -251,9 +269,9 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2. Shows only in the mission morning (below).
 - **Mission morning (board A1m)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
   - "Missions →" shows at the bottom of the panel (E3's "Diary →" is M5, so there is no clash).
-  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: "{Place} in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the outing's start ("38 min", "1 h 20 min"). This is the A1 board layout with "{Place} in" instead of "Leave in" and no "On time" line. Otherwise: the Next row without the time left.
+  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: "Leave in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the leave time (start − "leave before") ("38 min", "1 h 20 min"). This is the A1 board layout; the "On time" line shows only with live bus times. Otherwise: the Next row without the time left.
   - Kid B block unchanged.
-  - **Panel fit** (board A1m; 2026-11-08): the panel is the column x 928–1312, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "{Place} in" row 72 (the 80 way picture may stand 8 above the row); 8; "38 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 24; now/next row 160 + 8 + caption. That ends at about y 650. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 220 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 64 → 40. The clock never moves.
+  - **Panel fit** (board A1m; 2026-11-08): the panel is the column x 928–1312, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "Leave in" row 72 (the 80 way picture may stand 8 above the row); 8; "33 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 24; now/next row 160 + 8 + caption. That ends at about y 650. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 220 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 64 → 40. The clock never moves.
   - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. On a bus morning with live times the Kid A block shows "Leave in" + "On time" instead (see "A2 live look").
 
 ### States
@@ -264,7 +282,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 ## A2 · Morning: missions and the way there (new 2026-11-08) [boards A2t, A2t-w (timetable look), A2 (live look), A3 (done), A2m (many missions)]
 One morning screen. Its strip region has two looks: the **timetable look** (this section: car, taxi, on foot, and the bus when there are no live times) and the **live look** (the bus with live times, see "A2 live look" below). Going somewhere is the point of the morning, so the top shows the way there (user, 2026-11-08).
-- **Header** (48–128): `RoundButton` 80 with `MarkerGlyph.chevronLeft` 40 → home; "Good morning!" title 48; right: "{Place} in" (body, `softText`) + "{n} min" (title 48), counting to the start of the next outing.
+- **Header** (48–128): `RoundButton` 80 with `MarkerGlyph.chevronLeft` 40 → home; "Good morning!" title 48; right: "Leave in" (body, `softText`) + "{n} min" (title 48), counting to the family outing's leave time (start − "leave before"); the live look adds the status (below).
 - **Way strip** (x 64–1312, y 176–516; boards A2, A2t, A2t-w, A3; the first design, back by user request 2026-11-08): a straight crayon road with our stop and home in the middle and the destination on the right. Reference: `handover/crayon-ui-ref/way-strip.js` → `svg/way-bus.svg` (with stops), `svg/way-car.svg` (no stops). Coordinates are in the strip's own frame (0–1248 × 0–340). Everything is one `CrayonKit` `WayStrip` view except the home, destination and mover pictures (`KitIcon`s). No new kit slot.
   - **Layers, back to front**: ground → trees → stems → road → stops → pictures → labels → movers and bubbles → legend or card.
   - **Ground**: crayon rounded rectangle (4, 4, 1240 × 332, radius 36), fill #D6ECC3 (wash 0.22, hachure −35°, gap 12), marker edge 4 ink.
@@ -281,14 +299,26 @@ One morning screen. Its strip region has two looks: the **timetable look** (this
   - **Empty look** (no outing left for any kid): ground and trees only, no road; home picture 150 in the middle (x 624) on its own short stem; `CrayonCard` "Home all day" at (120, 38), no face.
   - **Whose outing** (changed 2026-11-08, user: the road should not vanish when Kid B is chosen): the strip and the header countdown show **the family's next outing**: the earliest slot or item today, of any kid, that has a trip and has not started. It stays the same whichever kid is chosen (a younger kid goes along to the stop, so the morning has one road). "leave at {h:mm am}" next to the chosen kid's name shows only when the chosen kid has their own outing left today; otherwise nothing is there. No outing left for any kid today: the header countdown is empty and the strip region keeps its place and size (Fixed regions) with its **empty look** (see "Way strip") [proposed]. The kids and missions stay at 536–968.
 - **Kids and missions** (536–968): the A2 family layout. Kid list on the left (`CrayonRing` 76 + face, `KidBand` on the chosen kid), the chosen kid's name + "leave at {h:mm am}" and one row of 112 mission circles on the right (6 a kid; fold / "+n" rule of A2m beyond that).
-- **All done!** (bottom right, 96 tall, at least 400 s wide and as wide as its title needs, so "Back to the clock" fits at head 36; `KidPillButton` in the chosen kid's colour, star sticker 56): always active; missions help but never lock it. Tap: the kid's row turns "Ready!" (full ring, check badge, no medal), crayon confetti (Reduce Motion: none), then the next unfinished kid is chosen. Everyone ready: the button reads "Back to the clock".
-- **Presentation**: A2 opens over home as a full-screen cover, not on the grown-up stack (no relock, no app-switcher hiding). Ways out: "←" and "Back to the clock". (Main session's call, accepted 2026-11-08.)
+- **Every kid slides** (user, 2026-11-09; the "All done!" pill is retired): the bottom control is always `SlideToGo` 864 × 96 on the missions column. A kid with an outing: "Ready? Slide to go", knob = the way picture. A kid with no outing (Kid B at home): "All done? Slide!", knob = the star sticker, no medal. Always on; missions help but never lock it. Done look and undo are the same for both (see "After the slide"): green, knob at the end, "Ready!", drag back past the middle to undo. A kid with no outing gets the check picture and "Ready!" in the done view and no time-based medal.
+- **Presentation**: A2 opens over home as a full-screen cover, not on the grown-up stack (no relock, no app-switcher hiding). The way out is "←" in the header. (Main session's call, accepted 2026-11-08; button way out removed 2026-11-09.)
 - **Folded and "+n" circles** (board A2m): the folded circle is the kid's 112 crayon circle with the done tick, caption "{n} done". The "+n" circle is **also the kid's crayon circle** (not paper), "+{n}" title 48 bold, caption "{n} more"; tapping it turns the page. On the last page that place holds the back circle: the kid's crayon circle with `MarkerGlyph.chevronLeft`, caption "Back"; tapping it returns to the previous page (with at most 8 missions that is page 1).
-- **Tapping a mission** toggles it (undo allowed); the check draws itself in 0.35 s (Reduce Motion: appears).
+- **Tapping a mission** toggles it (undo allowed); the check draws itself in 0.35 s (Reduce Motion: appears). The tap also plays the mission picture's rig once, as on the clock (see "Picture rigs": ≤ 1.2 s, taps during the play still toggle but do not restart it; Reduce Motion: no play). New rigs for the seed mission pictures (user, 2026-11-09): `shirt` swings on its collar (rock 8°, origin 120, 40), `backpack` bounces (bob 10, twice), `shoe` taps its toe (rock 10° about the heel, 40, 200), `babyBottle` tips to drink (rock 12°, origin 120, 220); other pictures use the default hop.
 - **Spoken times** (all screens): `TimeLeft` speaks full words, not the shown text: "38 minutes", "1 hour 20 minutes", "1 minute".
 - **VoiceOver**: the strip reads "Kid A's way to school, by bus, 38 minutes, school starts at 7:30 am"; kid rows are tabs; missions are toggles.
 - **Live look**: on a bus morning with live times the same region shows the live look (below); the timetable look is its fallback.
 
+
+### A2 redlines (board values at 1376 × 1032, measured from boards A2, A2t, A2t-w, A3, v135) [board]
+Every part sits on these lines; on other iPads apply "Sizing formulas" (y = safe.top + (y − 24) s; the anchors named here).
+- **Shared vertical lines**: **x 64** = ← button left = strip left = kid list left. **x 448** = missions column left = name line left = first circle left = slide left. **x 1312** = header right = strip right = last circle right = slide and pill right. **x 172** = text left inside the kid rows.
+- **Anchors**: the kid list is left-anchored; the missions column **stretches** from 448 s to W − 64 s (named exception, like the home panel); the circle pitch, the slide width and the pill's right edge follow the column.
+- **Header** (48–128): ← `RoundButton` (64, 48, 80 × 80). Title left 168 (button + 24), **baseline 107**. Right group, right edge 1312, all on **baseline 107**: "Leave in" (body) · gap 12 · "{n} min" (title 48, "min" 24) · gap 16 · status (head 36 with a 28 dot, gap 8; live look only). Without status the minutes end at 1312.
+- **Strip**: (64, 176, 1248 × 340), see "Way strip".
+- **Kid list** (left-anchored): rows (64, 536 + 108 i, 340 × 100), gap 8. The chosen row's `KidBand` is (64, row y, 354 × 100): the extra 14 is the notch, its tip at x 418, centred on the row (y + 50), pointing at the missions column. Ring 76 at (80, y + 12) (16 in from the row edge); face 66 at the ring's centre (118, y + 50). Name (body 30 bold) left 172, baseline y + 48 (584 for row 1); caption (24) left 172, baseline y + 78.
+- **Missions column** (448–1312, top 548): name line 48 tall: kid name (head 36) left 448, **baseline 584** (the same line as row 1's name); "leave at {h:mm am}" / "home today" (caption 24) right after the name with gap 12, same baseline.
+- **Circles**: six tracks of 112 across the column, **first circle left 448, last circle right 1312, pitch = (column width − 112) / 5** (150.4 at 13"). Fewer than six keep the same pitch and start at 448 (Kid B's three at 448, 598, 749). Circle top 612 (64 below the name line top), so the row is 612–724. Caption: top 732 (circle + 8), baseline 757, centred on the circle in a label one pitch wide, up to two lines.
+- **Bottom control** (bottom 968): slide (448, 872, column width × 96). Pill (right edge 1312, 872, 400 s × 96).
+- A layout test checks these shared edges (64 / 448 / 1312 and baselines 107 / 584 / 757) on the four sizing-test iPads.
 
 ### Morning data: missions, trips, done state (2026-11-08) [proposed]
 - **Missions**: `Mission { id, kid, name, picture: KitSlot, order }`. Morning only, at most 8 per kid, kept in the local store with the schedule.
@@ -300,7 +330,7 @@ One morning screen. Its strip region has two looks: the **timetable look** (this
   - `leaveBefore`: minutes, 0–90 in steps of 5. leave = start − leaveBefore. The clock still draws the slot or item from its start; the start is the time at the place.
   - Seed: Kid A School slot (Mon–Fri) bus, 5 → "leave at 7:25 am". Kid A Weekend school (Sat) car, 25 → "leave at 8:35 am". Kid A Swimming car, 10. Art club, Birthday and all of Kid B: no trip.
   - Editing trips: C1 "Getting there" → C2 for the bus, and the "Going" row on C3/C4/E5 (below). Until those are built, trips come from the seed; an item without a trip shows no strip.
-- **Done state**: per kid **per date**: `{ kid, date, doneMissionIds, ready: Bool }`, in the local store. A new date starts at **midnight**, like the clock, so every morning starts empty. Keep 14 days (N2 medals and the M5 diary can read it later); drop older ones. Renaming a mission keeps its done state (it is keyed by id); removing it drops it.
+- **Done state**: per kid **per date**: `{ kid, date, doneMissionIds, ready: Bool }`, in the local store. A new date starts at **midnight**, like the clock, so every morning starts empty. Keep 14 days (the medal fields come with the live look; the M5 diary can read it later); drop older ones. Renaming a mission keeps its done state (it is keyed by id); removing it drops it.
 - **Entry**: home "Missions →" in the mission morning (A1 above). Grown-ups reach C5 from C1 "More → Morning missions" (Kid A) and E6 "Cards" (Kid B).
 
 ### A2 live look: the bus with live times (new 2026-11-08) [board A2; A3 for the done state; C2 for settings]
@@ -318,26 +348,35 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - A bus that has reached our stop leaves the map on the next refresh.
   - VoiceOver: "Live bus map. Bus 1 in 29 minutes, your bus. Leave in 19 minutes, on time." (numbers from the data; full words, see "Spoken times").
 - **Refresh**: every 30 s while the screen is open, and on open; nothing in the background. A failed call keeps the last answer until it is 2 min old, then the timetable fallback shows (no error text for kids; C2 shows the state for grown-ups).
-- **Bottom control** (536–968 region, bottom 968, right-aligned 864 wide): for a kid with an outing today, `SlideToGo` 864 × 96, label "Ready? Slide to go", knob = the way picture (bus). Always awake; missions help but never lock it. A kid with no outing keeps "All done!" (above). On the timetable fallback the slide stays.
-- **After the slide** (board A3): the kid's row turns "Ready! Gold" / "Ready! Silver" / "Ready! Bronze" / "Ready!" (caption bold, `onTimeText`), the medal sits on the progress ring, the header title becomes "Ready, {name}!", crayon confetti (Reduce Motion: none), and the next unfinished kid is chosen. The header keeps counting "Leave in" for the family's outing. Undo: tap the ready row, "Not yet" (one confirm), the medal is dropped.
+- **Bottom control** (536–968 region, bottom 968, right-aligned 864 wide): for a kid with an outing today, `SlideToGo` 864 × 96, label "Ready? Slide to go", knob = the way picture (bus). Always awake; missions help but never lock it. A kid with no outing slides too ("All done? Slide!", star knob; see "Every kid slides"). On the timetable fallback the slide stays.
+- **After the slide** (boards A3r and A3; restored 2026-11-09 from the earlier A3, user): the kid stays chosen and the missions area becomes their **done view** (board A3r): the medal picture 200 at the column's left line (448) on the circle row, then, 40 to its right, "Gold!" / "Silver!" / "Bronze!" (display 96) over "Ready in good time!" (body 30); a kid with no medal gets the check picture and "Ready!". The medal drops in and swings, crayon confetti (0g2; Reduce Motion: fades in). The slide stays in its done look: green (`slider` done art), knob at the right end with a check, "Ready!" (head 36) to its left. The kid's row turns "Ready! Gold" / "Ready! Silver" / "Ready! Bronze" / "Ready!" (caption bold, `onTimeText`) and the medal sits on the progress ring (medal 36 on the 76 ring, right edge 8 outside it and bottom edge 6 below it, i.e. 0.47 of the ring with offsets 0.1 / 0.08). After 3 s the next unfinished kid is chosen (board A3); tapping the ready kid's row shows the done view again. The header title becomes "Ready, {name}!" and keeps counting "Leave in" for the family's outing. Done view geometry (board A3r, layout v4 ids `missions.doneMedal`, `missions.doneTitle`, `missions.doneSubtitle`, `bottom.slide`, `bottom.knob`, `bottom.knobCheck`, `bottom.doneLabel`): medal 200 × 200 at (448, 612), the circle-row top; title left 688 (448 + 200 + 40), baseline 728; subtitle left 688, baseline 776. A kid with no outing (Kid B) gets the same view with the check picture in the medal's place, title "Ready!" and subtitle "All done for the morning!". Confetti: 24 crayon pieces in the kit colours burst from the medal centre (548, 712) over about 360 × 240, clipped to the missions column, 1.5 s with the medal drop. **Undo by dragging back** (user, 2026-11-09): drag the knob from the right end back toward the start; past the middle it lets go and slides home, the done view turns back into the missions, the medal is dropped. Released before the middle, it springs back to "Ready!". No tap-to-undo and no dialog on the slide.
 - **Medal from the time only** (missions never count):
   - arrive-by = the outing's start (seed school 7:30 am); latest = start + late grace (C2, default 15 min).
   - L1 (ideal leave) = the leave time of the last bus (live, at the moment of the slide) whose arrival at our stop + ride minutes ≤ arrive-by. L2 = the same with latest.
   - Gold: slid at or before L1 − 5 min. Silver: at or before L1. Bronze: at or before L2. After L2: "Ready!" with no medal, never a sad face.
   - Timetable fallback: L1 = start − leave before; L2 = L1 + late grace.
 - **Done state** gains `readyAt` and `medal: gold | silver | bronze | none` (per kid per date, as in "Morning data").
-- **Home (A1)** on a live bus morning: the Kid A block shows "Leave in" with the 80 pt bus picture, `TimeLeft` display 96 and the status line (the A1 board look) instead of "{Place} in"; the fallback keeps "{Place} in".
+- **Home (A1)** on a live bus morning: the Kid A block adds the status line under `TimeLeft` (the A1 board look), and "Leave in" counts to the chosen bus; the timetable look counts to start − "leave before" with no status.
 
 ### Bus settings (C2 "Our buses") [board C2; first cut proposed]
-- One route per kid with a bus outing ("Plan A · usual"). The Plan B card and "+ Add a route" are hidden (plan B is Next).
+- One route per kid with a bus outing ("Plan A · usual"). The Plan B card and "+ Add a route" are hidden (plan B comes later).
 - Rows: **Stop**: type the 5-digit stop code; the app shows the stop's name from the LTA stop list to confirm ("Opp Blk 123" style). **My buses**: chips of the numbers that call at that stop; pick one or more. **Walk to the stop**: −/+ in minutes (S3 stepper, default 10). **Ride**: −/+ minutes (default 10). **Late grace**: 0–30, step 5 (default 15).
-- **Live bus times** row: "Add key" → a secure field for the LTA DataMall key; then "Working ✓" or "Not working · last tried 7:12 am" (caption). The key lives in the Keychain; the stop, numbers and minutes live in the local store.
+- **Live bus times** (user, 2026-11-08): the LTA key belongs to the app, not to each family. It is built in from a git-ignored local config file (the repo is public); a build without it (CI, clones) has no live times and every bus morning shows the timetable look. C2 shows a row "Live bus times · Working ✓" (or "Off · last tried 7:12 am"); its "Change key" link opens a secure field that overrides the built-in key, stored in the Keychain. Grown-ups normally never see a key field.
 - Privacy: stop codes, bus numbers and the key never go into the repo, the seed or tests (tests use made-up values such as stop "00000", bus "1").
-- Entry: C1 "Getting there" (Kid A) → C2.
+- Entry: first-run setup step S3 "Getting to school" (below) sets it up; until then, and for later changes, C1 "Getting there" (Kid A) → C2. The stop, buses, walk and ride are each family's own data; the local config holds only the LTA key.
+
+### S3 · Setup: getting to school (new 2026-11-08) [board S3; first-run setup, built after the morning]
+- Third first-run step, right after the school (S2), for each kid with a school; it replaces the old map step (home address and nearest stops, now archived).
+- **Going**: `ChoiceCircles` Walk · Bus · Car · Taxi (shuttle comes with N1b). Default Bus.
+- **Stop** (Bus only): a 200 × 80 field for the 5-digit stop code; when it matches the LTA stop list the stop's name shows beside it with a check ("Opp Sunny Park" on the board, a made-up name). Caption: "The 5-digit code on the stop pole." No match: "No stop with that code" (caption `hurry`), Next stays on.
+- **Buses** (Bus only): pills (180 × 72) for the numbers that call at that stop; pick one or more. Caption "Buses that stop there. Pick the ones to school."
+- **Walk** and **Ride**: −/+ steppers, minutes (default 10 each). Car, taxi or walk: only "Leave {n} min before" (as the Going row).
+- Side column: "On school mornings" — "Leave in" = her bus at the stop − the walk; arrive-by and latest come from S2 and set the medals; change it later in Our kids › Getting there. Next → S4.
+- Footnote: "Live bus times are built into the app. If they are off, the morning shows the timetable instead."
 
 ### Trips on items: the "Going" row [board C3g]
 - C3, C4 and E5 get two rows at the end of the form, under "Skip school holidays" (the form card scrolls to them; board C3g shows it scrolled down, with the top edge fading into the card):
-  - **Going** (label as the other rows): five 88 slot circles with a caption under each, gap 24: None ("–" in `softText`), Walk (`shoe`), Bus (`busDouble`), Car (`car`), Taxi (`taxi`). The chosen one has the pick-blue ring and a bold caption, like "What". Default None.
+  - **Going** (label as the other rows; part `ChoiceCircles`, also usable for any one-of picker with pictures): five 88 slot circles with a caption under each, gap 24: None ("–" in `softText`), Walk (`shoe`), Bus (`busDouble`), Car (`car`), Taxi (`taxi`). The chosen one has the pick-blue ring and a bold caption, like "What". Default None.
   - **Leave** (shown when Going is Walk, Car or Taxi): `−` 72 · "{n} min" (body bold, 112 wide) · `+` 72 · "before · {h:mm am}" (body `softText`, the leave time from the item's start). 0–90 in steps of 5; default 10.
   - By Bus the Leave row reads "Uses Our buses ›" (body) and opens C2: the stop, buses and walk time come from there.
 - The preview line under the day list adds "Leave {h:mm am} by {way}."
@@ -422,8 +461,8 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 | New slot | the slot picture hops 1 → 1.15 → 1; hub text slides up | 0.4 s | text changes in place |
 | On the hour | the red hand disc pulses once | 0.6 s | none |
 | Mission done | the check draws itself, 6 crayon sparks | 0.35 s | check appears |
-| Slide to go (build step 5) | bus wheels spin while dragging; a hop and a green wash at the end | while dragging | colour change only |
-| Gold (M3) | medal drops in and swings, crayon confetti | 1.5 s | medal fades in |
+| Slide to go (build step 5) | from touch-down to release the knob picture plays (user, 2026-11-09): the bus rocks and its wheels turn at the finger's speed, backwards when dragged back; the star knob twinkles; a hop and a green wash at the end | while dragging | colour change only |
+| Gold (build step 5) | medal drops in and swings, crayon confetti | 1.5 s | medal fades in |
 | Living lines (later, ST-8) | outlines redraw in 3 frames at 6 fps, celebration screens only | 2 s | still |
 | Idle wink | after 20 s without a touch, the sun or moon picture on the clock blinks | 0.3 s | none |
 
@@ -735,14 +774,14 @@ UI shapes are drawn in code by `CrayonKit` (roadmap rule); only pictures are kit
 | `CrayonPill` (status) | rounded rect r = h/2 | 3 | ink line, white fill | status chips, e.g. "Timetable times · live times are off" (48 tall) | N1 |
 | Colour swatch | circle r 24 in 56 | 3 | crayon fill in the colour, ink line | S1 colour picker only | M4 |
 
-Small marker icons that were inline SVG on the boards are now marker-drawn too: search (S3), drag handle ≡ (C5, soft), clock (E4), lock (S4, yellow crayon body). They are `MarkerGlyph` cases in the same style.
+Small marker icons that were inline SVG on the boards are now marker-drawn too: search (S3), drag handle ≡ (C5, soft), clock (was E4, retired), lock (S4, yellow crayon body). They are `MarkerGlyph` cases in the same style.
 
 - `ConfirmCard`: small `PaperCard` with title (head), body, and two buttons, the destructive one in `lateText`. It points at the control that opened it, like `PickerPopover`.
 - `LockOverlay` (C0 overlay and card with the state table).
 - Everything else uses M1 parts:
   - Screens: `KidScreen`, `GrownupScreen`
   - Controls: `CrayonTabs`, `DayChip`, `DateChip`, `CrayonField`, `TimeField`, `IconPicker`, `CheckMark`, `InkButton`, `RoundButton`
-  - Content: `ListRow`, `TodayRow`, `PaperCard`, `KidFace`, `TimeLeft` (M3)
+  - Content: `ListRow`, `TodayRow`, `PaperCard`, `KidFace`, `TimeLeft`
 
 ---
 

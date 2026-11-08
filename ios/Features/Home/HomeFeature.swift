@@ -1,9 +1,11 @@
+import BusClient
 import ComposableArchitecture
 import DesignSystem
 import Domain
 import Foundation
 import HolidayProvider
 import ScheduleStore
+import SecretStore
 import Strings
 
 /// The kids' home screen: each kid's slots for today and the time now (boards A1, E1, E3).
@@ -95,8 +97,42 @@ public struct HomeFeature {
             return outing
         }
 
-        /// "School in": the outing's place.
-        public var outingHeading: String? { morningOuting.map { L10n.tr("home.place_in", $0.slot.title) } }
+        /// "Leave in" (spec A1m, v132): the countdown runs to the outing's leave time.
+        public var outingHeading: String? { morningOuting.map { _ in L10n.tr("missions.leave_in") } }
+
+        /// Minutes until Kid A leaves: to the chosen bus with live times, else to start − leave before.
+        public var minutesToLeave: Int? {
+            guard let outing = morningOuting else { return nil }
+            if let leaveIn = live?.leaveIn { return max(leaveIn, 0) }
+            return max(outing.leave - minute, 0)
+        }
+
+        /// Kid A's bus route (C2) and the last good live answer (spec "A2 live look", A1 line).
+        public var busPlan: BusPlan?
+        public var arrivals: [BusArrival]?
+        public var arrivalsAt: Date?
+        public var now: Date?
+        public var secondsSinceRefresh = 0
+
+        /// Live numbers for Kid A's bus outing while the answer is under 2 minutes old.
+        public var live: LiveMorning? {
+            guard let outing = morningOuting, outing.trip.way == .bus, let busPlan, let arrivals, let arrivalsAt,
+                  let now, now.timeIntervalSince(arrivalsAt) < 120 else { return nil }
+            return LiveMorning(arrivals: arrivals, plan: busPlan, minute: minute, start: outing.slot.start)
+        }
+
+        /// The status under the minutes, only with live times: "On time", "Leave now!", "Ask a grown-up".
+        public var status: (text: String, tone: StatusDot.Tone)? {
+            switch live?.status {
+            case .onTime?: (L10n.tr("missions.status.on_time"), .onTime)
+            case .leaveNow?: (L10n.tr("missions.status.leave_now"), .hurry)
+            case .askGrownup?: (L10n.tr("missions.status.ask"), .quiet)
+            case nil: nil
+            }
+        }
+
+        /// Live times are fetched only for Kid A's bus outing in the mission morning.
+        var wantsLive: Bool { morningOuting?.trip.way == .bus && busPlan != nil }
 
         /// The switch's VoiceOver label: "Day. Tap for night." / "Night. Tap for day.".
         public var skySwitchLabel: String { look == .day ? L10n.tr("home.sky.day") : L10n.tr("home.sky.night") }
@@ -124,6 +160,8 @@ public struct HomeFeature {
         case playEnded
         /// "Missions →" in the mission morning; the app opens the missions screen.
         case missionsTapped
+        case refresh
+        case arrivalsLoaded([BusArrival]?, at: Date)
     }
 
     @Dependency(\.calendar) var calendar
@@ -131,6 +169,8 @@ public struct HomeFeature {
     @Dependency(\.continuousClock) var clock
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
+    @Dependency(\.bus) var bus
+    @Dependency(\.secrets) var secrets
 
     public init() {}
 
@@ -154,13 +194,33 @@ public struct HomeFeature {
                 let day = Day(now, calendar: calendar)
                 let planned = state.plannedLook
                 state.minute = minute(of: now)
+                state.now = now
+                state.secondsSinceRefresh += 1
+                // Live times every 30 s on a bus morning (the tick comes every second from the root).
+                let refresh: Effect<Action> = state.wantsLive && state.secondsSinceRefresh >= 30 ? .send(.refresh) : .none
                 // The next planned change (evening routine, wake-up) clears the switch's choice.
                 if state.plannedLook != planned { state.skyOverride = nil }
                 // Before the first load `.task` sets the day; only a real day change reloads.
-                guard let today = state.today, day != today else { return .none }
+                guard let today = state.today, day != today else { return refresh }
                 state.today = day
                 state.weekday = day.weekday(calendar)
-                return .send(.reload)
+                return .merge(refresh, .send(.reload))
+
+            case .refresh:
+                state.secondsSinceRefresh = 0
+                guard state.wantsLive, let plan = state.busPlan else { return .none }
+                return .run { [bus, secrets, date] send in
+                    guard let key = await secrets.read(.busKey) else { return }
+                    let arrivals = try? await bus.arrivals(plan.stop, key)
+                    await send(.arrivalsLoaded(arrivals, at: date.now))
+                }
+
+            case let .arrivalsLoaded(arrivals, at):
+                guard let arrivals else { return .none }
+                state.arrivals = arrivals
+                state.arrivalsAt = at
+                state.now = at
+                return .none
 
             case .reload:
                 guard let year = state.today?.year else { return .none }
@@ -184,7 +244,8 @@ public struct HomeFeature {
                                for: kid.id, on: today, routines: snapshot.routines, holidays: holidayDays,
                                calendar: calendar)))
                 }
-                return .none
+                state.busPlan = snapshot.kids.first.flatMap { kid in snapshot.busPlans.first { $0.kid == kid.id } }
+                return state.wantsLive ? .send(.refresh) : .none
 
             case .clockHoldCompleted:
                 return .none
