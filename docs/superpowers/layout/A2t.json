@@ -1,5 +1,5 @@
 {
- "version": "4",
+ "version": "5",
  "board": "A2t",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -247,15 +247,15 @@
    "id": "strip.mover",
    "kind": "mover",
    "x": 63,
-   "y": 315,
-   "w": 121,
-   "h": 121,
+   "y": 314,
+   "w": 122,
+   "h": 122,
    "region": "strip",
    "anchor": "stretch",
    "align": "start",
    "stripLocal": {
     "x": -1,
-    "y": 139
+    "y": 138
    }
   },
   {

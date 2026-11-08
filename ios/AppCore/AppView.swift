@@ -31,7 +31,7 @@ public struct AppView: View {
             }
             #if DEBUG
             if let debugTools = DebugModel.installed {
-                DebugOverlay(model: debugTools, lines: store.path.isEmpty ? .kids : .grownup)
+                DebugOverlay(model: debugTools, lines: store.path.isEmpty ? .home : .grownup)
             }
             #endif
         }
@@ -60,7 +60,7 @@ public struct AppView: View {
                     MissionsView(store: store)
                     #if DEBUG
                         // The cover sits above the root's debug overlay; give it its own.
-                        .overlay { if let debugTools = DebugModel.installed { DebugOverlay(model: debugTools) } }
+                        .overlay { if let debugTools = DebugModel.installed { DebugOverlay(model: debugTools, lines: .morning) } }
                     #endif
                 }
         } destination: { store in

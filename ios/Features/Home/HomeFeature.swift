@@ -151,15 +151,6 @@ public struct HomeFeature {
             return .next(next)
         }
 
-        /// Which board's lines Kid A's block follows (it sets where Kid B starts).
-        public var kidAShape: HomeLayout.KidAShape {
-            switch kidABlock {
-            case .leave: .leave(hasStatus: status != nil)
-            case .timeLeft: .timeLeft
-            case .next, .nothing: .next
-            }
-        }
-
         /// E1 (one kid): the Next row stays under "On time" on a leaving morning.
         public var leaveNext: NextRow? {
             guard days.count == 1, kidABlock == .leave, let first = days.first else { return nil }

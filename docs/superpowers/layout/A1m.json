@@ -1,5 +1,5 @@
 {
- "version": "4",
+ "version": "5",
  "board": "A1m",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -47,7 +47,17 @@
   "panelLeft": 928,
   "panelTop": 96,
   "right": 1312,
-  "mainButtonBottom": 968
+  "mainButtonBottom": 968,
+  "baselines": {
+   "weekday": 132,
+   "kidAName": 187,
+   "kidAFirstLine": 301,
+   "timeLeft": 402,
+   "status": 446,
+   "kidBName": 584,
+   "nowNextCaptions": 825
+  },
+  "nowNextBottom": 792
  },
  "regions": {
   "skySwitch": {
@@ -232,41 +242,6 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidName.2",
-   "kind": "text",
-   "x": 928,
-   "y": 472,
-   "w": 173,
-   "h": 54,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start",
-   "baseline": 499,
-   "font": 36
-  },
-  {
-   "id": "panel.kidRing.2",
-   "kind": "picture",
-   "x": 928,
-   "y": 475,
-   "w": 48,
-   "h": 48,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
-  },
-  {
-   "id": "panel.kidFace.2",
-   "kind": "picture",
-   "x": 932,
-   "y": 479,
-   "w": 41,
-   "h": 41,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside"
-  },
-  {
    "id": "clock.slotPicture.5",
    "kind": "picture",
    "x": 154,
@@ -276,17 +251,6 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "panel.nowCircle",
-   "kind": "picture",
-   "x": 928,
-   "y": 547,
-   "w": 160,
-   "h": 160,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
   },
   {
    "id": "clock.slotPicture.6",
@@ -300,23 +264,36 @@
    "align": "inside"
   },
   {
-   "id": "panel.picture.1",
-   "kind": "picture",
-   "x": 956,
-   "y": 575,
-   "w": 104,
-   "h": 104,
+   "id": "panel.kidName.2",
+   "kind": "text",
+   "x": 928,
+   "y": 557,
+   "w": 173,
+   "h": 54,
    "region": "panel",
    "anchor": "stretch",
-   "align": "inside"
+   "align": "start",
+   "baseline": 584,
+   "font": 36
   },
   {
-   "id": "panel.picture.2",
+   "id": "panel.kidRing.2",
    "kind": "picture",
-   "x": 1128,
-   "y": 603,
-   "w": 104,
-   "h": 104,
+   "x": 928,
+   "y": 560,
+   "w": 48,
+   "h": 48,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.kidFace.2",
+   "kind": "picture",
+   "x": 932,
+   "y": 564,
+   "w": 41,
+   "h": 41,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside"
@@ -333,43 +310,48 @@
    "align": "inside"
   },
   {
-   "id": "panel.picture.3",
+   "id": "panel.nowCircle",
    "kind": "picture",
-   "x": 1148,
-   "y": 623,
-   "w": 64,
-   "h": 64,
+   "x": 928,
+   "y": 632,
+   "w": 160,
+   "h": 160,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.picture.1",
+   "kind": "picture",
+   "x": 956,
+   "y": 660,
+   "w": 104,
+   "h": 104,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside"
   },
   {
-   "id": "panel.nowCaption",
-   "kind": "text",
-   "x": 985,
-   "y": 712,
-   "w": 47,
-   "h": 36,
+   "id": "panel.picture.2",
+   "kind": "picture",
+   "x": 1128,
+   "y": 688,
+   "w": 104,
+   "h": 104,
    "region": "panel",
    "anchor": "stretch",
-   "align": "inside",
-   "baseline": 740,
-   "font": 24,
-   "text": "now"
+   "align": "inside"
   },
   {
-   "id": "panel.nextCaption",
-   "kind": "text",
-   "x": 1154,
-   "y": 712,
-   "w": 51,
-   "h": 36,
+   "id": "panel.picture.3",
+   "kind": "picture",
+   "x": 1148,
+   "y": 708,
+   "w": 64,
+   "h": 64,
    "region": "panel",
    "anchor": "stretch",
-   "align": "inside",
-   "baseline": 740,
-   "font": 24,
-   "text": "next"
+   "align": "inside"
   },
   {
    "id": "clock.slotPicture.8",
@@ -381,6 +363,34 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
+  },
+  {
+   "id": "panel.nowCaption",
+   "kind": "text",
+   "x": 985,
+   "y": 797,
+   "w": 47,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 825,
+   "font": 24,
+   "text": "now"
+  },
+  {
+   "id": "panel.nextCaption",
+   "kind": "text",
+   "x": 1154,
+   "y": 797,
+   "w": 51,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 825,
+   "font": 24,
+   "text": "next"
   },
   {
    "id": "panel.button",

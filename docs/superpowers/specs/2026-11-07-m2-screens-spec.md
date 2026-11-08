@@ -59,6 +59,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: "All done!" pill retired (user): every kid slides; a kid with no outing reads "All done? Slide!" with a star knob, done look "Ready!" with the check picture, undo by dragging back (boards A3, 0b, 0c2, 00, 0f).
 - 2026-11-09: the slide's knob picture animates while it is held and dragged (bus rocks, wheels turn with the finger; star twinkles) (user; boards A2, 0b, 0g2).
 - 2026-11-09: done view geometry and Kid B's done view written out; safe top is read from the system (12.9" under iPadOS 26 reports 32, s 0.984); the way strip fills its region (x proportional, sizes by s, nothing stretched).
+- 2026-11-09: home boards put on fixed panel lines (132 / 187 / 301 / 402 / 446 / 584 / 825, circles bottom 792); layout v5.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -256,6 +257,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Kid B block: unchanged (now 160 / next 104 circles, captions "now" / "next").
 
 ### Right panel
+- **Home panel lines** (all home boards A1, A1m, A1n, E1, E3, E3b; fixed 2026-11-09 so the blocks no longer move with their content): panel x 928 … 1312, top 96. Baselines: weekday **132**, Kid A name **187** (face 48 at y 163), Kid A first line **301** ("Leave in" / "Bed in" / "Next"), time-left display **402**, status **446**, Kid B name **584** (the same line as the morning screen's name line), now/next captions **825**; now circle 160 and next circle 104 bottom-aligned at y 792; main button 872–968. On E1 (one child) the second block's "Next" sits on 584. A block with less content leaves space below it; nothing moves up.
 - **Kid A block** (spacing from the board):
   - `KidFace` 48 (Kid A), gap 16, name head 36.
   - **With the live bus (build step 5)** bus mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).
