@@ -9,7 +9,6 @@ import SwiftUI
 /// Add to the day / edit an item (boards C3, C4, C3k, E5).
 public struct ItemEditorView: View {
     @Bindable var store: StoreOf<ItemEditorFeature>
-    @Environment(\.relockCaption) private var relockCaption
 
     /// The pictures offered under "What" (the kit's activity pictures).
     static let pictures: [KitSlot] = [.actSwim, .actArt, .actMusic, .actPiano, .actDance, .actFootball, .actStory,
@@ -23,19 +22,19 @@ public struct ItemEditorView: View {
         ZStack {
             GrownupScreen {
                 header
-            } content: {
-                HStack(alignment: .top, spacing: Spacing.m) {
+            } content: { grid in
+                HStack(alignment: .top, spacing: GridMetrics.gutter) {
                     PaperCard(seed: 31) { form.padding(Spacing.m) }
-                        .frame(width: 818)
+                        .frame(width: grid.span(8))
                     Group {
                         if case .editWeekly = store.mode { weeklySide } else { sideColumn }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-            } primaryAction: {
+            } primaryAction: { grid in
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     InkButton(store.primaryTitle) { store.send(.saveTapped) }
-                        .frame(width: 382)
+                        .frame(width: grid.span(4))
                         .opacity(store.problem == nil && !store.isSaving ? 1 : 0.4)
                         .disabled(store.problem != nil || store.isSaving)
                     if let error = store.saveError {
@@ -53,20 +52,12 @@ public struct ItemEditorView: View {
                             onCancel: { store.send(.confirmCancelled) }, onConfirm: { store.send(.confirmAccepted) })
             }
         }
-        .background(CrayonColor.paper.ignoresSafeArea())
-        .navigationBarBackButtonHidden()
-        .toolbar(.hidden, for: .navigationBar)
         .task { await store.send(.task).finish() }
     }
 
     private var header: some View {
-        HStack(spacing: Spacing.m) {
-            RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back") { store.send(.backTapped) }
-            Text(store.title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1)
-            Spacer()
-            Text(relockCaption ?? "Grown-ups only · behind the parent lock").crayonType(.caption)
-                .foregroundStyle(relockCaption == nil ? CrayonColor.softText : CrayonColor.hurry)
-        }
+        GrownupHeader(title: store.title, caption: "Grown-ups only · behind the parent lock",
+                      onBack: { store.send(.backTapped) })
     }
 
     // MARK: Form
@@ -131,7 +122,7 @@ public struct ItemEditorView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.s) {
                 TimeField(time: minuteBinding(\.start))
-                Image(systemName: "arrow.right").font(.system(size: 28, weight: .bold))
+                Image(systemName: "arrow.right").crayonType(.body).fontWeight(.bold)
                     .foregroundStyle(CrayonColor.softText)
                 TimeField(time: minuteBinding(\.end))
                 if let duration = store.form.durationCaption {

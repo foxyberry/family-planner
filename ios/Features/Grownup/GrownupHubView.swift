@@ -9,7 +9,6 @@ import SwiftUI
 /// Our kids (boards C1, E6). The header and tabs stay put; the cards scroll.
 public struct GrownupHubView: View {
     @Bindable var store: StoreOf<GrownupHubFeature>
-    @Environment(\.relockCaption) private var relockCaption
     @Dependency(\.calendar) private var calendar
 
     public init(store: StoreOf<GrownupHubFeature>) {
@@ -19,39 +18,31 @@ public struct GrownupHubView: View {
     public var body: some View {
         GrownupScreen {
             header
-        } content: {
+        } content: { grid in
             if let kid = store.kid, let snapshot = store.snapshot {
-                HStack(alignment: .top, spacing: Spacing.m) {
+                HStack(alignment: .top, spacing: GridMetrics.gutter) {
                     PaperCard(seed: 21) { aboutCard(kid, snapshot) }
-                        .frame(width: 818)
+                        .frame(width: grid.span(8))
                     sideColumn(kid, snapshot)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-        } primaryAction: {
+        } primaryAction: { _ in
             #if DEBUG
                 Button("Design gallery") { store.send(.galleryButtonTapped) }
                     .crayonType(.caption)
                     .foregroundStyle(CrayonColor.link)
             #endif
         }
-        .background(CrayonColor.paper.ignoresSafeArea())
-        .navigationBarBackButtonHidden()
-        .toolbar(.hidden, for: .navigationBar)
         .task { await store.send(.task).finish() }
     }
 
     private var header: some View {
-        HStack(spacing: Spacing.m) {
-            RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back") { store.send(.backTapped) }
-            Text("Our kids").crayonType(.title).foregroundStyle(CrayonColor.ink)
+        GrownupHeader(title: "Our kids", onBack: { store.send(.backTapped) }) {
             if let kids = store.snapshot?.kids, let selected = store.selectedKid {
                 CrayonTabs(selection: Binding(get: { selected }, set: { store.send(.kidTabTapped($0)) }),
                            items: kids.map { ($0.id, $0.name, CrayonColor.kidPalette[$0.colorIndex % CrayonColor.kidPalette.count]) })
             }
-            Spacer()
-            Text(relockCaption ?? "Grown-ups only").crayonType(.caption)
-                .foregroundStyle(relockCaption == nil ? CrayonColor.softText : CrayonColor.hurry)
         }
     }
 
