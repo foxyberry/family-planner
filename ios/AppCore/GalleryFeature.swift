@@ -1,7 +1,7 @@
 import ComposableArchitecture
 
-/// Debug destination that shows the design-system gallery. No state of its own; it exists as a
-/// second StackState destination next to parent mode.
+/// Destination that shows the design-system gallery, reached from parent mode. No state of its own;
+/// its crayon Back button pops it (the navigation bar is hidden like on every grown-up screen).
 @Reducer
 public struct GalleryFeature {
     @ObservableState
@@ -9,7 +9,9 @@ public struct GalleryFeature {
         public init() {}
     }
 
-    public enum Action {}
+    public enum Action: Equatable {
+        case backTapped
+    }
 
     public init() {}
 

@@ -1,0 +1,18 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Developer tools for debug builds only: the floating debug bubble and its menu (time machine,
+# layout grid, flags). Every source is wrapped in `#if DEBUG`, so release builds link an empty module.
+fp_swift_library(
+    name = "DebugTools",
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/AppCore:__pkg__",
+        "//ios/DebugTools/Tests:__pkg__",
+    ],
+    deps = [
+        "//ios/Clients/ParentAuthClient",
+        "//ios/DesignSystem",
+        "//ios/KitArt",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

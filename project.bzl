@@ -2,10 +2,8 @@
 
 APP_NAME = "FamilyPlanner"
 
-# Placeholder until the app has a real identity; change it only here.
-BUNDLE_ID = "com.example.familyplanner"
-
-# Empty until a paid Apple Developer account exists (needed from M4 for device builds).
-TEAM_ID = ""
+# Taken from the public repository path, so it says nothing new. Apple refuses placeholder
+# IDs such as com.example.* for signing. Keep the Makefile's BUNDLE_ID the same.
+BUNDLE_ID = "io.github.foxyberry.familyplanner"
 
 MINIMUM_OS_VERSION = "26.0"

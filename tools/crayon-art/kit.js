@@ -388,6 +388,20 @@ const ITEMS = {
     B(circ(68, 180, 22)), B(circ(176, 180, 22)), S(circ(68, 180, 8), K.white, 0), S(circ(176, 180, 8), K.white, 0),
   ],
   // Child faces for setup (S1): the parent picks one per child until the child draws their own.
+  // Developer tools: a friendly ladybug for the debug bubble. The white plate keeps it readable on a dark or orange circle.
+  debugLadybug: [
+    S(circ(120, 124, 108), K.white, 0),
+    Ln('M106 54Q100 30 84 32q-9 2-4 11', 5), Ln('M134 54Q140 30 156 32q9 2 4 11', 5),
+    S(ell(120, 148, 72, 60), '#E5484D', -40),
+    Ln('M120 122V206', 5),
+    B(circ(86, 146, 11)), B(circ(154, 146, 11)), B(circ(98, 182, 9)), B(circ(142, 182, 9)),
+    S(ell(120, 88, 46, 36), '#3A3640', 30),
+    { kind: 'eye', d: circ(102, 84, 13) }, { kind: 'eye', d: circ(138, 84, 13) },
+    B(circ(104, 86, 6)), B(circ(140, 86, 6)),
+    Ln('M101 81H101.1M137 81H137.1', 4, '#FFFFFF'),
+    Ln('M108 104Q120 114 132 104', 4, '#FFFFFF'),
+    Ln('M90 100H90.1M150 100H150.1', 9, '#F7A8CF'),
+  ],
   kidGirl: [
     S(circ(42, 132, 26), '#5B3A29', 30), S(circ(198, 132, 26), '#5B3A29', -30),
     S(circ(120, 132, 80), '#F6C89A', -35),
@@ -524,7 +538,8 @@ if (shapesOut) {
     items[name] = layers.map((l) => {
       if (l.kind === 'shape') return { kind: 'shape', d: l.d, color: l.color, hatchAngle: l.angle };
       if (l.kind === 'line') return { kind: 'line', d: l.d, width: l.w, ...(l.color ? { color: l.color } : {}) };
-      return { kind: 'solid', d: l.d };                 // 'solid' and 'eye' both render as filled marker shapes
+      if (l.kind === 'eye') return { kind: 'shape', d: l.d, color: K.white, hatchAngle: 0 };   // white eye with an ink ring
+      return { kind: 'solid', d: l.d };
     });
   }
   const shapes = {

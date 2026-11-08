@@ -14,7 +14,7 @@ final class ParentLockTests: XCTestCase {
     private func unlockedState() -> AppFeature.State {
         var state = AppFeature.State()
         state.path.append(.hub(GrownupHubFeature.State()))
-        state.lastGrownupTouch = start
+        state.grownupIdleSeconds = 0
         return state
     }
 
@@ -34,7 +34,7 @@ final class ParentLockTests: XCTestCase {
         }
         await store.receive(\.parentAuthResponse, .success) {
             $0.lock = nil
-            $0.lastGrownupTouch = self.start
+            $0.grownupIdleSeconds = 0
             $0.path[id: 0] = .hub(GrownupHubFeature.State())
         }
         XCTAssertEqual(reason.value, "Open grown-up screens")
@@ -68,22 +68,31 @@ final class ParentLockTests: XCTestCase {
         await store.receive(\.parentAuthResponse, .cancelled) { $0.lock = nil }
     }
 
-    func testFaceIDOffShowsSettingsMessage() async {
-        let opened = LockIsolated<URL?>(nil)
+    /// Without Face ID set up, the 2-second hold is the only gate: "Enter" opens grown-up screens.
+    func testFaceIDOffOffersEnter() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()
         } withDependencies: {
             $0.parentAuth.authenticate = { _ in .notAvailable }
             $0.parentAuth.biometry = { .faceID }
-            $0.openURL = OpenURLEffect { url in
-                opened.setValue(url)
-                return true
-            }
         }
         await store.send(.home(.clockHoldCompleted)) { $0.lock = .scanning }
         await store.receive(\.parentAuthResponse, .notAvailable) { $0.lock = .notAvailable(touchID: false) }
-        await store.send(.lockPrimaryTapped) { $0.lock = nil }
-        XCTAssertEqual(opened.value, AppFeature.settingsURL)
+        await store.send(.lockPrimaryTapped) {
+            $0.lock = nil
+            $0.grownupIdleSeconds = 0
+            $0.path[id: 0] = .hub(GrownupHubFeature.State())
+        }
+    }
+
+    func testFaceIDOffCancelStaysHome() async {
+        var state = AppFeature.State()
+        state.lock = .notAvailable(touchID: false)
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        }
+        await store.send(.lockCancelTapped) { $0.lock = nil }
+        XCTAssertTrue(store.state.path.isEmpty)
     }
 
     func testLockedOutShowsOK() async {
@@ -98,26 +107,42 @@ final class ParentLockTests: XCTestCase {
     }
 
     func testCountdownCaptionInLast30Seconds() async {
-        let store = TestStore(initialState: unlockedState()) {
+        var state = unlockedState()
+        state.grownupIdleSeconds = 88
+        let store = TestStore(initialState: state) {
             AppFeature()
-        } withDependencies: { [start] in
-            $0.date.now = start.addingTimeInterval(95)
+        } withDependencies: {
             $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
-        await store.send(.tick(start.addingTimeInterval(89)))
+        await store.send(.tick(start))
         XCTAssertNil(store.state.relockCaption)
-        await store.send(.tick(start.addingTimeInterval(90)))
+        await store.send(.tick(start))
         XCTAssertEqual(store.state.relockCaption, "Locks in 0:30")
-        await store.send(.tick(start.addingTimeInterval(100)))
+        for _ in 0..<10 { await store.send(.tick(start)) }
         XCTAssertEqual(store.state.relockCaption, "Locks in 0:20")
         await store.send(.grownupTouched)
         XCTAssertNil(store.state.relockCaption)
-        XCTAssertEqual(store.state.lastGrownupTouch, start.addingTimeInterval(95))
+        XCTAssertEqual(store.state.grownupIdleSeconds, 0)
+    }
+
+    /// The developer time machine moves the clock by days; only real seconds count towards the relock.
+    func testClockJumpDoesNotRelock() async {
+        let store = TestStore(initialState: unlockedState()) {
+            AppFeature()
+        } withDependencies: {
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(.tick(start.addingTimeInterval(3 * 86_400)))
+        XCTAssertEqual(store.state.path.count, 1)
+        XCTAssertNil(store.state.relockCaption)
+        XCTAssertEqual(store.state.grownupIdleSeconds, 1)
     }
 
     func testIdleTwoMinutesRelocksAndDropsUnsavedForm() async {
         var state = unlockedState()
+        state.grownupIdleSeconds = 118
         state.path.append(.gallery(GalleryFeature.State()))   // stands in for an open form
         let store = TestStore(initialState: state) {
             AppFeature()
@@ -125,11 +150,11 @@ final class ParentLockTests: XCTestCase {
             $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
-        await store.send(.tick(start.addingTimeInterval(119)))
+        await store.send(.tick(start))
         XCTAssertEqual(store.state.path.count, 2)
-        await store.send(.tick(start.addingTimeInterval(120)))
+        await store.send(.tick(start))
         XCTAssertTrue(store.state.path.isEmpty)
-        XCTAssertNil(store.state.lastGrownupTouch)
+        XCTAssertNil(store.state.grownupIdleSeconds)
         XCTAssertNil(store.state.relockCaption)
     }
 
@@ -140,7 +165,7 @@ final class ParentLockTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.scenePhaseChanged(.background))
         XCTAssertTrue(store.state.path.isEmpty)
-        XCTAssertNil(store.state.lastGrownupTouch)
+        XCTAssertNil(store.state.grownupIdleSeconds)
     }
 
     func testGrownupScreensCoveredWhileNotActive() {
@@ -174,16 +199,15 @@ final class ParentLockTests: XCTestCase {
         var state = unlockedState()
         state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: start,
                                                           calendar: Calendar(identifier: .gregorian))))
+        state.grownupIdleSeconds = 110
         state.relockCaption = "Locks in 0:10"
         let store = TestStore(initialState: state) {
             AppFeature()
-        } withDependencies: { [start] in
-            $0.date.now = start.addingTimeInterval(110)
         }
         store.exhaustivity = .off
         // Typing never reaches the touch gesture (the keyboard is another window); the reducer sees it.
         await store.send(\.path[id: 1].editor.binding, .set(\.form.name, "Pottery"))
-        XCTAssertEqual(store.state.lastGrownupTouch, start.addingTimeInterval(110))
+        XCTAssertEqual(store.state.grownupIdleSeconds, 0)
         XCTAssertNil(store.state.relockCaption)
     }
 
@@ -196,5 +220,6 @@ final class ParentLockTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.tick(start.addingTimeInterval(500)))
         XCTAssertNil(store.state.relockCaption)
+        XCTAssertNil(store.state.grownupIdleSeconds)
     }
 }

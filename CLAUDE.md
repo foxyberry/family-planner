@@ -18,7 +18,7 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
 
 ## Commands
-make setup | build | run | test | test-one | snapshots-record | art | lint | fmt | xcodeproj | sim-stop | clean
+make setup | build | run | device | test | test-one | snapshots-record | art | lint | fmt | xcodeproj | sim-stop | clean
 Single test target (same flags as `make test`, keeps caches warm):
 `make test-one TARGET=//ios/AppCore/Tests:AppCoreTests`. Plain `bazel test` skips `ios/.bazelrc`.
 Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).
@@ -35,6 +35,14 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Time comes only from `@Dependency(\.date)`, `\.calendar`, `\.continuousClock`; days are `Day` values
   and minutes after midnight (0–1440). Tests pin `Asia/Singapore` and a fixed date.
 - Kids are fake seed data (`SeedData`, Kid A / Kid B) until first-run setup (M4).
+- Grown-up screens: hold the clock 2 s, then Face ID (no passcode). An iPad without Face ID set up
+  gets an "Enter" button (the hold is the gate). The 2-minute relock counts real 1-second ticks,
+  never `date` differences.
+- `ios/DebugTools`: debug builds only (`#if DEBUG` in every file). Floating bubble + menu: time
+  machine (feeds `\.date`; `make run NOW=2026-11-09T07:30 SPEED=60`), layout grid, flags
+  (Skip Face ID). On a real iPad the menu opens only after Face ID (the bubble sits over kids'
+  screens). New developer switches go here, never into release code paths. System UI is
+  fine there; product screens still use only `DesignSystem`.
 
 ## Design system (crayon)
 - Screens use only `DesignSystem` tokens, parts and frames. No color hex, font size numbers or

@@ -2,6 +2,9 @@
 // Screens, state and lifecycle handling live in AppCore.
 import AppCore
 import ComposableArchitecture
+#if DEBUG
+import DebugTools
+#endif
 import HolidayProvider
 import HolidayProviderLive
 import ParentAuthClient
@@ -15,6 +18,9 @@ final class AppDelegate: AppDelegateBase {
         dependencies.parentAuth = .live
         dependencies.holidays = .live
         dependencies.scheduleStore = .live(directory: .applicationSupportDirectory, calendar: .current, now: { Date() })
+        #if DEBUG
+        DebugModel.install(into: &dependencies)
+        #endif
     }
 }
 

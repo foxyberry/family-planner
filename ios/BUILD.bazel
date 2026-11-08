@@ -1,3 +1,4 @@
+load("@build_bazel_rules_apple//apple:apple.bzl", "local_provisioning_profile")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl", "ios_xctestrun_runner")
 load("@rules_xcodeproj//xcodeproj:defs.bzl", "top_level_target", "xcodeproj")
@@ -19,6 +20,7 @@ fp_swift_library(
         "//ios/Clients/ParentAuthClientLive",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/ScheduleStoreLive",
+        "//ios/DebugTools",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )
@@ -30,11 +32,32 @@ ios_application(
     families = ["ipad"],
     infoplists = ["Info.plist"],
     minimum_os_version = MINIMUM_OS_VERSION,
+    provisioning_profile = select({
+        ":device_build": ":device_profile",
+        "//conditions:default": None,
+    }),
     visibility = [
         "//:__pkg__",
         "@rules_xcodeproj//xcodeproj:generated",
     ],
     deps = [":FamilyPlannerApp"],
+)
+
+# --- iPad builds (`make device`) ---
+
+# Set by `--config=device` in ios/.bazelrc.
+config_setting(
+    name = "device_build",
+    define_values = {"fp_device": "1"},
+)
+
+# The profile Xcode makes for a free or paid Apple ID (scripts/device-profile.sh). It is found
+# in ~/Library on this Mac, so no team or device ID is written into the repository.
+local_provisioning_profile(
+    name = "device_profile",
+    profile_name = "iOS Team Provisioning Profile: " + BUNDLE_ID,
+    # Only `--config=device` builds use it; CI and `//ios/...` have no profile.
+    tags = ["manual"],
 )
 
 # --- Tests ---
