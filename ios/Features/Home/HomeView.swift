@@ -82,7 +82,7 @@ public struct HomeView: View {
 
     private func kidHeader(_ kid: Kid) -> some View {
         HStack(spacing: Spacing.s) {
-            KidDot(color: CrayonColor.kidPalette[kid.colorIndex % CrayonColor.kidPalette.count])
+            KidDot(color: CrayonColor.kid(kid.colorIndex))
             Text(kid.name).crayonType(.head).foregroundStyle(CrayonColor.ink)
         }
     }

@@ -45,6 +45,8 @@ turn on "Skip Face ID" in the debug bubble's menu, or just tap "Enter" when Face
 - First time on an iPad: pair (`xcrun devicectl manage pair --device <id>`, tap Trust),
   run `make device` once so Settings shows Developer Mode, turn it on and restart, then after
   the first install trust the developer in Settings > General > VPN & Device Management.
+- After that first cabled pairing, `make device` also works over Wi-Fi (same network, iPad awake);
+  `devicectl` shows it as `localNetwork`. Wake the iPad if it is not found.
 
 ## Commands
 
@@ -52,7 +54,7 @@ turn on "Skip Face ID" in the debug bubble's menu, or just tap "Enter" when Face
 |---|---|
 | Build app | `make build` |
 | Build + launch on simulator | `make run` |
-| Build + sign + launch on a cabled iPad | `make device` (see Real iPad) |
+| Build + sign + launch on the iPad (cable or Wi-Fi) | `make device` (see Real iPad) |
 | Start the app clock at another time (debug builds) | `make run NOW=2026-11-09T07:30 SPEED=60` (same for `make device`), or the debug bubble's Time machine |
 | All tests | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
 | One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |

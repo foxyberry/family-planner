@@ -27,4 +27,10 @@ public enum CrayonColor {
         CrayonPalette.kidABlue.color, CrayonPalette.kidBOrange.color,
         CrayonPalette.onTimeGreen.color, CrayonPalette.kidPurple.color,
     ]
+
+    /// A kid's colour from `Kid.colorIndex`; more kids than colours wrap around.
+    public static func kid(_ colorIndex: Int) -> Color {
+        let count = kidPalette.count
+        return kidPalette[((colorIndex % count) + count) % count]
+    }
 }

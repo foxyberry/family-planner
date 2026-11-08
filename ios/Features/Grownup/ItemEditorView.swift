@@ -107,7 +107,7 @@ public struct ItemEditorView: View {
     private var audienceTabs: some View {
         let kids = store.snapshot?.kids ?? []
         let items: [(String, String, Color?)] = kids.map {
-            ($0.id.uuidString, $0.name, CrayonColor.kidPalette[$0.colorIndex % CrayonColor.kidPalette.count])
+            ($0.id.uuidString, $0.name, CrayonColor.kid($0.colorIndex))
         } + (kids.count > 1 ? [("both", "Both", nil)] : [])
         let selected: String = switch store.form.audience {
         case let .kid(id): id.uuidString

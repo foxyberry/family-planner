@@ -17,7 +17,7 @@ make run
 ```
 
 `make test` runs the unit tests. `make device` builds, signs and launches the app on an iPad
-connected by cable (a free Apple ID signed in to Xcode is enough). All targets are listed in
+(by cable, or over Wi-Fi once paired) (a free Apple ID signed in to Xcode is enough). All targets are listed in
 the `Makefile`.
 
 ## Privacy

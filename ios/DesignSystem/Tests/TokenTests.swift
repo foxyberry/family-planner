@@ -44,4 +44,12 @@ final class TokenTests: XCTestCase {
         XCTAssertEqual(Contrast.ratio(RGB(hex: 0x000000), RGB(hex: 0xFFFFFF)), 21, accuracy: 0.01)
         XCTAssertEqual(Contrast.ratio(CrayonPalette.ink, CrayonPalette.ink), 1, accuracy: 0.0001)
     }
+
+    /// Kids pick a colour by index; more kids than colours wrap around, and a bad index never crashes.
+    func testKidColourWrapsAround() {
+        let palette = CrayonColor.kidPalette
+        XCTAssertEqual(CrayonColor.kid(0), palette[0])
+        XCTAssertEqual(CrayonColor.kid(palette.count + 1), palette[1])
+        XCTAssertEqual(CrayonColor.kid(-1), palette[palette.count - 1])
+    }
 }
