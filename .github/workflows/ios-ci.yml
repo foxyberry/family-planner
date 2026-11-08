@@ -114,8 +114,8 @@ jobs:
 
       # Test logs are printed only for failures (--test_output=errors in .bazelrc).
       # No artifacts are uploaded and no environment is printed: CI logs of a public
-      # repo are public. Snapshot tests (tag "snapshot") are skipped here while the designs
-      # keep changing; they run locally with make test.
+      # repo are public. Snapshot tests (tag "snapshot") are skipped here and by make test
+      # while the designs keep changing; they run locally with make snapshots.
       - name: Test
         run: make test SIM_DEVICE="$SIM_DEVICE" SIM_OS="$SIM_OS"
 

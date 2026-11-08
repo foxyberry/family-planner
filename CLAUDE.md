@@ -20,7 +20,7 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
 
 ## Commands
-make setup | build | run | device | test | test-one | snapshots-record | art | lint | fmt | xcodeproj | sim-stop | clean
+make setup | build | run | device | test | test-one | snapshots | snapshots-record | art | lint | fmt | xcodeproj | sim-stop | clean
 Single test target (same flags as `make test`, keeps caches warm):
 `make test-one TARGET=//ios/AppCore/Tests:AppCoreTests`. Plain `bazel test` skips `ios/.bazelrc`.
 Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).
@@ -67,9 +67,9 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Public pictures come only from `make art`; never hand-edit generated SVGs. The school mascot
   `wolfie` is public (user's choice, 2026-11-08); the real home drawing lives in git-ignored
   `ios/KitArt/Private/` (`make art-private`).
-- Snapshots: `make snapshots-record`, then open the PNGs and compare with the design boards
-  before committing. CI skips snapshot tests (tag `snapshot`) while designs keep changing;
-  run them locally with `make test`. Diffs stay in local `__Diffs__`.
+- Snapshots (tag `snapshot`) are not part of `make test` or CI: run `make snapshots` whenever you
+  change DesignSystem, KitArt or a screen. `make snapshots-record`, then open the PNGs and compare
+  with the design boards before committing. Diffs stay in local `__Diffs__`.
 
 ## Git flow
 - `feature/*` from `develop`, PR into `develop`. `release/*` and `hotfix/*` go to `main`.
