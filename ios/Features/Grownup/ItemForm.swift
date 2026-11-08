@@ -13,11 +13,23 @@ public enum FormProblem: Equatable, Sendable {
         case .timePassed: "That time has passed"
         }
     }
+
+    /// The form row this problem shows under.
+    public var row: FormRow {
+        switch self {
+        case .noName: .name
+        case .endsBeforeStart, .timePassed: .when
+        case .noDay: .days
+        }
+    }
 }
+
+/// The form rows that can show a problem.
+public enum FormRow: Equatable, Sendable { case name, when, days }
 
 /// The add/edit form's values and its rules (boards C3, C4, E5). Pure, so every rule is tested.
 public struct ItemForm: Equatable, Sendable {
-    public enum Repeat: Equatable, Sendable { case once, weekly }
+    public enum Repeat: Hashable, Sendable { case once, weekly }
 
     public var audience: Audience
     public var iconName: String?
@@ -33,8 +45,7 @@ public struct ItemForm: Equatable, Sendable {
     /// Board C3 defaults: the next full hour for an hour, every week on today's weekday, holidays skipped.
     public static func defaults(audience: Audience, now: Date, calendar: Calendar) -> ItemForm {
         let today = Day(now, calendar: calendar)
-        let parts = calendar.dateComponents([.hour, .minute], from: now)
-        let nextHour = min(((parts.hour ?? 0) + 1) * 60, 1380)
+        let nextHour = min((Day.minute(of: now, calendar: calendar) / 60 + 1) * 60, 1380)
         return ItemForm(audience: audience, iconName: nil, name: "", start: nextHour, end: nextHour + 60,
                         repeats: .weekly, days: [today.weekday(calendar)], date: today, skipsHolidays: true,
                         showsStar: true)

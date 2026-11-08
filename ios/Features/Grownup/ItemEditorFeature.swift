@@ -17,6 +17,34 @@ public struct ItemEditorFeature {
         case leave, removeOnce, removeSeries
     }
 
+    /// One tab under "For": a kid, or both kids.
+    public struct AudienceTab: Equatable, Sendable {
+        public var audience: Audience
+        public var title: String
+        /// The kid's colour; nil for "Both".
+        public var colorIndex: Int?
+
+        public init(audience: Audience, title: String, colorIndex: Int?) {
+            self.audience = audience
+            self.title = title
+            self.colorIndex = colorIndex
+        }
+    }
+
+    /// One date chip in the just-once row.
+    public struct DateOption: Equatable, Sendable {
+        public var day: Day
+        /// "Mon"
+        public var weekday: String
+        public var isOn: Bool
+
+        public init(day: Day, weekday: String, isOn: Bool) {
+            self.day = day
+            self.weekday = weekday
+            self.isOn = isOn
+        }
+    }
+
     @ObservableState
     public struct State: Equatable {
         public var mode: Mode
@@ -37,13 +65,14 @@ public struct ItemEditorFeature {
         public var weeklyItem: ScheduleItem?
         /// The date "Skip just …" skipped, while it can still be undone.
         public var skippedDay: Day?
+        /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
+        public var draftID: ScheduleItem.ID?
 
         public init(mode: Mode, repeats: ItemForm.Repeat = .weekly, now: Date, calendar: Calendar) {
             self.mode = mode
             self.calendar = calendar
             today = Day(now, calendar: calendar)
-            let parts = calendar.dateComponents([.hour, .minute], from: now)
-            nowMinute = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+            nowMinute = Day.minute(of: now, calendar: calendar)
             let initial: ItemForm
             switch mode {
             case let .add(audience):
@@ -59,6 +88,7 @@ public struct ItemEditorFeature {
         }
 
         public var isAdding: Bool { if case .add = mode { true } else { false } }
+        public var isEditingWeekly: Bool { if case .editWeekly = mode { true } else { false } }
 
         public var editingItem: ScheduleItem? {
             switch mode {
@@ -74,11 +104,48 @@ public struct ItemEditorFeature {
             let keptStart = !isAdding && form.date == original.date ? original.start : nil
             return form.problem(today: today, nowMinute: nowMinute, keptStart: keptStart)
         }
+        /// The problem shown under `row`, if the form's first problem belongs there.
+        public func problem(for row: FormRow) -> FormProblem? {
+            problem.flatMap { $0.row == row ? $0 : nil }
+        }
+        public var canSave: Bool { problem == nil && !isSaving }
         public var hasChanges: Bool { form != original }
+
+        /// A tab per kid, and "Both" once there are two or more kids.
+        public var audienceTabs: [AudienceTab] {
+            let kids = snapshot?.kids ?? []
+            return kids.map { AudienceTab(audience: .kid($0.id), title: $0.name, colorIndex: $0.colorIndex) }
+                + (kids.count > 1 ? [AudienceTab(audience: .both, title: "Both", colorIndex: nil)] : [])
+        }
+
+        /// The form's times as times on today, for the time fields.
+        public var startTime: Date { today.date(minute: form.start, calendar: calendar) }
+        public var endTime: Date { today.date(minute: form.end, calendar: calendar) }
 
         /// Five dates from today, a week per page (board C4).
         public var visibleDates: [Day] {
             (0..<5).map { today.adding(days: datePage * 7 + $0, calendar: calendar) }
+        }
+
+        public var dateChips: [DateOption] {
+            visibleDates.map {
+                DateOption(day: $0, weekday: DayText.shortName($0.weekday(calendar)), isOn: form.date == $0)
+            }
+        }
+
+        /// Paging never goes before this week.
+        public var canPageEarlier: Bool { datePage > 0 }
+
+        /// The every-week side column's title (board E5): "Every Mon and Wed".
+        public var everyTitle: String { DayText.every(form.days) }
+
+        /// The add and just-once side column; the every-week side column has none.
+        public var preview: FormPreview? {
+            guard !isEditingWeekly else { return nil }
+            return form.preview(kids: snapshot?.kids ?? [], routines: snapshot?.routines ?? [],
+                                items: snapshot?.items ?? [], holidays: holidays,
+                                draftID: editingItem?.id ?? draftID, showsDraft: problem == nil, today: today,
+                                calendar: calendar)
         }
 
         public var overlapCaption: String? {
@@ -95,6 +162,10 @@ public struct ItemEditorFeature {
             case nil: nil
             }
         }
+
+        public var confirmCancelTitle: String { confirm == .leave ? "Keep editing" : "Keep" }
+        public var confirmAcceptTitle: String { confirm == .leave ? "Leave" : "Remove" }
+        public var confirmIsDestructive: Bool { confirm != .leave }
 
         public var confirmMessage: String? {
             switch confirm {
@@ -128,13 +199,20 @@ public struct ItemEditorFeature {
             if let skippedDay { return "Skipped \(DayText.short(skippedDay, calendar: calendar)) · Undo" }
             return skipCandidate.map { "Skip just \(DayText.short($0, calendar: calendar))" }
         }
+
+        /// The skip row undoes the skip it just saved.
+        public var skipRowIsUndo: Bool { skippedDay != nil }
     }
 
     public enum Action: BindableAction, Equatable {
         case task
         case loaded(ScheduleSnapshot?, holidays: [Holiday])
         case binding(BindingAction<State>)
+        case audienceTapped(Audience)
         case picturePicked(String)
+        case startPicked(Date)
+        case endPicked(Date)
+        case dayToggled(Weekday)
         case repeatChanged(ItemForm.Repeat)
         case dateTapped(Day)
         case datePageTapped(Int)
@@ -145,8 +223,8 @@ public struct ItemEditorFeature {
         case confirmAccepted
         case confirmCancelled
         case removed
-        case skipNextTapped
-        case undoSkipTapped
+        /// "Skip just …", or "Skipped … · Undo" once skipped.
+        case skipRowTapped
         case skipSaved(ScheduleItem, skipped: Day?)
         case removeSeriesTapped
         case delegate(Delegate)
@@ -169,6 +247,7 @@ public struct ItemEditorFeature {
         Reduce { state, action in
             switch action {
             case .task:
+                if state.isAdding, state.draftID == nil { state.draftID = uuid() }
                 let year = state.today.year
                 return .run { [scheduleStore, holidays] send in
                     let snapshot = try? await scheduleStore.load()
@@ -184,13 +263,33 @@ public struct ItemEditorFeature {
                 state.saveError = nil
                 return .none
 
+            case let .audienceTapped(audience):
+                state.saveError = nil
+                state.form.audience = audience
+                return .none
+
             case let .picturePicked(name):
                 state.form.pickPicture(name)
                 return .none
 
+            case let .startPicked(time):
+                state.saveError = nil
+                state.form.start = Day.minute(of: time, calendar: state.calendar)
+                return .none
+
+            case let .endPicked(time):
+                state.saveError = nil
+                state.form.end = Day.minute(of: time, calendar: state.calendar)
+                return .none
+
+            case let .dayToggled(day):
+                state.saveError = nil
+                if state.form.days.contains(day) { state.form.days.remove(day) } else { state.form.days.insert(day) }
+                return .none
+
             case let .repeatChanged(repeats):
                 // An every-week item cannot turn into a one-off here (board E5).
-                if case .editWeekly = state.mode { return .none }
+                if state.isEditingWeekly { return .none }
                 state.form.repeats = repeats
                 return .none
 
@@ -203,7 +302,7 @@ public struct ItemEditorFeature {
                 return .none
 
             case .saveTapped:
-                guard state.problem == nil, !state.isSaving else { return .none }
+                guard state.canSave else { return .none }
                 state.isSaving = true
                 state.saveError = nil
                 let id = state.editingItem?.id ?? uuid()
@@ -228,15 +327,15 @@ public struct ItemEditorFeature {
                     }
                 }
 
-            case .skipNextTapped:
-                guard !state.isSaving, let weekly = state.weeklyItem, let day = state.skipCandidate else { return .none }
+            case .skipRowTapped:
+                guard !state.isSaving, let weekly = state.weeklyItem else { return .none }
+                if let day = state.skippedDay {
+                    state.isSaving = true
+                    return save(SeriesEdits.unskipping(weekly, day: day), skipped: nil)
+                }
+                guard let day = state.skipCandidate else { return .none }
                 state.isSaving = true
                 return save(SeriesEdits.skipping(weekly, day: day), skipped: day)
-
-            case .undoSkipTapped:
-                guard !state.isSaving, let weekly = state.weeklyItem, let day = state.skippedDay else { return .none }
-                state.isSaving = true
-                return save(SeriesEdits.unskipping(weekly, day: day), skipped: nil)
 
             case let .skipSaved(item, skipped):
                 state.isSaving = false

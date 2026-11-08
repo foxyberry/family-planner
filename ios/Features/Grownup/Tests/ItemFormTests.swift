@@ -141,4 +141,72 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(back.date, onceForm.date)
         XCTAssertEqual(back.audience, onceForm.audience)
     }
+
+    func testEachProblemShowsUnderItsRow() {
+        XCTAssertEqual(FormProblem.noName.row, .name)
+        XCTAssertEqual(FormProblem.endsBeforeStart.row, .when)
+        XCTAssertEqual(FormProblem.timePassed.row, .when)
+        XCTAssertEqual(FormProblem.noDay.row, .days)
+    }
+
+    // MARK: Preview (side column, boards C3, C4)
+
+    private func preview(_ form: ItemForm, items: [ScheduleItem] = [], draftID: UUID? = UUID(),
+                         showsDraft: Bool = true) -> FormPreview {
+        form.preview(kids: SeedData.kids, routines: SeedData.routines, items: items, holidays: [], draftID: draftID,
+                     showsDraft: showsDraft, today: F.monday, calendar: F.calendar)
+    }
+
+    func testPreviewHeadingForOneKidEveryWeek() {
+        let monWed = preview(form())
+        XCTAssertEqual(monWed.heading, "Kid A's Monday")
+        XCTAssertNil(monWed.note)
+        XCTAssertEqual(monWed.summary, "On the clock every Monday and Wednesday from 9 Nov.")
+        XCTAssertEqual(preview(form(days: [.wednesday])).heading, "Kid A's Wednesday", "the next picked day")
+    }
+
+    func testPreviewHeadingForBothKids() {
+        var both = form()
+        both.audience = .both
+        XCTAssertEqual(preview(both).heading, "Monday")
+    }
+
+    func testPreviewHeadingAndNoteJustOnce() {
+        var once = form(repeats: .once)
+        once.date = Day(year: 2026, month: 11, day: 12)
+        let forKidA = preview(once)
+        XCTAssertEqual(forKidA.heading, "Thursday 12 Nov")
+        XCTAssertEqual(forKidA.note, "Just this day, for Kid A. It leaves the clock at midnight.")
+        XCTAssertNil(forKidA.summary)
+        once.audience = .both
+        XCTAssertEqual(preview(once).note, "Just this day, for both kids. It leaves the clock at midnight.")
+    }
+
+    func testPreviewMarksOnlyTheDraftRowAndSkipsSleep() {
+        let rows = preview(form(), items: [F.weekly("Reading", days: [.monday], start: 1000, end: 1040)]).rows
+        XCTAssertEqual(rows.filter(\.isNew).map(\.slot.title), ["Pottery"])
+        XCTAssertTrue(rows.contains { $0.slot.title == "Reading" && !$0.isNew })
+        XCTAssertFalse(rows.contains { $0.slot.kind == .sleep })
+        XCTAssertEqual(rows.first { $0.isNew }?.time, "3:30")
+    }
+
+    func testPreviewLeavesOutADraftWithAProblem() {
+        XCTAssertEqual(preview(form(), showsDraft: false).rows.filter(\.isNew), [])
+        XCTAssertEqual(preview(form(), draftID: nil).rows.filter(\.isNew), [], "no id yet, no draft")
+    }
+
+    func testPreviewReplacesTheItemBeingEdited() {
+        let swim = F.weekly(days: [.monday])
+        var edited = ItemForm(item: swim)
+        edited.name = "Swim club"
+        let rows = preview(edited, items: [swim], draftID: swim.id).rows
+        XCTAssertEqual(rows.filter(\.isNew).map(\.slot.title), ["Swim club"])
+        XCTAssertFalse(rows.contains { $0.slot.title == "Swimming" })
+    }
+
+    func testPreviewWithoutKidsHasNoRows() {
+        let empty = form().preview(kids: [], routines: [], items: [], holidays: [], draftID: UUID(), showsDraft: true,
+                                   today: F.monday, calendar: F.calendar)
+        XCTAssertEqual(empty.rows, [])
+    }
 }
