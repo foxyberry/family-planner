@@ -19,6 +19,17 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-08: Seed data: Kid B day table, picture choices (actPlay on weekends, blocks on weekdays), "Free time" title, school hours 7:30–3:00, birthday over the nap (values set by the main session, accepted).
 - 2026-11-08: Hub first line is the weekday instead of "NOW" (A1, A1n, E1, E3, E3b boards). Seed School picture is wolfie (public kit, user choice). Weekend school picture is a swappable flag (8 country flags, kit 0d3).
 - 2026-11-08: hub "until" line uses 12-hour time with am/pm.
+- 2026-11-08: every time shown on any screen (kid or grown-up) is 12-hour with "am"/"pm"; ranges in the same half may put it once at the end ("3:30–4:30 pm"). Video lengths (0:24) are not times.
+- 2026-11-08: home "now and next" is one rule for every kid and every home screen: Kid A now = hub, Next = one row (any kind of slot, start time only, head 36 bold) + time left "in 38 min" (display 96); Kid B now/next circles. `KidFace` replaces `KidDot`.
+- 2026-11-08: `KidFace` defined (ringKidA/B kit slots + `Kid.face` slot, sizes 40/34/30); replaces `KidDot` on every screen.
+- 2026-11-08: `KidFace` sizes follow the type line heights on the 8 pt grid (48 / 40 / 32), face at 86 % of the box, gaps 16 / 8.
+- 2026-11-08: `KidFace` ring moves to `CrayonKit` (UI shapes are drawn in code); kit slots ringKidA/B withdrawn.
+- 2026-11-08: "CrayonKit UI parts added on the boards": chevrons, arrows, plus/minus, crayon ring, KidFace ring, KidBand, number plate, card, pill, swatch, small marker icons, with sizes and phase.
+- 2026-11-08: A2-MVP mission screen (board A2-MVP, build step 5): A2 layout with no live data, a way strip at the top (home → destination, mover = how the kid goes, placed by the clock), "All done!" per kid.
+- 2026-11-08: E3 / E3b right panel = A1 (no day name, no "No bus today"); weekday holiday caption "Holiday · no school today" under Kid A.
+- 2026-11-08: hub title may wrap: title 48 on one line, else head 36 on up to two lines (284 wide), else "…" (user decision; "Weekend school" was cut to "Weekend…").
+- 2026-11-08: two-line hub spacing: title lines 38 apart (1.05), group gaps 44; baselines 466 / 510 / 548 / 592; alternative numbers if the weekday moves to the right panel.
+- 2026-11-08: weekday moves from the hub to the top of the right panel on every kid home screen (head 36, 24 below; "· Holiday" on weekday holidays); hub = title (540, or 512/550) + until (590 / 594). (User decision.)
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -85,7 +96,7 @@ Markers used below:
 - School hours (C4 "Hours") in the seed: 7:30 am – 3:00 pm, the same as the School slot.
 - **Sat and Sun templates** (seed; the same for both days; matches board E3):
   - Sleep 20:45–7:30, Breakfast 7:30–8:30, Play 8:30–19:00, Dinner 19:00–20:15, Shower 20:15–20:45.
-  - On the seed Saturday, Weekend school (9:00–12:00) and the Birthday (14:00–16:00) sit on top. At 9:15 the hub says "Weekend school" (head 36, because it is wider than 260) / "until 12:00 pm", as on E3.
+  - On the seed Saturday, Weekend school (9:00–12:00) and the Birthday (14:00–16:00) sit on top. At 9:15 the hub says "Weekend / school" (head 36 on two lines, because it does not fit 260 on one) / "until 12:00 pm", as on E3.
   - Real Sunday activity times are not in the repo; grown-ups add a Sunday every-week item in C3 (e.g. with `actChurch`).
 - Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30 am" and Kid A "Leave in 34 min" (M3), as on the board.
 
@@ -149,15 +160,19 @@ Markers used below:
   - Moves once a minute (`TimelineView(.everyMinute)` / `@Dependency(\.date)`).
 - Accessibility label for the whole clock: "Kid A's day as a 24-hour clock. Midnight at the top, noon at the bottom. {weekday} {h:mm}, {slot}." On a school morning, M3 appends " Leave at {h:mm}.".
 
-### Hub text (day rule)
-- Three centred lines, M1 type steps only (agreed 2026-11-07):
-  - The weekday ("Monday" … "Sunday", from the device locale's standalone weekday name): body 30, weight 600, `softText`, baseline about y 490. It replaced "NOW" on 2026-11-08 because "NOW" was unclear to the family.
-  - Weekends show "Saturday" / "Sunday" the same way. A weekday school holiday still shows its weekday (e.g. "Monday"); the Sun-template clock and the right column ("No school today") say it is a holiday, the hub does not.
-  - slot title: title 48 `ink`, baseline about 548.
-  - "until {end h:mm am/pm}": body 30 `softText`, baseline about 596. Always the 12-hour time with a lowercase "am"/"pm" ("until 7:30 am", "until 8:00 pm"), never 24-hour: a 7-year-old cannot read 24-hour times yet (user, 2026-11-08). Same for the gap line "until {next start}".
-  - The board's 44 and 26 were not type steps; these replace them.
+### Hub text (changed 2026-11-08: the weekday moved to the right panel)
+- The hub has two parts only: the slot title and "until {end h:mm am/pm}" (body 30 `softText`).
+  - One line: title 48 `ink`, baseline 540; "until" baseline 590.
+  - Two lines (title fitting below): head 36, lines at 512 and 550 (pitch 38); "until" at 594.
+- **Weekday**: the first line of the right panel on every kid home screen (A1, A1n, E1, E3, E3b): head 36 (ink by day, `nightText` at night), then 24 to the Kid A name row. On a weekday school holiday it reads "{Weekday} · Holiday". It replaced "NOW" in the hub (2026-11-08) and moved out of the hub the same day so a two-line title has room.
 - Slot title = the item's name (e.g. "Breakfast", "School", "Swimming", "Sleep").
-- If the title is wider than 260 pt, use head 36. If it is still too wide, cut it at a word and end with "…". Never wrap.
+- Title fitting (user decision, 2026-11-08; replaces "never wrap"):
+  1. Title 48 on one line if it fits in 260 pt.
+  2. Otherwise head 36, up to **two lines** in 284 pt, broken at a word.
+  3. Still too long: the second line ends with "…".
+  - **Two-line spacing** (checked on iPad 2026-11-08; Playpen Sans has tall built-in ascent and descent, so the default 1.2 line height looks loose):
+    - The two title lines are 38 pt apart, baseline to baseline (1.05 × 36). Build them as two `Text` lines in a 38-pt-tall box each (or a font with line height 38), not as one wrapped `Text` with the default leading.
+    - Last title line → "until": 44, baseline to baseline. Baselines: see the hub layout above (one line 540 / 590; two lines 512 / 550 / 594).
 - **Gap (no slot covers now)** [proposed]: title "Free time", second line "until {next start}". If nothing else is planned today: "Free time" with no second line.
 - **No schedule at all** [proposed]: the disc is plain paper with ticks and labels, no slots and no hand change. Hub: "{weekday}" / "Nothing planned". No instruction to the child.
 
@@ -166,11 +181,25 @@ Markers used below:
 - A slot shorter than 10 minutes (2.5°) is drawn with 10 minutes' width, centred on its real time. It still shows no picture.
 - Two short slots next to each other keep their order and push apart by up to 5 minutes each. If they still collide, the lower-priority one is dropped from the drawing; it stays in the data and in the side lists.
 
+### Now and next on home: one rule (2026-11-08)
+- Every kid shows **now once and next once**. Never a list.
+  - Kid A, the kid whose clock is shown: now is the hub. The right panel shows only **Next**.
+  - Kid B (and any other kid without the clock): the now / next circles.
+- **Next** = the next thing on that kid's clock after the current one, of any kind (template slot, every-week, just-once), after the priority rule. Skip free time (no picture) and a slot that only continues after an item ends (Play after Weekend school). On E3 at 9:15 that gives "Birthday · at 2:00 pm".
+- **Kid A block** (right panel, x 928–1312):
+  - `KidFace` 40 (face in the kid's colour ring, replaces `KidDot`) + name, head 36.
+  - 24 below: "Next" caption 24 `softText`.
+  - 8 below: Next row: `KitIcon` 104, gap 20, then the title **head 36 bold** over "at {h:mm am/pm}" body 30 `softText`. Both lines are one line: start time only (the range is on the clock), no wrap; a long title ends with "…". A just-once item keeps its star sticker on the picture.
+  - 24 below: time left to that thing: "in" body 30 `softText`, then `TimeLeft` display 96 ("38 min"). Over 60 minutes: "1 h 20 min" in the same size; over 3 h: leave the time left out.
+  - **[later M3]** on school mornings the time left becomes "Leave in" + `TimeLeft` to the leave time + "On time" (boards A1, E1). Same place and sizes, so M2 → M3 swaps the words and the target time. On A1 (two kids) the Next row is hidden on school mornings to leave room for Kid B; E1 (one kid) keeps it under "On time".
+- **Night** (A1n look): the same rule. Next is usually Sleep ("at 8:00 pm") and the time left reads "Bed in" instead of "in". The "Tomorrow · School, leave 7:25 am" row is **[later M3]**.
+- Kid B block: unchanged (now 160 / next 104 circles, captions "now" / "next").
+
 ### Right panel
 - **Kid A block** (spacing from the board):
   - `KidDot` (Kid A) + name, head 36.
   - **[later M3]** School mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).
-  - **M2 instead** [proposed]: E1's "Next" list for Kid A (see E1).
+  - **M2 instead**: Next row + time left, see "Now and next on home".
 - **Kid B block**, 64 below:
   - `KidDot` (Kid B) + name, head 36.
   - Row with gap 40:
@@ -185,30 +214,40 @@ Markers used below:
 
 ---
 
+## A2-MVP · Morning missions without live bus data (build step 5; new 2026-11-08, way strip added the same day) [board A2-MVP]
+The MVP mission screen: the A2 layout with **no live data** (no LTA times, bubbles, crowding, "Leave in", slide-to-go or medal; those are N1 / N2). Going somewhere is still the point of the morning, so the top shows the way there (user, 2026-11-08).
+- **Header** (48–128): `RoundButton` 80 with `MarkerGlyph.chevronLeft` 40 → home; "Good morning!" title 48; right: "{Place} in" (body, `softText`) + "{n} min" (title 48), counting to the start of the next outing.
+- **Way strip** (176–516, the A2 map frame): home on its stem at the left side, the destination on its stem at the right (same stem rule as A2), a crayon road between them.
+  - Destination picture = the outing's picture: `wolfie` for school, the flag for weekend school, `actChurch`, `actSwim`, …
+  - The mover on the road = how the kid goes, from the plan: bus (`busDouble` / `busSingle`, no passengers, no number plate), school shuttle, car, taxi, or on foot (`shoe`). It rocks gently like on A2 (Reduce Motion: still).
+  - By car, taxi or on foot the road has no bus stops, and the home stem is labelled "Home"; by bus the stops and "Our stop" show as on A2 (board A2-MVP-w shows Saturday weekend school by car).
+  - Its place on the road comes from the clock only: home at "leave" minus 10 min, the destination at the start time; in between it moves linearly. No live position.
+  - A `CrayonCard` on the strip: "{Place} at {h:mm am}" (head 36) over "by {way} · timetable" (caption).
+  - The next outing is the next slot or item today that has a place (school, weekend school, church, swimming…). No outing left today: the strip is left out and the missions move up.
+- **Kids and missions** (536–968): the A2 family layout. Kid list on the left (`CrayonRing` 76 + face, `KidBand` on the chosen kid), the chosen kid's name + "leave at {h:mm am}" and one row of 112 mission circles on the right (6 a kid; fold / "+n" rule of A2m beyond that).
+- **All done!** (bottom right, 400 × 96 `KidPillButton` in the chosen kid's colour, star sticker 56): always active; missions help but never lock it. Tap: the kid's row turns "Ready!" (full ring, check badge, no medal), crayon confetti (Reduce Motion: none), then the next unfinished kid is chosen. Everyone ready: the button reads "Back to the clock".
+- **Tapping a mission** toggles it (undo allowed); the check draws itself in 0.35 s (Reduce Motion: appears).
+- **VoiceOver**: the strip reads "On the way to school by bus, 38 minutes, school starts at 7:30 am"; kid rows are tabs; missions are toggles.
+- **M3 / N1** swaps the timetable strip for the live map: bubbles, crowding, "Leave in" and slide-to-go come in the same frame.
+
 ## E1 · Home, one child [board]
 - Same clock and hub as A1.
 - Right panel: Kid A block, then **Next**:
-  - "Next" head 36.
-  - The first row: 104 picture, gap 20, then the title (head 36) over the time range "{start} – {end}" (body, `softText`).
-  - The second row: 72 picture, title (body bold) over the start time (caption).
-  - At most 2 rows (0f: kids never scroll).
+  - Next row + time left exactly as the A1 Kid A block ("Now and next on home"). One row only (changed 2026-11-08; was 2 rows).
 - No Kid B block. Main button as A1 (hidden in M2).
 - Empty Next [proposed]: "Next" + "Nothing else today" (body, `softText`).
 
 ## E3 · Home, weekend or holiday [board]
 - Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
-- Right panel (the day comes first because it is the same for both kids; changed 2026-11-08):
-  - Day name, e.g. "Saturday" (title 48).
-  - "No bus today" (body, `softText`), 4 below (was "No school, no bus" until 2026-11-08; weekend school made that untrue). On a school holiday that falls on a weekday the line is the same; the day name shows the weekday.
-  - 48 below: `KidDot` + Kid A name (head).
-  - The next just-once or every-week item for Kid A: 72 picture + title (body bold) over "{start} – {end}" (caption). Only one.
+- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (Next row + time left, "Now and next on home"), then the Kid B block. No day name (the hub's first line already says "Saturday") and no "No bus today" (the bus is N1, so in the MVP the line only appeared on weekends and read oddly).
+  - **Weekday school holiday**: the panel's weekday line reads "{Weekday} · Holiday" (see Hub text). That is the only holiday sign on the kid screen; the clock already uses the Sun template.
   - Kid B block as A1.
 - Main button "Diary →" → B2. **[later M5]**: hidden in M2.
 - No item left today [proposed]: leave out the item row.
 
 ## E3b · Home, Sunday (new 2026-11-08) [board]
 - Same layout as E3, with the **Sun** template; a Sunday every-week item (the board's example uses `actChurch`) sits on top in sky. The board's real times stay on the canvas only.
-- Example on the board: during that item the hub shows its name / "until {end}". Kid A has no further item today, so the item row is left out (E3 rule).
+- Example on the board: during that item the hub shows its name / "until {end}". Kid A's Next is "Dinner · at 7:00 pm" (Play only continues after the item, so it is skipped); over 3 h away, so no time left is shown.
 - The seed has no Sunday item (see Seed data), so in the app the seed Sunday shows the plain Sun template until a grown-up adds one.
 
 ## A1n · Home at night: the night look (new 2026-11-08) [board + proposed]
@@ -545,6 +584,33 @@ any grown-up screen --2 min idle or app backgrounded--> home
   - hold progress 0–1 for C0
 - `ClockSlot` colour tokens (table above). They extend `CrayonPalette`.
 - `KidNowNext` (Kid B's 160 "now" circle and 104 "next" circle with captions).
+- `KidFace` (2026-11-08, replaces `KidDot` everywhere a kid is named; the only colour-only circles left are the S1 colour swatches):
+  - Layers: a `CrayonKit` crayon ring in the kid's colour (the same Shape as the progress ring at 100 %, stroke about 9 % of the box, fixed seed per kid), then the kid's face `KitIcon` centred at **86 %** of the box (the face drawing fills about 68 % of its own box, so it nearly fills the ring without touching it). The ring is a UI shape, so it is drawn in code like every other crayon UI part (roadmap rule); only the face is a kit picture.
+  - Face source: a new `Kid.face: KitSlot`, seed Kid A = `kidGirl`, Kid B = `kidBoy`. S1 (M4) sets it ("Girl face" / "Boy face"); M6 can swap in the kid's own drawing later, same slot.
+  - Size = the line height of the text beside it, rounded up to the 8 pt grid: **48** beside head 36 (home names, panel headers), **40** beside body 30 (tabs, rows, fields), **32** beside caption 24 (bubbles). Gap to the name: 16 beside a 48 face, 8 beside 40 / 32 (space tokens). Ring stroke is part of the picture (about 9 % of the box).
+  - Kid list chips (A2 family layout): the 76 progress ring takes the place of the colour ring, with the face at the same 86 %.
+  - Night: same pictures. The ring colours are the night-safe pair already (#56B4E9 / #E69F00, ≥ 6.8:1 on `night`).
+  - Accessibility: one element, label = kid name; the face picture is decorative.
+
+### CrayonKit UI parts added on the boards (2026-11-08)
+UI shapes are drawn in code by `CrayonKit` (roadmap rule); only pictures are kit SVGs. Common rules: marker stroke = one wobbly pass (seeded, same look every time), round caps and joins; crayon fill = 30–35 % wash + hachure (gap 4–6, weight 2.2–2.6). Stroke widths stay fixed when a part is resized. Look reference (scripts + SVGs, not assets): `handover/crayon-ui-ref/` in the design session folder.
+
+| Part | Geometry (in its own box) | Stroke | Colours | Sizes and use | Phase |
+|---|---|---|---|---|---|
+| `MarkerGlyph.chevronLeft` | 48 box: M30 10 L16 24 L30 38 | 5 | ink | back button (inside `RoundButton` 80): 40 | M2 |
+| `MarkerGlyph.chevronRight` | M18 10 L32 24 L18 38 | 5 | soft #625D6E | row end "›": 28 | M2 |
+| `MarkerGlyph.arrowRight` | M10 24 H38 M26 12 L38 24 L26 36 | 5 | white on ink buttons, ink or soft in text | "Missions →", "Next →": 32 after the label, gap 12; inline arrows at the text size (24 / 28 / 34) | M2 |
+| `MarkerGlyph.plus` / `minus` | M24 10 V38 M10 24 H38 / M10 24 H38 | 5 | ink | stepper buttons: 40 | M2 (C3, C4) |
+| `CrayonRing` (progress) | circle r 0.43 of the box | track 0.08 (paper-beige #E2D9C6); arc: wash 0.10 at 35 % + line 0.07 | kid colour | 0–100 % from 12 o'clock clockwise; kid chips 76 | M3 (missions) |
+| `KidFace` ring | `CrayonRing` at 100 %, seed per kid | as above | Kid A #56B4E9, Kid B #E69F00 | see `KidFace` | M2 |
+| `KidBand` (chosen kid) | rounded band r 28 with a 14 pt notch, notch toward the content it controls | soft edge line 3 in a darker tint | wash + hachure in the kid's light tint (Kid A #BFE3F7 / edge #8CCBEE, Kid B #FCD9A6 / #F2B35E) | 340 × 100 kid row (A2 family layout) | M3 |
+| `NumberPlate` | rounded rect r 8 | 3 | ink line; fill white (my bus) or cream #FFF0BF (other buses) | bus numbers 64 × 36 (52 for two digits, 76 × 40 in the big bubble) | N1 |
+| `CrayonCard` | rounded rect r 18 | 3.5 | ink line, white fill | small floating cards, e.g. "Shuttle at 7:20 am" | N1 |
+| `CrayonPill` (status) | rounded rect r = h/2 | 3 | ink line, white fill | status chips, e.g. "Timetable times · live times are off" (48 tall) | N1 |
+| Colour swatch | circle r 24 in 56 | 3 | crayon fill in the colour, ink line | S1 colour picker only | M4 |
+
+Small marker icons that were inline SVG on the boards are now marker-drawn too: search (S3), drag handle ≡ (C5, soft), clock (E4), lock (S4, yellow crayon body). They are `MarkerGlyph` cases in the same style.
+
 - `ConfirmCard`: small `PaperCard` with title (head), body, and two buttons, the destructive one in `lateText`. It points at the control that opened it, like `PickerPopover`.
 - `LockOverlay` (C0 overlay and card with the state table).
 - Everything else uses M1 parts:

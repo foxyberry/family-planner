@@ -11,6 +11,10 @@ final class TimeLeftTests: XCTestCase {
     func testZeroOrNegativeUsesLateRed() {
         XCTAssertEqual(TimeLeft.presentation(minutes: 0).tone, .late)
         XCTAssertEqual(TimeLeft.presentation(minutes: -2).tone, .late)
+        // Over an hour: "1 h 20 min" in the same size.
+        XCTAssertEqual(TimeLeft.presentation(minutes: 80).text, "1 h 20 min")
+        XCTAssertEqual(TimeLeft.presentation(minutes: 60).text, "60 min")
+        XCTAssertEqual(TimeLeft.presentation(minutes: 120).text, "2 h")
     }
 
     func testNegativeLabelHasMinusSign() {

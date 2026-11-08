@@ -49,27 +49,39 @@ final class PieClockLayoutTests: XCTestCase {
         XCTAssertEqual(PieClockLayout.pictureSize(minutes: 180), 104)
         XCTAssertEqual(PieClockLayout.pictureSize(minutes: 179), 84)
         XCTAssertEqual(PieClockLayout.pictureSize(minutes: 60), 84)
-        XCTAssertEqual(PieClockLayout.pictureSize(minutes: 30), 68)
+        XCTAssertEqual(PieClockLayout.pictureSize(minutes: 59), 56)
+        XCTAssertEqual(PieClockLayout.pictureSize(minutes: 30), 56)
         XCTAssertNil(PieClockLayout.pictureSize(minutes: 29))
     }
 
-    func testPictureMustFitItsWedge() {
-        // 30 min is 7.5°: too thin for any picture even at the rim.
-        XCTAssertNil(PieClockLayout.picture(minutes: 30, radius: 372, hub: 152))
-        // 1 hour (15°) holds the 84 picture only out near the rim.
-        let hour = PieClockLayout.picture(minutes: 60, radius: 372, hub: 152)
-        XCTAssertEqual(hour?.size, 84)
-        XCTAssertGreaterThan(hour?.distance ?? 0, 372 * 0.7)
-        // 3 hours keeps the full size at 0.7 R.
+    /// Board A1 (2026-11-08): 104 and 84 at 0.68 R, 56 at 0.8 R where the slice is wider.
+    func testPictureDistanceBySize() {
         let long = PieClockLayout.picture(minutes: 180, radius: 372, hub: 152)
         XCTAssertEqual(long?.size, 104)
-        XCTAssertEqual(long?.distance ?? 0, 372 * 0.7, accuracy: 0.5)
+        XCTAssertEqual(long?.distance ?? 0, 372 * 0.68, accuracy: 0.5)
+        let hour = PieClockLayout.picture(minutes: 60, radius: 372, hub: 152)
+        XCTAssertEqual(hour?.size, 84)
+        XCTAssertEqual(hour?.distance ?? 0, 372 * 0.68, accuracy: 0.5)
+        let short = PieClockLayout.picture(minutes: 45, radius: 372, hub: 152)
+        XCTAssertEqual(short?.size, 56)
+        XCTAssertEqual(short?.distance ?? 0, 372 * 0.8, accuracy: 0.5)
+        XCTAssertNil(PieClockLayout.picture(minutes: 20, radius: 372, hub: 152))
     }
 
-    func testHubTitleCandidatesCutAtWords() {
-        XCTAssertEqual(PieClock.hubTitleCandidates("Swimming with the class"),
-                       ["Swimming with the class", "Swimming with the…", "Swimming with…", "Swimming…"])
-        XCTAssertEqual(PieClock.hubTitleCandidates("Breakfast"), ["Breakfast"])
+    func testPictureStaysBetweenHubAndRim() {
+        // A smaller clock: 0.68 R (204) would push the 104 picture into the hub, so it moves out to 220.
+        XCTAssertEqual(PieClockLayout.picture(minutes: 240, radius: 300, hub: 160)?.distance, 220)
+        // No room between hub and rim at all: no picture.
+        XCTAssertNil(PieClockLayout.picture(minutes: 240, radius: 200, hub: 120))
+    }
+
+    func testHubTitleStepsDownWhenTooWide() {
+        XCTAssertEqual(PieClock.hubTitleLines("Breakfast").lines, ["Breakfast"])
+        XCTAssertTrue(PieClock.hubTitleLines("Breakfast").isTitle)
+        // Board E3: "Weekend school" drops to head 36 on two lines.
+        XCTAssertEqual(PieClock.hubTitleLines("Weekend school").lines, ["Weekend", "school"])
+        XCTAssertFalse(PieClock.hubTitleLines("Weekend school").isTitle)
+        XCTAssertEqual(PieClock.hubTitleLines("Swimming with the whole class").lines.count, 2)
     }
 
     func testEveryStyleButFreeHasAFill() {

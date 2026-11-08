@@ -69,9 +69,9 @@ public enum HubModel {
         let age = kid.school == nil
             ? L10n.tr("hub.about.age.home", kid.age) : L10n.tr("hub.about.age.school", kid.age, kid.schoolYear ?? "")
         var day: [String] = []
-        if kid.school != nil, let wake { day.append(L10n.tr("hub.about.up", TimeText.clock(wake))) }
-        if let nap { day.append(L10n.tr("hub.about.nap", TimeText.clock(nap.start), TimeText.clock(nap.end))) }
-        if let bed { day.append(L10n.tr("hub.about.bed", TimeText.clock(bed))) }
+        if kid.school != nil, let wake { day.append(L10n.tr("hub.about.up", TimeText.withPeriod(wake))) }
+        if let nap { day.append(L10n.tr("hub.about.nap", TimeText.range(nap.start, nap.end))) }
+        if let bed { day.append(L10n.tr("hub.about.bed", TimeText.withPeriod(bed))) }
         return [HubRow(key: L10n.tr("hub.about.age"), value: age),
                 HubRow(key: L10n.tr("hub.about.day"), value: day.joined(separator: " · "))]
     }
@@ -81,7 +81,7 @@ public enum HubModel {
         guard let school = kid.school else { return [] }
         return [
             HubRow(key: L10n.tr("hub.school"), value: school.name),
-            HubRow(key: L10n.tr("hub.school.hours"), value: "\(TimeText.withPeriod(school.start)) – \(TimeText.withPeriod(school.end))"),
+            HubRow(key: L10n.tr("hub.school.hours"), value: TimeText.range(school.start, school.end)),
             HubRow(key: L10n.tr("hub.school.holidays"), value: L10n.tr("hub.school.no_holidays")),
         ]
     }
@@ -96,7 +96,7 @@ public enum HubModel {
         .sorted { ($0.0.start, $0.0.title) < ($1.0.start, $1.0.title) }
         .map { item, days in
             HubItemRow(id: item.id, iconName: item.iconName, title: item.title,
-                       detail: "\(DayText.chips(days)) \(TimeText.clock(item.start))–\(TimeText.clock(item.end))")
+                       detail: "\(DayText.chips(days)) \(TimeText.range(item.start, item.end))")
         }
     }
 
@@ -117,7 +117,7 @@ public enum HubModel {
         .map { item, day in
             HubItemRow(id: item.id, iconName: item.iconName, title: item.title,
                        detail: "\(DayText.short(day, calendar: calendar)) · "
-                           + "\(TimeText.clock(item.start))–\(TimeText.clock(item.end))")
+                           + TimeText.range(item.start, item.end))
         }
     }
 }

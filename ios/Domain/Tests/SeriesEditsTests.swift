@@ -116,6 +116,12 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(TimeText.withPeriod(0), "12:00 am")
         XCTAssertEqual(TimeText.withPeriod(720), "12:00 pm")
         XCTAssertEqual(TimeText.withPeriod(1440), "12:00 am")
+        // A range in one half says am or pm once, at the end; across halves it keeps both.
+        XCTAssertEqual(TimeText.range(930, 990), "3:30–4:30 pm")
+        XCTAssertEqual(TimeText.range(450, 900), "7:30 am–3:00 pm")
+        XCTAssertEqual(TimeText.range(660, 720), "11:00 am–12:00 pm")
+        XCTAssertEqual(TimeText.range(1200, 1440), "8:00 pm–12:00 am")
+        XCTAssertEqual(TimeText.range(0, 390), "12:00–6:30 am")
     }
 
     func testDuration() {

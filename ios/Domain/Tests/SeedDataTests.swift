@@ -124,4 +124,24 @@ final class SeedDataTests: XCTestCase {
         XCTAssertEqual(SeedData.items(today: Fixture.monday, calendar: Fixture.calendar).map(\.id),
                        SeedData.items(today: Fixture.monday, calendar: Fixture.calendar).map(\.id))
     }
+
+    /// Board A1n: night from the evening routine (7:15 pm on a school day) to wake-up (6:30 am).
+    func testNightSpanFromEveningRoutineToWakeUp() {
+        let weekday = DayPlanner.template(for: SeedData.kidA.id, on: Fixture.tuesday, routines: SeedData.routines,
+                                          holidays: [], calendar: calendar)
+        let night = DayPlanner.nightSpan(of: weekday)
+        XCTAssertEqual(night, NightSpan(start: 1155, wake: 390))
+        XCTAssertEqual([1154, 1155, 389, 390].map { night?.contains($0) }, [false, true, true, false])
+        let saturday = DayPlanner.template(for: SeedData.kidA.id, on: Fixture.saturday, routines: SeedData.routines,
+                                           holidays: [], calendar: calendar)
+        XCTAssertEqual(DayPlanner.nightSpan(of: saturday), NightSpan(start: 1215, wake: 450))
+        XCTAssertNil(DayPlanner.nightSpan(of: nil))
+    }
+
+    /// Spec "KidFace": seed faces, and kids stored before `face` existed get the seed's choice.
+    func testKidFaces() throws {
+        XCTAssertEqual(SeedData.kids.map(\.face), ["kidGirl", "kidBoy"])
+        let old = #"{"id":"\#(SeedData.kidB.id)","name":"Kid B","colorIndex":1,"age":4}"#
+        XCTAssertEqual(try JSONDecoder().decode(Kid.self, from: Data(old.utf8)).face, "kidBoy")
+    }
 }

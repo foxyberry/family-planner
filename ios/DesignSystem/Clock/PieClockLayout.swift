@@ -96,26 +96,20 @@ public enum PieClockLayout {
         switch minutes {
         case 180...: 104
         case 60..<180: 84
-        case 30..<60: 68
+        case 30..<60: 56
         default: nil
         }
     }
 
-    /// Picture size and distance from the centre for a slot `minutes` long, or `nil` when no picture
-    /// fits. Starts from the size by length, at 0.7 R; a wedge narrower than the picture moves it out
-    /// toward the rim, then tries the next smaller size.
+    /// Picture size and distance from the centre for a slot `minutes` long, or `nil` under 30 minutes
+    /// (board A1): 104 and 84 sit at 0.68 R, 56 at 0.8 R where the slice is wider. The picture stays
+    /// between the hub and the rim with 8 pt to spare; when both cannot hold, there is no picture.
     public static func picture(minutes: Int, radius: CGFloat, hub: CGFloat) -> (size: CGFloat, distance: CGFloat)? {
-        guard let preferred = pictureSize(minutes: minutes) else { return nil }
-        let wedge = CGFloat(degrees(minute: minutes)) * .pi / 180
-        for size in [104, 84, 68].map(CGFloat.init) where size <= preferred {
-            let inner = hub + 8 + size / 2, outer = radius - 8 - size / 2
-            guard inner <= outer else { continue }
-            let preferredDistance = min(max(radius * 0.7, inner), outer)
-            for distance in [preferredDistance, outer] where distance * wedge >= size {
-                return (size, distance)
-            }
-        }
-        return nil
+        guard let size = pictureSize(minutes: minutes) else { return nil }
+        let inner = hub + 8 + size / 2, outer = radius - 8 - size / 2
+        guard inner <= outer else { return nil }
+        let preferred = radius * (size == 56 ? 0.8 : 0.68)
+        return (size, min(max(preferred, inner), outer))
     }
 
     private static func mergeAcrossMidnight(_ sectors: [ClockSector]) -> [ClockSector] {

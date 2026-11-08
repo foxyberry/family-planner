@@ -6,11 +6,12 @@ public enum SeedData {
     public static let kidA = Kid(
         id: UUID(uuidString: "5EED0000-0000-4000-8000-00000000000A")!, name: "Kid A", colorIndex: 0, age: 8,
         schoolYear: "Year 3",
-        school: School(name: "Example Primary School", days: Weekday.schoolDays, start: 450, end: 900))
+        school: School(name: "Example Primary School", days: Weekday.schoolDays, start: 450, end: 900),
+        face: "kidGirl")
 
     public static let kidB = Kid(
         id: UUID(uuidString: "5EED0000-0000-4000-8000-00000000000B")!, name: "Kid B", colorIndex: 1, age: 4,
-        schoolYear: nil, school: nil)
+        schoolYear: nil, school: nil, face: "kidBoy")
 
     public static var kids: [Kid] { [kidA, kidB] }
 

@@ -129,7 +129,7 @@ public struct ItemForm: Equatable, Sendable {
             let otherPriority = other.isWeekly ? 1 : 2
             let mineWins = myPriority > otherPriority || (myPriority == otherPriority && start >= other.start)
             return mineWins
-                ? L10n.tr("form.overlap.mine", other.title, TimeText.clock(other.start), TimeText.clock(other.end))
+                ? L10n.tr("form.overlap.mine", other.title, TimeText.range(other.start, other.end))
                 : L10n.tr("form.overlap.other", other.title)
         }
         return nil

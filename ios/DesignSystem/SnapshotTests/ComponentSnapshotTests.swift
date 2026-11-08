@@ -46,7 +46,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testCrayonTabs() {
         snap(CrayonTabs(selection: .constant(0), items: [
-            (0, "Kid A", CrayonColor.kidABlue), (1, "Kid B", CrayonColor.kidBOrange), (2, "Family", nil),
+            (0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Family", nil),
         ]))
     }
 
@@ -62,7 +62,7 @@ final class ComponentSnapshotTests: XCTestCase {
     func testFields() {
         snap(HStack(spacing: Spacing.m) {
             CrayonField("Activity name", text: .constant("")).frame(width: 480)
-            TimeField(time: .constant(Date(timeIntervalSince1970: 7 * 3600 + 30 * 60)))
+            TimeField(label: "7:30 am", time: .constant(Date(timeIntervalSince1970: 7 * 3600 + 30 * 60)))
         })
     }
 
@@ -185,6 +185,9 @@ final class ComponentSnapshotTests: XCTestCase {
             Medal(.bronze, size: 104)
             KidDot(color: CrayonColor.kidABlue)
             KidDot(color: CrayonColor.kidBOrange, size: 28)
+            KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
+            KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
+            KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A", size: KidFace.small)
         })
     }
 
@@ -203,7 +206,7 @@ final class ComponentSnapshotTests: XCTestCase {
     ]
 
     func testPieClockSeedDay() {
-        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(day: "Tuesday", title: "Swimming", subtitle: "until 4:30 pm"))
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30 pm"))
             .padding(110))
     }
 
@@ -220,21 +223,28 @@ final class ComponentSnapshotTests: XCTestCase {
             ClockSector(start: 1155, end: 1200, style: .evening, iconName: "actShower", isCurrent: false, showsStar: false, priority: 0),
             ClockSector(start: 1200, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
         ]
-        snap(PieClock(sectors: day, now: 1000, hub: .init(day: "Tuesday", title: "Free time", subtitle: "until 5:00 pm")).padding(110))
+        snap(PieClock(sectors: day, now: 1000, hub: .init(title: "Free time", subtitle: "until 5:00 pm")).padding(110))
     }
 
     func testPieClockEmpty() {
-        snap(PieClock(sectors: [], now: nil, hub: .init(day: "Tuesday", title: "Nothing planned", subtitle: nil)).padding(110))
+        snap(PieClock(sectors: [], now: nil, hub: .init(title: "Nothing planned", subtitle: nil)).padding(110))
     }
 
     func testHubLongTitle() {
         snap(PieClock(sectors: Self.seedDay, now: 945,
-                      hub: .init(day: "Tuesday", title: "Swimming with the whole class", subtitle: "until 4:30 pm"), holdProgress: 0.6)
+                      hub: .init(title: "Swimming with the whole class", subtitle: "until 4:30 pm"), holdProgress: 0.6)
+            .padding(110))
+    }
+
+    /// Board E3 at 9:15: "Weekend school" on two lines at head 36, "until" inside the hub.
+    func testHubTwoLineTitle() {
+        snap(PieClock(sectors: Self.seedDay, now: 555, hub: .init(title: "Weekend school",
+                                                                  subtitle: "until 12:00 pm"))
             .padding(110))
     }
 
     func testHubLongSingleWord() {
-        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(day: "Tuesday", title: "Supercalifragilistic", subtitle: "until 4:30 pm"))
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Supercalifragilistic", subtitle: "until 4:30 pm"))
             .padding(110))
     }
 
@@ -242,6 +252,9 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(HStack(spacing: Spacing.xl) {
             KidNowNext(now: "teddy", next: "actPlay")
             KidNowNext(now: "actPlay", next: nil)
+            KidNowNext(now: "actShower", next: "actSleep", look: .night)
+                .padding(Spacing.s)
+                .background(CrayonColor.night)
         })
     }
 
@@ -265,7 +278,7 @@ final class ComponentSnapshotTests: XCTestCase {
     func testGrownupHeader() {
         let width = Self.grid.span(12)
         snap(GrownupHeader(title: "Our kids", onBack: {}) {
-            CrayonTabs(selection: .constant(0), items: [(0, "Kid A", CrayonColor.kidABlue), (1, "Kid B", CrayonColor.kidBOrange)])
+            CrayonTabs(selection: .constant(0), items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1))])
         }, width: width, named: "tabs")
         snap(GrownupHeader(title: "Edit Swimming", caption: "Grown-ups only · behind the parent lock", onBack: {}),
              width: width, named: "caption")
@@ -284,6 +297,42 @@ final class ComponentSnapshotTests: XCTestCase {
     /// The `.sizeThatFits` layout proposes a zero size, so heights (and widths when none is
     /// given) are fixed to the part's ideal size; otherwise text is squeezed or truncated.
     /// Time zone and locale are pinned so the simulator's settings never change a picture.
+    /// Board A1n at 7:40 pm: lit paper face, chalk ticks and numbers on the night page.
+    func testPieClockNight() {
+        snap(KidFullScreen(look: .night) {
+            PieClock(sectors: Self.seedDay, now: 1180, hub: .init(title: "Shower", subtitle: "until 8:00 pm"),
+                     look: .night)
+                .padding(110)
+        }
+        .frame(width: 964, height: 964))
+    }
+
+    func testSkySwitch() {
+        snap(HStack(spacing: Spacing.l) {
+            SkySwitch(look: .day, isAnimating: false, label: "Day. Tap for night.") {}
+            SkySwitch(look: .night, isAnimating: false, label: "Night. Tap for day.") {}
+        }
+        .padding(Spacing.l)
+        .background(CrayonColor.paper))
+    }
+
+    func testKitPlate() {
+        snap(HStack(spacing: Spacing.l) {
+            KitPlate(look: .day, size: 104) { KitIcon(.actDinner, size: 104) }
+            KitPlate(look: .night, size: 104) { KitIcon(.actDinner, size: 104) }
+            KitPlate(look: .night, size: 72) { KitIcon(.sun, size: 72) }
+        }
+        .padding(Spacing.l)
+        .background(CrayonColor.night))
+    }
+
+    func testKidFullScreen() {
+        snap(KidFullScreen {
+            Text("Home: the clock uses the whole screen").crayonType(.head).padding(Spacing.m)
+        }
+        .frame(width: 720, height: 160))
+    }
+
     private func snap(_ view: some View, width: CGFloat? = nil, named name: String? = nil,
                       file: StaticString = #filePath, testName: String = #function, line: UInt = #line) {
         let framed = view

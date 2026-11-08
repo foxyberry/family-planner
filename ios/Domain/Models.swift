@@ -24,14 +24,33 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
     public var schoolYear: String?
     /// `nil` for a child who stays at home.
     public var school: School?
+    /// The kid's face picture (a `KitSlot` raw value) inside their colour ring (`KidFace`).
+    /// First-run setup (M4) sets it; a kid's own drawing can take the same slot later.
+    public var face: String
 
-    public init(id: UUID, name: String, colorIndex: Int, age: Int, schoolYear: String?, school: School?) {
+    public init(id: UUID, name: String, colorIndex: Int, age: Int, schoolYear: String?, school: School?,
+                face: String = "kidGirl") {
         self.id = id
         self.name = name
         self.colorIndex = colorIndex
         self.age = age
         self.schoolYear = schoolYear
         self.school = school
+        self.face = face
+    }
+
+    private enum CodingKeys: String, CodingKey { case id, name, colorIndex, age, schoolYear, school, face }
+
+    /// Kids stored before `face` existed get the seed's choice: Kid B's colour → boy face, else girl.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        colorIndex = try c.decode(Int.self, forKey: .colorIndex)
+        age = try c.decode(Int.self, forKey: .age)
+        schoolYear = try c.decodeIfPresent(String.self, forKey: .schoolYear)
+        school = try c.decodeIfPresent(School.self, forKey: .school)
+        face = try c.decodeIfPresent(String.self, forKey: .face) ?? (colorIndex == 1 ? "kidBoy" : "kidGirl")
     }
 }
 

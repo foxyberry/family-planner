@@ -108,16 +108,16 @@ public struct ItemEditorView: View {
 
     private var audienceTabs: some View {
         CrayonTabs(selection: Binding(get: { store.form.audience }, set: { store.send(.audienceTapped($0)) }),
-                   items: store.audienceTabs.map { ($0.audience, $0.title, $0.colorIndex.map(CrayonColor.kid)) })
+                   items: store.audienceTabs.map { ($0.audience, $0.title, $0.badge) })
     }
 
     private var whenRow: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.s) {
-                TimeField(time: Binding(get: { store.startTime }, set: { store.send(.startPicked($0)) }))
+                TimeField(label: store.startLabel, time: Binding(get: { store.startTime }, set: { store.send(.startPicked($0)) }))
                 Image(systemName: "arrow.right").crayonType(.body).fontWeight(.bold)
                     .foregroundStyle(CrayonColor.softText)
-                TimeField(time: Binding(get: { store.endTime }, set: { store.send(.endPicked($0)) }))
+                TimeField(label: store.endLabel, time: Binding(get: { store.endTime }, set: { store.send(.endPicked($0)) }))
                 if let duration = store.form.durationCaption {
                     Text(duration).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 }

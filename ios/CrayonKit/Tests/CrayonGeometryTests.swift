@@ -79,4 +79,11 @@ final class CrayonGeometryTests: XCTestCase {
         }
     }
 
+
+    func testSmallCircleHasEnoughSamplesToStayRound() {
+        let small = CrayonGeometry(kind: .circle, in: CGRect(x: 0, y: 0, width: 44, height: 44), seed: 1,
+                                   marker: MarkerStyle(width: 4, roughness: 0.6, bowing: 0.6), hachure: nil)
+        XCTAssertGreaterThanOrEqual(small.outline.count, 24)
+        XCTAssertEqual(CrayonGeometry.spacing(for: CGRect(x: 0, y: 0, width: 300, height: 300)), 12)
+    }
 }

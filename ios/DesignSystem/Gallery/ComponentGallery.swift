@@ -34,7 +34,7 @@ public struct ComponentGallery: View {
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }
-                    CrayonTabs(selection: $tab, items: [(0, "Kid A", CrayonColor.kidABlue), (1, "Kid B", CrayonColor.kidBOrange), (2, "Family", nil)])
+                    CrayonTabs(selection: $tab, items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Family", nil)])
                     HStack(spacing: Spacing.s) {
                         DayChip("M", isOn: $monday)
                         DayChip("T", isOn: $tuesday)
@@ -43,7 +43,7 @@ public struct ComponentGallery: View {
                     }
                     HStack(spacing: Spacing.m) {
                         CrayonField("Activity name", text: $name).frame(width: 480)
-                        TimeField(time: $time)
+                        TimeField(label: "7:30 am", time: $time)
                     }
                     IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {}
                     HStack(spacing: Spacing.xl) {
@@ -76,6 +76,8 @@ public struct ComponentGallery: View {
                         Medal(.bronze, size: 104)
                         KidDot(color: CrayonColor.kidABlue)
                         KidDot(color: CrayonColor.kidBOrange, size: 28)
+                        KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
+                        KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
                     }
                 }
                 section("M2 · Home and lock") {
@@ -88,7 +90,7 @@ public struct ComponentGallery: View {
                                     showsStar: false, priority: 1),
                         ClockSector(start: 1230, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false,
                                     showsStar: false, priority: 0),
-                    ], now: 945, hub: .init(day: "Tuesday", title: "Swimming", subtitle: "until 4:30 pm"))
+                    ], now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30 pm"))
                     .scaleEffect(0.5)
                     .frame(width: 480, height: 480)
                     KidNowNext(now: "teddy", next: "actPlay")
@@ -106,6 +108,19 @@ public struct ComponentGallery: View {
                         }
                     }
                     .frame(height: 420)
+                    KidFullScreen {
+                        Text("Home: the clock uses the whole screen").crayonType(.head).padding(Spacing.m)
+                    }
+                    .frame(height: 160)
+                    KidFullScreen(look: .night) {
+                        HStack(spacing: Spacing.l) {
+                            SkySwitch(look: .night, isAnimating: false, label: "Night. Tap for day.") {}
+                            Text("Night look").crayonType(.head)
+                            KitPlate(look: .night, size: 72) { KitIcon(.actDinner, size: 72) }
+                        }
+                        .padding(Spacing.m)
+                    }
+                    .frame(height: 160)
                     GrownupScreen {
                         Text("Add a weekly activity").crayonType(.title)
                     } content: {

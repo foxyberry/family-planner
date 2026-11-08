@@ -28,5 +28,6 @@ public enum CrayonStyle {
         static let bubble: UInt32 = 1301
         static let league: UInt32 = 1401
         static let voice: UInt32 = 1501
+        static let kidFace: UInt32 = 1601
     }
 }

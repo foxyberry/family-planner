@@ -118,11 +118,15 @@ clean:
 clean-expunge:
 	bazel clean --expunge
 
+# Only tracked Bazel files: git-ignored folders (.build from SwiftPM indexing, bazel-*) hold
+# other projects' BUILD files that are not ours to format.
+BAZEL_FILES = git ls-files -z '*.bazel' '*.bzl' 'BUILD' 'WORKSPACE' 'MODULE.bazel'
+
 fmt:
-	buildifier -r .
+	$(BAZEL_FILES) | xargs -0 buildifier
 
 lint:
-	buildifier -r --lint=warn --mode=check .
+	$(BAZEL_FILES) | xargs -0 buildifier --lint=warn --mode=check
 
 # =============================================================================
 # Setup
