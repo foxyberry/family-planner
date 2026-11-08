@@ -46,13 +46,16 @@ jobs:
         run: bash scripts/tests/check-kid-screens-test.sh
       - name: Dependency check tests
         run: bash scripts/tests/check-dependencies-test.sh
+      - name: Strings check tests
+        run: bash scripts/tests/check-strings-test.sh
       - name: Skills check tests
         run: bash scripts/tests/check-skills-test.sh
       - name: Lessons reminder tests
         run: bash scripts/tests/lessons-reminder-test.sh
       # The checks themselves, on this commit.
-      - name: Repo checks (kid screens, dependencies, skills)
+      - name: Repo checks (kid screens, dependencies, strings, skills)
         run: |
           bash scripts/check-kid-screens.sh
           bash scripts/check-dependencies.sh
+          bash scripts/check-strings.sh
           bash scripts/check-skills.sh

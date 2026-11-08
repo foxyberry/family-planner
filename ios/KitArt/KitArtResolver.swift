@@ -46,8 +46,8 @@ public struct BundledKitArt: KitArtResolving {
         privateBundle.flatMap { UIImage(named: slot.rawValue, in: $0, with: nil) }
     }
 
-    private static let publicBundle = resourceBundle(named: "KitArtResources")
-    private static let privateBundle = resourceBundle(named: "KitArtPrivateResources")
+    private static let publicBundle = resourceBundle(named: "KitArtResources") // copy-ok: bundle name
+    private static let privateBundle = resourceBundle(named: "KitArtPrivateResources") // copy-ok: bundle name
 
     /// Resource bundles sit next to this module's code: inside the app, or inside a test bundle.
     private static func resourceBundle(named name: String) -> Bundle? {

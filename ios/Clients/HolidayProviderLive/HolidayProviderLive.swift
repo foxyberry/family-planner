@@ -31,7 +31,7 @@ private enum BundledHolidays {
     /// The resource bundle sits next to this module's code: in the app, or in a test bundle.
     private static func bundle() -> Bundle? {
         [Bundle(for: Token.self), .main].lazy
-            .compactMap { $0.url(forResource: "HolidayProviderResources", withExtension: "bundle") }
+            .compactMap { $0.url(forResource: "HolidayProviderResources", withExtension: "bundle") } // copy-ok: bundle name
             .compactMap(Bundle.init(url:))
             .first
     }

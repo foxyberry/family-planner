@@ -5,8 +5,9 @@
 #      author), in the pushed branch or tag names, and in annotated tag messages
 #   3. make lint: when a Bazel file changed (BUILD, .bzl, MODULE.bazel)
 #   4. check-kid-screens.sh and check-dependencies.sh: when Swift under ios/ changed (kid screens
-#      never scroll; outside data only through dependencies); check-skills.sh when the agent
-#      harness changed (CLAUDE.md, .claude/)
+#      never scroll; outside data only through dependencies); check-strings.sh when Swift under
+#      ios/ or the String Catalog changed (copy only through L10n.tr); check-skills.sh when the
+#      agent harness changed (CLAUDE.md, .claude/)
 #   5. guard tests (scripts/tests/*-test.sh): when a guard script or hook changed
 # pre-commit already checks each commit as it is made; this catches amended, rebased and
 # merged history and anything committed while the hooks were off.
@@ -63,6 +64,10 @@ fi
 if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   "$ROOT/scripts/check-kid-screens.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-dependencies.sh" </dev/null || status=1
+fi
+
+if printf '%s' "$changed" | grep -Eq '^ios/.*\.(swift|xcstrings)$'; then
+  bash "$ROOT/scripts/check-strings.sh" </dev/null || status=1
 fi
 
 if printf '%s' "$changed" | grep -Eq '^(CLAUDE\.md|\.claude/)'; then

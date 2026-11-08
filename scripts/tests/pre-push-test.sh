@@ -36,7 +36,7 @@ new_repo() {
   cp "$SRC/.githooks/pre-push" "$REPO/.githooks/"
   cp "$SRC/scripts/check-private-terms.sh" "$REPO/scripts/"
   cp "$SRC/scripts/check-kid-screens.sh" "$REPO/scripts/"
-  cp "$SRC/scripts/check-dependencies.sh" "$SRC/scripts/check-skills.sh" "$REPO/scripts/"
+  cp "$SRC/scripts/check-dependencies.sh" "$SRC/scripts/check-skills.sh" "$SRC/scripts/check-strings.sh" "$REPO/scripts/"
   cp "$SRC/Makefile" "$REPO/"
   printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
   printf '.private-terms\n' > "$REPO/.gitignore"
@@ -170,6 +170,15 @@ test_device_calendar_blocks_push() {
   assert test_device_calendar_blocks_push $?
 }
 
+test_hard_coded_copy_blocks_push() {
+  new_repo
+  push develop
+  commit_file ios/Features/HelloView.swift 'Text("Hello there")' copy
+  push develop
+  [ "$CODE" -ne 0 ] && [[ "$ERR" == *"hard-coded copy"* ]]
+  assert test_hard_coded_copy_blocks_push $?
+}
+
 test_guard_change_runs_guard_tests_and_failure_blocks() {
   new_repo
   push develop
@@ -209,6 +218,7 @@ test_bazel_change_runs_lint_and_failure_blocks
 test_other_change_skips_lint
 test_scrolling_kid_screen_blocks_push
 test_device_calendar_blocks_push
+test_hard_coded_copy_blocks_push
 test_guard_change_runs_guard_tests_and_failure_blocks
 test_blocks_term_in_tag_message
 test_branch_delete_passes
