@@ -1,3 +1,4 @@
+import ComposableArchitecture
 import Domain
 import Foundation
 import ScheduleStore
@@ -22,12 +23,14 @@ final class StoredRecord {
 }
 
 extension ScheduleStore {
-    /// The store file inside the folder passed to `live(directory:calendar:now:)`.
+    /// The store file inside the folder passed to `live(directory:)`.
     public static let liveFileName = "schedule.store"
 
-    /// The SwiftData store on this device. The first load seeds the fake family (`SeedData`).
-    public static func live(directory: URL, calendar: Calendar, now: @escaping @Sendable () -> Date) -> ScheduleStore {
-        let database = Database(url: directory.appendingPathComponent(liveFileName), calendar: calendar, now: now)
+    /// The SwiftData store on this device. The first load seeds the fake family (`SeedData`) around
+    /// today, read from the app's `\.date` and `\.calendar` at the time of the call, so it follows the
+    /// app's clock and time zone (and the developer time machine), never the device's.
+    public static func live(directory: URL) -> ScheduleStore {
+        let database = Database(url: directory.appendingPathComponent(liveFileName))
         return ScheduleStore(
             load: { try database.run { try $0.snapshot() } },
             save: { item in try database.run { try $0.put([item]) } },
@@ -40,14 +43,10 @@ extension ScheduleStore {
 /// Opens the container once and runs every call on a fresh context, one call at a time.
 private final class Database: Sendable {
     private let url: URL
-    private let calendar: Calendar
-    private let now: @Sendable () -> Date
     private let container = Mutex<ModelContainer?>(nil)
 
-    init(url: URL, calendar: Calendar, now: @escaping @Sendable () -> Date) {
+    init(url: URL) {
         self.url = url
-        self.calendar = calendar
-        self.now = now
     }
 
     func run<T>(_ body: (Records) throws -> T) throws -> T {
@@ -58,7 +57,9 @@ private final class Database: Sendable {
                 container = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
             }
             let records = Records(context: ModelContext(container!))
-            try records.seedIfNeeded(today: Day(now(), calendar: calendar), calendar: calendar)
+            @Dependency(\.date.now) var now
+            @Dependency(\.calendar) var calendar
+            try records.seedIfNeeded(today: Day(now, calendar: calendar), calendar: calendar)
             return try body(records)
         }
     }

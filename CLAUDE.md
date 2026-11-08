@@ -33,7 +33,9 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Views only render State and send actions. Decisions, copy, date maths, parsing and picking items
   live in the reducer, State computed properties or tested model functions. Views never read
   `@Dependency` (it returns the default, not the store's value) or `Calendar.current`/`Date()`.
-- Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__` only.
+- Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__`
+  and their own `Tests` package only. Live values read `\.date`/`\.calendar` at call time, never
+  take a clock from `bootstrap`.
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
 - `ios/Domain`: pure rules (Foundation only): kids, routines, schedule items, `DayPlanner`, `SeriesEdits`,
   copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor).

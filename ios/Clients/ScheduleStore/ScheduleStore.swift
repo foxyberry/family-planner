@@ -30,20 +30,38 @@ public struct ScheduleStore: Sendable {
 extension ScheduleStore: TestDependencyKey {
     public static let testValue = Self()
 
-    /// Seed data in memory, for previews.
+    /// Seed data in memory, for previews. Seeded on the first load around the preview's `\.date` and
+    /// `\.calendar`, so a preview can pin the day like a test does.
     public static var previewValue: Self {
-        let calendar = Calendar.current
-        let items = LockIsolated(SeedData.items(today: Day(Date(), calendar: calendar), calendar: calendar))
+        let items = LockIsolated<[ScheduleItem]?>(nil)
+        @Sendable func seeded() -> [ScheduleItem] {
+            @Dependency(\.date.now) var now
+            @Dependency(\.calendar) var calendar
+            return items.withValue { list in
+                if list == nil { list = SeedData.items(today: Day(now, calendar: calendar), calendar: calendar) }
+                return list ?? []
+            }
+        }
         return Self(
-            load: { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: items.value) },
-            save: { item in items.withValue { $0.removeAll { $0.id == item.id }; $0.append(item) } },
-            saveAll: { new in items.withValue { list in
-                list.removeAll { old in new.contains { $0.id == old.id } }
-                list += new
-            } },
-            delete: { id in items.withValue { $0.removeAll { $0.id == id } } }
+            load: { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: seeded()) },
+            save: { item in
+                _ = seeded()
+                items.withValue { $0?.removeAll { $0.id == item.id }; $0?.append(item) }
+            },
+            saveAll: { new in
+                _ = seeded()
+                items.withValue { list in
+                    list?.removeAll { old in new.contains { $0.id == old.id } }
+                    list? += new
+                }
+            },
+            delete: { id in
+                _ = seeded()
+                items.withValue { $0?.removeAll { $0.id == id } }
+            }
         )
     }
+
 }
 
 extension DependencyValues {

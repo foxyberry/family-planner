@@ -9,6 +9,7 @@ fp_swift_library(
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/ScheduleStoreLive",
         "//ios/Domain",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )
 

@@ -1,3 +1,4 @@
+import ComposableArchitecture
 import Domain
 import Foundation
 import ScheduleStore
@@ -13,6 +14,16 @@ final class ScheduleStoreLiveTests: XCTestCase {
     }()
     private let monday = Day(year: 2026, month: 11, day: 9)
 
+    /// Every test runs with the app clock pinned to Monday 10:00 in Singapore.
+    override func invokeTest() {
+        withDependencies { [calendar, monday] in
+            $0.calendar = calendar
+            $0.date.now = monday.date(minute: 600, calendar: calendar)
+        } operation: {
+            super.invokeTest()
+        }
+    }
+
     override func setUpWithError() throws {
         directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -23,8 +34,7 @@ final class ScheduleStoreLiveTests: XCTestCase {
     }
 
     private func store() -> ScheduleStore {
-        ScheduleStore.live(directory: directory, calendar: calendar,
-                           now: { [calendar, monday] in monday.date(minute: 600, calendar: calendar) })
+        ScheduleStore.live(directory: directory)
     }
 
     private func item(_ title: String, id: UUID = UUID()) -> ScheduleItem {
@@ -38,6 +48,17 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(snapshot.kids, SeedData.kids)
         XCTAssertEqual(snapshot.routines, SeedData.routines)
         XCTAssertEqual(Set(snapshot.items), Set(SeedData.items(today: monday, calendar: calendar)))
+    }
+
+    /// The first-run seed follows the app's clock (and so the developer time machine), not the device clock.
+    func testSeedFollowsTheAppClock() async throws {
+        let wednesday = Day(year: 2026, month: 11, day: 11)
+        let snapshot = try await withDependencies { [calendar] in
+            $0.date.now = wednesday.date(minute: 600, calendar: calendar)
+        } operation: {
+            try await store().load()
+        }
+        XCTAssertEqual(Set(snapshot.items), Set(SeedData.items(today: wednesday, calendar: calendar)))
     }
 
     func testSaveThenLoadInNewStoreKeepsItem() async throws {
