@@ -26,6 +26,8 @@ public struct PieClock: View {
     private let holdProgress: Double
     private let look: KidLook
     private let motion: Motion
+    private let plays: [Int: Int]
+    private let rigScale: Double
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Board 0g2 triggers, all from State: a new current slot (its picture hops, the hub text slides
@@ -45,8 +47,12 @@ public struct PieClock: View {
     /// `now` is minutes after midnight; `nil` draws no hand (no schedule at all).
     /// `holdProgress` 0...1 draws the grown-up hold ring around the hub.
     /// `look` night (board A1n): a lit paper face under the slots, chalk ticks and hour numbers.
+    /// `plays`: a play id per drawn sector start; when one changes, that slot's picture plays its rig
+    /// (spec "Picture rigs") at `rigScale`.
     public init(sectors: [ClockSector], now: Int?, hub: Hub, holdProgress: Double = 0, look: KidLook = .day,
-                motion: Motion = Motion()) {
+                motion: Motion = Motion(), plays: [Int: Int] = [:], rigScale: Double = KitRigs.shared.scale) {
+        self.plays = plays
+        self.rigScale = rigScale
         self.sectors = PieClockLayout.drawable(sectors)
         self.now = now
         self.hub = hub
@@ -71,6 +77,22 @@ public struct PieClock: View {
                                       endDegrees: PieClockLayout.degrees(minute: sector.end)),
                               fill: nil, marker: MarkerStyle(width: 6, roughness: 1.2, bowing: 1.4),
                               seed: UInt32(3001 + sector.start))
+            }
+            if reduceMotion {
+                // Reduce Motion: a tapped slot's outline thickens for 0.3 s instead of playing.
+                ForEach(sectors.filter { plays[$0.start] != nil }, id: \.self) { sector in
+                    CrayonSurface(.sector(startDegrees: PieClockLayout.degrees(minute: sector.start),
+                                          endDegrees: PieClockLayout.degrees(minute: sector.end)),
+                                  fill: nil, marker: MarkerStyle(width: 9, roughness: 1.2, bowing: 1.4),
+                                  seed: UInt32(3001 + sector.start))
+                        .keyframeAnimator(initialValue: 0.0, trigger: plays[sector.start] ?? 0) { view, value in
+                            view.opacity(value)
+                        } keyframes: { _ in
+                            LinearKeyframe(1.0, duration: 0.05)
+                            LinearKeyframe(1.0, duration: 0.2)
+                            LinearKeyframe(0.0, duration: 0.05)
+                        }
+                }
             }
             CrayonSurface(.circle, fill: nil, marker: MarkerStyle(width: 4.5, roughness: 1.2, bowing: 1.4), seed: 3000)
             ticks
@@ -131,7 +153,8 @@ public struct PieClock: View {
             if let name = sector.iconName, let slot = KitSlot(rawValue: name),
                let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: r,
                                                     hub: Self.hubRadius) {
-                KitIcon(slot, size: picture.size)
+                RiggedKitIcon(slot, size: picture.size, playID: reduceMotion ? 0 : plays[sector.start] ?? 0,
+                              scale: rigScale)
                     .hop(sector.isCurrent && !reduceMotion ? motion.slotStart : nil)
                     .position(point(radius: picture.distance, degrees: middle))
             }
@@ -206,6 +229,11 @@ public struct PieClock: View {
             .lineLimit(1).truncationMode(.tail)
             .frame(maxWidth: Self.headWidth)
             .position(x: Self.hubRadius, y: top + font.lineHeight / 2)
+    }
+
+    /// The start of the drawn slot under a tap at `location` in the clock's own frame, if any.
+    public static func slotStart(at location: CGPoint, in sectors: [ClockSector]) -> Int? {
+        PieClockLayout.sector(at: location, in: sectors, radius: radius, hub: hubRadius)?.start
     }
 
     static let titleWidth: CGFloat = 260

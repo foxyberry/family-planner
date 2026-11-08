@@ -97,6 +97,9 @@ public struct ComponentGallery: View {
                     ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",
                                 isDestructive: false, onCancel: {}, onConfirm: {})
                 }
+                section("0g3 · Picture rigs (tap to play)") {
+                    RigPlayground()
+                }
                 section("0f · Frames") {
                     let morning = Capped(["Wake up", "Toilet", "Get dressed", "Breakfast", "Brush teeth"], max: 3)
                     KidScreen {
@@ -145,6 +148,21 @@ public struct ComponentGallery: View {
         VStack(alignment: .leading, spacing: Spacing.m) {
             Text(title).crayonType(.title)
             content()
+        }
+    }
+}
+
+/// Taps play each picture's rig once (spec "Picture rigs"); wolfie has no rig and hops whole.
+private struct RigPlayground: View {
+    @State private var plays: [KitSlot: Int] = [:]
+    private let slots: [KitSlot] = [.actBreakfast, .toothbrush, .actSwim, .flagKR, .busSingle, .wolfie]
+
+    var body: some View {
+        HStack(spacing: Spacing.m) {
+            ForEach(slots, id: \.self) { slot in
+                RiggedKitIcon(slot, size: 104, playID: plays[slot, default: 0])
+                    .onTapGesture { plays[slot, default: 0] += 1 }
+            }
         }
     }
 }

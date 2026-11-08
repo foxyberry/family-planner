@@ -9,6 +9,7 @@ import SwiftUI
 /// The kids' home screen (boards A1, E1, E3). Kids never scroll here: the lists are capped.
 public struct HomeView: View {
     let store: StoreOf<HomeFeature>
+    @Environment(\.rigScale) private var rigScale
     @State private var holdProgress = 0.0
     @State private var holdStarted = 0
     @State private var holdCompleted = 0
@@ -49,7 +50,13 @@ public struct HomeView: View {
                         hub: HomeModel.hub(slots, minute: store.minute),
                         holdProgress: holdProgress, look: store.look,
                         motion: PieClock.Motion(slotStart: store.currentSlotStart, hour: store.hour,
-                                                winks: store.winks))
+                                                winks: store.winks),
+                        plays: store.plays, rigScale: rigScale)
+            .onTapGesture(coordinateSpace: .local) { location in
+                if let start = PieClock.slotStart(at: location, in: HomeModel.sectors(slots, minute: store.minute)) {
+                    store.send(.slotTapped(start))
+                }
+            }
             .contentShape(Circle())
             .onLongPressGesture(minimumDuration: 2) {
                 holdCompleted += 1

@@ -91,4 +91,21 @@ final class PieClockLayoutTests: XCTestCase {
         }
         XCTAssertNil(ClockSlotStyle.free.fill, "free time is plain paper")
     }
+
+    /// Spec "Picture rigs": a tap finds the drawn slot under it, never on the hub or off the disc.
+    func testTapFindsTheSlotUnderIt() {
+        let r: CGFloat = 372, hub: CGFloat = 152
+        let sectors = [sector(0, 420, .sleep), sector(420, 900, .school), sector(900, 1230, .play),
+                       sector(1230, 1440, .sleep)]
+        func point(minute: Double, distance: CGFloat) -> CGPoint {
+            let a = minute / 4 * .pi / 180
+            return CGPoint(x: r + distance * CGFloat(sin(a)), y: r - distance * CGFloat(cos(a)))
+        }
+        XCTAssertEqual(PieClockLayout.sector(at: point(minute: 600, distance: 250), in: sectors, radius: r, hub: hub)?.start, 420)
+        // Sleep is merged across midnight; both sides answer with the merged slot.
+        XCTAssertEqual(PieClockLayout.sector(at: point(minute: 60, distance: 250), in: sectors, radius: r, hub: hub)?.start, 1230)
+        XCTAssertEqual(PieClockLayout.sector(at: point(minute: 1300, distance: 250), in: sectors, radius: r, hub: hub)?.start, 1230)
+        XCTAssertNil(PieClockLayout.sector(at: point(minute: 600, distance: 100), in: sectors, radius: r, hub: hub))
+        XCTAssertNil(PieClockLayout.sector(at: point(minute: 600, distance: 380), in: sectors, radius: r, hub: hub))
+    }
 }

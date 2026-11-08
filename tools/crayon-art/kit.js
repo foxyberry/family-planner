@@ -72,7 +72,9 @@ const FEW = { busMini: [0], busSingle: [1], busDouble: [0, 3] };
 
 // Flags for the weekend school: a steel pole, then a cloth that waves (top and bottom edges follow one sine).
 // Every country part is cut from the same cloth, so swapping the flag swaps only the cloth layers.
-const FL = { x0: 50, x1: 214, top: 34, h: 108, amp: 7 };
+// The flag flies from a pole on the school roof (user, 2026-11-08: a school with a flag, not a flag alone).
+const FL = { x0: 124, x1: 218, top: 14, h: 56, amp: 4 };
+const FK = FL.h / 108;   // flag details were drawn for a 108-tall cloth; scale them with the cloth
 const wave = (x) => FL.top + FL.amp * Math.sin(((x - FL.x0) / (FL.x1 - FL.x0)) * 2 * Math.PI);
 // part of the cloth: columns x0..x1 (0..1) and rows t0..t1 (0..1)
 const cloth = (a = 0, b = 1, t0 = 0, t1 = 1) => {
@@ -82,16 +84,17 @@ const cloth = (a = 0, b = 1, t0 = 0, t1 = 1) => {
   return `M${xs.map((x) => `${x.toFixed(1)} ${y(x, t0)}`).join('L')}L${xs.slice().reverse().map((x) => `${x.toFixed(1)} ${y(x, t1)}`).join('L')}Z`;
 };
 const at = (u, t) => [FL.x0 + u * (FL.x1 - FL.x0), wave(FL.x0 + u * (FL.x1 - FL.x0)) + t * FL.h];
-const pole = () => [S(cap(36, 22, 12, 204), '#C9CED6', 80), S(circ(42, 20, 9), K.gold, 30)];
+const school = () => [S('M34 138L120 94L206 138Z', K.orange, -40), S(rr(48, 134, 144, 90, 8), K.yellow, 60), S(rr(64, 154, 28, 26, 5), K.sky, 40), S(rr(148, 154, 28, 26, 5), K.sky, 40), S(rr(102, 170, 36, 54, 6), K.blue, 80)];
+const pole = () => [S(cap(114, 10, 9, 92), '#C9CED6', 80), S(circ(118.5, 10, 7), K.gold, 30)];
 const RED = '#E0393E', NAVY = '#24408E', SAFFRON = '#F39A2B', FGREEN = '#1F8A4C';
-const flag = (parts) => [...pole(), ...parts];
+const flag = (parts) => [...school(), ...pole(), ...parts];
 const atS = (u, t, R, r, rot) => { const [x, y] = at(u, t); return star(x, y, R, r, rot); };
 const atC = (u, t, r) => { const [x, y] = at(u, t); return circ(x, y, r); };
 // trigram: three bars (broken = two halves) turned to face the centre
 const trigram = (u, t, angle, broken) => {
   const [cx, cy] = at(u, t), a = (angle * Math.PI) / 180, ux = Math.cos(a), uy = Math.sin(a), px = -uy, py = ux;
-  return [-7, 0, 7].map((o, i) => {
-    const bx = cx + ux * o, by = cy + uy * o, L = 13;
+  return [-7 * FK, 0, 7 * FK].map((o, i) => {
+    const bx = cx + ux * o, by = cy + uy * o, L = 13 * FK;
     if (!broken[i]) return `M${(bx - px * L).toFixed(1)} ${(by - py * L).toFixed(1)}L${(bx + px * L).toFixed(1)} ${(by + py * L).toFixed(1)}`;
     return `M${(bx - px * L).toFixed(1)} ${(by - py * L).toFixed(1)}L${(bx - px * 3).toFixed(1)} ${(by - py * 3).toFixed(1)}M${(bx + px * 3).toFixed(1)} ${(by + py * 3).toFixed(1)}L${(bx + px * L).toFixed(1)} ${(by + py * L).toFixed(1)}`;
   }).join('');
@@ -295,40 +298,40 @@ const ITEMS = {
     S(rr(150, 120, 16, 26, 7), K.white, 0),
   ],
   // Weekend school: a plain flag; grown-ups swap it for a country flag (flagKR … flagVN) in C3.
-  actLanguageSchool: flag([S(cloth(), K.sky, -40), S(atS(0.5, 0.5, 30, 13), K.white, 0)]),
+  actLanguageSchool: flag([S(cloth(), K.sky, -40), S(atS(0.5, 0.5, 30 * FK, 13 * FK), K.white, 0)]),
   flagKR: (() => {
-    const [cx, cy] = at(0.5, 0.5);
+    const [cx, cy] = at(0.5, 0.5), R = 26 * FK;
     return flag([
       S(cloth(), K.white, 0),
-      S(`M${cx - 26} ${cy}A26 26 0 0 1 ${cx + 26} ${cy}A13 13 0 0 1 ${cx} ${cy}A13 13 0 0 0 ${cx - 26} ${cy}Z`, RED, -40),
-      S(`M${cx - 26} ${cy}A13 13 0 0 0 ${cx} ${cy}A13 13 0 0 1 ${cx + 26} ${cy}A26 26 0 0 1 ${cx - 26} ${cy}Z`, NAVY, 40),
-      Ln(trigram(0.17, 0.2, 45 + 180, [0, 0, 0]) + trigram(0.83, 0.8, 45, [1, 1, 1]) + trigram(0.83, 0.2, -45, [1, 0, 1]) + trigram(0.17, 0.8, 135, [0, 1, 0]), 4.5),
+      S(`M${cx - R} ${cy}A${R} ${R} 0 0 1 ${cx + R} ${cy}A${R / 2} ${R / 2} 0 0 1 ${cx} ${cy}A${R / 2} ${R / 2} 0 0 0 ${cx - R} ${cy}Z`, RED, -40),
+      S(`M${cx - R} ${cy}A${R / 2} ${R / 2} 0 0 0 ${cx} ${cy}A${R / 2} ${R / 2} 0 0 1 ${cx + R} ${cy}A${R} ${R} 0 0 1 ${cx - R} ${cy}Z`, NAVY, 40),
+      Ln(trigram(0.17, 0.2, 45 + 180, [0, 0, 0]) + trigram(0.83, 0.8, 45, [1, 1, 1]) + trigram(0.83, 0.2, -45, [1, 0, 1]) + trigram(0.17, 0.8, 135, [0, 1, 0]), 3),
     ]);
   })(),
-  flagJP: flag([S(cloth(), K.white, 0), S(atC(0.5, 0.5, 30), RED, -45)]),
+  flagJP: flag([S(cloth(), K.white, 0), S(atC(0.5, 0.5, 30 * FK), RED, -45)]),
   flagUK: flag([
     S(cloth(), NAVY, -40),
-    Ln(`M${at(0.03, 0.05).join(' ')}L${at(0.97, 0.95).join(' ')}M${at(0.03, 0.95).join(' ')}L${at(0.97, 0.05).join(' ')}`, 16, '#FFFFFF'),
-    Ln(`M${at(0.03, 0.05).join(' ')}L${at(0.97, 0.95).join(' ')}M${at(0.03, 0.95).join(' ')}L${at(0.97, 0.05).join(' ')}`, 5, RED),
+    Ln(`M${at(0.03, 0.05).join(' ')}L${at(0.97, 0.95).join(' ')}M${at(0.03, 0.95).join(' ')}L${at(0.97, 0.05).join(' ')}`, 16 * FK, '#FFFFFF'),
+    Ln(`M${at(0.03, 0.05).join(' ')}L${at(0.97, 0.95).join(' ')}M${at(0.03, 0.95).join(' ')}L${at(0.97, 0.05).join(' ')}`, 3, RED),
     S(cloth(0.43, 0.57), K.white, 0), S(cloth(0, 1, 0.38, 0.62), K.white, 0),
     S(cloth(0.46, 0.54), RED, 80), S(cloth(0, 1, 0.42, 0.58), RED, 10),
   ]),
   flagFR: flag([S(cloth(0, 1 / 3), NAVY, 80), S(cloth(1 / 3, 2 / 3), K.white, 0), S(cloth(2 / 3, 1), RED, 80)]),
   flagIN: flag([
     S(cloth(0, 1, 0, 1 / 3), SAFFRON, 10), S(cloth(0, 1, 1 / 3, 2 / 3), K.white, 0), S(cloth(0, 1, 2 / 3, 1), FGREEN, 10),
-    Ln(atC(0.5, 0.5, 14) + (() => { const [x, y] = at(0.5, 0.5); return [0, 45, 90, 135].map((d) => { const a = (d * Math.PI) / 180; return `M${(x - 14 * Math.cos(a)).toFixed(1)} ${(y - 14 * Math.sin(a)).toFixed(1)}L${(x + 14 * Math.cos(a)).toFixed(1)} ${(y + 14 * Math.sin(a)).toFixed(1)}`; }).join(''); })(), 3, NAVY),
+    Ln(atC(0.5, 0.5, 14 * FK) + (() => { const [x, y] = at(0.5, 0.5), r = 14 * FK; return [0, 45, 90, 135].map((d) => { const a = (d * Math.PI) / 180; return `M${(x - r * Math.cos(a)).toFixed(1)} ${(y - r * Math.sin(a)).toFixed(1)}L${(x + r * Math.cos(a)).toFixed(1)} ${(y + r * Math.sin(a)).toFixed(1)}`; }).join(''); })(), 2.2, NAVY),
   ]),
   flagCN: flag([
     S(cloth(), RED, -40),
-    S(atS(0.17, 0.3, 20, 8), K.yellow, 20),
-    S(atS(0.34, 0.12, 7, 3, -60), K.yellow, 0), S(atS(0.41, 0.25, 7, 3, -75), K.yellow, 0),
-    S(atS(0.41, 0.44, 7, 3, -100), K.yellow, 0), S(atS(0.34, 0.57, 7, 3, -115), K.yellow, 0),
+    S(atS(0.17, 0.3, 20 * FK, 8 * FK), K.yellow, 20),
+    S(atS(0.34, 0.12, 7 * FK, 3 * FK, -60), K.yellow, 0), S(atS(0.41, 0.25, 7 * FK, 3 * FK, -75), K.yellow, 0),
+    S(atS(0.41, 0.44, 7 * FK, 3 * FK, -100), K.yellow, 0), S(atS(0.34, 0.57, 7 * FK, 3 * FK, -115), K.yellow, 0),
   ]),
   flagTH: flag([
     S(cloth(0, 1, 0, 1 / 6), RED, 10), S(cloth(0, 1, 1 / 6, 2 / 6), K.white, 0), S(cloth(0, 1, 2 / 6, 4 / 6), NAVY, 10),
     S(cloth(0, 1, 4 / 6, 5 / 6), K.white, 0), S(cloth(0, 1, 5 / 6, 1), RED, 10),
   ]),
-  flagVN: flag([S(cloth(), RED, -40), S(atS(0.5, 0.5, 30, 12), K.yellow, 20)]),
+  flagVN: flag([S(cloth(), RED, -40), S(atS(0.5, 0.5, 30 * FK, 12 * FK), K.yellow, 20)]),
   // School mascot (public by the user's choice, 2026-11-08); the default School picture in the seed
   wolfie: [
     S('M64 214Q120 238 176 214L182 238H58Z', '#2B3A67', -40),
@@ -1465,17 +1468,17 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3
+      7,
+      8
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1487,19 +1490,19 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3,
-      4,
-      5
+      7,
+      8,
+      9,
+      10
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1511,17 +1514,17 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3
+      7,
+      8
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1533,21 +1536,21 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3,
-      4,
-      5,
-      6,
-      7
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1559,18 +1562,18 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3,
-      4
+      7,
+      8,
+      9
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1582,19 +1585,19 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3,
-      4,
-      5
+      7,
+      8,
+      9,
+      10
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1606,20 +1609,20 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3,
-      4,
-      5,
-      6
+      7,
+      8,
+      9,
+      10,
+      11
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1631,20 +1634,20 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3,
-      4,
-      5,
-      6
+      7,
+      8,
+      9,
+      10,
+      11
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]
@@ -1656,17 +1659,17 @@ const RIGS = {
     {
      "name": "flag",
      "layers": [
-      2,
-      3
+      7,
+      8
      ],
      "origin": [
-      50,
-      40
+      124,
+      18
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 5,
+       "deg": 6,
        "times": 3
       }
      ]

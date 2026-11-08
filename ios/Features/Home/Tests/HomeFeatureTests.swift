@@ -149,6 +149,26 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(weekend.state.dayHeading, "Saturday")
     }
 
+    /// Spec "Picture rigs": a tap plays the slot once; taps during the 1.2 s play are ignored.
+    func testSlotTapPlaysOnceAtATime() async {
+        let clock = TestClock()
+        let store = store(on: wednesday, minute: 600)
+        store.dependencies.continuousClock = clock
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.slotTapped(450))
+        XCTAssertEqual(store.state.plays[450], 1)
+        await store.send(.slotTapped(450))
+        await store.send(.slotTapped(900))
+        XCTAssertEqual(store.state.plays, [450: 1], "ignored while playing")
+        await clock.advance(by: .milliseconds(1200))
+        await store.receive(\.playEnded)
+        await store.send(.slotTapped(450))
+        XCTAssertEqual(store.state.plays[450], 2)
+        await clock.advance(by: .milliseconds(1200))
+        await store.receive(\.playEnded)
+    }
+
     func testOneKidLayout() async {
         let store = store(on: wednesday, minute: 600, snapshot: snapshot(kids: [SeedData.kidA]))
         await store.send(.task)
