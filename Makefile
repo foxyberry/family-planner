@@ -60,12 +60,13 @@ SNAPSHOT_ENV := $(if $(CI),,SNAPSHOT_ARTIFACTS="$(CURDIR)/ios/DesignSystem/Snaps
 
 # Tests reuse their own BAZEL_TEST_<device>_<os> simulator (//ios:test_runner) and leave it
 # booted, so the next run skips a 15-20 s boot. Any other booted simulator (the dev one from
-# `make run`) makes tests time out or fail to install, so it is shut down first.
+# `make run`, or a test one for another SIM_DEVICE/SIM_OS) makes tests time out or fail to
+# install and costs memory, so it is shut down first.
 # `make sim-stop` gives the memory back when you are done testing.
 BOOTED_DEV_SIMS = $(shell xcrun simctl list devices booted -j 2>/dev/null \
-                    | python3 -c "import sys,json; print(' '.join(d['udid'] for ds in json.load(sys.stdin)['devices'].values() for d in ds if not d['name'].startswith('BAZEL_TEST_')))" 2>/dev/null)
+                    | python3 -c "import sys,json; print(' '.join(d['udid'] for ds in json.load(sys.stdin)['devices'].values() for d in ds if d['name'] != 'BAZEL_TEST_$(SIM_DEVICE)_$(SIM_OS)'))" 2>/dev/null)
 stop-dev-sims:
-	@for udid in $(BOOTED_DEV_SIMS); do echo "shutting down dev simulator $$udid"; xcrun simctl shutdown "$$udid"; done
+	@for udid in $(BOOTED_DEV_SIMS); do echo "shutting down simulator $$udid"; xcrun simctl shutdown "$$udid"; done
 
 # Every test except the snapshot pictures (tag "snapshot"); CI runs the same set.
 # Extra Bazel flags: make test TEST_ARGS=--nocache_test_results (re-runs every test).
