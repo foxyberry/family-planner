@@ -112,24 +112,6 @@ jobs:
       - name: Build
         run: make build
 
-      # Boot the test simulator after the build: booted during the build, it shares the runner's
-      # memory with the compiler (one such build took 590 s instead of ~120 s). It uses the name
-      # the rules_apple test runner reuses (BAZEL_TEST_<device>_<os>; //ios:test_runner sets
-      # reuse_simulator), so the Test step finds it booted and the boot shows as its own step.
-      - name: Boot test simulator
-        timeout-minutes: 10
-        run: |
-          NAME="BAZEL_TEST_${SIM_DEVICE}_${SIM_OS}"
-          RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-${SIM_OS//./-}"
-          UDID=$(xcrun simctl list devices -j | NAME="$NAME" RUNTIME="$RUNTIME" python3 -c '
-          import json, os, sys
-          devices = json.load(sys.stdin)["devices"].get(os.environ["RUNTIME"], [])
-          print(next((d["udid"] for d in devices if d["name"] == os.environ["NAME"]), ""))
-          ')
-          [ -n "$UDID" ] || UDID=$(xcrun simctl create "$NAME" "$SIM_DEVICE" "$RUNTIME")
-          xcrun simctl bootstatus "$UDID" -b > /dev/null
-          echo "Booted $NAME"
-
       # Test logs are printed only for failures (--test_output=errors in .bazelrc).
       # No artifacts are uploaded and no environment is printed: CI logs of a public
       # repo are public. Snapshot tests (tag "snapshot") are skipped here and by make test
