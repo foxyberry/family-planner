@@ -109,9 +109,13 @@ jobs:
           echo "SIM_OS=$OS" >> "$GITHUB_ENV"
           echo "Using ${DEVICE//_/ } / iOS $OS"
 
-      # Boot the test simulator before the build, under the name the rules_apple test runner
-      # reuses (BAZEL_TEST_<device>_<os>; //ios:test_runner sets reuse_simulator), so the Test
-      # step finds it booted instead of paying the cold boot inside the first test target.
+      - name: Build
+        run: make build
+
+      # Boot the test simulator after the build: booted during the build, it shares the runner's
+      # memory with the compiler (one such build took 590 s instead of ~120 s). It uses the name
+      # the rules_apple test runner reuses (BAZEL_TEST_<device>_<os>; //ios:test_runner sets
+      # reuse_simulator), so the Test step finds it booted and the boot shows as its own step.
       - name: Boot test simulator
         timeout-minutes: 10
         run: |
@@ -125,9 +129,6 @@ jobs:
           [ -n "$UDID" ] || UDID=$(xcrun simctl create "$NAME" "$SIM_DEVICE" "$RUNTIME")
           xcrun simctl bootstatus "$UDID" -b > /dev/null
           echo "Booted $NAME"
-
-      - name: Build
-        run: make build
 
       # Test logs are printed only for failures (--test_output=errors in .bazelrc).
       # No artifacts are uploaded and no environment is printed: CI logs of a public
