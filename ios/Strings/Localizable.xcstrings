@@ -29,7 +29,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buses that stop here show up once the stop and key work"
+            "value" : "Type the stop code first"
           }
         }
       }
@@ -62,7 +62,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Late grace"
+            "value" : "Late up to"
           }
         }
       }
@@ -205,7 +205,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Type the 5-digit stop code"
+            "value" : "The 5-digit code on the stop pole"
           }
         }
       }
@@ -238,7 +238,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Walk to the stop"
+            "value" : "Walk"
           }
         }
       }
@@ -287,24 +287,13 @@
         }
       }
     },
-    "c5.evening" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Evening · coming later"
-          }
-        }
-      }
-    },
     "c5.footer" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag %@ to change the order. Tap a row to rename it or change its picture. Up to 8 fit on the morning screen; fewer is easier."
+            "value" : "Drag %@ to reorder. Tap a row to change it."
           }
         }
       }
@@ -458,7 +447,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag a dot on the rim to move a time. Tap a slice to edit it. Tap + to fill free time."
+            "value" : "Drag a dot to move a time. Tap a slice to edit it."
           }
         }
       }
@@ -778,17 +767,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Both"
-          }
-        }
-      }
-    },
-    "editor.caption" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grown-ups only · behind the parent lock"
           }
         }
       }
@@ -1647,17 +1625,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nothing yet"
-          }
-        }
-      }
-    },
-    "hub.footer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Everything here feeds the clock, the morning bus and the diary."
           }
         }
       }
@@ -2669,7 +2636,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Just this day, for %@. It leaves the clock at midnight."
+            "value" : "Just this day, for %@."
           }
         }
       }
@@ -3110,6 +3077,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@, leave %2$@"
+          }
+        }
+      }
+    },
+    "c2.stop.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 digits"
           }
         }
       }

@@ -96,8 +96,6 @@ public struct GrownupHubView: View {
             Text(L10n.tr("hub.once")).crayonType(.head).padding(.top, Spacing.s)
             itemList(store.onceRows) { store.send(.onceItemTapped($0)) }
             addLink(L10n.tr("hub.add_once")) { store.send(.addOnceTapped) }
-            Text(L10n.tr("hub.footer"))
-                .crayonType(.caption).foregroundStyle(CrayonColor.softText).padding(.top, Spacing.s)
         }
         .foregroundStyle(CrayonColor.ink)
     }
@@ -109,14 +107,23 @@ public struct GrownupHubView: View {
         }
         ForEach(rows) { row in
             Button { onTap(row.id) } label: {
+                // Picture, then the title over its days and times: the whole row is the button, so it
+                // carries no chevron (the time needs that room in 382).
                 HStack(spacing: Spacing.s) {
                     KitIcon(KitSlot(iconName: row.iconName), size: 56)
                     VStack(alignment: .leading, spacing: Spacing.xxs) {
-                        Text(row.title).crayonType(.body)
-                        Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                        Text(row.title).crayonType(.body).lineLimit(1)
+                        // One line when it fits; otherwise the days or date over the time, never cut.
+                        ViewThatFits(in: .horizontal) {
+                            Text(row.detail).lineLimit(1)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(row.when).lineLimit(1)
+                                Text(row.time).lineLimit(1)
+                            }
+                        }
+                        .crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     }
-                    Spacer()
-                    MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                    Spacer(minLength: 0)
                 }
                 .contentShape(Rectangle())
             }

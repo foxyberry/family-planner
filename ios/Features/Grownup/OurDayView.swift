@@ -86,7 +86,7 @@ public struct OurDayView: View {
             CrayonTabs(selection: Binding(get: { store.dayType }, set: { store.send(.dayTypeTapped($0)) }),
                        items: [(DayType.weekday, L10n.tr("day.type.weekday"), nil),
                                (.saturday, L10n.tr("day.type.saturday"), nil),
-                               (.sunday, L10n.tr("day.type.sunday"), nil)])
+                               (.sunday, L10n.tr("day.type.sunday"), nil)], compact: true)
                 .fixedSize(horizontal: false, vertical: true)
             if store.showsHolidayNote {
                 Text(L10n.tr("day.sun_holidays")).crayonType(.caption).foregroundStyle(CrayonColor.softText)

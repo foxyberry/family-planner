@@ -41,7 +41,21 @@ public struct HubItemRow: Equatable, Identifiable, Sendable {
     public var id: ScheduleItem.ID
     public var iconName: String
     public var title: String
+    /// "Mon · Wed" or "Sat 14 Nov".
+    public var when: String
+    /// "3:30–4:30 pm".
+    public var time: String
+    /// One line: "Mon · Wed 3:30–4:30 pm", "Sat 14 Nov · 2:00–4:00 pm".
     public var detail: String
+
+    public init(id: ScheduleItem.ID, iconName: String, title: String, when: String, time: String, separator: String) {
+        self.id = id
+        self.iconName = iconName
+        self.title = title
+        self.when = when
+        self.time = time
+        detail = when + separator + time
+    }
 }
 
 /// The text of the Our kids hub (boards C1, E6).
@@ -123,8 +137,8 @@ public enum HubModel {
         }
         .sorted { ($0.0.start, $0.0.title) < ($1.0.start, $1.0.title) }
         .map { item, days in
-            HubItemRow(id: item.id, iconName: item.iconName, title: item.title,
-                       detail: "\(DayText.chips(days)) \(TimeText.range(item.start, item.end))")
+            HubItemRow(id: item.id, iconName: item.iconName, title: item.title, when: DayText.chips(days),
+                       time: TimeText.range(item.start, item.end), separator: " ")
         }
     }
 
@@ -144,8 +158,8 @@ public enum HubModel {
         .prefix(5)
         .map { item, day in
             HubItemRow(id: item.id, iconName: item.iconName, title: item.title,
-                       detail: "\(DayText.short(day, calendar: calendar)) · "
-                           + TimeText.range(item.start, item.end))
+                       when: DayText.short(day, calendar: calendar), time: TimeText.range(item.start, item.end),
+                       separator: " · ")
         }
     }
 }

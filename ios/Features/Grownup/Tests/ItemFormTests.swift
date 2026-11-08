@@ -176,10 +176,10 @@ final class ItemFormTests: XCTestCase {
         once.date = Day(year: 2026, month: 11, day: 12)
         let forKidA = preview(once)
         XCTAssertEqual(forKidA.heading, "Thursday 12 Nov")
-        XCTAssertEqual(forKidA.note, "Just this day, for Kid A. It leaves the clock at midnight.")
+        XCTAssertEqual(forKidA.note, "Just this day, for Kid A.")
         XCTAssertNil(forKidA.summary)
         once.audience = .both
-        XCTAssertEqual(preview(once).note, "Just this day, for both kids. It leaves the clock at midnight.")
+        XCTAssertEqual(preview(once).note, "Just this day, for both kids.")
     }
 
     func testPreviewMarksOnlyTheDraftRowAndSkipsSleep() {
