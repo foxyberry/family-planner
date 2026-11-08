@@ -10,7 +10,7 @@ apple_resource_bundle(
     bundle_id = BUNDLE_ID + ".deviceconfig",
     infoplists = ["ResourceBundle-Info.plist"],
     resources = glob(
-        ["Private/LocalConfig.json"],
+        ["Private/LocalConfig*.json"],
         allow_empty = True,
     ),
 )
