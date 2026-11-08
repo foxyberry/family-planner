@@ -4,6 +4,7 @@ import DesignSystem
 import Domain
 import KitArt
 import ScheduleStore
+import Strings
 import SwiftUI
 
 /// Add to the day / edit an item (boards C3, C4, C3k, E5).
@@ -57,7 +58,7 @@ public struct ItemEditorView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: store.title, caption: "Grown-ups only · behind the parent lock",
+        GrownupHeader(title: store.title, caption: L10n.tr("editor.caption"),
                       onBack: { store.send(.backTapped) })
     }
 
@@ -65,24 +66,25 @@ public struct ItemEditorView: View {
 
     private var form: some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
-            row("For") { audienceTabs }
-            row("What") {
+            row(L10n.tr("editor.row.for")) { audienceTabs }
+            row(L10n.tr("editor.row.what")) {
                 IconPicker(selection: Binding(get: { store.form.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.picturePicked(slot.rawValue)) } }),
                            slots: Self.pictures)
             }
-            row("Name", problem: .name) { CrayonField("Name", text: $store.form.name).frame(width: 520) }
-            row("When", problem: .when) { whenRow }
+            row(L10n.tr("editor.row.name"), problem: .name) { CrayonField(L10n.tr("editor.row.name"), text: $store.form.name).frame(width: 520) }
+            row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
-                row("Repeat") {
+                row(L10n.tr("editor.row.repeat")) {
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
-                               items: [(ItemForm.Repeat.once, "Just once", nil), (.weekly, "Every week", nil)])
+                               items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
+                                       (.weekly, L10n.tr("editor.repeat.weekly"), nil)])
                 }
             }
             if store.form.repeats == .weekly { weeklyRows } else { onceRows }
             if case .editOnce = store.mode {
                 Button { store.send(.removeTapped) } label: {
-                    Text("Remove \(store.original.name)").crayonType(.head).foregroundStyle(CrayonColor.lateText)
+                    Text(store.removeTitle).crayonType(.head).foregroundStyle(CrayonColor.lateText)
                         .frame(height: 88)
                 }
                 .buttonStyle(.plain)
@@ -137,25 +139,25 @@ public struct ItemEditorView: View {
             }
         }
         row("") {
-            checkbox("Skip school holidays", isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
+            checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
         }
     }
 
     @ViewBuilder private var onceRows: some View {
         row("") {
             HStack(spacing: Spacing.s) {
-                RoundButton(systemImage: "chevron.left", accessibilityLabel: "Earlier") { store.send(.datePageTapped(-1)) }
+                RoundButton(systemImage: "chevron.left", accessibilityLabel: L10n.tr("editor.dates.earlier")) { store.send(.datePageTapped(-1)) }
                     .opacity(store.canPageEarlier ? 1 : 0.3)
                 ForEach(store.dateChips, id: \.day) { chip in
                     DateChip(weekday: chip.weekday, day: chip.day.day, isOn: chip.isOn) {
                         store.send(.dateTapped(chip.day))
                     }
                 }
-                RoundButton(systemImage: "chevron.right", accessibilityLabel: "Later") { store.send(.datePageTapped(1)) }
+                RoundButton(systemImage: "chevron.right", accessibilityLabel: L10n.tr("editor.dates.later")) { store.send(.datePageTapped(1)) }
             }
         }
         row("") {
-            checkbox("A star on the clock that day", isOn: store.form.showsStar) { store.form.showsStar.toggle() }
+            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar) { store.form.showsStar.toggle() }
         }
     }
 
@@ -175,7 +177,7 @@ public struct ItemEditorView: View {
     private var weeklySide: some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
-            Text("Changes start from the next one.").crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            Text(L10n.tr("editor.weekly.changes")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             if let title = store.skipRowTitle {
                 Button { store.send(.skipRowTapped) } label: {
                     Text(title).crayonType(.body)
@@ -186,12 +188,12 @@ public struct ItemEditorView: View {
                 .buttonStyle(.plain)
             }
             Button { store.send(.removeSeriesTapped) } label: {
-                Text("Remove every week").crayonType(.head).foregroundStyle(CrayonColor.lateText)
+                Text(L10n.tr("editor.remove_series")).crayonType(.head).foregroundStyle(CrayonColor.lateText)
                     .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            Text("Removed by mistake? Add it back from Our kids.").crayonType(.caption)
+            Text(L10n.tr("editor.removed_hint")).crayonType(.caption)
                 .foregroundStyle(CrayonColor.softText)
         }
     }

@@ -1,5 +1,6 @@
 import CrayonKit
 import KitArt
+import Strings
 import SwiftUI
 
 /// The 24-hour crayon pie clock (board A1). The view's frame is the disc (radius 372); hour labels,
@@ -140,7 +141,7 @@ public struct PieClock: View {
 
     private var hubDisc: some View {
         VStack(spacing: Spacing.xs) {
-            Text("NOW").crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            Text(L10n.tr("clock.now")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             if let title = hub.title {
                 // title 48, then head 36, then head 36 cut at a word with "…"; never wrapped.
                 ViewThatFits(in: .horizontal) {

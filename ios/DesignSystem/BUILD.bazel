@@ -26,5 +26,6 @@ fp_swift_library(
     deps = [
         "//ios/CrayonKit",
         "//ios/KitArt",
+        "//ios/Strings",
     ],
 )

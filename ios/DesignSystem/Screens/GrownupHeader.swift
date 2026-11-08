@@ -1,3 +1,4 @@
+import Strings
 import SwiftUI
 
 /// The header of every grown-up screen (board 0f / C1 / C3): the crayon Back button, the title,
@@ -10,7 +11,7 @@ public struct GrownupHeader<Accessory: View>: View {
     private let accessory: Accessory
     @Environment(\.relockCaption) private var relockCaption
 
-    public init(title: String, caption: String = "Grown-ups only", onBack: @escaping () -> Void,
+    public init(title: String, caption: String = L10n.tr("grownup.caption"), onBack: @escaping () -> Void,
                 @ViewBuilder accessory: () -> Accessory) {
         self.title = title
         self.caption = caption
@@ -20,7 +21,7 @@ public struct GrownupHeader<Accessory: View>: View {
 
     public var body: some View {
         HStack(spacing: Spacing.m) {
-            RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back", action: onBack)
+            RoundButton(systemImage: "chevron.left", accessibilityLabel: L10n.tr("grownup.back"), action: onBack)
             Text(title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1)
             accessory
             Spacer(minLength: Spacing.m)
@@ -33,7 +34,7 @@ public struct GrownupHeader<Accessory: View>: View {
 }
 
 extension GrownupHeader where Accessory == EmptyView {
-    public init(title: String, caption: String = "Grown-ups only", onBack: @escaping () -> Void) {
+    public init(title: String, caption: String = L10n.tr("grownup.caption"), onBack: @escaping () -> Void) {
         self.init(title: title, caption: caption, onBack: onBack) { EmptyView() }
     }
 }

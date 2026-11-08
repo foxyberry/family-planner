@@ -1,5 +1,6 @@
 import Domain
 import Foundation
+import Strings
 
 /// The side column beside the add/edit form: the kid's day with the new item in it (boards C3, C4).
 public struct FormPreview: Equatable, Sendable {
@@ -54,10 +55,10 @@ extension ItemForm {
         let day = previewDay(today: today, calendar: calendar)
         let weekday = DayText.name(day.weekday(calendar))
         let heading = repeats == .weekly
-            ? (isBoth ? weekday : "\(kid?.name ?? "")'s \(weekday)")
+            ? (isBoth ? weekday : L10n.tr("preview.heading.kid", kid?.name ?? "", weekday))
             : DayText.long(day, calendar: calendar)
         let note = repeats == .once
-            ? "Just this day, for \(isBoth ? "both kids" : kid?.name ?? ""). It leaves the clock at midnight."
+            ? L10n.tr("preview.note", isBoth ? L10n.tr("preview.note.both") : kid?.name ?? "")
             : nil
         var rows: [FormPreview.Row] = []
         if let kid {

@@ -1,5 +1,6 @@
 import CrayonKit
 import KitArt
+import Strings
 import SwiftUI
 
 /// A bus on the map: number plate, minutes away, and how full it is (happy faces).
@@ -32,7 +33,7 @@ public struct BusBubble: View {
                     plate(transferTo)
                 }
             }
-            Text("\(minutes) min").crayonType(.body).monospacedDigit()
+            Text(L10n.tr("duration.min", minutes)).crayonType(.body).monospacedDigit()
             if let crowd {
                 HStack(spacing: 4) {
                     ForEach(0..<crowd.happyFaces, id: \.self) { _ in KitIcon(.feelHappy, size: 32) }
@@ -57,9 +58,9 @@ public struct BusBubble: View {
 
     private func crowdLabel(_ crowd: Crowd) -> String {
         switch crowd {
-        case .seats: "Seats free"
-        case .standing: "Standing room"
-        case .full: "Full"
+        case .seats: L10n.tr("bus.crowd.seats")
+        case .standing: L10n.tr("bus.crowd.standing")
+        case .full: L10n.tr("bus.crowd.full")
         }
     }
 }

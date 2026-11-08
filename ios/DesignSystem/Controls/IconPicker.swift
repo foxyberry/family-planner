@@ -1,5 +1,6 @@
 import CrayonKit
 import KitArt
+import Strings
 import SwiftUI
 
 /// Picture picker: 88 pt cells, a blue ring on the chosen one, and (when `onRequestDrawing` is
@@ -42,7 +43,7 @@ public struct IconPicker: View {
                     .crayonBackground(.roundedRect(cornerRadius: 24), fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Draw a new picture")
+            .accessibilityLabel(L10n.tr("picker.draw"))
             }
         }
     }

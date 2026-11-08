@@ -1,5 +1,6 @@
 import CrayonKit
 import KitArt
+import Strings
 import SwiftUI
 
 /// "Slide to go": a yellow crayon track with the bus as the handle. Locked (dim) until the
@@ -69,7 +70,7 @@ public struct SlideToGo: View {
         .sensoryFeedback(.success, trigger: isDone)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
-        .accessibilityAction(named: "Go") {
+        .accessibilityAction(named: L10n.tr("slide.go")) {
             guard !isLocked, !isDone else { return }
             model.phase = .done
             onGo()

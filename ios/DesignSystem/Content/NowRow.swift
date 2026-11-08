@@ -1,5 +1,6 @@
 import CrayonKit
 import KitArt
+import Strings
 import SwiftUI
 
 /// The step to do now, at least 104 tall; sky blue is reserved for this row.
@@ -33,7 +34,7 @@ public struct NowRow: View {
             .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.skyPill, seed: CrayonStyle.Seed.nowRow)
         }
         .buttonStyle(.plain)
-        .accessibilityValue(isDone ? "Done" : "Not done")
+        .accessibilityValue(isDone ? L10n.tr("check.done") : L10n.tr("check.not_done"))
     }
 
     private func row(icon iconSize: CGFloat, tick: CGFloat, inset: CGFloat) -> some View {

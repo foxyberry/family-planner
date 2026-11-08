@@ -1,4 +1,5 @@
 import KitArt
+import Strings
 import SwiftUI
 
 public enum MedalKind: Sendable, CaseIterable {
@@ -25,6 +26,14 @@ public struct Medal: View {
 
     public var body: some View {
         KitIcon(kind.slot, size: size)
-            .accessibilityLabel("\(String(describing: kind).capitalized) medal")
+            .accessibilityLabel(label)
+    }
+
+    private var label: String {
+        switch kind {
+        case .gold: L10n.tr("medal.gold")
+        case .silver: L10n.tr("medal.silver")
+        case .bronze: L10n.tr("medal.bronze")
+        }
     }
 }

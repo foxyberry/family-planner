@@ -1,4 +1,5 @@
 import CrayonKit
+import Strings
 import SwiftUI
 
 /// The grown-up lock over the home screen (board C0). Face ID only: there is no passcode button.
@@ -12,11 +13,10 @@ public struct LockOverlay: View {
 
         var message: String {
             switch self {
-            case .scanning: "Look at the iPad to unlock."
-            case .notRecognised: "That didn't unlock."
-            case let .notAvailable(touchID):
-                "\(touchID ? "Touch ID" : "Face ID") is off on this iPad, so anyone who holds the clock can come in. Turn it on in Settings to keep these screens for grown-ups."
-            case .lockedOut: "Too many tries. Unlock the iPad with its passcode, then try again."
+            case .scanning: L10n.tr("lock.scanning")
+            case .notRecognised: L10n.tr("lock.unrecognised")
+            case let .notAvailable(touchID): touchID ? L10n.tr("lock.off.touch_id") : L10n.tr("lock.off.face_id")
+            case .lockedOut: L10n.tr("lock.locked_out")
             }
         }
 
@@ -24,12 +24,12 @@ public struct LockOverlay: View {
         var primary: String? {
             switch self {
             case .scanning, .lockedOut: nil
-            case .notRecognised: "Try again"
-            case .notAvailable: "Enter"
+            case .notRecognised: L10n.tr("lock.retry")
+            case .notAvailable: L10n.tr("lock.enter")
             }
         }
 
-        var cancel: String { self == .lockedOut ? "OK" : "Cancel" }
+        var cancel: String { self == .lockedOut ? L10n.tr("lock.ok") : L10n.tr("lock.cancel") }
     }
 
     private let state: State
@@ -46,12 +46,12 @@ public struct LockOverlay: View {
         ZStack {
             CrayonColor.marker.opacity(0.6).ignoresSafeArea()
             VStack(spacing: Spacing.m) {
-                Text("Held the clock for 2 seconds").crayonType(.body).foregroundStyle(CrayonColor.nightText)
+                Text(L10n.tr("lock.held")).crayonType(.body).foregroundStyle(CrayonColor.nightText)
                 PaperCard(seed: CrayonStyle.Seed.card + 11) {
                     VStack(alignment: .leading, spacing: 20) {
                         HStack(spacing: Spacing.s) {
                             Image(systemName: "lock.fill").font(.system(size: 40, weight: .bold))
-                            Text("Grown-ups only").crayonType(.title)
+                            Text(L10n.tr("lock.title")).crayonType(.title)
                         }
                         .foregroundStyle(CrayonColor.ink)
                         Text(state.message).crayonType(.body).foregroundStyle(CrayonColor.ink)

@@ -3,6 +3,7 @@ import Domain
 import Foundation
 import HolidayProvider
 import ScheduleStore
+import Strings
 
 /// Add to the day (boards C3, C4, C3k) and edit an item (C4 edit mode, E5).
 @Reducer
@@ -97,8 +98,10 @@ public struct ItemEditorFeature {
             }
         }
 
-        public var title: String { isAdding ? "Add to the day" : "Edit \(original.name)" }
-        public var primaryTitle: String { isAdding ? "Add to the clock" : "Save changes" }
+        public var title: String { isAdding ? L10n.tr("editor.title.add") : L10n.tr("editor.title.edit", original.name) }
+        public var primaryTitle: String { isAdding ? L10n.tr("editor.primary.add") : L10n.tr("editor.primary.save") }
+        /// The remove button of a just-once item.
+        public var removeTitle: String { L10n.tr("editor.remove", original.name) }
         /// While editing, an event that already started keeps its start time without "That time has passed".
         public var problem: FormProblem? {
             let keptStart = !isAdding && form.date == original.date ? original.start : nil
@@ -115,7 +118,7 @@ public struct ItemEditorFeature {
         public var audienceTabs: [AudienceTab] {
             let kids = snapshot?.kids ?? []
             return kids.map { AudienceTab(audience: .kid($0.id), title: $0.name, colorIndex: $0.colorIndex) }
-                + (kids.count > 1 ? [AudienceTab(audience: .both, title: "Both", colorIndex: nil)] : [])
+                + (kids.count > 1 ? [AudienceTab(audience: .both, title: L10n.tr("editor.audience.both"), colorIndex: nil)] : [])
         }
 
         /// The form's times as times on today, for the time fields.
@@ -156,24 +159,28 @@ public struct ItemEditorFeature {
 
         public var confirmTitle: String? {
             switch confirm {
-            case .leave: isAdding ? "Leave without adding?" : "Leave without saving?"
-            case .removeOnce: "Remove \(original.name)?"
-            case .removeSeries: "Remove \(original.name) every week?"
+            case .leave: isAdding ? L10n.tr("editor.confirm.leave_new.title") : L10n.tr("editor.confirm.leave.title")
+            case .removeOnce: L10n.tr("editor.confirm.remove_once.title", original.name)
+            case .removeSeries: L10n.tr("editor.confirm.remove_series.title", original.name)
             case nil: nil
             }
         }
 
-        public var confirmCancelTitle: String { confirm == .leave ? "Keep editing" : "Keep" }
-        public var confirmAcceptTitle: String { confirm == .leave ? "Leave" : "Remove" }
+        public var confirmCancelTitle: String {
+            confirm == .leave ? L10n.tr("editor.confirm.leave.cancel") : L10n.tr("editor.confirm.remove.cancel")
+        }
+        public var confirmAcceptTitle: String {
+            confirm == .leave ? L10n.tr("editor.confirm.leave.accept") : L10n.tr("editor.confirm.remove.accept")
+        }
         public var confirmIsDestructive: Bool { confirm != .leave }
 
         public var confirmMessage: String? {
             switch confirm {
             case .removeOnce:
-                return "It leaves the clock on \(DayText.long(original.date, calendar: calendar))."
+                return L10n.tr("editor.confirm.remove_once.message", DayText.long(original.date, calendar: calendar))
             case .removeSeries:
                 let from = DayText.short(skipCandidate ?? today, calendar: calendar)
-                return "It leaves \(clockOwner) from \(from). Days before stay in the diary."
+                return L10n.tr("editor.confirm.remove_series.message", clockOwner, from)
             default:
                 return nil
             }
@@ -182,8 +189,10 @@ public struct ItemEditorFeature {
         /// "Kid A's clock", or "both kids' clocks".
         private var clockOwner: String {
             switch form.audience {
-            case let .kid(id): "\(snapshot?.kids.first { $0.id == id }?.name ?? "the")'s clock"
-            case .both: "both kids' clocks"
+            case let .kid(id):
+                L10n.tr("editor.clock_owner.kid",
+                        snapshot?.kids.first { $0.id == id }?.name ?? L10n.tr("editor.clock_owner.unknown"))
+            case .both: L10n.tr("editor.clock_owner.both")
             }
         }
 
@@ -196,8 +205,8 @@ public struct ItemEditorFeature {
         }
 
         public var skipRowTitle: String? {
-            if let skippedDay { return "Skipped \(DayText.short(skippedDay, calendar: calendar)) · Undo" }
-            return skipCandidate.map { "Skip just \(DayText.short($0, calendar: calendar))" }
+            if let skippedDay { return L10n.tr("editor.skip.undo", DayText.short(skippedDay, calendar: calendar)) }
+            return skipCandidate.map { L10n.tr("editor.skip.just", DayText.short($0, calendar: calendar)) }
         }
 
         /// The skip row undoes the skip it just saved.
@@ -353,7 +362,7 @@ public struct ItemEditorFeature {
 
             case .saved(false):
                 state.isSaving = false
-                state.saveError = "Couldn't save. Try again."
+                state.saveError = L10n.tr("editor.save_error")
                 return .none
 
             case .backTapped:

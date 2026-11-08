@@ -1,4 +1,5 @@
 import CrayonKit
+import Strings
 import SwiftUI
 
 /// Done state of a step: a blue crayon circle with a white tick, or an empty marker circle.
@@ -21,6 +22,6 @@ public struct CheckMark: View {
             }
         }
         .frame(width: size, height: size)
-        .accessibilityLabel(isDone ? "Done" : "Not done")
+        .accessibilityLabel(isDone ? L10n.tr("check.done") : L10n.tr("check.not_done"))
     }
 }

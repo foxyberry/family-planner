@@ -4,6 +4,7 @@ import DesignSystem
 import Domain
 import KitArt
 import ScheduleStore
+import Strings
 import SwiftUI
 
 /// Our kids (boards C1, E6). The header and tabs stay put; the cards scroll.
@@ -28,7 +29,7 @@ public struct GrownupHubView: View {
             }
         } primaryAction: { _ in
             #if DEBUG
-                Button("Design gallery") { store.send(.galleryButtonTapped) }
+                Button("Design gallery") { store.send(.galleryButtonTapped) } // copy-ok: debug builds only
                     .crayonType(.caption)
                     .foregroundStyle(CrayonColor.link)
             #endif
@@ -37,7 +38,7 @@ public struct GrownupHubView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: "Our kids", onBack: { store.send(.backTapped) }) {
+        GrownupHeader(title: L10n.tr("hub.title"), onBack: { store.send(.backTapped) }) {
             if let kids = store.snapshot?.kids, let selected = store.selectedKid {
                 CrayonTabs(selection: Binding(get: { selected }, set: { store.send(.kidTabTapped($0)) }),
                            items: kids.map { ($0.id, $0.name, CrayonColor.kid($0.colorIndex)) })
@@ -79,11 +80,11 @@ public struct GrownupHubView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(store.weeklyHeading).crayonType(.head)
             itemList(store.weeklyRows) { store.send(.weeklyItemTapped($0)) }
-            addLink("Add every week") { store.send(.addWeeklyTapped) }
-            Text("Just once").crayonType(.head).padding(.top, Spacing.s)
+            addLink(L10n.tr("hub.add_weekly")) { store.send(.addWeeklyTapped) }
+            Text(L10n.tr("hub.once")).crayonType(.head).padding(.top, Spacing.s)
             itemList(store.onceRows) { store.send(.onceItemTapped($0)) }
-            addLink("Add once") { store.send(.addOnceTapped) }
-            Text("Everything here feeds the clock, the morning bus and the diary.")
+            addLink(L10n.tr("hub.add_once")) { store.send(.addOnceTapped) }
+            Text(L10n.tr("hub.footer"))
                 .crayonType(.caption).foregroundStyle(CrayonColor.softText).padding(.top, Spacing.s)
         }
         .foregroundStyle(CrayonColor.ink)
@@ -92,7 +93,7 @@ public struct GrownupHubView: View {
     @ViewBuilder
     private func itemList(_ rows: [HubItemRow], onTap: @escaping (ScheduleItem.ID) -> Void) -> some View {
         if rows.isEmpty {
-            Text("Nothing yet").crayonType(.body).foregroundStyle(CrayonColor.softText)
+            Text(L10n.tr("hub.empty")).crayonType(.body).foregroundStyle(CrayonColor.softText)
         }
         ForEach(rows) { row in
             Button { onTap(row.id) } label: {

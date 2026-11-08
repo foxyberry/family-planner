@@ -1,5 +1,6 @@
 import Domain
 import Foundation
+import Strings
 
 /// What a form problem says under its row (board C3, validation).
 public enum FormProblem: Equatable, Sendable {
@@ -7,10 +8,10 @@ public enum FormProblem: Equatable, Sendable {
 
     public var message: String {
         switch self {
-        case .noName: "Give it a name"
-        case .endsBeforeStart: "Ends before it starts"
-        case .noDay: "Pick at least one day"
-        case .timePassed: "That time has passed"
+        case .noName: L10n.tr("form.problem.no_name")
+        case .endsBeforeStart: L10n.tr("form.problem.ends_before_start")
+        case .noDay: L10n.tr("form.problem.no_day")
+        case .timePassed: L10n.tr("form.problem.time_passed")
         }
     }
 
@@ -128,8 +129,8 @@ public struct ItemForm: Equatable, Sendable {
             let otherPriority = other.isWeekly ? 1 : 2
             let mineWins = myPriority > otherPriority || (myPriority == otherPriority && start >= other.start)
             return mineWins
-                ? "Overlaps \(other.title) \(TimeText.clock(other.start))–\(TimeText.clock(other.end)). This one shows on the clock then."
-                : "\(other.title) shows on the clock then."
+                ? L10n.tr("form.overlap.mine", other.title, TimeText.clock(other.start), TimeText.clock(other.end))
+                : L10n.tr("form.overlap.other", other.title)
         }
         return nil
     }
@@ -149,7 +150,7 @@ public struct ItemForm: Equatable, Sendable {
     /// "On the clock every Monday and Wednesday from 9 Nov." (every-week items only).
     public func summaryCaption(today: Day, calendar: Calendar) -> String? {
         guard repeats == .weekly, !days.isEmpty else { return nil }
-        return "On the clock every \(DayText.sentence(days)) from \(DayText.dayMonth(today, calendar: calendar))."
+        return L10n.tr("form.summary", DayText.sentence(days), DayText.dayMonth(today, calendar: calendar))
     }
 
     /// The item to save. A new every-week item starts today.
