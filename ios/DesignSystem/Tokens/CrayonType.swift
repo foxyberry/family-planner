@@ -45,4 +45,10 @@ extension View {
         font(type.font)
             .lineSpacing(type.size * (type.lineHeight - 1))
     }
+
+    /// A crayon text style in bold, for the few places a body or caption is bold (way strip labels).
+    public func crayonType(_ type: CrayonType, bold: Bool) -> some View {
+        font(Font(FontRegistrar.font(size: type.size, weight: bold ? .bold : .medium)))
+            .lineSpacing(type.size * (type.lineHeight - 1))
+    }
 }

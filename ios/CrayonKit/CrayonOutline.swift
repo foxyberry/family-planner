@@ -16,7 +16,54 @@ extension CrayonGeometry {
             return speechBubblePath(rect: rect, tailX: tailX, tailHeight: tailHeight)
         case let .sector(start, end):
             return sectorPath(rect: rect, start: start, end: end)
+        case .hill:
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+            path.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.maxY),
+                              control: CGPoint(x: rect.midX, y: rect.maxY - 2 * rect.height))
+            path.closeSubpath()
+            return path
         }
+    }
+
+    /// An open marker line through `points`: resampled every 12 pt and pushed by the same smooth
+    /// noise as outlines, but not closed and with no overshoot (roads, trunks, hill tops).
+    public static func markerLine(_ points: [CGPoint], marker: MarkerStyle, seed: UInt32) -> [CGPoint] {
+        var random = SeededRandom(seed: seed)
+        let ideal = resampleOpen(points, spacing: sampleSpacing)
+        let n = ideal.count
+        guard n > 2 else { return ideal }
+        let rough = smoothNoise(count: n, every: 3, amplitude: marker.roughness, random: &random)
+        let bow = smoothNoise(count: n, every: 10, amplitude: marker.bowing, random: &random)
+        return (0..<n).map { i in
+            let prev = ideal[max(i - 1, 0)], next = ideal[min(i + 1, n - 1)]
+            let tx = next.x - prev.x, ty = next.y - prev.y
+            let len = max(hypot(tx, ty), 0.0001)
+            let offset = rough[i] + bow[i]
+            return CGPoint(x: ideal[i].x - ty / len * offset, y: ideal[i].y + tx / len * offset)
+        }
+    }
+
+    /// Points along an open polyline, `spacing` apart, keeping both ends.
+    private static func resampleOpen(_ points: [CGPoint], spacing: CGFloat) -> [CGPoint] {
+        guard let first = points.first, points.count > 1 else { return points }
+        var result = [first]
+        var carried: CGFloat = 0
+        for i in 0..<(points.count - 1) {
+            let a = points[i], b = points[i + 1]
+            let length = hypot(b.x - a.x, b.y - a.y)
+            guard length > 0 else { continue }
+            var t = spacing - carried
+            while t < length {
+                result.append(CGPoint(x: a.x + (b.x - a.x) * t / length, y: a.y + (b.y - a.y) * t / length))
+                t += spacing
+            }
+            carried = length - (t - spacing)
+        }
+        if let last = points.last, let end = result.last, hypot(last.x - end.x, last.y - end.y) > 0.5 {
+            result.append(last)
+        }
+        return result
     }
 
     /// Points along the ideal outline, `spacing` points apart (fixed length, not a fraction of

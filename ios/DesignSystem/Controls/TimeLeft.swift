@@ -23,6 +23,17 @@ public struct TimeLeft: View {
         return Presentation(text: L10n.tr("time_left.min", number), tone: tone)
     }
 
+    /// What VoiceOver says (spec "Spoken times"): full words, "38 minutes", "1 hour 20 minutes",
+    /// "1 minute"; at zero or below, "2 minutes late".
+    nonisolated public static func spoken(minutes: Int) -> String {
+        let total = abs(minutes)
+        let hours = total / 60, rest = total % 60
+        let minutePart = rest == 1 ? L10n.tr("time_left.spoken.min_one") : L10n.tr("time_left.spoken.min", rest)
+        let hourPart = hours == 1 ? L10n.tr("time_left.spoken.h_one") : L10n.tr("time_left.spoken.h", hours)
+        let words = hours == 0 ? minutePart : rest == 0 ? hourPart : L10n.tr("time_left.spoken.h_min", hourPart, minutePart)
+        return minutes < 0 ? L10n.tr("time_left.spoken.late", words) : words
+    }
+
     private let minutes: Int
     private let look: KidLook
 
@@ -37,5 +48,9 @@ public struct TimeLeft: View {
             .crayonType(.display)
             .foregroundStyle(p.tone == .late ? CrayonColor.lateText : look.ink)
             .monospacedDigit()
+            .lineLimit(1)
+            // Line height 1.0: the box is 96 tall as on the boards, not the font's taller default.
+            .frame(height: CrayonType.display.size * CrayonType.display.lineHeight)
+            .accessibilityLabel(Self.spoken(minutes: minutes))
     }
 }

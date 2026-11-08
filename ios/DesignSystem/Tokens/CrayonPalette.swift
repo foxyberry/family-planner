@@ -46,6 +46,9 @@ public enum CrayonPalette {
     public static let mint = RGB(hex: 0x7FD6B5)
     public static let orange = RGB(hex: 0xF7A84B)
     public static let green = RGB(hex: 0xA8DB7A)
+    // Way strip scenery (board A2-MVP): the ground and the road and tree crowns.
+    public static let meadow = RGB(hex: 0xD6ECC3)
+    public static let leaf = RGB(hex: 0x3FAE5A)
     public static let coral = RGB(hex: 0xF9A88A)
     public static let lilac = RGB(hex: 0xB9A3F0)
     public static let pink = RGB(hex: 0xF7A8CF)

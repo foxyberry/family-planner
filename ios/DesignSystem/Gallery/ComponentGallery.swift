@@ -111,6 +111,14 @@ public struct ComponentGallery: View {
                     }
                     GlyphText("Drag %@ to change the order.", glyph: .handle, color: CrayonColor.softText)
                 }
+                section("A2-MVP · Way strip") {
+                    WayStrip(destination: .wolfie, mover: .busDouble, progress: 0.4, homeLabel: "Our stop",
+                             destinationLabel: "School", showsStops: true, cardTitle: "School at 7:30 am",
+                             cardCaption: "by bus · timetable",
+                             owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
+                        .frame(height: 340)
+                    WayStrip(homeAllDay: "Home all day").frame(height: 340)
+                }
                 section("C6 · Edit clock parts") {
                     HStack(spacing: Spacing.m) {
                         ClockKnob(.idle)

@@ -1849,6 +1849,17 @@
         }
       }
     },
+    "missions.home_all_day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home all day"
+          }
+        }
+      }
+    },
     "missions.leave_at" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1926,13 +1937,24 @@
         }
       }
     },
+    "missions.way.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No more trips today"
+          }
+        }
+      }
+    },
     "missions.way.spoken" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ %2$@ in %3$@. %4$@ starts at %5$@."
+            "value" : "%1$@'s way to %2$@, %3$@, %4$@, %5$@ starts at %6$@."
           }
         }
       }
@@ -2208,6 +2230,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ min"
+          }
+        }
+      }
+    },
+    "time_left.spoken.h" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld hours"
+          }
+        }
+      }
+    },
+    "time_left.spoken.h_min" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "time_left.spoken.h_one" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 hour"
+          }
+        }
+      }
+    },
+    "time_left.spoken.late" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ late"
+          }
+        }
+      }
+    },
+    "time_left.spoken.min" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutes"
+          }
+        }
+      }
+    },
+    "time_left.spoken.min_one" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 minute"
           }
         }
       }

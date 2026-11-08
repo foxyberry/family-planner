@@ -17,25 +17,38 @@ public struct MissionsView: View {
     }
 
     public var body: some View {
+        // Board A2-MVP fixed regions (spec "Fixed regions"): header 48–128, strip 176–516, kids and
+        // missions 536–968. No region moves or resizes with its content.
         KidFullScreen {
-            VStack(alignment: .leading, spacing: 0) {
-                header.frame(height: 80).padding(.top, GridMetrics.headerTop)
-                if let way = store.way {
-                    WayStrip(destination: KitSlot(iconName: way.destination), mover: KitSlot(iconName: way.mover),
-                             progress: way.progress, homeLabel: way.homeLabel, showsStops: way.showsStops,
-                             cardTitle: way.cardTitle, cardCaption: way.cardCaption)
-                        .frame(height: 340)
-                        .padding(.top, Spacing.l)
-                        .accessibilityLabel(way.spoken)
-                }
-                missionsArea.padding(.top, Spacing.m)
-                Spacer(minLength: 0)
+            ZStack(alignment: .topLeading) {
+                header
+                    .frame(width: Self.width, height: 80)
+                    .offset(x: GridMetrics.margin, y: 48)
+                strip
+                    .frame(width: Self.width, height: 340)
+                    .offset(x: GridMetrics.margin, y: 176)
+                missionsArea
+                    .frame(width: Self.width, height: 968 - 536, alignment: .topLeading)
+                    .offset(x: GridMetrics.margin, y: 536)
             }
-            .padding(.horizontal, GridMetrics.margin)
-            .padding(.bottom, Spacing.xl)
         }
         .sensoryFeedback(.success, trigger: ticks)
         .task { await store.send(.task).finish() }
+    }
+
+    private static let width = BoardMetrics.size.width - 2 * GridMetrics.margin
+
+    @ViewBuilder private var strip: some View {
+        if let way = store.way {
+            WayStrip(destination: KitSlot(iconName: way.destination), mover: KitSlot(iconName: way.mover),
+                     progress: way.progress, homeLabel: way.homeLabel, destinationLabel: way.place,
+                     showsStops: way.showsStops, cardTitle: way.cardTitle, cardCaption: way.cardCaption,
+                     owner: (KidFace.Badge(face: way.owner.face, colorIndex: way.owner.colorIndex), way.owner.name))
+                .accessibilityLabel(way.spoken)
+        } else {
+            WayStrip(homeAllDay: L10n.tr("missions.home_all_day"))
+                .accessibilityLabel(L10n.tr("missions.way.none"))
+        }
     }
 
     private var header: some View {
@@ -67,6 +80,7 @@ public struct MissionsView: View {
                     HStack(alignment: .top, spacing: Spacing.m) {
                         ForEach(store.circles) { circle in missionCircle(circle, colorIndex: kid.colorIndex) }
                     }
+                    Spacer(minLength: 0)
                     HStack {
                         Spacer()
                         KidPillButton(store.buttonTitle, icon: .star, colorIndex: kid.colorIndex) {
@@ -77,7 +91,7 @@ public struct MissionsView: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 

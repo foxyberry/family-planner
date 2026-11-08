@@ -57,6 +57,7 @@ final class MissionsTests: XCTestCase {
         let way = try? XCTUnwrap(store.state.way)
         XCTAssertEqual(way?.cardCaption, "by bus · timetable")
         XCTAssertEqual(way?.homeLabel, "Our stop")
+        XCTAssertEqual(way?.place, "School")
         XCTAssertEqual(way?.showsStops, true)
         XCTAssertEqual(way?.headerMinutes, "38 min")
         XCTAssertEqual(store.state.rows.map(\.total), [6, 3])
@@ -120,6 +121,30 @@ final class MissionsTests: XCTestCase {
         await store.receive(\.loaded)
         await store.send(.kidTapped(kidB)) { $0.chosen = self.kidB }
         XCTAssertEqual(store.state.circles.count, 3)
+    }
+
+    /// Spec "Whose outing": the strip shows the family's next outing whichever kid is chosen; Kid B
+    /// has no trip of their own, so no "leave at".
+    func testKidBKeepsTheFamilyWay() async {
+        let store = store(on: tuesday, minute: 412)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.kidTapped(kidB))
+        XCTAssertEqual(store.state.way?.owner.id, kidA)
+        XCTAssertEqual(store.state.way?.cardCaption, "by bus · timetable")
+        XCTAssertEqual(store.state.way?.headerMinutes, "38 min")
+        XCTAssertNil(store.state.leaveAt)
+        XCTAssertEqual(store.state.way?.spoken,
+                       "Kid A's way to School, by bus, 38 minutes, School starts at 7:30 am.")
+    }
+
+    /// After the last outing has started there is no way left: the strip shows its empty look.
+    func testNoOutingLeftHasNoWay() async {
+        let store = store(on: tuesday, minute: 11 * 60)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertNil(store.state.way)
+        XCTAssertNil(store.state.leaveAt)
     }
 
     /// Eight missions with two kids: six places. Done ones fold into one tick; the last place

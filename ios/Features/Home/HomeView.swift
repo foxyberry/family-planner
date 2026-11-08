@@ -20,14 +20,15 @@ public struct HomeView: View {
 
     public var body: some View {
         KidFullScreen(look: store.look, wipeFrom: store.isSkyAnimating ? Self.skySwitchCentre : nil) {
-            // Board A1: clock area x 0–900, right panel x 928–1312 from y 96.
+            // Board A1: clock area x 0–900, right panel x 928–1312, y 96–968, in board space
+            // (KidFullScreen lays the 1376 × 1032 board out full-screen and scales it to fit).
             HStack(alignment: .top, spacing: 28) {
                 clockArea
                 rightPanel
                     .frame(width: 384, alignment: .leading)
-                    .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 96)
-                    .padding(.bottom, Spacing.xl)
+                    .padding(.bottom, BoardMetrics.size.height - 968)
+                    .frame(height: BoardMetrics.size.height, alignment: .top)
                 Spacer(minLength: 0)
             }
         }
@@ -75,7 +76,7 @@ public struct HomeView: View {
             .accessibilityLabel(HomeModel.accessibilityLabel(kidName: firstDay?.kid.name ?? "", day: store.dayName ?? "",
                                                              slots: slots,
                                                              minute: store.minute))
-            .frame(width: 900, height: 1032)
+            .frame(width: 900, height: BoardMetrics.size.height)
             .overlay(alignment: .topLeading) {
                 SkySwitch(look: store.look, isAnimating: store.isSkyAnimating, label: store.skySwitchLabel) {
                     store.send(.skySwitchTapped)
@@ -87,20 +88,24 @@ public struct HomeView: View {
     // MARK: Right panel
 
     @ViewBuilder private var rightPanel: some View {
-        VStack(alignment: .leading, spacing: Spacing.xl) {
+        VStack(alignment: .leading, spacing: 0) {
             if let first = firstDay {
-                // The weekday heads the panel on every kid home screen, 24 above Kid A.
-                VStack(alignment: .leading, spacing: Spacing.m) {
-                    if let heading = store.dayHeading {
-                        Text(heading).crayonType(.head).foregroundStyle(store.look.ink)
+                VStack(alignment: .leading, spacing: Spacing.xl) {
+                    // The weekday heads the panel on every kid home screen, 24 above Kid A.
+                    VStack(alignment: .leading, spacing: Spacing.m) {
+                        if let heading = store.dayHeading {
+                            Text(heading).crayonType(.head).foregroundStyle(store.look.ink)
+                        }
+                        kidABlock(first)
                     }
-                    kidABlock(first)
-                }
-                if store.days.count > 1 {
-                    kidBBlock(store.days[1])
+                    if store.days.count > 1 {
+                        kidBBlock(store.days[1])
+                    }
                 }
                 if store.isMissionMorning {
-                    Spacer(minLength: 0)
+                    // Spec A1 "Panel fit": flexible space pins the button to the panel bottom and
+                    // gives way first, down to 24.
+                    Spacer(minLength: Spacing.m)
                     InkButton(L10n.tr("home.missions"), arrow: true) { store.send(.missionsTapped) }
                 }
             }

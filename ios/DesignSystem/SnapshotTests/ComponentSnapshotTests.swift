@@ -297,12 +297,12 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Time zone and locale are pinned so the simulator's settings never change a picture.
     /// Board A1n at 7:40 pm: lit paper face, chalk ticks and numbers on the night page.
     func testPieClockNight() {
-        snap(KidFullScreen(look: .night) {
-            PieClock(sectors: Self.seedDay, now: 1180, hub: .init(title: "Shower", subtitle: "until 8:00 pm"),
-                     look: .night)
-                .padding(110)
-        }
-        .frame(width: 964, height: 964))
+        // The clock alone on the night page (KidFullScreen now lays out a whole board).
+        snap(PieClock(sectors: Self.seedDay, now: 1180, hub: .init(title: "Shower", subtitle: "until 8:00 pm"),
+                      look: .night)
+            .padding(110)
+            .frame(width: 964, height: 964)
+            .background(KidLook.night.page))
     }
 
     func testSkySwitch() {
@@ -399,11 +399,17 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Board A2-MVP: to school by bus (stops, "Our stop") and A2-MVP-w: weekend school by car ("Home").
     func testWayStrip() {
         snap(VStack(spacing: Spacing.m) {
-            WayStrip(destination: .wolfie, mover: .busDouble, progress: 0.4, homeLabel: "Our stop", showsStops: true,
-                     cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable")
+            WayStrip(destination: .wolfie, mover: .busDouble, progress: 0.4, homeLabel: "Our stop",
+                     destinationLabel: "School", showsStops: true,
+                     cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable",
+                     owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
                 .frame(width: 1248, height: 340)
-            WayStrip(destination: .actLanguageSchool, mover: .car, progress: 0.7, homeLabel: "Home", showsStops: false,
-                     cardTitle: "Weekend school at 9:00 am", cardCaption: "by car · timetable")
+            WayStrip(destination: .actLanguageSchool, mover: .car, progress: 0.7, homeLabel: "Home",
+                     destinationLabel: "Weekend school", showsStops: false,
+                     cardTitle: "Weekend school at 9:00 am", cardCaption: "by car",
+                     owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
+                .frame(width: 1248, height: 340)
+            WayStrip(homeAllDay: "Home all day")
                 .frame(width: 1248, height: 340)
         }, width: 1300)
     }

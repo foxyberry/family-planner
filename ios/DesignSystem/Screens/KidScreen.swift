@@ -14,7 +14,7 @@ public struct KidScreen<Header: View, Body: View>: View {
 
     public var body: some View {
         GeometryReader { geometry in
-            let grid = GridMetrics(width: geometry.size.width)
+            let grid = GridMetrics(width: BoardMetrics.size.width)
             VStack(alignment: .leading, spacing: 0) {
                 header
                     .frame(maxWidth: .infinity,
@@ -29,9 +29,9 @@ public struct KidScreen<Header: View, Body: View>: View {
             }
             .padding(.horizontal, GridMetrics.margin)
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
-            .clipped()
         }
-        .background(CrayonColor.paper)
+        .boardFrame()
+        .background(CrayonColor.paper.ignoresSafeArea())
         .foregroundStyle(CrayonColor.ink)
     }
 }
@@ -58,10 +58,11 @@ public struct KidFullScreen<Body: View>: View {
 
     public var body: some View {
         content()
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .clipped()
+            .boardFrame()
             .background { page.ignoresSafeArea() }
             .foregroundStyle(look.ink)
+            // Status bar text: dark on day screens, light at night (spec "Status bar").
+            .preferredColorScheme(look == .night ? .dark : .light)
             .onChange(of: look) { old, _ in
                 guard wipeFrom != nil, !reduceMotion else { return }
                 under = old

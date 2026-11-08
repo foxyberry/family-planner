@@ -34,5 +34,6 @@ public enum CrayonStyle {
         static let glyph: UInt32 = 1901
         static let mission: UInt32 = 2001
         static let band: UInt32 = 2101
+        static let way: UInt32 = 2201
     }
 }

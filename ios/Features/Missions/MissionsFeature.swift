@@ -47,8 +47,12 @@ public struct MissionsFeature {
         public var showsStops: Bool
         public var cardTitle: String
         public var cardCaption: String
+        /// The destination's name under its stop ("School").
+        public var place: String
         public var headerPlace: String
         public var headerMinutes: String
+        /// Whose outing it is: the card starts with this kid's face.
+        public var owner: Kid
         public var spoken: String
     }
 
@@ -88,9 +92,17 @@ public struct MissionsFeature {
             row.isReady ? L10n.tr("missions.ready") : L10n.tr("missions.done_count", row.done, row.total)
         }
 
+        /// The chosen kid's own next outing (for "leave at").
         public var outing: Outing? {
             guard let chosen else { return nil }
             return DayPlanner.nextOuting(in: slots[chosen] ?? [], after: minute)
+        }
+
+        /// The family's next outing: the earliest outing today, of any kid, that has not started.
+        /// The strip and the header countdown show it whichever kid is chosen (spec "Whose outing").
+        public var familyOuting: (kid: Kid, outing: Outing)? {
+            kids.compactMap { kid in DayPlanner.nextOuting(in: slots[kid.id] ?? [], after: minute).map { (kid, $0) } }
+                .min { $0.1.slot.start < $1.1.slot.start }
         }
 
         /// "leave at 7:25 am" under the chosen kid's name.
@@ -98,21 +110,25 @@ public struct MissionsFeature {
 
         /// The mover sits at home 10 minutes before leaving and at the place at the start (clock only).
         public var way: Way? {
-            guard let outing else { return nil }
+            guard let (owner, outing) = familyOuting else { return nil }
             let from = outing.leave - 10, to = outing.slot.start
             let progress = to > from ? Double(minute - from) / Double(to - from) : 1
             let wayLine = Self.wayLine(outing.trip.way)
             let time = TimeText.withPeriod(outing.slot.start)
             let minutes = TimeLeft.presentation(minutes: max(outing.slot.start - minute, 0)).text
+            // Only buses and shuttles stop on the way (spec A2-MVP "Way strip").
+            let stops = outing.trip.way == .bus || outing.trip.way == .shuttle
             return Way(destination: outing.slot.iconName, mover: outing.trip.way.moverPicture,
                        progress: min(max(progress, 0), 1),
-                       homeLabel: outing.trip.way == .bus ? L10n.tr("missions.our_stop") : L10n.tr("missions.home"),
-                       showsStops: outing.trip.way == .bus,
+                       homeLabel: stops ? L10n.tr("missions.our_stop") : L10n.tr("missions.home"),
+                       showsStops: stops,
                        cardTitle: L10n.tr("missions.card.title", outing.slot.title, time),
-                       cardCaption: wayLine,
+                       cardCaption: wayLine, place: outing.slot.title,
                        headerPlace: L10n.tr("home.place_in", outing.slot.title), headerMinutes: minutes,
-                       spoken: L10n.tr("missions.way.spoken", outing.slot.title, Self.wayPhrase(outing.trip.way), minutes,
-                                       outing.slot.title, time))
+                       owner: owner,
+                       spoken: L10n.tr("missions.way.spoken", owner.name, outing.slot.title,
+                                       Self.wayPhrase(outing.trip.way),
+                                       TimeLeft.spoken(minutes: max(outing.slot.start - minute, 0)), outing.slot.title, time))
         }
 
         /// "by bus", "on foot".
