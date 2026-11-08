@@ -15,7 +15,7 @@ LAUNCH_ARGS = $(if $(NOW),-fpNow $(NOW)) $(if $(SPEED),-fpSpeed $(SPEED))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one snapshots snapshots-record sim-stop art art-private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one snapshots snapshots-record sim-stop stop-dev-sims art art-private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios
 
 # =============================================================================
@@ -58,31 +58,41 @@ device:
 # only: CI does not set SNAPSHOT_ARTIFACTS, keeps no artifacts and logs one line per failure).
 SNAPSHOT_ENV := $(if $(CI),,SNAPSHOT_ARTIFACTS="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Diffs__")
 
+# Tests reuse their own BAZEL_TEST_<device>_<os> simulator (//ios:test_runner) and leave it
+# booted, so the next run skips a 15-20 s boot. Any other booted simulator (the dev one from
+# `make run`) makes tests time out or fail to install, so it is shut down first.
+# `make sim-stop` gives the memory back when you are done testing.
+BOOTED_DEV_SIMS = $(shell xcrun simctl list devices booted -j 2>/dev/null \
+                    | python3 -c "import sys,json; print(' '.join(d['udid'] for ds in json.load(sys.stdin)['devices'].values() for d in ds if not d['name'].startswith('BAZEL_TEST_')))" 2>/dev/null)
+stop-dev-sims:
+	@for udid in $(BOOTED_DEV_SIMS); do echo "shutting down dev simulator $$udid"; xcrun simctl shutdown "$$udid"; done
+
 # Every test except the snapshot pictures (tag "snapshot"); CI runs the same set.
+# Extra Bazel flags: make test TEST_ARGS=--nocache_test_results (re-runs every test).
 # Run `make snapshots` whenever you change DesignSystem, KitArt or a screen.
-test:
-	$(IOS_BAZEL) test //ios/... --test_tag_filters=-snapshot \
+test: stop-dev-sims
+	$(IOS_BAZEL) test //ios/... --test_tag_filters=-snapshot $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
 # One test target with the same flags as `make test` (keeps Bazel's caches warm):
 #   make test-one TARGET=//ios/AppCore/Tests:AppCoreTests
-test-one:
+test-one: stop-dev-sims
 	@[ -n "$(TARGET)" ] || { echo "usage: make test-one TARGET=//ios/<Pkg>/Tests:<Target>"; exit 2; }
-	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(TARGET) \
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
 # The snapshot pictures only: compares every part with its committed baseline.
 SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
-snapshots:
-	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(SNAPSHOT_TARGET) \
+snapshots: stop-dev-sims
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(SNAPSHOT_TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
 # Re-record the design system snapshot baselines into the source tree (the run itself fails:
 # recording is not a pass). Compare the new pictures with the design boards before committing.
-snapshots-record:
+snapshots-record: stop-dev-sims
 	SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Snapshots__" \
 	$(IOS_BAZEL) test $(SNAPSHOT_TARGET) --nocache_test_results \
 	  --ios_simulator_device="$(SIM_DEVICE)" \

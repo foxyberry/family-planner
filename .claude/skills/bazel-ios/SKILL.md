@@ -2,7 +2,7 @@
 name: bazel-ios
 description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/device/lint/fmt/sim-stop, signed builds on a real iPad, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.8.0
+  version: 0.9.0
   status: experimental
 ---
 
@@ -11,15 +11,14 @@ metadata:
 ## 8 GB rules
 
 - One build or test at a time; one simulator. `make run` builds first, then boots.
-- Before `make test`, shut down every simulator (`make sim-stop`): a dev simulator next to the test
-  simulator makes tests time out or fail to install. Look at changes on the iPad (`make device`).
+- `make test`, `test-one` and `snapshots` shut down other simulators (a dev simulator next to
+  the test one makes tests fail) and keep the test one booted: the next run skips a 15-20 s boot. Look at changes on the iPad (`make device`).
 - Shut down idle Bazel servers of other projects: `cd <other repo> && bazel shutdown`.
 - "Another command is running" means wait; Bazel serializes commands in one workspace.
 - If memory pressure stays red during a cold build, set `common --local_resources=cpu=2` in
   `user.bazelrc` (git-ignored; created from `user.bazelrc.example` by `make setup`).
-- Tests boot their own `BAZEL_TEST_<device>_<os>` simulator and leave it running; `make run`
-  shuts all simulators down first. `make sim-stop` when done. Never address a simulator as
-  `booted` when two may be running: use its UDID.
+- The test simulator is `BAZEL_TEST_<device>_<os>`; `make run` shuts all simulators down first.
+  `make sim-stop` when done. Never address a simulator as `booted`: use its UDID.
 
 ## Simulator Face ID (parent mode)
 
@@ -65,7 +64,7 @@ A match sent before the sheet shows does nothing. Easier in debug builds: the bu
 | Snapshot tests | `make snapshots` (see Snapshot tests) |
 | One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |
 | Test log | `bazel-testlogs/ios/<Pkg>/Tests/<Target>/test.log` |
-| Force a re-run | add `--nocache_test_results` (a `(cached) PASSED` line means the test did not run) |
+| Force a re-run | `make test TEST_ARGS=--nocache_test_results` (`(cached) PASSED` means it did not run) |
 | See what went into a test bundle | `find -L bazel-out/ios_sim_arm64-fastbuild-*/bin/ios/<Pkg>/Tests -name '*.xctest' -path '*archive-root*'` |
 | BUILD lint / format | `make lint` / `make fmt` |
 | What depends on what | `bazel query 'deps(//ios/AppCore)' --output=label` |
