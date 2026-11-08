@@ -20,6 +20,8 @@ public enum KitSlot: String, CaseIterable, Sendable {
     // Feelings and energy
     case feelVeryHappy, feelHappy, feelOK, feelSad, feelVerySad
     case energyLots, energyGood, energyTired, energyNone
+    // Sky switch (day, mid-animation, night)
+    case skyDay, skyDusk, skyNight
     // Developer tools (debug builds)
     case debugLadybug
 }

@@ -215,12 +215,15 @@ const ITEMS = {
   ],
   // After-school activities (CCA). The generic actCCA stays for anything without its own picture.
   actDance: [
+    // long hair first, so the arms sit in front of it
+    S('M88 60C84 30 102 18 120 18C138 18 156 30 152 60C156 80 160 100 152 112C144 117 136 110 134 100L132 84H108L106 100C104 110 96 117 88 112C80 100 84 80 88 60Z', '#5B3A29', 40),
     Ln('M108 102L66 58', 7), Ln('M132 102L176 64', 7),
     Ln('M110 156L94 214', 7), Ln('M130 156L152 208', 7),
     S(rr(106, 86, 28, 52, 10), K.pink, -40),
     S('M62 160Q120 116 178 160Q120 184 62 160Z', K.pink, 40),
     S(circ(120, 58, 28), '#F6C89A', -35),
-    ...eye(110, 56, 12), ...eye(132, 56, 12), Ln('M110 70Q121 78 132 70', 3.5),
+    S('M93 52C94 36 106 30 120 30C134 30 146 36 147 52C138 45 128 43 120 47C112 43 102 45 93 52Z', '#5B3A29', 40),   // fringe
+    ...eye(110, 58, 12), ...eye(132, 58, 12), Ln('M110 71Q121 79 132 71', 3.5),
     B(circ(196, 118, 10)), Ln('M206 118V84L220 92', 4),
     B(circ(38, 122, 9)), Ln('M47 122V92L60 98', 4),
   ],
@@ -412,6 +415,27 @@ const ITEMS = {
     B(circ(68, 180, 22)), B(circ(176, 180, 22)), S(circ(68, 180, 8), K.white, 0), S(circ(176, 180, 8), K.white, 0),
   ],
   // Child faces for setup (S1): the parent picks one per child until the child draws their own.
+  // Sky switch on the kid home screen: day, dusk (mid-animation) and night. A 5:3 pill across the 240 box,
+  // so KitIcon shows it in a 160 x 96 frame with aspect fit.
+  skyDay: [
+    S(rr(6, 54, 228, 132, 66), K.sky, -30),
+    S('M150 140a16 16 0 0 1 12-26a20 20 0 0 1 38 4a14 14 0 0 1 6 22z', K.white, 0),
+    S(circ(78, 120, 44), K.yellow, -40),
+    B(circ(64, 112, 4.5)), B(circ(92, 112, 4.5)), Ln('M64 132Q78 145 92 132', 4),
+  ],
+  skyDusk: [
+    S(rr(6, 54, 228, 132, 66), '#F9A88A', 40),
+    S(circ(120, 132, 40), K.yellow, -40),
+    B(circ(107, 124, 4.5)), B(circ(133, 124, 4.5)), Ln('M108 141Q120 151 132 141', 4),
+    Ln('M28 160H212', 12, K.purple),
+  ],
+  skyNight: [
+    S(rr(6, 54, 228, 132, 66), '#3A3866', -30),
+    S(star(50, 96, 14, 6), '#FFF3B0', 0), S(star(84, 148, 11, 5), '#FFF3B0', 0), Ln('M108 88H108.1', 7, '#FFF3B0'),
+    S('M207.5 139.3L205.3 143.3L202.7 147.1L199.7 150.6L196.3 153.7L192.6 156.5L188.7 158.8L184.5 160.8L180.1 162.3L175.6 163.3L171.1 163.9L166.5 164.0L161.9 163.6L157.4 162.7L153.0 161.3L148.7 159.5L144.7 157.3L140.9 154.7L137.4 151.7L134.3 148.3L131.5 144.6L129.2 140.7L127.2 136.5L125.7 132.1L124.7 127.6L124.1 123.1L124.0 118.5L124.4 113.9L125.3 109.4L126.7 105.0L128.5 100.7L130.7 96.7L133.3 92.9L136.3 89.4L139.7 86.3L143.4 83.5L147.3 81.2L151.5 79.2L155.9 77.7L160.4 76.7L164.9 76.1L169.5 76.0L206.9 138.7L203.5 140.3L199.9 141.5L196.3 142.3L192.5 142.8L188.7 142.9L185.0 142.5L181.3 141.8L177.7 140.7L174.2 139.2L170.9 137.4L167.8 135.2L164.9 132.8L162.4 130.0L160.1 127.0L158.1 123.7L156.5 120.3L155.3 116.7L154.5 113.1L154.0 109.3L153.9 105.5L154.3 101.8L155.0 98.1L156.1 94.5L157.6 91.0L159.4 87.7L161.6 84.6L164.0 81.7L166.8 79.2L169.8 76.9Z', K.yellow, -40),
+    Ln('M134 114q6 6 12 0', 3.5), Ln('M136 134q8 7 16 0', 3.5),
+    Ln('M72 54H168A66 66 0 0 1 168 186H72A66 66 0 0 1 72 54Z', 5, '#F4EFFF'),
+  ],
   // Developer tools: a friendly ladybug for the debug bubble. The white plate keeps it readable on a dark or orange circle.
   debugLadybug: [
     S(circ(120, 124, 108), K.white, 0),
@@ -537,6 +561,792 @@ function render(layers) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}">${out}</svg>\n`;
 }
 
+// Picture rigs: tap a slot on the kid clock and its picture plays once. Rigid parts only (see "rules").
+// For each rigged slot, make art writes the picture again as ordered runs of layers (one imageset per run,
+// drawn with the same seeds, so stacked runs equal the normal picture) and KitRigs.dataset/rigs.json.
+const RIGS = {
+ "version": 1,
+ "scale": 1,
+ "maxSeconds": 1.2,
+ "rules": "Rigid parts only (rotate or move a whole part; never bend or stretch). Faces move only with their head part; eyes may blink once. Rotations <= 15 deg, moves <= 20 units in the 240 box. One play per tap, <= 1.2 s, then still. Pivots sit where the part is attached. A picture without a rig gets 'hop'.",
+ "moves": {
+  "hop": "whole picture up 14 and down, a 5% squash on landing (origin: bottom centre)",
+  "rock": "rotate +deg, -deg, ... 'times' swings, settling to 0",
+  "bob": "move up 'px' and back, 'times' times",
+  "slide": "move sideways +-'px', 'times' times (scrubbing)",
+  "spin": "rotate by 'deg' once; deg is the part's symmetry angle, so it lands looking the same",
+  "rise": "move up 'px' while fading out, twice (steam)",
+  "fall": "move down 'px' while fading out, twice (water)",
+  "press": "move down 'px' and back once, after 'delay' ms (keys)",
+  "blink": "eye dot squashes to 10% height and back once",
+  "flicker": "flame grows 15% taller then 10% shorter from its base",
+  "twinkle": "turn 20 deg and grow 15% evenly, then back"
+ },
+ "default": {
+  "parts": [
+   {
+    "name": "all",
+    "layers": "all",
+    "origin": [
+     120,
+     220
+    ],
+    "moves": [
+     {
+      "type": "hop",
+      "px": 14
+     }
+    ]
+   }
+  ]
+ },
+ "rigs": {
+  "actSleep": {
+   "parts": [
+    {
+     "name": "moon",
+     "layers": [
+      0,
+      1,
+      2
+     ],
+     "origin": [
+      120,
+      124
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 8,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "actBreakfast": {
+   "parts": [
+    {
+     "name": "steam",
+     "layers": [
+      0
+     ],
+     "origin": [
+      120,
+      50
+     ],
+     "moves": [
+      {
+       "type": "rise",
+       "px": 12
+      }
+     ]
+    },
+    {
+     "name": "bowl",
+     "layers": [
+      1,
+      2
+     ],
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 4,
+       "times": 1
+      }
+     ]
+    }
+   ]
+  },
+  "actSchool": {
+   "parts": [
+    {
+     "name": "flag",
+     "layers": [
+      4
+     ],
+     "origin": [
+      120,
+      22
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 12,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "snack": {
+   "parts": [
+    {
+     "name": "leaf",
+     "layers": [
+      0,
+      1
+     ],
+     "origin": [
+      122,
+      72
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 14,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "apple",
+     "layers": [
+      2
+     ],
+     "origin": [
+      120,
+      200
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 1
+      }
+     ]
+    }
+   ]
+  },
+  "actSwim": {
+   "parts": [
+    {
+     "name": "ring",
+     "layers": [
+      0,
+      1,
+      2
+     ],
+     "origin": [
+      120,
+      104
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 8,
+       "times": 2
+      },
+      {
+       "type": "rock",
+       "deg": 6,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "water",
+     "layers": [
+      3
+     ],
+     "origin": [
+      120,
+      200
+     ],
+     "moves": [
+      {
+       "type": "slide",
+       "px": 8,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "blocks": {
+   "parts": [
+    {
+     "name": "top block",
+     "layers": [
+      2,
+      5
+     ],
+     "origin": [
+      118,
+      128
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 18,
+       "times": 1
+      },
+      {
+       "type": "rock",
+       "deg": 6,
+       "times": 1
+      }
+     ]
+    }
+   ]
+  },
+  "actDinner": {
+   "parts": [
+    {
+     "name": "spoon",
+     "layers": [
+      2,
+      3
+     ],
+     "origin": [
+      30,
+      214
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 10,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "left chopstick",
+     "layers": [
+      4
+     ],
+     "origin": [
+      204,
+      214
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": -4,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "right chopstick",
+     "layers": [
+      5
+     ],
+     "origin": [
+      223,
+      214
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 4,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "actShower": {
+   "parts": [
+    {
+     "name": "water",
+     "layers": [
+      2,
+      3
+     ],
+     "origin": [
+      128,
+      120
+     ],
+     "moves": [
+      {
+       "type": "fall",
+       "px": 12
+      }
+     ]
+    },
+    {
+     "name": "duck",
+     "layers": [
+      4,
+      5,
+      6,
+      7
+     ],
+     "origin": [
+      160,
+      214
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 8,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "actArt": {
+   "parts": [
+    {
+     "name": "brush",
+     "layers": [
+      7,
+      8
+     ],
+     "origin": [
+      146,
+      218
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 12,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "actMusic": {
+   "parts": [
+    {
+     "name": "notes",
+     "layers": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "origin": [
+      130,
+      176
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 6,
+       "times": 3
+      }
+     ]
+    },
+    {
+     "name": "star",
+     "layers": [
+      5
+     ],
+     "origin": [
+      48,
+      70
+     ],
+     "moves": [
+      {
+       "type": "twinkle"
+      }
+     ]
+    }
+   ]
+  },
+  "actFootball": {
+   "parts": [
+    {
+     "name": "ball",
+     "layers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "origin": [
+      120,
+      116
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 18,
+       "times": 2
+      },
+      {
+       "type": "spin",
+       "deg": 72
+      }
+     ]
+    }
+   ]
+  },
+  "actPiano": {
+   "parts": [
+    {
+     "name": "key 1",
+     "layers": [
+      3
+     ],
+     "origin": [
+      46,
+      92
+     ],
+     "moves": [
+      {
+       "type": "press",
+       "px": 5,
+       "delay": 0
+      }
+     ]
+    },
+    {
+     "name": "key 2",
+     "layers": [
+      4
+     ],
+     "origin": [
+      76,
+      92
+     ],
+     "moves": [
+      {
+       "type": "press",
+       "px": 5,
+       "delay": 90
+      }
+     ]
+    },
+    {
+     "name": "key 3",
+     "layers": [
+      5
+     ],
+     "origin": [
+      135,
+      92
+     ],
+     "moves": [
+      {
+       "type": "press",
+       "px": 5,
+       "delay": 180
+      }
+     ]
+    },
+    {
+     "name": "key 4",
+     "layers": [
+      6
+     ],
+     "origin": [
+      165,
+      92
+     ],
+     "moves": [
+      {
+       "type": "press",
+       "px": 5,
+       "delay": 270
+      }
+     ]
+    },
+    {
+     "name": "key 5",
+     "layers": [
+      7
+     ],
+     "origin": [
+      195,
+      92
+     ],
+     "moves": [
+      {
+       "type": "press",
+       "px": 5,
+       "delay": 360
+      }
+     ]
+    }
+   ]
+  },
+  "actDance": {
+   "parts": [
+    {
+     "name": "left arm",
+     "layers": [
+      1
+     ],
+     "origin": [
+      108,
+      102
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 14,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "right arm",
+     "layers": [
+      2
+     ],
+     "origin": [
+      132,
+      102
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": -14,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "skirt",
+     "layers": [
+      6
+     ],
+     "origin": [
+      120,
+      150
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 4,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "head",
+     "layers": [
+      0,
+      7,
+      8,
+      9,
+      10,
+      11
+     ],
+     "origin": [
+      120,
+      86
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "right note",
+     "layers": [
+      12,
+      13
+     ],
+     "origin": [
+      204,
+      104
+     ],
+     "moves": [
+      {
+       "type": "rise",
+       "px": 10
+      }
+     ]
+    },
+    {
+     "name": "left note",
+     "layers": [
+      14,
+      15
+     ],
+     "origin": [
+      44,
+      108
+     ],
+     "moves": [
+      {
+       "type": "rise",
+       "px": 10
+      }
+     ]
+    }
+   ]
+  },
+  "cake": {
+   "parts": [
+    {
+     "name": "left flame",
+     "layers": [
+      2
+     ],
+     "origin": [
+      99,
+      58
+     ],
+     "moves": [
+      {
+       "type": "flicker"
+      }
+     ]
+    },
+    {
+     "name": "right flame",
+     "layers": [
+      3
+     ],
+     "origin": [
+      143,
+      58
+     ],
+     "moves": [
+      {
+       "type": "flicker"
+      }
+     ]
+    }
+   ]
+  },
+  "sun": {
+   "parts": [
+    {
+     "name": "rays",
+     "layers": [
+      0
+     ],
+     "origin": [
+      120,
+      120
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 45
+      }
+     ]
+    },
+    {
+     "name": "left eye",
+     "layers": [
+      2
+     ],
+     "origin": [
+      98,
+      110
+     ],
+     "moves": [
+      {
+       "type": "blink"
+      }
+     ]
+    },
+    {
+     "name": "right eye",
+     "layers": [
+      3
+     ],
+     "origin": [
+      142,
+      110
+     ],
+     "moves": [
+      {
+       "type": "blink"
+      }
+     ]
+    }
+   ]
+  },
+  "busDouble": {
+   "parts": [
+    {
+     "name": "body",
+     "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "toothbrush": {
+   "parts": [
+    {
+     "name": "brush",
+     "layers": "all",
+     "origin": [
+      120,
+      150
+     ],
+     "moves": [
+      {
+       "type": "slide",
+       "px": 10,
+       "times": 3
+      },
+      {
+       "type": "rock",
+       "deg": 3,
+       "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "actLanguageSchool": {
+   "parts": [
+    {
+     "name": "sign",
+     "layers": [
+      2,
+      3,
+      4
+     ],
+     "origin": [
+      120,
+      86
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 6,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  }
+ }
+};
 const CATALOG_INFO = { info: { author: 'xcode', version: 1 } };
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'Contents.json'), `${JSON.stringify(CATALOG_INFO, null, 2)}\n`);
@@ -553,6 +1363,37 @@ for (const [name, layers] of Object.entries(ITEMS)) {
   fs.writeFileSync(path.join(set, 'Contents.json'), `${JSON.stringify(contents, null, 2)}\n`);
 }
 console.log('wrote', Object.keys(ITEMS).length, 'imagesets');
+{
+  const out = { version: RIGS.version, scale: RIGS.scale, maxSeconds: RIGS.maxSeconds, rules: RIGS.rules, moves: RIGS.moves, default: RIGS.default, rigs: {} };
+  let images = 0;
+  for (const [name, rig] of Object.entries(RIGS.rigs)) {
+    const layers = ITEMS[name];
+    if (!layers) throw new Error(`rig for unknown slot ${name}`);
+    const owner = new Map();
+    rig.parts.forEach((part, pi) => (part.layers === 'all' ? layers.map((_, i) => i) : part.layers).forEach((i) => owner.set(i, pi)));
+    seed = seedFor(name);
+    const one = layers.map((l) => render([l]).replace(/^<svg[^>]*>/, '').replace(/<\/svg>\n?$/, ''));
+    const runs = [];
+    for (let i = 0; i < layers.length;) {
+      const pi = owner.has(i) ? owner.get(i) : -1;
+      let body = '';
+      while (i < layers.length && (owner.has(i) ? owner.get(i) : -1) === pi) { body += one[i]; i += 1; }
+      const image = `rig-${name}-${runs.length}`;
+      const set = path.join(outDir, `${image}.imageset`);
+      fs.mkdirSync(set, { recursive: true });
+      fs.writeFileSync(path.join(set, `${image}.svg`), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}">${body}</svg>\n`);
+      fs.writeFileSync(path.join(set, 'Contents.json'), `${JSON.stringify({ images: [{ filename: `${image}.svg`, idiom: 'universal' }], ...CATALOG_INFO, properties: { 'preserves-vector-representation': true } }, null, 2)}\n`);
+      runs.push({ image, part: pi < 0 ? null : rig.parts[pi].name });
+      images += 1;
+    }
+    out.rigs[name] = { runs, parts: Object.fromEntries(rig.parts.map((p) => [p.name, { origin: p.origin, moves: p.moves }])) };
+  }
+  const ds = path.join(outDir, 'KitRigs.dataset');
+  fs.mkdirSync(ds, { recursive: true });
+  fs.writeFileSync(path.join(ds, 'rigs.json'), `${JSON.stringify(out, null, 1)}\n`);
+  fs.writeFileSync(path.join(ds, 'Contents.json'), `${JSON.stringify({ data: [{ filename: 'rigs.json', idiom: 'universal' }], ...CATALOG_INFO }, null, 2)}\n`);
+  console.log('wrote', Object.keys(out.rigs).length, 'rigs in', images, 'run imagesets');
+}
 
 // Optional: the style-free shape definitions, so an app-side renderer can draw the same pictures
 // in any style (crayon today, others later) without a separate SVG set per style.
