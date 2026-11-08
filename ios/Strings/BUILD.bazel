@@ -1,0 +1,21 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("//:project.bzl", "BUNDLE_ID")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Every piece of user-facing copy: one String Catalog, compiled into Strings.bundle.
+# The target name differs from the library's (Bazel names are unique per package);
+# the bundle is still called Strings.
+apple_resource_bundle(
+    name = "StringsResources",
+    bundle_id = BUNDLE_ID + ".strings",
+    bundle_name = "Strings",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = ["Localizable.xcstrings"],
+)
+
+# `L10n.tr("key")`: looks copy up in the catalog. Foundation only, so Domain may use it.
+fp_swift_library(
+    name = "Strings",
+    data = [":StringsResources"],
+    visibility = ["//ios:__subpackages__"],
+)
