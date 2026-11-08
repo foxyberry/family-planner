@@ -10,6 +10,8 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - Real values live only in git-ignored files: `docs/private/`, `.private-terms`, `LocalConfig.*`, `user.bazelrc`.
 - If gitleaks or the private-term check blocks you, replace the data. Never bypass (`--no-verify`).
 - Design doc and research: `docs/private/` (git-ignored). Do not quote them in tracked files or @-import them.
+- Screen specs come from the design session; `docs/superpowers/specs/` copies must match its file.
+  Diff them before building or changing a screen, and copy changes in first.
 - Publishing text (commit/PR/issue bodies): pass literal text or `--body-file <file>`; shell expansion is blocked.
 
 ## Machine limits (8 GB Mac)
@@ -28,16 +30,19 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   Keep it under 20 code lines, not counting imports.
 - Screens, state and lifecycle live in `ios/AppCore` (and later `ios/Features/*`) as TCA reducers;
   lifecycle callbacks become actions (`AppDelegateBase`, `AppScene`).
+- Views only render State and send actions. Decisions, copy, date maths, parsing and picking items
+  live in the reducer, State computed properties or tested model functions. Views never read
+  `@Dependency` (it returns the default, not the store's value) or `Calendar.current`/`Date()`.
 - Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__` only.
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
 - `ios/Domain`: pure rules (Foundation only): kids, routines, schedule items, `DayPlanner`, `SeriesEdits`,
   copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor).
 - Time comes only from `@Dependency(\.date)`, `\.calendar`, `\.continuousClock`; days are `Day` values
-  and minutes after midnight (0–1440). Tests pin `Asia/Singapore` and a fixed date.
+  and minutes after midnight (0–1440). Elapsed time (timeouts, relock) counts clock ticks, never
+  `date` differences. Tests pin `Asia/Singapore` and a fixed date.
 - Kids are fake seed data (`SeedData`, Kid A / Kid B) until first-run setup (M4).
 - Grown-up screens: hold the clock 2 s, then Face ID (no passcode). An iPad without Face ID set up
-  gets an "Enter" button (the hold is the gate). The 2-minute relock counts real 1-second ticks,
-  never `date` differences.
+  gets an "Enter" button (the hold is the gate).
 - `ios/DebugTools`: debug builds only (`#if DEBUG` in every file). Floating bubble + menu: time
   machine (feeds `\.date`; `make run NOW=2026-11-09T07:30 SPEED=60`), layout grid, flags
   (Skip Face ID, simulator only). On a real iPad the menu opens only after Face ID (the bubble sits over kids'
@@ -82,7 +87,10 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 
 ## Agent harness
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
-- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`.
+- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `skill-retro`.
+- Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known; the
+  `skill-retro` skill moves them into guards, this file or skills (a session-start note says when 5+ wait).
+  `bash scripts/check-skills.sh` checks skills, this file's length and the inbox.
 - Hooks block private terms in file writes and in commit/tag/PR/issue/release text.
 - Git hooks (`.githooks`, enabled by `make setup`): pre-commit (gitleaks + terms on staged lines),
   commit-msg, pre-push (gitleaks + terms on every new commit, ref and tag; `make lint` on Bazel

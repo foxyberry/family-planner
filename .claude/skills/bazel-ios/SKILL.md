@@ -2,7 +2,7 @@
 name: bazel-ios
 description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/device/lint/fmt/sim-stop, signed builds on a real iPad, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.5.0
+  version: 0.6.0
   status: experimental
 ---
 
@@ -11,6 +11,8 @@ metadata:
 ## 8 GB rules
 
 - One build or test at a time; one simulator. `make run` builds first, then boots.
+- Before `make test`, shut down every simulator (`make sim-stop`): a dev simulator next to the test
+  simulator makes tests time out or fail to install. Look at changes on the iPad (`make device`).
 - `make sim-stop` when you are done looking at the app.
 - Shut down idle Bazel servers of other projects: `cd <other repo> && bazel shutdown`.
 - "Another command is running" means wait; Bazel serializes commands in one workspace.
@@ -133,6 +135,7 @@ fp_swift_library(name = "KitArt", data = [":KitArtResources"])
 | `'X' is unavailable ... obsoleted` inside a Swift package | rules_swift_package_manager < 1.19; keep >= 1.19 |
 | `is not visible from target` | A feature reached for a `*Live` module. Usually the boundary is right: depend on the interface |
 | `Unsupported argument '--device_type'` | Use `--ios_simulator_device/--ios_simulator_version` |
+| CI: `no provisioning profile was found` (or any target needing this Mac's state) | `//ios/...` builds every non-manual target; tag such targets `manual` and reach them through a `select` |
 | Library builds but app does not | Building a library alone targets macOS; build the app or a test target |
 | Swift 6 Sendable errors in our code | Capture dependencies explicitly in `.run { [dep] send in ... }` |
 | `call to main actor-isolated static method` warning in tests | Pure helpers inside a `View` inherit main-actor isolation; mark them `nonisolated` |

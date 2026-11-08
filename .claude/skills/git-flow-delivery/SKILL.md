@@ -2,7 +2,7 @@
 name: git-flow-delivery
 description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, push only after explicit user approval, PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
 metadata:
-  version: 0.4.0
+  version: 0.5.0
   status: experimental
 ---
 
@@ -39,8 +39,9 @@ hotfix/*                                    └──●───┘
 - Let the hooks run. Never `--no-verify`. If a hook blocks, replace the data with fake values.
 - Write the message as literal text or a heredoc; `$VAR` / `$(...)` in messages is blocked by the
   public-text hook because it cannot be checked.
-- Run the commit, tag or PR command in a shell call of its own. The hook scans the whole command
-  line: a `$VAR` anywhere else in the same call blocks it, and so does a note you append to a file
+- Run the commit, tag or PR command in a shell call of its own: nothing else in that call except a
+  trailing log of the new commit. A heredoc message next to any other command (even a PR status
+  check) is blocked as unreadable stdin. The hook scans the whole command line: a `$VAR` anywhere else in the same call blocks it, and so does a note you append to a file
   in that call if the note mentions a publishing command. Edit such notes with the file tools.
   The same goes for scripts or tests that contain `git commit -m`: write them with the file tools,
   then run them with `bash <file>`.
