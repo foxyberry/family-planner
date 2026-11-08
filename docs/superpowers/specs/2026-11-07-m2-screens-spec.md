@@ -9,6 +9,8 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-07: hub text on M1 type steps (24 / 48 / 30); midnight day change; sleep stored as two slots and merged; E5 save rule.
 - 2026-11-08: E3 shows the day above both kids; C1 "Day" opens C6, "Holidays" opens C7 (later); new C6 and C7 sections.
 - 2026-11-08: seed templates with exact times (Mon–Fri, Sat, Sun) and every-week items; day types are only Mon–Fri / Sat / Sun; a weekday school holiday uses Sun (E3, C6, model); free time drawn as plain paper; slot picture sizes 104 / 84 / 56 with radii 0.68R / 0.8R; snack and play share green, sky stays for after-school items.
+- 2026-11-08: Saturday "Weekend school" 9:00–12:00 as an every-week item (sky); weekend activities are every-week items, not template slots, because holidays use Sun; E3 line "No bus today"; E3 example hub "Weekend school" / "until 12:00".
+- 2026-11-08: new E3b (Sunday, Sun template + a Sunday every-week item) and A1n night look (switch at the evening routine and back at wake-up, colours with contrast, lit paper clock face, plated pictures, chalk button).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -52,13 +54,15 @@ Markers used below:
 - **Kid A, every-week items**:
   - "Swimming", Mon and Wed 15:30–16:30, after-school (sky), actSwim, skip school holidays on.
   - "Art club", Fri 15:00–16:00, actArt.
+  - "Weekend school", Sat 9:00–12:00, actLanguageSchool, skip school holidays off (its breaks are not the school's).
+  - Weekend activities are **every-week items, not template slots**. A weekday holiday uses the Sun template, so anything in it would also appear on holidays. A Sunday activity (e.g. church, actChurch) is added by grown-ups as an every-week item; the seed has none, on purpose.
   - On a Monday the clock shows snack 15:00–15:30, swimming 15:30–16:30, free 16:30–17:00.
 - **Kid A, just-once item**: "Birthday", the coming Saturday 14:00–16:00, for both kids, star on.
 - **Kid B**: nap 13:00–15:00, bed 19:30, wake 6:30; morning cards Wake up · Milk (babyBottle) · Shoes. No every-week items.
 - **Sat and Sun templates** (seed; the same for both days; matches board E3):
   - Sleep 20:45–7:30, Breakfast 7:30–8:30, Play 8:30–19:00, Dinner 19:00–20:15, Shower 20:15–20:45.
-  - On the seed Saturday the Birthday (14:00–16:00) sits on top, so at 9:15 the hub says "Play" / "until 2:00", as on E3.
-  - The family's real weekend school and church times are not in the repo; grown-ups add them in C6 with `actLanguageSchool` and `actChurch`.
+  - On the seed Saturday, Weekend school (9:00–12:00) and the Birthday (14:00–16:00) sit on top. At 9:15 the hub says "Weekend school" (head 36, because it is wider than 260) / "until 12:00", as on E3.
+  - Real Sunday activity times are not in the repo; grown-ups add a Sunday every-week item in C3 (e.g. with `actChurch`).
 - Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30" and Kid A "Leave in 34 min" (M3), as on the board.
 
 ### Schedule model the screens assume [proposed]
@@ -170,12 +174,49 @@ Markers used below:
 - Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
 - Right panel (the day comes first because it is the same for both kids; changed 2026-11-08):
   - Day name, e.g. "Saturday" (title 48).
-  - "No school, no bus" (body, `softText`), 4 below. On a school holiday that falls on a weekday the line is the same; the day name shows the weekday.
+  - "No bus today" (body, `softText`), 4 below (was "No school, no bus" until 2026-11-08; weekend school made that untrue). On a school holiday that falls on a weekday the line is the same; the day name shows the weekday.
   - 48 below: `KidDot` + Kid A name (head).
   - The next just-once or every-week item for Kid A: 72 picture + title (body bold) over "{start} – {end}" (caption). Only one.
   - Kid B block as A1.
 - Main button "Diary →" → B2. **[later M5]**: hidden in M2.
 - No item left today [proposed]: leave out the item row.
+
+## E3b · Home, Sunday (new 2026-11-08) [board]
+- Same layout as E3, with the **Sun** template; a Sunday every-week item (the board's example uses `actChurch`) sits on top in sky. The board's real times stay on the canvas only.
+- Example on the board: during that item the hub shows its name / "until {end}". Kid A has no further item today, so the item row is left out (E3 rule).
+- The seed has no Sunday item (see Seed data), so in the app the seed Sunday shows the plain Sun template until a grown-up adds one.
+
+## A1n · Home at night: the night look (new 2026-11-08) [board + proposed]
+Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 pm.
+- **When**:
+  - Kid screens switch to the night look at the start of the kid's **evening routine** (the first evening-routine slot of the day's template, 19:15 in the seed).
+  - They switch back at the kid's **wake-up**.
+  - The change is a 2 s crossfade, never a flash.
+  - Grown-up screens follow the iPad's own light/dark setting instead.
+- **Colours** (contrast on #22213A):
+
+  | role | colour | contrast |
+  |---|---|---|
+  | page | `night` #22213A | — |
+  | text | `nightText` #F4EFFF | 13.8:1 |
+  | soft text | #C9C3E0 | 9.2:1 |
+  | Kid A dot | #56B4E9 | 6.8:1, non-text |
+  | Kid B dot | #E69F00 | 6.9:1, non-text |
+  | link | #56B4E9 | — |
+
+  - The night kid colours and the chalk outline already exist as the B1 night parts.
+- **Clock**:
+  - The disc keeps a **lit paper face** (#EFE8D8) under the slots, so the crayon colours read as by day. It is not dimmed.
+  - Hour ticks and hour numbers turn chalk: #F4EFFF for the 12/6 labels, #C9C3E0 for the rest.
+  - The hub stays white with ink text.
+  - The red hand is unchanged.
+- **Kit pictures off the clock** sit on a paper plate: a 104 circle in #FBF8F1 with a 3.5 pt chalk ring. Their black outlines need a light ground.
+- **Main button**: chalk fill (#F4EFFF) with `night` text. It is the inverse of the ink button.
+- **Right panel at night** (board):
+  - Kid A: "Bed in" (body, soft) and `TimeLeft` display 96 "20 min" until bedtime.
+  - Then a "Tomorrow" row: plated 64 picture, "Tomorrow" (body bold) over "School, leave {h:mm}" (caption).
+  - Kid B: now/next circles as by day; next = wake-up (sun).
+  - Button "Diary →". **[later M5]**: hidden in M2, as by day.
 
 ---
 
