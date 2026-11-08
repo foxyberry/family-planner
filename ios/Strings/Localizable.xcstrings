@@ -67,17 +67,6 @@
         }
       }
     },
-    "clock.now" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NOW"
-          }
-        }
-      }
-    },
     "days.every" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -667,7 +656,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@'s day as a 24-hour clock. Midnight at the top, noon at the bottom. Now %2$@, %3$@."
+            "value" : "%1$@'s day as a 24-hour clock. Midnight at the top, noon at the bottom. %2$@ %3$@, %4$@."
           }
         }
       }

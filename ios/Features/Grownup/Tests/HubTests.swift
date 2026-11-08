@@ -10,18 +10,18 @@ final class HubModelTests: XCTestCase {
 
     func testAboutRowsForSchoolKid() {
         XCTAssertEqual(HubModel.aboutRows(kid: SeedData.kidA, routines: SeedData.routines),
-                       [HubRow(key: "Age", value: "8 · Year 3"), HubRow(key: "Day", value: "Up 7:00 · Bed 8:30")])
+                       [HubRow(key: "Age", value: "8 · Year 3"), HubRow(key: "Day", value: "Up 6:30 · Bed 8:00")])
     }
 
     func testAboutRowsForHomeKid() {
         XCTAssertEqual(HubModel.aboutRows(kid: SeedData.kidB, routines: SeedData.routines),
-                       [HubRow(key: "Age", value: "4 · at home"), HubRow(key: "Day", value: "Nap 1:00–2:30 · Bed 7:30")])
+                       [HubRow(key: "Age", value: "4 · at home"), HubRow(key: "Day", value: "Nap 1:00–3:00 · Bed 7:30")])
     }
 
     func testSchoolRows() {
         XCTAssertEqual(HubModel.schoolRows(kid: SeedData.kidA),
                        [HubRow(key: "School", value: "Example Primary School"),
-                        HubRow(key: "Hours", value: "8:00 am – 3:00 pm"),
+                        HubRow(key: "Hours", value: "7:30 am – 3:00 pm"),
                         HubRow(key: "Holidays", value: "No holidays set")])
         XCTAssertEqual(HubModel.schoolRows(kid: SeedData.kidB), [])
     }
@@ -30,11 +30,11 @@ final class HubModelTests: XCTestCase {
         let sections = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines)
         XCTAssertEqual(sections.map(\.title), ["About", "School"])
         XCTAssertEqual(sections[0].rows, [.text(HubRow(key: "Age", value: "8 · Year 3")),
-                                          .text(HubRow(key: "Day", value: "Up 7:00 · Bed 8:30"))])
+                                          .text(HubRow(key: "Day", value: "Up 6:30 · Bed 8:00"))])
         XCTAssertEqual(sections[1].rows, [
             .text(HubRow(key: "School", value: "Example Primary School")),
             .schoolDays(key: "Days", days: Weekday.schoolDays),
-            .text(HubRow(key: "Hours", value: "8:00 am – 3:00 pm")),
+            .text(HubRow(key: "Hours", value: "7:30 am – 3:00 pm")),
             .text(HubRow(key: "Holidays", value: "No holidays set")),
         ])
     }
@@ -71,14 +71,14 @@ final class HubModelTests: XCTestCase {
         let yesterday = Day(year: 2026, month: 11, day: 8)
         let items = (0..<7).map { F.once("Event \($0)", on: F.monday.adding(days: 6 - $0, calendar: F.calendar)) }
             + [F.once("Last night", on: yesterday), F.once("Last week", on: Day(year: 2026, month: 11, day: 1))]
-        // 6:30 am on Monday: Kid A wakes at 7:00, so last night's event is still listed.
+        // 6:00 am on Monday: Kid A wakes at 6:30, so last night's event is still listed.
         let early = HubModel.onceRows(kid: SeedData.kidA, items: items, routines: SeedData.routines, today: F.monday,
-                                      nowMinute: 390, calendar: F.calendar)
+                                      nowMinute: 360, calendar: F.calendar)
         XCTAssertEqual(early.map(\.title), ["Last night", "Event 6", "Event 5", "Event 4", "Event 3"])
         XCTAssertEqual(early.first?.detail, "Sun 8 Nov · 4:00–5:00")
         let later = HubModel.onceRows(kid: SeedData.kidA, items: items, routines: SeedData.routines, today: F.monday,
-                                      nowMinute: 480, calendar: F.calendar)
-        XCTAssertEqual(later.first?.title, "Event 6")
+                                      nowMinute: 390, calendar: F.calendar)
+        XCTAssertEqual(later.first?.title, "Event 6", "gone at wake-up")
     }
 }
 

@@ -39,14 +39,19 @@ run: build
 # Build, sign and install on a real iPad, by cable or over the same Wi-Fi once it has been
 # paired by cable. With a free Apple ID the
 # profile lasts 7 days: run this again to renew it (installing over keeps the app's data).
+# The ipa stores every file at 1980-01-01 (deterministic builds) and devicectl's incremental
+# install skips files whose size and time match, so a same-size new binary never reached the
+# iPad. Touching the unpacked app makes every install copy everything.
 device:
 	@UDID=$$(scripts/connected-ipad.sh) && \
 	scripts/device-profile.sh $(BUNDLE_ID) "$$UDID" && \
 	$(IOS_BAZEL) build $(APP_TARGET) --config=device && \
 	rm -rf bazel-device && mkdir bazel-device && \
 	unzip -q bazel-bin/ios/$(APP_NAME).ipa -d bazel-device && \
+	find bazel-device -exec touch {} + && \
 	xcrun devicectl device install app --device "$$UDID" bazel-device/Payload/$(APP_NAME).app && \
-	xcrun devicectl device process launch --terminate-existing --device "$$UDID" $(BUNDLE_ID) $(LAUNCH_ARGS)
+	xcrun devicectl device process launch --terminate-existing --device "$$UDID" $(BUNDLE_ID) $(LAUNCH_ARGS) && \
+	scripts/device-check.sh $(APP_NAME) bazel-device/Payload/$(APP_NAME).app/$(APP_NAME)
 
 # The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.
 # Failed snapshots leave their new picture in the git-ignored __Diffs__ folder (local runs
@@ -133,4 +138,5 @@ setup: check-prereqs setup-ios
 	@[ -f user.bazelrc ] || { cp user.bazelrc.example user.bazelrc && echo "  created user.bazelrc"; }
 	@[ -f .private-terms ] || { cp .private-terms.example .private-terms && echo "  created .private-terms (add your real private words)"; }
 	@git config core.hooksPath .githooks && echo "  git hooks enabled (.githooks)"
+	@command -v pymobiledevice3 >/dev/null || echo "  optional: uv tool install pymobiledevice3 (make device checks the iPad for crashes)"
 	@echo "=== Setup complete: make build | make run | make test ==="

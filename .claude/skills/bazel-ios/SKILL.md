@@ -2,7 +2,7 @@
 name: bazel-ios
 description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/device/lint/fmt/sim-stop, signed builds on a real iPad, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.6.0
+  version: 0.7.0
   status: experimental
 ---
 
@@ -48,7 +48,11 @@ turn on "Skip Face ID" in the debug bubble's menu, or just tap "Enter" when Face
   run `make device` once so Settings shows Developer Mode, turn it on and restart, then after
   the first install trust the developer in Settings > General > VPN & Device Management.
 - After that first cabled pairing, `make device` also works over Wi-Fi (same network, iPad awake);
-  `devicectl` shows it as `localNetwork`. Wake the iPad if it is not found.
+  `devicectl` shows it as `localNetwork`. Wake the iPad if it is not found. Wi-Fi installs can
+  time out (`tunnel connection failed`); plug in the cable rather than retrying.
+- `make device` ends with `scripts/device-check.sh` (needs `pymobiledevice3` and a cable): it fails
+  on a crash after launch, says whether the crashed binary is the new build, and saves
+  `bazel-device/screen.png`. Look at it before saying anything works; "Launched" proves nothing.
 
 ## Commands
 
@@ -142,6 +146,7 @@ fp_swift_library(name = "KitArt", data = [":KitArtResources"])
 | `cannot be registered to your development team because it is not available` | Placeholder bundle IDs (com.example.*) are taken; use the real `BUNDLE_ID` in `project.bzl` |
 | Device install: `not a valid bundle ... CFBundleName` | The simulator ignores a missing `CFBundleName`; a real iPad does not. Keep it in `ios/Info.plist` |
 | A view's `@Dependency(\.x)` is the default, not what `bootstrap` injected | Views read `DependencyValues._current`, not the store's; pass the value in or expose it (e.g. `DebugModel.installed`) |
+| iPad runs old code after `make device` (crash uuid ≠ built uuid) | ipa files are dated 1980; devicectl skipped a same-size binary. Keep the Makefile's `touch` step |
 | Device launch: `profile has not been explicitly trusted` | Trust the developer once in Settings > General > VPN & Device Management |
 | `UIImage(named:in:)` returns nil though the asset exists | Resource bundle Info.plist lacks `CFBundleIdentifier` (see Resources) |
 

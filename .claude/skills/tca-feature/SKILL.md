@@ -67,3 +67,5 @@ reference time zone, the time machine and tests can replace any of it in one pla
 - Passing `Date()` or `Calendar.current` into a Live value from `bootstrap`: it then ignores the time machine and the reference time zone.
 - Deciding in the view because "it is just one ternary": the choice is then untested, and it drifts from the reducer's guard.
 - Copy assembled in views: it cannot move to the String Catalog.
+- Mapping one enum onto another with `X(rawValue: y.rawValue)!` (a Domain kind onto a DesignSystem style): a new case then traps on screen, not in a build. Map with a `switch` or a fallback, and test every `allCases` value.
+- Fixed test dates on a public holiday: 9 Nov 2026 (Deepavali observed) is a Sunday-template day in the app. Check the holiday list before a weekday fixture becomes a "school day" check, on the iPad too.

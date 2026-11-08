@@ -6,11 +6,14 @@ import SwiftUI
 /// The 24-hour crayon pie clock (board A1). The view's frame is the disc (radius 372); hour labels,
 /// the moon and the sun sit outside it, so give the clock room around its frame.
 public struct PieClock: View {
+    /// The hub's three lines: the day ("Tuesday"), the slot's name and "until 4:30 pm".
     public struct Hub: Equatable, Sendable {
+        public var day: String?
         public var title: String?
         public var subtitle: String?
 
-        public init(title: String?, subtitle: String?) {
+        public init(day: String?, title: String?, subtitle: String?) {
+            self.day = day
             self.title = title
             self.subtitle = subtitle
         }
@@ -141,7 +144,11 @@ public struct PieClock: View {
 
     private var hubDisc: some View {
         VStack(spacing: Spacing.xs) {
-            Text(L10n.tr("clock.now")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            if let day = hub.day {
+                // Board A1 day rule: body 30 at weight 600.
+                Text(day).font(Font(FontRegistrar.font(size: CrayonType.body.size, weight: .semibold)))
+                    .foregroundStyle(CrayonColor.softText).lineLimit(1)
+            }
             if let title = hub.title {
                 // title 48, then head 36, then head 36 cut at a word with "…"; never wrapped.
                 ViewThatFits(in: .horizontal) {

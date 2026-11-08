@@ -2,10 +2,25 @@ import Foundation
 
 /// Turns a kid's routine and schedule items into the slots of one day.
 public enum DayPlanner {
-    public static func dayKind(on day: Day, kid: Kid, holidays: Set<Day>, calendar: Calendar) -> DayKind {
-        if holidays.contains(day) { return .dayOff }
-        let days = kid.school?.days ?? Weekday.schoolDays
-        return days.contains(day.weekday(calendar)) ? .schoolDay : .dayOff
+    /// Mon–Fri use the weekday template unless the day is a holiday, which uses Sun; Sat and Sun their own.
+    public static func dayType(on day: Day, holidays: Set<Day>, calendar: Calendar) -> DayType {
+        switch day.weekday(calendar) {
+        case .saturday: .saturday
+        case .sunday: .sunday
+        default: holidays.contains(day) ? .sunday : .weekday
+        }
+    }
+
+    /// A weekend or a holiday: the home screen's day-off layout (board E3).
+    public static func isDayOff(on day: Day, holidays: Set<Day>, calendar: Calendar) -> Bool {
+        dayType(on: day, holidays: holidays, calendar: calendar) != .weekday
+    }
+
+    /// The kid's template for `day`: the newest one of that day type that starts on or before it.
+    public static func template(for kid: Kid.ID, on day: Day, routines: [Routine], holidays: Set<Day>,
+                                calendar: Calendar) -> Routine? {
+        let type = dayType(on: day, holidays: holidays, calendar: calendar)
+        return routines.filter { $0.kid == kid && $0.dayType == type && $0.from <= day }.max { $0.from < $1.from }
     }
 
     /// Whether `item` is on `kid`'s day `day`.
@@ -30,9 +45,9 @@ public enum DayPlanner {
     /// (just once > every week > routine); between equals the later start wins. Lower ones are cut around it.
     public static func slots(on day: Day, kid: Kid, routines: [Routine], items: [ScheduleItem],
                              holidays: Set<Day>, calendar: Calendar) -> [Slot] {
-        let kind = dayKind(on: day, kid: kid, holidays: holidays, calendar: calendar)
+        let routine = template(for: kid.id, on: day, routines: routines, holidays: holidays, calendar: calendar)
         var candidates: [(priority: Int, slot: Slot)] = []
-        for block in routines.first(where: { $0.kid == kid.id && $0.dayKind == kind })?.blocks ?? [] {
+        for block in routine?.blocks ?? [] {
             candidates.append((0, Slot(title: block.title, iconName: block.iconName, kind: block.kind,
                                        start: block.start, end: block.end, source: .routine, showsStar: false)))
         }
