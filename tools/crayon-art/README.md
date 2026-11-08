@@ -17,4 +17,5 @@ node kit.js . ../../ios/KitArt/Resources/KitArt.xcassets [shapes.json]
   - The same input always produces the same files, so re-running leaves `git status` clean.
 - Style rules: one bold freehand marker outline (long straight runs bow a little and every edge drifts slowly), crayon hatching with the paper showing, colour spilling slightly past the line, plain dot eyes, a one-line smile.
 - Do not add pictures of real places, schools or people here, because this folder is public.
-  - Private overrides (the school mascot for `actSchool`, the real home for `home`) live in git-ignored `ios/KitArt/Private/<slot>.svg`.
+  - The school mascot is the public `wolfie` picture (the user's choice, 2026-11-08).
+  - Private overrides (the real home for `home`) live in git-ignored `ios/KitArt/Private/<slot>.svg`.

@@ -11,7 +11,7 @@ apple_resource_bundle(
     resources = glob(["Resources/KitArt.xcassets/**"]),
 )
 
-# Private overrides (school mascot, real home) exist only on a developer's machine; the folder
+# Private overrides (the real home) exist only on a developer's machine; the folder
 # is git-ignored, so CI and clones build without them. Build them with `make art-private`.
 apple_resource_bundle(
     name = "KitArtPrivateResources",

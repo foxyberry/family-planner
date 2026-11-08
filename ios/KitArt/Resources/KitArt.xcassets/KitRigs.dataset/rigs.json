@@ -1,21 +1,4 @@
 {
- "version": 1,
- "scale": 1,
- "maxSeconds": 1.2,
- "rules": "Rigid parts only (rotate or move a whole part; never bend or stretch). Faces move only with their head part; eyes may blink once. Rotations <= 15 deg, moves <= 20 units in the 240 box. One play per tap, <= 1.2 s, then still. Pivots sit where the part is attached. A picture without a rig gets 'hop'.",
- "moves": {
-  "hop": "whole picture up 14 and down, a 5% squash on landing (origin: bottom centre)",
-  "rock": "rotate +deg, -deg, ... 'times' swings, settling to 0",
-  "bob": "move up 'px' and back, 'times' times",
-  "slide": "move sideways +-'px', 'times' times (scrubbing)",
-  "spin": "rotate by 'deg' once; deg is the part's symmetry angle, so it lands looking the same",
-  "rise": "move up 'px' while fading out, twice (steam)",
-  "fall": "move down 'px' while fading out, twice (water)",
-  "press": "move down 'px' and back once, after 'delay' ms (keys)",
-  "blink": "eye dot squashes to 10% height and back once",
-  "flicker": "flame grows 15% taller then 10% shorter from its base",
-  "twinkle": "turn 20 deg and grow 15% evenly, then back"
- },
  "default": {
   "parts": [
    {
@@ -825,24 +808,244 @@
     },
     {
      "image": "rig-actLanguageSchool-1",
-     "part": "sign"
-    },
-    {
-     "image": "rig-actLanguageSchool-2",
-     "part": null
+     "part": "flag"
     }
    ],
    "parts": {
-    "sign": {
+    "flag": {
      "origin": [
-      120,
-      86
+      50,
+      40
      ],
      "moves": [
       {
        "type": "rock",
-       "deg": 6,
-       "times": 2
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagKR": {
+   "runs": [
+    {
+     "image": "rig-flagKR-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagKR-1",
+     "part": "flag"
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagJP": {
+   "runs": [
+    {
+     "image": "rig-flagJP-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagJP-1",
+     "part": "flag"
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagUK": {
+   "runs": [
+    {
+     "image": "rig-flagUK-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagUK-1",
+     "part": "flag"
+    },
+    {
+     "image": "rig-flagUK-2",
+     "part": null
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagFR": {
+   "runs": [
+    {
+     "image": "rig-flagFR-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagFR-1",
+     "part": "flag"
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagIN": {
+   "runs": [
+    {
+     "image": "rig-flagIN-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagIN-1",
+     "part": "flag"
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagCN": {
+   "runs": [
+    {
+     "image": "rig-flagCN-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagCN-1",
+     "part": "flag"
+    },
+    {
+     "image": "rig-flagCN-2",
+     "part": null
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagTH": {
+   "runs": [
+    {
+     "image": "rig-flagTH-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagTH-1",
+     "part": "flag"
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "flagVN": {
+   "runs": [
+    {
+     "image": "rig-flagVN-0",
+     "part": null
+    },
+    {
+     "image": "rig-flagVN-1",
+     "part": "flag"
+    }
+   ],
+   "parts": {
+    "flag": {
+     "origin": [
+      50,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 5,
+       "times": 3
       }
      ]
     }
