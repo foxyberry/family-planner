@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   status: experimental
 ---
 
@@ -48,6 +48,11 @@ reference time zone, the time machine and tests can replace any of it in one pla
    `place(_:)`, `place(left:baseline:)`, `place(right:baseline:)` or `place(topLeft:)`. Parts
    carry no outer padding: a part's visible edge is its frame. Add a layout test that checks the
    shared lines on the four iPads, then look at the screen on the iPad with `GRID=1` (bazel-ios).
+   Kid screens fill the window and keep the status bar visible with its band (y 0–24) empty.
+7. Every board of a screen family (A1, A1m, A1n, E3, …) is one State case (`HomeFeature.KidABlock`)
+   with a test; capture each on the iPad at a time that hits it. A view that falls through to
+   nothing is a missing case.
+8. "As on <board>" in the spec: find that board's rule (spec, backlog, motion table) before building.
 
 ## Where does it go?
 
