@@ -1,7 +1,10 @@
 // The app target stays thin: entry point + live dependency injection only.
 // Screens, state and lifecycle handling live in AppCore.
 import AppCore
+import BusClient
+import BusClientLive
 import ComposableArchitecture
+import DeviceConfig
 #if DEBUG
 import DebugTools
 #endif
@@ -11,6 +14,8 @@ import ParentAuthClient
 import ParentAuthClientLive
 import ScheduleStore
 import ScheduleStoreLive
+import SecretStore
+import SecretStoreLive
 import SwiftUI
 
 final class AppDelegate: AppDelegateBase {
@@ -18,6 +23,8 @@ final class AppDelegate: AppDelegateBase {
         dependencies.parentAuth = .live
         dependencies.holidays = .live
         dependencies.scheduleStore = .live(directory: .applicationSupportDirectory)
+        dependencies.bus = .live()
+        dependencies.secrets = .live(busKey: DeviceConfig.bundled?.usableBusKey)
         #if DEBUG
         DebugModel.install(into: &dependencies)
         #endif

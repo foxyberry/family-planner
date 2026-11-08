@@ -30,17 +30,14 @@ xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit.enrollmentChanged 
 xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit_Sim.pearl.match      # matching face
 ```
 
-A match sent before the sheet shows does nothing. Easier in debug builds: the bubble's
-"Skip Face ID", or "Enter" when Face ID is not enrolled.
+A match before the sheet shows does nothing. Easier: debug "Skip Face ID".
 
 ## Real iPad (`make device`)
 
 - Works with a free Apple ID (Personal Team). The profile lasts 7 days; run `make device` again
   to renew it. Installing over the old app keeps its data. One device holds 3 such apps.
-- `scripts/device-profile.sh` makes Xcode create "iOS Team Provisioning Profile: <bundle id>"
-  by building a throwaway xcodegen stub with automatic signing; `//ios:device_profile`
-  (rules_apple `local_provisioning_profile`) finds it in `~/Library`. Team and device IDs are
-  read on this Mac and never written into the repo.
+- `scripts/device-profile.sh` has Xcode create the team profile (throwaway xcodegen stub);
+  `//ios:device_profile` finds it in `~/Library`. Team and device IDs never enter the repo.
 - `--config=device` (ios/.bazelrc) builds arm64 and selects the profile; plain builds stay unsigned.
 - First time on an iPad: pair (`xcrun devicectl manage pair --device <id>`, tap Trust),
   run `make device` once so Settings shows Developer Mode, turn it on and restart, then after
@@ -51,6 +48,8 @@ A match sent before the sheet shows does nothing. Easier in debug builds: the bu
 - `make device` ends with `scripts/device-check.sh` (needs `pymobiledevice3` and a cable): it fails
   on a crash after launch, tells whether the crashed binary is new, and saves
   `bazel-device/screen.png`. Look at it; "Launched" proves nothing.
+- Layout check: `make device NOW=… OPEN=missions GRID=1` opens the screen by deep link with the
+  board-line grid on; `pymobiledevice3 developer dvt screenshot x.png`; a part off its line is a bug.
 
 ## Commands
 

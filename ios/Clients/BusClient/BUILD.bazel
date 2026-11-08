@@ -1,0 +1,11 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Interface only. The LTA DataMall calls live in BusClientLive (app target only).
+fp_swift_library(
+    name = "BusClient",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Domain",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

@@ -8,6 +8,17 @@
 	<string>FamilyPlanner</string>
 	<key>CFBundleShortVersionString</key>
 	<string>0.1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>familyplanner</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>familyplanner</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSFaceIDUsageDescription</key>

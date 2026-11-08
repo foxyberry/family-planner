@@ -1,0 +1,643 @@
+{
+ "version": "4",
+ "board": "A2",
+ "family": "morning",
+ "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
+ "global": {
+  "width": 1376,
+  "height": 1032,
+  "statusBand": [
+   0,
+   24
+  ],
+  "margin": 64,
+  "right": 1312,
+  "gutter": 24,
+  "column": 82,
+  "columnLefts": [
+   64,
+   170,
+   276,
+   382,
+   488,
+   594,
+   700,
+   806,
+   912,
+   1018,
+   1124,
+   1230
+  ],
+  "headerTop": 48,
+  "headerBottom": 128,
+  "headerBaseline": 107,
+  "contentTop": 176,
+  "contentBottom": 968
+ },
+ "lines": {
+  "kidsLeft": 64,
+  "kidTextLeft": 172,
+  "missionsLeft": 448,
+  "right": 1312,
+  "stripTop": 176,
+  "stripBottom": 516,
+  "kidsTop": 536,
+  "missionsTop": 548,
+  "circleTop": 612,
+  "captionTop": 732,
+  "bottomControlTop": 872,
+  "baselines": {
+   "header": 107,
+   "missionsName": 584,
+   "captions": 757
+  }
+ },
+ "regions": {
+  "header": {
+   "left": 64,
+   "right": 1312,
+   "anchor": "stretch"
+  },
+  "strip": {
+   "left": 64,
+   "right": 1312,
+   "anchor": "stretch"
+  },
+  "kids": {
+   "left": 64,
+   "right": 418,
+   "anchor": "left"
+  },
+  "missions": {
+   "left": 448,
+   "right": 1312,
+   "anchor": "stretch"
+  },
+  "bottom": {
+   "left": 448,
+   "right": 1312,
+   "anchor": "stretch"
+  }
+ },
+ "elements": [
+  {
+   "id": "header.back",
+   "kind": "back",
+   "x": 64,
+   "y": 48,
+   "w": 80,
+   "h": 80,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "start",
+   "text": "Back to today"
+  },
+  {
+   "id": "header.title",
+   "kind": "title",
+   "x": 168,
+   "y": 51,
+   "w": 353,
+   "h": 72,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 107,
+   "font": 48,
+   "text": "Good morning!"
+  },
+  {
+   "id": "header.minutes",
+   "kind": "text",
+   "x": 940,
+   "y": 51,
+   "w": 154,
+   "h": 72,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 107,
+   "font": 48
+  },
+  {
+   "id": "header.status",
+   "kind": "text",
+   "x": 1134,
+   "y": 60,
+   "w": 178,
+   "h": 54,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "end",
+   "baseline": 88,
+   "font": 36,
+   "text": "On time"
+  },
+  {
+   "id": "header.leaveLabel",
+   "kind": "text",
+   "x": 811,
+   "y": 72,
+   "w": 117,
+   "h": 45,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 107,
+   "font": 30,
+   "text": "Leave in"
+  },
+  {
+   "id": "header.statusDot",
+   "kind": "picture",
+   "x": 1134,
+   "y": 74,
+   "w": 28,
+   "h": 28,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "strip.ground",
+   "kind": "picture",
+   "x": 64,
+   "y": 176,
+   "w": 1248,
+   "h": 340,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "fill",
+   "stripLocal": {
+    "x": 0,
+    "y": 0
+   }
+  },
+  {
+   "id": "strip.bubble.1",
+   "kind": "bubble",
+   "x": 72,
+   "y": 184,
+   "w": 220,
+   "h": 132,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 8,
+    "y": 8
+   }
+  },
+  {
+   "id": "strip.legend",
+   "kind": "text",
+   "x": 1082,
+   "y": 191,
+   "w": 84,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 219,
+   "font": 24,
+   "text": "my bus",
+   "stripLocal": {
+    "x": 1018,
+    "y": 15
+   }
+  },
+  {
+   "id": "strip.text",
+   "kind": "text",
+   "x": 1020,
+   "y": 192,
+   "w": 44,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 210,
+   "font": 24,
+   "stripLocal": {
+    "x": 956,
+    "y": 16
+   }
+  },
+  {
+   "id": "strip.bubble.2",
+   "kind": "bubble",
+   "x": 616,
+   "y": 204,
+   "w": 190,
+   "h": 104,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 552,
+    "y": 28
+   }
+  },
+  {
+   "id": "strip.home",
+   "kind": "picture",
+   "x": 849,
+   "y": 227,
+   "w": 150,
+   "h": 150,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 785,
+    "y": 51
+   }
+  },
+  {
+   "id": "strip.destination",
+   "kind": "picture",
+   "x": 1154,
+   "y": 251,
+   "w": 120,
+   "h": 120,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 1090,
+    "y": 75
+   }
+  },
+  {
+   "id": "strip.mover.1",
+   "kind": "mover",
+   "x": 90,
+   "y": 314,
+   "w": 122,
+   "h": 122,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 26,
+    "y": 138
+   }
+  },
+  {
+   "id": "strip.mover.2",
+   "kind": "mover",
+   "x": 650,
+   "y": 314,
+   "w": 122,
+   "h": 122,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 586,
+    "y": 138
+   }
+  },
+  {
+   "id": "strip.homeLabel",
+   "kind": "text",
+   "x": 871,
+   "y": 447,
+   "w": 106,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 475,
+   "font": 24,
+   "text": "Our stop",
+   "stripLocal": {
+    "x": 807,
+    "y": 271
+   }
+  },
+  {
+   "id": "strip.destinationLabel",
+   "kind": "text",
+   "x": 1174,
+   "y": 447,
+   "w": 80,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 475,
+   "font": 24,
+   "text": "School",
+   "stripLocal": {
+    "x": 1110,
+    "y": 271
+   }
+  },
+  {
+   "id": "kids.row.1",
+   "kind": "row",
+   "x": 64,
+   "y": 536,
+   "w": 340,
+   "h": 100,
+   "region": "kids",
+   "anchor": "left",
+   "align": "start"
+  },
+  {
+   "id": "kids.band",
+   "kind": "picture",
+   "x": 64,
+   "y": 536,
+   "w": 354,
+   "h": 100,
+   "region": "kids",
+   "anchor": "left",
+   "align": "fill"
+  },
+  {
+   "id": "missions.name",
+   "kind": "text",
+   "x": 448,
+   "y": 542,
+   "w": 123,
+   "h": 54,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "start",
+   "baseline": 584,
+   "font": 36
+  },
+  {
+   "id": "kids.ring.1",
+   "kind": "ring",
+   "x": 80,
+   "y": 548,
+   "w": 76,
+   "h": 76,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "kids.rowText.1",
+   "kind": "text",
+   "x": 172,
+   "y": 548,
+   "w": 103,
+   "h": 45,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 583,
+   "font": 30
+  },
+  {
+   "id": "missions.leaveAt",
+   "kind": "text",
+   "x": 583,
+   "y": 556,
+   "w": 195,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 584,
+   "font": 24
+  },
+  {
+   "id": "kids.rowText.2",
+   "kind": "text",
+   "x": 172,
+   "y": 586,
+   "w": 133,
+   "h": 36,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 614,
+   "font": 24
+  },
+  {
+   "id": "missions.circle.1",
+   "kind": "circle",
+   "x": 448,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "missions.circle.2",
+   "kind": "circle",
+   "x": 598,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "missions.circle.3",
+   "kind": "circle",
+   "x": 749,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "missions.circle.4",
+   "kind": "circle",
+   "x": 899,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "missions.circle.5",
+   "kind": "circle",
+   "x": 1050,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "missions.circle.6",
+   "kind": "circle",
+   "x": 1200,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "end"
+  },
+  {
+   "id": "kids.row.2",
+   "kind": "row",
+   "x": 64,
+   "y": 644,
+   "w": 340,
+   "h": 100,
+   "region": "kids",
+   "anchor": "left",
+   "align": "start"
+  },
+  {
+   "id": "kids.ring.2",
+   "kind": "ring",
+   "x": 80,
+   "y": 656,
+   "w": 76,
+   "h": 76,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "kids.rowText.3",
+   "kind": "text",
+   "x": 172,
+   "y": 656,
+   "w": 91,
+   "h": 45,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 691,
+   "font": 30
+  },
+  {
+   "id": "kids.rowText.4",
+   "kind": "text",
+   "x": 172,
+   "y": 694,
+   "w": 127,
+   "h": 36,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 722,
+   "font": 24
+  },
+  {
+   "id": "missions.caption.1",
+   "kind": "text",
+   "x": 454,
+   "y": 729,
+   "w": 100,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "wake up"
+  },
+  {
+   "id": "missions.caption.2",
+   "kind": "text",
+   "x": 622,
+   "y": 729,
+   "w": 65,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "brush"
+  },
+  {
+   "id": "missions.caption.3",
+   "kind": "text",
+   "x": 774,
+   "y": 729,
+   "w": 62,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "dress"
+  },
+  {
+   "id": "missions.caption.4",
+   "kind": "text",
+   "x": 895,
+   "y": 729,
+   "w": 120,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "breakfast"
+  },
+  {
+   "id": "missions.caption.5",
+   "kind": "text",
+   "x": 1084,
+   "y": 729,
+   "w": 43,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "bag"
+  },
+  {
+   "id": "missions.caption.6",
+   "kind": "text",
+   "x": 1224,
+   "y": 729,
+   "w": 63,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "shoes"
+  },
+  {
+   "id": "bottom.slide",
+   "kind": "slide",
+   "x": 448,
+   "y": 872,
+   "w": 864,
+   "h": 96,
+   "region": "bottom",
+   "anchor": "stretch",
+   "align": "fill"
+  },
+  {
+   "id": "bottom.knob",
+   "kind": "mover",
+   "x": 473,
+   "y": 889,
+   "w": 61,
+   "h": 61,
+   "region": "bottom",
+   "anchor": "stretch",
+   "align": "inside"
+  }
+ ]
+}

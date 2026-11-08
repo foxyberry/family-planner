@@ -37,4 +37,15 @@ final class SlideToGoModelTests: XCTestCase {
         XCTAssertEqual(model.phase, .done)
         XCTAssertFalse(model.dragEnded())
     }
+
+    /// Spec "After the slide": dragging the knob back past the middle undoes; short of it springs back.
+    func testDraggingBackFromDoneUndoesPastTheMiddle() {
+        var model = SlideToGoModel(phase: .done)
+        model.undoDragChanged(progress: 0.7)
+        XCTAssertFalse(model.undoDragEnded())
+        XCTAssertEqual(model.phase, .done)
+        model.undoDragChanged(progress: 0.3)
+        XCTAssertTrue(model.undoDragEnded())
+        XCTAssertEqual(model.phase, .idle)
+    }
 }

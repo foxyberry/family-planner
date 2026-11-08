@@ -510,6 +510,7 @@ const ITEMS = {
   car: [
     S('M22 152C22 130 34 122 54 118L80 80C86 72 94 68 104 68H150C160 68 168 72 174 80L198 116C216 120 224 130 224 152V178H22Z', K.blue, -40),
     S('M92 84H124V116H70Z', K.sky, 40), S('M134 84H154C158 84 162 86 164 90L180 116H134Z', K.sky, 40),
+    ...eye(146, 101, 13), ...eye(164, 101, 13), smile(158, 127, 18),
     S(circ(214, 142, 7), K.yellow, 0),
     B(circ(68, 180, 22)), B(circ(176, 180, 22)), S(circ(68, 180, 8), K.white, 0), S(circ(176, 180, 8), K.white, 0),
   ],
@@ -517,6 +518,7 @@ const ITEMS = {
     S(rr(96, 40, 52, 24, 6), K.white, 0),
     S('M22 152C22 130 34 122 54 118L80 80C86 72 94 68 104 68H150C160 68 168 72 174 80L198 116C216 120 224 130 224 152V178H22Z', K.yellow, -40),
     S('M92 84H124V116H70Z', K.sky, 40), S('M134 84H154C158 84 162 86 164 90L180 116H134Z', K.sky, 40),
+    ...eye(146, 101, 13), ...eye(164, 101, 13), smile(158, 127, 18),
     B(rr(40, 138, 16, 12, 2)), B(rr(72, 138, 16, 12, 2)), B(rr(104, 138, 16, 12, 2)), B(rr(136, 138, 16, 12, 2)), B(rr(168, 138, 16, 12, 2)),
     S(circ(214, 142, 7), K.white, 0),
     B(circ(68, 180, 22)), B(circ(176, 180, 22)), S(circ(68, 180, 8), K.white, 0), S(circ(176, 180, 8), K.white, 0),
@@ -1860,6 +1862,82 @@ const RIGS = {
       {
        "type": "spin",
        "deg": 360
+      }
+     ]
+    }
+   ]
+  },
+  "shirt": {
+   "parts": [
+    {
+     "name": "shirt",
+     "layers": "all",
+     "origin": [
+      120,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 8,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "backpack": {
+   "parts": [
+    {
+     "name": "bag",
+     "layers": "all",
+     "origin": [
+      120,
+      220
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 10,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "shoe": {
+   "parts": [
+    {
+     "name": "shoe",
+     "layers": "all",
+     "origin": [
+      40,
+      200
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 10,
+       "times": 2
+      }
+     ]
+    }
+   ]
+  },
+  "babyBottle": {
+   "parts": [
+    {
+     "name": "bottle",
+     "layers": "all",
+     "origin": [
+      120,
+      220
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 12,
+       "times": 1
       }
      ]
     }

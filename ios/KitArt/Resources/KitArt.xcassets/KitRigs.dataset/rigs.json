@@ -1243,6 +1243,98 @@
      ]
     }
    }
+  },
+  "shirt": {
+   "runs": [
+    {
+     "image": "rig-shirt-0",
+     "part": "shirt"
+    }
+   ],
+   "parts": {
+    "shirt": {
+     "origin": [
+      120,
+      40
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 8,
+       "times": 2
+      }
+     ]
+    }
+   }
+  },
+  "backpack": {
+   "runs": [
+    {
+     "image": "rig-backpack-0",
+     "part": "bag"
+    }
+   ],
+   "parts": {
+    "bag": {
+     "origin": [
+      120,
+      220
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 10,
+       "times": 2
+      }
+     ]
+    }
+   }
+  },
+  "shoe": {
+   "runs": [
+    {
+     "image": "rig-shoe-0",
+     "part": "shoe"
+    }
+   ],
+   "parts": {
+    "shoe": {
+     "origin": [
+      40,
+      200
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 10,
+       "times": 2
+      }
+     ]
+    }
+   }
+  },
+  "babyBottle": {
+   "runs": [
+    {
+     "image": "rig-babyBottle-0",
+     "part": "bottle"
+    }
+   ],
+   "parts": {
+    "bottle": {
+     "origin": [
+      120,
+      220
+     ],
+     "moves": [
+      {
+       "type": "rock",
+       "deg": 12,
+       "times": 1
+      }
+     ]
+    }
+   }
   }
  }
 }

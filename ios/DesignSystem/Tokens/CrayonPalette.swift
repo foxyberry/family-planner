@@ -49,6 +49,8 @@ public enum CrayonPalette {
     // Way strip scenery (board A2-MVP): the ground and the road and tree crowns.
     public static let meadow = RGB(hex: 0xD6ECC3)
     public static let leaf = RGB(hex: 0x3FAE5A)
+    /// Number plates of buses that are not the kid's (spec CrayonKit parts, `NumberPlate`).
+    public static let plateCream = RGB(hex: 0xFFF0BF)
     public static let coral = RGB(hex: 0xF9A88A)
     public static let lilac = RGB(hex: 0xB9A3F0)
     public static let pink = RGB(hex: 0xF7A8CF)

@@ -100,14 +100,25 @@ public struct MissionCircle: View {
     private let isCurrent: Bool
 
     public static let size: CGFloat = 112
+    private let labelWidth: CGFloat?
+    private var playID = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.sizing) private var sizing
 
-    public init(picture: KitSlot, name: String, colorIndex: Int, isDone: Bool, isCurrent: Bool) {
-        self.init(.picture(picture), name: name, colorIndex: colorIndex, isDone: isDone, isCurrent: isCurrent)
+    /// `playID`: the picture plays its rig once each time this changes (a tap on the mission).
+    public init(picture: KitSlot, name: String, colorIndex: Int, isDone: Bool, isCurrent: Bool,
+                labelWidth: CGFloat? = nil, playID: Int = 0) {
+        self.init(.picture(picture), name: name, colorIndex: colorIndex, isDone: isDone, isCurrent: isCurrent,
+                  labelWidth: labelWidth)
+        self.playID = playID
     }
 
     /// `name` is the caption under the circle ("Teeth", "3 more", "3 done").
-    public init(_ content: Content, name: String, colorIndex: Int, isDone: Bool = false, isCurrent: Bool = false) {
+    /// `labelWidth`: the caption's column, one pitch of the row (spec "A2 redlines"); the circle
+    /// is centred in it.
+    public init(_ content: Content, name: String, colorIndex: Int, isDone: Bool = false, isCurrent: Bool = false,
+                labelWidth: CGFloat? = nil) {
+        self.labelWidth = labelWidth
         self.content = content
         self.name = name
         self.colorIndex = colorIndex
@@ -129,24 +140,45 @@ public struct MissionCircle: View {
             .overlay(alignment: .topTrailing) {
                 if isDone { CheckMark(isDone: true, size: 40).offset(x: Spacing.xxs, y: -Spacing.xxs) }
             }
-            Text(name)
-                .font(Font(FontRegistrar.font(size: CrayonType.caption.size, weight: isCurrent ? .bold : .medium)))
-                .foregroundStyle(CrayonColor.ink)
-                // Never under the 24 floor (spec "Sizing formulas"): a long name wraps instead.
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(width: circle + Spacing.m)
+            // Up to two lines, broken between words (spec "Morning data"); never under 24.
+            ViewThatFits(in: .horizontal) {
+                captionLine(name)
+                VStack(spacing: 0) {
+                    ForEach(Array(Self.lines(name).enumerated()), id: \.offset) { _, line in captionLine(line) }
+                }
+            }
+            // The circle's column: one pitch of the row (136 s on its own, never under 112).
+            .frame(width: labelWidth ?? max(112, 136 * sizing.s))
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(name)
         .accessibilityAddTraits(isDone ? [.isButton, .isSelected] : .isButton)
     }
 
+    private func captionLine(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(Font(FontRegistrar.font(size: CrayonType.caption.size, weight: isCurrent ? .bold : .medium)))
+            .foregroundStyle(CrayonColor.ink)
+            .lineLimit(1)
+            .truncationMode(.tail)
+    }
+
+    /// One line, or two split at the space nearest the middle ("Get dressed" → "Get" / "dressed").
+    nonisolated static func lines(_ name: String) -> [String] {
+        let words = name.split(separator: " ").map(String.init)
+        guard words.count > 1 else { return [name] }
+        let splits = (1..<words.count).map { cut in
+            (words[..<cut].joined(separator: " "), words[cut...].joined(separator: " "))
+        }
+        let best = splits.min { abs($0.0.count - $0.1.count) < abs($1.0.count - $1.1.count) } ?? splits[0]
+        return [best.0, best.1]
+    }
+
     @ViewBuilder
     private var inside: some View {
         switch content {
-        case let .picture(picture): KitIcon(picture, size: circle * 0.64)
+        case let .picture(picture):
+            RiggedKitIcon(picture, size: circle * 0.64, playID: reduceMotion ? 0 : playID)
         case let .text(text): Text(verbatim: text).crayonType(.title).foregroundStyle(CrayonColor.ink)
         case .tick: CheckMark(isDone: true, size: circle * 0.56)
         case let .glyph(glyph): MarkerIcon(glyph, size: circle * 0.4)

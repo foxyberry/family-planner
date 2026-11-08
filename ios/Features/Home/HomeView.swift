@@ -24,17 +24,17 @@ public struct HomeView: View {
             // Board A1 through spec "Sizing formulas": the clock (R 372 s) centred at
             // (448 s, y(528)); the sky switch at (40 s, y(36)); the right panel stretches from
             // 928 s to W − 64 s, y(96) … y(968).
+            // Boards A1 / A1m / E1 (docs/superpowers/layout) through "Sizing formulas": every part
+            // placed from HomeLayout; the panel's parts all start on 928 and end on 1312.
+            let layout = HomeLayout(sizing: sizing)
             ZStack(alignment: .topLeading) {
                 clockArea
-                    .position(x: 448 * sizing.s, y: sizing.y(528))
+                    .position(layout.clockCentre)
                 SkySwitch(look: store.look, isAnimating: store.isSkyAnimating, label: store.skySwitchLabel) {
                     store.send(.skySwitchTapped)
                 }
-                .offset(x: Self.skySwitchOrigin.x * sizing.s, y: sizing.y(Self.skySwitchOrigin.y))
-                rightPanel
-                    .frame(width: sizing.width - 64 * sizing.s - 928 * sizing.s,
-                           height: (968 - 96) * sizing.s, alignment: .topLeading)
-                    .offset(x: 928 * sizing.s, y: sizing.y(96))
+                .place(topLeft: layout.skySwitch.origin)
+                panel(layout)
             }
             .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
         }
@@ -88,94 +88,82 @@ public struct HomeView: View {
                                                              minute: store.minute))
     }
 
-    // MARK: Right panel
+    // MARK: Right panel (928 s … W − 64 s)
 
-    @ViewBuilder private var rightPanel: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if let first = firstDay {
-                VStack(alignment: .leading, spacing: sizing.space(Spacing.xl)) {
-                    // The weekday heads the panel on every kid home screen, 24 above Kid A.
-                    VStack(alignment: .leading, spacing: sizing.space(Spacing.m)) {
-                        if let heading = store.dayHeading {
-                            Text(heading).crayonType(.head).foregroundStyle(store.look.ink)
-                        }
-                        kidABlock(first)
-                    }
-                    if store.days.count > 1 {
-                        kidBBlock(store.days[1])
-                    }
-                }
-                if store.isMissionMorning {
-                    // Spec A1 "Panel fit": flexible space pins the button to the panel bottom and
-                    // gives way first, down to 24.
-                    Spacer(minLength: sizing.space(Spacing.m))
-                    InkButton(L10n.tr("home.missions"), arrow: true) { store.send(.missionsTapped) }
-                }
+    @ViewBuilder private func panel(_ layout: HomeLayout) -> some View {
+        if let first = firstDay {
+            if let heading = store.dayHeading {
+                Text(heading).crayonType(.head).foregroundStyle(store.look.ink)
+                    .place(left: layout.panelLeft, baseline: layout.weekdayBaseline)
             }
-        }
-    }
-
-    private func kidHeader(_ kid: Kid) -> some View {
-        HStack(spacing: KidFace.gap(for: KidFace.large)) {
-            KidFace(KidFace.Badge(face: kid.face, colorIndex: kid.colorIndex), name: kid.name)
-                .accessibilityHidden(true)
-            Text(kid.name).crayonType(.head).foregroundStyle(store.look.ink)
-        }
-    }
-
-    /// Spec "Now and next on home": the clock kid's now is the hub, so this block shows only Next
-    /// (one row, the start time) and the time left to it.
-    private func kidABlock(_ day: HomeFeature.KidDay) -> some View {
-        let next = HomeModel.next(day.slots, minute: store.minute)
-        let timeLeft = HomeModel.timeLeft(to: next, minute: store.minute)
-        return VStack(alignment: .leading, spacing: 0) {
-            kidHeader(day.kid)
-            if let outing = store.morningOuting, let heading = store.outingHeading {
-                // Board A1-MVP: "{Place} in" with the way picture, then the minutes to the start.
-                HStack(alignment: .center) {
-                    Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
-                    Spacer(minLength: sizing.space(Spacing.s))
-                    KitPlate(look: store.look, size: 80 * sizing.s) {
-                        KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: 80 * sizing.s)
-                    }
-                }
-                .padding(.top, sizing.space(Spacing.m))
-                TimeLeft(minutes: outing.slot.start - store.minute, look: store.look)
-            } else if let next {
+            kidHeader(first.kid, top: layout.kidATop, layout: layout)
+            kidABlock(first, layout: layout)
+            if store.days.count > 1 {
+                let top = layout.kidBTop(hasStatus: store.status != nil)
+                kidHeader(store.days[1].kid, top: top, layout: layout)
+                let now = DayPlanner.now(at: store.minute, in: store.days[1].slots)
+                KidNowNext(now: now.current?.iconName ?? "actPlay", next: now.next?.iconName, look: store.look)
+                    .place(topLeft: layout.nowNext(kidBTop: top))
+            } else if let next = HomeModel.next(first.slots, minute: store.minute) {
+                // E1, one kid: the Next row under Kid A.
                 Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
-                    .padding(.top, sizing.space(Spacing.m))
-                nextRow(next).padding(.top, sizing.space(Spacing.xs))
+                    .place(left: layout.panelLeft, baseline: layout.nextLabelBaseline)
+                nextRow(next, layout: layout)
             }
-            if store.morningOuting == nil, !store.isMissionMorning, let timeLeft {
-                Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
-                    .padding(.top, sizing.space(Spacing.m))
-                TimeLeft(minutes: timeLeft.minutes, look: store.look)
+            if store.isMissionMorning {
+                InkButton(L10n.tr("home.missions"), arrow: true) { store.send(.missionsTapped) }
+                    .place(layout.button)
             }
         }
     }
 
-    private func kidBBlock(_ day: HomeFeature.KidDay) -> some View {
-        let now = DayPlanner.now(at: store.minute, in: day.slots)
-        return VStack(alignment: .leading, spacing: sizing.space(Spacing.m)) {
-            kidHeader(day.kid)
-            KidNowNext(now: now.current?.iconName ?? "actPlay", next: now.next?.iconName, look: store.look)
+    private func kidHeader(_ kid: Kid, top: CGFloat, layout: HomeLayout) -> some View {
+        ZStack(alignment: .topLeading) {
+            KidFace(KidFace.Badge(face: kid.face, colorIndex: kid.colorIndex), name: kid.name,
+                    size: layout.kidBadge(top: top).width)
+                .accessibilityHidden(true)
+                .place(layout.kidBadge(top: top))
+            Text(kid.name).crayonType(.head).foregroundStyle(store.look.ink)
+                .place(left: layout.kidNameLeft, baseline: layout.kidNameBaseline(top: top))
         }
     }
 
-    private func nextRow(_ row: NextRow) -> some View {
-        HStack(spacing: sizing.space(Spacing.m)) {
-            KitPlate(look: store.look, size: 104 * sizing.s) {
-                KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: 104 * sizing.s)
-                    .overlay(alignment: .topTrailing) {
-                        if row.showsStar { KitIcon(.star, size: 36) }
-                    }
+    /// Kid A: "Leave in" (or "{next} in") with the way picture, the minutes, and the live status.
+    @ViewBuilder private func kidABlock(_ day: HomeFeature.KidDay, layout: HomeLayout) -> some View {
+        if let outing = store.morningOuting, let heading = store.outingHeading {
+            Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
+                .place(left: layout.panelLeft, baseline: layout.labelBaseline)
+            KitPlate(look: store.look, size: layout.way.width) {
+                KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: layout.way.width)
             }
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                Text(row.title).crayonType(.head).foregroundStyle(store.look.ink)
-                    .lineLimit(1).truncationMode(.tail)
-                Text(row.at).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
+            .place(layout.way)
+            TimeLeft(minutes: store.minutesToLeave ?? outing.slot.start - store.minute, look: store.look)
+                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
+            if let status = store.status {
+                StatusDot(status.text, tone: status.tone)
+                    .place(left: layout.panelLeft, baseline: layout.statusBaseline)
             }
+        } else if let timeLeft = HomeModel.timeLeft(to: HomeModel.next(day.slots, minute: store.minute),
+                                                    minute: store.minute) {
+            Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
+                .place(left: layout.panelLeft, baseline: layout.labelBaseline)
+            TimeLeft(minutes: timeLeft.minutes, look: store.look)
+                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
         }
-        .accessibilityElement(children: .combine)
+    }
+
+    /// E1: the next picture (104) at 928, its title and time on their baselines at 1056.
+    @ViewBuilder private func nextRow(_ row: NextRow, layout: HomeLayout) -> some View {
+        KitPlate(look: store.look, size: layout.nextPicture.width) {
+            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: layout.nextPicture.width)
+                .overlay(alignment: .topTrailing) {
+                    if row.showsStar { KitIcon(.star, size: 36 * sizing.s) }
+                }
+        }
+        .place(layout.nextPicture)
+        Text(row.title).crayonType(.head).foregroundStyle(store.look.ink).lineLimit(1)
+            .place(left: layout.nextTextLeft, baseline: layout.nextTitleBaseline)
+        Text(row.at).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
+            .place(left: layout.nextTextLeft, baseline: layout.nextTimeBaseline)
     }
 }

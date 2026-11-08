@@ -34,6 +34,7 @@ public struct HubSection: Equatable, Sendable {
 public enum HubLink: Equatable, Sendable {
     case day
     case missions
+    case buses
 }
 
 public struct HubItemRow: Equatable, Identifiable, Sendable {
@@ -47,7 +48,8 @@ public struct HubItemRow: Equatable, Identifiable, Sendable {
 public enum HubModel {
     /// About, then School and More for a school kid, or Nursery and Morning for a kid at home.
     /// `missions` are every kid's; the kid's own count or names go on the C5 link row.
-    public static func sections(kid: Kid, routines: [Routine], missions: [Mission] = []) -> [HubSection] {
+    public static func sections(kid: Kid, routines: [Routine], missions: [Mission] = [],
+                                busPlan: BusPlan? = nil) -> [HubSection] {
         let about = HubSection(title: L10n.tr("hub.about"), rows: aboutRows(kid: kid, routines: routines).map { row in
             row.key == L10n.tr("hub.about.day") ? .link(row, to: .day) : .text(row)
         })
@@ -69,8 +71,12 @@ public enum HubModel {
         case 1: L10n.tr("hub.more.missions.one")
         default: L10n.tr("hub.more.missions.count", own.count)
         }
+        // C1 "Getting there" → C2 (spec "Bus settings"): the kid's buses and walk, or "Not set yet".
+        let buses = busPlan.map { L10n.tr("hub.more.buses.value", $0.services.joined(separator: ", "), $0.walk) }
+            ?? L10n.tr("hub.more.buses.none")
         let more = HubSection(title: L10n.tr("hub.more"), rows: [
             .link(HubRow(key: L10n.tr("hub.more.missions"), value: count), to: .missions),
+            .link(HubRow(key: L10n.tr("hub.more.buses"), value: buses), to: .buses),
         ])
         return [about, HubSection(title: L10n.tr("hub.school"), rows: rows), more]
     }

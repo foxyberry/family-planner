@@ -20,9 +20,13 @@ final class MissionsTests: XCTestCase {
     private let kidB = SeedData.kidB.id
 
     private func store(on day: Day, minute: Int, missions: [Mission] = SeedData.missions,
-                       saved: LockIsolated<[MissionDay]> = LockIsolated([])) -> TestStoreOf<MissionsFeature> {
+                       saved: LockIsolated<[MissionDay]> = LockIsolated([]),
+                       arrivals: [BusArrival]? = nil) -> TestStoreOf<MissionsFeature> {
+        // Made-up stop and bus numbers (privacy rule).
+        let plans = arrivals == nil ? [] : [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])]
         let snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines,
-                                        items: SeedData.items(today: tuesday, calendar: calendar), missions: missions)
+                                        items: SeedData.items(today: tuesday, calendar: calendar), missions: missions,
+                                        busPlans: plans)
         let store = TestStore(initialState: MissionsFeature.State()) {
             MissionsFeature()
         } withDependencies: { [calendar] in
@@ -40,6 +44,8 @@ final class MissionsTests: XCTestCase {
                 }
             }
             $0.holidays.holidays = { _ in [] }
+            $0.secrets = .inMemory(arrivals == nil ? [:] : [.busKey: "test-key"])
+            $0.bus.arrivals = { _, _ in arrivals ?? [] }
         }
         store.exhaustivity = .off
         return store
@@ -55,11 +61,12 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.chosen, kidA)
         XCTAssertEqual(store.state.leaveAt, "leave at 7:25 am")
         let way = try? XCTUnwrap(store.state.way)
-        XCTAssertEqual(way?.cardCaption, "by bus · timetable")
+        XCTAssertEqual(way?.cardCaption, "by bus · no live times")
         XCTAssertEqual(way?.homeLabel, "Our stop")
         XCTAssertEqual(way?.place, "School")
         XCTAssertEqual(way?.showsStops, true)
-        XCTAssertEqual(way?.headerMinutes, "38 min")
+        XCTAssertEqual(store.state.header?.minutes, "33 min")
+        XCTAssertEqual(way?.moverX, 60) // 33 min to leave: 30 or more sits at x 60
         XCTAssertEqual(store.state.rows.map(\.total), [6, 3])
         XCTAssertEqual(store.state.state(caption: 0), "0 of 6 done")
     }
@@ -95,24 +102,31 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.rows.first?.done, 0)
     }
 
-    /// Kids are never locked: "All done!" works with missions left, marks the kid ready and
-    /// chooses the next kid; once everyone is ready it reads "Back to the clock" and leaves.
-    func testAllDoneChoosesTheNextKidThenGoesBack() async {
+    /// Every kid slides (user, 2026-11-09): Kid B has no outing, so "All done? Slide!" with the star,
+    /// no medal, and the check with "Ready!" in the done view.
+    func testAKidWithNoOutingSlidesWithTheStar() async {
         let store = store(on: tuesday, minute: 412)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.buttonTitle, "All done!")
-
-        await store.send(.allDoneTapped)
-        XCTAssertEqual(store.state.chosen, kidB)
-        XCTAssertEqual(store.state.state(caption: 0), "Ready!")
-        XCTAssertEqual(store.state.rows.first?.progress, 1)
-
-        await store.send(.allDoneTapped)
-        XCTAssertTrue(store.state.everyoneReady)
-        XCTAssertEqual(store.state.buttonTitle, "Back to the clock")
-        await store.send(.allDoneTapped)
+        await store.send(.kidTapped(kidB))
+        XCTAssertTrue(store.state.slides)
+        XCTAssertEqual(store.state.slideTitle, "All done? Slide!")
+        XCTAssertEqual(store.state.slideKnob, .star)
+        await store.send(.slid)
+        XCTAssertEqual(store.state.days[kidB]?.medal, MorningMedal.none)
+        XCTAssertNil(store.state.done?.medal)
+        XCTAssertEqual(store.state.done?.title, "Ready!")
+        await store.send(.backTapped)
         await store.receive(\.delegate.finished)
+    }
+
+    func testTappingAMissionPlaysItsPicture() async {
+        let store = store(on: tuesday, minute: 412)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.missionTapped(id("303")))
+        XCTAssertEqual(store.state.plays[id("303")], 1)
+        await store.send(.backTapped)
     }
 
     func testTappingAKidChoosesThem() async {
@@ -131,11 +145,78 @@ final class MissionsTests: XCTestCase {
         await store.receive(\.loaded)
         await store.send(.kidTapped(kidB))
         XCTAssertEqual(store.state.way?.owner.id, kidA)
-        XCTAssertEqual(store.state.way?.cardCaption, "by bus · timetable")
-        XCTAssertEqual(store.state.way?.headerMinutes, "38 min")
+        XCTAssertEqual(store.state.way?.cardCaption, "by bus · no live times")
+        XCTAssertEqual(store.state.header?.minutes, "33 min")
         XCTAssertNil(store.state.leaveAt)
         XCTAssertEqual(store.state.way?.spoken,
                        "Kid A's way to School, by bus, 38 minutes, School starts at 7:30 am.")
+    }
+
+    /// Spec "A2 live look": fresh live times give "Leave in" with "On time", and the chosen bus sets
+    /// "leave at".
+    func testLiveTimesShowLeaveInAndOnTime() async {
+        let store = store(on: tuesday, minute: 412, arrivals: [BusArrival(service: "1", minutes: 4, type: .single),
+                                                               BusArrival(service: "1", minutes: 28, type: .double)])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.refresh)
+        await store.receive(\.arrivalsLoaded)
+        XCTAssertEqual(store.state.live?.leaveIn, 18)
+        XCTAssertEqual(store.state.header?.label, "Leave in")
+        XCTAssertEqual(store.state.header?.minutes, "18 min")
+        XCTAssertEqual(store.state.header?.status?.text, "On time")
+        XCTAssertEqual(store.state.leaveAt, "leave at 7:10 am")
+        // The strip: bus 1 in 4 min is too soon (faded, its own bubble), bus 1 in 28 min is the kid's.
+        let buses = store.state.liveStrip?.buses ?? []
+        XCTAssertEqual(buses.map(\.isMine), [false, true])
+        XCTAssertEqual(buses.map(\.isTooSoon), [true, false])
+        XCTAssertEqual(buses.map(\.showsBubble), [true, true])
+        XCTAssertEqual(buses.last?.x, 860 - 28 * 800 / 30)
+        XCTAssertEqual(store.state.liveSpoken,
+                       "Live bus map. Bus 1 in 28 minutes, your bus. Leave in 18 minutes, On time.")
+        await store.send(.backTapped)
+    }
+
+    /// No live times: the bus fallback counts to "leave" with no status.
+    func testBusFallbackCountsToLeave() async {
+        let store = store(on: tuesday, minute: 412)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertNil(store.state.live)
+        XCTAssertEqual(store.state.header?.label, "Leave in")
+        XCTAssertEqual(store.state.header?.minutes, "33 min")
+        XCTAssertNil(store.state.header?.status)
+        await store.send(.backTapped)
+    }
+
+    /// Spec "Medal from the time only" and board A3r: leave 7:25, so 7:20 is gold; the kid stays
+    /// chosen with the done view, then 3 s later the next kid comes up; dragging back undoes.
+    func testSlideShowsTheDoneViewThenTheNextKidAndDragBackUndoes() async {
+        let clock = TestClock()
+        let store = store(on: tuesday, minute: 440)
+        store.dependencies.continuousClock = clock
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertTrue(store.state.slides)
+        await store.send(.slid)
+        XCTAssertEqual(store.state.days[kidA]?.medal, .gold)
+        XCTAssertEqual(store.state.days[kidA]?.readyAt, 440)
+        XCTAssertEqual(store.state.caption(store.state.rows[0]), "Ready! Gold")
+        XCTAssertEqual(store.state.rows[0].medal, .gold)
+        XCTAssertEqual(store.state.chosen, kidA)
+        XCTAssertEqual(store.state.done?.title, "Gold!")
+        XCTAssertEqual(store.state.done?.subtitle, "Ready in good time!")
+        await clock.advance(by: .seconds(3))
+        await store.receive(\.readyShown)
+        XCTAssertEqual(store.state.chosen, kidB)
+        // Back to Kid A: the done view again; dragging the slide back undoes it.
+        await store.send(.kidTapped(kidA))
+        XCTAssertEqual(store.state.done?.medal, .gold)
+        await store.send(.slideUndone)
+        XCTAssertNil(store.state.days[kidA]?.medal)
+        XCTAssertEqual(store.state.days[kidA]?.ready, false)
+        XCTAssertNil(store.state.done)
+        await store.send(.backTapped)
     }
 
     /// After the last outing has started there is no way left: the strip shows its empty look.

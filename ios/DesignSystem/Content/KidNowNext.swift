@@ -8,6 +8,7 @@ public struct KidNowNext: View {
     private let now: KitSlot
     private let next: KitSlot?
     private let look: KidLook
+    @Environment(\.sizing) private var sizing
 
     /// Pictures are `KitSlot` raw values; an unknown name falls back to play. At night the captions
     /// use the night soft text (board A1n).
@@ -18,10 +19,14 @@ public struct KidNowNext: View {
     }
 
     public var body: some View {
-        HStack(alignment: .bottom, spacing: Spacing.l) {
-            circle(now, diameter: 160, picture: 104, fill: CrayonStyle.apricot, caption: L10n.tr("kid.now"), seed: 3101)
+        // Boards A1/A1m: now 160 and next 104, bottoms aligned, 40 apart; sizes follow the screen.
+        let s = sizing.s
+        return HStack(alignment: .bottom, spacing: sizing.space(Spacing.l)) {
+            circle(now, diameter: 160 * s, picture: 104 * s, fill: CrayonStyle.apricot, caption: L10n.tr("kid.now"),
+                   seed: 3101)
             if let next {
-                circle(next, diameter: 104, picture: 64, fill: CrayonStyle.paper, caption: L10n.tr("kid.next"), seed: 3102)
+                circle(next, diameter: 104 * s, picture: 64 * s, fill: CrayonStyle.paper, caption: L10n.tr("kid.next"),
+                       seed: 3102)
             }
         }
     }

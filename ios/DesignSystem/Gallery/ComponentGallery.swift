@@ -28,7 +28,6 @@ public struct ComponentGallery: View {
                 section("0b · Controls") {
                     InkButton("Missions") {}
                     HStack(spacing: Spacing.m) {
-                        KidPillButton("Swimming", icon: .actSwim) {}
                         RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
                         RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
                         CheckMark(isDone: true)
@@ -111,11 +110,44 @@ public struct ComponentGallery: View {
                     }
                     GlyphText("Drag %@ to change the order.", glyph: .handle, color: CrayonColor.softText)
                 }
-                section("A2-MVP · Way strip") {
-                    WayStrip(destination: .wolfie, mover: .busDouble, progress: 0.4, homeLabel: "Our stop",
-                             destinationLabel: "School", showsStops: true, cardTitle: "School at 7:30 am",
-                             cardCaption: "by bus · timetable",
-                             owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
+                section("A2 · Live bubbles") {
+                    HStack(alignment: .bottom, spacing: Spacing.l) {
+                        LiveBusBubble(service: "1", minutes: "28 min",
+                                      kind: .mine(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A",
+                                                  myBus: "my bus"))
+                        LiveBusBubble(service: "1", minutes: "4 min", kind: .tooSoon("too soon"))
+                    }
+                }
+                section("C3g · Going") {
+                    ChoiceCircles([.init(id: "none", picture: nil, caption: "None", isPicked: false),
+                                   .init(id: "walk", picture: .shoe, caption: "Walk", isPicked: false),
+                                   .init(id: "bus", picture: .busDouble, caption: "Bus", isPicked: false),
+                                   .init(id: "car", picture: .car, caption: "Car", isPicked: true),
+                                   .init(id: "taxi", picture: .taxi, caption: "Taxi", isPicked: false)]) { _ in }
+                }
+                section("A3 · Medal on the ring") {
+                    HStack(spacing: Spacing.l) {
+                        ForEach(MedalKind.allCases, id: \.self) { kind in
+                            ZStack {
+                                CrayonRing(progress: 1, colorIndex: 0)
+                                KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A", size: 56)
+                            }
+                            .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76) }
+                        }
+                    }
+                }
+                section("A2 · Live status") {
+                    HStack(spacing: Spacing.l) {
+                        StatusDot("On time", tone: .onTime)
+                        StatusDot("Leave now!", tone: .hurry)
+                        StatusDot("Ask a grown-up", tone: .quiet)
+                    }
+                }
+                section("A2 · Way strip") {
+                    WayStrip(trip: .init(destination: .wolfie, destinationLabel: "School", homeLabel: "Our stop",
+                                         showsStops: true, mover: .busDouble, moverX: WayStrip.liveX(minutes: 12),
+                                         cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable",
+                                         owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A"))
                         .frame(height: 340)
                     WayStrip(homeAllDay: "Home all day").frame(height: 340)
                     HStack(spacing: Spacing.l) {

@@ -11,14 +11,23 @@ public struct SlideToGo: View {
     private let idleTitle: String
     private let doneTitle: String
     private let onGo: () -> Void
+    private let onUndo: (() -> Void)?
+    private let knob: KitSlot
+    @State private var isHeld = false
+    @State private var hops = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The phase the parent asks for (locked → idle when the morning steps are done, idle again
     /// the next morning). Drags in between live in `model`.
     private let state: SlideToGoModel.Phase
     @State private var model: SlideToGoModel
     private let handleSize: CGFloat = 80
 
+    /// `onUndo`: dragging the knob back past the middle from done (spec "After the slide").
+    /// `knob`: the way picture (bus, car, shoe) or the star sticker for a kid with no outing.
     public init(state: SlideToGoModel.Phase, lockedTitle: String, idleTitle: String, doneTitle: String,
-                onGo: @escaping () -> Void) {
+                knob: KitSlot = .busDouble, onUndo: (() -> Void)? = nil, onGo: @escaping () -> Void) {
+        self.knob = knob
+        self.onUndo = onUndo
         self.state = state
         _model = State(initialValue: SlideToGoModel(phase: state))
         self.lockedTitle = lockedTitle
@@ -35,11 +44,12 @@ public struct SlideToGo: View {
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(CrayonColor.ink)
-            .frame(maxWidth: .infinity)
+            // Done (board A3r): "Ready!" ends 24 before the knob, which sits 86 from the right end.
+            .frame(maxWidth: .infinity, alignment: isDone ? .trailing : .center)
             .padding(.leading, isDone ? 0 : handleSize)
             // The capsule's round ends cut in when the words take two lines.
             .padding(.leading, Spacing.m)
-            .padding(.trailing, Spacing.l)
+            .padding(.trailing, isDone ? 110 : Spacing.l)
             .padding(.vertical, Spacing.xs)
             .frame(minHeight: 96)
             .background {
@@ -49,17 +59,33 @@ public struct SlideToGo: View {
             .overlay {
                 GeometryReader { geometry in
                     let travel = max(geometry.size.width - handleSize - 16, 1)
-                    handle
+                    handle(roll: travel * progress)
                         .frame(maxHeight: .infinity)
                         .offset(x: 8 + travel * progress)
                         .gesture(
                             DragGesture()
-                                .onChanged { model.dragChanged(progress: $0.translation.width / travel) }
+                                .onChanged { drag in
+                                    isHeld = true
+                                    if onUndo != nil, isDone || model.isUndoing {
+                                        model.undoDragChanged(progress: 1 + drag.translation.width / travel)
+                                    } else {
+                                        model.dragChanged(progress: drag.translation.width / travel)
+                                    }
+                                }
                                 .onEnded { _ in
+                                    isHeld = false
                                     // Only the snap back (or to the end) animates; during the drag
                                     // the handle follows the finger directly.
+                                    if model.isUndoing {
+                                        let undone = withAnimation(.spring(duration: 0.3)) { model.undoDragEnded() }
+                                        if undone { onUndo?() }
+                                        return
+                                    }
                                     let went = withAnimation(.spring(duration: 0.3)) { model.dragEnded() }
-                                    if went { onGo() }
+                                    if went {
+                                        hops += 1
+                                        onGo()
+                                    }
                                 }
                         )
                 }
@@ -77,12 +103,20 @@ public struct SlideToGo: View {
         }
     }
 
-    @ViewBuilder private var handle: some View {
-        if isDone {
-            CheckMark(isDone: true, size: handleSize)
-        } else {
-            KitIcon(.busDouble, size: handleSize)
-        }
+    /// The knob: rolls and rocks while held; at the end it hops once and keeps a check badge
+    /// (board A3r). Reduce Motion: still.
+    @ViewBuilder private func handle(roll: CGFloat) -> some View {
+        RollingKitIcon(knob, size: isDone ? handleSize * 0.75 : handleSize, roll: roll, isHeld: isHeld)
+            .frame(width: handleSize, height: handleSize)
+            .overlay(alignment: .bottomTrailing) {
+                if isDone { CheckMark(isDone: true, size: handleSize * 0.45) }
+            }
+            .keyframeAnimator(initialValue: 0.0, trigger: reduceMotion ? 0 : hops) { view, lift in
+                view.offset(y: -lift)
+            } keyframes: { _ in
+                CubicKeyframe(18, duration: 0.18)
+                CubicKeyframe(0, duration: 0.22)
+            }
     }
 
     private var title: String {

@@ -42,6 +42,12 @@ reference time zone, the time machine and tests can replace any of it in one pla
 4. The view renders State with DesignSystem parts and tokens only. Kid screens use `KidScreen`;
    a new kid feature folder goes into `KID_DIRS` in `scripts/check-kid-screens.sh`.
 5. A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
+6. Layout comes from the board, not from stacks: take the screen's redlines from
+   `docs/superpowers/layout/<board>.json` (ask the design session if a board is missing), write a
+   `<Screen>Layout` model (rects, lines and baselines through `Sizing`), and place every part with
+   `place(_:)`, `place(left:baseline:)`, `place(right:baseline:)` or `place(topLeft:)`. Parts
+   carry no outer padding: a part's visible edge is its frame. Add a layout test that checks the
+   shared lines on the four iPads, then look at the screen on the iPad with `GRID=1` (bazel-ios).
 
 ## Where does it go?
 

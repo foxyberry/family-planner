@@ -1,0 +1,20 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "BusClientLiveTestsLib",
+    testonly = True,
+    deps = [
+        "//ios/Clients/BusClientLive",
+        "//ios/Domain",
+    ],
+)
+
+ios_unit_test(
+    name = "BusClientLiveTests",
+    bundle_id = BUNDLE_ID + ".bus.tests",
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    deps = [":BusClientLiveTestsLib"],
+)

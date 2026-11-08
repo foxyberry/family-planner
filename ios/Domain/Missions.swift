@@ -31,12 +31,19 @@ public struct MissionDay: Hashable, Codable, Sendable {
     public var date: Day
     public var done: Set<Mission.ID>
     public var ready: Bool
+    /// When the kid slid to go (minutes after midnight); nil before, and for "All done!" kids.
+    public var readyAt: Int?
+    /// The medal from that time (spec "Medal from the time only"); nil until the kid slides.
+    public var medal: MorningMedal?
 
-    public init(kid: Kid.ID, date: Day, done: Set<Mission.ID> = [], ready: Bool = false) {
+    public init(kid: Kid.ID, date: Day, done: Set<Mission.ID> = [], ready: Bool = false, readyAt: Int? = nil,
+                medal: MorningMedal? = nil) {
         self.kid = kid
         self.date = date
         self.done = done
         self.ready = ready
+        self.readyAt = readyAt
+        self.medal = medal
     }
 }
 

@@ -88,13 +88,26 @@ extension View {
 }
 
 private struct SizingReader: ViewModifier {
+    @State private var window: CGSize = .zero
+    @State private var safeTop: CGFloat = Sizing.statusBand
+
     func body(content: Content) -> some View {
-        GeometryReader { geometry in
-            let full = CGSize(width: geometry.size.width + geometry.safeAreaInsets.leading + geometry.safeAreaInsets.trailing,
-                              height: geometry.size.height + geometry.safeAreaInsets.top + geometry.safeAreaInsets.bottom)
-            content
-                .environment(\.sizing, Sizing(width: full.width, height: full.height,
-                                              safeTop: geometry.safeAreaInsets.top))
-        }
+        content
+            .environment(\.sizing, window == .zero ? .thirteenInch
+                         : Sizing(width: window.width, height: window.height, safeTop: safeTop))
+            // The window's whole size (ignoring the safe area), and the top inset (the status bar
+            // and, on iPadOS 26, the window controls) from a reader that keeps it.
+            .background {
+                GeometryReader { full in
+                    Color.clear.onAppear { window = full.size }.onChange(of: full.size) { _, size in window = size }
+                }
+                .ignoresSafeArea()
+            }
+            .background {
+                GeometryReader { safe in
+                    Color.clear.onAppear { safeTop = safe.safeAreaInsets.top }
+                        .onChange(of: safe.safeAreaInsets.top) { _, top in safeTop = top }
+                }
+            }
     }
 }

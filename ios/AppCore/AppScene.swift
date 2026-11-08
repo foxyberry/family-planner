@@ -13,6 +13,9 @@ public struct AppScene: Scene {
     public var body: some Scene {
         WindowGroup {
             AppView(store: store)
+                .onOpenURL { url in
+                    if let link = ScreenLink(url: url) { store.send(.linkOpened(link)) }
+                }
         }
         .onChange(of: scenePhase) { _, phase in
             store.send(.scenePhaseChanged(phase))

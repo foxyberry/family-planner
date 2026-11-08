@@ -1,0 +1,25 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("//:project.bzl", "BUNDLE_ID")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# The app's LTA DataMall key, kept out of the public repo. Private/LocalConfig.json is git-ignored
+# (see DeviceConfig.example.json); without it CI and clones build an app with no built-in key,
+# which shows the timetable look.
+apple_resource_bundle(
+    name = "DeviceConfigResources",
+    bundle_id = BUNDLE_ID + ".deviceconfig",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = glob(
+        ["Private/LocalConfig*.json"],
+        allow_empty = True,
+    ),
+)
+
+fp_swift_library(
+    name = "DeviceConfig",
+    data = [":DeviceConfigResources"],
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/DeviceConfig/Tests:__pkg__",
+    ],
+)

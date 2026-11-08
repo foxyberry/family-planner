@@ -8,6 +8,7 @@ public enum CrayonColor {
     public static let onTimeGreen = CrayonPalette.onTimeGreen.color
     public static let meadow = CrayonPalette.meadow.color
     public static let leaf = CrayonPalette.leaf.color
+    public static let plateCream = CrayonPalette.plateCream.color
     public static let hillGreen = CrayonPalette.green.color
     public static let handRed = CrayonPalette.handRed.color
     public static let paper = CrayonPalette.paper.color

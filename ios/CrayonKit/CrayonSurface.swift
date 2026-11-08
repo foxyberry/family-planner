@@ -58,12 +58,14 @@ public struct CrayonSurface: View {
         .accessibilityHidden(true)
     }
 
-    /// Geometry for a surface of `size`, inset so the wobble and line never get clipped.
+    /// Geometry for a surface of `size`, inset by half the line width so the line's outer edge runs
+    /// on the frame's edge: a part's visible edge is its frame (spec "A2 redlines": boxes are visible
+    /// edges). The wobble may cross the edge by a point or two, like a real crayon.
     nonisolated static func geometry(kind: CrayonShapeKind, size: CGSize, fill: CrayonFill?, marker: MarkerStyle,
                          seed: UInt32, cache: GeometryCache) -> CrayonGeometry {
         let key = GeometryCache.Key(kind: kind, size: size, seed: seed, marker: marker, hachure: fill?.hachure)
         return cache.geometry(for: key) {
-            let inset = marker.width / 2 + marker.roughness + marker.bowing
+            let inset = marker.width / 2
             let rect = CGRect(x: 0, y: 0, width: CGFloat(key.width), height: CGFloat(key.height))
                 .insetBy(dx: inset, dy: inset)
             return CrayonGeometry(kind: kind, in: rect, seed: seed, marker: marker, hachure: fill?.hachure)

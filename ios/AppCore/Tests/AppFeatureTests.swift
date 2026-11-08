@@ -35,11 +35,14 @@ final class AppFeatureTests: XCTestCase {
         await store.receive(\.home.tick, fixedDate) {
             $0.home.minute = self.minuteOfFixedDate
             $0.home.idleSeconds = 1   // the idle wink counts in these ticks
+            $0.home.now = self.fixedDate
+            $0.home.secondsSinceRefresh = 1   // live bus times count the same ticks
         }
         await clock.advance(by: .seconds(1))
         await store.receive(\.tick, fixedDate)
         await store.receive(\.home.tick, fixedDate) {
             $0.home.idleSeconds = 2
+            $0.home.secondsSinceRefresh = 2
         }
         await task.cancel()
     }

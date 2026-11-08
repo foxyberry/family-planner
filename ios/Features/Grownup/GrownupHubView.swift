@@ -63,7 +63,7 @@ public struct GrownupHubView: View {
                         Text(row.value).crayonType(.body).foregroundStyle(CrayonColor.ink)
                     }
                 case let .link(row, link):
-                    Button { store.send(link == .day ? .dayRowTapped : .missionsRowTapped) } label: {
+                    Button { store.send(Self.action(for: link)) } label: {
                         ListRow(leading: row.key) {
                             HStack {
                                 Text(row.value).crayonType(.body).foregroundStyle(CrayonColor.ink)
@@ -131,5 +131,13 @@ public struct GrownupHubView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private static func action(for link: HubLink) -> GrownupHubFeature.Action {
+        switch link {
+        case .day: .dayRowTapped
+        case .missions: .missionsRowTapped
+        case .buses: .busesRowTapped
+        }
     }
 }
