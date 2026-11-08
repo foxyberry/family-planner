@@ -10,18 +10,18 @@ final class HubModelTests: XCTestCase {
 
     func testAboutRowsForSchoolKid() {
         XCTAssertEqual(HubModel.aboutRows(kid: SeedData.kidA, routines: SeedData.routines),
-                       [HubRow(key: "Age", value: "8 · Year 3"), HubRow(key: "Day", value: "Up 6:30 · Bed 8:00")])
+                       [HubRow(key: "Age", value: "8 · Year 3"), HubRow(key: "Day", value: "Up 6:30 am · Bed 8:00 pm")])
     }
 
     func testAboutRowsForHomeKid() {
         XCTAssertEqual(HubModel.aboutRows(kid: SeedData.kidB, routines: SeedData.routines),
-                       [HubRow(key: "Age", value: "4 · at home"), HubRow(key: "Day", value: "Nap 1:00–3:00 · Bed 7:30")])
+                       [HubRow(key: "Age", value: "4 · at home"), HubRow(key: "Day", value: "Nap 1:00–3:00 pm · Bed 7:30 pm")])
     }
 
     func testSchoolRows() {
         XCTAssertEqual(HubModel.schoolRows(kid: SeedData.kidA),
                        [HubRow(key: "School", value: "Example Primary School"),
-                        HubRow(key: "Hours", value: "7:30 am – 3:00 pm"),
+                        HubRow(key: "Hours", value: "7:30 am–3:00 pm"),
                         HubRow(key: "Holidays", value: "No holidays set")])
         XCTAssertEqual(HubModel.schoolRows(kid: SeedData.kidB), [])
     }
@@ -30,11 +30,11 @@ final class HubModelTests: XCTestCase {
         let sections = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines)
         XCTAssertEqual(sections.map(\.title), ["About", "School"])
         XCTAssertEqual(sections[0].rows, [.text(HubRow(key: "Age", value: "8 · Year 3")),
-                                          .text(HubRow(key: "Day", value: "Up 6:30 · Bed 8:00"))])
+                                          .text(HubRow(key: "Day", value: "Up 6:30 am · Bed 8:00 pm"))])
         XCTAssertEqual(sections[1].rows, [
             .text(HubRow(key: "School", value: "Example Primary School")),
             .schoolDays(key: "Days", days: Weekday.schoolDays),
-            .text(HubRow(key: "Hours", value: "7:30 am – 3:00 pm")),
+            .text(HubRow(key: "Hours", value: "7:30 am–3:00 pm")),
             .text(HubRow(key: "Holidays", value: "No holidays set")),
         ])
     }
@@ -55,7 +55,7 @@ final class HubModelTests: XCTestCase {
         let rows = HubModel.weeklyRows(kid: SeedData.kidA, items: [
             F.weekly(), F.weekly("Reading", days: Weekday.schoolDays, start: 960, end: 1000),
         ])
-        XCTAssertEqual(rows.map(\.detail), ["Mon · Wed 3:30–4:30", "Every school day 4:00–4:40"])
+        XCTAssertEqual(rows.map(\.detail), ["Mon · Wed 3:30–4:30 pm", "Every school day 4:00–4:40 pm"])
     }
 
     func testEndedSeriesNotListed() {
@@ -75,7 +75,7 @@ final class HubModelTests: XCTestCase {
         let early = HubModel.onceRows(kid: SeedData.kidA, items: items, routines: SeedData.routines, today: F.monday,
                                       nowMinute: 360, calendar: F.calendar)
         XCTAssertEqual(early.map(\.title), ["Last night", "Event 6", "Event 5", "Event 4", "Event 3"])
-        XCTAssertEqual(early.first?.detail, "Sun 8 Nov · 4:00–5:00")
+        XCTAssertEqual(early.first?.detail, "Sun 8 Nov · 4:00–5:00 pm")
         let later = HubModel.onceRows(kid: SeedData.kidA, items: items, routines: SeedData.routines, today: F.monday,
                                       nowMinute: 390, calendar: F.calendar)
         XCTAssertEqual(later.first?.title, "Event 6", "gone at wake-up")
@@ -124,7 +124,7 @@ final class GrownupHubFeatureTests: XCTestCase {
         await store.receive(\.loaded)
         XCTAssertEqual(store.state.calendar, F.calendar)
         XCTAssertEqual(store.state.weeklyRows.map(\.title), ["Swimming"])
-        XCTAssertEqual(store.state.onceRows.map(\.detail), ["Wed 11 Nov · 4:00–5:00"])
+        XCTAssertEqual(store.state.onceRows.map(\.detail), ["Wed 11 Nov · 4:00–5:00 pm"])
         XCTAssertEqual(store.state.weeklyHeading, "After school")
         XCTAssertEqual(store.state.sections.map(\.title), ["About", "School"])
         await store.send(.kidTabTapped(SeedData.kidB.id))

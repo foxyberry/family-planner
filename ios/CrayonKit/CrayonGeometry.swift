@@ -13,10 +13,17 @@ public struct CrayonGeometry: Equatable, Sendable {
     /// Distance between outline samples, in points.
     static let sampleSpacing: CGFloat = 12
 
+    /// 12 pt apart, but at least 24 samples around a small shape (a 48 pt ring had 10 and looked
+    /// like an octagon). Shapes over about 290 pt around keep the 12 pt spacing.
+    public static func spacing(for rect: CGRect) -> CGFloat {
+        let around = 2 * (rect.width + rect.height) * 0.8
+        return max(2, min(sampleSpacing, around / 24))
+    }
+
     public init(kind: CrayonShapeKind, in rect: CGRect, seed: UInt32,
                 marker: MarkerStyle, hachure: HachureStyle?) {
         var random = SeededRandom(seed: seed)
-        let ideal = Self.idealOutline(kind: kind, in: rect, spacing: Self.sampleSpacing)
+        let ideal = Self.idealOutline(kind: kind, in: rect, spacing: Self.spacing(for: rect))
         outline = Self.jitter(ideal, roughness: marker.roughness, bowing: marker.bowing, random: &random)
         washOutline = Self.jitter(ideal, roughness: marker.roughness * 0.6, bowing: marker.bowing * 0.6,
                                   random: &random)

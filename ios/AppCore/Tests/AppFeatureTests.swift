@@ -34,10 +34,13 @@ final class AppFeatureTests: XCTestCase {
         // Before the home screen's first load a tick only moves its minute.
         await store.receive(\.home.tick, fixedDate) {
             $0.home.minute = self.minuteOfFixedDate
+            $0.home.idleSeconds = 1   // the idle wink counts in these ticks
         }
         await clock.advance(by: .seconds(1))
         await store.receive(\.tick, fixedDate)
-        await store.receive(\.home.tick, fixedDate)
+        await store.receive(\.home.tick, fixedDate) {
+            $0.home.idleSeconds = 2
+        }
         await task.cancel()
     }
 

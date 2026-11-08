@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import Domain
 import Foundation
 import HolidayProvider
@@ -22,13 +23,13 @@ public struct ItemEditorFeature {
     public struct AudienceTab: Equatable, Sendable {
         public var audience: Audience
         public var title: String
-        /// The kid's colour; nil for "Both".
-        public var colorIndex: Int?
+        /// The kid's face in their colour ring; nil for "Both".
+        public var badge: KidFace.Badge?
 
-        public init(audience: Audience, title: String, colorIndex: Int?) {
+        public init(audience: Audience, title: String, badge: KidFace.Badge?) {
             self.audience = audience
             self.title = title
-            self.colorIndex = colorIndex
+            self.badge = badge
         }
     }
 
@@ -117,13 +118,17 @@ public struct ItemEditorFeature {
         /// A tab per kid, and "Both" once there are two or more kids.
         public var audienceTabs: [AudienceTab] {
             let kids = snapshot?.kids ?? []
-            return kids.map { AudienceTab(audience: .kid($0.id), title: $0.name, colorIndex: $0.colorIndex) }
-                + (kids.count > 1 ? [AudienceTab(audience: .both, title: L10n.tr("editor.audience.both"), colorIndex: nil)] : [])
+            return kids.map { AudienceTab(audience: .kid($0.id), title: $0.name,
+                                     badge: KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) }
+                + (kids.count > 1 ? [AudienceTab(audience: .both, title: L10n.tr("editor.audience.both"), badge: nil)] : [])
         }
 
         /// The form's times as times on today, for the time fields.
         public var startTime: Date { today.date(minute: form.start, calendar: calendar) }
         public var endTime: Date { today.date(minute: form.end, calendar: calendar) }
+        /// "3:30 pm" on the time fields.
+        public var startLabel: String { TimeText.withPeriod(form.start) }
+        public var endLabel: String { TimeText.withPeriod(form.end) }
 
         /// Five dates from today, a week per page (board C4).
         public var visibleDates: [Day] {

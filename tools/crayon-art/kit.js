@@ -44,7 +44,8 @@ const Ln = (d, w = 4.5, color) => ({ kind: 'line', d, w, ...(color ? { color } :
 // Faces: plain marker dots for eyes, no whites, no lashes
 const eye = (cx, cy, r = 13) => [B(circ(cx, cy, Math.max(4.5, r * 0.42)))];
 const smile = (cx, cy, w) => Ln(`M${cx - w / 2} ${cy}Q${cx} ${cy + w * 0.5} ${cx + w / 2} ${cy}`, 4);
-const wheel = (cx, cy) => [B(circ(cx, cy, 18))];
+// wheel: dark tyre, one white spoke and a small steel hub, so a turning wheel reads as turning (3 layers)
+const wheel = (cx, cy) => [B(circ(cx, cy, 18)), Ln(`M${cx} ${cy}V${cy - 12}`, 4, '#FFFFFF'), S(circ(cx, cy, 6), '#C9CED6', 0, 2.5)];
 // Passengers in bus windows, drawn as overlays that sit exactly on the bus picture (same 240 box).
 // level 1 = seats free (a few heads), 2 = standing room (every window), 3 = nearly full (two heads per window).
 // The passengers are the same happy face as feelHappy (the crowd faces the bubbles used), drawn small.
@@ -535,7 +536,8 @@ const ITEMS = {
   skyNight: [
     S(rr(6, 54, 228, 132, 66), '#3A3866', -30),
     S(star(50, 96, 14, 6), '#FFF3B0', 0), S(star(84, 148, 11, 5), '#FFF3B0', 0), Ln('M108 88H108.1', 7, '#FFF3B0'),
-    S('M207.5 139.3L205.3 143.3L202.7 147.1L199.7 150.6L196.3 153.7L192.6 156.5L188.7 158.8L184.5 160.8L180.1 162.3L175.6 163.3L171.1 163.9L166.5 164.0L161.9 163.6L157.4 162.7L153.0 161.3L148.7 159.5L144.7 157.3L140.9 154.7L137.4 151.7L134.3 148.3L131.5 144.6L129.2 140.7L127.2 136.5L125.7 132.1L124.7 127.6L124.1 123.1L124.0 118.5L124.4 113.9L125.3 109.4L126.7 105.0L128.5 100.7L130.7 96.7L133.3 92.9L136.3 89.4L139.7 86.3L143.4 83.5L147.3 81.2L151.5 79.2L155.9 77.7L160.4 76.7L164.9 76.1L169.5 76.0L206.9 138.7L203.5 140.3L199.9 141.5L196.3 142.3L192.5 142.8L188.7 142.9L185.0 142.5L181.3 141.8L177.7 140.7L174.2 139.2L170.9 137.4L167.8 135.2L164.9 132.8L162.4 130.0L160.1 127.0L158.1 123.7L156.5 120.3L155.3 116.7L154.5 113.1L154.0 109.3L153.9 105.5L154.3 101.8L155.0 98.1L156.1 94.5L157.6 91.0L159.4 87.7L161.6 84.6L164.0 81.7L166.8 79.2L169.8 76.9Z', K.yellow, -40),
+    // crescent: outer arc bottom tip → top tip, then the inner arc back (was traced the wrong way, which drew a chord and filled a half-moon)
+    S('M207.5 139.3L205.3 143.3L202.7 147.1L199.7 150.6L196.3 153.7L192.6 156.5L188.7 158.8L184.5 160.8L180.1 162.3L175.6 163.3L171.1 163.9L166.5 164.0L161.9 163.6L157.4 162.7L153.0 161.3L148.7 159.5L144.7 157.3L140.9 154.7L137.4 151.7L134.3 148.3L131.5 144.6L129.2 140.7L127.2 136.5L125.7 132.1L124.7 127.6L124.1 123.1L124.0 118.5L124.4 113.9L125.3 109.4L126.7 105.0L128.5 100.7L130.7 96.7L133.3 92.9L136.3 89.4L139.7 86.3L143.4 83.5L147.3 81.2L151.5 79.2L155.9 77.7L160.4 76.7L164.9 76.1L169.5 76.0L169.8 76.9L166.8 79.2L164.0 81.7L161.6 84.6L159.4 87.7L157.6 91.0L156.1 94.5L155.0 98.1L154.3 101.8L153.9 105.5L154.0 109.3L154.5 113.1L155.3 116.7L156.5 120.3L158.1 123.7L160.1 127.0L162.4 130.0L164.9 132.8L167.8 135.2L170.9 137.4L174.2 139.2L177.7 140.7L181.3 141.8L185.0 142.5L188.7 142.9L192.5 142.8L196.3 142.3L199.9 141.5L203.5 140.3L206.9 138.7Z', K.yellow, -40),
     Ln('M134 114q6 6 12 0', 3.5), Ln('M136 134q8 7 16 0', 3.5),
     Ln('M72 54H168A66 66 0 0 1 168 186H72A66 66 0 0 1 72 54Z', 5, '#F4EFFF'),
   ],
@@ -1395,6 +1397,42 @@ const RIGS = {
        "times": 2
       }
      ]
+    },
+    {
+     "name": "back wheel",
+     "layers": [
+      9,
+      10,
+      11
+     ],
+     "origin": [
+      82,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    {
+     "name": "front wheel",
+     "layers": [
+      12,
+      13,
+      14
+     ],
+     "origin": [
+      160,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
     }
    ]
   },
@@ -1630,6 +1668,195 @@ const RIGS = {
        "type": "rock",
        "deg": 5,
        "times": 3
+      }
+     ]
+    }
+   ]
+  },
+  "busSingle": {
+   "parts": [
+    {
+     "name": "body",
+     "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ],
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "back wheel",
+     "layers": [
+      7,
+      8,
+      9
+     ],
+     "origin": [
+      58,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    {
+     "name": "front wheel",
+     "layers": [
+      10,
+      11,
+      12
+     ],
+     "origin": [
+      182,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    }
+   ]
+  },
+  "busMini": {
+   "parts": [
+    {
+     "name": "body",
+     "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "back wheel",
+     "layers": [
+      6,
+      7,
+      8
+     ],
+     "origin": [
+      84,
+      188
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    {
+     "name": "front wheel",
+     "layers": [
+      9,
+      10,
+      11
+     ],
+     "origin": [
+      160,
+      188
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    }
+   ]
+  },
+  "busShuttle": {
+   "parts": [
+    {
+     "name": "body",
+     "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 2
+      }
+     ]
+    },
+    {
+     "name": "back wheel",
+     "layers": [
+      8,
+      9,
+      10
+     ],
+     "origin": [
+      58,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    {
+     "name": "front wheel",
+     "layers": [
+      11,
+      12,
+      13
+     ],
+     "origin": [
+      182,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
       }
      ]
     }

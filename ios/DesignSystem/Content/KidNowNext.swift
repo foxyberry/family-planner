@@ -7,11 +7,14 @@ import SwiftUI
 public struct KidNowNext: View {
     private let now: KitSlot
     private let next: KitSlot?
+    private let look: KidLook
 
-    /// Pictures are `KitSlot` raw values; an unknown name falls back to play.
-    public init(now: String, next: String?) {
+    /// Pictures are `KitSlot` raw values; an unknown name falls back to play. At night the captions
+    /// use the night soft text (board A1n).
+    public init(now: String, next: String?, look: KidLook = .day) {
         self.now = KitSlot(rawValue: now) ?? .actPlay
         self.next = next.map { KitSlot(rawValue: $0) ?? .actPlay }
+        self.look = look
     }
 
     public var body: some View {
@@ -29,7 +32,7 @@ public struct KidNowNext: View {
             KitIcon(slot, size: picture)
                 .frame(width: diameter, height: diameter)
                 .crayonBackground(.circle, fill: fill, seed: seed)
-            Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            Text(caption).crayonType(.caption).foregroundStyle(look.softText)
         }
         .accessibilityElement(children: .combine)
     }

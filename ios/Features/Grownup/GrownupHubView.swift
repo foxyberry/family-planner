@@ -41,7 +41,7 @@ public struct GrownupHubView: View {
         GrownupHeader(title: L10n.tr("hub.title"), onBack: { store.send(.backTapped) }) {
             if let kids = store.snapshot?.kids, let selected = store.selectedKid {
                 CrayonTabs(selection: Binding(get: { selected }, set: { store.send(.kidTabTapped($0)) }),
-                           items: kids.map { ($0.id, $0.name, CrayonColor.kid($0.colorIndex)) })
+                           items: kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
             }
         }
     }

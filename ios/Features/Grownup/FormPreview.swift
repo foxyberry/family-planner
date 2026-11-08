@@ -14,8 +14,8 @@ public struct FormPreview: Equatable, Sendable {
             self.isNew = isNew
         }
 
-        /// "3:30"
-        public var time: String { TimeText.clock(slot.start) }
+        /// "3:30 pm"
+        public var time: String { TimeText.withPeriod(slot.start) }
     }
 
     /// "Kid A's Monday", "Monday" for both kids, or "Thursday 12 Nov" just once.

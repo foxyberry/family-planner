@@ -78,7 +78,7 @@ final class ItemFormTests: XCTestCase {
         once.date = F.monday
         XCTAssertEqual(once.overlapCaption(items: [swim], kids: SeedData.kids, holidays: [], editing: nil,
                                            calendar: F.calendar),
-                       "Overlaps Swimming 3:30–4:30. This one shows on the clock then.")
+                       "Overlaps Swimming 3:30–4:30 pm. This one shows on the clock then.")
     }
 
     func testOverlapCaptionWhenOtherWins() {
@@ -187,7 +187,7 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(rows.filter(\.isNew).map(\.slot.title), ["Pottery"])
         XCTAssertTrue(rows.contains { $0.slot.title == "Reading" && !$0.isNew })
         XCTAssertFalse(rows.contains { $0.slot.kind == .sleep })
-        XCTAssertEqual(rows.first { $0.isNew }?.time, "3:30")
+        XCTAssertEqual(rows.first { $0.isNew }?.time, "3:30 pm")
     }
 
     func testPreviewLeavesOutADraftWithAProblem() {

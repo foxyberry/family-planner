@@ -1,5 +1,19 @@
 import Foundation
 
+/// Board A1n: the kid screens look like night from the first evening-routine slot of the day's
+/// template until the kid wakes up (the end of the sleep slot that starts at midnight).
+public struct NightSpan: Equatable, Sendable {
+    public var start: Int
+    public var wake: Int
+
+    public init(start: Int, wake: Int) {
+        self.start = start
+        self.wake = wake
+    }
+
+    public func contains(_ minute: Int) -> Bool { minute >= start || minute < wake }
+}
+
 /// Turns a kid's routine and schedule items into the slots of one day.
 public enum DayPlanner {
     /// Mon–Fri use the weekday template unless the day is a holiday, which uses Sun; Sat and Sun their own.
@@ -21,6 +35,16 @@ public enum DayPlanner {
                                 calendar: Calendar) -> Routine? {
         let type = dayType(on: day, holidays: holidays, calendar: calendar)
         return routines.filter { $0.kid == kid && $0.dayType == type && $0.from <= day }.max { $0.from < $1.from }
+    }
+
+    /// The night look's span for a template, or `nil` when it has no evening routine or no
+    /// morning sleep (the screens then stay in the day look).
+    public static func nightSpan(of routine: Routine?) -> NightSpan? {
+        guard let blocks = routine?.blocks,
+              let start = blocks.filter({ $0.kind == .evening }).map(\.start).min(),
+              let wake = blocks.first(where: { $0.kind == .sleep && $0.start == 0 })?.end
+        else { return nil }
+        return NightSpan(start: start, wake: wake)
     }
 
     /// Whether `item` is on `kid`'s day `day`.

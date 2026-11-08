@@ -557,7 +557,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Overlaps %1$@ %2$@–%3$@. This one shows on the clock then."
+            "value" : "Overlaps %1$@ %2$@. This one shows on the clock then."
           }
         }
       }
@@ -661,13 +661,13 @@
         }
       }
     },
-    "home.day_off" : {
+    "home.day.holiday" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No school, no bus"
+            "value" : "%@ · Holiday"
           }
         }
       }
@@ -716,13 +716,57 @@
         }
       }
     },
-    "home.next.empty" : {
+    "home.next.at" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nothing else today"
+            "value" : "at %@"
+          }
+        }
+      }
+    },
+    "home.next.bed_in" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bed in"
+          }
+        }
+      }
+    },
+    "home.next.in" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in"
+          }
+        }
+      }
+    },
+    "home.sky.day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day. Tap for night."
+          }
+        }
+      }
+    },
+    "home.sky.night" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night. Tap for day."
           }
         }
       }
@@ -799,7 +843,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nap %1$@–%2$@"
+            "value" : "Nap %@"
           }
         }
       }
@@ -1460,6 +1504,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "pm"
+          }
+        }
+      }
+    },
+    "time_left.h" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ h"
+          }
+        }
+      }
+    },
+    "time_left.h_min" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ h %2$@ min"
           }
         }
       }

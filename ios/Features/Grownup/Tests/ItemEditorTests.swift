@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import Domain
 import Foundation
 import Grownup
@@ -201,9 +202,9 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         XCTAssertEqual(store.state.audienceTabs, [
-            .init(audience: kidA, title: "Kid A", colorIndex: 0),
-            .init(audience: .kid(SeedData.kidB.id), title: "Kid B", colorIndex: 1),
-            .init(audience: .both, title: "Both", colorIndex: nil),
+            .init(audience: kidA, title: "Kid A", badge: .init(face: "kidGirl", colorIndex: 0)),
+            .init(audience: .kid(SeedData.kidB.id), title: "Kid B", badge: .init(face: "kidBoy", colorIndex: 1)),
+            .init(audience: .both, title: "Both", badge: nil),
         ])
         var oneKid = store.state
         oneKid.snapshot = ScheduleSnapshot(kids: [SeedData.kidA], routines: SeedData.routines, items: [])
@@ -279,6 +280,7 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual([store.state.form.start, store.state.form.end], [945, 1005])
         XCTAssertEqual(store.state.startTime, F.monday.date(minute: 945, calendar: F.calendar))
         XCTAssertEqual(store.state.endTime, F.monday.date(minute: 1005, calendar: F.calendar))
+        XCTAssertEqual([store.state.startLabel, store.state.endLabel], ["3:45 pm", "4:45 pm"])
     }
 
     func testNowMinuteUsesTheCalendar() {

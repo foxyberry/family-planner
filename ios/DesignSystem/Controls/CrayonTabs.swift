@@ -1,12 +1,13 @@
 import CrayonKit
 import SwiftUI
 
-/// Segmented tabs, 72 tall; only the selected one is sky blue. Items may carry a kid colour dot.
+/// Segmented tabs, 72 tall; only the selected one is sky blue. Items may carry a kid's face (40,
+/// beside the body 30 label).
 public struct CrayonTabs<ID: Hashable>: View {
     @Binding private var selection: ID
-    private let items: [(ID, String, Color?)]
+    private let items: [(ID, String, KidFace.Badge?)]
 
-    public init(selection: Binding<ID>, items: [(ID, String, Color?)]) {
+    public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)]) {
         _selection = selection
         self.items = items
     }
@@ -16,8 +17,10 @@ public struct CrayonTabs<ID: Hashable>: View {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 let isOn = item.0 == selection
                 Button { selection = item.0 } label: {
-                    HStack(spacing: Spacing.xs) {
-                        if let dot = item.2 { KidDot(color: dot) }
+                    HStack(spacing: KidFace.gap(for: KidFace.medium)) {
+                        if let badge = item.2 {
+                            KidFace(badge, name: item.1, size: KidFace.medium).accessibilityHidden(true)
+                        }
                         Text(item.1).crayonType(.body)
                     }
                     .foregroundStyle(CrayonColor.ink)

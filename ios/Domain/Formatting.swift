@@ -3,15 +3,26 @@ import Strings
 
 /// Times as the screens print them (English, fixed format, never the device locale).
 public enum TimeText {
-    /// "3:30": 12-hour, no am/pm (kid screens and the clock hub).
+    /// "3:30": 12-hour without am/pm. Never shown alone on a screen: use `withPeriod` or `range`.
     public static func clock(_ minute: Int) -> String {
         let hour = (minute / 60) % 12
         return "\(hour == 0 ? 12 : hour):\(String(format: "%02d", minute % 60))"
     }
 
-    /// "3:30 pm" (grown-up screens).
+    /// "3:30 pm": every time shown on a screen, kid or grown-up. 1440 is "12:00 am".
     public static func withPeriod(_ minute: Int) -> String {
-        "\(clock(minute)) \((minute / 60) % 24 < 12 ? L10n.tr("time.am") : L10n.tr("time.pm"))"
+        "\(clock(minute)) \(period(minute))"
+    }
+
+    /// "3:30–4:30 pm" within one half of the day, "7:30 am–3:00 pm" across noon or midnight.
+    public static func range(_ start: Int, _ end: Int) -> String {
+        start / 720 == end / 720
+            ? "\(clock(start))–\(withPeriod(end))"
+            : "\(withPeriod(start))–\(withPeriod(end))"
+    }
+
+    private static func period(_ minute: Int) -> String {
+        (minute / 60) % 24 < 12 ? L10n.tr("time.am") : L10n.tr("time.pm")
     }
 
     /// "1 hour", "2 hours", "1 hr 30 min", "45 min".

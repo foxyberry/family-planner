@@ -753,7 +753,11 @@
     },
     {
      "image": "rig-busDouble-1",
-     "part": null
+     "part": "back wheel"
+    },
+    {
+     "image": "rig-busDouble-2",
+     "part": "front wheel"
     }
    ],
    "parts": {
@@ -767,6 +771,30 @@
        "type": "bob",
        "px": 6,
        "times": 2
+      }
+     ]
+    },
+    "back wheel": {
+     "origin": [
+      82,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    "front wheel": {
+     "origin": [
+      160,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
       }
      ]
     }
@@ -1046,6 +1074,171 @@
        "type": "rock",
        "deg": 5,
        "times": 3
+      }
+     ]
+    }
+   }
+  },
+  "busSingle": {
+   "runs": [
+    {
+     "image": "rig-busSingle-0",
+     "part": "body"
+    },
+    {
+     "image": "rig-busSingle-1",
+     "part": "back wheel"
+    },
+    {
+     "image": "rig-busSingle-2",
+     "part": "front wheel"
+    }
+   ],
+   "parts": {
+    "body": {
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 2
+      }
+     ]
+    },
+    "back wheel": {
+     "origin": [
+      58,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    "front wheel": {
+     "origin": [
+      182,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    }
+   }
+  },
+  "busMini": {
+   "runs": [
+    {
+     "image": "rig-busMini-0",
+     "part": "body"
+    },
+    {
+     "image": "rig-busMini-1",
+     "part": "back wheel"
+    },
+    {
+     "image": "rig-busMini-2",
+     "part": "front wheel"
+    }
+   ],
+   "parts": {
+    "body": {
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 2
+      }
+     ]
+    },
+    "back wheel": {
+     "origin": [
+      84,
+      188
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    "front wheel": {
+     "origin": [
+      160,
+      188
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    }
+   }
+  },
+  "busShuttle": {
+   "runs": [
+    {
+     "image": "rig-busShuttle-0",
+     "part": "body"
+    },
+    {
+     "image": "rig-busShuttle-1",
+     "part": "back wheel"
+    },
+    {
+     "image": "rig-busShuttle-2",
+     "part": "front wheel"
+    }
+   ],
+   "parts": {
+    "body": {
+     "origin": [
+      120,
+      186
+     ],
+     "moves": [
+      {
+       "type": "bob",
+       "px": 6,
+       "times": 2
+      }
+     ]
+    },
+    "back wheel": {
+     "origin": [
+      58,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
+      }
+     ]
+    },
+    "front wheel": {
+     "origin": [
+      182,
+      190
+     ],
+     "moves": [
+      {
+       "type": "spin",
+       "deg": 360
       }
      ]
     }
