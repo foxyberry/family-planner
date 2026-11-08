@@ -23,28 +23,28 @@ public struct ItemEditorView: View {
         ZStack {
             GrownupScreen {
                 header
-            } content: { grid in
-                HStack(alignment: .top, spacing: grid.screenGutter) {
-                    PaperCard(seed: 31) { form.padding(Spacing.m) }
-                        .frame(width: grid.span(8))
+            } content: { layout in
+                HStack(alignment: .top, spacing: layout.gap) {
+                    // Exactly the card's inner width, so no row can widen the card past 64 … 882.
+                    PaperCard(seed: 31) { form.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading) }
+                        .frame(width: layout.form.width)
                     Group {
                         if store.isEditingWeekly { weeklySide } else if let preview = store.preview {
                             sideColumn(preview)
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(width: layout.side.width, alignment: .topLeading)
                 }
-            } primaryAction: { grid in
+            } primaryAction: { layout in
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     InkButton(store.primaryTitle) { store.send(.saveTapped) }
-                        .frame(width: grid.span(4))
+                        .frame(width: layout.side.width)
                         .opacity(store.canSave ? 1 : 0.4)
                         .disabled(!store.canSave)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if let title = store.confirmTitle {
                 CrayonColor.marker.opacity(0.3).ignoresSafeArea()
@@ -95,8 +95,9 @@ public struct ItemEditorView: View {
     private func row(_ label: String, problem row: FormRow? = nil, @ViewBuilder control: () -> some View)
         -> some View {
         let shown = row.flatMap { store.state.problem(for: $0) }
-        return HStack(alignment: .top, spacing: Spacing.m) {
-            Text(label).crayonType(.body).foregroundStyle(CrayonColor.softText).frame(width: 120, alignment: .leading)
+        // Labels from 104, controls on 232 (GrownupLayout, boards C3 / C4 / E5).
+        return HStack(alignment: .top, spacing: 0) {
+            FormLabel(label)
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 control()
                 if let shown {
@@ -145,10 +146,14 @@ public struct ItemEditorView: View {
     }
 
     @ViewBuilder private var onceRows: some View {
-        row("") {
-            HStack(spacing: Spacing.s) {
+        // Board C4: five date chips (96) from 232; "earlier" waits in the label column. The board
+        // spaces chips 12 apart and has no "later"; 8 apart, chips and "later" fit 232 … 842.
+        HStack(spacing: 0) {
+            FormLabelColumn {
                 RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("editor.dates.earlier")) { store.send(.datePageTapped(-1)) }
                     .opacity(store.canPageEarlier ? 1 : 0.3)
+            }
+            HStack(spacing: Spacing.xs) {
                 ForEach(store.dateChips, id: \.day) { chip in
                     DateChip(weekday: chip.weekday, day: chip.day.day, isOn: chip.isOn) {
                         store.send(.dateTapped(chip.day))

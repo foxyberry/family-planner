@@ -39,6 +39,8 @@ public struct AppFeature {
         public var grownupIdleSeconds: Int?
         /// "Locks in 0:30" during the last 30 seconds, shown instead of "Grown-ups only".
         public var relockCaption: String?
+        /// A debug link's grown-up board, opened once the unlock passes and the hub has loaded.
+        public var pendingBoard: GrownupBoard?
 
         public init() {}
 
@@ -133,13 +135,37 @@ public struct AppFeature {
                 return .send(.home(.tick(now)))
 
             case let .linkOpened(link):
-                // Kid screens only; an open grown-up screen keeps its lock rules.
-                guard state.path.isEmpty else { return .none }
+                // A link leaves open grown-up screens locked again; a grown-up board asks again.
+                if !state.path.isEmpty { relock(&state) }
                 switch link {
-                case .home: state.missions = nil
-                case .missions: state.missions = MissionsFeature.State()
+                case .home:
+                    state.missions = nil
+                case .missions:
+                    state.missions = MissionsFeature.State()
+                case let .grownup(board):
+                    // The usual unlock, as after the hold; the board opens once the hub has loaded.
+                    state.missions = nil
+                    state.pendingBoard = board
+                    state.lock = .scanning
+                    return authenticate()
                 }
                 return .none
+
+            case let .path(.element(id: id, action: .hub(.loaded(snapshot)))):
+                guard let board = state.pendingBoard else { return .none }
+                state.pendingBoard = nil
+                let hub = { (action: GrownupHubFeature.Action) in
+                    Effect<Action>.send(.path(.element(id: id, action: .hub(action))))
+                }
+                switch board {
+                case .c1: return .none
+                case .e6: return snapshot?.kids.dropFirst().first.map { hub(.kidTabTapped($0.id)) } ?? .none
+                case .c2: return hub(.busesRowTapped)
+                case .c3: return hub(.addWeeklyTapped)
+                case .c4: return hub(.addOnceTapped)
+                case .c5: return hub(.missionsRowTapped)
+                case .c6: return hub(.dayRowTapped)
+                }
 
             case .home(.missionsTapped):
                 state.missions = MissionsFeature.State()
@@ -163,6 +189,7 @@ public struct AppFeature {
 
             case .parentAuthResponse(.cancelled):
                 state.lock = nil
+                state.pendingBoard = nil
                 return .none
 
             case .parentAuthResponse(.notAvailable):
@@ -188,6 +215,7 @@ public struct AppFeature {
 
             case .lockCancelTapped:
                 state.lock = nil
+                state.pendingBoard = nil
                 return .none
 
             case .grownupTouched:
@@ -287,6 +315,7 @@ public struct AppFeature {
         state.grownupIdleSeconds = nil
         state.relockCaption = nil
         state.lock = nil
+        state.pendingBoard = nil
     }
 }
 

@@ -7,18 +7,21 @@ import SwiftUI
 /// and the menu. Touches outside the bubble go through to the app.
 public struct DebugOverlay: View {
     @Bindable var model: DebugModel
+    private let lines: GridLines
 
     @Environment(\.sizing) private var sizing
 
-    public init(model: DebugModel) {
+    /// `lines`: which family's board lines the grid draws (kid screens or grown-up screens).
+    public init(model: DebugModel, lines: GridLines = .kids) {
         self.model = model
+        self.lines = lines
     }
 
     public var body: some View {
         GeometryReader { geometry in
             ZStack {
                 if model.settings.showsLayoutGrid {
-                    LayoutGridOverlay(size: geometry.size, sizing: sizing)
+                    LayoutGridOverlay(size: geometry.size, sizing: sizing, lines: lines)
                 }
                 DebugBubble(model: model, screen: geometry.size)
             }
@@ -92,9 +95,18 @@ struct DebugBubble: View {
 /// The board's lines over the screen (spec "Sizing formulas", docs/superpowers/layout): margins
 /// 64 / 1312, the morning column 448, the home panel 928 (left-anchored or right-anchored like the
 /// screens), and the bands 48 / 128 / 176 / 516 / 536 / 872 / 968; baselines 107 / 584 / 757 dashed.
+/// The board lines a screen family shares (docs/superpowers/layout/README.md).
+public enum GridLines: Sendable {
+    /// Home and morning: 64, 172, 448, 928, 1312; the header, strip and bottom bands.
+    case kids
+    /// Grown-up screens: 64, 104, 232, 280, 882, 930, 1312; header, content and action bands.
+    case grownup
+}
+
 struct LayoutGridOverlay: View {
     let size: CGSize
     let sizing: Sizing
+    let lines: GridLines
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -125,10 +137,24 @@ struct LayoutGridOverlay: View {
     }
 
     private var verticals: [CGFloat] {
-        [sizing.left(64), sizing.left(448), sizing.left(928), sizing.left(172), sizing.right(1312)]
+        switch lines {
+        case .kids: [sizing.left(64), sizing.left(448), sizing.left(928), sizing.left(172), sizing.right(1312)]
+        case .grownup: [64, 104, 232, 280, 882].map(sizing.left) + [sizing.right(930), sizing.right(1312)]
+        }
     }
 
-    private var bands: [CGFloat] { [48, 128, 176, 516, 536, 872, 968].map(sizing.y) }
-    private var baselines: [CGFloat] { [107, 584, 757].map(sizing.y) }
+    private var bands: [CGFloat] {
+        switch lines {
+        case .kids: [48, 128, 176, 516, 536, 872, 968].map(sizing.y)
+        case .grownup: [48, 128, 176, 872, 968].map(sizing.y)
+        }
+    }
+
+    private var baselines: [CGFloat] {
+        switch lines {
+        case .kids: [107, 584, 757].map(sizing.y)
+        case .grownup: [107].map(sizing.y)
+        }
+    }
 }
 #endif

@@ -17,8 +17,13 @@ public struct IconPicker: View {
         self.onRequestDrawing = onRequestDrawing
     }
 
+    /// Cells in a row (board C3: 6 × 88 + 5 × 16 = 608, the form's control width).
+    public static let columns = 6
+
     public var body: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 88, maximum: 88), spacing: Spacing.s)], spacing: Spacing.s) {
+        // Board C3: six 88 cells, 16 apart, from the control line (232 … 840); never centred.
+        LazyVGrid(columns: Array(repeating: GridItem(.fixed(88), spacing: Spacing.s), count: Self.columns),
+                  alignment: .leading, spacing: Spacing.s) {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
                 let isOn = slot == selection
                 Button { selection = slot } label: {
@@ -44,5 +49,6 @@ public struct IconPicker: View {
             .accessibilityLabel(L10n.tr("picker.draw"))
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

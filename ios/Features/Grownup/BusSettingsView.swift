@@ -15,17 +15,16 @@ public struct BusSettingsView: View {
     public var body: some View {
         GrownupScreen {
             GrownupHeader(title: store.title, onBack: { store.send(.doneTapped) })
-        } content: { grid in
-            HStack(alignment: .top, spacing: grid.screenGutter) {
-                PaperCard(seed: 51) { plan.padding(Spacing.m) }
-                    .frame(width: grid.span(8))
-                PaperCard(seed: 53) { keyCard.padding(Spacing.m) }
-                    .frame(maxWidth: .infinity)
+        } content: { layout in
+            HStack(alignment: .top, spacing: layout.gap) {
+                PaperCard(seed: 51) { plan }
+                    .frame(width: layout.form.width)
+                PaperCard(seed: 53) { keyCard.frame(maxWidth: .infinity, alignment: .leading) }
+                    .frame(width: layout.side.width)
             }
-        } primaryAction: { grid in
+        } primaryAction: { layout in
             InkButton(L10n.tr("c2.done")) { store.send(.doneTapped) }
-                .frame(width: grid.span(4))
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .frame(width: layout.side.width)
         }
         .task { await store.send(.task).finish() }
     }

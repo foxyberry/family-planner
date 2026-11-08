@@ -54,6 +54,11 @@ public struct ComponentGallery: View {
                 }
                 section("0c · Content") {
                     ListRow(leading: "7:30") { Text("Bus to school") }
+                    HStack(spacing: 0) {
+                        FormLabel("Name")
+                        Text("Swimming").crayonType(.body)
+                    }
+                    .environment(\.formLabelWidth, 128)
                     TodayRow(leading: "Today") { Text("Swimming 15:30") }
                     PaperCard { Text("A sheet of paper").crayonType(.body) }
                     PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: $choice, anchor: 0.3)

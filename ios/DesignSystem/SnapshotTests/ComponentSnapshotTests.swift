@@ -123,6 +123,16 @@ final class ComponentSnapshotTests: XCTestCase {
 
     // MARK: - 0c Content
 
+    /// A grown-up form row: the label fills the 104 … 232 column, the control starts on 232.
+    func testFormLabel() {
+        snap(VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) { FormLabel("Name"); Text("Swimming").crayonType(.body) }
+            ListRow(leading: "Stop") { Text("00000") }
+        }
+        .environment(\.formLabelWidth, 128)
+        .environment(\.cardInset, 40), width: Self.rowWidth)
+    }
+
     func testPaperCardWidths() {
         for (name, width) in Self.widths {
             snap(PaperCard { Text("A sheet of paper").crayonType(.body) }, width: width, named: name)
