@@ -16,15 +16,8 @@ public enum KidLook: String, Equatable, Sendable {
     /// The clock face under the slots: page paper by day, a lit paper face at night.
     public var clockFace: Color { self == .day ? CrayonColor.paper : CrayonColor.litPaper }
 
-    /// A kid's dot colour; at night the first two kids use the brighter night colours.
-    public func kid(_ colorIndex: Int) -> Color {
-        guard self == .night else { return CrayonColor.kid(colorIndex) }
-        switch colorIndex {
-        case 0: return CrayonPalette.nightKidA.color
-        case 1: return CrayonPalette.nightKidB.color
-        default: return CrayonColor.kid(colorIndex)
-        }
-    }
+    /// A kid's colour: the same by day and night (board 00).
+    public func kid(_ colorIndex: Int) -> Color { CrayonColor.kid(colorIndex) }
 
     /// The 2 s crossfade between the looks (Reduce Motion keeps a fade too).
     public static let crossfade = Animation.easeInOut(duration: 2)

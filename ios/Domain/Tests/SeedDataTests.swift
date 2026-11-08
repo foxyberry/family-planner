@@ -17,8 +17,8 @@ final class SeedDataTests: XCTestCase {
         slots.filter { $0.end > from && $0.start < to }.map { "\($0.title) \($0.start)-\($0.end)" }
     }
 
-    func testSeedVersionIsTwo() {
-        XCTAssertEqual(SeedData.version, 2)
+    func testSeedVersionIsThree() {
+        XCTAssertEqual(SeedData.version, 3)
     }
 
     func testMondayAt652IsBreakfastUntil730() {
@@ -143,5 +143,41 @@ final class SeedDataTests: XCTestCase {
         XCTAssertEqual(SeedData.kids.map(\.face), ["kidGirl", "kidBoy"])
         let old = #"{"id":"\#(SeedData.kidB.id)","name":"Kid B","colorIndex":1,"age":4}"#
         XCTAssertEqual(try JSONDecoder().decode(Kid.self, from: Data(old.utf8)).face, "kidBoy")
+    }
+
+    // MARK: Missions and trips (spec "MVP data")
+
+    func testSeedMissionsInOrder() {
+        let kidA = SeedData.missions.filter { $0.kid == SeedData.kidA.id }.sorted { $0.order < $1.order }
+        XCTAssertEqual(kidA.map(\.name), ["Wake up", "Brush teeth", "Get dressed", "Breakfast", "Pack bag", "Shoes on"])
+        XCTAssertEqual(SeedData.missions.filter { $0.kid == SeedData.kidB.id }.map(\.picture), ["sun", "babyBottle", "shoe"])
+        XCTAssertEqual(Mission(id: UUID(), kid: SeedData.kidA.id, name: "A very long mission name", picture: "star",
+                               order: 0).name.count, 14)
+    }
+
+    func testSchoolLeavesAt725AndWeekendSchoolAt835() {
+        let tuesday = DayPlanner.nextOuting(in: slots(SeedData.kidA, on: Fixture.tuesday), after: 412)
+        XCTAssertEqual(tuesday?.slot.title, "School")
+        XCTAssertEqual(tuesday?.trip.way, .bus)
+        XCTAssertEqual(tuesday?.leave, 445)
+        let saturday = DayPlanner.nextOuting(in: slots(SeedData.kidA, on: Fixture.saturday), after: 480)
+        XCTAssertEqual(saturday?.slot.title, "Weekend school")
+        XCTAssertEqual(saturday?.trip.way, .car)
+        XCTAssertEqual(saturday?.leave, 515)
+    }
+
+    func testAnOutingThatStartedIsOverAndKidBHasNone() {
+        // At 7:40 am school has started; Tuesday has no swimming, so nothing is next.
+        XCTAssertNil(DayPlanner.nextOuting(in: slots(SeedData.kidA, on: Fixture.tuesday), after: 460))
+        XCTAssertEqual(DayPlanner.nextOuting(in: slots(SeedData.kidA, on: Fixture.monday), after: 460)?.slot.title,
+                       "Swimming", "Monday's swimming at 3:30 pm by car")
+        XCTAssertNil(DayPlanner.nextOuting(in: slots(SeedData.kidB, on: Fixture.tuesday), after: 400))
+    }
+
+    func testMissionMorningRunsFromTheEarliestWakeUpToNoon() {
+        XCTAssertFalse(DayPlanner.isMissionMorning(at: 389, wakes: [390, 390]))
+        XCTAssertTrue(DayPlanner.isMissionMorning(at: 390, wakes: [390, 450]))
+        XCTAssertTrue(DayPlanner.isMissionMorning(at: 719, wakes: [390]))
+        XCTAssertFalse(DayPlanner.isMissionMorning(at: 720, wakes: [390]))
     }
 }

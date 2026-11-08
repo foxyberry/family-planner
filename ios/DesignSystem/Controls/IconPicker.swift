@@ -36,9 +36,7 @@ public struct IconPicker: View {
             }
             if let onRequestDrawing {
             Button(action: onRequestDrawing) {
-                Image(systemName: "plus")
-                    .font(CrayonType.head.font.weight(.bold))
-                    .foregroundStyle(CrayonColor.ink)
+                MarkerIcon(.plus, size: 40)
                     .frame(width: 88, height: 88)
                     .crayonBackground(.roundedRect(cornerRadius: 24), fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
             }

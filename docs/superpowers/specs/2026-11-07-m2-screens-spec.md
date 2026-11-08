@@ -32,6 +32,16 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-08: weekday moves from the hub to the top of the right panel on every kid home screen (head 36, 24 below; "· Holiday" on weekday holidays); hub = title (540, or 512/550) + until (590 / 594). (User decision.)
 - 2026-11-08: principle audit of every board. Type sizes off the scale moved onto it (26 → 24, 28 → 30, 32 → 30, 44 → 48); gaps moved onto the tokens, which now include 4 and 12 (inside one part only); bus bubble unit "min" at 24 so "29 min" fits; Next row gap 24; `KidFace` 48 + gap 16 in the A1/E3 kid blocks, 40 in tabs; E3 keeps the weekday line (stale "no day name" removed). New board 00 Principles (rules, also under Shared rules) and 0c2 kid parts; 0a/0b/0c updated (NowRow, KidDot, "for Kid B" and "wakes up once missions are done" removed).
 - 2026-11-08: one colour per kid, day and night: `kidA` #56B4E9, `kidB` #E69F00. #2E8FE0 is renamed `pickBlue` (✓, picked, focus, any kid); #F28C28 dropped.
+- 2026-11-08: build step 5 data: missions (seed lists, name = circle caption), trips (`way` + `leaveBefore` on any slot or item; an outing = has a trip; seed school bus 5, weekend school car 25, swimming car 10), done state per kid per date (resets at midnight, 14 days kept), "Missions →" on home in the mission morning (wake-up to 12:00 pm, board A1-MVP: "{Place} in" + time left), C5 section, E6 "Cards" shown from step 5. Editing trips is N1.
+- 2026-11-08: step 5 review of the main session's calls: full-screen cover, centred C5 editor, mover rule, "1 mission" / "Nothing yet" accepted; changed: C5 footer uses an inline `MarkerGlyph.handle`, way line "on foot" and "· timetable" only for bus and shuttle, "+n" circle in the kid's crayon colour with "{n} more".
+- 2026-11-08: A2-MVP back circle on the last page: kid's crayon circle, chevron, caption "Back" (main session's call, accepted).
+- 2026-11-08: A2-MVP way strip drawn out in full (boards A2-MVP and A2-MVP-w redrawn: home at the left, as the text said): ground, three hills, four trees, a waving road (ink 28 + green 17, no grey road), stops, stems, labels, mover track and card place; reference `handover/crayon-ui-ref/way-strip.js`. A1 mission-morning panel fit (board stack, pinned button, what shrinks first).
+- 2026-11-08: status bar (user decision; replaces a same-day "hide it on kid screens" line): shown on every screen, band y 0–24 empty; board coordinates are full-screen coordinates (the boards already keep the band empty), so the 1032 frame is laid out in full-screen space, not inside the safe area; other sizes scale the whole frame by min(W/1376, H/1032) (12.9": 0.992); snapshot check for the band.
+- 2026-11-08: A2-MVP strip shows the family's next outing whichever kid is chosen (user asked why it vanished for Kid B); the card starts with the owner's `KidFace` 40; "leave at" only for a kid with their own outing; strip hidden only when no kid has an outing left (boards A2-MVP, A2-MVP-w updated).
+- 2026-11-08: Fixed regions (Shared rules, user): regions are fixed frames from the board and never move up or resize by content; a region with nothing to show uses its empty look. A2-MVP: no outing left keeps the strip region with a meadow, home and "Home all day"; the kids and missions stay at 536–968.
+- 2026-11-08: A2-MVP empty look card moved to (120, 38) so it clears the house; `TimeLeft` speaks full words ("38 minutes").
+- 2026-11-08: A2-MVP stems start at each stop marker's top edge and run 32 up (same visible length on the wave); pictures sit on the stem by their drawn bottom (boards updated, v127).
+- 2026-11-08: sizing formulas for landscape full screen on every iPad replace "Board = screen" and "Other screen sizes": one scale s = min(W/1376, H_safe/1008), positions from the safe top and per-region anchors (left / right / stretch; home panel stretches), type and spacing with floors (caption 24 fixed), pictures and strokes × s. Portrait and windows not covered yet (backlog N10).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -55,9 +65,23 @@ Every board and the app follow these. Change them here and on board 00 first.
 ### Grid and frame (iPad landscape 1376 × 1032 pt)
 - 12 columns of 82, gutter 24, margin 64 (`GridMetrics`). Column n (1-based) starts at x = 64 + (n − 1) × 106.
 - Header band y 48–128. Content y 176–968. Main button bottom edge at y 968.
+- **Fixed regions** (2026-11-08, user): every screen is a fixed frame of named regions taken from its board (for example header 48–128, strip 176–516, kids and missions 536–968). A region's place and size never come from its content, and a region never disappears so that the regions below can move up: when it has nothing to show, it shows its empty look (each screen names one). Content inside a region is top-aligned (or aligned as the board shows) and capped to the region; it never pushes, centres or resizes the frame. The y values are board coordinates, which already sit below the 24 pt status bar band (see "Status bar"); on other iPads they turn into screen values through "Sizing formulas" below.
 - Spacing tokens: **4 · 8 · 12 · 16 · 24 · 40 · 64** (changed 2026-11-08). 4 and 12 are for the inside of one part only (icon to label, chip padding, caption under a picture); between parts use 16 or more. No other gaps (2, 6, 10, 14, 20, 32, 48, 56 were mapped to the nearest token on every board). Line pitch inside a text block (e.g. the two-line hub, 38) is type, not spacing.
 - Type: `CrayonType` hero 144, display 96, title 48, head 36, body 30, caption 24. Nothing smaller than 24.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
+- **Status bar** (user decision, 2026-11-08): the iPad status bar shows on **every** screen, kid and grown-up. Its band, y 0–24, holds nothing; only full-bleed backgrounds (paper, night sky) run under it. Status bar text is dark on day screens and light on night screens (A1n, B2n).
+- **Sizing formulas: landscape, full screen, every iPad** (2026-11-08, user: "the design language is fixed to the 13 inch"; research report "아이패드 화면 크기 대응 레이아웃"). The boards stay drawn at 1376 × 1032; these formulas turn a board value into a value on any landscape iPad, from the mini (1133 × 744) to the 13" (1376 × 1032). At 13" every formula gives the board value back.
+  - **Inputs**: W = window width, H = window height, `safe.top` = the top safe-area inset (the status bar, 24 on current iPads). H_safe = H − safe.top. Lay the screen out in full-screen space; the band 0 … `safe.top` holds nothing but full-bleed backgrounds.
+  - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (the family's, 1366 × 1024): 0.992 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714. The reference height is 1008 (the 13" safe area), not 1032: this is the fix for the overflow bug. Never `scaleEffect` the whole screen (blurry text, wrong hit areas); multiply each value by s instead.
+  - **Floors**: `fluid(ref, lo) = max(lo, ref × s)`. Floors are design choices, not research values: check them on the family iPad and on a mini simulator [proposed].
+  - **Vertical position**: y = safe.top + (y_board − 24) × s. Header top 48 → 24 + 24 s; main button bottom 968 → 24 + 944 s (mini: 41 and 698, leaving 46 below).
+  - **Horizontal position**: every region has an anchor. Default, when a screen does not name one: a region that spans both margins (64 … 1312) **stretches** (left = 64 s, right = W − 64 s); otherwise it is **left**-anchored (x = x_board × s) when its board centre is left of 688, else **right**-anchored (x = W − (1376 − x_board) × s). Named exceptions: the home right panel (A1, A1n, E1, E3, E3b) stretches from 928 s to W − 64 s, so the extra width of a narrower-but-taller iPad goes to the text, not to a gap.
+  - **Type**: hero `fluid(144, 96)`, display `fluid(96, 64)`, title `fluid(48, 36)`, head `fluid(36, 30)`, body `fluid(30, 24)`, caption **24 fixed** (still nothing under 24). Mini: 103 / 69 / 36 / 30 / 24 / 24. Use `Font.custom(_:size:relativeTo:)` with the scaled size so Dynamic Type still works on top; do not also use `@ScaledMetric` on the same size. Text that may not fit at its floor wraps or uses `ViewThatFits`; it never shrinks below the floor.
+  - **Spacing**: 4, 8, 12 fixed (inside one part). 16 → `fluid(16, 12)`, 24 → `fluid(24, 16)`, 40 → `fluid(40, 28)`, 64 → `fluid(64, 40)`. Grid: margin `fluid(64, 40)`, gutter `fluid(24, 16)`, column = (W − 2 margin − 11 gutter) / 12 (82 at 13").
+  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip height 340 s, its x values × strip width / 1248, its y values × s). Kid tap targets stay ≥ 64 [proposed]. Crayon outlines × s; focus rings and hairlines fixed.
+  - **Not covered yet**: portrait and resizable windows (iPadOS 26 cannot be refused). Until they are designed (backlog), the same formulas run with s floored at 0.70; content may clip in small windows.
+- **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
+- **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 64.
 - Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
 
 ### Grown-up form layout (C3, C4, E5, C3k)
@@ -128,7 +152,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 ### Layout
 - Screen: `KidScreen` with an **empty header**. The clock uses the full height.
-- Clock area: x 0–900, y 0–1032. It is not on the grid; the disc centre is at (448, 528).
+- Clock area: x 0–900, y 0–1032 in full-screen coordinates (see "Grid and frame": the status bar band y 0–24 stays empty; the labels start near y 100). It is not on the grid; the disc centre is at (448, 528).
 - Right panel: x 928–1312 (w 384), y 96–968, one vertical stack.
 - Long-press anywhere on the clock disc for 2 s → C0.
 
@@ -218,7 +242,13 @@ Every board and the app follow these. Change them here and on board 00 first.
     - "now": 160 circle in crayon `kidApricot` with a 104 picture inside, caption "now" under it.
     - "next": 104 white circle with a 64 picture inside, caption "next".
   - Bottom-aligned.
-- **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2. **[later M3]**: hidden in M2.
+- **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2-MVP (MVP) / A2 (M3). Hidden in M2.
+- **Mission morning (MVP, build step 5; board A1-MVP)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
+  - "Missions →" shows at the bottom of the panel (E3's "Diary →" is M5, so there is no clash).
+  - Kid A block: face + name, then, if Kid A has an outing (see "MVP data") that has not started and starts within 3 h: "{Place} in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the outing's start ("38 min", "1 h 20 min"). This is the A1 board layout with "{Place} in" instead of "Leave in" and no "On time" line. Otherwise: the Next row without the time left.
+  - Kid B block unchanged.
+  - **Panel fit** (board A1-MVP; 2026-11-08): the panel is the column x 928–1312, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "{Place} in" row 72 (the 80 way picture may stand 8 above the row); 8; "38 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 24; now/next row 160 + 8 + caption. That ends at about y 650. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 220 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 64 → 40. The clock never moves.
+  - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. M3 later swaps "{Place} in" for "Leave in" + "On time".
 
 ### States
 - Weekend or holiday → E3 layout. One child → E1 layout.
@@ -229,18 +259,45 @@ Every board and the app follow these. Change them here and on board 00 first.
 ## A2-MVP · Morning missions without live bus data (build step 5; new 2026-11-08, way strip added the same day) [board A2-MVP]
 The MVP mission screen: the A2 layout with **no live data** (no LTA times, bubbles, crowding, "Leave in", slide-to-go or medal; those are N1 / N2). Going somewhere is still the point of the morning, so the top shows the way there (user, 2026-11-08).
 - **Header** (48–128): `RoundButton` 80 with `MarkerGlyph.chevronLeft` 40 → home; "Good morning!" title 48; right: "{Place} in" (body, `softText`) + "{n} min" (title 48), counting to the start of the next outing.
-- **Way strip** (176–516, the A2 map frame): home on its stem at the left side, the destination on its stem at the right (same stem rule as A2), a crayon road between them.
+- **Way strip** (x 64–1312, y 176–516; boards A2-MVP and A2-MVP-w, redrawn 2026-11-08): home on its stem at the left, the destination on its stem at the right, a gently waving crayon road between them. Reference SVGs and the script that drew them: `handover/crayon-ui-ref/way-strip.js` → `svg/way-bus.svg`, `svg/way-car.svg`. Coordinates below are in the strip's own frame (0–1248 × 0–340). Everything here is a `CrayonKit` shape (one `WayStrip` view) except the home, destination and mover pictures, which are `KitIcon`s. No new kit slot.
+  - **Layers, back to front**: ground → hills → trees → stems → road → stops → pictures (home, destination) → labels → mover → card.
+  - **Ground**: crayon rounded rectangle (4, 4, 1240 × 332, radius 36), fill #D6ECC3 (wash 0.22, hachure −35°, gap 12), marker edge 4 ink.
+  - **Hills** (the "background picture"): three crayon humps on a back line at y 170, each a quadratic curve from (a, 170) over the control point ((a + b) / 2, 170 − 2h) to (b, 170): (230, 520, h 86), (600, 860, h 70), (900, 1210, h 92). Fill #A8DB7A (wash 0.3, hachure 30°, gap 7); marker 3 ink on the arc only, no base line.
+  - **Trees**: four lollipop trees, crown circle (crayon #3FAE5A, hachure −40°, gap 4, marker 4 ink) on a trunk (marker 5 ink, from crown centre + r − 4 down 22): (330, 128, r 24), (760, 140, r 22) on the hills; (470, 296, r 20), (960, 296, r 20) under the road.
+  - **Road**: centre line y(x) = 250 + 16 · sin(2π (x − 40) / 584) for x 40–1208 (two gentle waves), drawn as a polyline sampled every 16 pt. Two strokes, round caps: ink #1E1B22 28 wide (roughness 1, bowing 0.6), then green #3FAE5A 17 wide on top (roughness 1.3). One pass each, no multi-stroke, no dashed centre line. Replaces the grey 36 road.
+  - **Home** at x 150 (road y 264.8), **destination** at x 1100 (road y 235.3). Each stands on a dotted stem that starts at the **top edge of its own stop marker** (road y − marker radius: home 28, destination 15) and runs **32** up: marker 5 ink dashes 5 long every 10. So both stems look the same length wherever the wave puts the stop (changed 2026-11-08, user: a fixed 48 from the road centre hid most of the home stem under its big marker). The picture's **drawn bottom** (its opaque bounds, not its box; kit pictures carry some empty margin) sits on the stem top. Home picture 150 (`home`; the canvas shows the private drawing, the app uses the kit slot), destination picture 120. Board values: home stem 380.8–412.8, house box top 252; school stem 364.3–396.3, wolfie box top 246; flag school box top 252.
+  - **Stops**: home stop = white circle r 28, marker 6, with an ink dot r 11 in the middle. Destination stop = white circle r 15, marker 4.5. By bus or shuttle only, three stops between at x 430, 640, 850 (white r 15, marker 4.5); a stop the mover has passed turns ink-filled (marker 3.5, ink fill). By car, taxi or on foot: no stops between.
+  - **Labels** (caption 24 bold, `ink`, centred on the stop, 200 wide): under the home stop, top at road y + 34 ("Our stop" by bus or shuttle, "Home" otherwise); under the destination stop, top at road y + 34 (the place name: "School", "Weekend school").
+  - **Mover** (bus 120, car or taxi 104, shoe 96): x runs linearly from home x + 90 (240) at "leave" − 10 min to destination x − 90 (1010) at the start time, clamped at both ends; y follows the road: the mover box's bottom = y(x) + 20. Before "leave" − 10 min it waits at x 240 (boards: bus waiting, 38 min to go). It rocks as on A2.
+  - **Card**: `CrayonCard` at (406, 38) on A2-MVP and (356, 30) on A2-MVP-w (longer place name); it may cover the hills, never a picture or the mover. It starts with the outing owner's `KidFace` 40 (gap 16), always, so it is clear whose way it is when another kid is chosen; then the two text lines. VoiceOver: "Kid A's way to school, by bus, …".
   - Destination picture = the outing's picture: `wolfie` for school, the flag for weekend school, `actChurch`, `actSwim`, …
   - The mover on the road = how the kid goes, from the plan: bus (`busDouble` / `busSingle`, no passengers, no number plate), school shuttle, car, taxi, or on foot (`shoe`). It rocks gently like on A2 (Reduce Motion: still).
   - By car, taxi or on foot the road has no bus stops, and the home stem is labelled "Home"; by bus the stops and "Our stop" show as on A2 (board A2-MVP-w shows Saturday weekend school by car).
-  - Its place on the road comes from the clock only: home at "leave" minus 10 min, the destination at the start time; in between it moves linearly. No live position.
-  - A `CrayonCard` on the strip: "{Place} at {h:mm am}" (head 36) over "by {way} · timetable" (caption).
-  - The next outing is the next slot or item today that has a place (school, weekend school, church, swimming…). No outing left today: the strip is left out and the missions move up.
+  - Its place on the road comes from the clock only: home at "leave" minus 10 min, the destination at the start time; in between it moves linearly. No live position. "leave" = the outing's start minus its "leave before" minutes (see "MVP data").
+  - A `CrayonCard` on the strip: "{Place} at {h:mm am}" (head 36) over the way line (caption): "by bus · timetable" / "by shuttle · timetable" (only these run on a timetable), "by car", "by taxi", "on foot". The data value for walking stays `walk`.
+  - **Whose outing** (changed 2026-11-08, user: the road should not vanish when Kid B is chosen): the strip and the header countdown show **the family's next outing**: the earliest slot or item today, of any kid, that has a trip and has not started. It stays the same whichever kid is chosen (a younger kid goes along to the stop, so the morning has one road). "leave at {h:mm am}" next to the chosen kid's name shows only when the chosen kid has their own outing left today; otherwise nothing is there. No outing left for any kid today: the header countdown is empty and the strip region keeps its place and size (Fixed regions) with its **empty look** [proposed]: the same ground, hills and trees, no road, no stops, no mover; the home picture 150 on its stem in the middle (x 624, stem foot at y 250, no stop marker), and a `CrayonCard` "Home all day" (head 36) at (120, 38) with no face, clear of the house (549–699 × 52–202); it may cover the left hill tree. VoiceOver: "No more trips today". The kids and missions stay at 536–968.
 - **Kids and missions** (536–968): the A2 family layout. Kid list on the left (`CrayonRing` 76 + face, `KidBand` on the chosen kid), the chosen kid's name + "leave at {h:mm am}" and one row of 112 mission circles on the right (6 a kid; fold / "+n" rule of A2m beyond that).
 - **All done!** (bottom right, 400 × 96 `KidPillButton` in the chosen kid's colour, star sticker 56): always active; missions help but never lock it. Tap: the kid's row turns "Ready!" (full ring, check badge, no medal), crayon confetti (Reduce Motion: none), then the next unfinished kid is chosen. Everyone ready: the button reads "Back to the clock".
+- **Presentation**: A2-MVP opens over home as a full-screen cover, not on the grown-up stack (no relock, no app-switcher hiding). Ways out: "←" and "Back to the clock". (Main session's call, accepted 2026-11-08.)
+- **Folded and "+n" circles** (board A2m): the folded circle is the kid's 112 crayon circle with the done tick, caption "{n} done". The "+n" circle is **also the kid's crayon circle** (not paper), "+{n}" title 48 bold, caption "{n} more"; tapping it turns the page. On the last page that place holds the back circle: the kid's crayon circle with `MarkerGlyph.chevronLeft`, caption "Back"; tapping it returns to the previous page (with at most 8 missions that is page 1).
 - **Tapping a mission** toggles it (undo allowed); the check draws itself in 0.35 s (Reduce Motion: appears).
-- **VoiceOver**: the strip reads "On the way to school by bus, 38 minutes, school starts at 7:30 am"; kid rows are tabs; missions are toggles.
+- **Spoken times** (all screens): `TimeLeft` speaks full words, not the shown text: "38 minutes", "1 hour 20 minutes", "1 minute".
+- **VoiceOver**: the strip reads "Kid A's way to school, by bus, 38 minutes, school starts at 7:30 am"; kid rows are tabs; missions are toggles.
 - **M3 / N1** swaps the timetable strip for the live map: bubbles, crowding, "Leave in" and slide-to-go come in the same frame.
+
+
+### MVP data: missions, trips, done state (2026-11-08, answers for build step 5) [proposed]
+- **Missions**: `Mission { id, kid, name, picture: KitSlot, order }`. Morning only, at most 8 per kid, kept in the local store with the schedule.
+  - The circle caption is the name itself (caption 24, one line within the 136 pitch, "…" if longer); the first mission not done is bold. C5 limits a name to 14 characters.
+  - Seed Kid A: Wake up (`sun`) · Brush teeth (`toothbrush`) · Get dressed (`shirt`) · Breakfast (`actBreakfast`) · Pack bag (`backpack`) · Shoes on (`shoe`).
+  - Seed Kid B: Wake up (`sun`) · Milk (`babyBottle`) · Shoes (`shoe`).
+- **Trip** (what makes something an outing): an optional `Trip { way, leaveBefore }` on a template slot, an every-week item or a just-once item. **An outing is anything with a trip**; the picture or the name does not decide it.
+  - `way`: walk, bus, car, taxi, and shuttle (shuttle stays hidden until N1b). Mover picture: walk `shoe`, bus `busDouble`, car `car`, taxi `taxi`, shuttle `busShuttle`.
+  - `leaveBefore`: minutes, 0–90 in steps of 5. leave = start − leaveBefore. The clock still draws the slot or item from its start; the start is the time at the place.
+  - Seed: Kid A School slot (Mon–Fri) bus, 5 → "leave at 7:25 am". Kid A Weekend school (Sat) car, 25 → "leave at 8:35 am". Kid A Swimming car, 10. Art club, Birthday and all of Kid B: no trip.
+  - Editing trips is **N1**: C1 "Getting there" (school) and a "Going" row on C3/C4/E5 (board to come). In the MVP, trips come from the seed only; an item without a trip shows no strip, which is fine.
+- **Done state**: per kid **per date**: `{ kid, date, doneMissionIds, ready: Bool }`, in the local store. A new date starts at **midnight**, like the clock, so every morning starts empty. Keep 14 days (N2 medals and the M5 diary can read it later); drop older ones. Renaming a mission keeps its done state (it is keyed by id); removing it drops it.
+- **Entry**: home "Missions →" in the mission morning (A1 above). Grown-ups reach C5 from C1 "More → Morning missions" (Kid A) and E6 "Cards" (Kid B).
 
 ## E1 · Home, one child [board]
 - Same clock and hub as A1.
@@ -427,6 +484,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - **Getting there** **[later M3]**: hidden in M2.
   - "To school" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2.
   - "Home time" → "{h:mm} · pick-up at the gate", "›" → C2.
+- **More** (board, 2026-11-08): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0) (the board's "ready by" line is N2), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
 
 ### Side column
 - "After school" (head, h 52), then one `ListRow`-style item per every-week item:
@@ -452,9 +510,21 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - Next row: link "Add when they start" → S2. **[later M4]**: hidden in M2.
   - Use "they" in public copy.
 - **Morning**:
-  - "Cards" → "Wake up · Milk · Shoes", "›" → C5. **[later M3]**: hidden in M2.
+  - "Cards" → "Wake up · Milk · Shoes" ("Nothing yet" when empty), "›" → C5 with the Kid B tab. Shown from build step 5 (MVP); hidden before.
   - "Taps" → "A grown-up taps for now".
 - Side column: "Every week" with "Nothing yet" when empty, "Add every week", then "Just once" with items and "Add once". Same rules as C1.
+
+
+## C5 · Morning missions (grown-up editor; MVP, build step 5) [board C5, details proposed]
+- `GrownupScreen`. Header: `RoundButton` "←" 80 → C1 (or E6), "Morning missions" (title 48), kid `CrayonTabs` (Kid A, Kid B with `KidFace` 40) at the right.
+- Left: `PaperCard` columns 1–8, y 176–968:
+  - Caption "Same order as {Kid}'s morning screen".
+  - One row per mission, 72 tall, divider lines: drag handle `MarkerGlyph` ≡ (soft), `KitIcon` 48, name (body), "›" (body `softText`). Drag ≡ to reorder; the order is the circle order on A2-MVP.
+  - "+ Add a mission ({n} of 8)" (`MarkerGlyph.plus` in a 40 ring + body `link`). At 8 the row is replaced by "8 is the most" (caption).
+  - Footer caption: "Drag {handle} to change the order. Tap a row to rename it or change its picture. Up to 8 fit on the morning screen; fewer is easier." {handle} is `MarkerGlyph.handle` drawn inline at the text size (24, `softText`), the same rule as inline arrows; never the ≡ character, which Playpen Sans lacks.
+- Tap a row or "Add" → a `ConfirmCard`-style editor, **centred over a dimmed screen** (tapping the dim area cancels without saving; main session's call, accepted 2026-11-08): Name `CrayonField` (max 14), `IconPicker` (kit pictures, no "+" until M6), "Remove" (`lateText`, edit only; asks "Remove {name}?" / "Remove" / "Keep") and "Save" (`InkButton`). A new mission defaults to `star` and an empty name; Save is off while the name is empty.
+- Right column (cols 9–12): Kid B note "Picture cards. A grown-up taps them for now." (on the Kid B tab) and "Evening · coming later". The board's "Ready by" block is **N2** (hidden).
+- Main button "Done" → back. Changes save at once and show on today's morning screen; done marks of kept missions stay.
 
 ---
 

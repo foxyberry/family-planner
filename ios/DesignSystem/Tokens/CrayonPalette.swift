@@ -19,8 +19,17 @@ public struct RGB: Equatable, Sendable {
 /// Board 0a palette as raw values.
 public enum CrayonPalette {
     // Fills
-    public static let kidABlue = RGB(hex: 0x2E8FE0)
-    public static let kidBOrange = RGB(hex: 0xF28C28)
+    /// One colour per kid, day and night (board 00): the KidFace ring and the KidBand edge.
+    public static let kidA = RGB(hex: 0x56B4E9)
+    public static let kidB = RGB(hex: 0xE69F00)
+    /// Board 0c2: the light tints of the chosen kid's band, its edge line, and the progress ring's track.
+    public static let kidATint = RGB(hex: 0xBFE3F7)
+    public static let kidATintEdge = RGB(hex: 0x8CCBEE)
+    public static let kidBTint = RGB(hex: 0xFCD9A6)
+    public static let kidBTintEdge = RGB(hex: 0xF2B35E)
+    public static let ringTrack = RGB(hex: 0xE2D9C6)
+    /// ✓ done, picked and focus, for any kid; not a kid colour (was kidABlue).
+    public static let pickBlue = RGB(hex: 0x2E8FE0)
     public static let onTimeGreen = RGB(hex: 0x3FAE5A)
     public static let handRed = RGB(hex: 0xE5484D)
     public static let paper = RGB(hex: 0xF6F2EA)
@@ -37,6 +46,9 @@ public enum CrayonPalette {
     public static let mint = RGB(hex: 0x7FD6B5)
     public static let orange = RGB(hex: 0xF7A84B)
     public static let green = RGB(hex: 0xA8DB7A)
+    // Way strip scenery (board A2-MVP): the ground and the road and tree crowns.
+    public static let meadow = RGB(hex: 0xD6ECC3)
+    public static let leaf = RGB(hex: 0x3FAE5A)
     public static let coral = RGB(hex: 0xF9A88A)
     public static let lilac = RGB(hex: 0xB9A3F0)
     public static let pink = RGB(hex: 0xF7A8CF)
@@ -48,10 +60,8 @@ public enum CrayonPalette {
     // Night
     public static let night = RGB(hex: 0x22213A)
     public static let nightText = RGB(hex: 0xF4EFFF)
-    /// Board A1n: soft text, kid dots, the lit clock face and the plate under pictures at night.
+    /// Board A1n: soft text, the lit clock face and the plate under pictures at night.
     public static let nightSoftText = RGB(hex: 0xC9C3E0)
-    public static let nightKidA = RGB(hex: 0x56B4E9)
-    public static let nightKidB = RGB(hex: 0xE69F00)
     public static let litPaper = RGB(hex: 0xEFE8D8)
     public static let plate = RGB(hex: 0xFBF8F1)
 }

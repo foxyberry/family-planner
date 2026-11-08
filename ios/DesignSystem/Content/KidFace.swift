@@ -3,8 +3,8 @@ import KitArt
 import SwiftUI
 
 /// A kid's face in their colour ring, next to their name everywhere (spec "KidFace"). The ring is a
-/// crayon UI shape drawn in code (stroke about 9 % of the box, a fixed seed per kid, the night-safe
-/// kid colours by day and night); only the face is a kit picture, centred at 86 % of the box (the
+/// crayon UI shape drawn in code (stroke about 9 % of the box, a fixed seed per kid, the kid's one
+/// colour by day and night); only the face is a kit picture, centred at 86 % of the box (the
 /// face drawing fills only 68 % of its own box). One accessibility element labelled with the name.
 public struct KidFace: View {
     /// What a tab or row needs to show a kid's face.
@@ -40,7 +40,7 @@ public struct KidFace: View {
         ZStack {
             CrayonSurface(.circle, fill: nil,
                           marker: MarkerStyle(width: size * 0.09, roughness: 0.6, bowing: 0.6),
-                          markerColor: KidLook.night.kid(badge.colorIndex),
+                          markerColor: CrayonColor.kid(badge.colorIndex),
                           seed: CrayonStyle.Seed.kidFace + UInt32(max(0, badge.colorIndex)))
             KitIcon(KitSlot(iconName: badge.face), size: size * 0.86)
         }

@@ -21,7 +21,7 @@ public struct GrownupHubFeature {
 
         public var sections: [HubSection] {
             guard let kid, let snapshot else { return [] }
-            return HubModel.sections(kid: kid, routines: snapshot.routines)
+            return HubModel.sections(kid: kid, routines: snapshot.routines, missions: snapshot.missions)
         }
 
         public var weeklyHeading: String { kid.map(HubModel.weeklyHeading) ?? "" }
@@ -46,6 +46,8 @@ public struct GrownupHubFeature {
         /// Navigation the app's stack handles.
         case weeklyItemTapped(ScheduleItem.ID)
         case onceItemTapped(ScheduleItem.ID)
+        case dayRowTapped
+        case missionsRowTapped
         case addWeeklyTapped
         case addOnceTapped
         case backTapped
@@ -81,7 +83,7 @@ public struct GrownupHubFeature {
                 state.selectedKid = id
                 return .none
 
-            case .weeklyItemTapped, .onceItemTapped, .addWeeklyTapped, .addOnceTapped, .backTapped,
+            case .weeklyItemTapped, .onceItemTapped, .addWeeklyTapped, .addOnceTapped, .backTapped, .dayRowTapped, .missionsRowTapped,
                  .galleryButtonTapped:
                 return .none
             }

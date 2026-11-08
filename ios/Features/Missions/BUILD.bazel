@@ -1,0 +1,18 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# The kids' morning missions (board A2-MVP): the way to the next outing, the kid list and the
+# chosen kid's mission circles, "All done!".
+fp_swift_library(
+    name = "Missions",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Clients/HolidayProvider",
+        "//ios/Clients/ScheduleStore",
+        "//ios/CrayonKit",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/KitArt",
+        "//ios/Strings",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

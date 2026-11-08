@@ -72,6 +72,34 @@ public enum Recurrence: Hashable, Codable, Sendable {
     case weekly(Set<Weekday>, from: Day, until: Day?)
 }
 
+/// How a kid goes to an outing (spec "MVP data"). The mover on the way strip: walk `shoe`, bus
+/// `busDouble`, car `car`, taxi `taxi`, shuttle `busShuttle` (hidden until N1b).
+public enum Way: String, Codable, CaseIterable, Sendable {
+    case walk, bus, car, taxi, shuttle
+
+    public var moverPicture: String {
+        switch self {
+        case .walk: "shoe"
+        case .bus: "busDouble"
+        case .car: "car"
+        case .taxi: "taxi"
+        case .shuttle: "busShuttle"
+        }
+    }
+}
+
+/// What makes a slot or item an outing: how the kid goes and how long before the start they leave
+/// (0–90 minutes in steps of 5). The start is the time at the place.
+public struct Trip: Hashable, Codable, Sendable {
+    public var way: Way
+    public var leaveBefore: Int
+
+    public init(way: Way, leaveBefore: Int) {
+        self.way = way
+        self.leaveBefore = min(max(leaveBefore / 5 * 5, 0), 90)
+    }
+}
+
 /// What a slot is, which decides its colour on the clock. `free` is free time: plain paper, no picture.
 public enum SlotKind: String, CaseIterable, Codable, Sendable {
     case sleep, morning, school, afterSchool, play, dinner, evening, event, free
@@ -91,9 +119,13 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var skipsHolidays: Bool
     /// Just-once items can put a star on the clock that day.
     public var showsStar: Bool
+    /// An outing has a trip (spec "MVP data"); trips come from the seed until N1.
+    public var trip: Trip?
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
-                recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool) {
+                recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
+                trip: Trip? = nil) {
+        self.trip = trip
         self.id = id
         self.title = title
         self.iconName = iconName
@@ -125,8 +157,12 @@ public struct RoutineBlock: Hashable, Codable, Sendable {
     public var end: Int
     /// A locked edge (school) cannot be dragged in the day editor.
     public var isLocked: Bool
+    /// An outing has a trip (the school block, by bus in the seed).
+    public var trip: Trip?
 
-    public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, isLocked: Bool = false) {
+    public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, isLocked: Bool = false,
+                trip: Trip? = nil) {
+        self.trip = trip
         self.title = title
         self.iconName = iconName
         self.kind = kind
@@ -166,9 +202,11 @@ public struct Slot: Hashable, Sendable {
     public var end: Int
     public var source: Source
     public var showsStar: Bool
+    public var trip: Trip?
 
     public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, source: Source,
-                showsStar: Bool) {
+                showsStar: Bool, trip: Trip? = nil) {
+        self.trip = trip
         self.title = title
         self.iconName = iconName
         self.kind = kind

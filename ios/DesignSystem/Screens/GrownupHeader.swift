@@ -1,3 +1,4 @@
+import CrayonKit
 import Strings
 import SwiftUI
 
@@ -21,7 +22,7 @@ public struct GrownupHeader<Accessory: View>: View {
 
     public var body: some View {
         HStack(spacing: Spacing.m) {
-            RoundButton(systemImage: "chevron.left", accessibilityLabel: L10n.tr("grownup.back"), action: onBack)
+            RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("grownup.back"), action: onBack)
             Text(title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1)
             accessory
             Spacer(minLength: Spacing.m)

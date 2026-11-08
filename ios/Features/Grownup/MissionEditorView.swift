@@ -1,0 +1,150 @@
+import ComposableArchitecture
+import CrayonKit
+import DesignSystem
+import Domain
+import KitArt
+import Strings
+import SwiftUI
+
+/// C5 · Morning missions (board C5): the kid's missions in circle order, drag ≡ to reorder, tap a
+/// row to rename it or change its picture.
+public struct MissionEditorView: View {
+    @Bindable var store: StoreOf<MissionEditorFeature>
+
+    /// Morning pictures offered for a mission.
+    static let pictures: [KitSlot] = [.star, .sun, .toilet, .toothbrush, .washFace, .hairBrush, .shirt, .actBreakfast,
+                                      .milk, .babyBottle, .backpack, .lunchBox, .waterBottle, .shoe]
+
+    public init(store: StoreOf<MissionEditorFeature>) {
+        self.store = store
+    }
+
+    public var body: some View {
+        ZStack {
+            GrownupScreen {
+                header
+            } content: { grid in
+                HStack(alignment: .top, spacing: GridMetrics.gutter) {
+                    PaperCard(seed: 41) { list.padding(Spacing.m) }
+                        .frame(width: grid.span(8))
+                    side.frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } primaryAction: { grid in
+                VStack(alignment: .trailing, spacing: Spacing.xs) {
+                    InkButton(L10n.tr("c5.done")) { store.send(.doneTapped) }
+                        .frame(width: grid.span(4))
+                    if let error = store.saveError {
+                        Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            if let draft = store.draft {
+                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                    .onTapGesture { store.send(.draftClosed) }
+                if let title = store.removeTitle {
+                    ConfirmCard(title: title, message: nil, cancel: L10n.tr("c5.remove.keep"),
+                                confirm: L10n.tr("c5.remove"), isDestructive: true,
+                                onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
+                } else {
+                    editorCard(draft).frame(width: 720)
+                }
+            }
+        }
+        .task { await store.send(.task).finish() }
+    }
+
+    private var header: some View {
+        GrownupHeader(title: L10n.tr("c5.title"), onBack: { store.send(.doneTapped) }) {
+            CrayonTabs(selection: Binding(get: { store.selectedKid }, set: { store.send(.kidTabTapped($0)) }),
+                       items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
+        }
+    }
+
+    private var list: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(store.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                .padding(.bottom, Spacing.s)
+            ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, mission in
+                row(mission, index: index)
+                Rectangle().fill(CrayonColor.softText.opacity(0.3)).frame(height: 1)
+            }
+            if store.canAdd {
+                Button { store.send(.addTapped) } label: {
+                    HStack(spacing: Spacing.s) {
+                        MarkerIcon(.plus, size: 24, color: CrayonColor.link)
+                            .frame(width: 40, height: 40)
+                            .crayonBackground(.circle, fill: nil, seed: 1801)
+                        Text(store.addTitle).crayonType(.body).foregroundStyle(CrayonColor.link)
+                    }
+                    .frame(height: 72)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(L10n.tr("c5.most")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    .frame(height: 72)
+            }
+            GlyphText(L10n.tr("c5.footer"), glyph: .handle, color: CrayonColor.softText)
+                .padding(.top, Spacing.s)
+        }
+    }
+
+    private func row(_ mission: Mission, index: Int) -> some View {
+        Button { store.send(.rowTapped(mission.id)) } label: {
+            HStack(spacing: Spacing.s) {
+                MarkerIcon(.handle, size: 32, color: CrayonColor.softText)
+                KitIcon(KitSlot(iconName: mission.picture), size: 48)
+                Text(mission.name).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                Spacer()
+                MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+            }
+            .frame(height: 72)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .draggable(mission.id.uuidString)
+        .dropDestination(for: String.self) { ids, _ in
+            guard let id = ids.first.flatMap(UUID.init(uuidString:)) else { return false }
+            store.send(.moved(id, to: index))
+            return true
+        }
+        .accessibilityAction(named: L10n.tr("c5.move_up")) { store.send(.moved(mission.id, to: index - 1)) }
+        .accessibilityAction(named: L10n.tr("c5.move_down")) { store.send(.moved(mission.id, to: index + 1)) }
+    }
+
+    private var side: some View {
+        VStack(alignment: .leading, spacing: Spacing.s) {
+            if store.showsCardsNote {
+                Text(L10n.tr("c5.cards_note")).crayonType(.body).foregroundStyle(CrayonColor.ink)
+            }
+            Text(L10n.tr("c5.evening")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+        }
+    }
+
+    private func editorCard(_ draft: MissionEditorFeature.Draft) -> some View {
+        PaperCard(seed: 43) {
+            VStack(alignment: .leading, spacing: Spacing.m) {
+                CrayonField(L10n.tr("c5.name"),
+                            text: Binding(get: { draft.name }, set: { store.send(.draftNameChanged($0)) }))
+                IconPicker(selection: Binding(get: { KitSlot(rawValue: draft.picture) },
+                                              set: { if let slot = $0 { store.send(.draftPicturePicked(slot.rawValue)) } }),
+                           slots: Self.pictures)
+                HStack(spacing: Spacing.m) {
+                    if !draft.isNew {
+                        Button { store.send(.removeTapped) } label: {
+                            Text(L10n.tr("c5.remove")).crayonType(.body).foregroundStyle(CrayonColor.lateText)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Spacer()
+                    InkButton(L10n.tr("c5.save")) { store.send(.saveTapped) }
+                        .frame(width: 240)
+                        .opacity(draft.canSave ? 1 : 0.4)
+                        .disabled(!draft.canSave)
+                }
+            }
+            .padding(Spacing.m)
+        }
+    }
+}

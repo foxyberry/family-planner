@@ -20,12 +20,15 @@ public struct HomeView: View {
 
     public var body: some View {
         KidFullScreen(look: store.look, wipeFrom: store.isSkyAnimating ? Self.skySwitchCentre : nil) {
-            // Board A1: clock area x 0–900, right panel x 928–1312 from y 96.
+            // Board A1: clock area x 0–900, right panel x 928–1312, y 96–968, in board space
+            // (KidFullScreen lays the 1376 × 1032 board out full-screen and scales it to fit).
             HStack(alignment: .top, spacing: 28) {
                 clockArea
                 rightPanel
                     .frame(width: 384, alignment: .leading)
                     .padding(.top, 96)
+                    .padding(.bottom, BoardMetrics.size.height - 968)
+                    .frame(height: BoardMetrics.size.height, alignment: .top)
                 Spacer(minLength: 0)
             }
         }
@@ -73,7 +76,7 @@ public struct HomeView: View {
             .accessibilityLabel(HomeModel.accessibilityLabel(kidName: firstDay?.kid.name ?? "", day: store.dayName ?? "",
                                                              slots: slots,
                                                              minute: store.minute))
-            .frame(width: 900, height: 1032)
+            .frame(width: 900, height: BoardMetrics.size.height)
             .overlay(alignment: .topLeading) {
                 SkySwitch(look: store.look, isAnimating: store.isSkyAnimating, label: store.skySwitchLabel) {
                     store.send(.skySwitchTapped)
@@ -85,17 +88,25 @@ public struct HomeView: View {
     // MARK: Right panel
 
     @ViewBuilder private var rightPanel: some View {
-        VStack(alignment: .leading, spacing: Spacing.xl) {
+        VStack(alignment: .leading, spacing: 0) {
             if let first = firstDay {
-                // The weekday heads the panel on every kid home screen, 24 above Kid A.
-                VStack(alignment: .leading, spacing: Spacing.m) {
-                    if let heading = store.dayHeading {
-                        Text(heading).crayonType(.head).foregroundStyle(store.look.ink)
+                VStack(alignment: .leading, spacing: Spacing.xl) {
+                    // The weekday heads the panel on every kid home screen, 24 above Kid A.
+                    VStack(alignment: .leading, spacing: Spacing.m) {
+                        if let heading = store.dayHeading {
+                            Text(heading).crayonType(.head).foregroundStyle(store.look.ink)
+                        }
+                        kidABlock(first)
                     }
-                    kidABlock(first)
+                    if store.days.count > 1 {
+                        kidBBlock(store.days[1])
+                    }
                 }
-                if store.days.count > 1 {
-                    kidBBlock(store.days[1])
+                if store.isMissionMorning {
+                    // Spec A1 "Panel fit": flexible space pins the button to the panel bottom and
+                    // gives way first, down to 24.
+                    Spacer(minLength: Spacing.m)
+                    InkButton(L10n.tr("home.missions"), arrow: true) { store.send(.missionsTapped) }
                 }
             }
         }
@@ -116,14 +127,25 @@ public struct HomeView: View {
         let timeLeft = HomeModel.timeLeft(to: next, minute: store.minute)
         return VStack(alignment: .leading, spacing: 0) {
             kidHeader(day.kid)
-            if let next {
+            if let outing = store.morningOuting, let heading = store.outingHeading {
+                // Board A1-MVP: "{Place} in" with the way picture, then the minutes to the start.
+                HStack(alignment: .center) {
+                    Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
+                    Spacer(minLength: Spacing.s)
+                    KitPlate(look: store.look, size: 80) {
+                        KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: 80)
+                    }
+                }
+                .padding(.top, Spacing.m)
+                TimeLeft(minutes: outing.slot.start - store.minute, look: store.look)
+            } else if let next {
                 Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
-                    .padding(.top, 24)
-                nextRow(next).padding(.top, 8)
+                    .padding(.top, Spacing.m)
+                nextRow(next).padding(.top, Spacing.xs)
             }
-            if let timeLeft {
+            if store.morningOuting == nil, !store.isMissionMorning, let timeLeft {
                 Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
-                    .padding(.top, 24)
+                    .padding(.top, Spacing.m)
                 TimeLeft(minutes: timeLeft.minutes, look: store.look)
             }
         }
@@ -138,14 +160,14 @@ public struct HomeView: View {
     }
 
     private func nextRow(_ row: NextRow) -> some View {
-        HStack(spacing: 20) {
+        HStack(spacing: Spacing.m) {
             KitPlate(look: store.look, size: 104) {
                 KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: 104)
                     .overlay(alignment: .topTrailing) {
                         if row.showsStar { KitIcon(.star, size: 36) }
                     }
             }
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(row.title).crayonType(.head).foregroundStyle(store.look.ink)
                     .lineLimit(1).truncationMode(.tail)
                 Text(row.at).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)

@@ -7,7 +7,7 @@ public enum CrayonStyle {
     public static let skyPill = CrayonFill(color: CrayonColor.nowSky, hachure: HachureStyle(degrees: -30))
     public static let yellowSlider = CrayonFill(color: CrayonColor.goYellow, hachure: HachureStyle(degrees: -50))
     public static let apricot = CrayonFill(color: CrayonColor.kidApricot, hachure: HachureStyle(degrees: -35))
-    public static let blueCrayon = CrayonFill(color: CrayonColor.kidABlue, hachure: HachureStyle(degrees: -40))
+    public static let blueCrayon = CrayonFill(color: CrayonColor.pickBlue, hachure: HachureStyle(degrees: -40))
     public static let doneGreen = CrayonFill(color: CrayonColor.doneGreen, hachure: HachureStyle(degrees: -50))
     public static let ink = CrayonFill(color: CrayonColor.marker, hachure: nil)
     public static let paper = CrayonFill.paper(CrayonColor.card)
@@ -29,5 +29,11 @@ public enum CrayonStyle {
         static let league: UInt32 = 1401
         static let voice: UInt32 = 1501
         static let kidFace: UInt32 = 1601
+        static let knob: UInt32 = 1701
+        static let plus: UInt32 = 1801
+        static let glyph: UInt32 = 1901
+        static let mission: UInt32 = 2001
+        static let band: UInt32 = 2101
+        static let way: UInt32 = 2201
     }
 }

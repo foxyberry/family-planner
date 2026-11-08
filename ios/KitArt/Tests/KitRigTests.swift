@@ -64,4 +64,13 @@ final class KitRigTests: XCTestCase {
         let top = RigMotion.pose([.hop(units: 14)], at: RigMotion.duration * 0.4, scale: 1)
         XCTAssertEqual(top.offset.height, -14, accuracy: 0.001)
     }
+
+    /// Backlog N1a: on the map and the way strip, every bus turns two wheel parts.
+    func testEveryBusHasTwoWheelParts() throws {
+        for slot in [KitSlot.busDouble, .busSingle, .busMini, .busShuttle] {
+            let rig = try XCTUnwrap(KitRigs.shared.rig(for: slot), "\(slot)")
+            XCTAssertEqual(rig.parts.keys.filter { $0.hasSuffix("wheel") }.sorted(), ["back wheel", "front wheel"], "\(slot)")
+            XCTAssertTrue(rig.runs.contains { $0.part == "back wheel" } && rig.runs.contains { $0.part == "front wheel" })
+        }
+    }
 }

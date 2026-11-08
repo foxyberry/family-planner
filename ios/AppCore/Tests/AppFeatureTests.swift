@@ -108,6 +108,61 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertEqual(editor.form.repeats, .weekly)
     }
 
+    /// C6: the "Day" row in Our kids opens Our day for the tab's kid; finishing pops it.
+    func testHubDayRowOpensOurDay() async {
+        var hub = GrownupHubFeature.State()
+        hub.selectedKid = SeedData.kidB.id
+        var state = AppFeature.State()
+        state.path.append(.hub(hub))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].hub.dayRowTapped)
+        guard case let .ourDay(day) = store.state.path[id: 1] else { return XCTFail("no Our day") }
+        XCTAssertEqual(day.kid, SeedData.kidB.id)
+        await store.send(\.path[id: 1].ourDay.delegate.finished)
+        XCTAssertEqual(store.state.path.count, 1)
+    }
+
+    /// "Missions →" opens A2-MVP over home (not a grown-up screen: no relock); finishing closes it.
+    func testMissionsOpenOverHomeAndClose() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(.home(.missionsTapped))
+        XCTAssertNotNil(store.state.missions)
+        XCTAssertTrue(store.state.path.isEmpty)
+        await store.send(\.missions.delegate.finished)
+        XCTAssertNil(store.state.missions)
+    }
+
+    func testHubMissionsRowOpensTheMissionEditor() async {
+        var hub = GrownupHubFeature.State()
+        hub.selectedKid = SeedData.kidB.id
+        var state = AppFeature.State()
+        state.path.append(.hub(hub))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].hub.missionsRowTapped)
+        guard case let .missionEditor(editor) = store.state.path[id: 1] else { return XCTFail("no C5") }
+        XCTAssertEqual(editor.selectedKid, SeedData.kidB.id)
+        await store.send(\.path[id: 1].missionEditor.delegate.finished)
+        XCTAssertEqual(store.state.path.count, 1)
+    }
+
     func testHubJustOnceItemOpensEditOnce() async {
         let party = ScheduleItem(id: UUID(), title: "Party", iconName: "cake", audience: .both, start: 960, end: 1020,
                                  recurrence: .once(Day(year: 2027, month: 1, day: 2)), skippedDays: [],

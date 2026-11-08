@@ -10,6 +10,9 @@ public enum CrayonShapeKind: Hashable, Sendable {
     /// A pie slice of the circle that fits the rect, clockwise from 12 o'clock. `endDegrees` may pass
     /// 360 for a slice across the top (a night that runs past midnight).
     case sector(startDegrees: Double, endDegrees: Double)
+    /// A hump on the bottom edge: a quadratic curve from the bottom-left corner up to the top
+    /// centre and down to the bottom-right corner, closed along the bottom (the way strip's hills).
+    case hill
 }
 
 /// Marker line settings. Design defaults: roughness 1.2, bowing 1.4, width 4.

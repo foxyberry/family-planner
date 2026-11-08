@@ -49,6 +49,9 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
                     .background(CrayonColor.paper)
             }
         }
+        // Board = screen: the header band starts at y 48 from the top of the glass; the status bar
+        // sits over the empty band above it.
+        .ignoresSafeArea(.container, edges: .top)
         .background(CrayonColor.paper.ignoresSafeArea())
         .foregroundStyle(CrayonColor.ink)
         .navigationBarBackButtonHidden()

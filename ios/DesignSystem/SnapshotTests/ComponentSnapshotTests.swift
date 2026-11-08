@@ -32,8 +32,8 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testRoundButtons() {
         snap(HStack(spacing: Spacing.m) {
-            RoundButton(systemImage: "chevron.left", accessibilityLabel: "Back") {}
-            RoundButton(text: "+", accessibilityLabel: "Add") {}
+            RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
+            RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
         })
     }
 
@@ -178,13 +178,11 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testVoiceNote() { snap(VoiceNote(duration: .seconds(12), isPlaying: false) {}) }
 
-    func testMedalsAndDots() {
+    func testMedalsAndFaces() {
         snap(HStack(spacing: Spacing.m) {
             Medal(.gold, size: 104)
             Medal(.silver, size: 104)
             Medal(.bronze, size: 104)
-            KidDot(color: CrayonColor.kidABlue)
-            KidDot(color: CrayonColor.kidBOrange, size: 28)
             KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
             KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
             KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A", size: KidFace.small)
@@ -299,12 +297,12 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Time zone and locale are pinned so the simulator's settings never change a picture.
     /// Board A1n at 7:40 pm: lit paper face, chalk ticks and numbers on the night page.
     func testPieClockNight() {
-        snap(KidFullScreen(look: .night) {
-            PieClock(sectors: Self.seedDay, now: 1180, hub: .init(title: "Shower", subtitle: "until 8:00 pm"),
-                     look: .night)
-                .padding(110)
-        }
-        .frame(width: 964, height: 964))
+        // The clock alone on the night page (KidFullScreen now lays out a whole board).
+        snap(PieClock(sectors: Self.seedDay, now: 1180, hub: .init(title: "Shower", subtitle: "until 8:00 pm"),
+                      look: .night)
+            .padding(110)
+            .frame(width: 964, height: 964)
+            .background(KidLook.night.page))
     }
 
     func testSkySwitch() {
@@ -324,6 +322,117 @@ final class ComponentSnapshotTests: XCTestCase {
         }
         .padding(Spacing.l)
         .background(CrayonColor.night))
+    }
+
+    /// Board C6: Kid A's school day on the edit clock; Dinner selected, Play made free.
+    private static let editDay: [ClockSector] = [
+        ClockSector(start: 0, end: 390, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 390, end: 450, style: .morning, iconName: "actBreakfast", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 450, end: 900, style: .school, iconName: "wolfie", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 900, end: 960, style: .play, iconName: "snack", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 960, end: 1110, style: .free, iconName: nil, isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 1110, end: 1155, style: .dinner, iconName: "actDinner", isCurrent: true, showsStar: false, priority: 0),
+        ClockSector(start: 1155, end: 1200, style: .evening, iconName: "actShower", isCurrent: false, showsStar: false, priority: 0),
+        ClockSector(start: 1200, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
+    ]
+
+    private static let editKnobs: [EditClock.Knob] = [390, 450, 900, 960, 1110, 1155, 1200].map {
+        EditClock.Knob(minute: $0, isLocked: $0 == 450 || $0 == 900, label: "")
+    }
+
+    func testEditClock() {
+        snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: nil, dragOrigin: nil,
+                       hub: .init(title: "Dinner"), onKnobDrag: { _, _ in }, onKnobEnd: { _ in },
+                       onLockedTap: { _ in }, onSliceTap: { _ in }, onPlusTap: { _ in }, onKnobAdjust: { _, _ in })
+            .padding(80))
+    }
+
+    func testEditClockDragging() {
+        snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: 5, dragOrigin: 1140,
+                       hub: .init(above: "Dinner ends", time: "7:15 pm", below: "Shower starts"),
+                       onKnobDrag: { _, _ in }, onKnobEnd: { _ in }, onLockedTap: { _ in }, onSliceTap: { _ in },
+                       onPlusTap: { _ in }, onKnobAdjust: { _, _ in })
+            .padding(80))
+    }
+
+    func testMarkerGlyphs() {
+        snap(HStack(spacing: Spacing.m) {
+            ForEach(MarkerGlyph.allCases, id: \.self) { MarkerIcon($0, size: 40) }
+            MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+            MarkerIcon(.arrowRight, size: 32)
+        })
+    }
+
+    /// Board 0c2 kid parts: progress rings, the chosen-kid band and mission circles.
+    func testKidParts() {
+        snap(VStack(alignment: .leading, spacing: Spacing.m) {
+            HStack(spacing: Spacing.m) {
+                CrayonRing(progress: 0.5, colorIndex: 0)
+                CrayonRing(progress: 1, colorIndex: 1)
+                ZStack {
+                    KidBand(colorIndex: 0)
+                    KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
+                }
+                .frame(width: 340, height: 100)
+            }
+            HStack(spacing: Spacing.m) {
+                MissionCircle(picture: .toothbrush, name: "Teeth", colorIndex: 0, isDone: true, isCurrent: false)
+                MissionCircle(picture: .shirt, name: "Get dressed", colorIndex: 0, isDone: false, isCurrent: true)
+                MissionCircle(picture: .babyBottle, name: "Milk", colorIndex: 1, isDone: false, isCurrent: false)
+            }
+            // Board A2m: folded done ones, "+n" to the next page, "‹" back.
+            HStack(spacing: Spacing.m) {
+                MissionCircle(.tick, name: "3 done", colorIndex: 0)
+                MissionCircle(.text("+3"), name: "3 more", colorIndex: 0)
+                MissionCircle(.glyph(.chevronLeft), name: "Back", colorIndex: 1)
+            }
+        })
+    }
+
+    /// C5 footer: a marker glyph inside a wrapping caption.
+    func testGlyphText() {
+        snap(GlyphText("Drag %@ to change the order. Tap a row to rename it or change its picture.",
+                       glyph: .handle, color: CrayonColor.softText)
+            .frame(width: 520, alignment: .leading))
+    }
+
+    /// Board A2-MVP: to school by bus (stops, "Our stop") and A2-MVP-w: weekend school by car ("Home").
+    func testWayStrip() {
+        snap(VStack(spacing: Spacing.m) {
+            WayStrip(destination: .wolfie, mover: .busDouble, progress: 0.4, homeLabel: "Our stop",
+                     destinationLabel: "School", showsStops: true,
+                     cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable",
+                     owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
+                .frame(width: 1248, height: 340)
+            WayStrip(destination: .actLanguageSchool, mover: .car, progress: 0.7, homeLabel: "Home",
+                     destinationLabel: "Weekend school", showsStops: false,
+                     cardTitle: "Weekend school at 9:00 am", cardCaption: "by car",
+                     owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
+                .frame(width: 1248, height: 340)
+            WayStrip(homeAllDay: "Home all day")
+                .frame(width: 1248, height: 340)
+        }, width: 1300)
+    }
+
+    /// Vehicles on their way, at rest: the rigged buses are their stacked runs and match KitIcon.
+    func testDrivingKitIcons() {
+        snap(HStack(spacing: Spacing.l) {
+            DrivingKitIcon(.busDouble, size: 120)
+            DrivingKitIcon(.busSingle, size: 120)
+            DrivingKitIcon(.busShuttle, size: 120)
+            DrivingKitIcon(.car, size: 104)
+            DrivingKitIcon(.shoe, size: 96)
+        }
+        .padding(Spacing.m), width: 760)
+    }
+
+    func testClockKnobsAndPlus() {
+        snap(HStack(spacing: Spacing.m) {
+            ClockKnob(.idle)
+            ClockKnob(.dragging)
+            ClockKnob(.locked)
+            PlusGlyph(size: 40)
+        })
     }
 
     func testKidFullScreen() {

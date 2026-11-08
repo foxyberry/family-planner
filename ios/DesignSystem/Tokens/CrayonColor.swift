@@ -2,9 +2,13 @@ import SwiftUI
 
 /// Board 0a colours for views. Use these instead of hex values in components.
 public enum CrayonColor {
-    public static let kidABlue = CrayonPalette.kidABlue.color
-    public static let kidBOrange = CrayonPalette.kidBOrange.color
+    public static let kidA = CrayonPalette.kidA.color
+    public static let kidB = CrayonPalette.kidB.color
+    public static let pickBlue = CrayonPalette.pickBlue.color
     public static let onTimeGreen = CrayonPalette.onTimeGreen.color
+    public static let meadow = CrayonPalette.meadow.color
+    public static let leaf = CrayonPalette.leaf.color
+    public static let hillGreen = CrayonPalette.green.color
     public static let handRed = CrayonPalette.handRed.color
     public static let paper = CrayonPalette.paper.color
     public static let marker = CrayonPalette.marker.color
@@ -27,7 +31,7 @@ public enum CrayonColor {
 
     /// Colours a parent can pick for a child (blue, orange, green, purple).
     public static let kidPalette: [Color] = [
-        CrayonPalette.kidABlue.color, CrayonPalette.kidBOrange.color,
+        CrayonPalette.kidA.color, CrayonPalette.kidB.color,
         CrayonPalette.onTimeGreen.color, CrayonPalette.kidPurple.color,
     ]
 

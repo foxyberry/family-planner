@@ -35,7 +35,7 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
             }
         }
         .padding(Spacing.m)
-        .padding(.bottom, 24)
+        .padding(.bottom, Spacing.m)
         .crayonBackground(.speechBubble(tailX: anchor, tailHeight: 24), fill: CrayonStyle.paper,
                           seed: CrayonStyle.Seed.bubble + 7)
     }

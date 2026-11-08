@@ -82,6 +82,22 @@ public struct HomeFeature {
             return isSchoolHoliday ? L10n.tr("home.day.holiday", dayName) : dayName
         }
 
+        /// Spec A1 "Mission morning": from the earliest kid's wake-up until noon, home offers "Missions →".
+        public var isMissionMorning: Bool {
+            DayPlanner.isMissionMorning(at: minute, wakes: days.compactMap { $0.night?.wake })
+        }
+
+        /// In the mission morning, Kid A's next outing when it starts within 3 hours.
+        public var morningOuting: Outing? {
+            guard isMissionMorning, let first = days.first,
+                  let outing = DayPlanner.nextOuting(in: first.slots, after: minute),
+                  outing.slot.start - minute <= 180 else { return nil }
+            return outing
+        }
+
+        /// "School in": the outing's place.
+        public var outingHeading: String? { morningOuting.map { L10n.tr("home.place_in", $0.slot.title) } }
+
         /// The switch's VoiceOver label: "Day. Tap for night." / "Night. Tap for day.".
         public var skySwitchLabel: String { look == .day ? L10n.tr("home.sky.day") : L10n.tr("home.sky.night") }
 
@@ -106,6 +122,8 @@ public struct HomeFeature {
         /// The kid tapped the drawn slot that starts at this minute.
         case slotTapped(Int)
         case playEnded
+        /// "Missions →" in the mission morning; the app opens the missions screen.
+        case missionsTapped
     }
 
     @Dependency(\.calendar) var calendar
@@ -202,6 +220,9 @@ public struct HomeFeature {
 
             case .playEnded:
                 state.isPlaying = false
+                return .none
+
+            case .missionsTapped:
                 return .none
             }
         }

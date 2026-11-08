@@ -146,14 +146,14 @@ public struct ItemEditorView: View {
     @ViewBuilder private var onceRows: some View {
         row("") {
             HStack(spacing: Spacing.s) {
-                RoundButton(systemImage: "chevron.left", accessibilityLabel: L10n.tr("editor.dates.earlier")) { store.send(.datePageTapped(-1)) }
+                RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("editor.dates.earlier")) { store.send(.datePageTapped(-1)) }
                     .opacity(store.canPageEarlier ? 1 : 0.3)
                 ForEach(store.dateChips, id: \.day) { chip in
                     DateChip(weekday: chip.weekday, day: chip.day.day, isOn: chip.isOn) {
                         store.send(.dateTapped(chip.day))
                     }
                 }
-                RoundButton(systemImage: "chevron.right", accessibilityLabel: L10n.tr("editor.dates.later")) { store.send(.datePageTapped(1)) }
+                RoundButton(glyph: .chevronRight, accessibilityLabel: L10n.tr("editor.dates.later")) { store.send(.datePageTapped(1)) }
             }
         }
         row("") {

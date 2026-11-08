@@ -73,13 +73,15 @@ public enum DayPlanner {
         var candidates: [(priority: Int, slot: Slot)] = []
         for block in routine?.blocks ?? [] {
             candidates.append((0, Slot(title: block.title, iconName: block.iconName, kind: block.kind,
-                                       start: block.start, end: block.end, source: .routine, showsStar: false)))
+                                       start: block.start, end: block.end, source: .routine, showsStar: false,
+                                       trip: block.trip)))
         }
         for item in items where occurs(item, on: day, kid: kid.id, holidays: holidays, calendar: calendar) {
             let source: Slot.Source = item.isWeekly ? .weekly(item.id) : .once(item.id)
             candidates.append((item.isWeekly ? 1 : 2,
                                Slot(title: item.title, iconName: item.iconName, kind: item.kind, start: item.start,
-                                    end: item.end, source: source, showsStar: item.showsStar && !item.isWeekly)))
+                                    end: item.end, source: source, showsStar: item.showsStar && !item.isWeekly,
+                                    trip: item.trip)))
         }
         candidates.sort { ($0.priority, $0.slot.start) > ($1.priority, $1.slot.start) }
 
