@@ -237,10 +237,13 @@ final class HomeFeatureTests: XCTestCase {
         let evening = store(on: tuesday, minute: 1170)  // 7:30 pm: bed within 3 hours
         await evening.send(.task)
         await evening.receive(\.loaded)
-        guard case let .timeLeft(left, next) = evening.state.kidABlock else {
+        // A1n: bed time first, then tomorrow's outing (no Next row at night).
+        guard case let .bedTime(left, tomorrow) = evening.state.kidABlock else {
             return XCTFail("\(evening.state.kidABlock)")
         }
-        XCTAssertEqual(left.minutes, next.start - 1170)
+        XCTAssertEqual(left.label, "Bed in")
+        XCTAssertEqual(tomorrow?.title, "Tomorrow")
+        XCTAssertEqual(tomorrow?.line.hasPrefix("School, leave "), true)
     }
 
     /// E1: one kid keeps the Next row under "Leave in" on a leaving morning.

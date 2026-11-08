@@ -34,7 +34,10 @@ public struct OurDayView: View {
                               onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) })
                         // Board C6: the clock and its hour labels fill the form box (64–882 × 176–968).
                         .frame(width: layout.form.width, height: layout.form.height)
-                    sideColumn.frame(width: layout.side.width, alignment: .topLeading)
+                        .accessibilityHint(L10n.tr("day.hint"))
+                    sideColumn(layout)
+                        .frame(width: layout.side.width, height: layout.action.minY - Spacing.sm * layout.sizing.s
+                               - layout.side.minY, alignment: .topLeading)
                 }
             } primaryAction: { layout in
                 VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -75,21 +78,35 @@ public struct OurDayView: View {
         }
     }
 
-    private var sideColumn: some View {
+    /// Board C6 (layout v6): the tabs and the slice card from the top; "Changes start tomorrow." just
+    /// above the Save button and the hint above that, placed from the button up. When the hint would
+    /// come within 8 of the card (short iPads) it is left out and stays the clock's VoiceOver hint.
+    private func sideColumn(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             CrayonTabs(selection: Binding(get: { store.dayType }, set: { store.send(.dayTypeTapped($0)) }),
                        items: [(DayType.weekday, L10n.tr("day.type.weekday"), nil),
                                (.saturday, L10n.tr("day.type.saturday"), nil),
                                (.sunday, L10n.tr("day.type.sunday"), nil)])
+                .fixedSize(horizontal: false, vertical: true)
             if store.showsHolidayNote {
                 Text(L10n.tr("day.sun_holidays")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
-            PaperCard(seed: 61) { card }
-                .frame(height: 440)
-            Text(L10n.tr("day.hint")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(L10n.tr("day.tomorrow")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            // The slice card hugs its content; the bottom stack hangs from the Save button.
+            PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
+            Spacer(minLength: Spacing.xs)
+            ViewThatFits(in: .vertical) {
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
+                    Text(L10n.tr("day.hint")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                        .fixedSize(horizontal: false, vertical: true)
+                    tomorrow
+                }
+                tomorrow
+            }
         }
+    }
+
+    private var tomorrow: some View {
+        Text(L10n.tr("day.tomorrow")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
     }
 
     @ViewBuilder private var card: some View {

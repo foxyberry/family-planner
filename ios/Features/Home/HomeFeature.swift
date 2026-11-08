@@ -15,9 +15,10 @@ public struct HomeFeature {
     public enum KidABlock: Equatable, Sendable {
         /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
         case leave
-        /// A1n: the time left ("in", "Bed in") over the Next row; within 3 hours, after the
-        /// mission morning.
+        /// The time left ("in") over the Next row; within 3 hours, after the mission morning.
         case timeLeft(HomeModel.TimeLeft, NextRow)
+        /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
+        case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
         /// E3 / E3b: the Next row only (over 3 hours away, or a mission morning without an outing).
         case next(NextRow)
         /// Nothing next today: the row is left out (spec E3 "No item left today").
@@ -30,6 +31,8 @@ public struct HomeFeature {
         public var slots: [Slot]
         /// From the template's evening routine to wake-up (board A1n); `nil` keeps the day look.
         public var night: NightSpan? = nil
+        /// Tomorrow's first outing (board A1n "Tomorrow" row); `nil` when tomorrow has none.
+        public var tomorrow: Outing? = nil
     }
 
     @ObservableState
@@ -146,7 +149,7 @@ public struct HomeFeature {
             if morningOuting != nil { return .leave }
             guard let next = HomeModel.next(first.slots, minute: minute) else { return .nothing }
             if !isMissionMorning, let left = HomeModel.timeLeft(to: next, minute: minute) {
-                return .timeLeft(left, next)
+                return next.kind == .sleep ? .bedTime(left, tomorrow: first.tomorrow.map(TomorrowRow.init)) : .timeLeft(left, next)
             }
             return .next(next)
         }
@@ -257,7 +260,12 @@ public struct HomeFeature {
                                                    items: snapshot.items, holidays: holidayDays, calendar: calendar),
                            night: DayPlanner.nightSpan(of: DayPlanner.template(
                                for: kid.id, on: today, routines: snapshot.routines, holidays: holidayDays,
-                               calendar: calendar)))
+                               calendar: calendar)),
+                           tomorrow: DayPlanner.nextOuting(
+                               in: DayPlanner.slots(on: today.adding(days: 1, calendar: calendar), kid: kid,
+                                                    routines: snapshot.routines, items: snapshot.items,
+                                                    holidays: holidayDays, calendar: calendar),
+                               after: -1))
                 }
                 state.busPlan = snapshot.kids.first.flatMap { kid in snapshot.busPlans.first { $0.kid == kid.id } }
                 return state.wantsLive ? .send(.refresh) : .none

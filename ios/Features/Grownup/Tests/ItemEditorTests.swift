@@ -308,4 +308,14 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertFalse(store.state.isEditingWeekly)
         XCTAssertNotNil(store.state.preview)
     }
+
+    /// "More" opens every picture; picking one closes it and puts it first in the row.
+    func testMorePicturesPickFirstInTheRow() async {
+        let store = store(mode: .add(.kid(SeedData.kidA.id)))
+        store.exhaustivity = .off
+        await store.send(.morePicturesTapped) { $0.isPickingMorePictures = true }
+        await store.send(.picturePicked("cake")) { $0.isPickingMorePictures = false }
+        XCTAssertEqual(store.state.whatRow.first, "cake")
+        XCTAssertEqual(store.state.whatRow.count, 5)
+    }
 }

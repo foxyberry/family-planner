@@ -11,10 +11,6 @@ import SwiftUI
 public struct ItemEditorView: View {
     @Bindable var store: StoreOf<ItemEditorFeature>
 
-    /// The pictures offered under "What" (the kit's activity pictures).
-    static let pictures: [KitSlot] = [.actSwim, .actArt, .actMusic, .actPiano, .actDance, .actFootball, .actStory,
-                                      .actCCA, .actPlay, .homework, .doctor, .cake]
-
     public init(store: StoreOf<ItemEditorFeature>) {
         self.store = store
     }
@@ -67,11 +63,17 @@ public struct ItemEditorView: View {
     private var form: some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
             row(L10n.tr("editor.row.for")) { audienceTabs }
+            // Board C3 (layout v6): five pictures and "More", which opens every picture, 6 per row.
             row(L10n.tr("editor.row.what")) {
-                IconPicker(selection: Binding(get: { store.form.iconName.flatMap(KitSlot.init(rawValue:)) },
+                PictureRow(slots: store.whatRow.compactMap(KitSlot.init(rawValue:)),
+                           selection: Binding(get: { store.form.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.picturePicked(slot.rawValue)) } }),
-                           slots: Self.pictures)
+                           all: ItemEditorFeature.State.pictures, isShowingAll: store.isPickingMorePictures,
+                           moreTitle: L10n.tr("picker.more"), moreLabel: L10n.tr("picker.more.label")) {
+                    store.send(.morePicturesTapped)
+                }
             }
+            .zIndex(1)
             row(L10n.tr("editor.row.name"), problem: .name) { CrayonField(L10n.tr("editor.row.name"), text: $store.form.name).frame(width: 520) }
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
@@ -146,20 +148,22 @@ public struct ItemEditorView: View {
     }
 
     @ViewBuilder private var onceRows: some View {
-        // Board C4: five date chips (96) from 232; "earlier" waits in the label column. The board
-        // spaces chips 12 apart and has no "later"; 8 apart, chips and "later" fit 232 … 842.
+        // Board C4 (layout v6): ‹ (64) in the label column at 104, five date chips (96) 12 apart
+        // from 232 to 760, › (64) at 772; both centred on the chip row.
         HStack(spacing: 0) {
             FormLabelColumn {
                 RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("editor.dates.earlier")) { store.send(.datePageTapped(-1)) }
+                    .size(64)
                     .opacity(store.canPageEarlier ? 1 : 0.3)
             }
-            HStack(spacing: Spacing.xs) {
+            HStack(spacing: Spacing.sm) {
                 ForEach(store.dateChips, id: \.day) { chip in
                     DateChip(weekday: chip.weekday, day: chip.day.day, isOn: chip.isOn) {
                         store.send(.dateTapped(chip.day))
                     }
                 }
                 RoundButton(glyph: .chevronRight, accessibilityLabel: L10n.tr("editor.dates.later")) { store.send(.datePageTapped(1)) }
+                    .size(64)
             }
         }
         row("") {

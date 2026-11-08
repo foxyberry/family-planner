@@ -74,6 +74,25 @@ public struct ItemEditorFeature {
             ]
         }
         public var holidays: Set<Day> = []
+        /// Board C3 "What" (layout v6): the "More" popover with every picture is open.
+        public var isPickingMorePictures = false
+
+        /// The pictures offered under "What" (the kit's activity pictures), in the popover's order.
+        public static let pictures: [KitSlot] = [.actSwim, .actArt, .actMusic, .actPiano, .actDance, .actFootball,
+                                                 .actStory, .actCCA, .actPlay, .homework, .doctor, .cake]
+
+        /// Board C3 "What" row: the picked picture first, then the pictures this kid's items use most,
+        /// then the kit's list; five slots (the sixth is "More").
+        public var whatRow: [String] {
+            let items = (snapshot?.items ?? []).filter { item in
+                switch form.audience {
+                case let .kid(id): item.audience.includes(id)
+                case .both: true
+                }
+            }
+            return ItemForm.rowPictures(picked: form.iconName, used: items.map(\.iconName),
+                                        all: Self.pictures.map(\.rawValue))
+        }
         /// Weeks forward in the just-once date chips; never before this week.
         public var datePage = 0
         public var confirm: Confirm?
@@ -241,6 +260,8 @@ public struct ItemEditorFeature {
         case binding(BindingAction<State>)
         case audienceTapped(Audience)
         case picturePicked(String)
+        /// The "More" slot after the five pictures (board C3, layout v6): opens or closes the popover.
+        case morePicturesTapped
         case startPicked(Date)
         case endPicked(Date)
         case dayToggled(Weekday)
@@ -308,6 +329,11 @@ public struct ItemEditorFeature {
 
             case let .picturePicked(name):
                 state.form.pickPicture(name)
+                state.isPickingMorePictures = false
+                return .none
+
+            case .morePicturesTapped:
+                state.isPickingMorePictures.toggle()
                 return .none
 
             case let .startPicked(time):

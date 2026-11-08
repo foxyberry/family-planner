@@ -146,12 +146,33 @@ public struct HomeView: View {
             TimeLeft(minutes: timeLeft.minutes, look: store.look)
                 .place(left: layout.panelLeft, baseline: layout.timeBaseline)
             nextRow(next, at: layout.timeLeftRow)
+        case let .bedTime(timeLeft, tomorrow):
+            Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
+                .place(left: layout.panelLeft, baseline: layout.firstLineBaseline)
+            TimeLeft(minutes: timeLeft.minutes, look: store.look)
+                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
+            if let tomorrow {
+                tomorrowRow(tomorrow, layout: layout)
+            }
         case let .next(next):
             nextCaption(baseline: layout.firstLineBaseline, layout: layout)
             nextRow(next, at: layout.nextRow)
         case .nothing:
             EmptyView()
         }
+    }
+
+    /// A1n: tomorrow's outing on a plate at 436, "Tomorrow" (body bold) over its line (caption).
+    @ViewBuilder private func tomorrowRow(_ row: TomorrowRow, layout: HomeLayout) -> some View {
+        let picture = layout.timeLeftRow.picture
+        KitPlate(look: store.look, size: picture.width) {
+            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: picture.width)
+        }
+        .place(picture)
+        Text(row.title).crayonType(.body, bold: true).foregroundStyle(store.look.ink).lineLimit(1)
+            .place(left: layout.tomorrowTextLeft, baseline: layout.tomorrowTitleBaseline)
+        Text(row.line).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
+            .place(left: layout.tomorrowTextLeft, baseline: layout.tomorrowLineBaseline)
     }
 
     private func nextCaption(baseline: CGFloat, layout: HomeLayout) -> some View {

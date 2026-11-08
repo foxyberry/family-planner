@@ -230,4 +230,16 @@ final class ItemFormTests: XCTestCase {
         XCTAssertNil(form.leaveLine)
         XCTAssertEqual(form.item(id: UUID(), today: Day(year: 2026, month: 11, day: 9)).trip, nil)
     }
+
+    /// Board C3 "What" (layout v6): the picked picture first, then the most used, then the kit's order.
+    func testRowPicturesPutPickedThenMostUsed() {
+        let all = ["actSwim", "actArt", "actMusic", "actPiano", "actDance", "actFootball", "cake"]
+        XCTAssertEqual(ItemForm.rowPictures(picked: nil, used: [], all: all),
+                       ["actSwim", "actArt", "actMusic", "actPiano", "actDance"])
+        XCTAssertEqual(ItemForm.rowPictures(picked: "cake", used: ["actFootball", "actFootball", "actPiano"], all: all),
+                       ["cake", "actFootball", "actPiano", "actSwim", "actArt"])
+        // A picture outside the kit's list (a template slot) is not offered; no picture twice.
+        XCTAssertEqual(ItemForm.rowPictures(picked: "actPiano", used: ["school", "actPiano"], all: all),
+                       ["actPiano", "actSwim", "actArt", "actMusic", "actDance"])
+    }
 }
