@@ -15,7 +15,7 @@ LAUNCH_ARGS = $(if $(NOW),-fpNow $(NOW)) $(if $(SPEED),-fpSpeed $(SPEED))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one snapshots-record sim-stop art art-private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one snapshots snapshots-record sim-stop art art-private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios
 
 # =============================================================================
@@ -57,11 +57,11 @@ device:
 # Failed snapshots leave their new picture in the git-ignored __Diffs__ folder (local runs
 # only: CI does not set SNAPSHOT_ARTIFACTS, keeps no artifacts and logs one line per failure).
 SNAPSHOT_ENV := $(if $(CI),,SNAPSHOT_ARTIFACTS="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Diffs__")
-# CI skips snapshot tests (tag "snapshot") while the designs keep changing; local runs keep them.
-TEST_FILTER  := $(if $(CI),--test_tag_filters=-snapshot,)
 
+# Every test except the snapshot pictures (tag "snapshot"); CI runs the same set.
+# Run `make snapshots` whenever you change DesignSystem, KitArt or a screen.
 test:
-	$(SNAPSHOT_ENV) $(IOS_BAZEL) test //ios/... $(TEST_FILTER) \
+	$(IOS_BAZEL) test //ios/... --test_tag_filters=-snapshot \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
@@ -73,9 +73,15 @@ test-one:
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
+# The snapshot pictures only: compares every part with its committed baseline.
+SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
+snapshots:
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(SNAPSHOT_TARGET) \
+	  --ios_simulator_device="$(SIM_DEVICE)" \
+	  --ios_simulator_version="$(SIM_OS)"
+
 # Re-record the design system snapshot baselines into the source tree (the run itself fails:
 # recording is not a pass). Compare the new pictures with the design boards before committing.
-SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
 snapshots-record:
 	SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Snapshots__" \
 	$(IOS_BAZEL) test $(SNAPSHOT_TARGET) --nocache_test_results \

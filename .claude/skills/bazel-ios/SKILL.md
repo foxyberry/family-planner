@@ -2,7 +2,7 @@
 name: bazel-ios
 description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/device/lint/fmt/sim-stop, signed builds on a real iPad, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.7.0
+  version: 0.8.0
   status: experimental
 ---
 
@@ -13,14 +13,13 @@ metadata:
 - One build or test at a time; one simulator. `make run` builds first, then boots.
 - Before `make test`, shut down every simulator (`make sim-stop`): a dev simulator next to the test
   simulator makes tests time out or fail to install. Look at changes on the iPad (`make device`).
-- `make sim-stop` when you are done looking at the app.
 - Shut down idle Bazel servers of other projects: `cd <other repo> && bazel shutdown`.
 - "Another command is running" means wait; Bazel serializes commands in one workspace.
 - If memory pressure stays red during a cold build, set `common --local_resources=cpu=2` in
   `user.bazelrc` (git-ignored; created from `user.bazelrc.example` by `make setup`).
-- Tests boot their own `BAZEL_TEST_<device>_<os>` simulator and leave it running. `make run`
-  shuts all simulators down first; after `make test`, run `make sim-stop` if you are not
-  launching the app. Never address a simulator as `booted` when two may be running: use its UDID.
+- Tests boot their own `BAZEL_TEST_<device>_<os>` simulator and leave it running; `make run`
+  shuts all simulators down first. `make sim-stop` when done. Never address a simulator as
+  `booted` when two may be running: use its UDID.
 
 ## Simulator Face ID (parent mode)
 
@@ -32,8 +31,8 @@ xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit.enrollmentChanged 
 xcrun simctl spawn $UDID notifyutil -p com.apple.BiometricKit_Sim.pearl.match      # matching face
 ```
 
-Sending the match before the sheet appears does nothing; send it again. Easier in debug builds:
-turn on "Skip Face ID" in the debug bubble's menu, or just tap "Enter" when Face ID is not enrolled.
+A match sent before the sheet shows does nothing. Easier in debug builds: the bubble's
+"Skip Face ID", or "Enter" when Face ID is not enrolled.
 
 ## Real iPad (`make device`)
 
@@ -51,8 +50,8 @@ turn on "Skip Face ID" in the debug bubble's menu, or just tap "Enter" when Face
   `devicectl` shows it as `localNetwork`. Wake the iPad if it is not found. Wi-Fi installs can
   time out (`tunnel connection failed`); plug in the cable rather than retrying.
 - `make device` ends with `scripts/device-check.sh` (needs `pymobiledevice3` and a cable): it fails
-  on a crash after launch, says whether the crashed binary is the new build, and saves
-  `bazel-device/screen.png`. Look at it before saying anything works; "Launched" proves nothing.
+  on a crash after launch, tells whether the crashed binary is new, and saves
+  `bazel-device/screen.png`. Look at it; "Launched" proves nothing.
 
 ## Commands
 
@@ -62,7 +61,8 @@ turn on "Skip Face ID" in the debug bubble's menu, or just tap "Enter" when Face
 | Build + launch on simulator | `make run` |
 | Build + sign + launch on the iPad (cable or Wi-Fi) | `make device` (see Real iPad) |
 | Start the app clock at another time (debug builds) | `make run NOW=2026-11-09T07:30 SPEED=60` (same for `make device`), or the debug bubble's Time machine |
-| All tests | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
+| All tests except snapshots | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
+| Snapshot tests | `make snapshots` (see Snapshot tests) |
 | One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |
 | Test log | `bazel-testlogs/ios/<Pkg>/Tests/<Target>/test.log` |
 | Force a re-run | add `--nocache_test_results` (a `(cached) PASSED` line means the test did not run) |
@@ -84,7 +84,8 @@ fp_swift_library(
 ```
 
 Tests live in `<Pkg>/Tests` with an `ios_unit_test` that sets `runner = "//ios:test_runner"`
-(reuses one simulator, writes no .xcresult).
+(reuses one simulator, writes no .xcresult). Pure modules too: `macos_unit_test` measured
+slower (xcodebuild start-up 4-9 s per target vs 1-3 s on the booted simulator).
 
 ## Resources (pictures, fonts)
 
@@ -112,12 +113,14 @@ fp_swift_library(name = "KitArt", data = [":KitArtResources"])
 
 ## Snapshot tests
 
+- `make test` and CI skip them (tag `snapshot`): run `make snapshots` after changing
+  DesignSystem, KitArt or a screen.
 - Baselines are `data` runfiles of the `ios_unit_test`; the test reads them under
   `$TEST_SRCDIR/_main/<package>/__Snapshots__` (the xctestrun runner forwards `TEST_SRCDIR`).
   Keep PNGs out of resource bundles: rules_apple may recompress them.
 - `#filePath` is relative under Bazel, so never let swift-snapshot-testing pick the folder.
 - Record: `make snapshots-record` (passes `SNAPSHOT_RECORD_DIR` through `env_inherit`; the run
-  reports failures because recording is not a pass). Then run the target again to compare.
+  reports failures because recording is not a pass). Then `make snapshots` to compare.
 - Unhosted tests render SwiftUI fine through swift-snapshot-testing's `.image(layout:traits:)`.
 - `.sizeThatFits` proposes a zero size: wrap the view in `.fixedSize(...)` or text gets squeezed
   and truncated. Pin `\.locale` and `\.timeZone` so the simulator's settings never change a picture.
