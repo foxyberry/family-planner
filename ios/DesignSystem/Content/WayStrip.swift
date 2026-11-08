@@ -20,7 +20,6 @@ public struct WayStrip: View {
     private let owner: (badge: KidFace.Badge, name: String)?
     /// The empty look: no trip left today, so only home on its stem and a card.
     private let isHomeAllDay: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// A trip: `owner` is the kid whose outing it is; the card starts with their face.
     public init(destination: KitSlot, mover: KitSlot, progress: Double, homeLabel: String, destinationLabel: String,
@@ -240,10 +239,7 @@ public struct WayStrip: View {
 
     private var moverView: some View {
         let size = moverSize, x = moverX
-        return KitIcon(mover, size: size)
-            .phaseAnimator(reduceMotion ? [0.0] : [-2.0, 2.0]) { view, angle in
-                view.rotationEffect(.degrees(angle), anchor: .bottom)
-            } animation: { _ in .easeInOut(duration: 0.9) }
+        return DrivingKitIcon(mover, size: size)
             .frame(width: size, height: size)
             .offset(x: x - size / 2, y: Self.roadY(x) + 20 - size)
     }

@@ -118,6 +118,12 @@ public struct ComponentGallery: View {
                              owner: (KidFace.Badge(face: "kidGirl", colorIndex: 0), "Kid A"))
                         .frame(height: 340)
                     WayStrip(homeAllDay: "Home all day").frame(height: 340)
+                    HStack(spacing: Spacing.l) {
+                        DrivingKitIcon(.busDouble, size: 120)
+                        DrivingKitIcon(.busShuttle, size: 120)
+                        DrivingKitIcon(.car, size: 104)
+                        DrivingKitIcon(.shoe, size: 96)
+                    }
                 }
                 section("C6 · Edit clock parts") {
                     HStack(spacing: Spacing.m) {

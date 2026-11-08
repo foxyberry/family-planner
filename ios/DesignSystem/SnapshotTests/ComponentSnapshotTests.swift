@@ -414,6 +414,18 @@ final class ComponentSnapshotTests: XCTestCase {
         }, width: 1300)
     }
 
+    /// Vehicles on their way, at rest: the rigged buses are their stacked runs and match KitIcon.
+    func testDrivingKitIcons() {
+        snap(HStack(spacing: Spacing.l) {
+            DrivingKitIcon(.busDouble, size: 120)
+            DrivingKitIcon(.busSingle, size: 120)
+            DrivingKitIcon(.busShuttle, size: 120)
+            DrivingKitIcon(.car, size: 104)
+            DrivingKitIcon(.shoe, size: 96)
+        }
+        .padding(Spacing.m), width: 760)
+    }
+
     func testClockKnobsAndPlus() {
         snap(HStack(spacing: Spacing.m) {
             ClockKnob(.idle)
