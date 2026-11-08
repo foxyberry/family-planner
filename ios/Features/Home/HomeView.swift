@@ -107,8 +107,8 @@ public struct HomeView: View {
     private func dayOffBlock(_ day: HomeFeature.KidDay) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             kidHeader(day.kid)
-            if let today = store.today {
-                Text(DayText.name(today.weekday(Calendar.current))).crayonType(.body)
+            if let dayName = store.dayName {
+                Text(dayName).crayonType(.body)
                     .foregroundStyle(CrayonColor.softText)
             }
             Text("No school, no bus").crayonType(.title).foregroundStyle(CrayonColor.ink)

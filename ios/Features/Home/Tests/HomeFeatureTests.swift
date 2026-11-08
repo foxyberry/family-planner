@@ -47,6 +47,15 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertTrue(store.state.days.first?.slots.contains { $0.title == "Swimming" } ?? false)
     }
 
+    /// The day name follows the app's calendar: just after midnight in Singapore it is already Saturday,
+    /// whatever the device's own time zone says.
+    func testDayNameFollowsTheAppCalendar() async {
+        let store = store(on: saturday, minute: 30)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.dayName, "Saturday")
+    }
+
     func testOneKidLayout() async {
         let store = store(on: wednesday, minute: 600, snapshot: snapshot(kids: [SeedData.kidA]))
         await store.send(.task)
@@ -111,6 +120,7 @@ final class HomeFeatureTests: XCTestCase {
         store.exhaustivity = .on
         await store.send(.task) {
             $0.today = self.wednesday
+            $0.weekday = .wednesday
             $0.minute = 600
         }
         await store.skipReceivedActions()

@@ -6,7 +6,7 @@ SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/check-kid-screens.sh"
 PASS=0
 FAIL=0
 
-new_tree() { TREE="$(mktemp -d)"; mkdir -p "$TREE/ios/Features/Morning" "$TREE/ios/DesignSystem/Gallery"; }
+new_tree() { TREE="$(mktemp -d)"; mkdir -p "$TREE/ios/Features/Morning" "$TREE/ios/Features/Home" "$TREE/ios/DesignSystem/Gallery"; }
 
 run_check() { ERR="$(bash "$SCRIPT" "$TREE" 2>&1 >/dev/null)"; CODE=$?; }
 
@@ -28,6 +28,14 @@ test_blocks_list_in_kid_screen() {
   run_check
   [ "$CODE" -eq 1 ]
   assert test_blocks_list_in_kid_screen $?
+}
+
+test_blocks_scroll_in_home_without_kid_screen_marker() {
+  new_tree
+  printf 'HStack { ScrollView { Text("x") } }\n' > "$TREE/ios/Features/Home/HomeView.swift"
+  run_check
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"HomeView.swift"* ]]
+  assert test_blocks_scroll_in_home_without_kid_screen_marker $?
 }
 
 test_passes_clean_kid_screen() {
@@ -63,6 +71,7 @@ test_repo_passes() {
 
 test_blocks_scroll_view_in_kid_screen
 test_blocks_list_in_kid_screen
+test_blocks_scroll_in_home_without_kid_screen_marker
 test_passes_clean_kid_screen
 test_grownup_screens_may_scroll
 test_gallery_is_exempt

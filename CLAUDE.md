@@ -39,9 +39,13 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
 - `ios/Domain`: pure rules (Foundation only): kids, routines, schedule items, `DayPlanner`, `SeriesEdits`,
   copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor).
-- Time comes only from `@Dependency(\.date)`, `\.calendar`, `\.continuousClock`; days are `Day` values
-  and minutes after midnight (0–1440). Elapsed time (timeouts, relock) counts clock ticks, never
-  `date` differences. Tests pin `Asia/Singapore` and a fixed date.
+- Outside data (time, calendar and time zone, locale, device, bundle, settings, launch arguments)
+  comes only through dependencies (`\.date`, `\.calendar`, `\.continuousClock`, clients), read in
+  reducers or Live values; the reference time zone is set once in `bootstrap`.
+  `scripts/check-dependencies.sh` blocks globals (`Date()`, `Calendar.current`, …) and views reading
+  `@Dependency`. Days are `Day` values and minutes after midnight (0–1440). Elapsed time counts
+  clock ticks, never `date` differences. Tests pin `Asia/Singapore` and a fixed date.
+- New screens, reducers and services: follow the `tca-feature` skill.
 - Kids are fake seed data (`SeedData`, Kid A / Kid B) until first-run setup (M4).
 - Grown-up screens: hold the clock 2 s, then Face ID (no passcode). An iPad without Face ID set up
   gets an "Enter" button (the hold is the gate).
@@ -89,7 +93,7 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 
 ## Agent harness
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
-- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `skill-retro`.
+- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `tca-feature`, `skill-retro`.
 - Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known; the
   `skill-retro` skill moves them into guards, this file or skills (a session-start note says when 5+ wait).
   `bash scripts/check-skills.sh` checks skills, this file's length and the inbox.

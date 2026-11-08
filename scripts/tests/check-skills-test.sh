@@ -30,7 +30,7 @@ test_passes_clean_tree() {
 
 test_fails_name_not_matching_folder() {
   new_tree
-  sed -i '' 's/^name: demo$/name: other/' "$TREE/.claude/skills/demo/SKILL.md"
+  perl -pi -e 's/^name: demo$/name: other/' "$TREE/.claude/skills/demo/SKILL.md"
   run_check
   [ "$CODE" -eq 1 ] && [[ "$OUT" == *"demo"*"name"* ]]
   assert test_fails_name_not_matching_folder $?
@@ -38,7 +38,7 @@ test_fails_name_not_matching_folder() {
 
 test_fails_missing_version() {
   new_tree
-  sed -i '' '/version:/d' "$TREE/.claude/skills/demo/SKILL.md"
+  perl -ni -e 'print unless /version:/' "$TREE/.claude/skills/demo/SKILL.md"
   run_check
   [ "$CODE" -eq 1 ] && [[ "$OUT" == *"version"* ]]
   assert test_fails_missing_version $?
@@ -47,7 +47,7 @@ test_fails_missing_version() {
 test_fails_long_description() {
   new_tree
   long="$(printf 'x%.0s' $(seq 1 1100))"
-  sed -i '' "s/^description: .*/description: Use when $long/" "$TREE/.claude/skills/demo/SKILL.md"
+  perl -pi -e "s/^description: .*/description: Use when $long/" "$TREE/.claude/skills/demo/SKILL.md"
   run_check
   [ "$CODE" -eq 1 ] && [[ "$OUT" == *"description"* ]]
   assert test_fails_long_description $?
