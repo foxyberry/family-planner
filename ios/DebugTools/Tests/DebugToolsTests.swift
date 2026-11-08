@@ -51,6 +51,13 @@ final class LaunchOptionsTests: XCTestCase {
         XCTAssertNil(options.speed)
     }
 
+    func testBubbleTextIsTwentyFourHour() {
+        let date = calendar.date(from: DateComponents(year: 2026, month: 11, day: 14, hour: 15, minute: 0))!
+        XCTAssertEqual(DebugModel.bubbleText(date, calendar: calendar), "Sat 15:00")
+        let morning = calendar.date(from: DateComponents(year: 2026, month: 11, day: 10, hour: 6, minute: 52))!
+        XCTAssertEqual(DebugModel.bubbleText(morning, calendar: calendar), "Tue 06:52")
+    }
+
     func testGridAndSkipFaceIDFlags() {
         let options = LaunchOptions(arguments: ["App", "-fpGrid", "-fpSkipFaceID"], calendar: calendar)
         XCTAssertTrue(options.grid)
