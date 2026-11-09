@@ -101,7 +101,6 @@ public struct HomeView: View {
                 KidNowNext(now: now.current?.iconName ?? "actPlay", next: now.next?.iconName, look: store.look)
                     .place(topLeft: layout.nowNext(kidBTop: top))
             } else if let next = store.leaveNext {
-                nextCaption(baseline: layout.leaveNextCaptionBaseline, layout: layout)
                 nextRow(next, at: layout.leaveNextRow)
             }
             if store.isMissionMorning {
@@ -123,67 +122,75 @@ public struct HomeView: View {
         }
     }
 
-    /// Kid A (spec "Now and next on home"): A1 "Leave in", A1n time left over the Next row, E3 Next row.
+    /// Kid A, look ① (spec "Home panel lines", layout v17): one row under the name, the picture on
+    /// the left and the words stacked to its right. Leave (A1), time left over the small row (A1n by
+    /// day), bed time (A1n), or the Next row (E3).
     @ViewBuilder private func kidABlock(layout: HomeLayout) -> some View {
         switch store.kidABlock {
         case .leave:
             if let outing = store.morningOuting, let heading = store.outingHeading {
-                Text(heading).crayonType(.body).foregroundStyle(store.look.softText)
-                    .place(left: layout.panelLeft, baseline: layout.firstLineBaseline)
-                KitPlate(look: store.look, size: layout.way.width) {
-                    KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: layout.way.width)
+                KitPlate(look: store.look, size: layout.kidAPicture.width) {
+                    KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: layout.kidAPicture.width)
                 }
-                .place(layout.way)
-                TimeLeft(minutes: store.minutesToLeave ?? 0, look: store.look)
-                    .place(left: layout.panelLeft, baseline: layout.timeBaseline)
+                .place(layout.kidAPicture)
+                timeLeft(label: heading, minutes: store.minutesToLeave ?? 0, layout: layout)
                 if let status = store.status {
                     StatusDot(status.text, tone: status.tone)
-                        .place(left: layout.panelLeft, baseline: layout.statusBaseline)
+                        .place(left: layout.kidATextLeft, baseline: layout.kidAStatusBaseline)
                 }
             }
-        case let .timeLeft(timeLeft, next):
-            Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
-                .place(left: layout.panelLeft, baseline: layout.firstLineBaseline)
-            TimeLeft(minutes: timeLeft.minutes, look: store.look)
-                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
-            nextRow(next, at: layout.timeLeftRow)
-        case let .bedTime(timeLeft, tomorrow):
-            Text(timeLeft.label).crayonType(.body).foregroundStyle(store.look.softText)
-                .place(left: layout.panelLeft, baseline: layout.firstLineBaseline)
-            TimeLeft(minutes: timeLeft.minutes, look: store.look)
-                .place(left: layout.panelLeft, baseline: layout.timeBaseline)
+        case let .timeLeft(left, next):
+            KitPlate(look: store.look, size: layout.kidAPicture.width) {
+                KitIcon(KitSlot(rawValue: next.iconName) ?? .actPlay, size: layout.kidAPicture.width)
+            }
+            .place(layout.kidAPicture)
+            timeLeft(label: left.label, minutes: left.minutes, layout: layout)
+            smallRow(icon: next.iconName, title: next.title, line: next.at, layout: layout)
+        case let .bedTime(left, tomorrow):
+            // Board A1n: the moon (64) on a 96 plate.
+            KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 64.0 / 96.0) {
+                KitIcon(.actSleep, size: layout.kidAPicture.width)
+            }
+            .place(layout.kidAPicture)
+            timeLeft(label: left.label, minutes: left.minutes, layout: layout)
             if let tomorrow {
-                tomorrowRow(tomorrow, layout: layout)
+                smallRow(icon: tomorrow.iconName, title: tomorrow.title, line: tomorrow.line, layout: layout)
             }
         case let .next(next):
-            nextCaption(baseline: layout.firstLineBaseline, layout: layout)
             nextRow(next, at: layout.nextRow)
         case .nothing:
             EmptyView()
         }
     }
 
-    /// A1n: tomorrow's outing on a plate at 436, "Tomorrow" (body bold) over its line (caption).
-    @ViewBuilder private func tomorrowRow(_ row: TomorrowRow, layout: HomeLayout) -> some View {
+    /// "Leave in" / "Bed in" / "in" (body, soft) over the time left (72), right of the picture.
+    @ViewBuilder private func timeLeft(label: String, minutes: Int, layout: HomeLayout) -> some View {
+        Text(label).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
+            .place(left: layout.kidATextLeft, baseline: layout.kidALabelBaseline)
+        TimeLeft(minutes: minutes, look: store.look, compact: true)
+            .place(left: layout.kidATextLeft, baseline: layout.kidATimeBaseline)
+    }
+
+    /// A1n: the 80 row under the time left (Tomorrow, or Next by day): a 56 picture on an 80 plate,
+    /// its title (body bold) over its line (caption).
+    @ViewBuilder private func smallRow(icon: String, title: String, line: String, layout: HomeLayout) -> some View {
         let place = layout.timeLeftRow
-        // Board A1n (v8): a 56 picture on an 80 plate.
         KitPlate(look: store.look, size: place.picture.width, nightPicture: 56.0 / 80.0) {
-            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: place.picture.width)
+            KitIcon(KitSlot(rawValue: icon) ?? .actPlay, size: place.picture.width)
         }
         .place(place.picture)
-        Text(row.title).crayonType(.body, bold: true).foregroundStyle(store.look.ink).lineLimit(1)
+        Text(title).crayonType(.body, bold: true).foregroundStyle(store.look.ink).lineLimit(1)
             .place(left: place.textLeft, baseline: place.titleBaseline)
-        Text(row.line).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
+        Text(line).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
             .place(left: place.textLeft, baseline: place.atBaseline)
     }
 
-    private func nextCaption(baseline: CGFloat, layout: HomeLayout) -> some View {
-        Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
-            .place(left: layout.panelLeft, baseline: baseline)
-    }
-
-    /// The Next row: the picture (104), its title and "at …" on their baselines.
+    /// The Next row: the picture (104), then "Next" (caption), its title and "at …" to its right.
     @ViewBuilder private func nextRow(_ row: NextRow, at place: HomeLayout.RowPlace) -> some View {
+        if let labelBaseline = place.labelBaseline {
+            Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
+                .place(left: place.textLeft, baseline: labelBaseline)
+        }
         KitPlate(look: store.look, size: place.picture.width) {
             KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: place.picture.width)
                 .overlay(alignment: .topTrailing) {

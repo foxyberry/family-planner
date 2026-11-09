@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import DesignSystem
 import Domain
@@ -380,7 +381,7 @@ public struct MissionsFeature {
 
         /// The done knob for a kid ready without a medal: the crown in place of the knob and its check.
         public var slideDoneKnob: KitSlot? {
-            guard let chosen, day(of: chosen).ready, day(of: chosen).medal == nil else { return nil }
+            guard let chosen, day(of: chosen).ready, Self.medalKind(day(of: chosen).medal) == nil else { return nil }
             return .crown
         }
 
@@ -423,6 +424,7 @@ public struct MissionsFeature {
 
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
+    @Dependency(\.appSettings) var appSettings
     @Dependency(\.bus) var bus
     @Dependency(\.calendar) var calendar
     @Dependency(\.date) var date
@@ -460,8 +462,9 @@ public struct MissionsFeature {
                 return .none
 
             case .refresh:
-                guard let (owner, outing) = state.familyOuting, outing.trip.way == .bus,
-                      let plan = state.busPlans[owner.id] else { return .none }
+                // S4 "Live bus times" off: no LTA call; the morning keeps the timetable look.
+                guard appSettings.load().liveBusTimes, let (owner, outing) = state.familyOuting,
+                      outing.trip.way == .bus, let plan = state.busPlans[owner.id] else { return .none }
                 return .run { [bus, date] send in
                     let arrivals = try? await bus.arrivals(plan.stop)
                     await send(.arrivalsLoaded(arrivals, at: date.now))
@@ -574,6 +577,8 @@ public struct MissionsFeature {
     /// Spec "Medal from the time only": from the live arrivals when the kid's own outing is the
     /// live one, else from the timetable.
     private func medal(for kid: Kid.ID, in state: State) -> MorningMedal {
+        // S4 "Medals" off: no medal anywhere; the slide still ends on "Ready!".
+        guard appSettings.load().medals else { return .none }
         guard let outing = DayPlanner.nextOuting(in: state.slots[kid] ?? [], after: state.minute)
                 ?? (state.slots[kid] ?? []).first(where: { $0.trip != nil }).flatMap({ slot in
                     slot.trip.map { Outing(slot: slot, trip: $0) } })

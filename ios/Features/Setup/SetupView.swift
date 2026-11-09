@@ -23,7 +23,7 @@ public struct SetupView: View {
         } content: { grown in
             HStack(alignment: .top, spacing: grown.gap) {
                 main(layout).frame(width: grown.form.width, alignment: .topLeading)
-                side.frame(width: grown.side.width, alignment: .topLeading)
+                side(layout).frame(width: grown.side.width, alignment: .topLeading)
             }
         } primaryAction: { grown in
             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -62,22 +62,23 @@ public struct SetupView: View {
                 RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("grownup.back")) { store.send(.backTapped) }
             }
             Text(store.title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1).layoutPriority(1)
-            headerAccessory
+            headerAccessory(layout)
             Spacer(minLength: Spacing.m)
             Text(store.stepText).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1).fixedSize()
             StepDots(current: store.step.number)
         }
     }
 
-    @ViewBuilder private var headerAccessory: some View {
-        switch store.step {
-        case .school:
-            CrayonTabs(selection: Binding(get: { store.schoolTab }, set: { store.send(.schoolTabTapped($0)) }),
-                       items: store.kids.enumerated().map { index, kid in
-                           (kid.id, kid.shownName(index: index), KidFace.Badge(face: kid.face ?? "", colorIndex: kid.colorIndex))
-                       })
-        default:
-            EmptyView()
+    /// S2 and S3: the kid tabs, as State lists them (spec "S3 · Getting there").
+    @ViewBuilder private func headerAccessory(_ layout: SetupLayout) -> some View {
+        if store.step == .school || store.step == .gettingThere {
+            CrayonTabs(selection: Binding(get: { store.selectedKidTab }, set: { store.send(.kidTabTapped($0)) }),
+                       items: store.kidTabs.map { tab in
+                           (tab.id, tab.name, KidFace.Badge(face: tab.face, colorIndex: tab.colorIndex))
+                       },
+                       itemSize: layout.kidTab(faceOnly: store.kidTabsAreFaceOnly), spacing: layout.kidTabGap,
+                       faceOnly: store.kidTabsAreFaceOnly,
+                       marked: store.step == .gettingThere ? store.unfinishedGoingTabs : [])
         }
     }
 
@@ -94,7 +95,7 @@ public struct SetupView: View {
 
     // MARK: Side column
 
-    @ViewBuilder private var side: some View {
+    @ViewBuilder private func side(_ layout: SetupLayout) -> some View {
         switch store.step {
         case .family:
             VStack(alignment: .leading, spacing: Spacing.m) {
@@ -126,7 +127,7 @@ public struct SetupView: View {
             }
             .foregroundStyle(CrayonColor.ink)
         case .almostDone:
-            SummarySide(store: store)
+            SummarySide(store: store, layout: layout)
         }
     }
 }
@@ -494,68 +495,89 @@ private struct AlmostDoneStep: View {
     let store: StoreOf<SetupFeature>
     let layout: SetupLayout
 
+    /// Board S4 (layout v17), placed on its lines on the white form card (64, 176, 818 × 792): rows
+    /// 120 tall on a 140 pitch from 216 (picture at 104, the switch ending at 842), then the caption
+    /// at 653. Rows for features not built yet are not listed.
     var body: some View {
-        PaperCard(seed: 91) {
-            VStack(alignment: .leading, spacing: layout.settingRowGap) {
-                // Notifications appear once the nudge is built; microphone, camera and Screen Time later.
-                HStack(spacing: Spacing.m) {
-                    LockMark(size: 56)
-                    VStack(alignment: .leading, spacing: Spacing.xxs) {
-                        Text(L10n.tr("s4.lock")).crayonType(.body, bold: true)
-                        Text(L10n.tr("s4.lock.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    }
-                    Spacer(minLength: Spacing.s)
-                    CheckMark(isDone: true, size: 48)
-                    Text(L10n.tr("s4.lock.on")).crayonType(.body)
+        PaperCard(seed: 91) { rows }
+            .environment(\.cardInset, 0)
+            .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
+    }
+
+    private var rows: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(Array(store.settingRows.enumerated()), id: \.element.setting) { index, row in
+                let origin = layout.s4Main(104, 216 + 140 * CGFloat(index))
+                SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
+                           action: { store.send(.settingTapped(row.setting)) }) {
+                    picture(row.setting)
                 }
-                .frame(minHeight: layout.settingRow(0).height)
-                Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                .frame(width: layout.length(738), height: layout.length(120))
+                .place(topLeft: origin)
             }
-            .foregroundStyle(CrayonColor.ink)
-            .frame(width: layout.grown.form.width - 2 * layout.grown.formInset, alignment: .leading)
+            let caption = layout.s4Main(104, 681)
+            Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                .frame(width: layout.length(704), alignment: .leading)
+                .place(left: caption.x, baseline: caption.y)
         }
-        .frame(width: layout.grown.form.width)
+        .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
+    }
+
+    @ViewBuilder private func picture(_ setting: SetupFeature.Setting) -> some View {
+        switch setting {
+        case .grownupLock: LockMark(size: 56)
+        case .liveBusTimes: KitIcon(.busSingle, size: 56)
+        case .medals: KitIcon(.medalGold, size: 56)
+        }
     }
 }
 
+/// Board S4's side column, on its lines: "You're set up" (baseline 212), the kids (263), the school
+/// and way rows (pictures 56 centred on their two lines, text at 1002), then the caption.
 private struct SummarySide: View {
     let store: StoreOf<SetupFeature>
+    let layout: SetupLayout
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
-            Text(L10n.tr("s4.side.title")).crayonType(.head)
-            // The kids' faces 40 and names, as many per line as fit.
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: Spacing.m) { kids }
-                VStack(alignment: .leading, spacing: Spacing.xs) { kids }
+        let rows = summaryRows
+        ZStack(alignment: .topLeading) {
+            let title = layout.s4Side(930, 212)
+            Text(L10n.tr("s4.side.title")).crayonType(.head).place(left: title.x, baseline: title.y)
+            let kidsLine = layout.s4Side(930, 263)
+            HStack(spacing: Spacing.l) { kids }.place(left: kidsLine.x, baseline: kidsLine.y)
+            ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                let top = layout.s4SummaryTop(index)
+                KitIcon(row.slot, size: layout.length(56))
+                    .place(topLeft: layout.s4Side(930, top + 11))
+                let titleLine = layout.s4Side(1002, top + 35)
+                Text(row.title).crayonType(.body).lineLimit(1).place(left: titleLine.x, baseline: titleLine.y)
+                let detailLine = layout.s4Side(1002, top + 67)
+                Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
+                    .place(left: detailLine.x, baseline: detailLine.y)
             }
-            if let school = store.summarySchool {
-                summaryRow(.actSchool, school.title, school.hours)
-            }
-            if let way = store.summaryWay {
-                summaryRow(KitSlot(iconName: way.picture), way.title, way.detail)
-            }
+            let caption = layout.s4Side(930, layout.s4SummaryTop(rows.count) + 28)
             Text(L10n.tr("s4.side.later")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                .frame(width: layout.length(361), alignment: .leading)
+                .place(left: caption.x, baseline: caption.y)
         }
         .foregroundStyle(CrayonColor.ink)
+        .frame(width: layout.grown.side.width, height: layout.length(872 - 176), alignment: .topLeading)
+    }
+
+    private var summaryRows: [(slot: KitSlot, title: String, detail: String)] {
+        var rows: [(slot: KitSlot, title: String, detail: String)] = []
+        if let school = store.summarySchool { rows.append((.actSchool, school.title, school.hours)) }
+        if let way = store.summaryWay { rows.append((KitSlot(iconName: way.picture), way.title, way.detail)) }
+        return rows
     }
 
     @ViewBuilder private var kids: some View {
         ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
-            HStack(spacing: KidFace.gap(for: KidFace.medium)) {
+            HStack(alignment: .firstTextBaseline, spacing: KidFace.gap(for: KidFace.medium)) {
                 KidFace(.init(face: kid.face ?? "", colorIndex: kid.colorIndex), name: kid.shownName(index: index),
                         size: KidFace.medium)
+                    .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
                 Text(kid.shownName(index: index)).crayonType(.body).lineLimit(1)
-            }
-        }
-    }
-
-    private func summaryRow(_ slot: KitSlot, _ title: String, _ detail: String) -> some View {
-        HStack(alignment: .top, spacing: Spacing.s) {
-            KitIcon(slot, size: 56)
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                Text(title).crayonType(.body).lineLimit(2)
-                Text(detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
         }
     }

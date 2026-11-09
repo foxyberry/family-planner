@@ -31,6 +31,8 @@ public struct ComponentGallery: View {
                         RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
                         RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
                         RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(48)
+                        CrayonSwitch(isOn: true)
+                        CrayonSwitch(isOn: false)
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }
@@ -72,6 +74,10 @@ public struct ComponentGallery: View {
                 }
                 section("0c · Content") {
                     ListRow(leading: "7:30") { Text("Bus to school") }
+                    SettingRow(title: "Grown-up lock", caption: "Face ID before grown-up screens", isOn: true, action: {}) {
+                        LockMark(size: 56)
+                    }
+                    .frame(width: 738)
                     ResultListCard(rows: [
                         .init(id: "1", title: "Opp Example Hotel With A Very Long Name Past The Card", caption: "Example Rd · 00000") {},
                         .init(id: "2", title: "Example Primary School", caption: "Example Rd · 00001") {},

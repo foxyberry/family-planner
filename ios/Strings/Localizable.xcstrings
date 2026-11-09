@@ -2685,6 +2685,17 @@
         }
       }
     },
+    "relock.countdown.home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home in 0:%02lld"
+          }
+        }
+      }
+    },
     "s1.add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3560,7 +3571,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Getting to school"
+            "value" : "Getting there"
           }
         }
       }
@@ -3572,6 +3583,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "door to the stop"
+          }
+        }
+      }
+    },
+    "s4.live_bus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live bus times"
+          }
+        }
+      }
+    },
+    "s4.live_bus.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off: the morning shows the timetable"
           }
         }
       }
@@ -3593,18 +3626,51 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Face ID for grown-up screens"
+            "value" : "Face ID before grown-up screens"
           }
         }
       }
     },
-    "s4.lock.on" : {
+    "s4.lock.needs_face_id" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On"
+            "value" : "Set up Face ID in iPad Settings first."
+          }
+        }
+      }
+    },
+    "s4.lock.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off: anyone who holds the clock for 2 s can change the plan."
+          }
+        }
+      }
+    },
+    "s4.medals" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medals"
+          }
+        }
+      }
+    },
+    "s4.medals.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gold, silver and bronze for leaving on time"
           }
         }
       }
@@ -3648,7 +3714,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skip any of these now; turn them on later in Our kids."
+            "value" : "More switches join this list as features arrive. Change any of them later in Our kids."
           }
         }
       }

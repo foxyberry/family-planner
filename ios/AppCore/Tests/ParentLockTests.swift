@@ -1,9 +1,11 @@
 @testable import AppCore
+import AppSettings
 import ComposableArchitecture
 import Grownup
 import DesignSystem
 import Foundation
 import ParentAuthClient
+import Setup
 import XCTest
 
 /// Board C0: hold the clock, unlock with Face ID only, and lock again after 2 idle minutes.
@@ -166,6 +168,58 @@ final class ParentLockTests: XCTestCase {
         await store.send(.scenePhaseChanged(.background))
         XCTAssertTrue(store.state.path.isEmpty)
         XCTAssertNil(store.state.grownupIdleSeconds)
+    }
+
+    /// S4 lock off (layout v17): the hold opens grown-up screens with no Face ID, there is no
+    /// app-switcher cover, and the 2-minute return home still applies.
+    func testLockOffOpensAfterTheHoldOnly() async {
+        let asked = LockIsolated(false)
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = TimeZone(identifier: "Asia/Singapore")!
+            $0.calendar = calendar
+            $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
+            $0.appSettings.load = { AppSettings(grownupLock: false) }
+            $0.parentAuth.authenticate = { _ in asked.setValue(true); return .success }
+            $0.scheduleStore.load = { throw CancellationError() }
+        }
+        store.exhaustivity = .off
+        await store.send(.checkFamily)
+        XCTAssertFalse(store.state.grownupLock)
+        await store.send(.home(.clockHoldCompleted))
+        XCTAssertNil(store.state.lock)
+        XCTAssertTrue(store.state.hasGrownupScreens)
+        XCTAssertFalse(asked.value, "no Face ID while the lock is off")
+        await store.send(.scenePhaseChanged(.inactive))
+        XCTAssertFalse(store.state.coversGrownupScreens)
+        await store.send(.scenePhaseChanged(.active))
+        for second in 0..<AppFeature.idleLimit { await store.send(.tick(start.addingTimeInterval(Double(second)))) }
+        XCTAssertFalse(store.state.hasGrownupScreens, "still back home after 2 idle minutes")
+    }
+
+    /// The lock is read again when setup finishes, and a grown-up link opens without Face ID while
+    /// it is off.
+    func testSetupFinishReadsTheLockAndLinksFollowIt() async {
+        let settings = LockIsolated(AppSettings())
+        var state = AppFeature.State()
+        state.setup = SetupFeature.State(firstKid: UUID(), calendar: Calendar(identifier: .gregorian))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.appSettings.load = { settings.value }
+            $0.parentAuth.authenticate = { _ in .cancelled }
+            $0.scheduleStore.load = { throw CancellationError() }
+        }
+        store.exhaustivity = .off
+        XCTAssertTrue(store.state.grownupLock)
+        settings.setValue(AppSettings(grownupLock: false))
+        await store.send(.setup(.delegate(.finished)))
+        XCTAssertFalse(store.state.grownupLock)
+        await store.send(.linkOpened(.grownup(.c1)))
+        XCTAssertNil(store.state.lock)
+        XCTAssertTrue(store.state.hasGrownupScreens)
     }
 
     func testGrownupScreensCoveredWhileNotActive() {

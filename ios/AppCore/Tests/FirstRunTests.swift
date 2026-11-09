@@ -71,7 +71,7 @@ final class FirstRunTests: XCTestCase {
         await store.send(.checkFamily)
         await store.receive(\.familyChecked)
         await store.send(.linkOpened(.setup(3)))
-        XCTAssertEqual(store.state.setup?.step, .gettingThere(0))
+        XCTAssertEqual(store.state.setup?.step, .gettingThere)
         XCTAssertNil(store.state.lock)
         await store.send(.linkOpened(.setup(2)))
         XCTAssertEqual(store.state.setup?.step, .school)

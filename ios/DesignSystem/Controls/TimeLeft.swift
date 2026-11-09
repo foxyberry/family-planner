@@ -36,23 +36,29 @@ public struct TimeLeft: View {
 
     private let minutes: Int
     private let look: KidLook
+    private let compact: Bool
     @Environment(\.sizing) private var sizing
 
-    public init(minutes: Int, look: KidLook = .day) {
+    /// `compact`: 72 bold beside a picture (home Kid A row, look ①, layout v17) instead of the
+    /// display 96; "1h 20m" then fits the 272 beside the 96 picture.
+    public init(minutes: Int, look: KidLook = .day, compact: Bool = false) {
         self.minutes = minutes
         self.look = look
+        self.compact = compact
     }
 
     public var body: some View {
         let p = Self.presentation(minutes: minutes)
+        // 72 is three quarters of display 96, and shrinks with it on smaller screens.
+        let size = sizing.size(of: .display) * (compact ? 0.75 : 1)
         Text(p.text)
-            .crayonType(.display)
+            .font(Font(FontRegistrar.font(size: size, weight: .bold)))
             .foregroundStyle(p.tone == .late ? CrayonColor.lateText : look.ink)
             .monospacedDigit()
             .lineLimit(1)
-            // Line height 1.0: the box is as tall as the type (96 on the board), not the font's
-            // taller default.
-            .frame(height: sizing.size(of: .display) * CrayonType.display.lineHeight)
+            // Line height 1.0: the box is as tall as the type (96 or 72 on the board), not the
+            // font's taller default.
+            .frame(height: size * CrayonType.display.lineHeight)
             .accessibilityLabel(Self.spoken(minutes: minutes))
     }
 }

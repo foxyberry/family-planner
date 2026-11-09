@@ -1,0 +1,8 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Interface only. The stored values live in AppSettingsLive (app target only).
+fp_swift_library(
+    name = "AppSettings",
+    visibility = ["//ios:__subpackages__"],
+    deps = ["@swiftpkg_swift_composable_architecture//:ComposableArchitecture"],
+)

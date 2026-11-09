@@ -4,11 +4,37 @@ import Strings
 
 /// Everything S1–S4 print, decided here so the views only render (spec "S1–S4").
 extension SetupFeature.State {
-    /// "Step 2 of 4"; S3 adds the kid it asks about: "Step 3 of 4 · Kid A".
-    public var stepText: String {
-        let text = L10n.tr("setup.step", step.number, 4)
-        guard let kid = goingKid else { return text }
-        return L10n.tr("s2.school.with_area", text, kid.trimmedName)
+    /// "Step 2 of 4" (S3's kid tabs say whose route it is).
+    public var stepText: String { L10n.tr("setup.step", step.number, 4) }
+
+    /// One kid tab on S2 or S3: the shown name and the face in the kid's colour.
+    public struct KidTab: Equatable, Sendable {
+        public let id: KidEntry.ID
+        public let name: String
+        public let face: String
+        public let colorIndex: Int
+    }
+
+    /// S2: a tab for every kid. S3: a tab for every kid who goes out.
+    public var kidTabs: [KidTab] {
+        let shown = step == .gettingThere ? goingKids : kids.elements
+        return shown.map { kid in
+            KidTab(id: kid.id, name: kid.shownName(index: kids.index(id: kid.id) ?? 0), face: kid.face ?? "",
+                   colorIndex: kid.colorIndex)
+        }
+    }
+
+    /// The selected tab of the step on screen.
+    public var selectedKidTab: KidEntry.ID {
+        step == .gettingThere ? (goingKid?.id ?? schoolTab) : schoolTab
+    }
+
+    /// Layout v17: with 3–4 kids the tabs show the face only (88 × 72).
+    public var kidTabsAreFaceOnly: Bool { kidTabs.count >= 3 }
+
+    /// S3 tabs whose route is not finished yet (a hurry dot on the face).
+    public var unfinishedGoingTabs: Set<KidEntry.ID> {
+        Set(goingKids.filter { !$0.going.isFinished }.map(\.id))
     }
 
     public var title: String {
@@ -157,5 +183,32 @@ extension SetupFeature.State {
             return (going.way.moverPicture, L10n.tr("s4.way.bus"), L10n.tr("s4.way.bus.detail", going.walk, going.ride))
         }
         return (going.way.moverPicture, Self.wayCaption(going.way), L10n.tr("s4.way.leave", going.leaveBefore))
+    }
+
+    /// S4's switch rows: title, caption (the "off" meaning where it matters) and whether it warns.
+    public struct SettingRowText: Equatable, Sendable {
+        public let setting: SetupFeature.Setting
+        public let title: String
+        public let caption: String
+        public let isWarning: Bool
+        public let isOn: Bool
+    }
+
+    public var settingRows: [SettingRowText] {
+        SetupFeature.Setting.allCases.map { setting in
+            switch setting {
+            case .grownupLock:
+                let on = settings.grownupLock
+                let caption = lockNeedsFaceID && !on ? L10n.tr("s4.lock.needs_face_id")
+                    : on ? L10n.tr("s4.lock.caption") : L10n.tr("s4.lock.off")
+                return SettingRowText(setting: setting, title: L10n.tr("s4.lock"), caption: caption, isWarning: !on, isOn: on)
+            case .liveBusTimes:
+                return SettingRowText(setting: setting, title: L10n.tr("s4.live_bus"), caption: L10n.tr("s4.live_bus.caption"),
+                                      isWarning: false, isOn: settings.liveBusTimes)
+            case .medals:
+                return SettingRowText(setting: setting, title: L10n.tr("s4.medals"), caption: L10n.tr("s4.medals.caption"),
+                                      isWarning: false, isOn: settings.medals)
+            }
+        }
     }
 }

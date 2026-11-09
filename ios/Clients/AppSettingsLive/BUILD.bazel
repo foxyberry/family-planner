@@ -1,0 +1,10 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "AppSettingsLive",
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/Clients/AppSettingsLive/Tests:__pkg__",
+    ],
+    deps = ["//ios/Clients/AppSettings"],
+)

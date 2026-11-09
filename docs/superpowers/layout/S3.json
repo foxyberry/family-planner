@@ -1,5 +1,5 @@
 {
- "version": "14",
+ "version": "17",
  "board": "S3",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -84,21 +84,69 @@
    "kind": "title",
    "x": 168,
    "y": 51,
-   "w": 412,
+   "w": 324,
    "h": 72,
    "region": "header",
    "anchor": "stretch",
    "align": "inside",
    "baseline": 107,
    "font": 48,
-   "text": "Getting to school"
+   "text": "Getting there"
   },
   {
-   "id": "header.note",
+   "id": "header.note.1",
    "kind": "text",
-   "x": 932,
+   "x": 597,
+   "y": 66,
+   "w": 151,
+   "h": 45,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 88,
+   "font": 30
+  },
+  {
+   "id": "header.note.2",
+   "kind": "text",
+   "x": 817,
+   "y": 66,
+   "w": 136,
+   "h": 45,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 88,
+   "font": 30
+  },
+  {
+   "id": "header.picture.1",
+   "kind": "picture",
+   "x": 597,
+   "y": 68,
+   "w": 40,
+   "h": 40,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "header.picture.2",
+   "kind": "picture",
+   "x": 817,
+   "y": 68,
+   "w": 40,
+   "h": 40,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "header.note.3",
+   "kind": "text",
+   "x": 1033,
    "y": 69,
-   "w": 232,
+   "w": 131,
    "h": 36,
    "region": "header",
    "anchor": "stretch",
@@ -107,18 +155,40 @@
    "font": 24
   },
   {
+   "id": "header.picture.3",
+   "kind": "picture",
+   "x": 600,
+   "y": 71,
+   "w": 34,
+   "h": 34,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "header.picture.4",
+   "kind": "picture",
+   "x": 820,
+   "y": 71,
+   "w": 34,
+   "h": 34,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
    "id": "side.line.1",
    "kind": "text",
    "x": 930,
    "y": 170,
-   "w": 352,
+   "w": 104,
    "h": 54,
    "region": "side",
    "anchor": "right",
    "align": "start",
    "baseline": 212,
    "font": 36,
-   "text": "On school mornings"
+   "text": "Home"
   },
   {
    "id": "main.label.going",
@@ -183,15 +253,41 @@
   {
    "id": "side.line.2",
    "kind": "text",
-   "x": 930,
-   "y": 232,
-   "w": 380,
-   "h": 84,
+   "x": 1010,
+   "y": 231,
+   "w": 229,
+   "h": 45,
    "region": "side",
    "anchor": "right",
-   "align": "fill",
-   "baseline": 306,
-   "font": 30
+   "align": "inside",
+   "baseline": 266,
+   "font": 30,
+   "text": "Set on the map"
+  },
+  {
+   "id": "side.back",
+   "kind": "back",
+   "x": 930,
+   "y": 253,
+   "w": 64,
+   "h": 64,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "text": "Set home on the map"
+  },
+  {
+   "id": "side.line.3",
+   "kind": "text",
+   "x": 1010,
+   "y": 270,
+   "w": 278,
+   "h": 67,
+   "region": "side",
+   "anchor": "right",
+   "align": "inside",
+   "baseline": 329,
+   "font": 24
   },
   {
    "id": "main.text.1",
@@ -250,19 +346,6 @@
    "text": "Taxi"
   },
   {
-   "id": "side.line.3",
-   "kind": "text",
-   "x": 930,
-   "y": 326,
-   "w": 369,
-   "h": 98,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 417,
-   "font": 24
-  },
-  {
    "id": "main.label.stop",
    "kind": "label",
    "x": 104,
@@ -273,6 +356,20 @@
    "anchor": "left",
    "align": "inside",
    "text": "Stop"
+  },
+  {
+   "id": "side.line.4",
+   "kind": "text",
+   "x": 930,
+   "y": 369,
+   "w": 352,
+   "h": 54,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "baseline": 411,
+   "font": 36,
+   "text": "On school mornings"
   },
   {
    "id": "main.row.stop.text",
@@ -289,17 +386,17 @@
    "text": "sunny"
   },
   {
-   "id": "side.line.4",
+   "id": "side.line.5",
    "kind": "text",
    "x": 930,
-   "y": 436,
-   "w": 326,
-   "h": 67,
+   "y": 431,
+   "w": 380,
+   "h": 84,
    "region": "side",
    "anchor": "right",
-   "align": "start",
-   "baseline": 495,
-   "font": 24
+   "align": "fill",
+   "baseline": 505,
+   "font": 30
   },
   {
    "id": "main.text.5",
@@ -375,6 +472,19 @@
    "align": "inside"
   },
   {
+   "id": "side.line.6",
+   "kind": "text",
+   "x": 930,
+   "y": 525,
+   "w": 369,
+   "h": 98,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "baseline": 616,
+   "font": 24
+  },
+  {
    "id": "main.row.buses.text.1",
    "kind": "text",
    "x": 252,
@@ -440,6 +550,19 @@
    "baseline": 670,
    "font": 30,
    "text": "Bef Sunny Hill Condominium"
+  },
+  {
+   "id": "side.line.7",
+   "kind": "text",
+   "x": 930,
+   "y": 635,
+   "w": 326,
+   "h": 67,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "baseline": 694,
+   "font": 24
   },
   {
    "id": "main.label.walk",

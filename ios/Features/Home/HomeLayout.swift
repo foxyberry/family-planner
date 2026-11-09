@@ -1,12 +1,12 @@
 import CoreGraphics
 import DesignSystem
 
-/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v8 "Home panel lines") through
+/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v17 "Home panel lines") through
 /// "Sizing formulas": the home screen's parts as screen rects, lines and baselines. Kid A's lines are
 /// fixed; Kid B's block moves as one unit 40 below Kid A's last part (`kidBTop(after:)`). The clock
 /// area is left-anchored (disc
 /// centre (448, 528), R 372); the panel stretches from 928 s to W − 64 s with every part's left
-/// on 928 and the way picture's right on 1312.
+/// on 928.
 public struct HomeLayout: Equatable, Sendable {
     public let sizing: Sizing
 
@@ -35,68 +35,69 @@ public struct HomeLayout: Equatable, Sendable {
         CGRect(x: kidNameLeft, y: sizing.y(top), width: panelRight - kidNameLeft, height: 48 * s)
     }
 
-    // Kid A block (badge at 163)
+    // Kid A block, look ① (layout v17): the badge at 163, then one row 24 below the name with the
+    // picture on 928 and the words stacked to its right.
     public let kidATop: CGFloat = 163
-    /// The way picture (80) ends on the panel's right edge.
-    public var way: CGRect { CGRect(x: panelRight - 80 * s, y: sizing.y(227), width: 80 * s, height: 80 * s) }
-    public var timeBaseline: CGFloat { sizing.y(402) }
-    public var statusBaseline: CGFloat { sizing.y(446) }
 
-    /// Where a Next row sits: the picture (104) on 928, the title and "at …" at 1056 (gap 24),
-    /// baselines 48 and 86 below the picture's top (board E3).
+    /// Leave / Bed shape: the way picture (or the moon on a plate) 96 at (928, 241); the label on
+    /// 265 and the time left (72) on 337 at 1040; "On time" on 374.
+    public var kidAPicture: CGRect { CGRect(x: panelLeft, y: sizing.y(241), width: 96 * s, height: 96 * s) }
+    public var kidATextLeft: CGFloat { sizing.left(1040) }
+    public var kidALabelBaseline: CGFloat { sizing.y(265) }
+    public var kidATimeBaseline: CGFloat { sizing.y(337) }
+    public var kidAStatusBaseline: CGFloat { sizing.y(374) }
+
+    /// Where a Next row sits: the picture (104) on 928, then at 1048 (gap 16) "Next" (caption), the
+    /// title and "at …", 21, 62 and 100 below the picture's top.
     public struct RowPlace: Equatable, Sendable {
         public let picture: CGRect
         public let textLeft: CGFloat
+        /// "Next" beside the picture; the small row under the time left has none.
+        public let labelBaseline: CGFloat?
         public let titleBaseline: CGFloat
         public let atBaseline: CGFloat
     }
 
     private func row(top: CGFloat) -> RowPlace {
         RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: 104 * s, height: 104 * s),
-                 textLeft: sizing.left(1056), titleBaseline: sizing.y(top + 48), atBaseline: sizing.y(top + 86))
+                 textLeft: sizing.left(1048), labelBaseline: sizing.y(top + 21),
+                 titleBaseline: sizing.y(top + 62), atBaseline: sizing.y(top + 100))
     }
 
-    /// The smaller row under the time left (A1n, v8): an 80 plate, text at 1024 (gap 16),
-    /// baselines 36 and 68 below its top.
-    private func smallRow(top: CGFloat) -> RowPlace {
-        RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: 80 * s, height: 80 * s),
-                 textLeft: sizing.left(1024), titleBaseline: sizing.y(top + 36), atBaseline: sizing.y(top + 68))
+    /// E3 / E3b: the Next row at 238.
+    public var nextRow: RowPlace { row(top: 238) }
+
+    /// A1n: the 80 row 24 below the time left (Tomorrow, or Next by day) at 367: a 56 picture on an
+    /// 80 plate, text at 1024 (gap 16) on 404 and 435.
+    public var timeLeftRow: RowPlace {
+        RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(367), width: 80 * s, height: 80 * s),
+                 textLeft: sizing.left(1024), labelBaseline: nil, titleBaseline: sizing.y(404),
+                 atBaseline: sizing.y(435))
     }
 
-    /// Kid A's first line ("Leave in", "Bed in", "Next") on 301 on every home board (layout v5).
-    public var firstLineBaseline: CGFloat { sizing.y(301) }
-
-    /// E3 / E3b: "Next" (caption) on 301, then the row at 315.
-    public var nextRow: RowPlace { row(top: 315) }
-
-    /// A1n: "Bed in" on 301 and the time left on 402, then the 80 row at 436 (Tomorrow, or Next by
-    /// day), its lines on 472 and 504.
-    public var timeLeftRow: RowPlace { smallRow(top: 436) }
-
-    /// E1 (one kid, leaving): "Next" on 584 (Kid B's name line), the row at 598.
-    public var leaveNextCaptionBaseline: CGFloat { sizing.y(584) }
-    public var leaveNextRow: RowPlace { row(top: 598) }
+    /// E1 (one kid, leaving): the second block's Next row at 435, under "On time".
+    public var leaveNextRow: RowPlace { row(top: 435) }
 
     /// The last part of Kid A's block, whose bottom Kid B's block hangs from (board units).
     public enum KidAEnd: Equatable, Sendable {
         /// Only the name (nothing next today): the name box ends at 214.
         case name
-        /// E3 / E3b: the Next row ends at 419.
+        /// E3 / E3b: the Next row's "at …" ends at 348.
         case nextRow
-        /// A1m: the time-left box ends at 435.
+        /// A1m: the time-left box ends at 360.
         case timeLeft
-        /// A1: "On time" ends at 468.
+        /// A1: "On time" ends at 396.
         case status
-        /// A1n: the 80 row under the time left ends at 516.
+        /// A1n: the 80 row under the time left ends at 446.
         case timeLeftRow
 
         var bottom: CGFloat {
             switch self {
             case .name: 214
-            case .nextRow: 419
-            case .timeLeft: 435
-            case .status: 468
-            case .timeLeftRow: 516
+            case .nextRow: 348
+            case .timeLeft: 360
+            case .status: 396
+            case .timeLeftRow: 446
             }
         }
     }

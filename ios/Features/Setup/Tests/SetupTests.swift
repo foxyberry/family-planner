@@ -1,7 +1,9 @@
+import AppSettings
 import BusClient
 import ComposableArchitecture
 import Domain
 import Grownup
+import ParentAuthClient
 import SchoolDirectory
 import ScheduleStore
 import Setup
@@ -65,6 +67,37 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTabTapped(store.state.kids[1].id))
         await store.send(.goesToTapped(.home))
         await store.send(.schoolTabTapped(first))
+    }
+
+    /// S3 (layout v17): one screen with a tab per going kid; Next waits for every tab.
+    func testGettingThereHasATabPerKid() async {
+        let store = store()
+        await family(store)
+        await store.send(.nextTapped)
+        await store.send(.schoolPicked(school))
+        let kidB = store.state.kids[1].id
+        await store.send(.schoolTabTapped(kidB))
+        await store.send(.goesToTapped(.school))
+        await store.send(.schoolPicked(school))
+        await store.send(.nextTapped)
+        XCTAssertEqual(store.state.step, .gettingThere)
+        XCTAssertEqual(store.state.stepText, "Step 3 of 4")
+        XCTAssertEqual(store.state.unfinishedGoingTabs, [first, kidB])
+        await store.send(.wayPicked(.car))
+        XCTAssertEqual(store.state.unfinishedGoingTabs, [kidB], "the car route is finished")
+        XCTAssertFalse(store.state.canGoNext)
+        await store.send(.stopSearch(.textChanged("exam")))
+        await store.send(.kidTabTapped(kidB))
+        await store.receive(\.goingTabTapped)
+        await store.receive(\.stopSearch.listClosed)
+        XCTAssertEqual(store.state.goingKid?.id, kidB)
+        XCTAssertEqual(store.state.selectedKidTab, kidB)
+        XCTAssertEqual(store.state.kids[id: first]?.going.search.matches, [], "Kid A's search was stopped")
+        XCTAssertEqual(store.state.kids[id: kidB]?.going.search.text, "", "nothing leaked into Kid B")
+        await store.send(.stopSearch(.textChanged("00000")))
+        XCTAssertTrue(store.state.canGoNext, "a bus route needs a stop; bus numbers are optional")
+        await store.send(.nextTapped)
+        XCTAssertEqual(store.state.step, .almostDone)
     }
 
     func testNextNeedsEveryKidsNameAgeAndFace() async {
@@ -187,8 +220,12 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTabTapped(first))
         await store.send(.schoolPicked(school))
         await store.send(.nextTapped)
-        XCTAssertEqual(store.state.step, .gettingThere(0))
+        XCTAssertEqual(store.state.step, .gettingThere)
         XCTAssertEqual(store.state.goingKid?.id, first, "only Kid A goes to school")
+        XCTAssertFalse(store.state.canGoNext, "by bus, Next waits for a stop")
+        XCTAssertEqual(store.state.unfinishedGoingTabs, [first])
+        await store.send(.wayPicked(.walk))
+        XCTAssertTrue(store.state.unfinishedGoingTabs.isEmpty)
         await store.send(.nextTapped)
         XCTAssertEqual(store.state.step, .almostDone)
         await store.send(.backTapped)
@@ -227,7 +264,7 @@ final class SetupTests: XCTestCase {
         await store.send(.timeChanged(.end, 720))
         XCTAssertTrue(store.state.canGoNext)
         await store.send(.nextTapped)
-        XCTAssertEqual(store.state.step, .gettingThere(0))
+        XCTAssertEqual(store.state.step, .gettingThere)
         await store.send(.wayPicked(.walk))
         await store.send(.nextTapped)
         await store.send(.nextTapped)
@@ -265,6 +302,48 @@ final class SetupTests: XCTestCase {
         await asking.send(.replaceConfirmed)
         await asking.receive(\.delegate.finished)
         XCTAssertEqual(saved.value.count, 1)
+    }
+
+    /// S4 (layout v17): the lock goes off at once; on asks Face ID and stays off without it.
+    /// Start saves the switches with the family.
+    func testSwitchesAndTheLockCheck() async {
+        let outcome = LockIsolated(ParentAuthOutcome.notAvailable)
+        let savedSettings = LockIsolated<[AppSettings]>([])
+        var state = SetupFeature.State(firstKid: first, calendar: calendar)
+        state.step = .almostDone
+        let store = TestStore(initialState: state) { SetupFeature() } withDependencies: { [calendar, now] in
+            $0.calendar = calendar
+            $0.date.now = now
+            $0.uuid = .incrementing
+            $0.parentAuth.authenticate = { _ in outcome.value }
+            $0.appSettings.save = { settings in savedSettings.withValue { $0.append(settings) } }
+            $0.scheduleStore.replaceFamily = { _ in }
+        }
+        store.exhaustivity = .off
+        XCTAssertEqual(store.state.settingRows.map(\.isOn), [true, true, true], "every switch starts on")
+        await store.send(.settingTapped(.grownupLock))
+        XCTAssertFalse(store.state.settings.grownupLock)
+        XCTAssertEqual(store.state.settingRows[0].caption, "Off: anyone who holds the clock for 2 s can change the plan.")
+        XCTAssertTrue(store.state.settingRows[0].isWarning)
+        await store.send(.settingTapped(.grownupLock))
+        await store.receive(\.lockChecked)
+        XCTAssertFalse(store.state.settings.grownupLock, "no Face ID: the lock stays off")
+        XCTAssertEqual(store.state.settingRows[0].caption, "Set up Face ID in iPad Settings first.")
+        outcome.setValue(.cancelled)
+        await store.send(.settingTapped(.grownupLock))
+        XCTAssertTrue(store.state.isCheckingLock)
+        await store.send(.settingTapped(.grownupLock))
+        XCTAssertTrue(store.state.isCheckingLock, "a second tap while checking does nothing")
+        await store.receive(\.lockChecked)
+        XCTAssertFalse(store.state.settings.grownupLock, "cancelled: still off")
+        outcome.setValue(.success)
+        await store.send(.settingTapped(.grownupLock))
+        await store.receive(\.lockChecked)
+        XCTAssertTrue(store.state.settings.grownupLock)
+        await store.send(.settingTapped(.medals))
+        await store.send(.nextTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(savedSettings.value, [AppSettings(grownupLock: true, liveBusTimes: true, medals: false)])
     }
 
     func testStartSavesTheWholeFamilyOnce() async {

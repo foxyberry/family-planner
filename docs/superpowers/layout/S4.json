@@ -1,5 +1,5 @@
 {
- "version": "14",
+ "version": "17",
  "board": "S4",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -67,6 +67,18 @@
   }
  },
  "elements": [
+  {
+   "id": "main.card",
+   "kind": "card",
+   "part": "PaperCard",
+   "x": 64,
+   "y": 176,
+   "w": 818,
+   "h": 792,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
   {
    "id": "header.back",
    "kind": "back",
@@ -205,10 +217,10 @@
   {
    "id": "main.picture.2",
    "kind": "picture",
-   "x": 743,
-   "y": 252,
-   "w": 48,
-   "h": 48,
+   "x": 802,
+   "y": 262,
+   "w": 28,
+   "h": 28,
    "region": "main",
    "anchor": "left",
    "align": "inside"
@@ -216,29 +228,16 @@
   {
    "id": "main.text.2",
    "kind": "text",
-   "x": 799,
-   "y": 253,
-   "w": 43,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 288,
-   "font": 30,
-   "text": "On"
-  },
-  {
-   "id": "main.text.3",
-   "kind": "text",
    "x": 184,
    "y": 276,
-   "w": 488,
+   "w": 385,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 304,
-   "font": 24
+   "font": 24,
+   "text": "Face ID before grown-up screens"
   },
   {
    "id": "side.line.3",
@@ -279,30 +278,18 @@
    "font": 24
   },
   {
-   "id": "main.text.4",
+   "id": "main.text.3",
    "kind": "text",
    "x": 184,
    "y": 378,
-   "w": 197,
+   "w": 210,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 413,
    "font": 30,
-   "text": "Notifications"
-  },
-  {
-   "id": "main.button.1",
-   "kind": "button",
-   "x": 682,
-   "y": 380,
-   "w": 160,
-   "h": 72,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "text": "Allow"
+   "text": "Live bus times"
   },
   {
    "id": "main.picture.3",
@@ -330,6 +317,17 @@
    "text": "Bus from Our stop"
   },
   {
+   "id": "main.picture.4",
+   "kind": "picture",
+   "x": 802,
+   "y": 402,
+   "w": 28,
+   "h": 28,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
    "id": "side.picture.6",
    "kind": "picture",
    "x": 930,
@@ -341,18 +339,17 @@
    "align": "start"
   },
   {
-   "id": "main.text.5",
+   "id": "main.text.4",
    "kind": "text",
    "x": 184,
    "y": 416,
-   "w": 357,
+   "w": 433,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 444,
-   "font": 24,
-   "text": "A nudge when it’s time to leave"
+   "font": 24
   },
   {
    "id": "side.line.6",
@@ -381,33 +378,21 @@
    "font": 24
   },
   {
-   "id": "main.text.6",
+   "id": "main.text.5",
    "kind": "text",
    "x": 184,
    "y": 518,
-   "w": 176,
+   "w": 106,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 553,
    "font": 30,
-   "text": "Microphone"
+   "text": "Medals"
   },
   {
-   "id": "main.button.2",
-   "kind": "button",
-   "x": 682,
-   "y": 520,
-   "w": 160,
-   "h": 72,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "text": "Allow"
-  },
-  {
-   "id": "main.picture.4",
+   "id": "main.picture.5",
    "kind": "picture",
    "x": 104,
    "y": 528,
@@ -418,11 +403,22 @@
    "align": "inside"
   },
   {
-   "id": "main.text.7",
+   "id": "main.picture.6",
+   "kind": "picture",
+   "x": 802,
+   "y": 542,
+   "w": 28,
+   "h": 28,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.text.6",
    "kind": "text",
    "x": 184,
    "y": 556,
-   "w": 411,
+   "w": 492,
    "h": 36,
    "region": "main",
    "anchor": "left",
@@ -431,103 +427,16 @@
    "font": 24
   },
   {
-   "id": "main.text.8",
+   "id": "main.text.7",
    "kind": "text",
-   "x": 184,
-   "y": 658,
-   "w": 299,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 693,
-   "font": 30,
-   "text": "Camera and photos"
-  },
-  {
-   "id": "main.button.3",
-   "kind": "button",
-   "x": 682,
-   "y": 660,
-   "w": 160,
-   "h": 72,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "text": "Allow"
-  },
-  {
-   "id": "main.picture.5",
-   "kind": "picture",
    "x": 104,
-   "y": 671,
-   "w": 56,
-   "h": 50,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
-   "id": "main.text.9",
-   "kind": "text",
-   "x": 184,
-   "y": 696,
-   "w": 415,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 724,
-   "font": 24
-  },
-  {
-   "id": "main.text.10",
-   "kind": "text",
-   "x": 184,
-   "y": 782,
-   "w": 182,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 817,
-   "font": 30,
-   "text": "Screen Time"
-  },
-  {
-   "id": "main.button.4",
-   "kind": "button",
-   "x": 662,
-   "y": 800,
-   "w": 180,
-   "h": 72,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "text": "Settings ↗"
-  },
-  {
-   "id": "main.picture.6",
-   "kind": "picture",
-   "x": 104,
-   "y": 808,
-   "w": 56,
-   "h": 56,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
-   "id": "main.text.11",
-   "kind": "text",
-   "x": 184,
-   "y": 821,
-   "w": 378,
+   "y": 653,
+   "w": 704,
    "h": 67,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 880,
+   "baseline": 712,
    "font": 24
   },
   {
@@ -543,17 +452,43 @@
    "text": "Start"
   },
   {
-   "id": "main.text.12",
-   "kind": "text",
-   "x": 104,
-   "y": 909,
-   "w": 627,
-   "h": 36,
+   "id": "main.switch.1",
+   "kind": "switch",
+   "part": "CrayonSwitch",
+   "x": 746,
+   "y": 250,
+   "w": 96,
+   "h": 52,
    "region": "main",
    "anchor": "left",
-   "align": "inside",
-   "baseline": 937,
-   "font": 24
+   "align": "end",
+   "on": true
+  },
+  {
+   "id": "main.switch.2",
+   "kind": "switch",
+   "part": "CrayonSwitch",
+   "x": 746,
+   "y": 390,
+   "w": 96,
+   "h": 52,
+   "region": "main",
+   "anchor": "left",
+   "align": "end",
+   "on": true
+  },
+  {
+   "id": "main.switch.3",
+   "kind": "switch",
+   "part": "CrayonSwitch",
+   "x": 746,
+   "y": 530,
+   "w": 96,
+   "h": 52,
+   "region": "main",
+   "anchor": "left",
+   "align": "end",
+   "on": true
   }
  ]
 }

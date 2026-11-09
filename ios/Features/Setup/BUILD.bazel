@@ -5,7 +5,9 @@ fp_swift_library(
     name = "Setup",
     visibility = ["//ios:__subpackages__"],
     deps = [
+        "//ios/Clients/AppSettings",
         "//ios/Clients/BusClient",
+        "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/SchoolDirectory",
         "//ios/CrayonKit",

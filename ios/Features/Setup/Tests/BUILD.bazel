@@ -6,7 +6,9 @@ fp_swift_library(
     name = "SetupTestsLib",
     testonly = True,
     deps = [
+        "//ios/Clients/AppSettings",
         "//ios/Clients/BusClient",
+        "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/SchoolDirectory",
         "//ios/DesignSystem",

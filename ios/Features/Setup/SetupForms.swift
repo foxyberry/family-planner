@@ -144,6 +144,10 @@ public struct GoingForm: Equatable {
 
     public init() {}
 
+    /// S3 (layout v17): a route is finished once a bus kid has a stop; walk, car and taxi need
+    /// nothing more. Bus numbers stay optional, since a build without live times cannot list them.
+    public var isFinished: Bool { way != .bus || search.stop.count == 5 }
+
     /// By bus the kid leaves the walk and the ride before the start, rounded up to 5 minutes.
     public var trip: Trip {
         guard way == .bus else { return Trip(way: way, leaveBefore: leaveBefore) }

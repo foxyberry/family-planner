@@ -6,6 +6,7 @@ fp_swift_library(
     name = "MissionsTestsLib",
     testonly = True,
     deps = [
+        "//ios/Clients/AppSettings",
         "//ios/Clients/HolidayProvider",
         "//ios/Clients/ScheduleStore",
         "//ios/DesignSystem",
