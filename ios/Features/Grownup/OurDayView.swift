@@ -10,10 +10,6 @@ import SwiftUI
 public struct OurDayView: View {
     @Bindable var store: StoreOf<OurDayFeature>
 
-    /// Pictures offered for a new slice over free time.
-    static let pictures: [KitSlot] = [.actPlay, .blocks, .snack, .actStory, .homework, .actMusic, .actPiano, .tv,
-                                      .playground, .actArt]
-
     public init(store: StoreOf<OurDayFeature>) {
         self.store = store
     }
@@ -114,9 +110,13 @@ public struct OurDayView: View {
             VStack(alignment: .leading, spacing: Spacing.s) {
                 CrayonField(L10n.tr("day.new.name"), text: Binding(get: { slice.name },
                                                                    set: { store.newSlice?.name = $0 }))
-                IconPicker(selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
-                                              set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
-                           slots: Self.pictures)
+                // Every picture, three per row in the side card; the grid scrolls inside its 3 rows.
+                ScrollView {
+                    IconPicker(selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
+                                                  set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
+                               slots: OurDayFeature.pictures, columns: 3)
+                }
+                .frame(height: 3 * 88 + 2 * Spacing.s)
                 InkButton(L10n.tr("day.new.add")) { store.send(.newSliceAddTapped) }
                     .opacity(store.canAddNewSlice ? 1 : 0.4)
                     .disabled(!store.canAddNewSlice)

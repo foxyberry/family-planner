@@ -10,10 +10,14 @@ public struct IconPicker: View {
     @Binding private var selection: KitSlot?
     private let slots: [KitSlot]
     private let onRequestDrawing: (() -> Void)?
+    private let columns: Int
 
-    public init(selection: Binding<KitSlot?>, slots: [KitSlot], onRequestDrawing: (() -> Void)? = nil) {
+    /// `columns`: 6 under a form's control line; 3 in a 382 side column (C6's new slice).
+    public init(selection: Binding<KitSlot?>, slots: [KitSlot], columns: Int = IconPicker.columns,
+                onRequestDrawing: (() -> Void)? = nil) {
         _selection = selection
         self.slots = slots
+        self.columns = columns
         self.onRequestDrawing = onRequestDrawing
     }
 
@@ -22,7 +26,7 @@ public struct IconPicker: View {
 
     public var body: some View {
         // Board C3: six 88 cells, 16 apart, from the control line (232 … 840); never centred.
-        LazyVGrid(columns: Array(repeating: GridItem(.fixed(88), spacing: Spacing.s), count: Self.columns),
+        LazyVGrid(columns: Array(repeating: GridItem(.fixed(88), spacing: Spacing.s), count: columns),
                   alignment: .leading, spacing: Spacing.s) {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
                 let isOn = slot == selection

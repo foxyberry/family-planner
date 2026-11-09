@@ -75,20 +75,44 @@ public struct TemplateEdit: Equatable, Sendable {
         return moveKnob(index, to: minute)
     }
 
-    /// "Make this free time": blank paper over the same span. A locked slice stays.
-    public mutating func makeFree(_ block: Int) {
-        guard !blocks[block].isLocked, blocks[block].kind != .free else { return }
+    /// "Make this free time": blank paper over the same span, joined with free time right before or
+    /// after it, so the day can lose slices as well as gain them. A locked slice stays. Returns the
+    /// free slice's index.
+    @discardableResult
+    public mutating func makeFree(_ block: Int) -> Int {
+        guard !blocks[block].isLocked, blocks[block].kind != .free else { return block }
         beginChange()
-        blocks[block] = RoutineBlock(title: L10n.tr("home.hub.free"), iconName: "", kind: .free,
-                                     start: blocks[block].start, end: blocks[block].end)
+        var index = block
+        blocks[index] = Self.free(from: blocks[index].start, to: blocks[index].end)
+        if index + 1 < blocks.count, blocks[index + 1].kind == .free, blocks[index + 1].start == blocks[index].end {
+            blocks[index].end = blocks[index + 1].end
+            blocks.remove(at: index + 1)
+        }
+        if index > 0, blocks[index - 1].kind == .free, blocks[index - 1].end == blocks[index].start {
+            blocks[index - 1].end = blocks[index].end
+            blocks.remove(at: index)
+            index -= 1
+        }
+        return index
     }
 
-    /// Fills a free slice with a new one over exactly its span.
-    public mutating func fill(_ block: Int, title: String, iconName: String, kind: SlotKind) {
+    /// A new slice at the start of a free slice, `length` minutes long (one hour by default); the
+    /// rest stays free when it is at least 15 minutes, so more slices can go in after it (user,
+    /// 2026-11-09: the number of slices is not fixed). Shorter free time is filled whole.
+    public mutating func fill(_ block: Int, title: String, iconName: String, kind: SlotKind, length: Int = 60) {
         guard blocks[block].kind == .free else { return }
         beginChange()
-        blocks[block] = RoutineBlock(title: title, iconName: iconName, kind: kind,
-                                     start: blocks[block].start, end: blocks[block].end)
+        let free = blocks[block]
+        var end = min(free.end, free.start + max(length, Self.shortest))
+        if free.end - end < Self.shortest { end = free.end }
+        blocks[block] = RoutineBlock(title: title, iconName: iconName, kind: kind, start: free.start, end: end)
+        if end < free.end {
+            blocks.insert(Self.free(from: end, to: free.end), at: block + 1)
+        }
+    }
+
+    private static func free(from start: Int, to end: Int) -> RoutineBlock {
+        RoutineBlock(title: L10n.tr("home.hub.free"), iconName: "", kind: .free, start: start, end: end)
     }
 
     public mutating func undo() {
