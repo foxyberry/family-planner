@@ -21,6 +21,9 @@ public struct AppFeature {
         case missionEditor(MissionEditorFeature)
         case busSettings(BusSettingsFeature)
         case gallery(GalleryFeature)
+        /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
+        /// grown-up rules (idle lock, app-switcher cover) skip it.
+        case missions(MissionsFeature)
     }
 
     @ObservableState
@@ -29,8 +32,6 @@ public struct AppFeature {
         public var scenePhase: ScenePhase = .inactive
         public var path = StackState<Path.State>()
         public var home = HomeFeature.State()
-        /// A2-MVP over the home screen. A kids' screen, so it is not on `path` (grown-up screens).
-        @Presents public var missions: MissionsFeature.State?
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
         public var lock: LockOverlay.State?
         /// Real seconds since a grown-up last touched a grown-up screen (`nil` on the home screen);
@@ -50,7 +51,17 @@ public struct AppFeature {
 
         /// Grown-up screens are hidden whenever the app is not active, so the app-switcher snapshot
         /// and brief interruptions (Control Center) never show them to a child.
-        public var coversGrownupScreens: Bool { scenePhase != .active && (coverUntilActive || !path.isEmpty) }
+        public var coversGrownupScreens: Bool { scenePhase != .active && (coverUntilActive || hasGrownupScreens) }
+
+        /// The morning screen is on the stack (pushed from home or by its link).
+        public var isShowingMissions: Bool {
+            if case .missions? = path.first { true } else { false }
+        }
+
+        /// A grown-up screen is open: the stack holds something other than the morning screen.
+        public var hasGrownupScreens: Bool {
+            path.contains { if case .missions = $0 { false } else { true } }
+        }
     }
 
     public enum AppDelegateAction: Equatable {
@@ -68,7 +79,6 @@ public struct AppFeature {
         case grownupTouched
         case path(StackActionOf<Path>)
         case home(HomeFeature.Action)
-        case missions(PresentationAction<MissionsFeature.Action>)
         /// A screen deep link (`familyplanner://missions`).
         case linkOpened(ScreenLink)
     }
@@ -90,7 +100,7 @@ public struct AppFeature {
         // Working in a grown-up screen (typing, picking, saving) keeps it open: the keyboard is a separate
         // window, so the touch gesture never sees typing.
         Reduce { state, action in
-            if case .path(.element) = action, !state.path.isEmpty {
+            if case .path(.element) = action, state.hasGrownupScreens {
                 state.grownupIdleSeconds = 0
                 state.relockCaption = nil
             }
@@ -106,7 +116,7 @@ public struct AppFeature {
                 state.scenePhase = phase
                 if phase == .active {
                     state.coverUntilActive = false
-                } else if !state.path.isEmpty {
+                } else if state.hasGrownupScreens {
                     state.coverUntilActive = true
                 }
                 if phase == .background { relock(&state) }
@@ -121,7 +131,7 @@ public struct AppFeature {
 
             case let .tick(now):
                 state.now = now
-                if !state.path.isEmpty, let seconds = state.grownupIdleSeconds {
+                if state.hasGrownupScreens, let seconds = state.grownupIdleSeconds {
                     let idle = seconds + 1
                     state.grownupIdleSeconds = idle
                     if idle >= Self.idleLimit {
@@ -136,15 +146,15 @@ public struct AppFeature {
 
             case let .linkOpened(link):
                 // A link leaves open grown-up screens locked again; a grown-up board asks again.
-                if !state.path.isEmpty { relock(&state) }
+                if state.hasGrownupScreens { relock(&state) }
                 switch link {
                 case .home:
-                    state.missions = nil
+                    state.path.removeAll()
                 case .missions:
-                    state.missions = MissionsFeature.State()
+                    if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State())) }
                 case let .grownup(board):
                     // The usual unlock, as after the hold; the board opens once the hub has loaded.
-                    state.missions = nil
+                    state.path.removeAll()
                     state.pendingBoard = board
                     state.lock = .scanning
                     return authenticate()
@@ -168,11 +178,11 @@ public struct AppFeature {
                 }
 
             case .home(.missionsTapped):
-                state.missions = MissionsFeature.State()
+                if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State())) }
                 return .none
 
-            case .missions(.presented(.delegate(.finished))):
-                state.missions = nil
+            case let .path(.element(id: id, action: .missions(.delegate(.finished)))):
+                state.path.pop(from: id)
                 return .none
 
             case .home(.clockHoldCompleted):
@@ -289,12 +299,11 @@ public struct AppFeature {
                 state.path.append(.gallery(GalleryFeature.State()))
                 return .none
 
-            case .path, .home, .missions:
+            case .path, .home:
                 return .none
             }
         }
         .forEach(\.path, action: \.path)
-        .ifLet(\.$missions, action: \.missions) { MissionsFeature() }
     }
 
     private func authenticate() -> Effect<Action> {
@@ -311,7 +320,8 @@ public struct AppFeature {
 
     /// Back to the home screen; the next grown-up screen needs Face ID again. Unsaved forms are dropped.
     private func relock(_ state: inout State) {
-        state.path.removeAll()
+        // Grown-up screens close; a morning screen on its own stays (it is a kid screen).
+        if state.hasGrownupScreens { state.path.removeAll() }
         state.grownupIdleSeconds = nil
         state.relockCaption = nil
         state.lock = nil
