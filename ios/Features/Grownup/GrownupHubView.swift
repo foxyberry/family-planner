@@ -81,9 +81,10 @@ public struct GrownupHubView: View {
                     .buttonStyle(.plain)
                 case let .schoolDays(key, days):
                     ListRow(leading: key) {
+                        // Boards C1/E6: read-only chips 56 on a 64 pitch.
                         HStack(spacing: Spacing.xs) {
                             ForEach(Weekday.allCases.sorted(), id: \.self) { day in
-                                DayChip(DayText.initial(day), isOn: .constant(days.contains(day)))
+                                DayChip(DayText.initial(day), isOn: .constant(days.contains(day)), size: 56)
                                     .allowsHitTesting(false)
                             }
                         }

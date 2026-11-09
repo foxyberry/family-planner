@@ -14,7 +14,8 @@ public struct ListRow<Content: View>: View {
 
     public var body: some View {
         HStack(spacing: formLabelWidth == nil ? Spacing.m : 0) {
-            Text(leading).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            // Boards C1–C4: row labels are caption bold in soft text.
+            Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
                 .frame(width: formLabelWidth ?? 120, alignment: .leading)
             content.crayonType(.body).frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -55,7 +56,7 @@ public struct FormLabel: View {
     }
 
     public var body: some View {
-        FormLabelColumn { Text(text).crayonType(.body).foregroundStyle(CrayonColor.softText) }
+        FormLabelColumn { Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText) }
     }
 }
 

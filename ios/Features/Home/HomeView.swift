@@ -135,7 +135,7 @@ public struct HomeView: View {
                 .place(layout.kidAPicture)
                 timeLeft(label: heading, minutes: store.minutesToLeave ?? 0, layout: layout)
                 if let status = store.status {
-                    StatusDot(status.text, tone: status.tone)
+                    StatusDot(status.text, tone: status.tone, compact: true)
                         .place(left: layout.kidATextLeft, baseline: layout.kidAStatusBaseline)
                 }
             }

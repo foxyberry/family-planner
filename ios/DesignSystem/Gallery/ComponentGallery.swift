@@ -168,6 +168,10 @@ public struct ComponentGallery: View {
                         StatusDot("Leave now!", tone: .hurry)
                         StatusDot("Ask a grown-up", tone: .quiet)
                     }
+                    HStack(spacing: Spacing.l) {
+                        StatusDot("On time", tone: .onTime, compact: true)
+                        NumberPlate("1", isMine: true, small: true)
+                    }
                 }
                 section("A2 · Way strip") {
                     WayStrip(trip: .init(destination: .wolfie, destinationLabel: "School", homeLabel: "Our stop",

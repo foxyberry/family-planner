@@ -46,10 +46,11 @@ public struct CrayonTabs<ID: Hashable>: View {
                         }
                         // A tab label never wraps ("Mon–Fri" split over two lines on C6).
                         if !faceOnly || item.2 == nil {
-                            Text(item.1).crayonType(.body).lineLimit(1).fixedSize()
+                            // Boards 0b/C1: the chosen label bold ink, the others regular soft text.
+                            Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
                         }
                     }
-                    .foregroundStyle(CrayonColor.ink)
+                    .foregroundStyle(isOn ? CrayonColor.ink : CrayonColor.softText)
                     .padding(.horizontal, itemSize == nil ? inset : 0)
                     .frame(width: itemSize?.width)
                     .frame(minHeight: itemSize?.height ?? 72)

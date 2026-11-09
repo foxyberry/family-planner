@@ -512,7 +512,9 @@ final class ComponentSnapshotTests: XCTestCase {
             StatusDot("On time", tone: .onTime)
             StatusDot("Leave now!", tone: .hurry)
             StatusDot("Ask a grown-up", tone: .quiet)
-        }, width: 900)
+            StatusDot("On time", tone: .onTime, compact: true)
+            NumberPlate("1", isMine: true, small: true)
+        }, width: 1100)
     }
 
     func testClockKnobsAndPlus() {

@@ -125,15 +125,16 @@ public struct PieClock: View {
         return CGPoint(x: r + radius * CGFloat(sin(a)), y: r - radius * CGFloat(cos(a)))
     }
 
+    /// The 24 hour ticks just outside the ring (378–392). A Path, not a Canvas: a Canvas clips to its
+    /// 2r frame and cut the 12 and 6 ticks off (drift sweep 2026-11-09).
     private var ticks: some View {
-        Canvas { context, _ in
-            var path = Path()
+        Path { path in
             for hour in 0..<24 {
                 path.move(to: point(radius: 378 * k, degrees: Double(hour) * 15))
                 path.addLine(to: point(radius: 392 * k, degrees: Double(hour) * 15))
             }
-            context.stroke(path, with: .color(look.tick), style: StrokeStyle(lineWidth: 3, lineCap: .round))
         }
+        .stroke(look.tick, style: StrokeStyle(lineWidth: 3, lineCap: .round))
         .frame(width: 2 * r, height: 2 * r)
         .allowsHitTesting(false)
     }
@@ -147,10 +148,12 @@ public struct PieClock: View {
                 .position(point(radius: 412 * k, degrees: Double(hour) * 15))
         }
         .overlay {
+            // Boards A1/E3: the moon (40) beside the top 12, the sun (44) beside the bottom 12 (layout
+            // clock.slotPicture.1 and .9).
             KitIcon(.actSleep, size: 40 * k).blink(look == .night ? motion.winks : nil, reduceMotion: reduceMotion)
-                .position(x: r, y: r - (412 + 44) * k)
+                .position(x: r + 50 * k, y: r - 422 * k)
             KitIcon(.sun, size: 44 * k).blink(look == .day ? motion.winks : nil, reduceMotion: reduceMotion)
-                .position(x: r, y: r + (412 + 46) * k)
+                .position(x: r + 52 * k, y: r + 420 * k)
         }
         .allowsHitTesting(false)
     }
