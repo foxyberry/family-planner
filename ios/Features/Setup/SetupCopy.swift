@@ -115,7 +115,7 @@ extension SetupFeature.State {
     /// The side summary's school and way, from the first kid with a school.
     public var summarySchool: (title: String, hours: String)? {
         guard let school = schoolKids.first?.school, let start = school.start, let end = school.end else { return nil }
-        return (school.name ?? L10n.tr("s4.school"), TimeText.range(start, end))
+        return (L10n.tr("s4.school"), TimeText.range(start, end))
     }
 
     public var summaryWay: (picture: String, title: String, detail: String)? {

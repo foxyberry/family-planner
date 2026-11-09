@@ -279,10 +279,7 @@ private struct SchoolStep: View {
     }
 
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            FormLabel(label).frame(minHeight: 80)
-            control()
-        }
+        SetupRow(label: label, height: 80, control: control)
     }
 
     private func time(_ row: SetupFeature.TimeRow) -> some View {
@@ -359,7 +356,7 @@ private struct SchoolStep: View {
             }
         case let .ask(answer):
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(L10n.tr("s2.terms.ask")).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                Text(L10n.tr("s2.terms.ask")).crayonType(.caption).foregroundStyle(CrayonColor.ink)
                 CrayonTabs(selection: Binding(get: { answer }, set: { if let yes = $0 { store.send(.moeAnswered(yes)) } }),
                            items: [(Optional(true), L10n.tr("s2.terms.yes"), nil),
                                    (Optional(false), L10n.tr("s2.terms.not_sure"), nil)])
@@ -373,7 +370,7 @@ private struct MedalSide: View {
 
     var body: some View {
         let captions = store.state.medalCaptions
-        VStack(alignment: .leading, spacing: Spacing.m) {
+        VStack(alignment: .leading, spacing: Spacing.s) {
             Text(L10n.tr("s2.medals.title")).crayonType(.head)
             medal(.medalGold, L10n.tr("s2.medal.gold"), captions.gold)
             medal(.medalSilver, L10n.tr("s2.medal.silver"), captions.silver)
@@ -386,7 +383,7 @@ private struct MedalSide: View {
     private func medal(_ slot: KitSlot, _ name: String, _ caption: String) -> some View {
         HStack(alignment: .top, spacing: Spacing.s) {
             KitIcon(slot, size: 64)
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(name).crayonType(.body, bold: true)
                 Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -455,10 +452,7 @@ private struct GoingStep: View {
     }
 
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            FormLabel(label).frame(minHeight: 72)
-            control()
-        }
+        SetupRow(label: label, height: 72, control: control)
     }
 
     private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
@@ -544,6 +538,29 @@ private struct SummarySide: View {
                 Text(title).crayonType(.body).lineLimit(2)
                 Text(detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
+        }
+    }
+}
+
+/// A setup form row (C2's look): the label in caption type on one line in the 104–232 column,
+/// centred on the control's first line (`height`: an 80 field or a 72 control).
+private struct SetupRow<Control: View>: View {
+    let label: String
+    let height: CGFloat
+    let control: Control
+    @Environment(\.formLabelWidth) private var labelWidth
+
+    init(label: String, height: CGFloat, @ViewBuilder control: () -> Control) {
+        self.label = label
+        self.height = height
+        self.control = control()
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            Text(label).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
+                .frame(width: labelWidth ?? 128, height: height, alignment: .leading)
+            control.frame(minHeight: height, alignment: .leading)
         }
     }
 }
