@@ -38,12 +38,10 @@ struct DebugMenu: View {
                     } else {
                         Text("Skip Face ID works on a simulator only.").foregroundStyle(.secondary)
                     }
-                    Toggle("Fake buses", isOn: Binding(get: { model.settings.fakesBuses ?? false },
-                                                       set: { model.settings.fakesBuses = $0 }))
                 } header: {
                     Text("Flags")
                 } footer: {
-                    Text("Skip Face ID: holding the clock opens grown-up screens without the check. Fake buses: the kid's buses come at 4, 15 and 27 minutes, so the live morning works at any time-machine time.")
+                    Text("Skip Face ID: holding the clock opens grown-up screens without the check.")
                 }
                 Section {
                     Button("Load sample family", role: .destructive) { isConfirmingSample = true }

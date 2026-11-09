@@ -32,6 +32,18 @@ final class TimeTravelTests: XCTestCase {
 }
 
 final class LaunchOptionsTests: XCTestCase {
+    /// Settings saved while the "Fake buses" switch existed still load; the old switch is ignored.
+    func testSettingsSavedWithTheOldFakeBusesSwitchLoad() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "fp.debug.tests.fakebuses"))
+        var settings = DebugSettings()
+        settings.showsLayoutGrid = true
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)) as? [String: Any])
+        json["fakesBuses"] = true
+        defaults.set(try JSONSerialization.data(withJSONObject: json), forKey: DebugSettings.key)
+        XCTAssertTrue(DebugSettings.load(from: defaults).showsLayoutGrid)
+        defaults.removePersistentDomain(forName: "fp.debug.tests.fakebuses")
+    }
+
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Singapore")!
@@ -309,24 +321,5 @@ final class DebugMenuGateTests: XCTestCase {
         model.settings.skipsFaceID = true
         await model.menuTapped()
         XCTAssertFalse(model.isMenuShown, "Skip Face ID must not open its own switch")
-    }
-}
-
-final class FakeBusesTests: XCTestCase {
-    func testTheKidsBusesComeSoonThenCatchable() {
-        let arrivals = FakeBuses.arrivals(services: ["1", "2"])
-        XCTAssertEqual(arrivals.map(\.minutes), [4, 7, 15, 18, 27, 30])
-        XCTAssertEqual(Set(arrivals.map(\.service)), ["1", "2"])
-        XCTAssertEqual(FakeBuses.arrivals(services: []).map(\.service), ["1", "1", "1"], "no plan: bus 1")
-    }
-
-    func testLaunchFlagsTurnFakeBusesOnAndOff() {
-        var settings = DebugSettings()
-        settings.apply(LaunchOptions(arguments: ["-fpFakeBuses"], calendar: Calendar(identifier: .gregorian)), realNow: Date())
-        XCTAssertEqual(settings.fakesBuses, true)
-        settings.apply(LaunchOptions(arguments: ["-fpNoFakeBuses"], calendar: Calendar(identifier: .gregorian)), realNow: Date())
-        XCTAssertEqual(settings.fakesBuses, false)
-        settings.apply(LaunchOptions(arguments: [], calendar: Calendar(identifier: .gregorian)), realNow: Date())
-        XCTAssertEqual(settings.fakesBuses, false, "no flag keeps the saved switch")
     }
 }
