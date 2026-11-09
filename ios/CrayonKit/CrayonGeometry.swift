@@ -20,10 +20,19 @@ public struct CrayonGeometry: Equatable, Sendable {
         return max(2, min(sampleSpacing, around / 24))
     }
 
+    /// A rounded box also keeps at least 6 samples on each corner's quarter circle: at 12 pt a
+    /// 24 pt corner had 3 and looked cut off (user, 2026-11-09, the S1 fields).
+    public static func spacing(for rect: CGRect, kind: CrayonShapeKind) -> CGFloat {
+        let base = spacing(for: rect)
+        guard case let .roundedRect(cornerRadius) = kind else { return base }
+        let r = min(cornerRadius, rect.width / 2, rect.height / 2)
+        return max(2, min(base, r * .pi / 2 / 6))
+    }
+
     public init(kind: CrayonShapeKind, in rect: CGRect, seed: UInt32,
                 marker: MarkerStyle, hachure: HachureStyle?) {
         var random = SeededRandom(seed: seed)
-        let ideal = Self.idealOutline(kind: kind, in: rect, spacing: Self.spacing(for: rect))
+        let ideal = Self.idealOutline(kind: kind, in: rect, spacing: Self.spacing(for: rect, kind: kind))
         outline = Self.jitter(ideal, roughness: marker.roughness, bowing: marker.bowing, random: &random)
         washOutline = Self.jitter(ideal, roughness: marker.roughness * 0.6, bowing: marker.bowing * 0.6,
                                   random: &random)
