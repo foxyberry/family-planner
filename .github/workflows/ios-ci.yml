@@ -109,15 +109,17 @@ jobs:
           echo "SIM_OS=$OS" >> "$GITHUB_ENV"
           echo "Using ${DEVICE//_/ } / iOS $OS"
 
+      # CI builds without the git-ignored private school data, on purpose: PUBLIC_BUILD=1 passes
+      # --config=public, which skips the "School data missing" check. Real builds never set it.
       - name: Build
-        run: make build
+        run: make build PUBLIC_BUILD=1
 
       # Test logs are printed only for failures (--test_output=errors in .bazelrc).
       # No artifacts are uploaded and no environment is printed: CI logs of a public
       # repo are public. Snapshot tests (tag "snapshot") are skipped here and by make test
       # while the designs keep changing; they run locally with make snapshots.
       - name: Test
-        run: make test SIM_DEVICE="$SIM_DEVICE" SIM_OS="$SIM_OS"
+        run: make test PUBLIC_BUILD=1 SIM_DEVICE="$SIM_DEVICE" SIM_OS="$SIM_OS"
 
       - name: Save Bazel caches
         if: always() && steps.bazel-cache.outputs.cache-hit != 'true'

@@ -1,6 +1,7 @@
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
 load("//:project.bzl", "BUNDLE_ID")
 load("//ios:build_defs.bzl", "fp_swift_library")
+load(":private_data.bzl", "private_data_check")
 
 # Open data from data.gov.sg and OneMap (see Resources/SOURCE.md).
 apple_resource_bundle(
@@ -10,21 +11,48 @@ apple_resource_bundle(
     resources = glob(["Resources/*.json"]),
 )
 
-# The international and private school list exists only on a developer's machine: its licence is
-# not decided, so the folder is git-ignored and CI and clones build without it.
+# Private = not in git, never left out of the build. The international/private school list and the
+# preschool files come from the private data repo (`make private`); the folder is git-ignored.
+PRIVATE_DATA = glob(
+    ["Private/*.json"],
+    allow_empty = True,
+)
+
+# Files every installable build must bundle (make build/run/device, Xcode, release builds).
+REQUIRED_PRIVATE_DATA = [
+    "international-schools-sg.json",
+    "preschools-sg.json",
+    "preschool-calendar-rules.json",
+]
+
+# Set only on purpose: CI and public clones build with --config=public (--define=public_build=1).
+config_setting(
+    name = "public_build",
+    define_values = {"public_build": "1"},
+)
+
+private_data_check(
+    name = "PrivateDataCheck",
+    srcs = PRIVATE_DATA,
+    public_build = select({
+        ":public_build": True,
+        "//conditions:default": False,
+    }),
+    required = REQUIRED_PRIVATE_DATA,
+    tags = ["manual"],
+)
+
 apple_resource_bundle(
     name = "SchoolDirectoryPrivateResources",
     bundle_id = BUNDLE_ID + ".schools.private",
     infoplists = ["ResourceBundle-Info.plist"],
-    resources = glob(
-        ["Private/*.json"],
-        allow_empty = True,
-    ),
+    resources = PRIVATE_DATA,
 )
 
 fp_swift_library(
     name = "SchoolDirectoryLive",
     data = [
+        ":PrivateDataCheck",
         ":SchoolDirectoryPrivateResources",
         ":SchoolDirectoryResources",
     ],

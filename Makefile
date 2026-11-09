@@ -2,6 +2,8 @@
 # Project constants
 # =============================================================================
 IOS_BAZEL   := bazel --bazelrc=.bazelrc --bazelrc=ios/.bazelrc
+# PUBLIC_BUILD=1 (CI and public clones only) builds without the git-ignored private school data.
+PUBLIC_FLAGS := $(if $(filter 1,$(PUBLIC_BUILD)),--config=public)
 APP_NAME    := FamilyPlanner
 BUNDLE_ID   := io.github.foxyberry.familyplanner
 APP_TARGET  := //ios:$(APP_NAME)
@@ -19,7 +21,7 @@ OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one snapshots snapshots-record sim-stop stop-dev-sims art art-private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios
 
 # =============================================================================
@@ -27,7 +29,7 @@ SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
 # =============================================================================
 
 build:
-	$(IOS_BAZEL) build $(APP_TARGET)
+	$(IOS_BAZEL) build $(PUBLIC_FLAGS) $(APP_TARGET)
 
 # Build first, then boot the simulator, so Bazel and the Simulator never compete
 # for memory at the same time (8 GB Mac). Tests leave their own BAZEL_TEST_* simulator
@@ -54,7 +56,7 @@ run: build
 device:
 	@UDID=$$(scripts/connected-ipad.sh) && \
 	scripts/device-profile.sh $(BUNDLE_ID) "$$UDID" && \
-	$(IOS_BAZEL) build $(APP_TARGET) --config=device && \
+	$(IOS_BAZEL) build $(PUBLIC_FLAGS) $(APP_TARGET) --config=device && \
 	rm -rf bazel-device && mkdir bazel-device && \
 	unzip -q bazel-bin/ios/$(APP_NAME).ipa -d bazel-device && \
 	find bazel-device -exec touch {} + && \
@@ -81,7 +83,7 @@ stop-dev-sims:
 # Extra Bazel flags: make test TEST_ARGS=--nocache_test_results (re-runs every test).
 # Run `make snapshots` whenever you change DesignSystem, KitArt or a screen.
 test: stop-dev-sims
-	$(IOS_BAZEL) test //ios/... --test_tag_filters=-snapshot $(TEST_ARGS) \
+	$(IOS_BAZEL) test $(PUBLIC_FLAGS) //ios/... --test_tag_filters=-snapshot $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
@@ -89,14 +91,14 @@ test: stop-dev-sims
 #   make test-one TARGET=//ios/AppCore/Tests:AppCoreTests
 test-one: stop-dev-sims
 	@[ -n "$(TARGET)" ] || { echo "usage: make test-one TARGET=//ios/<Pkg>/Tests:<Target>"; exit 2; }
-	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(TARGET) $(TEST_ARGS) \
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
 # The snapshot pictures only: compares every part with its committed baseline.
 SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
 snapshots: stop-dev-sims
-	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(SNAPSHOT_TARGET) $(TEST_ARGS) \
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
@@ -104,7 +106,7 @@ snapshots: stop-dev-sims
 # recording is not a pass). Compare the new pictures with the design boards before committing.
 snapshots-record: stop-dev-sims
 	SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Snapshots__" \
-	$(IOS_BAZEL) test $(SNAPSHOT_TARGET) --nocache_test_results \
+	$(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) --nocache_test_results \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)" || true
 	@ls ios/DesignSystem/SnapshotTests/__Snapshots__ | wc -l | xargs echo "baselines:"
@@ -119,7 +121,7 @@ xcodeproj:
 		echo "Installing GNU rsync (required for rules_xcodeproj on macOS 15.4+)..."; \
 		brew install rsync; \
 	fi
-	$(IOS_BAZEL) run //ios:xcodeproj
+	$(IOS_BAZEL) run $(PUBLIC_FLAGS) //ios:xcodeproj
 	open ios/$(APP_NAME).xcodeproj
 
 # =============================================================================
@@ -133,6 +135,12 @@ art:
 # Build the local-only override catalog from git-ignored ios/KitArt/Private/<slot>.svg.
 art-private:
 	@./scripts/kitart-private.sh
+
+# Copy the school and preschool research data from the sibling private repo
+# (../family-planner-private, cloned with gh when missing) into the git-ignored
+# ios/Clients/SchoolDirectoryLive/Private/school-data/. Skips cleanly without access.
+private:
+	@./scripts/private-sync.sh
 
 # =============================================================================
 # Shared
@@ -166,6 +174,7 @@ setup-ios:
 
 setup: check-prereqs setup-ios
 	@[ -f user.bazelrc ] || { cp user.bazelrc.example user.bazelrc && echo "  created user.bazelrc"; }
+	@./scripts/private-sync.sh
 	@[ -f .private-terms ] || { cp .private-terms.example .private-terms && echo "  created .private-terms (add your real private words)"; }
 	@git config core.hooksPath .githooks && echo "  git hooks enabled (.githooks)"
 	@command -v pymobiledevice3 >/dev/null || echo "  optional: uv tool install pymobiledevice3 (make device checks the iPad for crashes)"
