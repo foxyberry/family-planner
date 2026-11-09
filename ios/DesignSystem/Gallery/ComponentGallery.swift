@@ -53,6 +53,7 @@ public struct ComponentGallery: View {
                     }
                     SlideToGo(state: .idle, idleTitle: "Slide to go", doneTitle: "On our way!") {}
                     SlideToGo(state: .done, idleTitle: "", doneTitle: "On our way!") {}
+                    SlideToGo(state: .done, idleTitle: "", doneTitle: "Ready!", knob: .star, doneKnob: .crown) {}
                 }
                 section("0c · Content") {
                     ListRow(leading: "7:30") { Text("Bus to school") }

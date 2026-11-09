@@ -155,6 +155,15 @@ const ITEMS = {
     S(star(150, 96, 68, 30, -78), K.yellow, -35),
     ...eye(136, 92, 9, [1, 1]), ...eye(162, 90, 9, [1, 1]), smile(149, 110, 14),
   ],
+  // Crown: the "ready, no time rule" picture (done view and done knob). Three points with a ball on each tip, a band, a face.
+  crown: [
+    S('M34 176L46 78L86 130L120 62L154 130L194 78L206 176Z', K.gold, -40),
+    S(rr(30, 164, 180, 40, 12), K.yellow, 35),
+    S(circ(46, 72, 13), K.pink, 30, 3.5),
+    S(circ(120, 54, 14), K.blue, -30, 3.5),
+    S(circ(194, 72, 13), K.mint, 30, 3.5),
+    ...eye(100, 132, 12), ...eye(140, 132, 12), smile(120, 148, 24),
+  ],
   sun: [
     Ln('M120 14v26M120 200v26M14 120h26M200 120h26M44 44l18 18M178 178l18 18M196 44l-18 18M62 178l-18 18', 6),
     S(circ(120, 120, 62), K.yellow, -50),
@@ -1321,6 +1330,23 @@ const RIGS = {
      "moves": [
       {
        "type": "flicker"
+      }
+     ]
+    }
+   ]
+  },
+  "crown": {
+   "parts": [
+    {
+     "name": "crown",
+     "layers": "all",
+     "origin": [
+      120,
+      130
+     ],
+     "moves": [
+      {
+       "type": "twinkle"
       }
      ]
     }

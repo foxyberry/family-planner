@@ -1,5 +1,5 @@
 {
- "version": "6",
+ "version": "7",
  "board": "E6",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -325,19 +325,6 @@
    "baseline": 637,
    "font": 36,
    "text": "Morning"
-  },
-  {
-   "id": "side.line.4",
-   "kind": "text",
-   "x": 930,
-   "y": 651,
-   "w": 366,
-   "h": 67,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 710,
-   "font": 24
   },
   {
    "id": "main.button.3",

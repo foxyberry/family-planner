@@ -9,7 +9,7 @@ final class KitRigTests: XCTestCase {
     private let rigs = KitRigs.shared
 
     func testBundledRigsDecode() {
-        XCTAssertEqual(rigs.riggedSlots.count, 33)
+        XCTAssertEqual(rigs.riggedSlots.count, 34)
         XCTAssertEqual(rigs.scale, 1.5)
         let bus = rigs.rig(for: .busSingle)
         XCTAssertEqual(bus?.runs.map(\.part), ["body", "back wheel", "front wheel"])

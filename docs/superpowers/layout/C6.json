@@ -1,5 +1,5 @@
 {
- "version": "6",
+ "version": "7",
  "board": "C6",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -153,7 +153,7 @@
    "kind": "button",
    "x": 930,
    "y": 176,
-   "w": 148,
+   "w": 151,
    "h": 72,
    "region": "side",
    "anchor": "right",
@@ -163,9 +163,9 @@
   {
    "id": "side.button.2",
    "kind": "button",
-   "x": 1086,
+   "x": 1089,
    "y": 176,
-   "w": 109,
+   "w": 83,
    "h": 72,
    "region": "side",
    "anchor": "right",
@@ -175,13 +175,13 @@
   {
    "id": "side.button.3",
    "kind": "button",
-   "x": 1203,
+   "x": 1180,
    "y": 176,
-   "w": 109,
+   "w": 86,
    "h": 72,
    "region": "side",
    "anchor": "right",
-   "align": "end",
+   "align": "inside",
    "text": "Sun"
   },
   {
@@ -349,13 +349,13 @@
    "id": "side.line.8",
    "kind": "text",
    "x": 930,
-   "y": 720,
-   "w": 374,
-   "h": 98,
+   "y": 752,
+   "w": 360,
+   "h": 67,
    "region": "side",
    "anchor": "right",
    "align": "start",
-   "baseline": 810,
+   "baseline": 811,
    "font": 24
   },
   {

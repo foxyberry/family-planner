@@ -156,7 +156,7 @@ public struct MissionsView: View {
 
     @ViewBuilder private func bottomControl(_ layout: MorningLayout) -> some View {
         if let kid = store.chosenKid {
-            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: L10n.tr("missions.ready"), knob: store.slideKnob,
+            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: L10n.tr("missions.ready"), knob: store.slideKnob, doneKnob: store.slideDoneKnob,
                       onUndo: { store.send(.slideUndone) }) {
                 ticks += 1
                 store.send(.slid)
