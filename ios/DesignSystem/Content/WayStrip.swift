@@ -237,7 +237,7 @@ public struct WayStrip: View {
 
     /// Dotted stems 32 long from their foot (the top of the stop marker) up, dashes 5 every 10.
     private func stems(_ g: Geo, _ feet: [(x: CGFloat, foot: CGFloat)]) -> some View {
-        Canvas { context, _ in
+        Canvas { context, _ in  // bleed-ok: straight dashed stems inside the strip
             var path = Path()
             for (x, foot) in feet {
                 var y = foot - Self.stemLength

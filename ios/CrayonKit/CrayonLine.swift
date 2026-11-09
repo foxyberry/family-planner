@@ -18,7 +18,7 @@ public struct CrayonLine: View {
     }
 
     public var body: some View {
-        Canvas { context, _ in
+        Canvas { context, _ in  // bleed-ok: callers give a frame with room around the points (the way strip)
             var path = Path()
             path.addLines(CrayonGeometry.markerLine(points, marker: marker, seed: seed))
             context.stroke(path, with: .color(color),

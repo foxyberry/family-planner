@@ -2,7 +2,7 @@
 name: git-flow-delivery
 description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, push only after explicit user approval, PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
 metadata:
-  version: 0.5.0
+  version: 0.6.0
   status: experimental
 ---
 
@@ -32,10 +32,13 @@ hotfix/*                                    └──●───┘
 2. `git switch develop && git pull --ff-only`
 3. `git switch -c feature/<m#>-<topic>`
 
+A checkout another session also works in keeps its branch: start there in a worktree instead.
+
 ## Commit
 
 - English conventional commits: `feat:`, `fix:`, `build:`, `ci:`, `chore:`, `docs:`, `test:`.
-- Read the staged diff before committing; leave unrelated changes out.
+- Stage files by path, never a whole folder (other sessions write untracked files there), then
+  read `git diff --cached --name-status` before committing; leave unrelated changes out.
 - Let the hooks run. Never `--no-verify`. If a hook blocks, replace the data with fake values.
 - Write the message as literal text or a heredoc; `$VAR` / `$(...)` in messages is blocked by the
   public-text hook because it cannot be checked.
@@ -61,6 +64,16 @@ hotfix/*                                    └──●───┘
 - Dry-run the hook without pushing: feed it one ref line,
   `<local ref> <sha> <remote ref> 0000000000000000000000000000000000000000`, on stdin with
   `.githooks/pre-push origin`.
+
+## Stacked PRs
+
+- Turn on auto-merge for the bottom PR only: auto-merge squashes whichever PR goes green first,
+  and a top PR then carries the ones below it. Or base each PR on the one below it.
+- After a merge, check the PR's state before pushing to its branch (a push to a deleted branch
+  makes an orphan).
+- When the base was squash-merged, the stacked branch still holds the base's commits:
+  `git rebase --onto origin/develop <base tip>` and push under a new branch name (never
+  force-push). Ask the user to delete the old remote branch.
 
 ## Pull request
 

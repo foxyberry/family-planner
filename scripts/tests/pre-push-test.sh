@@ -35,7 +35,7 @@ new_repo() {
   mkdir -p "$REPO/.githooks" "$REPO/scripts"
   cp "$SRC/.githooks/pre-push" "$REPO/.githooks/"
   cp "$SRC/scripts/check-private-terms.sh" "$REPO/scripts/"
-  cp "$SRC/scripts/check-kid-screens.sh" "$REPO/scripts/"
+  cp "$SRC/scripts/check-kid-screens.sh" "$SRC/scripts/check-crayon-canvas.sh" "$REPO/scripts/"
   cp "$SRC/scripts/check-dependencies.sh" "$SRC/scripts/check-skills.sh" "$SRC/scripts/check-strings.sh" "$REPO/scripts/"
   cp "$SRC/Makefile" "$REPO/"
   printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"
@@ -188,6 +188,21 @@ test_guard_change_runs_guard_tests_and_failure_blocks() {
   assert test_guard_change_runs_guard_tests_and_failure_blocks $?
 }
 
+# A push from a worktree runs the hook with GIT_DIR set; guard tests must not inherit it, or their
+# scratch-repo git commands change this repository (2026-11-09: core.bare and user.email).
+test_guard_tests_run_without_git_dir_from_a_worktree() {
+  new_repo
+  push develop
+  WT="$(mktemp -d)/wt"
+  git -C "$REPO" worktree add -q "$WT" -b wt-guard
+  mkdir -p "$WT/scripts/tests"
+  printf '%s\n' 'echo "GIT_DIR=${GIT_DIR:-}" > "$0.env"' > "$WT/scripts/tests/env-test.sh"
+  git -C "$WT" add -- scripts/tests/env-test.sh && git -C "$WT" commit -q -m guard
+  ERR="$(git -C "$WT" push -q origin wt-guard 2>&1)"; CODE=$?
+  [ "$CODE" -eq 0 ] && grep -qx 'GIT_DIR=' "$WT/scripts/tests/env-test.sh.env"
+  assert test_guard_tests_run_without_git_dir_from_a_worktree $?
+}
+
 test_blocks_term_in_tag_message() {
   new_repo
   push develop
@@ -220,6 +235,7 @@ test_scrolling_kid_screen_blocks_push
 test_device_calendar_blocks_push
 test_hard_coded_copy_blocks_push
 test_guard_change_runs_guard_tests_and_failure_blocks
+test_guard_tests_run_without_git_dir_from_a_worktree
 test_blocks_term_in_tag_message
 test_branch_delete_passes
 
