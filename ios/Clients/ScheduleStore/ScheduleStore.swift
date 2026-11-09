@@ -37,10 +37,15 @@ public struct ScheduleStore: Sendable {
     public var saveRoutine: @Sendable (_ routine: Routine) async throws -> Void
     /// Replaces one kid's missions with `missions` (C5: add, rename, reorder, remove).
     public var saveMissions: @Sendable (_ kid: Kid.ID, _ missions: [Mission]) async throws -> Void
-    /// A kid's marks for a date; an empty day when there are none yet.
-    public var missionDay: @Sendable (_ kid: Kid.ID, _ date: Day) async throws -> MissionDay
-    /// Saves a kid's marks for a date and drops days older than `MissionDay.kept` before it.
-    public var saveMissionDay: @Sendable (_ day: MissionDay) async throws -> Void
+    /// The missions a kid has done in one window of a date; empty when there are none yet.
+    public var windowMissions: @Sendable (_ kid: Kid.ID, _ date: Day, _ window: MissionWindow) async throws
+        -> WindowMissions
+    /// Saves a window's done missions and drops records older than `MissionDay.kept` days before it.
+    public var saveWindowMissions: @Sendable (_ marks: WindowMissions) async throws -> Void
+    /// A kid's slides for a date, one per outing (and the morning's when the day has no outing).
+    public var slides: @Sendable (_ kid: Kid.ID, _ date: Day) async throws -> [OutingSlide]
+    /// Saves a slide and drops records older than `MissionDay.kept` days before it.
+    public var saveSlide: @Sendable (_ slide: OutingSlide) async throws -> Void
     /// Saves a kid's bus route (C2), replacing the old one.
     public var saveBusPlan: @Sendable (_ plan: BusPlan) async throws -> Void
     /// Replaces one kid's record (C2 "Late up to" edits the school's Latest).
@@ -61,7 +66,8 @@ extension ScheduleStore: TestDependencyKey {
         let items = LockIsolated<[ScheduleItem]?>(nil)
         let routines = LockIsolated(SeedData.routines)
         let missions = LockIsolated(SeedData.missions)
-        let days = LockIsolated<[MissionDay]>([])
+        let windows = LockIsolated<[WindowMissions]>([])
+        let slides = LockIsolated<[OutingSlide]>([])
         let plans = LockIsolated<[BusPlan]>([])
         @Sendable func seeded() -> [ScheduleItem] {
             @Dependency(\.date.now) var now
@@ -101,13 +107,21 @@ extension ScheduleStore: TestDependencyKey {
                     list += new
                 }
             },
-            missionDay: { kid, date in
-                days.value.first { $0.kid == kid && $0.date == date } ?? MissionDay(kid: kid, date: date)
+            windowMissions: { kid, date, window in
+                windows.value.first { $0.kid == kid && $0.date == date && $0.window == window }
+                    ?? WindowMissions(kid: kid, date: date, window: window)
             },
-            saveMissionDay: { day in
-                days.withValue { list in
-                    list.removeAll { $0.kid == day.kid && $0.date == day.date }
-                    list.append(day)
+            saveWindowMissions: { marks in
+                windows.withValue { list in
+                    list.removeAll { $0.kid == marks.kid && $0.date == marks.date && $0.window == marks.window }
+                    list.append(marks)
+                }
+            },
+            slides: { kid, date in slides.value.filter { $0.kid == kid && $0.date == date } },
+            saveSlide: { slide in
+                slides.withValue { list in
+                    list.removeAll { $0.kid == slide.kid && $0.date == slide.date && $0.outing == slide.outing }
+                    list.append(slide)
                 }
             },
             saveBusPlan: { plan in
@@ -127,7 +141,8 @@ extension ScheduleStore: TestDependencyKey {
                 items.setValue(family.items)
                 missions.setValue(family.missions)
                 plans.setValue(family.busPlans)
-                days.setValue([])
+                windows.setValue([])
+                slides.setValue([])
             }
         )
     }
