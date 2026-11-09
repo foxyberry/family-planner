@@ -36,8 +36,9 @@ public struct LaunchOptions: Equatable, Sendable {
     /// `-fpSkipFaceID` (`make run SKIP_FACE_ID=1`): turn "Skip Face ID" on. It only works where the
     /// switch exists (a simulator); a real iPad still asks for Face ID.
     public var skipsFaceID = false
-    /// `-fpFakeBuses`: turn "Fake buses" on.
-    public var fakesBuses = false
+    /// `-fpFakeBuses` turns "Fake buses" on, `-fpNoFakeBuses` off (the switch is saved on the iPad).
+    /// devicectl reads app flags with an "l" as its own `-l`, so flag names avoid that letter.
+    public var fakesBuses: Bool?
 
     public init(now: Date?, speed: Double?, grid: Bool = false) {
         self.now = now
@@ -59,7 +60,8 @@ public struct LaunchOptions: Equatable, Sendable {
         speed = value(after: "-fpSpeed").flatMap(Double.init).flatMap { $0 > 0 ? $0 : nil }
         grid = arguments.contains("-fpGrid")
         skipsFaceID = arguments.contains("-fpSkipFaceID")
-        fakesBuses = arguments.contains("-fpFakeBuses")
+        if arguments.contains("-fpFakeBuses") { fakesBuses = true }
+        if arguments.contains("-fpNoFakeBuses") { fakesBuses = false }
     }
 }
 
@@ -131,7 +133,7 @@ public struct DebugSettings: Codable, Equatable, Sendable {
     public mutating func apply(_ options: LaunchOptions, realNow: Date) {
         if options.grid { showsLayoutGrid = true }
         if options.skipsFaceID { skipsFaceID = true }
-        if options.fakesBuses { fakesBuses = true }
+        if let fakes = options.fakesBuses { fakesBuses = fakes }
         if let now = options.now {
             time = TimeTravel(anchor: now, realAnchor: realNow, speed: options.speed ?? 1)
         } else if let speed = options.speed {
