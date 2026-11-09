@@ -85,7 +85,7 @@ public struct BusSettingsFeature {
                 let kid = snapshot?.kids.first { $0.id == state.kid }
                 state.kidName = kid?.name ?? ""
                 state.storedKid = kid
-                if let plan = snapshot?.busPlans.first(where: { $0.kid == state.kid }) {
+                if let plan = snapshot?.busPlans.route(kid: state.kid) {
                     state.search = StopSearchFeature.State(stop: plan.stop)
                     state.services = plan.services
                     state.walk = plan.walk

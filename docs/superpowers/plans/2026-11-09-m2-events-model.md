@@ -48,14 +48,15 @@ loads:
   for events other than School; School keeps its S2 values.
 - `ScheduleItem.after: EventRef?`: "From: After {event}". A linked item has no trip of its own.
 - `BusPlan.event: EventRef`, default `.school` (custom decode), so the kid-level route becomes the
-  School event's route as it is. The store key changes to `busPlan:{kid}:{event}` and is migrated in
-  the same one-time pass.
+  School event's route as it is. The store key changes to `busPlan:{kid}:{event}`; a School route
+  under the old key `busPlan:{kid}` still loads and is replaced the next time it is saved.
 
 `DayPlanner`:
 - A linked item starts at its event's end and keeps its own length, on days that event happens.
 - If the event before it is missing that day (holiday, skipped, another weekday), the linked item is
   dropped too.
-- A chain uses the last item's `homeAfter`.
+- Chains (an item after a linked item) are placed in order. `homeAfter` is stored now; the clock
+  uses it when the event form rows arrive.
 
 Medal: `MissionsFeature.medal(for:)` checks the S4 Medals switch first (done), then the outing's
 `Trip.medal` (default by event), then the timing rule as today.

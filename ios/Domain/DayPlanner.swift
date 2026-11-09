@@ -76,12 +76,13 @@ public enum DayPlanner {
                                        start: block.start, end: block.end, source: .routine, showsStar: false,
                                        trip: block.trip)))
         }
-        for item in items where occurs(item, on: day, kid: kid.id, holidays: holidays, calendar: calendar) {
+        let occurring = items.filter { occurs($0, on: day, kid: kid.id, holidays: holidays, calendar: calendar) }
+        for (item, start) in placed(occurring, schoolEnd: routine?.blocks.first { $0.kind == .school }?.end) {
             let source: Slot.Source = item.isWeekly ? .weekly(item.id) : .once(item.id)
             candidates.append((item.isWeekly ? 1 : 2,
-                               Slot(title: item.title, iconName: item.iconName, kind: item.kind, start: item.start,
-                                    end: item.end, source: source, showsStar: item.showsStar && !item.isWeekly,
-                                    trip: item.trip)))
+                               Slot(title: item.title, iconName: item.iconName, kind: item.kind, start: start,
+                                    end: start + item.end - item.start, source: source,
+                                    showsStar: item.showsStar && !item.isWeekly, trip: item.trip)))
         }
         candidates.sort { ($0.priority, $0.slot.start) > ($1.priority, $1.slot.start) }
 
@@ -99,6 +100,34 @@ public enum DayPlanner {
             }
         }
         return result.sorted { $0.start < $1.start }
+    }
+
+    /// The day's items with their start (spec "Events: one shape", From): an item "after" an event
+    /// starts when that event ends and keeps its length; if that event is not on the day (a holiday,
+    /// skipped, another weekday) the item is left out too. Chains resolve in order, a few links deep.
+    static func placed(_ items: [ScheduleItem], schoolEnd: Int?) -> [(ScheduleItem, Int)] {
+        var ends: [EventRef: Int] = [:]
+        if let schoolEnd { ends[.school] = schoolEnd }
+        var placed: [(ScheduleItem, Int)] = []
+        var waiting: [ScheduleItem] = []
+        for item in items {
+            if item.after == nil {
+                placed.append((item, item.start))
+                ends[.item(item.id)] = item.end
+            } else {
+                waiting.append(item)
+            }
+        }
+        // Each pass places the links whose event is placed; four passes cover any real chain.
+        for _ in 0..<4 where !waiting.isEmpty {
+            waiting = waiting.filter { item in
+                guard let after = item.after, let start = ends[after] else { return true }
+                placed.append((item, start))
+                ends[.item(item.id)] = start + item.end - item.start
+                return false
+            }
+        }
+        return placed
     }
 
     /// The slot running at `minute` and the one after it (or after the gap `minute` is in).

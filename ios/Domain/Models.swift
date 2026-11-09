@@ -140,11 +140,35 @@ public enum Way: String, Codable, CaseIterable, Sendable {
 public struct Trip: Hashable, Codable, Sendable {
     public var way: Way
     public var leaveBefore: Int
+    /// Minutes to get home after the end (0–90, step 5; spec "Events: one shape", Trip).
+    public var homeAfter: Int
+    /// The medal switch for this outing: nil is the default, on for School and off for other events.
+    public var medal: Bool?
+    /// Minutes after the start that still earn bronze, for events other than School (School keeps S2's).
+    public var lateGrace: Int?
 
-    public init(way: Way, leaveBefore: Int) {
+    public init(way: Way, leaveBefore: Int, homeAfter: Int = 0, medal: Bool? = nil, lateGrace: Int? = nil) {
         self.way = way
-        self.leaveBefore = min(max(leaveBefore / 5 * 5, 0), 90)
+        self.leaveBefore = Self.minutes(leaveBefore)
+        self.homeAfter = Self.minutes(homeAfter)
+        self.medal = medal
+        self.lateGrace = lateGrace
     }
+
+    /// Trips stored before `homeAfter` existed load with 0.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(way: try values.decode(Way.self, forKey: .way),
+                  leaveBefore: try values.decode(Int.self, forKey: .leaveBefore),
+                  homeAfter: try values.decodeIfPresent(Int.self, forKey: .homeAfter) ?? 0,
+                  medal: try values.decodeIfPresent(Bool.self, forKey: .medal),
+                  lateGrace: try values.decodeIfPresent(Int.self, forKey: .lateGrace))
+    }
+
+    /// Whether this outing gives a medal: its own switch, else on for School only.
+    public func givesMedal(isSchool: Bool) -> Bool { medal ?? isSchool }
+
+    private static func minutes(_ value: Int) -> Int { min(max(value / 5 * 5, 0), 90) }
 }
 
 /// What a slot is, which decides its colour on the clock. `free` is free time: plain paper, no picture.
@@ -168,11 +192,15 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var showsStar: Bool
     /// An outing has a trip (spec "MVP data"); trips come from the seed until N1.
     public var trip: Trip?
+    /// "From: After {event}" (spec "Events: one shape"): the item starts when that event ends, at the
+    /// same place, with no trip of its own; on a day without that event it is skipped too. nil: Home.
+    public var after: EventRef?
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
                 recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
-                trip: Trip? = nil) {
-        self.trip = trip
+                trip: Trip? = nil, after: EventRef? = nil) {
+        self.trip = after == nil ? trip : nil
+        self.after = after
         self.id = id
         self.title = title
         self.iconName = iconName
