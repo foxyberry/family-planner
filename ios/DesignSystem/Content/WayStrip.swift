@@ -290,9 +290,10 @@ public struct WayStrip: View {
         case let .live(live):
             label(live.ourStopLabel, x: Self.homeX, kx: kx, k: k)
             label(live.destinationLabel, x: Self.destinationX, kx: kx, k: k)
-            // Legend at (946, 16): the white plate means "my bus".
+            // Legend at (946, 16): the white plate with the kid's bus number means "my bus" (an empty
+            // plate read as broken on the iPad, 2026-11-09).
             HStack(spacing: Spacing.xs) {
-                NumberPlate(" ", isMine: true)
+                NumberPlate(live.buses.first(where: \.isMine)?.service ?? " ", isMine: true)
                 Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink).fixedSize()
             }
             .offset(x: 946 * kx, y: 16 * k)

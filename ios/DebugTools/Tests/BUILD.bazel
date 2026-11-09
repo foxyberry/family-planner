@@ -8,6 +8,7 @@ fp_swift_library(
     deps = [
         "//ios/Clients/ParentAuthClient",
         "//ios/DebugTools",
+        "//ios/Domain",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )
