@@ -16,7 +16,9 @@ public struct StepDots: View {
     public var body: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(1...max(total, 1), id: \.self) { step in
-                CrayonSurface(.circle, fill: step <= current ? CrayonStyle.blueCrayon : nil, marker: .thin,
+                // A small circle needs a calm line: the standard roughness draws it as a polygon.
+                CrayonSurface(.circle, fill: step <= current ? CrayonStyle.blueCrayon : nil,
+                              marker: MarkerStyle(width: 3, roughness: 0.4, bowing: 0.4),
                               markerColor: step <= current ? CrayonColor.pickBlue : CrayonColor.marker,
                               seed: CrayonStyle.Seed.stepDots + UInt32(step))
                     .frame(width: 28, height: 28)

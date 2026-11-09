@@ -53,9 +53,11 @@ final class SetupTests: XCTestCase {
         await store.receive(\.directoryLoaded)
         await store.send(.nameChanged(first, "Kid A"))
         await store.send(.ageChanged(first, "8"))
+        await store.send(.faceTapped(first, "kidGirl"))
         await store.send(.addKidTapped)
         await store.send(.nameChanged(store.state.kids[1].id, "Kid B"))
         await store.send(.ageChanged(store.state.kids[1].id, "4"))
+        await store.send(.faceTapped(store.state.kids[1].id, "kidGirl"))
     }
 
     /// On S2: Kid B (4) stays at home; back on Kid A's tab.
@@ -65,13 +67,15 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTabTapped(first))
     }
 
-    func testNextNeedsEveryKidsNameAndAge() async {
+    func testNextNeedsEveryKidsNameAgeAndFace() async {
         let store = store()
         XCTAssertFalse(store.state.canGoNext)
         await store.send(.nameChanged(first, "Kid A"))
         XCTAssertFalse(store.state.canGoNext, "no age yet")
         await store.send(.ageChanged(first, "8 years"))
         XCTAssertEqual(store.state.kids[0].ageText, "8")
+        XCTAssertFalse(store.state.canGoNext, "no face yet")
+        await store.send(.faceTapped(first, "kidGirl"))
         XCTAssertTrue(store.state.canGoNext)
         await store.send(.addKidTapped)
         XCTAssertFalse(store.state.canGoNext, "the new card is empty")
@@ -171,6 +175,7 @@ final class SetupTests: XCTestCase {
         let store = store()
         await store.send(.nameChanged(first, "Kid B"))
         await store.send(.ageChanged(first, "4"))
+        await store.send(.faceTapped(first, "kidGirl"))
         await store.send(.nextTapped)
         XCTAssertFalse(store.state.canGoNext, "every kid needs a pick")
         await store.send(.goesToTapped(.home))
@@ -185,6 +190,7 @@ final class SetupTests: XCTestCase {
         let store = store(saved: saved)
         await store.send(.nameChanged(first, "Kid B"))
         await store.send(.ageChanged(first, "3"))
+        await store.send(.faceTapped(first, "kidGirl"))
         await store.send(.nextTapped)
         await store.send(.goesToTapped(.preschool))
         await store.send(.schoolTextChanged("Example Preschool"))
@@ -212,6 +218,7 @@ final class SetupTests: XCTestCase {
         let store = store(saved: saved)
         await store.send(.nameChanged(first, "Kid B"))
         await store.send(.ageChanged(first, "4"))
+        await store.send(.faceTapped(first, "kidGirl"))
         await store.send(.nextTapped)
         await store.send(.goesToTapped(.home))
         await store.send(.nextTapped)
@@ -260,7 +267,7 @@ final class SetupTests: XCTestCase {
         let family = saved.value[0]
         XCTAssertEqual(family.kids.map(\.name), ["Kid A", "Kid B"])
         XCTAssertEqual(family.kids[0].face, "kidGirl")
-        XCTAssertEqual(family.kids[1].face, "", "a face not picked shows the colour dot")
+        XCTAssertEqual(family.kids[1].face, "kidGirl", "every kid has a face (S1 needs one)")
         XCTAssertEqual(family.kids[0].school?.directoryID, "example-primary")
         XCTAssertNil(family.kids[1].school)
         XCTAssertEqual(family.kids[0].school?.latest, 460, "Latest stays on the school record")
