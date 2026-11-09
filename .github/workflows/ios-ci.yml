@@ -114,6 +114,15 @@ jobs:
       - name: Build
         run: make build PUBLIC_BUILD=1
 
+      # On a fresh runner the first test target creates and boots the BAZEL_TEST_ simulator
+      # (//ios:test_runner reuses it), and the boot counts against that target's 300 s timeout:
+      # four runs on 2026-11-09 timed out on whichever target came first. One small target with
+      # a longer timeout boots it here; the full run below then finds it booted.
+      - name: Boot the test simulator
+        run: >-
+          make test-one PUBLIC_BUILD=1 TARGET=//ios/Strings/Tests:StringsTests
+          TEST_ARGS=--test_timeout=900 SIM_DEVICE="$SIM_DEVICE" SIM_OS="$SIM_OS"
+
       # Test logs are printed only for failures (--test_output=errors in .bazelrc).
       # No artifacts are uploaded and no environment is printed: CI logs of a public
       # repo are public. Snapshot tests (tag "snapshot") are skipped here and by make test
