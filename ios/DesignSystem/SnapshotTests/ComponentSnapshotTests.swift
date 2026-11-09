@@ -107,6 +107,12 @@ final class ComponentSnapshotTests: XCTestCase {
              width: Self.rowWidth)
     }
 
+    /// Spec "Event form rows", Bring: every picked picture has the ring.
+    func testIconPickerMultiPick() {
+        snap(IconPicker(picked: [.backpack, .waterBottle], slots: [.backpack, .lunchBox, .waterBottle]) { _ in },
+             width: Self.rowWidth)
+    }
+
     func testTimeLeft() {
         snap(TimeLeft(minutes: 19), named: "19")
         snap(TimeLeft(minutes: -2), named: "minus2")

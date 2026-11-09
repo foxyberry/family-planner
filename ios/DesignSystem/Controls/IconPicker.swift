@@ -3,22 +3,35 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// Picture picker: 88 pt cells, a blue ring on the chosen one, and (when `onRequestDrawing` is
-/// given) a final "+" that asks the child to draw a new picture. Drawings arrive in M6; until then
-/// screens leave it out.
+/// Picture picker: 88 pt cells, a blue ring on the chosen one (or on each chosen one in multi-pick,
+/// spec "Event form rows", Bring), and (when `onRequestDrawing` is given) a final "+" that asks the
+/// child to draw a new picture. Drawings arrive in M6; until then screens leave it out.
 public struct IconPicker: View {
-    @Binding private var selection: KitSlot?
+    private let isOn: (KitSlot) -> Bool
+    private let onTap: (KitSlot) -> Void
     private let slots: [KitSlot]
     private let onRequestDrawing: (() -> Void)?
     private let columns: Int
 
-    /// `columns`: 6 under a form's control line; 3 in a 382 side column (C6's new slice).
+    /// One pick. `columns`: 6 under a form's control line; 3 in a 382 side column (C6's new slice).
     public init(selection: Binding<KitSlot?>, slots: [KitSlot], columns: Int = IconPicker.columns,
                 onRequestDrawing: (() -> Void)? = nil) {
-        _selection = selection
+        isOn = { $0 == selection.wrappedValue }
+        onTap = { selection.wrappedValue = $0 }
         self.slots = slots
         self.columns = columns
         self.onRequestDrawing = onRequestDrawing
+    }
+
+    /// Several picks: every picked slot has the ring; a tap asks to add or take away that slot (the
+    /// caller decides, e.g. up to 4).
+    public init(picked: Set<KitSlot>, slots: [KitSlot], columns: Int = IconPicker.columns,
+                onToggle: @escaping (KitSlot) -> Void) {
+        isOn = { picked.contains($0) }
+        onTap = onToggle
+        self.slots = slots
+        self.columns = columns
+        onRequestDrawing = nil
     }
 
     /// Cells in a row (board C3: 6 × 88 + 5 × 16 = 608, the form's control width).
@@ -29,8 +42,8 @@ public struct IconPicker: View {
         LazyVGrid(columns: Array(repeating: GridItem(.fixed(88), spacing: Spacing.s), count: columns),
                   alignment: .leading, spacing: Spacing.s) {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
-                let isOn = slot == selection
-                Button { selection = slot } label: {
+                let isOn = isOn(slot)
+                Button { onTap(slot) } label: {
                     KitIcon(slot, size: 64)
                         .frame(width: 88, height: 88)
                         .background(

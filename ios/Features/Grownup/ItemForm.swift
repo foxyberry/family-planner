@@ -44,6 +44,12 @@ public struct ItemForm: Equatable, Sendable {
     public var showsStar: Bool
     /// "Going" (board C3g): how the kid goes and how long before the start they leave; nil = None.
     public var trip: Trip?
+    /// "From" (spec "Event form rows"): nil is Home; an event makes the item start when it ends.
+    public var after: EventRef?
+    /// "Bring" and "Missions" (before / after), up to `ItemMission.most` each.
+    public var bring: [ItemMission] = []
+    public var missionsBefore: [ItemMission] = []
+    public var missionsAfter: [ItemMission] = []
 
     public static let defaultLeave = 10
 
@@ -83,6 +89,10 @@ public struct ItemForm: Equatable, Sendable {
                       end: item.end, repeats: .weekly, days: days, date: from, skipsHolidays: item.skipsHolidays,
                       showsStar: true, trip: item.trip)
         }
+        after = item.after
+        bring = item.bring
+        missionsBefore = item.missionsBefore
+        missionsAfter = item.missionsAfter
     }
 
     /// Picking a picture fills an empty name with the picture's label; a typed name is never replaced.
@@ -116,15 +126,173 @@ public struct ItemForm: Equatable, Sendable {
         return nil
     }
 
-    /// Picks how the kid goes; the leave minutes stay when the way changes (default 10).
+    /// Picks how the kid goes; the leave minutes, the way home and the medal stay when the way
+    /// changes (default leave 10).
     public mutating func setGoing(_ way: Domain.Way?) {
-        trip = way.map { Trip(way: $0, leaveBefore: trip?.leaveBefore ?? Self.defaultLeave) }
+        trip = way.map {
+            Trip(way: $0, leaveBefore: trip?.leaveBefore ?? Self.defaultLeave, homeAfter: trip?.homeAfter ?? 0,
+                 medal: trip?.medal, lateGrace: trip?.lateGrace)
+        }
     }
 
     /// −/+ on the Leave row: 0–90 in steps of 5.
     public mutating func stepLeave(_ step: Int) {
-        guard let trip else { return }
-        self.trip = Trip(way: trip.way, leaveBefore: min(max(trip.leaveBefore + 5 * step, 0), 90))
+        guard var trip else { return }
+        trip.leaveBefore = min(max(trip.leaveBefore + 5 * step, 0), 90)
+        self.trip = trip
+    }
+
+    // MARK: Event form rows (spec "Event form rows for 6b", board G2b)
+
+    /// One choice in the From card: Home (`event` nil) or an event this item can follow.
+    public struct FromChoice: Equatable, Sendable {
+        public var event: EventRef?
+        public var title: String
+        /// A `KitSlot` raw value.
+        public var picture: String
+        /// When the event ends (the linked start); 0 for Home.
+        public var end: Int
+    }
+
+    /// Picks From: "After {event}" starts the item at the event's end, keeps its length and drops
+    /// the trip (same place); Home keeps the times and shows Going again.
+    public mutating func setFrom(_ choice: FromChoice) {
+        after = choice.event
+        guard choice.event != nil else { return }
+        let length = max(end - start, 5)
+        start = choice.end
+        end = min(choice.end + length, 1440)
+        trip = nil
+    }
+
+    /// The Medal switch: on only with a trip; nil means the default (off for an item).
+    public var medalIsOn: Bool { trip?.givesMedal(isSchool: false) ?? false }
+    public var canSwitchMedal: Bool { trip != nil }
+
+    public mutating func toggleMedal() {
+        guard var trip else { return }
+        trip.medal = !medalIsOn
+        self.trip = trip
+    }
+
+    /// Bring: a tap adds the picture (named after it) or takes it away; four at most.
+    public mutating func toggleBring(_ picture: String, id: UUID) {
+        if let index = bring.firstIndex(where: { $0.picture == picture }) {
+            bring.remove(at: index)
+        } else if bring.count < ItemMission.most {
+            bring.append(ItemMission(id: id, name: Self.label(for: picture), picture: picture))
+        }
+    }
+
+    /// The missions before leaving for the item, or after coming home from it.
+    public enum MissionSection: Hashable, Sendable { case before, after }
+
+    public func missions(_ section: MissionSection) -> [ItemMission] {
+        section == .before ? missionsBefore : missionsAfter
+    }
+
+    /// Adds a mission (up to four) or replaces the one with the same id.
+    public mutating func saveMission(_ mission: ItemMission, in section: MissionSection) {
+        var list = missions(section)
+        if let index = list.firstIndex(where: { $0.id == mission.id }) {
+            list[index] = mission
+        } else if list.count < ItemMission.most {
+            list.append(mission)
+        }
+        setMissions(list, section)
+    }
+
+    public mutating func removeMission(_ id: ItemMission.ID) {
+        missionsBefore.removeAll { $0.id == id }
+        missionsAfter.removeAll { $0.id == id }
+    }
+
+    /// Drag ≡: moves a mission to `index` within its section.
+    public mutating func moveMission(_ id: ItemMission.ID, to index: Int, in section: MissionSection) {
+        var list = missions(section)
+        guard let from = list.firstIndex(where: { $0.id == id }) else { return }
+        let mission = list.remove(at: from)
+        list.insert(mission, at: min(max(index, 0), list.count))
+        setMissions(list, section)
+    }
+
+    private mutating func setMissions(_ list: [ItemMission], _ section: MissionSection) {
+        if section == .before { missionsBefore = list } else { missionsAfter = list }
+    }
+
+    /// The Bring row's words: "Swimsuit · Goggles"; nil when nothing is picked.
+    public var bringText: String? { bring.isEmpty ? nil : bring.map(\.name).joined(separator: " · ") }
+
+    /// The Missions row's words: the before ones, then the after ones with "(after)".
+    public var missionsText: String? {
+        let words = missionsBefore.map(\.name) + missionsAfter.map { L10n.tr("missions.row.after", $0.name) }
+        return words.isEmpty ? nil : words.joined(separator: " · ")
+    }
+
+    /// The From card's choices: Home, then the kid's events that end at or before this item's start
+    /// on every one of its days (School first, then by end time); five at most.
+    public func fromChoices(kids: [Kid], routines: [Routine], items: [ScheduleItem], editing: ScheduleItem.ID?,
+                            today: Day, calendar: Calendar) -> [FromChoice] {
+        let home = FromChoice(event: nil, title: L10n.tr("from.home"), picture: "home", end: 0)
+        let onDays: Set<Weekday> = repeats == .weekly ? days : [date.weekday(calendar)]
+        guard !onDays.isEmpty else { return [home] }
+        var events: [FromChoice] = []
+        if case let .kid(kid) = audience, onDays.isSubset(of: Weekday.schoolDays),
+           let school = routines.filter({ $0.kid == kid && $0.dayType == .weekday && $0.from <= today })
+               .max(by: { $0.from < $1.from })?.blocks.first(where: { $0.kind == .school }),
+           school.end <= start || after == .school {
+            events.append(FromChoice(event: .school, title: school.title, picture: school.iconName, end: school.end))
+        }
+        let ends = Self.placedEnds(items, schoolEnd: events.first?.end)
+        for item in items where item.id != editing && Self.shares(item.audience, with: audience) {
+            guard let itemEnd = ends[item.id], itemEnd <= start || after == .item(item.id),
+                  covers(item, onDays: onDays, today: today) else { continue }
+            events.append(FromChoice(event: .item(item.id), title: item.title, picture: item.iconName, end: itemEnd))
+        }
+        let school = events.filter { $0.event == .school }
+        let rest = events.filter { $0.event != .school }.sorted { $0.end < $1.end }
+        return Array(([home] + school + rest).prefix(5))
+    }
+
+    /// Whether `item` happens on every one of this form's days.
+    private func covers(_ item: ScheduleItem, onDays: Set<Weekday>, today: Day) -> Bool {
+        switch (repeats, item.recurrence) {
+        case let (.weekly, .weekly(itemDays, _, until)):
+            return onDays.isSubset(of: itemDays) && (until.map { $0 >= today } ?? true)
+        case let (.once, .weekly(itemDays, from, until)):
+            return onDays.isSubset(of: itemDays) && from <= date && (until.map { $0 >= date } ?? true)
+        case let (.once, .once(day)):
+            return day == date
+        case (.weekly, .once):
+            return false
+        }
+    }
+
+    /// A kid's item can follow another of the same kid's; a "Both" item only a "Both" one.
+    private static func shares(_ other: Audience, with audience: Audience) -> Bool {
+        switch audience {
+        case let .kid(kid): other.includes(kid)
+        case .both: other == .both
+        }
+    }
+
+    /// Each item's end, following links ("After …") a few deep from School's end.
+    private static func placedEnds(_ items: [ScheduleItem], schoolEnd: Int?) -> [ScheduleItem.ID: Int] {
+        var ends: [EventRef: Int] = [:]
+        if let schoolEnd { ends[.school] = schoolEnd }
+        var result: [ScheduleItem.ID: Int] = [:]
+        for _ in 0..<5 {
+            for item in items where result[item.id] == nil {
+                if let after = item.after {
+                    guard let start = ends[after] else { continue }
+                    result[item.id] = start + item.end - item.start
+                } else {
+                    result[item.id] = item.end
+                }
+                ends[.item(item.id)] = result[item.id]
+            }
+        }
+        return result
     }
 
     /// "10 min" on the Leave row.
@@ -201,11 +369,13 @@ public struct ItemForm: Equatable, Sendable {
         case .weekly:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .weekly(days, from: today, until: nil), skippedDays: [],
-                                skipsHolidays: skipsHolidays, showsStar: false, trip: trip)
+                                skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
+                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter)
         case .once:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .once(date), skippedDays: [], skipsHolidays: false,
-                                showsStar: showsStar, trip: trip)
+                                showsStar: showsStar, trip: trip, after: after,
+                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter)
         }
     }
 

@@ -11,10 +11,6 @@ import SwiftUI
 public struct MissionEditorView: View {
     @Bindable var store: StoreOf<MissionEditorFeature>
 
-    /// Morning pictures offered for a mission.
-    static let pictures: [KitSlot] = [.star, .sun, .toilet, .toothbrush, .washFace, .hairBrush, .shirt, .actBreakfast,
-                                      .milk, .babyBottle, .backpack, .lunchBox, .waterBottle, .shoe]
-
     public init(store: StoreOf<MissionEditorFeature>) {
         self.store = store
     }
@@ -47,7 +43,10 @@ public struct MissionEditorView: View {
                                 confirm: L10n.tr("c5.remove"), isDestructive: true,
                                 onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
                 } else {
-                    editorCard(draft).frame(width: 720)
+                    MissionDraftCard(draft: draft, onName: { store.send(.draftNameChanged($0)) },
+                                     onPicture: { store.send(.draftPicturePicked($0)) },
+                                     onDay: { store.send(.draftDayToggled($0)) },
+                                     onRemove: { store.send(.removeTapped) }, onSave: { store.send(.saveTapped) })
                 }
             }
         }
@@ -98,7 +97,12 @@ public struct MissionEditorView: View {
             HStack(spacing: Spacing.m) {
                 MarkerIcon(.handle, size: 32, color: CrayonColor.softText)
                 KitIcon(KitSlot(iconName: mission.picture), size: 48)
-                Text(mission.name).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(mission.name).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                    if let days = store.state.daysCaption(mission) {
+                        Text(days).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    }
+                }
                 Spacer()
                 MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
             }
@@ -122,31 +126,6 @@ public struct MissionEditorView: View {
                 Text(store.kids.first { $0.id == store.selectedKid }?.name ?? "").crayonType(.head)
                     .foregroundStyle(CrayonColor.ink)
                 Text(L10n.tr("c5.cards_note")).crayonType(.body).foregroundStyle(CrayonColor.ink)
-            }
-        }
-    }
-
-    private func editorCard(_ draft: MissionEditorFeature.Draft) -> some View {
-        PaperCard(seed: 43) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                CrayonField(L10n.tr("c5.name"),
-                            text: Binding(get: { draft.name }, set: { store.send(.draftNameChanged($0)) }))
-                IconPicker(selection: Binding(get: { KitSlot(rawValue: draft.picture) },
-                                              set: { if let slot = $0 { store.send(.draftPicturePicked(slot.rawValue)) } }),
-                           slots: Self.pictures)
-                HStack(spacing: Spacing.m) {
-                    if !draft.isNew {
-                        Button { store.send(.removeTapped) } label: {
-                            Text(L10n.tr("c5.remove")).crayonType(.body).foregroundStyle(CrayonColor.lateText)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    Spacer()
-                    InkButton(L10n.tr("c5.save")) { store.send(.saveTapped) }
-                        .frame(width: 240)
-                        .opacity(draft.canSave ? 1 : 0.4)
-                        .disabled(!draft.canSave)
-                }
             }
         }
     }

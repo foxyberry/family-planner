@@ -81,8 +81,28 @@ Home: "Missions →" shows while a kid's open window has missions (today only th
 has any), and the "Leave in" countdown follows Kid A's open window's outing. `isMissionMorning`
 (wake → noon) is gone.
 
+## PR D: event form rows, missions per window (board G2b, layout v24)
+
+Model: `ScheduleItem.bring`, `missionsBefore`, `missionsAfter` (`ItemMission`: id, name, picture;
+four each, old JSON loads empty); `Mission.days` (every day unless fewer are picked).
+
+C3 / C4 / E5 form, after the existing rows (spec "Event form rows for 6b"):
+- From: a centred card with ChoiceCircles: Home, then the kid's events that end at or before the
+  start on every one of the item's days (School first, then by end), five at most. "After X" starts
+  the item at X's end, keeps its length, hides Going / Leave and shows "after X" for the start.
+- Bring: a centred card with IconPicker in multi-pick (backpack, lunch box, water bottle; "More"
+  for the whole kit), four at most; a tap outside puts the list back.
+- Missions: a sub-page in the form card with Before and After sections (C5 rows, the C5 card).
+- Medal: a CrayonSwitch on the row, off and faded without a trip.
+- C5: a Days row in the mission card; fewer days show under the name ("Thu").
+
+Windows: `DayPlanner.missions(in:routine:items:weekday:)` lists a stretch's missions part by part
+(the routine's for the weekday, an outing's "before" missions and Bring, the "after" missions of
+what just ended; an item's picture already shown is left out). A2 shows each kid's open window
+(else the morning) and saves done marks per window part and the slide per outing. Home names the
+window: "Missions", "Before {item}", "After {item}" (too long for one line: "Missions").
+
 ## Not in this step
 
-The event form rows (From, Bring, Before/After, Medal; waiting for board G2b), the A2 screen per
-window and the home label per window (they need event missions first), C5 day-only missions,
-Bring → missions, and C1/C3/C4 route shortcuts.
+School's own Bring / missions / medal switch (its event screen, 6d), the evening routine ("Pack for
+tomorrow"), No school days and Runs (6c), and C1/C3/C4 route shortcuts.

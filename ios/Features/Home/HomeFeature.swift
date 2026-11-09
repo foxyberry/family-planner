@@ -33,15 +33,17 @@ public struct HomeFeature {
         public var night: NightSpan? = nil
         /// Tomorrow's first outing (board A1n "Tomorrow" row); `nil` when tomorrow has none.
         public var tomorrow: Outing? = nil
-        /// Whether the kid has morning routine missions (C5).
-        public var hasMissions = false
+        /// The kid's routine missions (C5).
+        public var missions: [Mission] = []
 
         /// Spec "Mission windows": the day's stretches for missions.
         public var windows: [WindowSpan] { DayPlanner.missionWindows(slots: slots, night: night) }
+    }
 
-        /// Whether a window part has missions for this kid. Only the morning routine has missions
-        /// until event missions, Bring and the evening routine are built.
-        func hasMissions(in part: MissionWindow) -> Bool { part == .morning && hasMissions }
+    /// The open window of the first kid who has missions in it, and the part the label names.
+    struct OpenWindow: Equatable {
+        var day: KidDay
+        var part: MissionWindow
     }
 
     @ObservableState
@@ -101,12 +103,41 @@ public struct HomeFeature {
             return isSchoolHoliday ? L10n.tr("home.day.holiday", dayName) : dayName
         }
 
-        /// Spec "Mission windows": home offers "Missions →" while a kid's open window has missions
-        /// in it (the morning runs from wake-up to the first leave, or noon).
-        public var showsMissions: Bool {
-            days.contains { day in
-                DayPlanner.window(at: minute, in: day.windows)?.parts.contains { day.hasMissions(in: $0) } == true
+        /// Every kid's items today, for the missions and Bring of their outings.
+        public var items: [ScheduleItem] = []
+
+        /// Spec "Mission windows": the first kid whose open window has missions, and the first part
+        /// with missions in it (the morning runs from wake-up to the first leave, or noon).
+        var openWindow: OpenWindow? {
+            for day in days {
+                guard let span = DayPlanner.window(at: minute, in: day.windows) else { continue }
+                let list = DayPlanner.missions(in: span, routine: day.missions, items: items, weekday: weekday ?? .monday)
+                if let part = list.first?.window { return OpenWindow(day: day, part: part) }
             }
+            return nil
+        }
+
+        /// Home offers the missions button while a kid's open window has missions.
+        public var showsMissions: Bool { openWindow != nil }
+
+        /// The button's label (spec "Home button label per window"): "Missions", "Before Swimming",
+        /// "After School"; a name too long for one line falls back to "Missions".
+        public var missionsTitle: String {
+            guard let open = openWindow else { return L10n.tr("home.missions") }
+            let label: String
+            switch open.part {
+            case let .before(event): label = L10n.tr("home.missions.before", title(of: event, in: open.day))
+            case let .after(event): label = L10n.tr("home.missions.after", title(of: event, in: open.day))
+            case .morning, .evening: return L10n.tr("home.missions")
+            }
+            return label.count <= Self.longestMissionsTitle ? label : L10n.tr("home.missions")
+        }
+
+        /// The most characters that fit the 382 button with its arrow in head type.
+        static let longestMissionsTitle = 16
+
+        private func title(of event: EventRef, in day: KidDay) -> String {
+            day.slots.first { EventRef($0) == event }?.title ?? ""
         }
 
         /// Kid A's outing that the open window leads to, when it starts within 3 hours.
@@ -289,8 +320,9 @@ public struct HomeFeature {
                                                     routines: snapshot.routines, items: snapshot.items,
                                                     holidays: holidayDays, calendar: calendar),
                                after: -1),
-                           hasMissions: snapshot.missions.contains { $0.kid == kid.id })
+                           missions: snapshot.missions.filter { $0.kid == kid.id })
                 }
+                state.items = snapshot.items
                 state.busPlan = snapshot.kids.first.flatMap { kid in
                     snapshot.busPlans.route(kid: kid.id)?.graced(by: kid)
                 }

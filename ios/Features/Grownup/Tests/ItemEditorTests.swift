@@ -321,4 +321,80 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.whatRow.first, "cake")
         XCTAssertEqual(store.state.whatRow.count, 5)
     }
+
+    // MARK: Event form rows (spec "Event form rows for 6b")
+
+    func testFromAfterSchoolLinksTheItemAndHidesItsTrip() async {
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let store = store(mode: .add(kidA), saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await fill(store)
+        await store.send(.goingTapped(.walk))
+        XCTAssertEqual(store.state.fromText, "Home")
+        await store.send(.fromRowTapped)
+        XCTAssertEqual(store.state.card, .from)
+        XCTAssertEqual(store.state.fromCircles.map(\.caption), ["Home", "School"])
+        await store.send(.fromPicked("school"))
+        XCTAssertNil(store.state.card)
+        XCTAssertEqual(store.state.fromText, "After School")
+        XCTAssertEqual(store.state.linkedStartText, "after School")
+        XCTAssertEqual(store.state.form.start, 900)
+        XCTAssertNil(store.state.form.trip)
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.first?.after, .school)
+    }
+
+    func testBringCardPicksUpToFourAndATapOutsidePutsTheListBack() async {
+        let store = store(mode: .add(kidA))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.bringRowTapped)
+        await store.send(.bringToggled(.backpack))
+        await store.send(.bringToggled(.waterBottle))
+        await store.send(.bringDoneTapped)
+        XCTAssertEqual(store.state.form.bringText, "Backpack · Water bottle")
+        await store.send(.bringRowTapped)
+        await store.send(.bringMoreTapped)
+        XCTAssertGreaterThan(store.state.bringSlots.count, 3)
+        await store.send(.bringToggled(.lunchBox))
+        await store.send(.cardClosed)
+        XCTAssertEqual(store.state.form.bring.map(\.picture), ["backpack", "waterBottle"])
+    }
+
+    func testMissionsPageAddsEditsAndRemovesBeforeAndAfterMissions() async {
+        let store = store(mode: .add(kidA))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.missionsRowTapped)
+        XCTAssertTrue(store.state.isEditingMissions)
+        await store.send(.missionAddTapped(.after))
+        await store.send(.missionNameChanged("Hang swimsuit"))
+        await store.send(.missionPicturePicked("shirt"))
+        await store.send(.missionSaveTapped)
+        await store.send(.missionAddTapped(.before))
+        await store.send(.missionNameChanged("Goggles"))
+        await store.send(.missionSaveTapped)
+        XCTAssertEqual(store.state.form.missionsText, "Goggles · Hang swimsuit (after)")
+        let goggles = store.state.form.missionsBefore[0].id
+        await store.send(.missionRowTapped(goggles))
+        await store.send(.missionRemoveTapped)
+        XCTAssertEqual(store.state.missionRemoveTitle, "Remove Goggles?")
+        await store.send(.missionRemoveConfirmed)
+        XCTAssertEqual(store.state.form.missionsBefore, [])
+        await store.send(.missionsBackTapped)
+        XCTAssertFalse(store.state.isEditingMissions)
+    }
+
+    func testMedalSwitchNeedsATrip() async {
+        let store = store(mode: .add(kidA))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.medalToggled)
+        XCTAssertFalse(store.state.form.medalIsOn)
+        await store.send(.goingTapped(.car))
+        await store.send(.medalToggled)
+        XCTAssertTrue(store.state.form.medalIsOn)
+    }
 }

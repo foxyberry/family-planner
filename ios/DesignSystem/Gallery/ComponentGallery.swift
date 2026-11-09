@@ -66,6 +66,8 @@ public struct ComponentGallery: View {
                     PictureRow(slots: [.actSwim, .actArt, .actMusic, .actPiano, .actDance], selection: .constant(.actSwim),
                                all: [.actSwim, .actArt], isShowingAll: false, moreTitle: "More", moreLabel: "More pictures") {}
                     IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {}
+                    // Spec "Event form rows", Bring: several picks, up to 4.
+                    IconPicker(picked: [.backpack, .waterBottle], slots: [.backpack, .lunchBox, .waterBottle]) { _ in }
                     HStack(spacing: Spacing.xl) {
                         TimeLeft(minutes: 19)
                         TimeLeft(minutes: -2)

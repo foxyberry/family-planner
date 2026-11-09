@@ -20,6 +20,13 @@ public struct ItemEditorFeature {
         case leave, removeOnce, removeSeries
     }
 
+    /// The centred cards of the event rows (spec "Event form rows for 6b"); a tap outside cancels.
+    public enum Card: Equatable, Sendable {
+        case from
+        /// Bring, with the list as it was when the card opened (a tap outside puts it back).
+        case bring(was: [ItemMission])
+    }
+
     /// One tab under "For": a kid, or both kids.
     public struct AudienceTab: Equatable, Sendable {
         public var audience: Audience
@@ -105,6 +112,72 @@ public struct ItemEditorFeature {
         public var skippedDay: Day?
         /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
         public var draftID: ScheduleItem.ID?
+        /// The From or Bring card is open.
+        public var card: Card?
+        /// The Bring card shows the whole kit ("More").
+        public var isPickingMoreBring = false
+        /// The Missions sub-page is open in the form card, and the mission being edited on it.
+        public var isEditingMissions = false
+        public var missionDraft: MissionEditorFeature.Draft?
+        public var missionSection: ItemForm.MissionSection = .before
+
+        /// The From card's choices (Home, then events this item can follow).
+        public var fromChoices: [ItemForm.FromChoice] {
+            form.fromChoices(kids: snapshot?.kids ?? [], routines: snapshot?.routines ?? [],
+                             items: snapshot?.items ?? [], editing: editingItem?.id, today: today, calendar: calendar)
+        }
+
+        /// The From card's circles; the item's From is picked.
+        public var fromCircles: [ChoiceCircles.Choice] {
+            fromChoices.map { choice in
+                ChoiceCircles.Choice(id: Self.choiceID(choice.event), picture: KitSlot(rawValue: choice.picture),
+                                     caption: choice.title, isPicked: choice.event == form.after)
+            }
+        }
+
+        static func choiceID(_ event: EventRef?) -> String {
+            switch event {
+            case nil: "home"
+            case .school?: "school"
+            case let .item(id)?: id.uuidString
+            }
+        }
+
+        /// The linked event's name, for "After {event}".
+        private var afterTitle: String? {
+            guard let after = form.after else { return nil }
+            if let choice = fromChoices.first(where: { $0.event == after }) { return choice.title }
+            if case let .item(id) = after { return snapshot?.items.first { $0.id == id }?.title }
+            return L10n.tr("from.school")
+        }
+
+        /// The From row: "Home" or "After School".
+        public var fromText: String { afterTitle.map { L10n.tr("from.after", $0) } ?? L10n.tr("from.home") }
+        /// A linked item's start is not typed: "after School".
+        public var linkedStartText: String? { afterTitle.map { L10n.tr("from.start", $0) } }
+
+        /// The Bring card's pictures: the kit's bring group, or every picture after "More".
+        public var bringSlots: [KitSlot] { isPickingMoreBring ? KitSlot.allCases : Self.bringGroup }
+        public static let bringGroup: [KitSlot] = [.backpack, .lunchBox, .waterBottle]
+        public var bringPicked: Set<KitSlot> { Set(form.bring.compactMap { KitSlot(rawValue: $0.picture) }) }
+
+        /// "Missions · Swimming", the sub-page's header.
+        public var missionsTitle: String {
+            L10n.tr("missions.title", form.name.isEmpty ? L10n.tr("missions.title.new") : form.name)
+        }
+
+        /// Going / Leave show when the item starts from Home (C3g); a linked item has no trip.
+        public var showsGoing: Bool { form.after == nil }
+
+        /// "+ Add" in a Missions section, up to four.
+        public func canAddMission(_ section: ItemForm.MissionSection) -> Bool {
+            form.missions(section).count < ItemMission.most
+        }
+
+        public var missionRemoveTitle: String? {
+            guard let missionDraft, missionDraft.confirmsRemove else { return nil }
+            return L10n.tr("c5.remove.title", missionDraft.name)
+        }
 
         public init(mode: Mode, repeats: ItemForm.Repeat = .weekly, now: Date, calendar: Calendar) {
             self.mode = mode
@@ -287,6 +360,28 @@ public struct ItemEditorFeature {
         case busesRowTapped
         case skipSaved(ScheduleItem, skipped: Day?)
         case removeSeriesTapped
+        /// Event rows (spec "Event form rows for 6b"): From, Bring, Missions, Medal.
+        case fromRowTapped
+        case fromPicked(String)
+        case bringRowTapped
+        case bringToggled(KitSlot)
+        case bringMoreTapped
+        case bringDoneTapped
+        /// A tap outside a card: From closes, Bring puts the list back.
+        case cardClosed
+        case medalToggled
+        case missionsRowTapped
+        case missionsBackTapped
+        case missionAddTapped(ItemForm.MissionSection)
+        case missionRowTapped(ItemMission.ID)
+        case missionNameChanged(String)
+        case missionPicturePicked(String)
+        case missionDraftClosed
+        case missionSaveTapped
+        case missionRemoveTapped
+        case missionRemoveConfirmed
+        case missionRemoveCancelled
+        case missionMoved(ItemMission.ID, to: Int, in: ItemForm.MissionSection)
         case delegate(Delegate)
 
         @CasePathable
@@ -489,6 +584,101 @@ public struct ItemEditorFeature {
 
             case .removed:
                 return .send(.delegate(.finished))
+
+            case .fromRowTapped:
+                state.card = .from
+                return .none
+
+            case let .fromPicked(id):
+                if let choice = state.fromChoices.first(where: { State.choiceID($0.event) == id }) {
+                    state.form.setFrom(choice)
+                }
+                state.card = nil
+                return .none
+
+            case .bringRowTapped:
+                state.card = .bring(was: state.form.bring)
+                state.isPickingMoreBring = false
+                return .none
+
+            case let .bringToggled(slot):
+                state.form.toggleBring(slot.rawValue, id: uuid())
+                return .none
+
+            case .bringMoreTapped:
+                state.isPickingMoreBring.toggle()
+                return .none
+
+            case .bringDoneTapped:
+                state.card = nil
+                return .none
+
+            case .cardClosed:
+                if case let .bring(was) = state.card { state.form.bring = was }
+                state.card = nil
+                return .none
+
+            case .medalToggled:
+                state.form.toggleMedal()
+                return .none
+
+            case .missionsRowTapped:
+                state.isEditingMissions = true
+                return .none
+
+            case .missionsBackTapped:
+                state.isEditingMissions = false
+                state.missionDraft = nil
+                return .none
+
+            case let .missionAddTapped(section):
+                guard state.canAddMission(section) else { return .none }
+                state.missionSection = section
+                state.missionDraft = MissionEditorFeature.Draft(id: uuid(), name: "", picture: KitSlot.star.rawValue,
+                                                                isNew: true)
+                return .none
+
+            case let .missionRowTapped(id):
+                let section: ItemForm.MissionSection = state.form.missionsBefore.contains { $0.id == id } ? .before : .after
+                guard let mission = state.form.missions(section).first(where: { $0.id == id }) else { return .none }
+                state.missionSection = section
+                state.missionDraft = MissionEditorFeature.Draft(id: id, name: mission.name, picture: mission.picture,
+                                                                isNew: false)
+                return .none
+
+            case let .missionNameChanged(name):
+                state.missionDraft?.name = String(name.prefix(Mission.longestName))
+                return .none
+
+            case let .missionPicturePicked(picture):
+                state.missionDraft?.picture = picture
+                return .none
+
+            case .missionDraftClosed, .missionRemoveCancelled:
+                if state.missionDraft?.confirmsRemove == true { state.missionDraft?.confirmsRemove = false } else {
+                    state.missionDraft = nil
+                }
+                return .none
+
+            case .missionSaveTapped:
+                guard let draft = state.missionDraft, draft.canSave else { return .none }
+                state.form.saveMission(ItemMission(id: draft.id, name: draft.name.trimmingCharacters(in: .whitespaces),
+                                                   picture: draft.picture), in: state.missionSection)
+                state.missionDraft = nil
+                return .none
+
+            case .missionRemoveTapped:
+                state.missionDraft?.confirmsRemove = true
+                return .none
+
+            case .missionRemoveConfirmed:
+                if let id = state.missionDraft?.id { state.form.removeMission(id) }
+                state.missionDraft = nil
+                return .none
+
+            case let .missionMoved(id, index, section):
+                state.form.moveMission(id, to: index, in: section)
+                return .none
 
             case .delegate:
                 return .none

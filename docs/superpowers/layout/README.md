@@ -50,3 +50,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v21 (2026-11-09): no divider lines inside cards: C5 mission rows, S2s and S3 result lists (separated by space only). No geometry change.
 - v22 (2026-11-09): A1n redrawn with the night mapping (spec "Night mapping", board 0a2): moon-paper hub and plates, softer night text, the Diary button as a night control. Colours only, no geometry change.
 - v23 (2026-11-09): car and taxi redrawn (bubble car, option A, no cheeks) on C3g, S3, A2t-w and kit sheet 0d2. Pictures only, no geometry change.
+- v24 (2026-11-10): new board G2b (grown-up edit screen, lower rows): From, No school days, Bring, Missions, Medal as one-line rows on the E5 form lines (label 104, control 232, pitch 96, chevron at 814). The Medal switch (96 × 52) sits at x 232, y 774 (not in the JSON: drawn as a span). Use the rows for C3/C4/E5 in 6b; the side column tabs and the Runs / holidays rows are 6c/6d.

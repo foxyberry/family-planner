@@ -195,12 +195,21 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     /// "From: After {event}" (spec "Events: one shape"): the item starts when that event ends, at the
     /// same place, with no trip of its own; on a day without that event it is skipped too. nil: Home.
     public var after: EventRef?
+    /// Things to take (spec "Event form rows", Bring): checked before leaving, up to `ItemMission.most`.
+    public var bring: [ItemMission]
+    /// Missions in the window before leaving for this item, and after coming home from it.
+    public var missionsBefore: [ItemMission]
+    public var missionsAfter: [ItemMission]
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
                 recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
-                trip: Trip? = nil, after: EventRef? = nil) {
+                trip: Trip? = nil, after: EventRef? = nil, bring: [ItemMission] = [],
+                missionsBefore: [ItemMission] = [], missionsAfter: [ItemMission] = []) {
         self.trip = after == nil ? trip : nil
         self.after = after
+        self.bring = Array(bring.prefix(ItemMission.most))
+        self.missionsBefore = Array(missionsBefore.prefix(ItemMission.most))
+        self.missionsAfter = Array(missionsAfter.prefix(ItemMission.most))
         self.id = id
         self.title = title
         self.iconName = iconName
@@ -216,6 +225,29 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var isWeekly: Bool { if case .weekly = recurrence { true } else { false } }
 
     public var kind: SlotKind { isWeekly ? .afterSchool : .event }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, title, iconName, audience, start, end, recurrence, skippedDays, skipsHolidays, showsStar, trip, after,
+             bring, missionsBefore, missionsAfter
+    }
+
+    /// Items stored before Bring and the item missions existed load with none.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(id: try c.decode(UUID.self, forKey: .id), title: try c.decode(String.self, forKey: .title),
+                  iconName: try c.decode(String.self, forKey: .iconName),
+                  audience: try c.decode(Audience.self, forKey: .audience),
+                  start: try c.decode(Int.self, forKey: .start), end: try c.decode(Int.self, forKey: .end),
+                  recurrence: try c.decode(Recurrence.self, forKey: .recurrence),
+                  skippedDays: try c.decode(Set<Day>.self, forKey: .skippedDays),
+                  skipsHolidays: try c.decode(Bool.self, forKey: .skipsHolidays),
+                  showsStar: try c.decode(Bool.self, forKey: .showsStar),
+                  trip: try c.decodeIfPresent(Trip.self, forKey: .trip),
+                  after: try c.decodeIfPresent(EventRef.self, forKey: .after),
+                  bring: try c.decodeIfPresent([ItemMission].self, forKey: .bring) ?? [],
+                  missionsBefore: try c.decodeIfPresent([ItemMission].self, forKey: .missionsBefore) ?? [],
+                  missionsAfter: try c.decodeIfPresent([ItemMission].self, forKey: .missionsAfter) ?? [])
+    }
 }
 
 /// The three kinds of day a kid has a template for. A weekday school holiday uses `sunday`.
