@@ -30,6 +30,7 @@ public struct ComponentGallery: View {
                     HStack(spacing: Spacing.m) {
                         RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
                         RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
+                        RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(48)
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }

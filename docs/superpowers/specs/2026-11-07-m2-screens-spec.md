@@ -74,6 +74,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: slide knob motion made visible (user): the bus bobs 6 pt; the star gets a rig (trail + star parts, new move `dash`) and flies forward with its lines; all knob boards (0c2, A2, A2t, A3, A3r) animate.
 - 2026-11-09: bus 1st and 2nd choice (user): the 2nd (another direct bus or one that changes) shows faded on the same road, never switched to; Leave in and medals from the 1st. C2 redrawn (1st/2nd tags, Ride 2nd, link), new board C2c (change buses), A2 shows a faded 2nd. Layout v12.
 - 2026-11-09: S1–S4 build notes (PR #30): labels caption-size on one line; MOE question row fits in one row; S4 says Face ID only with the MarkerGlyph lock; unpicked face = colour dot; debug setup links need no unlock but Start over a family confirms; Data sources link at the foot of C1.
+- 2026-11-09: S1 remove-a-kid is a round × (RoundButton 48, MarkerGlyph.close) on the card corner with a confirm when the card has data; a face is required for Next (user); crayon rounded boxes keep 6 samples per corner. Layout v13.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -93,6 +94,8 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Drawing**: UI shapes are CrayonKit Shapes; pictures come from the kit only (`KitIcon`); the kid's own drawings swap into the same slot later. Motion 1.2 s, rigid parts; reduced motion = still.
 - **Privacy**: public repo uses Kid A / Kid B; no home, stops, routes, school names or keys; real family times stay on the canvas. Wolfie is public; the home drawing is not.
 - Parts: board 0b (controls), 0c (content), 0c2 (kid parts: `KidFace`, `MissionCircle`, `KidList`/`KidBand`, `NextRow`/`KidNowNext`, `WayCard`, `DonePill`).
+
+- **Crayon rounded boxes** (main session, 2026-11-09): every rounded rect keeps at least 6 outline samples per corner so corners draw round (at 12 pt sampling a 24 pt corner had only 3 and looked cut off). Small circles such as the 28 step dots use a calmer line: width 3, roughness 0.4.
 
 ### Grid and frame (iPad landscape 1376 × 1032 pt)
 - 12 columns of 82, gutter 24, margin 64 (`GridMetrics`). Column n (1-based) starts at x = 64 + (n − 1) × 106.
@@ -416,8 +419,8 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
 - **Latest lives on the school record**, for every way of going: late grace = Latest − Arrive by (0–30). The medal's L2 uses it whether the kid walks, rides or takes the bus; C2's "Late up to" row shows and edits the same value. The default 15 min applies only when no school was entered.
 - **S3 trip time**: by bus, the school trip's "leave before" = walk + ride, rounded up to 5 (the timetable look; the live look counts from the real bus). Walk, car, taxi: a "Leave {n} min before" stepper (default 10). S3 runs once per kid with a school, in tab order, header note "Step 3 of 4 · {Kid}".
 - **Data sources**: a grown-up screen with the data.gov.sg and OneMap attribution, opened from a "Data sources" link under the S2 school caption and from a caption link "Data sources" at the foot of C1 (Our kids), next to the action area.
-- **Row labels** on S2 and S3 (and every grown-up form) are caption-size semibold `softText` on one line in the 104–232 column, as on C2 ("Arrive by" wrapped in body type).
-- **Debug only**: "Load sample family" (confirm copy in "Seed data in M2"); links familyplanner://s1 … s4 open a setup step (s2–s4 prefilled with the sample family, no unlock, nothing saved unless Start is tapped; over an existing family Start asks the same "Replace your family…" confirm first).
+- **Row labels** on S2 and S3 (and every grown-up form) are caption bold (24, the app ships Playpen medium and bold only) `softText` on one line in the 104–232 column, as on C2 ("Arrive by" wrapped in body type).
+- **Debug only**: "Load sample family" (confirm copy in "Seed data in M2"); links familyplanner://s1 … s4 open a setup step (s2–s4 prefilled with the sample family, no unlock, nothing saved unless Start is tapped; over an existing family Start asks first: "Start over with this setup? The family on this iPad is replaced." with "Replace" (`lateText`) / "Cancel").
 - Joining a family from another iPad (sync, backlog) comes later. The "Start a new family / Join" choice is not shown yet.
 
 ### S1 · Family [board S1]
@@ -427,9 +430,9 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - "Colour": four swatches 56 (blue, orange, green, purple); picked = ring. Two kids never share a colour: picking a taken one swaps the two kids' colours.
   - "Face": `kidGirl` and `kidBoy` 64; picked = 72 ring. A face the kid draws is M6 (hidden).
   - Defaults: first kid blue, second orange; face not picked until tapped (the field shows the colour dot until then).
-- Under the cards: "Add a child" (plus 72 + link body) and the caption "One child? Every screen shows just one panel." Up to 4 kids (3–4 kids use the A2f family layout). A card after the first has "Remove" (caption bold, `lateText`) at its top right [proposed].
+- Under the cards: "Add a child" (plus 72 + link body) and the caption "One child? Every screen shows just one panel." Up to 4 kids (3–4 kids use the A2f family layout). **Remove a kid** (board S1, 2026-11-09, replaces the "Remove" text link): a `RoundButton` 48 with `MarkerGlyph.close` (× , two strokes M14 14 L34 34 M34 14 L14 34, width 5, ink, drawn 24) sits on each card's top-right corner, centred 12 in from the corner (x card right − 36, y card top − 12), overlapping the card edge; touch area 64. It shows on every card while there are 2 or more cards, and hides when only one is left. A card with nothing typed is removed at once; a card with a name or age asks first in a small card pointing at the ×: "Remove {name}?" with "Remove" (`lateText`) / "Keep". VoiceOver: "Remove {name}" ("Remove this child" while the name is empty).
 - Side column: the kit `home` picture 280, "This iPad is for the whole family." (head), "Names, ages and colours show on every screen." (body). The family's own home drawing is never used here.
-- "Next →" is off until every card has a name and an age. A face is optional: without one the kid shows as their colour dot inside the ring (`KidFace` with no face) until a face is picked.
+- "Next →" is off until every card has a name, an age and a face (user, 2026-11-09: a face is not optional). Until a face is picked the field shows the colour dot.
 
 ### S2 · School [boards S2 (picked), S2s (search open)]
 - Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1.
@@ -449,6 +452,8 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
 - Side column "Medals come from these times" (head): Gold, Silver and Bronze, each with its medal picture 64, the name (body bold) and one caption filled from the fields ("ready 5 min before it's time to leave", "ready when it's time to leave, in by {arrive by}", "ready in time to be in by {latest}"). Then: "Later than that: just "Ready!". No medal, and never a sad face." The rule itself is in "A2 live look", Medal.
 - Only the chosen school's id and the values the grown-up confirmed are stored, on the iPad. The app never sends which school was picked.
 - Data sources are shown on an About / Data sources screen (Singapore Open Data Licence attribution for data.gov.sg and OneMap). The international list ships only in the private build for now (user, 2026-11-09: the search exists to fill in term dates and hours, which come from each school's own site); before the app goes to other families, its names and addresses are rebuilt from the schools' own sites (backlog).
+- **Side column on the other tabs**: Preschool: "Drop-off and pick-up go on {Name}'s clock." (body) and "No medals for preschool. Missions are picture cards a grown-up taps." (caption). At home: "{Name}'s day is on the clock: naps, meals and play." (body) and "Change the times later in Our day." (caption). The medals list shows only on a School tab.
+- **Preschool picture**: kit `playground` until a `preschool` kit picture exists (next kit batch).
 - "Next →" goes to S3 for each kid with a school, in tab order. Kids without a school skip S3.
 
 ### S3 · Getting to school (new 2026-11-08) [board S3]

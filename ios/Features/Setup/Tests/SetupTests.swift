@@ -95,15 +95,35 @@ final class SetupTests: XCTestCase {
         XCTAssertEqual(store.state.kids.map(\.colorIndex), [1, 3])
     }
 
-    func testAtMostFourKidsAndTheFirstCardStays() async {
+    func testAtMostFourKids() async {
         let store = store()
         for _ in 0..<5 { await store.send(.addKidTapped) }
         XCTAssertEqual(store.state.kids.count, 4)
         XCTAssertEqual(Set(store.state.kids.map(\.colorIndex)), [0, 1, 2, 3])
+    }
+
+    /// Layout v13: any card has a × while there are two; an empty one goes at once, a typed one asks.
+    func testRemoveAKid() async {
+        let store = store()
+        XCTAssertFalse(store.state.canRemoveKids, "the only card has no ×")
         await store.send(.removeKidTapped(first))
-        XCTAssertEqual(store.state.kids.count, 4)
-        await store.send(.removeKidTapped(store.state.kids[3].id))
-        XCTAssertEqual(store.state.kids.count, 3)
+        XCTAssertEqual(store.state.kids.count, 1)
+        await store.send(.addKidTapped)
+        XCTAssertTrue(store.state.canRemoveKids)
+        await store.send(.nameChanged(first, "Kid A"))
+        await store.send(.removeKidTapped(first))
+        XCTAssertEqual(store.state.removeConfirm, first, "a card with a name asks first")
+        await store.send(.removeCancelled)
+        XCTAssertEqual(store.state.kids.count, 2)
+        await store.send(.removeKidTapped(first))
+        await store.send(.removeConfirmed)
+        XCTAssertEqual(store.state.kids.map(\.id), [store.state.kids[0].id])
+        XCTAssertNotEqual(store.state.kids.first?.id, first, "the first card can go too")
+        await store.send(.addKidTapped)
+        let empty = store.state.kids[1].id
+        await store.send(.removeKidTapped(empty))
+        XCTAssertNil(store.state.removeConfirm, "an empty card goes at once")
+        XCTAssertEqual(store.state.kids.count, 1)
     }
 
     func testSchoolSearchPicksAndPrefillsHoursFromTheWebsite() async {
