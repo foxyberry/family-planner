@@ -3025,6 +3025,17 @@
           }
         }
       }
+    },
+    "missions.way.there" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At %@ now"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

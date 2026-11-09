@@ -123,8 +123,8 @@ public struct MissionsView: View {
                     if let medal = done.medal {
                         DroppingMedal(medal, size: layout.doneMedal.width)
                     } else {
-                        CheckMark(isDone: true, size: layout.doneMedal.width * 0.6)
-                            .frame(width: layout.doneMedal.width, height: layout.doneMedal.height)
+                        // It plays its rig once when the done view appears.
+                        RiggedKitIcon(done.prize, size: layout.doneMedal.width, playID: store.confetti)
                     }
                 }
                 .place(layout.doneMedal)

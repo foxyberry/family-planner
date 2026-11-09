@@ -35,6 +35,9 @@ public struct MissionsFeature {
         public var medal: MedalKind?
         public var title: String
         public var subtitle: String?
+        /// With no medal (no time rule: no outing, or past the times), a prize picture instead of a
+        /// check (user, 2026-11-09: a crown). The kit has no crown yet, so the star stands in.
+        public var prize: KitSlot { .star }
     }
 
     /// The header's right side: "Leave in" / "{Place} in", the minutes, and the live status.
@@ -149,6 +152,16 @@ public struct MissionsFeature {
                 .min { $0.1.slot.start < $1.1.slot.start }
         }
 
+        /// Today's latest outing, of any kid, that has already started (user, 2026-11-09): the strip
+        /// keeps its road with the mover arrived instead of the empty look.
+        public var startedOuting: (kid: Kid, outing: Outing)? {
+            kids.flatMap { kid in
+                (slots[kid.id] ?? []).compactMap { slot in slot.trip.map { (kid, Outing(slot: slot, trip: $0)) } }
+            }
+            .filter { $0.1.slot.start <= minute }
+            .max { $0.1.slot.start < $1.1.slot.start }
+        }
+
         /// "leave at 7:25 am" under the chosen kid's name.
         /// On the live look it is now + "Leave in" for the kid whose bus it is (spec "Header right").
         public var leaveAt: String? {
@@ -161,13 +174,16 @@ public struct MissionsFeature {
 
         /// The mover sits at home 10 minutes before leaving and at the place at the start (clock only).
         public var way: Way? {
-            guard let (owner, outing) = familyOuting else { return nil }
+            let next = familyOuting
+            guard let (owner, outing) = next ?? startedOuting else { return nil }
             // By bus the one bus reaches our stop at "leave"; a car, taxi or walk leaves home at
-            // "leave" and reaches 1070 at the start.
-            let moverX = outing.trip.way == .bus || outing.trip.way == .shuttle
+            // "leave" and reaches 1070 at the start. Once it has started, the mover waits there.
+            let moverX = next == nil ? WayStrip.arrivedX
+                : outing.trip.way == .bus || outing.trip.way == .shuttle
                 ? WayStrip.liveX(minutes: outing.leave - minute)
                 : WayStrip.vehicleX(minute: minute, leave: outing.leave, start: outing.slot.start)
-            let wayLine = isBusFallback ? L10n.tr("missions.way.no_live", Self.wayPhrase(.bus))
+            let wayLine = next == nil ? L10n.tr("missions.way.there", outing.slot.title)
+                : isBusFallback ? L10n.tr("missions.way.no_live", Self.wayPhrase(.bus))
                 : Self.wayLine(outing.trip.way)
             let time = TimeText.withPeriod(outing.slot.start)
             // Only buses and shuttles stop on the way (spec A2-MVP "Way strip").
@@ -260,7 +276,7 @@ public struct MissionsFeature {
         }
 
         /// Board A3r: the chosen kid's done view in place of the missions (the medal and "Gold!" /
-        /// "Ready in good time!", or the check and "Ready!" with no medal).
+        /// "Ready in good time!", or the prize picture and "Ready!" with no medal).
         public var done: Done? {
             guard let chosen, day(of: chosen).ready else { return nil }
             switch day(of: chosen).medal {
@@ -271,7 +287,7 @@ public struct MissionsFeature {
             case .bronze?: return Done(medal: .bronze, title: L10n.tr("missions.done.bronze"),
                                        subtitle: L10n.tr("missions.done.in_time"))
             case .none?, nil:
-                // No medal: the check and "Ready!"; a kid with no outing hears "All done for the morning!".
+                // No medal: the prize picture and "Ready!"; a kid with no outing hears "All done for the morning!".
                 return Done(medal: nil, title: L10n.tr("missions.ready"),
                             subtitle: hasOuting ? nil : L10n.tr("missions.done.all_done"))
             }

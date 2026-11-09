@@ -28,6 +28,11 @@ public struct HomeLayout: Equatable, Sendable {
     public func kidBadge(top: CGFloat) -> CGRect { CGRect(x: panelLeft, y: sizing.y(top), width: 48 * s, height: 48 * s) }
     public var kidNameLeft: CGFloat { sizing.left(992) }
     public func kidNameBaseline(top: CGFloat) -> CGFloat { sizing.y(top + 24) }
+    /// The name's box beside the badge, as tall as the badge, so the name sits on its middle
+    /// (user, 2026-11-09: the baseline on the badge's middle put the name too high).
+    public func kidName(top: CGFloat) -> CGRect {
+        CGRect(x: kidNameLeft, y: sizing.y(top), width: panelRight - kidNameLeft, height: 48 * s)
+    }
 
     // Kid A block (badge at 163)
     public let kidATop: CGFloat = 163

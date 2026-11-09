@@ -58,8 +58,9 @@ public struct HomeFeature {
         public var winks = 0
         /// Spec "Picture rigs": a play id per drawn slot start; a slot plays when its id goes up.
         public var plays: [Int: Int] = [:]
-        /// True for the 1.2 s of a play; taps meanwhile are ignored.
-        public var isPlaying = false
+        /// Slots playing now (1.2 s each). Every tapped picture plays at once (user, 2026-11-09); a
+        /// tap on a picture that is still playing does not restart it.
+        public var playing: Set<Int> = []
 
         /// Board A1n: the kid screens follow the clock kid's (the first kid's) evening and wake-up.
         public var plannedLook: KidLook {
@@ -174,7 +175,7 @@ public struct HomeFeature {
         case touched
         /// The kid tapped the drawn slot that starts at this minute.
         case slotTapped(Int)
-        case playEnded
+        case playEnded(Int)
         /// "Missions →" in the mission morning; the app opens the missions screen.
         case missionsTapped
         case refresh
@@ -291,16 +292,16 @@ public struct HomeFeature {
 
             case let .slotTapped(start):
                 state.idleSeconds = 0
-                guard !state.isPlaying else { return .none }
+                guard !state.playing.contains(start) else { return .none }
                 state.plays[start, default: 0] += 1
-                state.isPlaying = true
+                state.playing.insert(start)
                 return .run { [clock] send in
                     try await clock.sleep(for: .milliseconds(1200))
-                    await send(.playEnded)
+                    await send(.playEnded(start))
                 }
 
-            case .playEnded:
-                state.isPlaying = false
+            case let .playEnded(start):
+                state.playing.remove(start)
                 return .none
 
             case .missionsTapped:

@@ -117,8 +117,9 @@ public struct HomeView: View {
                     size: layout.kidBadge(top: top).width)
                 .accessibilityHidden(true)
                 .place(layout.kidBadge(top: top))
-            Text(kid.name).crayonType(.head).foregroundStyle(store.look.ink)
-                .place(left: layout.kidNameLeft, baseline: layout.kidNameBaseline(top: top))
+            Text(kid.name).crayonType(.head).foregroundStyle(store.look.ink).lineLimit(1)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .place(layout.kidName(top: top))
         }
     }
 

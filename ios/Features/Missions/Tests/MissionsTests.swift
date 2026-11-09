@@ -222,12 +222,15 @@ final class MissionsTests: XCTestCase {
         await store.send(.backTapped)
     }
 
-    /// After the last outing has started there is no way left: the strip shows its empty look.
-    func testNoOutingLeftHasNoWay() async {
+    /// After the last outing has started the strip keeps its road with the mover arrived
+    /// (user, 2026-11-09), for every kid; nothing counts down and no kid has a leave time.
+    func testAStartedOutingKeepsItsRoad() async {
         let store = store(on: tuesday, minute: 11 * 60)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertNil(store.state.way)
+        XCTAssertEqual(store.state.way?.place, "School")
+        XCTAssertEqual(store.state.way?.moverX, WayStrip.arrivedX)
+        XCTAssertEqual(store.state.way?.cardCaption, "At School now")
         XCTAssertNil(store.state.leaveAt)
     }
 
