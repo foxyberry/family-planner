@@ -98,6 +98,10 @@ public struct OurDayView: View {
                 }
                 tomorrow
             }
+            // Board C6: "Changes start tomorrow." on baseline 850, so its descenders stay above the
+            // paper behind the Save button (the line box is the type's own height, spec "Line height
+            // is total").
+            .padding(.bottom, Spacing.xs)
         }
     }
 
