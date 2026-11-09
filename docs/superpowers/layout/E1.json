@@ -1,5 +1,5 @@
 {
- "version": "6",
+ "version": "8",
  "board": "E1",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -53,11 +53,13 @@
    "kidAName": 187,
    "kidAFirstLine": 301,
    "timeLeft": 402,
-   "status": 446,
-   "kidBName": 584,
-   "nowNextCaptions": 825
+   "status": 446
   },
-  "nowNextBottom": 792
+  "kidBRule": {
+   "gapBelowKidA": 40,
+   "lowestNameBaseline": 584,
+   "note": "Kid B block (name, now/next circles, captions) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584"
+  }
  },
  "regions": {
   "skySwitch": {

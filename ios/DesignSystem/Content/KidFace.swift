@@ -29,19 +29,25 @@ public struct KidFace: View {
     private let badge: Badge
     private let size: CGFloat
     private let name: String
+    private let showsRing: Bool
 
-    public init(_ badge: Badge, name: String, size: CGFloat = KidFace.large) {
+    /// `showsRing: false` inside a progress ring (the morning kid list), where the kid's colour
+    /// appears only as missions get done (user, 2026-11-09).
+    public init(_ badge: Badge, name: String, size: CGFloat = KidFace.large, showsRing: Bool = true) {
         self.badge = badge
         self.size = size
         self.name = name
+        self.showsRing = showsRing
     }
 
     public var body: some View {
         ZStack {
-            CrayonSurface(.circle, fill: nil,
-                          marker: MarkerStyle(width: size * 0.09, roughness: 0.6, bowing: 0.6),
-                          markerColor: CrayonColor.kid(badge.colorIndex),
-                          seed: CrayonStyle.Seed.kidFace + UInt32(max(0, badge.colorIndex)))
+            if showsRing {
+                CrayonSurface(.circle, fill: nil,
+                              marker: MarkerStyle(width: size * 0.09, roughness: 0.6, bowing: 0.6),
+                              markerColor: CrayonColor.kid(badge.colorIndex),
+                              seed: CrayonStyle.Seed.kidFace + UInt32(max(0, badge.colorIndex)))
+            }
             KitIcon(KitSlot(iconName: badge.face), size: size * 0.86)
         }
         .frame(width: size, height: size)

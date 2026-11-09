@@ -65,19 +65,21 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.message, "School hours are set in School.")
     }
 
-    func testFreeTimeThenFillThenUndo() async {
+    func testFreeTimeThenFillThenUndo() async throws {
         let store = await loaded()
         let play = store.state.edit.blocks.first { $0.title == "Play" }!
         await store.send(.sliceTapped(start: play.start))
         XCTAssertTrue(store.state.canMakeFree)
         await store.send(.makeFreeTapped)
         XCTAssertEqual(store.state.selectedBlock?.kind, .free)
-        await store.send(.plusTapped(start: play.start))
+        // The freed Play joins the free time before it; the plus sits on the joined slice.
+        let free = try XCTUnwrap(store.state.selectedBlock)
+        await store.send(.plusTapped(start: free.start))
         XCTAssertNotNil(store.state.newSlice)
         await store.send(.binding(.set(\.newSlice, .init(block: store.state.newSlice!.block, name: "Piano",
                                                           iconName: "actPiano"))))
         await store.send(.newSliceAddTapped)
-        XCTAssertEqual(store.state.selectedBlock?.title, "Piano")
+        XCTAssertEqual(store.state.edit.blocks.first { $0.start == free.start }?.title, "Piano")
         await store.send(.undoTapped)
         await store.send(.undoTapped)
         XCTAssertEqual(store.state.edit.blocks.first { $0.start == play.start }?.title, "Play")
@@ -110,5 +112,14 @@ final class OurDayTests: XCTestCase {
         await store.receive(\.delegate.finished)
         XCTAssertEqual(saved.value.first?.from, Day(year: 2026, month: 11, day: 11))
         XCTAssertEqual(saved.value.first?.blocks.first { $0.title == "Dinner" }?.end, 1170)
+    }
+
+    /// A picture sets the new slice's kind: the sleep pictures make sleep, so a deleted Sleep can come back.
+    func testPictureGivesTheSliceKind() {
+        XCTAssertEqual(OurDayFeature.kind(forPicture: "actSleep"), .sleep)
+        XCTAssertEqual(OurDayFeature.kind(forPicture: "actDinner"), .dinner)
+        XCTAssertEqual(OurDayFeature.kind(forPicture: "actPiano"), .afterSchool)
+        XCTAssertEqual(OurDayFeature.kind(forPicture: "blocks"), .play)
+        XCTAssertTrue(OurDayFeature.pictures.contains(.actSleep))
     }
 }

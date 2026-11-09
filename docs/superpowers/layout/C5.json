@@ -1,5 +1,5 @@
 {
- "version": "6",
+ "version": "8",
  "board": "C5",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -288,20 +288,6 @@
    "align": "inside"
   },
   {
-   "id": "side.line.6",
-   "kind": "text",
-   "x": 930,
-   "y": 597,
-   "w": 138,
-   "h": 54,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 639,
-   "font": 36,
-   "text": "Evening"
-  },
-  {
    "id": "main.button.5",
    "kind": "button",
    "x": 104,
@@ -311,19 +297,6 @@
    "region": "main",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "side.line.7",
-   "kind": "text",
-   "x": 930,
-   "y": 658,
-   "w": 346,
-   "h": 83,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 730,
-   "font": 30
   },
   {
    "id": "main.button.6",
@@ -364,12 +337,12 @@
    "kind": "text",
    "x": 104,
    "y": 885,
-   "w": 718,
-   "h": 67,
+   "w": 498,
+   "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 944,
+   "baseline": 913,
    "font": 24
   }
  ]

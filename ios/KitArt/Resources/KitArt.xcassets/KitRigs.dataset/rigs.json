@@ -685,6 +685,27 @@
     }
    }
   },
+  "crown": {
+   "runs": [
+    {
+     "image": "rig-crown-0",
+     "part": "crown"
+    }
+   ],
+   "parts": {
+    "crown": {
+     "origin": [
+      120,
+      130
+     ],
+     "moves": [
+      {
+       "type": "twinkle"
+      }
+     ]
+    }
+   }
+  },
   "sun": {
    "runs": [
     {

@@ -12,6 +12,7 @@ public struct SlideToGo: View {
     private let onGo: () -> Void
     private let onUndo: (() -> Void)?
     private let knob: KitSlot
+    private let doneKnob: KitSlot?
     @State private var isHeld = false
     @State private var hops = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -23,9 +24,12 @@ public struct SlideToGo: View {
 
     /// `onUndo`: dragging the knob back past the middle from done (spec "After the slide").
     /// `knob`: the way picture (bus, car, shoe) or the star sticker for a kid with no outing.
+    /// `doneKnob`: when done, this picture without the check (A3r: the crown with no medal).
     public init(state: SlideToGoModel.Phase, idleTitle: String, doneTitle: String,
-                knob: KitSlot = .busDouble, onUndo: (() -> Void)? = nil, onGo: @escaping () -> Void) {
+                knob: KitSlot = .busDouble, doneKnob: KitSlot? = nil, onUndo: (() -> Void)? = nil,
+                onGo: @escaping () -> Void) {
         self.knob = knob
+        self.doneKnob = doneKnob
         self.onUndo = onUndo
         self.state = state
         _model = State(initialValue: SlideToGoModel(phase: state))
@@ -103,10 +107,12 @@ public struct SlideToGo: View {
     /// The knob: rolls and rocks while held; at the end it hops once and keeps a check badge
     /// (board A3r). Reduce Motion: still.
     @ViewBuilder private func handle(roll: CGFloat) -> some View {
-        RollingKitIcon(knob, size: isDone ? handleSize * 0.75 : handleSize, roll: roll, isHeld: isHeld)
+        let prize = isDone ? doneKnob : nil
+        RollingKitIcon(prize ?? knob, size: isDone && prize == nil ? handleSize * 0.75 : handleSize, roll: roll,
+                       isHeld: isHeld)
             .frame(width: handleSize, height: handleSize)
             .overlay(alignment: .bottomTrailing) {
-                if isDone { CheckMark(isDone: true, size: handleSize * 0.45) }
+                if isDone, prize == nil { CheckMark(isDone: true, size: handleSize * 0.45) }
             }
             .keyframeAnimator(initialValue: 0.0, trigger: reduceMotion ? 0 : hops) { view, lift in
                 view.offset(y: -lift)

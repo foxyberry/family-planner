@@ -10,10 +10,6 @@ import SwiftUI
 public struct OurDayView: View {
     @Bindable var store: StoreOf<OurDayFeature>
 
-    /// Pictures offered for a new slice over free time.
-    static let pictures: [KitSlot] = [.actPlay, .blocks, .snack, .actStory, .homework, .actMusic, .actPiano, .tv,
-                                      .playground, .actArt]
-
     public init(store: StoreOf<OurDayFeature>) {
         self.store = store
     }
@@ -86,7 +82,7 @@ public struct OurDayView: View {
             CrayonTabs(selection: Binding(get: { store.dayType }, set: { store.send(.dayTypeTapped($0)) }),
                        items: [(DayType.weekday, L10n.tr("day.type.weekday"), nil),
                                (.saturday, L10n.tr("day.type.saturday"), nil),
-                               (.sunday, L10n.tr("day.type.sunday"), nil)])
+                               (.sunday, L10n.tr("day.type.sunday"), nil)], compact: true)
                 .fixedSize(horizontal: false, vertical: true)
             if store.showsHolidayNote {
                 Text(L10n.tr("day.sun_holidays")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
@@ -114,9 +110,13 @@ public struct OurDayView: View {
             VStack(alignment: .leading, spacing: Spacing.s) {
                 CrayonField(L10n.tr("day.new.name"), text: Binding(get: { slice.name },
                                                                    set: { store.newSlice?.name = $0 }))
-                IconPicker(selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
-                                              set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
-                           slots: Self.pictures)
+                // Every picture, three per row in the side card; the grid scrolls inside its 3 rows.
+                ScrollView {
+                    IconPicker(selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
+                                                  set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
+                               slots: OurDayFeature.pictures, columns: 3)
+                }
+                .frame(height: 3 * 88 + 2 * Spacing.s)
                 InkButton(L10n.tr("day.new.add")) { store.send(.newSliceAddTapped) }
                     .opacity(store.canAddNewSlice ? 1 : 0.4)
                     .disabled(!store.canAddNewSlice)

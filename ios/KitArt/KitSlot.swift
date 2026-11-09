@@ -21,7 +21,7 @@ public enum KitSlot: String, CaseIterable, Sendable {
     case busSinglePax1, busSinglePax2, busSinglePax3, busDoublePax1, busDoublePax2, busDoublePax3
     case busMiniPax1, busMiniPax2, busMiniPax3
     // Rewards and events
-    case medalGold, medalSilver, medalBronze, star, cake, doctor, home
+    case medalGold, medalSilver, medalBronze, star, crown, cake, doctor, home
     // Feelings and energy
     case feelVeryHappy, feelHappy, feelOK, feelSad, feelVerySad
     case energyLots, energyGood, energyTired, energyNone

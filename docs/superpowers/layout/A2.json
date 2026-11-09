@@ -1,5 +1,5 @@
 {
- "version": "6",
+ "version": "8",
  "board": "A2",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -632,7 +632,7 @@
    "id": "bottom.knob",
    "kind": "mover",
    "x": 473,
-   "y": 889,
+   "y": 888,
    "w": 61,
    "h": 61,
    "region": "bottom",

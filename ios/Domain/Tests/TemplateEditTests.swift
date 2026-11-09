@@ -57,15 +57,18 @@ final class TemplateEditTests: XCTestCase {
         let start = edit
         var edit = edit
         let play = edit.blocks.firstIndex { $0.title == "Play" }!
-        edit.makeFree(play)
-        XCTAssertEqual(edit.blocks[play].kind, .free)
-        XCTAssertEqual(edit.blocks[play].iconName, "")
-        edit.fill(play, title: "Piano", iconName: "actPiano", kind: .play)
-        XCTAssertEqual(edit.blocks[play].title, "Piano")
-        XCTAssertEqual(edit.blocks[play].start, 1020)
+        let playStart = edit.blocks[play].start
+        let free = edit.makeFree(play)
+        XCTAssertEqual(edit.blocks[free].kind, .free)
+        XCTAssertEqual(edit.blocks[free].iconName, "")
+        let freeStart = edit.blocks[free].start
+        edit.fill(free, title: "Piano", iconName: "actPiano", kind: .play)
+        XCTAssertEqual(edit.blocks[free].title, "Piano")
+        XCTAssertEqual(edit.blocks[free].start, freeStart)
+        XCTAssertLessThanOrEqual(freeStart, playStart)
         XCTAssertTrue(edit.isChanged)
         edit.undo()
-        XCTAssertEqual(edit.blocks[play].kind, .free)
+        XCTAssertEqual(edit.blocks[free].kind, .free)
         edit.undo()
         XCTAssertEqual(edit.blocks, start.blocks)
         XCTAssertFalse(edit.isChanged)
@@ -75,5 +78,36 @@ final class TemplateEditTests: XCTestCase {
         var edit = edit
         edit.makeFree(edit.blocks.firstIndex { $0.kind == .school }!)
         XCTAssertFalse(edit.isChanged)
+    }
+
+    /// User, 2026-11-09: slices come and go. A new one takes the first hour of free time and leaves
+    /// the rest free; freeing a slice joins it with the free time beside it.
+    func testSlicesGrowAndShrink() {
+        var edit = edit
+        let count = edit.blocks.count
+        let play = edit.blocks.firstIndex { $0.title == "Play" }!
+        let slot = edit.makeFree(play)
+        let freed = edit.blocks.count
+        XCTAssertLessThanOrEqual(freed, count)
+        let span = (edit.blocks[slot].start, edit.blocks[slot].end)
+        edit.fill(slot, title: "Piano", iconName: "actPiano", kind: .afterSchool, length: 30)
+        XCTAssertEqual(edit.blocks.count, freed + 1)
+        XCTAssertEqual(edit.blocks[slot].end, span.0 + 30)
+        XCTAssertEqual(edit.blocks[slot + 1].kind, .free)
+        XCTAssertEqual(edit.blocks[slot + 1].end, span.1)
+        // Freeing Piano joins it with the free time after it: one free slice again.
+        let free = edit.makeFree(slot)
+        XCTAssertEqual(edit.blocks.count, freed)
+        XCTAssertEqual(edit.blocks[free].start, span.0)
+        XCTAssertEqual(edit.blocks[free].end, span.1)
+    }
+
+    /// Free time shorter than 15 minutes after the new slice goes to the new slice.
+    func testFillTakesAShortRemainder() {
+        var edit = edit
+        let slot = edit.makeFree(edit.blocks.firstIndex { $0.title == "Play" }!)
+        let end = edit.blocks[slot].end
+        edit.fill(slot, title: "Piano", iconName: "actPiano", kind: .play, length: end - edit.blocks[slot].start - 10)
+        XCTAssertEqual(edit.blocks[slot].end, end)
     }
 }

@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import DesignSystem
 import Domain
+import KitArt
 import Foundation
 import ScheduleStore
 import Strings
@@ -11,6 +12,31 @@ import Strings
 @Reducer
 public struct OurDayFeature {
     /// A new slice being filled in over a free span ("+").
+    /// Every picture a day slice can have (user, 2026-11-09: all of them, sleep too), in day order.
+    public static let pictures: [KitSlot] = [
+        .actSleep, .pyjamas, .teddy, .sun, .toilet, .toothbrush, .washFace, .hairBrush, .shirt, .actBreakfast,
+        .milk, .backpack, .shoe, .actSchool, .homework, .actPlay, .blocks, .playground, .snack, .tv, .actStory,
+        .actCCA, .actArt, .actMusic, .actPiano, .actDance, .actFootball, .actSwim, .actLanguageSchool, .actChurch,
+        .actDinner, .actShower, .cake, .doctor,
+    ]
+
+    /// The slice kind a picture gives (its colour on the clock and the night look's sleep): the
+    /// sleep pictures make sleep, dinner makes dinner, and so on; anything else is play.
+    public static func kind(forPicture name: String) -> SlotKind {
+        switch KitSlot(rawValue: name) {
+        case .actSleep?, .pyjamas?, .teddy?: .sleep
+        case .sun?, .toilet?, .toothbrush?, .washFace?, .hairBrush?, .shirt?, .actBreakfast?, .milk?, .backpack?,
+             .shoe?: .morning
+        case .actSchool?, .homework?: .school
+        case .actCCA?, .actArt?, .actMusic?, .actPiano?, .actDance?, .actFootball?, .actSwim?, .actLanguageSchool?,
+             .actChurch?: .afterSchool
+        case .actDinner?: .dinner
+        case .actShower?: .evening
+        case .cake?, .doctor?: .event
+        default: .play
+        }
+    }
+
     public struct NewSlice: Equatable, Sendable {
         public var block: Int
         public var name: String
@@ -232,7 +258,8 @@ public struct OurDayFeature {
 
             case .makeFreeTapped:
                 guard let block = state.selected else { return .none }
-                state.edit.makeFree(block)
+                // Freed time joins the free time beside it; the joined slice stays selected.
+                state.selected = state.edit.makeFree(block)
                 return .none
 
             case let .newSlicePicturePicked(name):
@@ -242,7 +269,7 @@ public struct OurDayFeature {
             case .newSliceAddTapped:
                 guard state.canAddNewSlice, let slice = state.newSlice, let icon = slice.iconName else { return .none }
                 state.edit.fill(slice.block, title: slice.name.trimmingCharacters(in: .whitespaces), iconName: icon,
-                                kind: .play)
+                                kind: Self.kind(forPicture: icon))
                 state.newSlice = nil
                 return .none
 

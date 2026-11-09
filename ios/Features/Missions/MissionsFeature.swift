@@ -35,9 +35,9 @@ public struct MissionsFeature {
         public var medal: MedalKind?
         public var title: String
         public var subtitle: String?
-        /// With no medal (no time rule: no outing, or past the times), a prize picture instead of a
-        /// check (user, 2026-11-09: a crown). The kit has no crown yet, so the star stands in.
-        public var prize: KitSlot { .star }
+        /// With no medal (no time rule: no outing, or slid after L2), the crown instead of a check
+        /// (user, 2026-11-09; spec A3r).
+        public var prize: KitSlot { .crown }
     }
 
     /// The header's right side: "Leave in" / "{Place} in", the minutes, and the live status.
@@ -376,6 +376,12 @@ public struct MissionsFeature {
         /// "Ready? Slide to go" for a kid with an outing, "All done? Slide!" otherwise (board A3).
         public var slideTitle: String {
             hasOuting ? L10n.tr("missions.slide") : L10n.tr("missions.slide.all_done")
+        }
+
+        /// The done knob for a kid ready without a medal: the crown in place of the knob and its check.
+        public var slideDoneKnob: KitSlot? {
+            guard let chosen, day(of: chosen).ready, day(of: chosen).medal == nil else { return nil }
+            return .crown
         }
 
         /// The knob: the way picture for a kid with an outing, the star sticker otherwise.

@@ -95,7 +95,8 @@ struct DebugBubble: View {
 /// screens), and the bands 48 / 128 / 176 / 516 / 536 / 872 / 968; baselines 107 / 584 / 757 dashed.
 /// The board lines a screen family shares (docs/superpowers/layout/README.md).
 public enum GridLines: Sendable {
-    /// Home (layout v5 panel lines): 64, 448, 928, 1312; baselines 132 … 825, circles' bottom 792.
+    /// Home: 64, 448, 928, 1312; Kid A's fixed baselines 132 … 446 and Kid B's lowest name line 584
+    /// (Kid B moves with Kid A's block, layout v8).
     case home
     /// Morning: 64, 172, 448, 1312; the header, strip and bottom bands, baselines 107 / 584 / 757.
     case morning
@@ -146,7 +147,7 @@ struct LayoutGridOverlay: View {
 
     private var bands: [CGFloat] {
         switch lines {
-        case .home: [96, 792, 872, 968].map(sizing.y)
+        case .home: [96, 872, 968].map(sizing.y)
         case .morning: [48, 128, 176, 516, 536, 872, 968].map(sizing.y)
         case .grownup: [48, 128, 176, 872, 968].map(sizing.y)
         }
@@ -154,7 +155,7 @@ struct LayoutGridOverlay: View {
 
     private var baselines: [CGFloat] {
         switch lines {
-        case .home: [132, 187, 301, 402, 446, 584, 825].map(sizing.y)
+        case .home: [132, 187, 301, 402, 446, 584].map(sizing.y)
         case .morning: [107, 584, 757].map(sizing.y)
         case .grownup: [107].map(sizing.y)
         }

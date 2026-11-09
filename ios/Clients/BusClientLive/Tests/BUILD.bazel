@@ -6,6 +6,7 @@ fp_swift_library(
     name = "BusClientLiveTestsLib",
     testonly = True,
     deps = [
+        "//ios/Clients/BusClient",
         "//ios/Clients/BusClientLive",
         "//ios/Domain",
     ],

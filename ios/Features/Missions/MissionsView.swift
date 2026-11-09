@@ -85,7 +85,7 @@ public struct MissionsView: View {
             CrayonRing(progress: row.progress, colorIndex: row.kid.colorIndex, size: layout.kidRing(index).width)
                 .place(layout.kidRing(index))
             KidFace(KidFace.Badge(face: row.kid.face, colorIndex: row.kid.colorIndex), name: row.kid.name,
-                    size: layout.kidFace(index).width)
+                    size: layout.kidFace(index).width, showsRing: false)
                 .place(layout.kidFace(index))
             if let medal = row.medal {
                 // Board A3: the medal badge on the ring's lower right, dropping in once.
@@ -156,7 +156,7 @@ public struct MissionsView: View {
 
     @ViewBuilder private func bottomControl(_ layout: MorningLayout) -> some View {
         if let kid = store.chosenKid {
-            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: L10n.tr("missions.ready"), knob: store.slideKnob,
+            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: L10n.tr("missions.ready"), knob: store.slideKnob, doneKnob: store.slideDoneKnob,
                       onUndo: { store.send(.slideUndone) }) {
                 ticks += 1
                 store.send(.slid)

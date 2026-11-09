@@ -87,6 +87,12 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(TimeLeft(minutes: -2), named: "minus2")
     }
 
+    /// Board A3r: a kid ready with no medal has the crown on the done knob, no check.
+    func testSlideToGoDoneWithCrown() {
+        snap(SlideToGo(state: .done, idleTitle: "Slide", doneTitle: "Ready!", knob: .star, doneKnob: .crown) {},
+             width: Self.rowWidth)
+    }
+
     func testSlideToGoStates() {
         let states: [(String, SlideToGoModel.Phase)] = [
             ("idle", .idle), ("dragging", .dragging(progress: 0.5)), ("done", .done),
