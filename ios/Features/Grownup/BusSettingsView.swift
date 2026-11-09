@@ -32,7 +32,7 @@ public struct BusSettingsView: View {
             Text(L10n.tr("c2.for", store.kidName)).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             ListRow(leading: L10n.tr("c2.stop")) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    CrayonField(L10n.tr("c2.stop.hint"),
+                    CrayonField(L10n.tr("c2.stop.placeholder"),
                                 text: Binding(get: { store.stop }, set: { store.send(.stopChanged($0)) }))
                         .keyboardType(.numberPad)
                         .frame(width: 240)

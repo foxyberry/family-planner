@@ -6,10 +6,13 @@ import SwiftUI
 public struct CrayonTabs<ID: Hashable>: View {
     @Binding private var selection: ID
     private let items: [(ID, String, KidFace.Badge?)]
+    private let inset: CGFloat
 
-    public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)]) {
+    /// `compact`: 16 inside each tab instead of 24, so three short tabs fit the 382 side column (C6).
+    public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)], compact: Bool = false) {
         _selection = selection
         self.items = items
+        inset = compact ? Spacing.s : Spacing.m
     }
 
     public var body: some View {
@@ -21,10 +24,11 @@ public struct CrayonTabs<ID: Hashable>: View {
                         if let badge = item.2 {
                             KidFace(badge, name: item.1, size: KidFace.medium).accessibilityHidden(true)
                         }
-                        Text(item.1).crayonType(.body)
+                        // A tab label never wraps ("Mon–Fri" split over two lines on C6).
+                        Text(item.1).crayonType(.body).lineLimit(1).fixedSize()
                     }
                     .foregroundStyle(CrayonColor.ink)
-                    .padding(.horizontal, Spacing.m)
+                    .padding(.horizontal, inset)
                     .frame(minHeight: 72)
                     .crayonBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))

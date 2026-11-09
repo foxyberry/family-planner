@@ -54,8 +54,7 @@ public struct ItemEditorView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: store.title, caption: L10n.tr("editor.caption"),
-                      onBack: { store.send(.backTapped) })
+        GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
     }
 
     // MARK: Form

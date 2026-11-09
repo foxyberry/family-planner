@@ -117,7 +117,6 @@ public struct MissionEditorView: View {
             if store.showsCardsNote {
                 Text(L10n.tr("c5.cards_note")).crayonType(.body).foregroundStyle(CrayonColor.ink)
             }
-            Text(L10n.tr("c5.evening")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
         }
     }
 
