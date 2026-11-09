@@ -1,7 +1,0 @@
-load("//ios:build_defs.bzl", "fp_swift_library")
-
-fp_swift_library(
-    name = "SecretStoreLive",
-    visibility = ["//ios:__pkg__"],
-    deps = ["//ios/Clients/SecretStore"],
-)

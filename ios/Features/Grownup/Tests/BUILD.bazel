@@ -9,7 +9,6 @@ fp_swift_library(
         "//ios/Clients/BusClient",
         "//ios/Clients/HolidayProvider",
         "//ios/Clients/ScheduleStore",
-        "//ios/Clients/SecretStore",
         "//ios/DesignSystem",
         "//ios/Domain",
         "//ios/Features/Grownup",

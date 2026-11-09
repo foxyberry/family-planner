@@ -5,7 +5,6 @@ import Domain
 import Foundation
 import HolidayProvider
 import ScheduleStore
-import SecretStore
 import Strings
 
 /// The kids' home screen: each kid's slots for today and the time now (boards A1, E1, E3).
@@ -188,7 +187,6 @@ public struct HomeFeature {
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
     @Dependency(\.bus) var bus
-    @Dependency(\.secrets) var secrets
 
     public init() {}
 
@@ -227,9 +225,8 @@ public struct HomeFeature {
             case .refresh:
                 state.secondsSinceRefresh = 0
                 guard state.wantsLive, let plan = state.busPlan else { return .none }
-                return .run { [bus, secrets, date] send in
-                    guard let key = await secrets.read(.busKey) else { return }
-                    let arrivals = try? await bus.arrivals(plan.stop, key)
+                return .run { [bus, date] send in
+                    let arrivals = try? await bus.arrivals(plan.stop)
                     await send(.arrivalsLoaded(arrivals, at: date.now))
                 }
 

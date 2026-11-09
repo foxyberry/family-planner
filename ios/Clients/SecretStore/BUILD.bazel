@@ -1,8 +1,0 @@
-load("//ios:build_defs.bzl", "fp_swift_library")
-
-# Interface only. The Keychain lives in SecretStoreLive (app target only).
-fp_swift_library(
-    name = "SecretStore",
-    visibility = ["//ios:__subpackages__"],
-    deps = ["@swiftpkg_swift_composable_architecture//:ComposableArchitecture"],
-)
