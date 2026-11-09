@@ -171,6 +171,8 @@ public struct SetupFeature {
         case moeAnswered(Bool)
         // S3
         case goingTabTapped(KidEntry.ID)
+        /// A header kid tab on S2 or S3.
+        case kidTabTapped(KidEntry.ID)
         case wayPicked(Way)
         case stopSearch(StopSearchFeature.Action)
         case serviceTapped(String)
@@ -426,9 +428,14 @@ public struct SetupFeature {
 
             // MARK: S3
 
+            case let .kidTabTapped(id):
+                return .send(state.step == .gettingThere ? .goingTabTapped(id) : .schoolTabTapped(id))
+
             case let .goingTabTapped(id):
+                // A search still running belongs to the kid on screen: stop it before the tab changes.
+                let close = state.goingSearch.isListOpen || state.goingSearch.stop.count < 5
                 state.goingTab = id
-                return .none
+                return close ? .send(.stopSearch(.listClosed)) : .none
 
             case let .wayPicked(way):
                 updateGoing(&state) { $0.way = way }

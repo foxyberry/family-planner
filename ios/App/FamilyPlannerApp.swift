@@ -7,9 +7,7 @@ import BusClient
 import BusClientLive
 import ComposableArchitecture
 import DeviceConfig
-#if DEBUG
 import DebugTools
-#endif
 import HolidayProvider
 import HolidayProviderLive
 import ParentAuthClient
@@ -34,8 +32,7 @@ final class AppDelegate: AppDelegateBase {
     }
 }
 
-@main
-struct FamilyPlannerApp: App {
+@main struct FamilyPlannerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

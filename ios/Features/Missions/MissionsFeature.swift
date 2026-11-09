@@ -381,7 +381,7 @@ public struct MissionsFeature {
 
         /// The done knob for a kid ready without a medal: the crown in place of the knob and its check.
         public var slideDoneKnob: KitSlot? {
-            guard let chosen, day(of: chosen).ready, day(of: chosen).medal == nil else { return nil }
+            guard let chosen, day(of: chosen).ready, Self.medalKind(day(of: chosen).medal) == nil else { return nil }
             return .crown
         }
 

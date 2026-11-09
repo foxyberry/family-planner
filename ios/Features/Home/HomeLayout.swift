@@ -52,7 +52,8 @@ public struct HomeLayout: Equatable, Sendable {
     public struct RowPlace: Equatable, Sendable {
         public let picture: CGRect
         public let textLeft: CGFloat
-        public let labelBaseline: CGFloat
+        /// "Next" beside the picture; the small row under the time left has none.
+        public let labelBaseline: CGFloat?
         public let titleBaseline: CGFloat
         public let atBaseline: CGFloat
     }
@@ -70,7 +71,7 @@ public struct HomeLayout: Equatable, Sendable {
     /// 80 plate, text at 1024 (gap 16) on 404 and 435.
     public var timeLeftRow: RowPlace {
         RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(367), width: 80 * s, height: 80 * s),
-                 textLeft: sizing.left(1024), labelBaseline: sizing.y(367), titleBaseline: sizing.y(404),
+                 textLeft: sizing.left(1024), labelBaseline: nil, titleBaseline: sizing.y(404),
                  atBaseline: sizing.y(435))
     }
 

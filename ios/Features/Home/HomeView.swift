@@ -187,8 +187,10 @@ public struct HomeView: View {
 
     /// The Next row: the picture (104), then "Next" (caption), its title and "at …" to its right.
     @ViewBuilder private func nextRow(_ row: NextRow, at place: HomeLayout.RowPlace) -> some View {
-        Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
-            .place(left: place.textLeft, baseline: place.labelBaseline)
+        if let labelBaseline = place.labelBaseline {
+            Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
+                .place(left: place.textLeft, baseline: labelBaseline)
+        }
         KitPlate(look: store.look, size: place.picture.width) {
             KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: place.picture.width)
                 .overlay(alignment: .topTrailing) {

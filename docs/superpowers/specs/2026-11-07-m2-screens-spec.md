@@ -81,6 +81,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: S4 becomes a list of feature switches (user): Grown-up lock, Live bus times, Medals now (new part CrayonSwitch, row kinds switch / permission / link); lock off keeps the 2 s hold as the gate, keeps the idle return home, drops the app-switcher cover; turning it on asks Face ID once; later screen C9 "This iPad" from the foot of C1. Layout v16.
 - 2026-11-09: home Kid A block takes look ① (user): picture on the left (96 way picture / 104 Next picture), label over the time (72) or Next title stacked to its right, status under the words; Kid B follows 40 below as before. Layout v17.
 - 2026-11-09: S2 Preschool uses the researched ECDA list (address as the second line, international early years too), hours prefilled from the ECDA listing or type default, closures by centre type (child care: public holidays + Teachers' / Children's Day; kindergarten: MOE terms), Development Days added by the grown-up.
+- 2026-11-09: v17 build notes accepted: S3 Home card ships with N11 (hidden until then); S3 tab finished rule (bus = has a stop; numbers optional); Live bus times off stops live arrivals only, stop search keeps using LTA stop data; S4 captions may wrap to two lines within the 140 pitch; caption without "› This iPad".
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -501,8 +502,8 @@ School is no longer special in the model. Every item that can sit on a kid's clo
 ### S3 · Getting there (new 2026-11-08; kid tabs 2026-11-09) [board S3]
 - Third first-run step, right after S2. One screen for all kids who go somewhere (School or Preschool); kids "At home" are not in it.
 - **Header** (user, 2026-11-09: one kid at a time with Next felt clumsy): "←", title "Getting there" (shorter than "Getting to school", so the row fits), then the kid `CrayonTabs` as on S2 (200 × 72 with `KidFace` 40, gap 12), a 24 space, "Step 3 of 4" (no kid name) and the dots. With 3–4 kids the tabs become face-only (88 × 72). A tab whose route is not finished shows a small `hurry` dot on its face.
-- "Next →" goes to S4 once every tab is finished; it does not step through the kids.
-- **Home** (side column, top; also in C1 later): "Home" (head), a map `RoundButton` 64 with a pin glyph, "Set on the map" (body bold) over "For walk and car times. Kept only on this iPad." (caption). It opens the map picker in "Where is home?" mode: centred on the school, "Near me" asks for location once (the grown-up is usually at home during setup), drag a pin, "Use this place". Set: the row reads "Home · set" with "Change". Skipped: walk and car steppers stay manual. One home for the family, shared by all kids' routes.
+- "Next →" goes to S4 once every tab is finished; it does not step through the kids. **Finished** (main session, accepted 2026-11-09): by bus, once the route has a stop (bus numbers stay optional, since a build without live times cannot list them); walk, car and taxi are always finished.
+- **Home** (side column, top; also in C1 later; **ships with N11**, hidden until the map picker exists, so there is never a dead button): "Home" (head), a map `RoundButton` 64 with a pin glyph, "Set on the map" (body bold) over "For walk and car times. Kept only on this iPad." (caption). It opens the map picker in "Where is home?" mode: centred on the school, "Near me" asks for location once (the grown-up is usually at home during setup), drag a pin, "Use this place". Set: the row reads "Home · set" with "Change". Skipped: walk and car steppers stay manual. One home for the family, shared by all kids' routes.
 - **Going**: `ChoiceCircles` Walk · Bus · Car · Taxi (shuttle comes with N1b). Default Bus.
 - **Stop** (Bus only): the same search field as C2 (see "Bus settings (C2)"): name or code, list of up to 8 matches, tap to pick. Board names are made up ("Opp Sunny Park"). No match leaves Next on.
 - **Buses** (Bus only): pills (180 × 72) for the numbers that call at that stop; pick one or more. Caption "Buses that stop there. Pick the ones to school."
@@ -516,10 +517,11 @@ School is no longer special in the model. Every item that can sit on a kid's clo
 - **Row kinds** (one `SettingRow`): switch (`CrayonSwitch`), permission ("Allow" pill that asks the system), link ("Settings ↗"). Rows for features not built yet stay hidden and leave no gap.
 - **Rows now**, all on by default:
   - **Grown-up lock** · "Face ID before grown-up screens" (`MarkerGlyph.lock`).
-  - **Live bus times** · "Off: the morning shows the timetable" (`busSingle`). Off = the app never calls LTA; every bus morning uses the timetable look.
+  - **Live bus times** · "Off: the morning shows the timetable" (`busSingle`). Off = no live arrival calls (morning and home use the timetable look). Stop search and the list of buses at a stop in S3 / C2 still use LTA stop data: that is setup, not live times.
   - **Medals** · "Gold, silver and bronze for leaving on time" (`medalGold`). Off = no medal anywhere; the slide still ends on "Ready!". This is the family-wide switch; the per-event medal switch (Events) applies only while it is on.
   - Later rows, hidden until their feature is built: Notifications (the leave-time nudge; permission row), Microphone (M5), Camera and photos (M6), Screen Time (link).
-- Caption under the rows: "More switches join this list as features arrive. Change any of them later in Our kids › This iPad."
+- Caption under the rows: "More switches join this list as features arrive. Change any of them later in Our kids." (Playpen has no "›"; C9 is not built yet.)
+- A row caption may take two lines (the lock-off caption does at 738); the row then grows up to 140 and stays on the 140 pitch.
 - **`CrayonSwitch`** (new part): track 96 × 52 (`tab-on` art when on, `tab-off` when off), knob 44 (`slot` art) at x 48 on / 4 off with the check picture 28 inside when on; 0.2 s slide; touch area the whole row. VoiceOver: a switch with the row title.
 - **Grown-up lock off** (user, 2026-11-09):
   - The 2 s hold on the clock stays the only gate; Face ID is skipped. The caption then reads "Off: anyone who holds the clock for 2 s can change the plan." (caption `hurry`), shown while it is off. No dialog when turning it off.

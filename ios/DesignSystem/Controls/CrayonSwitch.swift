@@ -1,9 +1,10 @@
 import CrayonKit
 import SwiftUI
 
-/// Spec "S4 · Almost done" `CrayonSwitch`: a 96 × 52 track (sky `tab-on` when on, paper `tab-off`
-/// when off) with a 44 paper knob at x 48 on / x 4 off, the check picture 28 inside it when on.
-/// The knob slides in 0.2 s. Its row (`SettingRow`) is the touch area.
+/// Spec "S4 · Almost done" `CrayonSwitch` (board close-up, 2026-11-09): in a 96 × 52 box, a thin pill
+/// track 92 × 28 (sky `tab-on` when on, paper `tab-off` when off) and a 44 paper knob, taller than the
+/// track, at x 48 on / x 4 off with the check picture 28 inside it when on. The knob slides in 0.2 s.
+/// Its row (`SettingRow`) is the touch area.
 public struct CrayonSwitch: View {
     public static let size = CGSize(width: 96, height: 52)
     private static let knob: CGFloat = 44
@@ -17,11 +18,14 @@ public struct CrayonSwitch: View {
     public var body: some View {
         ZStack(alignment: .leading) {
             Color.clear
+                .frame(width: 92, height: 28)
                 .crayonBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
-                                  seed: CrayonStyle.Seed.crayonSwitch)
+                                  seed: CrayonStyle.Seed.crayonSwitch, marker: .thin)
+                .offset(x: 2)
             Color.clear
                 .frame(width: Self.knob, height: Self.knob)
-                .crayonBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.crayonSwitch + 1)
+                .crayonBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.crayonSwitch + 1,
+                                  marker: .thin)
                 .overlay { if isOn { CheckMark(isDone: true, size: 28) } }
                 .offset(x: isOn ? 48 : 4)
         }
@@ -61,14 +65,17 @@ public struct SettingRow<Picture: View>: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).lineLimit(1)
                     Text(caption).crayonType(.caption)
-                        .foregroundStyle(captionIsWarning ? CrayonColor.lateText : CrayonColor.softText)
+                        .foregroundStyle(captionIsWarning ? CrayonColor.hurry : CrayonColor.softText)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer(minLength: Spacing.m)
+                // The words take all the width the switch leaves (a spacer beside them took half of it
+                // and wrapped one-line captions).
+                .frame(maxWidth: .infinity, alignment: .leading)
                 CrayonSwitch(isOn: isOn)
             }
-            .frame(height: Self.height)
+            // A two-line caption may grow the row past 120 (spec: up to the 140 pitch).
+            .frame(minHeight: Self.height)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

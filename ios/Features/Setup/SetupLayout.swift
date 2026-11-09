@@ -29,7 +29,15 @@ public struct SetupLayout: Equatable, Sendable {
     /// S2 and S3: the school field 610 wide, the stop field 400.
     public var schoolFieldWidth: CGFloat { 610 * s }
 
-    /// S4: a row 120 tall on a 140 pitch from 216.
-    public func settingRow(_ index: Int) -> CGRect { sizing.left(104, 216 + 140 * CGFloat(index), 738, 120) }
-    public var settingRowGap: CGFloat { 20 * s }
+    /// S2 and S3 kid tabs (layout v17): 200 × 72 with the name, 88 × 72 face only; gap 12.
+    public func kidTab(faceOnly: Bool) -> CGSize { CGSize(width: (faceOnly ? 88 : 200) * s, height: 72 * s) }
+    public var kidTabGap: CGFloat { 12 * s }
+
+    /// S4 board values inside a column: the main column's origin is (64, 176), the side's (930, 176).
+    public func s4Main(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 64) * s, y: (y - 176) * s) }
+    public func s4Side(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 930) * s, y: (y - 176) * s) }
+    public func length(_ value: CGFloat) -> CGFloat { value * s }
+    /// S4 side summary rows (school, way): text box tops 303 and 396, a 93 pitch.
+    public func s4SummaryTop(_ index: Int) -> CGFloat { 303 + 93 * CGFloat(index) }
+
 }

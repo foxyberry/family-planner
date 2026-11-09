@@ -63,7 +63,7 @@ final class HomeLayoutTests: XCTestCase {
         XCTAssertEqual(layout.nextRow.labelBaseline, 259)
         XCTAssertEqual(layout.nextRow.titleBaseline, 300)
         XCTAssertEqual(layout.nextRow.atBaseline, 338)
-        XCTAssertEqual(layout.leaveNextRow.labelBaseline, 456, accuracy: 1)
+        XCTAssertEqual(layout.leaveNextRow.labelBaseline ?? 0, 456, accuracy: 1)
         XCTAssertEqual(layout.leaveNextRow.titleBaseline, 497)
         XCTAssertEqual(layout.leaveNextRow.atBaseline, 535, accuracy: 1)
         XCTAssertEqual(layout.button, CGRect(x: 928, y: 872, width: 384, height: 96))

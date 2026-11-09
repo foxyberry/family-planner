@@ -2685,6 +2685,17 @@
         }
       }
     },
+    "relock.countdown.home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home in 0:%02lld"
+          }
+        }
+      }
+    },
     "s1.add" : {
       "extractionState" : "manual",
       "localizations" : {

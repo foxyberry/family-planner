@@ -155,7 +155,7 @@ public struct HomeFeature {
             return .next(next)
         }
 
-        /// The last part of Kid A's block; Kid B's block hangs 40 below it (layout v8).
+        /// The last part of Kid A's block; Kid B's block hangs 40 below it (layout v17).
         public var kidAEnd: HomeLayout.KidAEnd {
             switch kidABlock {
             case .leave: status == nil ? .timeLeft : .status

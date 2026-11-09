@@ -54,7 +54,7 @@ public struct StopSearchFeature {
 
     public init() {}
 
-    private enum SearchID: Hashable { case stops }
+    private enum SearchID: Hashable { case stops, lookUp }
 
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -101,7 +101,7 @@ public struct StopSearchFeature {
 
             case .listClosed:
                 state.matches = []
-                return .cancel(id: SearchID.stops)
+                return .merge(.cancel(id: SearchID.stops), .cancel(id: SearchID.lookUp))
             }
         }
     }
@@ -117,5 +117,7 @@ public struct StopSearchFeature {
             for arrival in arrivals where !seen.contains(arrival.service) { seen.append(arrival.service) }
             await send(.stopLooked(stop: found, services: seen.sorted { $0.localizedStandardCompare($1) == .orderedAscending }))
         }
+        // A newer code (or closing the field) replaces a lookup still running.
+        .cancellable(id: SearchID.lookUp, cancelInFlight: true)
     }
 }

@@ -202,8 +202,10 @@ final class MissionsTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         await store.send(.slid)
-        XCTAssertNotEqual(store.state.days[kidA]?.medal, .gold)
+        XCTAssertEqual(store.state.days[kidA]?.medal, MorningMedal.none)
         XCTAssertNil(store.state.rows[0].medal)
+        XCTAssertNil(store.state.done?.medal)
+        XCTAssertEqual(store.state.slideDoneKnob, .crown, "the crown in place of a medal")
         await store.send(.backTapped)
     }
 

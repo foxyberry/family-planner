@@ -68,6 +68,18 @@
  },
  "elements": [
   {
+   "id": "main.card",
+   "kind": "card",
+   "part": "PaperCard",
+   "x": 64,
+   "y": 176,
+   "w": 818,
+   "h": 792,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
    "id": "header.back",
    "kind": "back",
    "x": 64,
@@ -438,6 +450,45 @@
    "anchor": "right",
    "align": "fill",
    "text": "Start"
+  },
+  {
+   "id": "main.switch.1",
+   "kind": "switch",
+   "part": "CrayonSwitch",
+   "x": 746,
+   "y": 250,
+   "w": 96,
+   "h": 52,
+   "region": "main",
+   "anchor": "left",
+   "align": "end",
+   "on": true
+  },
+  {
+   "id": "main.switch.2",
+   "kind": "switch",
+   "part": "CrayonSwitch",
+   "x": 746,
+   "y": 390,
+   "w": 96,
+   "h": 52,
+   "region": "main",
+   "anchor": "left",
+   "align": "end",
+   "on": true
+  },
+  {
+   "id": "main.switch.3",
+   "kind": "switch",
+   "part": "CrayonSwitch",
+   "x": 746,
+   "y": 530,
+   "w": 96,
+   "h": 52,
+   "region": "main",
+   "anchor": "left",
+   "align": "end",
+   "on": true
   }
  ]
 }

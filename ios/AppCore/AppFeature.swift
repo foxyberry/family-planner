@@ -190,7 +190,10 @@ public struct AppFeature {
                     if idle >= Self.idleLimit {
                         relock(&state)
                     } else if idle >= Self.idleLimit - Self.countdown {
-                        state.relockCaption = L10n.tr("relock.countdown", Self.idleLimit - idle)
+                        // With the lock off nothing locks: the screens only go home.
+                        let left = Self.idleLimit - idle
+                        state.relockCaption = state.grownupLock ? L10n.tr("relock.countdown", left)
+                            : L10n.tr("relock.countdown.home", left)
                     } else {
                         state.relockCaption = nil
                     }

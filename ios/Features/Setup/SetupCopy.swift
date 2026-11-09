@@ -7,6 +7,31 @@ extension SetupFeature.State {
     /// "Step 2 of 4" (S3's kid tabs say whose route it is).
     public var stepText: String { L10n.tr("setup.step", step.number, 4) }
 
+    /// One kid tab on S2 or S3: the shown name and the face in the kid's colour.
+    public struct KidTab: Equatable, Sendable {
+        public let id: KidEntry.ID
+        public let name: String
+        public let face: String
+        public let colorIndex: Int
+    }
+
+    /// S2: a tab for every kid. S3: a tab for every kid who goes out.
+    public var kidTabs: [KidTab] {
+        let shown = step == .gettingThere ? goingKids : kids.elements
+        return shown.map { kid in
+            KidTab(id: kid.id, name: kid.shownName(index: kids.index(id: kid.id) ?? 0), face: kid.face ?? "",
+                   colorIndex: kid.colorIndex)
+        }
+    }
+
+    /// The selected tab of the step on screen.
+    public var selectedKidTab: KidEntry.ID {
+        step == .gettingThere ? (goingKid?.id ?? schoolTab) : schoolTab
+    }
+
+    /// Layout v17: with 3–4 kids the tabs show the face only (88 × 72).
+    public var kidTabsAreFaceOnly: Bool { kidTabs.count >= 3 }
+
     /// S3 tabs whose route is not finished yet (a hurry dot on the face).
     public var unfinishedGoingTabs: Set<KidEntry.ID> {
         Set(goingKids.filter { !$0.going.isFinished }.map(\.id))
