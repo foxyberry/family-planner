@@ -1,5 +1,5 @@
 {
- "version": "10",
+ "version": "12",
  "board": "C2",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -242,16 +242,43 @@
    "align": "inside"
   },
   {
+   "id": "side.line.4",
+   "kind": "text",
+   "x": 930,
+   "y": 426,
+   "w": 370,
+   "h": 54,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "baseline": 468,
+   "font": 36,
+   "text": "On the morning map"
+  },
+  {
    "id": "main.text.2",
    "kind": "text",
    "x": 232,
    "y": 429,
-   "w": 534,
+   "w": 507,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 457,
+   "font": 24
+  },
+  {
+   "id": "side.line.5",
+   "kind": "text",
+   "x": 930,
+   "y": 488,
+   "w": 378,
+   "h": 130,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "baseline": 609,
    "font": 24
   },
   {
@@ -371,17 +398,16 @@
    "kind": "text",
    "x": 536,
    "y": 613,
-   "w": 201,
+   "w": 80,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 648,
-   "font": 30,
-   "text": "stop to school"
+   "font": 30
   },
   {
-   "id": "main.label.late-up-to",
+   "id": "main.label.ride-2nd",
    "kind": "label",
    "x": 104,
    "y": 704,
@@ -389,11 +415,10 @@
    "h": 72,
    "region": "main",
    "anchor": "left",
-   "align": "inside",
-   "text": "Late up to"
+   "align": "inside"
   },
   {
-   "id": "main.row.late-up-to.chip.1",
+   "id": "main.row.ride-2nd.chip.1",
    "kind": "chip",
    "x": 232,
    "y": 704,
@@ -405,7 +430,7 @@
    "text": "less"
   },
   {
-   "id": "main.row.late-up-to.chip.2",
+   "id": "main.row.ride-2nd.chip.2",
    "kind": "chip",
    "x": 448,
    "y": 704,
@@ -417,11 +442,11 @@
    "text": "more"
   },
   {
-   "id": "main.row.late-up-to.text.1",
+   "id": "main.row.ride-2nd.text.1",
    "kind": "text",
-   "x": 328,
+   "x": 327,
    "y": 717,
-   "w": 97,
+   "w": 98,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -430,16 +455,78 @@
    "font": 30
   },
   {
-   "id": "main.row.late-up-to.text.2",
+   "id": "main.row.ride-2nd.text.2",
    "kind": "text",
    "x": 536,
    "y": 717,
-   "w": 163,
+   "w": 298,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 752,
+   "font": 30
+  },
+  {
+   "id": "main.label.late-up-to",
+   "kind": "label",
+   "x": 104,
+   "y": 808,
+   "w": 128,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Late up to"
+  },
+  {
+   "id": "main.row.late-up-to.chip.1",
+   "kind": "chip",
+   "x": 232,
+   "y": 808,
+   "w": 72,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "less"
+  },
+  {
+   "id": "main.row.late-up-to.chip.2",
+   "kind": "chip",
+   "x": 448,
+   "y": 808,
+   "w": 72,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "more"
+  },
+  {
+   "id": "main.row.late-up-to.text.1",
+   "kind": "text",
+   "x": 328,
+   "y": 821,
+   "w": 97,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 856,
+   "font": 30
+  },
+  {
+   "id": "main.row.late-up-to.text.2",
+   "kind": "text",
+   "x": 536,
+   "y": 821,
+   "w": 163,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 856,
    "font": 30,
    "text": "still Bronze"
   },
@@ -454,6 +541,17 @@
    "anchor": "right",
    "align": "fill",
    "text": "Done"
+  },
+  {
+   "id": "main.button",
+   "kind": "button",
+   "x": 232,
+   "y": 900,
+   "w": 447,
+   "h": 38,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
   }
  ]
 }

@@ -24,6 +24,29 @@ final class StarterDaysTests: XCTestCase {
         XCTAssertEqual(weekday.blocks.map(\.kind), [.sleep, .morning, .school, .free, .dinner, .evening, .sleep])
     }
 
+    func testPreschoolMakesItsOwnBlock() throws {
+        let preschool = School(name: "Example Preschool", days: Weekday.schoolDays, start: 480, end: 720, kind: .preschool)
+        let block = try XCTUnwrap(StarterDays.routines(for: kid(school: preschool), trip: Trip(way: .walk, leaveBefore: 10),
+                                                       from: from)[0].blocks.first { $0.kind == .school })
+        XCTAssertEqual(block.title, "Preschool")
+        XCTAssertEqual([block.start, block.end], [480, 720])
+        XCTAssertEqual(block.trip?.way, .walk)
+    }
+
+    func testLateGraceIsLatestMinusArriveByUpTo30() {
+        var school = School(name: "Example Primary School", days: Weekday.schoolDays, start: 450, end: 810,
+                            arriveBy: 450, latest: 460)
+        XCTAssertEqual(school.lateGrace, 10)
+        school.latest = 520
+        XCTAssertEqual(school.lateGrace, 30)
+        school.latest = nil
+        XCTAssertNil(school.lateGrace)
+        let plan = BusPlan(kid: id, stop: "00000", services: ["1"], lateGrace: 15)
+        school.latest = 455
+        XCTAssertEqual(plan.graced(by: kid(school: school)).lateGrace, 5, "the school record wins")
+        XCTAssertEqual(plan.graced(by: kid(school: nil)).lateGrace, 15)
+    }
+
     func testTemplatesCoverTheWholeDayWithoutGaps() {
         let school = School(name: "Example Primary School", days: Weekday.schoolDays, start: 360, end: 1140)
         for routine in StarterDays.routines(for: kid(school: school), trip: nil, from: from)

@@ -76,6 +76,7 @@ final class FirstRunTests: XCTestCase {
         await store.send(.linkOpened(.setup(2)))
         XCTAssertEqual(store.state.setup?.step, .school)
         XCTAssertEqual(saved.value, 0)
+        XCTAssertEqual(store.state.setup?.replacesFamily, true, "Start asks before replacing the family")
     }
 
     func testLoadSampleFamilyClosesEverythingAndReloads() async {

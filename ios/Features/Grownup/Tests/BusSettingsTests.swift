@@ -10,8 +10,8 @@ import XCTest
 final class BusSettingsTests: XCTestCase {
     private let kid = SeedData.kidA.id
 
-    private func store(saved: LockIsolated<[BusPlan]> = LockIsolated([]))
-        -> TestStoreOf<BusSettingsFeature> {
+    private func store(saved: LockIsolated<[BusPlan]> = LockIsolated([]), kids: [Kid] = SeedData.kids,
+                       savedKids: LockIsolated<[Kid]> = LockIsolated([])) -> TestStoreOf<BusSettingsFeature> {
         let store = TestStore(initialState: BusSettingsFeature.State(kid: kid)) {
             BusSettingsFeature()
         } withDependencies: {
@@ -19,7 +19,8 @@ final class BusSettingsTests: XCTestCase {
             calendar.timeZone = TimeZone(identifier: "Asia/Singapore")!
             $0.calendar = calendar
             $0.date.now = Date(timeIntervalSince1970: 1_793_000_000)
-            $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: [], items: [], busPlans: saved.value) }
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: [], items: [], busPlans: saved.value) }
+            $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.scheduleStore.saveBusPlan = { plan in saved.withValue { $0.removeAll { $0.kid == plan.kid }; $0.append(plan) } }
             $0.bus.stop = { code in code == "00000" ? BusStop(code: code, name: "Example Stop", road: "Example Rd") : nil }
             $0.bus.searchStops = { text in
@@ -75,5 +76,20 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(store.state.search.caption, "Example Rd · 00000")
         await store.receive(\.search.stopLooked)
         XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+    }
+
+    /// "Late up to" is the school's Latest − Arrive by (spec "Latest lives on the school record").
+    func testLateUpToEditsTheSchoolsLatest() async {
+        var kidA = SeedData.kidA
+        kidA.school?.arriveBy = 450
+        kidA.school?.latest = 460
+        let savedKids = LockIsolated<[Kid]>([])
+        let store = store(kids: [kidA], savedKids: savedKids)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.lateGrace, 10)
+        await store.send(.graceChanged(20))
+        await store.finish(timeout: .seconds(1))
+        XCTAssertEqual(savedKids.value.last?.school?.latest, 470)
     }
 }

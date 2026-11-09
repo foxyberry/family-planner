@@ -43,6 +43,16 @@ public struct BusPlan: Hashable, Codable, Sendable {
     }
 }
 
+extension BusPlan {
+    /// The plan with the kid's school late grace, which wins over the plan's own (spec "Latest lives
+    /// on the school record"); the plan's value stays for a kid with no school times.
+    public func graced(by kid: Kid?) -> BusPlan {
+        var plan = self
+        if let grace = kid?.school?.lateGrace { plan.lateGrace = grace }
+        return plan
+    }
+}
+
 /// The medal a kid gets for sliding to go, from the time only (spec "Medal from the time only").
 public enum MorningMedal: String, Codable, Hashable, Sendable {
     case gold, silver, bronze, none

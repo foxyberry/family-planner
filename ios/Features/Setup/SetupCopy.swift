@@ -4,7 +4,12 @@ import Strings
 
 /// Everything S1–S4 print, decided here so the views only render (spec "S1–S4").
 extension SetupFeature.State {
-    public var stepText: String { L10n.tr("setup.step", step.number, 4) }
+    /// "Step 2 of 4"; S3 adds the kid it asks about: "Step 3 of 4 · Kid A".
+    public var stepText: String {
+        let text = L10n.tr("setup.step", step.number, 4)
+        guard let kid = goingKid else { return text }
+        return L10n.tr("s2.school.with_area", text, kid.trimmedName)
+    }
 
     public var title: String {
         switch step {
@@ -22,9 +27,25 @@ extension SetupFeature.State {
 
     // MARK: S2
 
+    /// The "Goes to" tabs, in board order.
+    public static let places: [(GoesTo, String)] = [
+        (.school, L10n.tr("s2.goes.school")), (.preschool, L10n.tr("s2.goes.preschool")), (.home, L10n.tr("s2.goes.home")),
+    ]
+
+    /// "{Name} is at home in the day." on an at-home kid's tab.
+    public var atHomeLine: String? {
+        guard let kid = tabKid, kid.goesTo == .home, let index = kids.index(id: kid.id) else { return nil }
+        return L10n.tr("s2.at_home", kid.shownName(index: index))
+    }
+
+    public var schoolPlaceholder: String {
+        tabKid?.school.kind == .preschool ? L10n.tr("s2.preschool.placeholder") : L10n.tr("s2.school.placeholder")
+    }
+
     /// The caption under the school field (spec S2).
     public var schoolCaption: String {
         guard let school = tabKid?.school else { return "" }
+        if school.kind == .preschool { return L10n.tr("s2.preschool.hint") }
         if let picked = school.picked { return picked.caption }
         if school.typedByHand { return L10n.tr("s2.school.typed") }
         if school.isListOpen { return school.matches.isEmpty ? L10n.tr("s2.school.none") : L10n.tr("s2.school.pick") }
@@ -114,12 +135,13 @@ extension SetupFeature.State {
 
     /// The side summary's school and way, from the first kid with a school.
     public var summarySchool: (title: String, hours: String)? {
-        guard let school = schoolKids.first?.school, let start = school.start, let end = school.end else { return nil }
-        return (L10n.tr("s4.school"), TimeText.range(start, end))
+        guard let kid = goingKids.first, let start = kid.school.start, let end = kid.school.end else { return nil }
+        return (kid.school.kind == .preschool ? L10n.tr("starter.preschool") : L10n.tr("s4.school"),
+                TimeText.range(start, end))
     }
 
     public var summaryWay: (picture: String, title: String, detail: String)? {
-        guard let going = schoolKids.first?.going else { return nil }
+        guard let going = goingKids.first?.going else { return nil }
         if going.way == .bus {
             return (going.way.moverPicture, L10n.tr("s4.way.bus"), L10n.tr("s4.way.bus.detail", going.walk, going.ride))
         }

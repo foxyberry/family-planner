@@ -1,5 +1,23 @@
 import Foundation
 
+/// Where a kid goes in the day (S2 "Goes to"): a school, or a preschool or childcare.
+public enum SchoolKind: String, Hashable, Codable, Sendable {
+    case school, preschool
+}
+
+/// One weekday's hours (minutes after midnight); a school can differ by weekday (`School.dayHours`).
+public struct SchoolDayHours: Hashable, Codable, Sendable {
+    public var weekday: Weekday
+    public var start: Int
+    public var end: Int
+
+    public init(weekday: Weekday, start: Int, end: Int) {
+        self.weekday = weekday
+        self.start = start
+        self.end = end
+    }
+}
+
 public struct School: Hashable, Codable, Sendable {
     public var name: String
     public var days: Set<Weekday>
@@ -11,12 +29,18 @@ public struct School: Hashable, Codable, Sendable {
     public var directoryID: String?
     /// "Use MOE school terms for holidays" (S2).
     public var usesMoeTerms: Bool?
-    /// Arrive by and Latest as the grown-up confirmed them in S2 (minutes after midnight).
+    /// Arrive by and Latest as the grown-up confirmed them in S2 (minutes after midnight). The late
+    /// grace (Latest − Arrive by) sets the medals for every way of going (spec S1–S4).
     public var arriveBy: Int?
     public var latest: Int?
+    /// nil (stored before preschools existed) is a school.
+    public var kind: SchoolKind?
+    /// Hours per weekday when they differ (from the school website); nil means `start`–`end` every day.
+    public var dayHours: [SchoolDayHours]?
 
     public init(name: String, days: Set<Weekday>, start: Int, end: Int, directoryID: String? = nil,
-                usesMoeTerms: Bool? = nil, arriveBy: Int? = nil, latest: Int? = nil) {
+                usesMoeTerms: Bool? = nil, arriveBy: Int? = nil, latest: Int? = nil, kind: SchoolKind? = nil,
+                dayHours: [SchoolDayHours]? = nil) {
         self.name = name
         self.days = days
         self.start = start
@@ -25,6 +49,16 @@ public struct School: Hashable, Codable, Sendable {
         self.usesMoeTerms = usesMoeTerms
         self.arriveBy = arriveBy
         self.latest = latest
+        self.kind = kind
+        self.dayHours = dayHours
+    }
+
+    public var isPreschool: Bool { kind == .preschool }
+
+    /// Latest − Arrive by (0–30): how late still earns Bronze. nil when either time was not entered.
+    public var lateGrace: Int? {
+        guard let arriveBy, let latest else { return nil }
+        return min(max(latest - arriveBy, 0), 30)
     }
 }
 

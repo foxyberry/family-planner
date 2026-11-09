@@ -74,11 +74,14 @@ public struct SchoolHours: Hashable, Sendable {
     public var end: Int?
     /// The day the website was read.
     public var checked: Day
+    /// Weekdays whose hours differ from `start`–`end` (early Wednesday dismissal, a later Monday start).
+    public var byWeekday: [Weekday: SchoolDayHours]
 
-    public init(start: Int, end: Int?, checked: Day) {
+    public init(start: Int, end: Int?, checked: Day, byWeekday: [Weekday: SchoolDayHours] = [:]) {
         self.start = start
         self.end = end
         self.checked = checked
+        self.byWeekday = byWeekday
     }
 }
 

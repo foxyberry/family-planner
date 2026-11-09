@@ -43,6 +43,8 @@ public struct ScheduleStore: Sendable {
     public var saveMissionDay: @Sendable (_ day: MissionDay) async throws -> Void
     /// Saves a kid's bus route (C2), replacing the old one.
     public var saveBusPlan: @Sendable (_ plan: BusPlan) async throws -> Void
+    /// Replaces one kid's record (C2 "Late up to" edits the school's Latest).
+    public var saveKid: @Sendable (_ kid: Kid) async throws -> Void
     /// Replaces everything on this iPad with `family` in one write: kids, templates, items, missions
     /// and bus plans; mission marks are dropped. First-run setup's "Start" and the debug tools'
     /// "Load sample family" use it.
@@ -112,6 +114,11 @@ extension ScheduleStore: TestDependencyKey {
                 plans.withValue { list in
                     list.removeAll { $0.kid == plan.kid }
                     list.append(plan)
+                }
+            },
+            saveKid: { kid in
+                kids.withValue { list in
+                    if let index = list.firstIndex(where: { $0.id == kid.id }) { list[index] = kid }
                 }
             },
             replaceFamily: { family in

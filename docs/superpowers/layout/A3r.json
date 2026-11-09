@@ -1,5 +1,5 @@
 {
- "version": "10",
+ "version": "12",
  "board": "A3r",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -256,15 +256,15 @@
    "id": "strip.mover",
    "kind": "mover",
    "x": 463,
-   "y": 314,
-   "w": 122,
-   "h": 122,
+   "y": 310,
+   "w": 124,
+   "h": 124,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
     "x": 399,
-    "y": 138
+    "y": 134
    }
   },
   {
@@ -490,11 +490,11 @@
   },
   {
    "id": "bottom.knob",
-   "kind": "picture",
-   "x": 1226,
-   "y": 890,
-   "w": 60,
-   "h": 60,
+   "kind": "mover",
+   "x": 1225,
+   "y": 885,
+   "w": 62,
+   "h": 62,
    "region": "bottom",
    "anchor": "stretch",
    "align": "inside"

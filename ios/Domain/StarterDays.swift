@@ -20,7 +20,8 @@ public enum StarterDays {
         ("sleep", "actSleep", .sleep, 1170, 1440),
     ]
 
-    /// Mon–Fri, Sat and Sun templates from `from`. A kid with a school is there from `arriveBy`
+    /// Mon–Fri, Sat and Sun templates from `from`. A kid with a school (or preschool, its own block
+    /// "Preschool") is there from `arriveBy`
     /// (the school's start when nil) until the school ends, getting there by `trip`; a kid without
     /// one has the same home day all week.
     public static func routines(for kid: Kid, trip: Trip?, from: Day) -> [Routine] {
@@ -35,7 +36,8 @@ public enum StarterDays {
         let bed = min(shower + 45, 1440)
         let weekday: [(String, String, SlotKind, Int, Int)] = [
             ("sleep", "actSleep", .sleep, 0, wake), ("breakfast", "actBreakfast", .morning, wake, start),
-            ("school", "actSchool", .school, start, end), ("free", "", .free, end, dinner),
+            school.isPreschool ? ("preschool", "playground", .school, start, end) : ("school", "actSchool", .school, start, end),
+            ("free", "", .free, end, dinner),
             ("dinner", "actDinner", .dinner, dinner, shower), ("shower", "actShower", .evening, shower, bed),
             ("sleep", "actSleep", .sleep, bed, 1440),
         ]
@@ -75,6 +77,7 @@ public enum StarterDays {
         case "sleep": L10n.tr("starter.sleep")
         case "breakfast": L10n.tr("starter.breakfast")
         case "school": L10n.tr("starter.school")
+        case "preschool": L10n.tr("starter.preschool")
         case "free": L10n.tr("starter.free")
         case "dinner": L10n.tr("starter.dinner")
         case "shower": L10n.tr("starter.shower")

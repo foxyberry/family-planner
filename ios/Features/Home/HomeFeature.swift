@@ -276,7 +276,9 @@ public struct HomeFeature {
                                                     holidays: holidayDays, calendar: calendar),
                                after: -1))
                 }
-                state.busPlan = snapshot.kids.first.flatMap { kid in snapshot.busPlans.first { $0.kid == kid.id } }
+                state.busPlan = snapshot.kids.first.flatMap { kid in
+                    snapshot.busPlans.first { $0.kid == kid.id }?.graced(by: kid)
+                }
                 return state.wantsLive ? .send(.refresh) : .none
 
             case .clockHoldCompleted:

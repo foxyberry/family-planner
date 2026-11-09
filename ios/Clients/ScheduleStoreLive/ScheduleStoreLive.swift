@@ -43,6 +43,7 @@ extension ScheduleStore {
                 try database.run { try $0.put(day, calendar: calendar) }
             },
             saveBusPlan: { plan in try database.run { try $0.put(plan) } },
+            saveKid: { kid in try database.run { try $0.put(kid) } },
             replaceFamily: { family in try database.run { try $0.replace(with: family) } }
         )
     }
@@ -102,6 +103,13 @@ private struct Records {
     func snapshot() throws -> ScheduleSnapshot {
         ScheduleSnapshot(kids: try values("kid"), routines: try values("routine"), items: try values("item"),
                          missions: try values("mission"), busPlans: try values("busPlan"))
+    }
+
+    /// Replaces the kid's record in place (keeping its order); a kid not stored yet is not added.
+    func put(_ kid: Kid) throws {
+        guard let old = try fetch("kid").first(where: { $0.key == "kid:\(kid.id)" }) else { return }
+        old.payload = try encoder.encode(kid)
+        try context.save()
     }
 
     func put(_ plan: BusPlan) throws {

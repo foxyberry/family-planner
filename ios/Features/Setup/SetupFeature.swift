@@ -14,7 +14,7 @@ public struct SetupFeature {
     public enum Step: Hashable, Sendable {
         case family
         case school
-        /// S3 for the kid at this index of `schoolKids`.
+        /// S3 for the kid at this index of `goingKids`.
         case gettingThere(Int)
         case almostDone
 
@@ -43,6 +43,11 @@ public struct SetupFeature {
         public var saveFailed = false
         /// Start worked; setup is closing and never saves again.
         public var isSaved = false
+        /// A debug link opened setup over an existing family: Start asks before replacing it.
+        public var replacesFamily = false
+        public var isConfirmingReplace = false
+        /// Data sources (spec S2), opened from the link under the school caption.
+        @Presents public var dataSources: DataSourcesFeature.State?
         /// The app's calendar, for the time wheels (minutes after midnight in its time zone).
         public var calendar: Calendar
 
@@ -61,25 +66,19 @@ public struct SetupFeature {
 
         // MARK: S2
 
-        /// The kids S3 asks about, in tab order.
-        public var schoolKids: [KidEntry] { kids.filter(\.hasSchool) }
+        /// The kids S3 asks about (school or preschool), in tab order.
+        public var goingKids: [KidEntry] { kids.filter(\.goesOut) }
 
         public var tabKid: KidEntry? { kids[id: schoolTab] ?? kids.first }
 
-        public var schoolIsComplete: Bool { schoolKids.allSatisfy(\.school.isComplete) }
-
-        /// "{Name}: no school yet. Skip, or add nursery later." for each kid without a school.
-        public var noSchoolLines: [String] {
-            kids.enumerated().filter { !$0.element.hasSchool }.map { index, kid in
-                L10n.tr("s2.no_school", kid.shownName(index: index))
-            }
-        }
+        /// Next stays off until every kid has a pick and every school or preschool form is complete.
+        public var schoolIsComplete: Bool { kids.allSatisfy(\.placeIsComplete) }
 
         // MARK: S3
 
         public var goingKid: KidEntry? {
-            guard case let .gettingThere(index) = step, schoolKids.indices.contains(index) else { return nil }
-            return schoolKids[index]
+            guard case let .gettingThere(index) = step, goingKids.indices.contains(index) else { return nil }
+            return goingKids[index]
         }
 
         /// The S3 stop field of the kid on screen (a placeholder elsewhere).
@@ -107,7 +106,7 @@ public struct SetupFeature {
                 StarterDays.routines(for: kid, trip: kid.school == nil ? nil : entries[id: kid.id]?.going.trip, from: from)
             }
             let missions = kids.flatMap { StarterDays.missions(for: $0, id: id) }
-            let plans = entries.filter(\.hasSchool).compactMap { $0.busPlan }
+            let plans = entries.filter(\.goesOut).compactMap { $0.busPlan }
             return ScheduleSnapshot(kids: kids, routines: routines, items: [], missions: missions, busPlans: plans)
         }
     }
@@ -126,6 +125,9 @@ public struct SetupFeature {
         case removeKidTapped(KidEntry.ID)
         // S2
         case schoolTabTapped(KidEntry.ID)
+        case goesToTapped(GoesTo)
+        case dataSourcesTapped
+        case dataSources(PresentationAction<DataSourcesFeature.Action>)
         case schoolTextChanged(String)
         case schoolPicked(SchoolEntry)
         case notInListTapped
@@ -143,6 +145,8 @@ public struct SetupFeature {
         case rideChanged(Int)
         case leaveChanged(Int)
         // S4
+        case replaceConfirmed
+        case replaceCancelled
         case saved(Bool)
         case delegate(Delegate)
 
@@ -182,7 +186,7 @@ public struct SetupFeature {
                 case .school: state.step = .family
                 case let .gettingThere(index): state.step = index > 0 ? .gettingThere(index - 1) : .school
                 case .almostDone:
-                    let count = state.schoolKids.count
+                    let count = state.goingKids.count
                     state.step = count > 0 ? .gettingThere(count - 1) : .school
                 }
                 return .none
@@ -194,10 +198,15 @@ public struct SetupFeature {
                     state.step = .school
                     if state.kids[id: state.schoolTab] == nil, let first = state.kids.first { state.schoolTab = first.id }
                 case .school:
-                    state.step = state.schoolKids.isEmpty ? .almostDone : .gettingThere(0)
+                    state.step = state.goingKids.isEmpty ? .almostDone : .gettingThere(0)
                 case let .gettingThere(index):
-                    state.step = index + 1 < state.schoolKids.count ? .gettingThere(index + 1) : .almostDone
+                    state.step = index + 1 < state.goingKids.count ? .gettingThere(index + 1) : .almostDone
                 case .almostDone:
+                    if state.replacesFamily, !state.isConfirmingReplace {
+                        state.isConfirmingReplace = true
+                        return .none
+                    }
+                    state.isConfirmingReplace = false
                     state.isSaving = true
                     state.saveFailed = false
                     let today = Day(now, calendar: calendar)
@@ -255,6 +264,29 @@ public struct SetupFeature {
                 state.schoolTab = id
                 return .none
 
+            case let .goesToTapped(place):
+                guard let id = state.tabKid?.id else { return .none }
+                state.kids[id: id]?.goesToChoice = place
+                updateSchool(&state) { school in
+                    let kind: SchoolKind = place == .preschool ? .preschool : .school
+                    guard school.kind != kind else { return }
+                    // A preschool has no list yet: its name is typed; a school starts from the search.
+                    school = SchoolForm()
+                    school.kind = kind
+                }
+                return .none
+
+            case .dataSourcesTapped:
+                state.dataSources = DataSourcesFeature.State()
+                return .none
+
+            case .dataSources(.presented(.backTapped)):
+                state.dataSources = nil
+                return .none
+
+            case .dataSources:
+                return .none
+
             case let .schoolTextChanged(text):
                 updateSchool(&state) { school in
                     school.text = text
@@ -283,6 +315,7 @@ public struct SetupFeature {
                     school.arriveBy = entry.hours?.start
                     school.latest = entry.hours.map { $0.start + 10 }
                     school.hoursSource = source
+                    school.websiteDays = entry.hours?.byWeekday ?? [:]
                 }
                 return .none
 
@@ -296,6 +329,7 @@ public struct SetupFeature {
                     school.arriveBy = nil
                     school.latest = nil
                     school.hoursSource = nil
+                    school.websiteDays = [:]
                     school.usesMoeTerms = false
                     school.moeAnswer = nil
                 }
@@ -318,6 +352,7 @@ public struct SetupFeature {
                     }
                     // Editing a value removes "From the school website".
                     school.hoursSource = nil
+                    school.websiteDays = [:]
                 }
                 return .none
 
@@ -373,6 +408,13 @@ public struct SetupFeature {
 
             // MARK: S4
 
+            case .replaceConfirmed:
+                return .send(.nextTapped)
+
+            case .replaceCancelled:
+                state.isConfirmingReplace = false
+                return .none
+
             case let .saved(success):
                 state.isSaving = false
                 state.saveFailed = !success
@@ -383,6 +425,7 @@ public struct SetupFeature {
                 return .none
             }
         }
+        .ifLet(\.$dataSources, action: \.dataSources) { DataSourcesFeature() }
     }
 
     private func updateSchool(_ state: inout State, _ change: (inout SchoolForm) -> Void) {
@@ -401,20 +444,25 @@ public struct SetupFeature {
 extension KidEntry {
     /// The kid as "Start" saves them. A face not picked stays empty: the colour dot shows instead.
     var kid: Kid {
-        let school: School? = hasSchool ? self.school.name.map { name in
-            School(name: name, days: self.school.days, start: self.school.start ?? 0, end: self.school.end ?? 0,
-                   directoryID: self.school.picked?.id, usesMoeTerms: self.school.usesMoeTerms,
-                   arriveBy: self.school.arriveBy, latest: self.school.latest)
+        let form = self.school
+        let school: School? = goesOut ? form.name.map { name in
+            let preschool = form.kind == .preschool
+            // Per-weekday hours as the school website states them, while the grown-up kept them.
+            let dayHours = form.websiteDays.values.filter { form.days.contains($0.weekday) }
+                .sorted { $0.weekday < $1.weekday }
+            return School(name: name, days: form.days, start: form.start ?? 0, end: form.end ?? 0,
+                          directoryID: preschool ? nil : form.picked?.id, usesMoeTerms: preschool ? nil : form.usesMoeTerms,
+                          arriveBy: preschool ? form.start : form.arriveBy, latest: preschool ? nil : form.latest,
+                          kind: form.kind, dayHours: dayHours.isEmpty ? nil : dayHours)
         } : nil
         return Kid(id: id, name: trimmedName, colorIndex: colorIndex, age: age ?? 0, schoolYear: nil, school: school,
                    face: face ?? "")
     }
 
-    /// By bus with a known stop: the C2 plan, with Latest − Arrive by as "Late up to" (0–30).
+    /// By bus with a known stop: the C2 plan. Its "Late up to" mirrors the school record's grace.
     var busPlan: BusPlan? {
         guard going.way == .bus, going.search.stop.count == 5 else { return nil }
-        let grace = (school.latest ?? 0) - (school.arriveBy ?? 0)
         return BusPlan(kid: id, stop: going.search.stop, services: going.services, walk: going.walk, ride: going.ride,
-                       lateGrace: min(max(grace, 0), 30))
+                       lateGrace: kid.school?.lateGrace ?? BusPlan.defaultLateGrace)
     }
 }

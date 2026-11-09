@@ -207,7 +207,10 @@ public struct AppFeature {
                     // saved until Start on S4.
                     #if DEBUG
                     state.path.removeAll()
-                    state.setup = .sample(step: step, calendar: calendar)
+                    var setup = SetupFeature.State.sample(step: step, calendar: calendar)
+                    // Over a family, Start asks before replacing it (spec S1–S4 "Debug only").
+                    setup.replacesFamily = state.hasFamily != false
+                    state.setup = setup
                     #else
                     _ = step
                     #endif

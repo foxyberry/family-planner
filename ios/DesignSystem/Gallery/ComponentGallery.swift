@@ -54,7 +54,10 @@ public struct ComponentGallery: View {
                         }
                         TimeField(label: "7:30 am", time: $time, isPlaceholder: true)
                         KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
+                        LockMark(size: 56)
                     }
+                    CrayonTabs(selection: .constant(0), items: [(0, "School", nil), (1, "Preschool", nil), (2, "At home", nil)],
+                               itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
                     PictureRow(slots: [.actSwim, .actArt, .actMusic, .actPiano, .actDance], selection: .constant(.actSwim),
                                all: [.actSwim, .actArt], isShowingAll: false, moreTitle: "More", moreLabel: "More pictures") {}
                     IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {}

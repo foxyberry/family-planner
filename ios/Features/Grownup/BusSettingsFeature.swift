@@ -21,6 +21,9 @@ public struct BusSettingsFeature {
         public var walk = BusPlan.defaultWalk
         public var ride = BusPlan.defaultRide
         public var lateGrace = BusPlan.defaultLateGrace
+        /// The kid as stored: "Late up to" is their school's Latest − Arrive by when the school has both
+        /// (spec "Latest lives on the school record"), else the plan's own value.
+        public var storedKid: Kid?
 
         public init(kid: Kid.ID) {
             self.kid = kid
@@ -68,7 +71,9 @@ public struct BusSettingsFeature {
                 }
 
             case let .loaded(snapshot):
-                state.kidName = snapshot?.kids.first { $0.id == state.kid }?.name ?? ""
+                let kid = snapshot?.kids.first { $0.id == state.kid }
+                state.kidName = kid?.name ?? ""
+                state.storedKid = kid
                 if let plan = snapshot?.busPlans.first(where: { $0.kid == state.kid }) {
                     state.search = StopSearchFeature.State(stop: plan.stop)
                     state.services = plan.services
@@ -76,6 +81,7 @@ public struct BusSettingsFeature {
                     state.ride = plan.ride
                     state.lateGrace = plan.lateGrace
                 }
+                if let grace = kid?.school?.lateGrace { state.lateGrace = grace }
                 return .send(.search(.lookUp))
 
             case .search:
@@ -99,7 +105,10 @@ public struct BusSettingsFeature {
 
             case let .graceChanged(value):
                 state.lateGrace = min(max(value, 0), 30)
-                return save(state)
+                guard var kid = state.storedKid, let arriveBy = kid.school?.arriveBy else { return save(state) }
+                kid.school?.latest = arriveBy + state.lateGrace
+                state.storedKid = kid
+                return .merge(save(state), .run { [scheduleStore, kid] _ in try? await scheduleStore.saveKid(kid) })
 
             case .doneTapped:
                 return .send(.delegate(.finished))

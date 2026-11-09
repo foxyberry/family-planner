@@ -485,7 +485,10 @@ public struct MissionsFeature {
                                               holidays: holidayDays, calendar: calendar))
                 })
                 state.days = Dictionary(uniqueKeysWithValues: days.map { ($0.kid, $0) })
-                state.busPlans = Dictionary(snapshot.busPlans.map { ($0.kid, $0) }, uniquingKeysWith: { $1 })
+                // The kid's school late grace wins over the plan's (spec "Latest lives on the school record").
+                state.busPlans = Dictionary(snapshot.busPlans.map { plan in
+                    (plan.kid, plan.graced(by: snapshot.kids.first { $0.id == plan.kid }))
+                }, uniquingKeysWith: { $1 })
                 state.chosen = nextKid(in: state)
                 state.page = 0
                 // Live times on open and every 30 s while the screen is open; nothing in the background.
@@ -575,8 +578,12 @@ public struct MissionsFeature {
                 ?? (state.slots[kid] ?? []).first(where: { $0.trip != nil }).flatMap({ slot in
                     slot.trip.map { Outing(slot: slot, trip: $0) } })
         else { return .none }
+        // Spec S1–S4: a preschool trip earns no medal.
+        if outing.slot.kind == .school, state.kids.first(where: { $0.id == kid })?.school?.isPreschool == true {
+            return .none
+        }
         let plan = state.busPlans[kid]
-        let grace = plan?.lateGrace ?? BusPlan.defaultLateGrace
+        let grace = state.kids.first { $0.id == kid }?.school?.lateGrace ?? plan?.lateGrace ?? BusPlan.defaultLateGrace
         if outing.trip.way == .bus, state.live != nil, let plan, let arrivals = state.arrivals,
            let targets = LiveMorning.leaveTargets(arrivals: arrivals, plan: plan, minute: state.minute,
                                                   start: outing.slot.start) {

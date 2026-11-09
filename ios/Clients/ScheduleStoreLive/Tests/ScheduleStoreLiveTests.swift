@@ -75,6 +75,15 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(marks, MissionDay(kid: SeedData.kidA.id, date: monday), "old marks are gone")
     }
 
+    func testSaveKidReplacesTheRecordInPlace() async throws {
+        let store = try await seeded()
+        var kidA = SeedData.kidA
+        kidA.school?.latest = 465
+        try await store.saveKid(kidA)
+        let kids = try await self.store().load().kids
+        XCTAssertEqual(kids, [kidA, SeedData.kidB])
+    }
+
     func testSampleFamilyLoadsTheSeed() async throws {
         let snapshot = try await seeded().load()
         XCTAssertEqual(snapshot.kids, SeedData.kids)

@@ -60,7 +60,10 @@ final class ComponentSnapshotTests: XCTestCase {
             }
             TimeField(label: "7:30 am", time: .constant(Date(timeIntervalSince1970: 0)), isPlaceholder: true)
             KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
+            LockMark(size: 56)
         })
+        snap(CrayonTabs(selection: .constant(0), items: [(0, "School", nil), (1, "Preschool", nil), (2, "At home", nil)],
+                        itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm), named: "goesTo")
     }
 
     func testChips() {

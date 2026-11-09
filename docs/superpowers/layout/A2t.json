@@ -1,5 +1,5 @@
 {
- "version": "10",
+ "version": "12",
  "board": "A2t",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -247,15 +247,15 @@
    "id": "strip.mover",
    "kind": "mover",
    "x": 63,
-   "y": 314,
-   "w": 122,
-   "h": 122,
+   "y": 311,
+   "w": 123,
+   "h": 123,
    "region": "strip",
    "anchor": "stretch",
    "align": "start",
    "stripLocal": {
     "x": -1,
-    "y": 138
+    "y": 135
    }
   },
   {
@@ -587,6 +587,17 @@
    "region": "bottom",
    "anchor": "stretch",
    "align": "fill"
+  },
+  {
+   "id": "bottom.knob",
+   "kind": "mover",
+   "x": 473,
+   "y": 886,
+   "w": 62,
+   "h": 62,
+   "region": "bottom",
+   "anchor": "stretch",
+   "align": "inside"
   }
  ]
 }

@@ -25,6 +25,7 @@ extension SetupFeature.State {
         kidB.name = SeedData.kidB.name
         kidB.ageText = "\(SeedData.kidB.age)"
         kidB.face = SeedData.kidB.face
+        kidB.goesToChoice = .home
         state.kids = [kidA, kidB]
         state.step = switch step {
         case 2: .school

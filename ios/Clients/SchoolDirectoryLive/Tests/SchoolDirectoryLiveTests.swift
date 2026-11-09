@@ -20,6 +20,20 @@ final class SchoolDirectoryLiveTests: XCTestCase {
         XCTAssertTrue(withHours.allSatisfy { $0.hours?.checked == Day(year: 2026, month: 11, day: 9) })
     }
 
+    /// Some checked schools differ by weekday (an early Wednesday, a later Monday start); those days
+    /// are kept so the app can store per-day hours (spec S2).
+    func testWeekdaysThatDifferAreKept() async {
+        let schools = await SchoolDirectory.live.schools()
+        let varying = schools.filter { !($0.hours?.byWeekday.isEmpty ?? true) }
+        XCTAssertGreaterThan(varying.count, 0)
+        for school in varying {
+            for (weekday, day) in school.hours?.byWeekday ?? [:] {
+                XCTAssertEqual(day.weekday, weekday)
+                XCTAssertLessThan(day.start, day.end, school.id)
+            }
+        }
+    }
+
     func testTheLicencesNoticesAreThere() async {
         let sources = await SchoolDirectory.live.sources()
         XCTAssertEqual(sources.count, 2)

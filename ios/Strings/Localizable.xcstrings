@@ -2905,13 +2905,13 @@
         }
       }
     },
-    "s2.arrive_by.caption" : {
+    "s2.at_home" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "school starts"
+            "value" : "%@ is at home in the day."
           }
         }
       }
@@ -2923,6 +2923,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Days"
+          }
+        }
+      }
+    },
+    "s2.goes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goes to"
+          }
+        }
+      }
+    },
+    "s2.goes.home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At home"
+          }
+        }
+      }
+    },
+    "s2.goes.preschool" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preschool"
+          }
+        }
+      }
+    },
+    "s2.goes.school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "School"
           }
         }
       }
@@ -2955,18 +2999,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Latest"
-          }
-        }
-      }
-    },
-    "s2.latest.caption" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "gate closes"
+            "value" : "latest"
           }
         }
       }
@@ -3081,13 +3114,35 @@
         }
       }
     },
-    "s2.no_school" : {
+    "s2.preschool" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@: no school yet. Skip, or add nursery later."
+            "value" : "Preschool"
+          }
+        }
+      }
+    },
+    "s2.preschool.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type the preschool or childcare name"
+          }
+        }
+      }
+    },
+    "s2.preschool.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preschool name"
           }
         }
       }
@@ -3576,6 +3631,50 @@
         }
       }
     },
+    "setup.replace.accept" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replace"
+          }
+        }
+      }
+    },
+    "setup.replace.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "setup.replace.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything you entered here is deleted."
+          }
+        }
+      }
+    },
+    "setup.replace.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replace your family with the sample family?"
+          }
+        }
+      }
+    },
     "setup.step" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3759,6 +3858,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Play"
+          }
+        }
+      }
+    },
+    "starter.preschool" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preschool"
           }
         }
       }

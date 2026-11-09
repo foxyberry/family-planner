@@ -36,6 +36,20 @@ public struct SetupView: View {
                 }
             }
         }
+        .overlay {
+            if store.isConfirmingReplace {
+                ZStack {
+                    CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                    ConfirmCard(title: L10n.tr("setup.replace.title"), message: L10n.tr("setup.replace.message"),
+                                cancel: L10n.tr("setup.replace.cancel"), confirm: L10n.tr("setup.replace.accept"),
+                                isDestructive: true, onCancel: { store.send(.replaceCancelled) },
+                                onConfirm: { store.send(.replaceConfirmed) })
+                }
+            }
+        }
+        .fullScreenCover(item: $store.scope(state: \.dataSources, action: \.dataSources)) { sources in
+            DataSourcesView(store: sources)
+        }
         .task { await store.send(.task).finish() }
     }
 
@@ -61,14 +75,6 @@ public struct SetupView: View {
                        items: store.kids.enumerated().map { index, kid in
                            (kid.id, kid.shownName(index: index), KidFace.Badge(face: kid.face ?? "", colorIndex: kid.colorIndex))
                        })
-        case .gettingThere:
-            if let kid = store.goingKid {
-                HStack(spacing: KidFace.gap(for: KidFace.medium)) {
-                    KidFace(.init(face: kid.face ?? "", colorIndex: kid.colorIndex), name: kid.trimmedName,
-                            size: KidFace.medium)
-                    Text(kid.trimmedName).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
-                }
-            }
         default:
             EmptyView()
         }
@@ -98,7 +104,7 @@ public struct SetupView: View {
             }
             .foregroundStyle(CrayonColor.ink)
         case .school:
-            MedalSide(store: store)
+            if store.tabKid?.goesTo == .school { MedalSide(store: store) }
         case .gettingThere:
             VStack(alignment: .leading, spacing: Spacing.m) {
                 Text(L10n.tr("s3.side.title")).crayonType(.head)
@@ -226,72 +232,75 @@ private struct SchoolStep: View {
         .frame(width: layout.grown.form.width)
     }
 
+    /// Board S2 (layout v11): Goes to 208, School 304, Days 448, Hours 544, Arrive by 680, MOE 792.
     @ViewBuilder private var rows: some View {
-        if let kid = store.tabKid, kid.hasSchool {
+        if let kid = store.tabKid {
             let school = kid.school
             VStack(alignment: .leading, spacing: Spacing.m) {
-                row(L10n.tr("s2.school")) { schoolField(school) }
-                    .zIndex(1)
-                row(L10n.tr("s2.days")) {
-                    HStack(spacing: Spacing.xs) {
-                        ForEach(Weekday.allCases.sorted(), id: \.self) { day in
-                            DayChip(DayText.initial(day), isOn: Binding(get: { school.days.contains(day) },
-                                                                        set: { _ in store.send(.dayToggled(day)) }))
-                        }
-                    }
+                SetupRow(label: L10n.tr("s2.goes"), height: 72) {
+                    CrayonTabs(selection: Binding(get: { kid.goesTo }, set: { if let place = $0 { store.send(.goesToTapped(place)) } }),
+                               items: SetupFeature.State.places.map { (Optional($0.0), $0.1, nil) },
+                               itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
                 }
-                row(L10n.tr("s2.hours")) {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        HStack(spacing: Spacing.s) {
-                            time(.start)
-                            MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
-                            time(.end)
-                        }
-                        if let source = school.hoursSource {
-                            Text(source).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                        }
-                    }
-                }
-                row(L10n.tr("s2.arrive_by")) {
-                    HStack(spacing: Spacing.m) {
-                        time(.arriveBy)
-                        Text(L10n.tr("s2.arrive_by.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    }
-                }
-                row(L10n.tr("s2.latest")) {
-                    HStack(spacing: Spacing.m) {
-                        time(.latest)
-                        Text(L10n.tr("s2.latest.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    }
-                }
-                if let terms = school.termsRow { termsRow(terms) }
-                ForEach(store.noSchoolLines, id: \.self) { line in
-                    Text(line).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                }
-            }
-        } else {
-            VStack(alignment: .leading, spacing: Spacing.s) {
-                ForEach(store.noSchoolLines, id: \.self) { line in
+                if let line = store.atHomeLine {
                     Text(line).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                } else if kid.goesTo != nil {
+                    form(school)
                 }
             }
         }
+    }
+
+    @ViewBuilder private func form(_ school: SchoolForm) -> some View {
+        row(school.kind == .preschool ? L10n.tr("s2.preschool") : L10n.tr("s2.school")) { schoolField(school) }
+            .zIndex(1)
+        row(L10n.tr("s2.days")) {
+            HStack(spacing: Spacing.xs) {
+                ForEach(Weekday.allCases.sorted(), id: \.self) { day in
+                    DayChip(DayText.initial(day), isOn: Binding(get: { school.days.contains(day) },
+                                                                set: { _ in store.send(.dayToggled(day)) }))
+                }
+            }
+        }
+        row(L10n.tr("s2.hours")) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                HStack(spacing: Spacing.s) {
+                    time(.start)
+                    MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
+                    time(.end)
+                }
+                if let source = school.hoursSource {
+                    Text(source).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                }
+            }
+        }
+        if school.kind == .school {
+            // One row: Arrive by, then "latest" and the gate's time (both 180 × 80, gap 16).
+            row(L10n.tr("s2.arrive_by")) {
+                HStack(spacing: Spacing.s) {
+                    time(.arriveBy, width: 180)
+                    Text(L10n.tr("s2.latest")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    time(.latest, width: 180)
+                }
+            }
+        }
+        if let terms = school.termsRow { termsRow(terms) }
     }
 
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
         SetupRow(label: label, height: 80, control: control)
     }
 
-    private func time(_ row: SetupFeature.TimeRow) -> some View {
+    private func time(_ row: SetupFeature.TimeRow, width: CGFloat? = nil) -> some View {
         let label = store.state.timeLabel(row)
         return TimeField(label: label.text,
                          time: Binding(get: { store.state.timeDate(row) }, set: { store.send(.timePicked(row, $0)) }),
-                         isPlaceholder: label.isPlaceholder)
+                         isPlaceholder: label.isPlaceholder, width: width)
     }
 
     private func schoolField(_ school: SchoolForm) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            CrayonField(L10n.tr("s2.school.placeholder"),
+            CrayonField(store.schoolPlaceholder,
                         text: Binding(get: { school.text }, set: { store.send(.schoolTextChanged($0)) })) {
                 if school.picked != nil { KitIcon(.actSchool, size: 48) }
             }
@@ -302,6 +311,11 @@ private struct SchoolStep: View {
             HStack(spacing: Spacing.xs) {
                 if school.picked != nil { CheckMark(isDone: true, size: 32) }
                 Text(store.schoolCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                if school.kind == .school {
+                    Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
+                        .crayonType(.caption).foregroundStyle(CrayonColor.link)
+                        .padding(.leading, Spacing.s)
+                }
             }
         }
     }
@@ -359,7 +373,8 @@ private struct SchoolStep: View {
                 Text(L10n.tr("s2.terms.ask")).crayonType(.caption).foregroundStyle(CrayonColor.ink)
                 CrayonTabs(selection: Binding(get: { answer }, set: { if let yes = $0 { store.send(.moeAnswered(yes)) } }),
                            items: [(Optional(true), L10n.tr("s2.terms.yes"), nil),
-                                   (Optional(false), L10n.tr("s2.terms.not_sure"), nil)])
+                                   (Optional(false), L10n.tr("s2.terms.not_sure"), nil)],
+                           itemSize: CGSize(width: 140, height: 64), spacing: Spacing.sm)
             }
         }
     }
@@ -479,8 +494,7 @@ private struct AlmostDoneStep: View {
             VStack(alignment: .leading, spacing: layout.settingRowGap) {
                 // Notifications appear once the nudge is built; microphone, camera and Screen Time later.
                 HStack(spacing: Spacing.m) {
-                    Image(systemName: "lock.fill").font(.system(size: 40, weight: .bold))
-                        .foregroundStyle(CrayonColor.ink).frame(width: 56, height: 56)
+                    LockMark(size: 56)
                     VStack(alignment: .leading, spacing: Spacing.xxs) {
                         Text(L10n.tr("s4.lock")).crayonType(.body, bold: true)
                         Text(L10n.tr("s4.lock.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)

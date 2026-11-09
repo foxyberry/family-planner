@@ -118,19 +118,36 @@ struct StatedHours: Decodable {
     let end: String?
     let variants: [Variant]?
 
-    /// The hours for most of the week for a middle level (P3), when the page has no single value.
+    /// The hours for most of the week for a middle level (P3), when the page has no single value,
+    /// and each weekday's own hours where they differ from those.
     func hours(checked: Day?) -> SchoolHours? {
-        let usual = (variants ?? []).max { a, b in
-            func score(_ v: Variant) -> Int {
-                (v.days?.count ?? 0) * 10 + ((v.levels ?? []).contains { $0 == "P3" || $0 == "primary" } ? 5 : 0)
-            }
-            return score(a) < score(b)
-        }
+        let rows = variants ?? []
+        let usual = rows.max { Self.score($0) < Self.score($1) }
         guard let checked,
               let start = BundledSchools.minute(start) ?? BundledSchools.minute(usual?.start) else { return nil }
-        return SchoolHours(start: start, end: BundledSchools.minute(end) ?? BundledSchools.minute(usual?.end),
-                           checked: checked)
+        let end = BundledSchools.minute(end) ?? BundledSchools.minute(usual?.end)
+        var byWeekday: [Weekday: SchoolDayHours] = [:]
+        for (code, weekday) in Self.weekdays {
+            let row = rows.filter { ($0.days ?? []).contains(code) || ($0.days ?? []).contains("daily") }
+                .max { Self.levelScore($0) < Self.levelScore($1) }
+            guard let row, let dayStart = BundledSchools.minute(row.start) ?? Optional(start),
+                  let dayEnd = BundledSchools.minute(row.end) ?? end,
+                  dayStart != start || dayEnd != end else { continue }
+            byWeekday[weekday] = SchoolDayHours(weekday: weekday, start: dayStart, end: dayEnd)
+        }
+        return SchoolHours(start: start, end: end, checked: checked, byWeekday: byWeekday)
     }
+
+    private static let weekdays: [(String, Weekday)] = [
+        ("mon", .monday), ("tue", .tuesday), ("wed", .wednesday), ("thu", .thursday), ("fri", .friday),
+    ]
+
+    private static func levelScore(_ row: Variant) -> Int {
+        let levels = row.levels ?? []
+        return levels.isEmpty || levels.contains { $0 == "P3" || $0 == "primary" } ? 1 : 0
+    }
+
+    private static func score(_ row: Variant) -> Int { (row.days?.count ?? 0) * 10 + levelScore(row) * 5 }
 }
 
 struct HoursFile: Decodable, Versioned {
