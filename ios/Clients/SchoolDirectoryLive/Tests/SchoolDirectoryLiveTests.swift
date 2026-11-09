@@ -1,3 +1,4 @@
+import Dependencies
 import Domain
 import SchoolDirectory
 import SchoolDirectoryLive
@@ -46,5 +47,44 @@ final class SchoolDirectoryLiveTests: XCTestCase {
         let first = try? XCTUnwrap(schools.first { $0.hasPrimary })
         guard let first else { return }
         XCTAssertEqual(SchoolSearch.matches(first.name, in: schools).first?.id, first.id)
+    }
+
+    // MARK: School calendars (spec "Repeats, dates and changes")
+
+    private func calendar(_ school: School, age: Int = 8) async -> SchoolCalendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Singapore")!
+        return await withDependencies { $0.calendar = calendar } operation: {
+            await SchoolDirectory.live.calendar(school, age)
+        }
+    }
+
+    private func school(id: String?, moeTerms: Bool? = nil, kind: SchoolKind? = nil) -> School {
+        School(name: "Example School", days: Weekday.schoolDays, start: 450, end: 810, directoryID: id, // copy-ok: test data
+               usesMoeTerms: moeTerms, kind: kind)
+    }
+
+    func testAnMoePrimarySchoolFollowsThePrimaryCalendar() async throws {
+        let schools = await SchoolDirectory.live.schools()
+        let primary = try XCTUnwrap(schools.first { if case .moe(.primary) = $0.kind { true } else { false } })
+        let year = await calendar(school(id: primary.id))
+        XCTAssertEqual(year.terms.count, 8, "four terms in 2026 and 2027")
+        XCTAssertEqual(year.termEnd(from: Day(year: 2026, month: 11, day: 10)), Day(year: 2026, month: 11, day: 20))
+        XCTAssertEqual(year.termEnd(from: Day(year: 2026, month: 12, day: 1)), Day(year: 2027, month: 3, day: 12),
+                       "in the year-end break: the next term's end")
+        for closed in [Day(year: 2026, month: 6, day: 1), Day(year: 2026, month: 9, day: 4),
+                       Day(year: 2026, month: 3, day: 23), Day(year: 2026, month: 11, day: 23)] {
+            XCTAssertTrue(year.closed.contains(closed), "\(closed)")
+        }
+        XCTAssertFalse(year.closed.contains(Day(year: 2026, month: 11, day: 10)), "a school day")
+    }
+
+    func testMoeTermsByHandAndNoCalendar() async {
+        let byHand = await calendar(school(id: nil, moeTerms: true))
+        XCTAssertTrue(byHand.closed.contains(Day(year: 2026, month: 6, day: 1)), "a typed school using MOE terms")
+        let preschool = await calendar(school(id: nil, moeTerms: true, kind: .preschool))
+        XCTAssertEqual(preschool.terms.first?.start, Day(year: 2026, month: 1, day: 2), "MOE kindergarten terms")
+        let neither = await calendar(school(id: nil))
+        XCTAssertEqual(neither, .none, "neither: public holidays only")
     }
 }

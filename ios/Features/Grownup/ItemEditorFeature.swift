@@ -5,6 +5,7 @@ import KitArt
 import Foundation
 import HolidayProvider
 import ScheduleStore
+import SchoolDirectory
 import Strings
 
 /// Add to the day (boards C3, C4, C3k) and edit an item (C4 edit mode, E5).
@@ -80,7 +81,10 @@ public struct ItemEditorFeature {
                                      isPicked: way == .taxi),
             ]
         }
-        public var holidays: Set<Day> = []
+        /// Each kid's days off (school closures and public holidays).
+        public var daysOff: [Kid.ID: Set<Day>] = [:]
+        /// The days off of the form's kid (for both kids: the days off for both).
+        public var holidays: Set<Day> { DayPlanner.daysOff(for: form.audience, in: daysOff) }
         /// Board C3 "What" (layout v6): the "More" popover with every picture is open.
         public var isPickingMorePictures = false
 
@@ -263,14 +267,14 @@ public struct ItemEditorFeature {
         public var preview: FormPreview? {
             guard !isEditingWeekly else { return nil }
             return form.preview(kids: snapshot?.kids ?? [], routines: snapshot?.routines ?? [],
-                                items: snapshot?.items ?? [], holidays: holidays,
+                                items: snapshot?.items ?? [], daysOff: daysOff,
                                 draftID: editingItem?.id ?? draftID, showsDraft: problem == nil, today: today,
                                 calendar: calendar)
         }
 
         public var overlapCaption: String? {
             guard let snapshot else { return nil }
-            return form.overlapCaption(items: snapshot.items, kids: snapshot.kids, holidays: holidays,
+            return form.overlapCaption(items: snapshot.items, kids: snapshot.kids, daysOff: daysOff,
                                        editing: editingItem?.id, today: today, calendar: calendar)
         }
 
@@ -332,7 +336,7 @@ public struct ItemEditorFeature {
 
     public enum Action: BindableAction, Equatable {
         case task
-        case loaded(ScheduleSnapshot?, holidays: [Holiday])
+        case loaded(ScheduleSnapshot?, daysOff: [Kid.ID: Set<Day>])
         case binding(BindingAction<State>)
         case audienceTapped(Audience)
         case picturePicked(String)
@@ -395,6 +399,7 @@ public struct ItemEditorFeature {
 
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
+    @Dependency(\.schoolDirectory) var schoolDirectory
     @Dependency(\.uuid) var uuid
 
     public init() {}
@@ -406,14 +411,16 @@ public struct ItemEditorFeature {
             case .task:
                 if state.isAdding, state.draftID == nil { state.draftID = uuid() }
                 let year = state.today.year
-                return .run { [scheduleStore, holidays] send in
+                return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    await send(.loaded(snapshot, holidays: await holidays.holidays(year)))
+                    let daysOff = await schoolDirectory.daysOff(kids: snapshot?.kids ?? [],
+                                                                publicHolidays: await holidays.holidays(year).map(\.day))
+                    await send(.loaded(snapshot, daysOff: daysOff))
                 }
 
-            case let .loaded(snapshot, holidays):
+            case let .loaded(snapshot, daysOff):
                 state.snapshot = snapshot
-                state.holidays = Set(holidays.map(\.day))
+                state.daysOff = daysOff
                 return .none
 
             case .binding:

@@ -9,6 +9,9 @@ public struct SchoolDirectory: Sendable {
     public var schools: @Sendable () async -> [SchoolEntry] = { [] }
     /// The open-data notices the licences ask the app to show.
     public var sources: @Sendable () async -> [DataSource] = { [] }
+    /// The terms and closed days of a kid's school (MOE calendar by level, or the school's own
+    /// term dates); `.none` when the school follows neither.
+    public var calendar: @Sendable (_ school: School, _ age: Int) async -> SchoolCalendar = { _, _ in .none }
 }
 
 /// One data set and the notice its licence asks for (data.gov.sg, OneMap).
@@ -22,6 +25,20 @@ public struct DataSource: Equatable, Identifiable, Sendable {
         self.name = name
         self.attribution = attribution
         self.licenceURL = licenceURL
+    }
+}
+
+extension SchoolDirectory {
+    /// Each kid's days off (spec "Repeats, dates and changes"): their school's closed days (vacations,
+    /// school holidays, days off in lieu) and the public holidays. Kids without a school: public
+    /// holidays only.
+    public func daysOff(kids: [Kid], publicHolidays: [Day]) async -> [Kid.ID: Set<Day>] {
+        var result: [Kid.ID: Set<Day>] = [:]
+        for kid in kids {
+            let year = if let school = kid.school { await calendar(school, kid.age) } else { SchoolCalendar.none }
+            result[kid.id] = year.daysOff(publicHolidays: Set(publicHolidays))
+        }
+        return result
     }
 }
 
@@ -44,6 +61,11 @@ extension SchoolDirectory: TestDependencyKey {
         sources: {
             [DataSource(name: "Example data", attribution: "Contains example information.", // copy-ok: preview data
                         licenceURL: "https://example.com/licence")]
+        },
+        calendar: { _, _ in
+            // A made-up term ending on Friday 20 Nov 2026, then the year-end break.
+            SchoolCalendar(terms: [SchoolCalendar.Term(name: "Term 4", start: Day(year: 2026, month: 9, day: 14), // copy-ok: preview data
+                                                       end: Day(year: 2026, month: 11, day: 20))])
         }
     )
 }

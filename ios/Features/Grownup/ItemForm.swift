@@ -325,14 +325,14 @@ public struct ItemForm: Equatable, Sendable {
 
     /// A note under "When" if another item for the same kid shares this time (not blocking).
     /// Only items still ahead count: a stopped series or a past event says nothing.
-    public func overlapCaption(items: [ScheduleItem], kids: [Kid], holidays: Set<Day>, editing: ScheduleItem.ID?,
+    public func overlapCaption(items: [ScheduleItem], kids: [Kid], daysOff: [Kid.ID: Set<Day>], editing: ScheduleItem.ID?,
                                today: Day? = nil, calendar: Calendar) -> String? {
         let mine = kids.filter { audience.includes($0.id) }.map(\.id)
         let from = max(date, today ?? date)
         for other in items where other.id != editing && other.start < end && start < other.end {
             let shared = mine.filter { other.audience.includes($0) }
             guard let kid = shared.first,
-                  sharesDay(with: other, kid: kid, from: from, holidays: holidays, calendar: calendar)
+                  sharesDay(with: other, kid: kid, from: from, holidays: daysOff[kid] ?? [], calendar: calendar)
             else { continue }
             let myPriority = repeats == .once ? 2 : 1
             let otherPriority = other.isWeekly ? 1 : 2
