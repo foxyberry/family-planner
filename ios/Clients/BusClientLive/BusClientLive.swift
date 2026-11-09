@@ -5,16 +5,18 @@ import Foundation
 
 extension BusClient {
     /// LTA DataMall: BusArrival v3 for live times and BusStops (paged) for a stop's name, with the
-    /// key built into the app (`nil`: every call throws `LTA.Failure.noKey`). The current time is
-    /// read at call time from `\.date`.
+    /// key built into the app (`nil`: every call throws `LTA.Failure.noKey`). Arrival minutes count
+    /// from LTA's own clock (the answer's HTTP `Date`), never from `\.date`: LTA gives real clock
+    /// times, and with the debug time machine `\.date` is another day, which made every bus "0 min".
+    /// `\.date` is only the fallback when the answer has no `Date`.
     public static func live(key: String?, session: URLSession = .shared) -> Self {
         Self(
             arrivals: { stop in
                 guard let key else { throw LTA.Failure.noKey }
                 @Dependency(\.date) var date
-                let data = try await LTA.get(LTA.arrivalPath, query: [(LTA.stopParameter, stop)], key: key,
-                                             session: session)
-                return try LTA.arrivals(from: data, now: date.now)
+                let (data, served) = try await LTA.fetch(LTA.arrivalPath, query: [(LTA.stopParameter, stop)],
+                                                         key: key, session: session)
+                return try LTA.arrivals(from: data, now: served ?? date.now)
             },
             stop: { code in
                 guard let key else { throw LTA.Failure.noKey }
@@ -64,6 +66,12 @@ public enum LTA {
     }
 
     static func get(_ path: String, query: [(String, String)], key: String, session: URLSession) async throws -> Data {
+        try await fetch(path, query: query, key: key, session: session).data
+    }
+
+    /// The answer and the server's clock when it answered (its HTTP `Date` header).
+    static func fetch(_ path: String, query: [(String, String)], key: String,
+                      session: URLSession) async throws -> (data: Data, served: Date?) {
         var components = URLComponents(string: base + path)
         components?.queryItems = query.map { URLQueryItem(name: $0.0, value: $0.1) }
         guard let url = components?.url else { throw Failure(status: 0) }
@@ -73,7 +81,17 @@ public enum LTA {
         let (data, response) = try await session.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard status == 200 else { throw Failure(status: status) }
-        return data
+        let served = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Date").flatMap(Self.httpDate) // copy-ok: HTTP header
+        return (data, served)
+    }
+
+    /// An HTTP `Date` header ("Mon, 09 Nov 2026 08:11:00 GMT").
+    public static func httpDate(_ text: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX") // copy-ok: locale id
+        formatter.timeZone = TimeZone(identifier: "GMT") // copy-ok: time zone id
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz" // copy-ok: HTTP date format
+        return formatter.date(from: text)
     }
 
     /// Every upcoming bus in a BusArrival v3 answer, minutes from `now` (rounded down, never < 0).
