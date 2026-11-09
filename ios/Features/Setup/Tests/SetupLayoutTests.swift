@@ -30,8 +30,8 @@ final class SetupLayoutTests: XCTestCase {
 
     func testThirteenInchIsTheBoard() {
         let layout = SetupLayout(sizing: Sizing(width: 1376, height: 1032))
-        XCTAssertEqual(layout.kidCard(0), CGRect(x: 64, y: 176, width: 818, height: 296))
-        XCTAssertEqual(layout.kidCard(1).minY, 504, "board S1: the second card's Name row is at 548")
+        XCTAssertEqual(layout.kidCard(0), CGRect(x: 64, y: 176, width: 818, height: 304))
+        XCTAssertEqual(layout.kidCard(1).minY, 500, "layout v18: cards 304 tall, 20 apart")
         XCTAssertEqual(layout.s4Main(104, 216), CGPoint(x: 40, y: 40), "board S4: the first row at (104, 216)")
         XCTAssertEqual(layout.s4Side(1002, 303), CGPoint(x: 72, y: 127))
         XCTAssertEqual(layout.schoolFieldWidth, 610)

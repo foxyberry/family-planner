@@ -3648,7 +3648,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arrive by %1$@ and latest %2$@ come from School; they set the medals."
+            "value" : "Arrive by and latest come from the school step; they set the medals."
           }
         }
       }

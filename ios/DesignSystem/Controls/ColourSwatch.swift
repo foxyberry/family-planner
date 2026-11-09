@@ -18,12 +18,13 @@ public struct ColourSwatch: View {
 
     public var body: some View {
         Button(action: action) {
-            CrayonSurface(.circle, fill: CrayonStyle.kid(colorIndex), markerColor: CrayonColor.kid(colorIndex),
+            CrayonSurface(.circle, fill: CrayonStyle.kid(colorIndex), markerColor: CrayonColor.marker,
                           seed: CrayonStyle.Seed.swatch + UInt32(max(colorIndex, 0)))
                 .frame(width: 56, height: 56)
                 .overlay {
                     if isPicked {
-                        Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 72, height: 72)
+                        // Board S1: the pick ring hugs the swatch.
+                        Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 66, height: 66)
                     }
                 }
                 .frame(width: 72, height: 72)

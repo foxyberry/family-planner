@@ -1,5 +1,6 @@
 import Domain
 import Foundation
+import KitArt
 import Strings
 
 /// Everything S1–S4 print, decided here so the views only render (spec "S1–S4").
@@ -163,9 +164,10 @@ extension SetupFeature.State {
         return L10n.tr("going.leave.before", TimeText.withPeriod(max(arrive - kid.going.leaveBefore, 0)))
     }
 
+    /// Board S3: where arrive-by and latest come from (they are set on S2).
     public var goingTimesCaption: String? {
-        guard let school = goingKid?.school, let arrive = school.arriveBy, let latest = school.latest else { return nil }
-        return L10n.tr("s3.side.times", TimeText.withPeriod(arrive), TimeText.withPeriod(latest))
+        guard goingKid?.school.arriveBy != nil else { return nil }
+        return L10n.tr("s3.side.times")
     }
 
     // MARK: S4
@@ -180,7 +182,8 @@ extension SetupFeature.State {
     public var summaryWay: (picture: String, title: String, detail: String)? {
         guard let going = goingKids.first?.going else { return nil }
         if going.way == .bus {
-            return (going.way.moverPicture, L10n.tr("s4.way.bus"), L10n.tr("s4.way.bus.detail", going.walk, going.ride))
+            // Board S4: the red single-deck bus, as on the "Live bus times" row.
+            return (KitSlot.busSingle.rawValue, L10n.tr("s4.way.bus"), L10n.tr("s4.way.bus.detail", going.walk, going.ride))
         }
         return (going.way.moverPicture, Self.wayCaption(going.way), L10n.tr("s4.way.leave", going.leaveBefore))
     }
