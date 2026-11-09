@@ -86,6 +86,8 @@ public struct MissionsFeature {
     @ObservableState
     public struct State: Equatable {
         public var today: Day?
+        /// The day's weekday, for the weekend greeting (board A2t-w).
+        public var weekday: Weekday?
         public var minute = 0
         public var kids: [Kid] = []
         public var missions: [Mission] = []
@@ -303,7 +305,13 @@ public struct MissionsFeature {
 
         /// "Ready, Kid A!" once the chosen kid is ready; else "Good morning!".
         public var title: String {
-            guard let kid = chosenKid, day(of: kid.id).ready else { return L10n.tr("missions.title") }
+            guard let kid = chosenKid, day(of: kid.id).ready else {
+                // Board A2t-w: on the weekend the greeting names the day.
+                if let weekday, weekday == .saturday || weekday == .sunday {
+                    return L10n.tr("missions.title.weekend", DayText.name(weekday))
+                }
+                return L10n.tr("missions.title")
+            }
             return L10n.tr("missions.ready_title", kid.name)
         }
 
@@ -443,6 +451,7 @@ public struct MissionsFeature {
                 let now = date.now
                 let today = Day(now, calendar: calendar)
                 state.today = today
+                state.weekday = today.weekday(calendar)
                 state.minute = Day.minute(of: now, calendar: calendar)
                 state.now = now
                 return .merge(

@@ -55,7 +55,8 @@ public struct KidFace: View {
                               markerColor: CrayonColor.kid(badge.colorIndex), seed: CrayonStyle.Seed.kidFace + 10)
                     .frame(width: size * 0.5, height: size * 0.5)
             } else {
-                KitIcon(KitSlot(iconName: badge.face), size: size * 0.86)
+                // Inside a progress ring (board A2) the face fills it.
+                KitIcon(KitSlot(iconName: badge.face), size: size * (showsRing ? 0.86 : 1))
             }
         }
         .frame(width: size, height: size)

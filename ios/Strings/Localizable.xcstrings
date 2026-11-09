@@ -2509,6 +2509,17 @@
         }
       }
     },
+    "missions.title.weekend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good morning! %@"
+          }
+        }
+      }
+    },
     "missions.too_soon" : {
       "extractionState" : "manual",
       "localizations" : {

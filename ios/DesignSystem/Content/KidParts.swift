@@ -132,8 +132,9 @@ public struct MissionCircle: View {
     public var body: some View {
         VStack(spacing: Spacing.xs) {
             ZStack {
+                // Board A2: a thin outline around the mission circle.
                 CrayonSurface(.circle, fill: colorIndex == 1 ? CrayonStyle.apricot : CrayonStyle.skyPill,
-                              seed: CrayonStyle.Seed.mission + UInt32(max(0, colorIndex)))
+                              marker: .thin, seed: CrayonStyle.Seed.mission + UInt32(max(0, colorIndex)))
                 inside
             }
             .frame(width: circle, height: circle)
@@ -158,7 +159,8 @@ public struct MissionCircle: View {
     private func captionLine(_ text: String) -> some View {
         Text(verbatim: text)
             .font(Font(FontRegistrar.font(size: CrayonType.caption.size, weight: isCurrent ? .bold : .medium)))
-            .foregroundStyle(CrayonColor.ink)
+            // Board A2: only the current mission's caption is ink; the others are soft text.
+            .foregroundStyle(isCurrent ? CrayonColor.ink : CrayonColor.softText)
             .lineLimit(1)
             .truncationMode(.tail)
     }
