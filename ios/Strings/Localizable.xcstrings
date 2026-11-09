@@ -3290,6 +3290,50 @@
         }
       }
     },
+    "s2.side.home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'s day is on the clock: naps, meals and play."
+          }
+        }
+      }
+    },
+    "s2.side.home.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the times later in Our day."
+          }
+        }
+      }
+    },
+    "s2.side.preschool" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop-off and pick-up go on %@'s clock."
+          }
+        }
+      }
+    },
+    "s2.side.preschool.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No medals for preschool. Missions are picture cards a grown-up taps."
+          }
+        }
+      }
+    },
     "s2.terms.ask" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3659,7 +3703,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Everything you entered here is deleted."
+            "value" : "The family on this iPad is replaced."
           }
         }
       }
@@ -3670,7 +3714,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Replace your family with the sample family?"
+            "value" : "Start over with this setup?"
           }
         }
       }

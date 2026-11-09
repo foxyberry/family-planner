@@ -153,6 +153,7 @@ final class SetupTests: XCTestCase {
         XCTAssertNil(store.state.tabKid?.goesTo, "nothing is picked under 7")
         await store.send(.goesToTapped(.home))
         XCTAssertEqual(store.state.atHomeLine, "Kid B is at home in the day.")
+        XCTAssertEqual(store.state.placeSide?.body, "Kid B's day is on the clock: naps, meals and play.")
         await store.send(.schoolTabTapped(first))
         await store.send(.schoolPicked(school))
         await store.send(.nextTapped)

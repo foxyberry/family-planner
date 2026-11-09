@@ -38,6 +38,17 @@ extension SetupFeature.State {
         return L10n.tr("s2.at_home", kid.shownName(index: index))
     }
 
+    /// The S2 side column on a Preschool or At-home tab (the medals show only for a school).
+    public var placeSide: (body: String, caption: String)? {
+        guard let kid = tabKid, let index = kids.index(id: kid.id) else { return nil }
+        let name = kid.shownName(index: index)
+        switch kid.goesTo {
+        case .preschool: return (L10n.tr("s2.side.preschool", name), L10n.tr("s2.side.preschool.caption"))
+        case .home: return (L10n.tr("s2.side.home", name), L10n.tr("s2.side.home.caption"))
+        default: return nil
+        }
+    }
+
     public var schoolPlaceholder: String {
         tabKid?.school.kind == .preschool ? L10n.tr("s2.preschool.placeholder") : L10n.tr("s2.school.placeholder")
     }

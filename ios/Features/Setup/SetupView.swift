@@ -104,7 +104,14 @@ public struct SetupView: View {
             }
             .foregroundStyle(CrayonColor.ink)
         case .school:
-            if store.tabKid?.goesTo == .school { MedalSide(store: store) }
+            if store.tabKid?.goesTo == .school {
+                MedalSide(store: store)
+            } else if let side = store.placeSide {
+                VStack(alignment: .leading, spacing: Spacing.s) {
+                    Text(side.body).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                    Text(side.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                }
+            }
         case .gettingThere:
             VStack(alignment: .leading, spacing: Spacing.m) {
                 Text(L10n.tr("s3.side.title")).crayonType(.head)
@@ -572,7 +579,7 @@ private struct SetupRow<Control: View>: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            Text(label).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
+            Text(label).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText).lineLimit(1)
                 .frame(width: labelWidth ?? 128, height: height, alignment: .leading)
             control.frame(minHeight: height, alignment: .leading)
         }
