@@ -15,11 +15,11 @@ public struct HomeFeature {
     public enum KidABlock: Equatable, Sendable {
         /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
         case leave
-        /// The time left ("in") over the Next row; within 3 hours, after the mission morning.
+        /// The time left ("in") over the Next row; within 3 hours, outside a mission window.
         case timeLeft(HomeModel.TimeLeft, NextRow)
         /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
         case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
-        /// E3 / E3b: the Next row only (over 3 hours away, or a mission morning without an outing).
+        /// E3 / E3b: the Next row only (over 3 hours away, or a mission window without an outing).
         case next(NextRow)
         /// Nothing next today: the row is left out (spec E3 "No item left today").
         case nothing
@@ -33,6 +33,15 @@ public struct HomeFeature {
         public var night: NightSpan? = nil
         /// Tomorrow's first outing (board A1n "Tomorrow" row); `nil` when tomorrow has none.
         public var tomorrow: Outing? = nil
+        /// Whether the kid has morning routine missions (C5).
+        public var hasMissions = false
+
+        /// Spec "Mission windows": the day's stretches for missions.
+        public var windows: [WindowSpan] { DayPlanner.missionWindows(slots: slots, night: night) }
+
+        /// Whether a window part has missions for this kid. Only the morning routine has missions
+        /// until event missions, Bring and the evening routine are built.
+        func hasMissions(in part: MissionWindow) -> Bool { part == .morning && hasMissions }
     }
 
     @ObservableState
@@ -92,15 +101,17 @@ public struct HomeFeature {
             return isSchoolHoliday ? L10n.tr("home.day.holiday", dayName) : dayName
         }
 
-        /// Spec A1 "Mission morning": from the earliest kid's wake-up until noon, home offers "Missions →".
-        public var isMissionMorning: Bool {
-            DayPlanner.isMissionMorning(at: minute, wakes: days.compactMap { $0.night?.wake })
+        /// Spec "Mission windows": home offers "Missions →" while a kid's open window has missions
+        /// in it (the morning runs from wake-up to the first leave, or noon).
+        public var showsMissions: Bool {
+            days.contains { day in
+                DayPlanner.window(at: minute, in: day.windows)?.parts.contains { day.hasMissions(in: $0) } == true
+            }
         }
 
-        /// In the mission morning, Kid A's next outing when it starts within 3 hours.
+        /// Kid A's outing that the open window leads to, when it starts within 3 hours.
         public var morningOuting: Outing? {
-            guard isMissionMorning, let first = days.first,
-                  let outing = DayPlanner.nextOuting(in: first.slots, after: minute),
+            guard let first = days.first, let outing = DayPlanner.window(at: minute, in: first.windows)?.outing,
                   outing.slot.start - minute <= 180 else { return nil }
             return outing
         }
@@ -139,7 +150,7 @@ public struct HomeFeature {
             }
         }
 
-        /// Live times are fetched only for Kid A's bus outing in the mission morning.
+        /// Live times are fetched only for Kid A's next bus outing in an open window.
         var wantsLive: Bool { morningOuting?.trip.way == .bus && busPlan != nil }
 
         /// The switch's VoiceOver label: "Day. Tap for night." / "Night. Tap for day.".
@@ -149,7 +160,7 @@ public struct HomeFeature {
             guard let first = days.first else { return .nothing }
             if morningOuting != nil { return .leave }
             guard let next = HomeModel.next(first.slots, minute: minute) else { return .nothing }
-            if !isMissionMorning, let left = HomeModel.timeLeft(to: next, minute: minute) {
+            if !showsMissions, let left = HomeModel.timeLeft(to: next, minute: minute) {
                 return next.kind == .sleep ? .bedTime(left, tomorrow: first.tomorrow.map(TomorrowRow.init)) : .timeLeft(left, next)
             }
             return .next(next)
@@ -188,7 +199,7 @@ public struct HomeFeature {
         /// The kid tapped the drawn slot that starts at this minute.
         case slotTapped(Int)
         case playEnded(Int)
-        /// "Missions →" in the mission morning; the app opens the missions screen.
+        /// "Missions →" in a mission window; the app opens the missions screen.
         case missionsTapped
         case refresh
         case arrivalsLoaded([BusArrival]?, at: Date)
@@ -277,7 +288,8 @@ public struct HomeFeature {
                                in: DayPlanner.slots(on: today.adding(days: 1, calendar: calendar), kid: kid,
                                                     routines: snapshot.routines, items: snapshot.items,
                                                     holidays: holidayDays, calendar: calendar),
-                               after: -1))
+                               after: -1),
+                           hasMissions: snapshot.missions.contains { $0.kid == kid.id })
                 }
                 state.busPlan = snapshot.kids.first.flatMap { kid in
                     snapshot.busPlans.route(kid: kid.id)?.graced(by: kid)

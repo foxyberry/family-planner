@@ -128,11 +128,4 @@ public extension DayPlanner {
             .first { $0.trip != nil && $0.start > minute }
             .flatMap { slot in slot.trip.map { Outing(slot: slot, trip: $0) } }
     }
-
-    /// Spec A1 "Mission morning": from the earliest kid's wake-up (the end of their sleep that starts
-    /// at midnight) until 12:00 pm.
-    static func isMissionMorning(at minute: Int, wakes: [Int]) -> Bool {
-        guard let earliest = wakes.min() else { return false }
-        return minute >= earliest && minute < 720
-    }
 }

@@ -65,7 +65,24 @@ Tests: linked item follows school; linked item skipped when school is off (MOE h
 `homeAfter` decode default; medal default on School and off on an item; bus plan per event and
 plan lookup by the outing's event.
 
+## PR C: mission windows
+
+Domain (`MissionWindows.swift`): `DayPlanner.missionWindows(slots:night:)` turns the day's points
+(wake, each outing's leave and home, dinner, bed) into `WindowSpan`s, each with its window parts in
+order:
+- Morning: wake → the first leave (that outing's "before" missions join it), or noon when nothing
+  leaves before then; an afternoon outing then gets a "before" stretch from noon to its leave.
+- After an outing: home (the end of its linked chain + `homeAfter`) → the next leave (whose "before"
+  missions join) or dinner. The chain's events each add an "after" part.
+- Evening: dinner → bed.
+`Slot.after` carries the item's link so the chain can be followed.
+
+Home: "Missions →" shows while a kid's open window has missions (today only the morning routine
+has any), and the "Leave in" countdown follows Kid A's open window's outing. `isMissionMorning`
+(wake → noon) is gone.
+
 ## Not in this step
 
-The event form rows (From, Bring, Before/After, Medal), the mission windows on A2, the home
-"Missions →" label, C5 day-only missions, Bring → missions, and C1/C3/C4 route shortcuts.
+The event form rows (From, Bring, Before/After, Medal; waiting for board G2b), the A2 screen per
+window and the home label per window (they need event missions first), C5 day-only missions,
+Bring → missions, and C1/C3/C4 route shortcuts.
