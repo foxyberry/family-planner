@@ -248,6 +248,38 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertTrue(both.state.showsMissions, "Kid B's morning runs to noon")
     }
 
+    /// Spec "Home button label per window": "Before {item}" names the outing the missions lead to;
+    /// a name too long for one line falls back to "Missions".
+    func testTheButtonNamesTheWindow() async {
+        func swimming(named name: String) -> ScheduleSnapshot {
+            let items = SeedData.items(today: tuesday, calendar: calendar).map { item -> ScheduleItem in
+                guard item.title == "Swimming" else { return item }
+                var swimming = item
+                swimming.title = name
+                swimming.bring = [ItemMission(id: UUID(), name: "Towel", picture: "towel")]
+                return swimming
+            }
+            return ScheduleSnapshot(kids: [SeedData.kidA], routines: SeedData.routines, items: items,
+                                    missions: SeedData.missions)
+        }
+        let monday = Day(year: 2026, month: 11, day: 16)
+        let morning = store(on: monday, minute: 400, snapshot: swimming(named: "Swimming"))
+        await morning.send(.task)
+        await morning.receive(\.loaded)
+        XCTAssertEqual(morning.state.missionsTitle, "Missions")
+
+        let afterSchool = store(on: monday, minute: 905, snapshot: swimming(named: "Swimming"))
+        await afterSchool.send(.task)
+        await afterSchool.receive(\.loaded)
+        XCTAssertTrue(afterSchool.state.showsMissions)
+        XCTAssertEqual(afterSchool.state.missionsTitle, "Before Swimming")
+
+        let long = store(on: monday, minute: 905, snapshot: swimming(named: "Swimming lessons"))
+        await long.send(.task)
+        await long.receive(\.loaded)
+        XCTAssertEqual(long.state.missionsTitle, "Missions")
+    }
+
     func testAnOutingMoreThanThreeHoursAwayShowsTheNextRowInstead() async {
         // Monday 10:00 am: school has started; swimming at 3:30 pm is more than 3 hours away.
         let store = store(on: Day(year: 2026, month: 11, day: 16), minute: 600)

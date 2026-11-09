@@ -15,10 +15,22 @@ public struct MissionEditorFeature {
         public var name: String
         public var picture: String
         public var isNew: Bool
+        /// The days a morning mission is on (spec C5 "days per mission"); nil for an item's mission,
+        /// whose card has no Days row.
+        public var days: Set<Weekday>?
         /// "Remove {name}?" is showing.
         public var confirmsRemove = false
 
-        public var canSave: Bool { !name.trimmingCharacters(in: .whitespaces).isEmpty }
+        public init(id: UUID, name: String, picture: String, isNew: Bool, days: Set<Weekday>? = nil) {
+            self.id = id
+            self.name = name
+            self.picture = picture
+            self.isNew = isNew
+            self.days = days
+        }
+
+        /// A name, and at least one day for a morning mission.
+        public var canSave: Bool { !name.trimmingCharacters(in: .whitespaces).isEmpty && days?.isEmpty != true }
     }
 
     @ObservableState
@@ -51,6 +63,13 @@ public struct MissionEditorFeature {
         /// Picture cards for a kid at home (board C5, Kid B tab).
         public var showsCardsNote: Bool { kid?.school == nil }
 
+        /// The caption under a mission's name in the list: its days when it is not on every day
+        /// ("Thu", "Mon · Wed").
+        public func daysCaption(_ mission: Mission) -> String? {
+            mission.days.count == Weekday.allCases.count ? nil
+                : mission.days.sorted().map(DayText.shortName).joined(separator: " · ")
+        }
+
         public var removeTitle: String? {
             guard let draft, draft.confirmsRemove else { return nil }
             return L10n.tr("c5.remove.title", draft.name)
@@ -65,6 +84,7 @@ public struct MissionEditorFeature {
         case addTapped
         case draftNameChanged(String)
         case draftPicturePicked(String)
+        case draftDayToggled(Weekday)
         case draftClosed
         case saveTapped
         case removeTapped
@@ -108,12 +128,13 @@ public struct MissionEditorFeature {
 
             case let .rowTapped(id):
                 guard let mission = state.missions.first(where: { $0.id == id }) else { return .none }
-                state.draft = Draft(id: id, name: mission.name, picture: mission.picture, isNew: false)
+                state.draft = Draft(id: id, name: mission.name, picture: mission.picture, isNew: false,
+                                    days: mission.days)
                 return .none
 
             case .addTapped:
                 guard state.canAdd else { return .none }
-                state.draft = Draft(id: uuid(), name: "", picture: "star", isNew: true)
+                state.draft = Draft(id: uuid(), name: "", picture: "star", isNew: true, days: Set(Weekday.allCases))
                 return .none
 
             case let .draftNameChanged(name):
@@ -122,6 +143,12 @@ public struct MissionEditorFeature {
 
             case let .draftPicturePicked(picture):
                 state.draft?.picture = picture
+                return .none
+
+            case let .draftDayToggled(day):
+                guard var days = state.draft?.days else { return .none }
+                if days.contains(day) { days.remove(day) } else { days.insert(day) }
+                state.draft?.days = days
                 return .none
 
             case .draftClosed:
@@ -135,9 +162,10 @@ public struct MissionEditorFeature {
                 if let index = rows.firstIndex(where: { $0.id == draft.id }) {
                     rows[index].name = name
                     rows[index].picture = draft.picture
+                    rows[index].days = draft.days ?? rows[index].days
                 } else if rows.count < Mission.most {
                     rows.append(Mission(id: draft.id, kid: state.selectedKid, name: name, picture: draft.picture,
-                                        order: rows.count))
+                                        order: rows.count, days: draft.days ?? Set(Weekday.allCases)))
                 }
                 state.draft = nil
                 return save(rows, in: &state)

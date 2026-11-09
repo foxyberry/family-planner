@@ -20,13 +20,13 @@ final class MissionsTests: XCTestCase {
     private let kidA = SeedData.kidA.id
     private let kidB = SeedData.kidB.id
 
-    private func store(on day: Day, minute: Int, missions: [Mission] = SeedData.missions,
+    private func store(on day: Day, minute: Int, missions: [Mission] = SeedData.missions, items: [ScheduleItem]? = nil,
                        saved: LockIsolated<[MissionDay]> = LockIsolated([]),
                        arrivals: [BusArrival]? = nil) -> TestStoreOf<MissionsFeature> {
         // Made-up stop and bus numbers (privacy rule).
         let plans = arrivals == nil ? [] : [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])]
         let snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines,
-                                        items: SeedData.items(today: tuesday, calendar: calendar), missions: missions,
+                                        items: items ?? SeedData.items(today: tuesday, calendar: calendar), missions: missions,
                                         busPlans: plans)
         let store = TestStore(initialState: MissionsFeature.State()) {
             MissionsFeature()
@@ -35,13 +35,14 @@ final class MissionsTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.continuousClock = TestClock()
             $0.scheduleStore.load = { snapshot }
-            // The store keeps the morning window's missions and the outing's slide; `saved` holds them
-            // joined back into one day per kid, for the assertions.
+            // The store keeps each window's missions and the outing's slide; `saved` holds the morning
+            // window's and the slide joined back into one day per kid, for the assertions.
             $0.scheduleStore.windowMissions = { kid, date, window in
                 WindowMissions(kid: kid, date: date, window: window,
-                               done: saved.value.first { $0.kid == kid && $0.date == date }?.done ?? [])
+                               done: window == .morning ? saved.value.first { $0.kid == kid && $0.date == date }?.done ?? [] : [])
             }
             $0.scheduleStore.saveWindowMissions = { marks in
+                guard marks.window == .morning else { return }
                 saved.withValue { list in
                     var day = list.first { $0.kid == marks.kid && $0.date == marks.date }
                         ?? MissionDay(kid: marks.kid, date: marks.date)
@@ -329,6 +330,26 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.circles.first, .folded(count: 3))
         XCTAssertEqual(store.state.circles.count, 6)
         XCTAssertFalse(store.state.circles.contains { if case .more = $0 { true } else { false } })
+    }
+
+    /// Spec "Mission windows": after school, Kid A's list is swimming's "before" missions and its
+    /// Bring checks; the slide belongs to swimming.
+    func testAfterSchoolTheListIsTheNextOutingsMissionsAndBring() async {
+        let monday = Day(year: 2026, month: 11, day: 16)
+        let items = SeedData.items(today: tuesday, calendar: calendar).map { item -> ScheduleItem in
+            guard item.title == "Swimming" else { return item }
+            var swimming = item
+            swimming.missionsBefore = [ItemMission(id: id("401"), name: "Goggles", picture: "goggles")]
+            swimming.bring = [ItemMission(id: id("402"), name: "Towel", picture: "towel")]
+            return swimming
+        }
+        let store = store(on: monday, minute: 905, items: items)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.list(of: kidA).map(\.name), ["Goggles", "Towel"])
+        XCTAssertEqual(store.state.outingEvent(of: kidA), .item(id("101")))
+        XCTAssertEqual(store.state.list(of: kidB).count, SeedData.missions.filter { $0.kid == kidB }.count,
+                       "Kid B, at home, keeps her morning list")
     }
 }
 

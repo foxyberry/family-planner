@@ -121,4 +121,28 @@ final class MissionEditorTests: XCTestCase {
         // Kid B's missions are untouched.
         XCTAssertEqual(store.state.missions.filter { $0.kid == self.kidB }.count, 3)
     }
+
+    /// Spec C5 "days per mission": a Days row in the card, all on for a new mission; fewer days show
+    /// under the name, and a mission needs one day at least.
+    func testDaysPerMission() async {
+        let saved = LockIsolated<[Mission]>([])
+        let store = await loaded(saved: saved)
+        await store.send(.addTapped)
+        XCTAssertEqual(store.state.draft?.days, Set(Weekday.allCases))
+        await store.send(.draftNameChanged("Library bag"))
+        for day in Weekday.allCases where day != .thursday { await store.send(.draftDayToggled(day)) }
+        await store.send(.saveTapped)
+        let library = saved.value.last
+        XCTAssertEqual(library?.days, [.thursday])
+        XCTAssertEqual(library.flatMap(store.state.daysCaption), "Thu")
+        XCTAssertNil(store.state.daysCaption(store.state.rows[0]), "every day shows no caption")
+
+        await store.send(.rowTapped(library!.id))
+        await store.send(.draftDayToggled(.thursday))
+        XCTAssertEqual(store.state.draft?.canSave, false, "no day left")
+        await store.send(.draftDayToggled(.monday))
+        await store.send(.draftDayToggled(.wednesday))
+        await store.send(.saveTapped)
+        XCTAssertEqual(saved.value.last.flatMap(store.state.daysCaption), "Mon · Wed")
+    }
 }

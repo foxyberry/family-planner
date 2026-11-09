@@ -84,3 +84,56 @@ public extension DayPlanner {
         return chain
     }
 }
+
+/// One circle in an open window (spec "Mission windows"): which window part it belongs to (done
+/// marks are kept per window), and its picture and name.
+public struct WindowMission: Identifiable, Hashable, Sendable {
+    public var window: MissionWindow
+    public var id: UUID
+    public var name: String
+    public var picture: String
+
+    public init(window: MissionWindow, id: UUID, name: String, picture: String) {
+        self.window = window
+        self.id = id
+        self.name = name
+        self.picture = picture
+    }
+}
+
+public extension DayPlanner {
+    /// The kid's missions in a stretch, part by part: the morning routine's missions for the weekday
+    /// (C5 order), an outing's "before" missions then its Bring checks, the "after" missions of the
+    /// events that just ended. An item's mission or Bring check whose picture is already there (the
+    /// routine's "Pack bag" and Bring's bag) shows once. School's own missions come with its event
+    /// screen (6d); the evening routine comes later.
+    static func missions(in span: WindowSpan, routine: [Mission], items: [ScheduleItem],
+                         weekday: Weekday) -> [WindowMission] {
+        var result: [WindowMission] = []
+        var pictures: Set<String> = []
+        func add(_ window: MissionWindow, _ id: UUID, _ name: String, _ picture: String, once: Bool = true) {
+            guard pictures.insert(picture).inserted || !once else { return }
+            result.append(WindowMission(window: window, id: id, name: name, picture: picture))
+        }
+        func item(_ event: EventRef) -> ScheduleItem? {
+            guard case let .item(id) = event else { return nil }
+            return items.first { $0.id == id }
+        }
+        for part in span.parts {
+            switch part {
+            case .morning:
+                for mission in routine.filter({ $0.days.contains(weekday) }).sorted(by: { $0.order < $1.order }) {
+                    add(part, mission.id, mission.name, mission.picture, once: false)
+                }
+            case let .before(event):
+                guard let item = item(event) else { continue }
+                for thing in item.missionsBefore + item.bring { add(part, thing.id, thing.name, thing.picture) }
+            case let .after(event):
+                for thing in item(event)?.missionsAfter ?? [] { add(part, thing.id, thing.name, thing.picture) }
+            case .evening:
+                continue
+            }
+        }
+        return result
+    }
+}

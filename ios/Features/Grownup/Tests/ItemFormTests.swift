@@ -242,4 +242,85 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(ItemForm.rowPictures(picked: "actPiano", used: ["school", "actPiano"], all: all),
                        ["actPiano", "actSwim", "actArt", "actMusic", "actDance"])
     }
+
+    // MARK: Event form rows (spec "Event form rows for 6b")
+
+    private func choices(_ form: ItemForm, editing: ScheduleItem.ID? = nil) -> [String] {
+        form.fromChoices(kids: SeedData.kids, routines: SeedData.routines,
+                         items: SeedData.items(today: F.monday, calendar: F.calendar), editing: editing,
+                         today: F.monday, calendar: F.calendar).map(\.title)
+    }
+
+    func testFromOffersHomeThenEventsThatEndBeforeTheStartOnEveryDay() {
+        XCTAssertEqual(choices(form(start: 930, end: 990)), ["Home", "School"], "swimming ends after 3:30 pm")
+        XCTAssertEqual(choices(form(start: 1020, end: 1080)), ["Home", "School", "Swimming"])
+        XCTAssertEqual(choices(form(start: 1020, end: 1080, days: [.monday, .friday])), ["Home", "School"],
+                       "swimming is not on Fridays")
+        XCTAssertEqual(choices(form(start: 780, end: 840, days: [.saturday])), ["Home", "Weekend school"],
+                       "no School on Saturday; weekend school ends at noon")
+        XCTAssertEqual(choices(form(start: 600, end: 660)), ["Home"], "school ends at 3 pm")
+    }
+
+    func testAfterAnEventTheItemStartsAtItsEndKeepsItsLengthAndHasNoTrip() {
+        var form = form(start: 930, end: 990)
+        form.setGoing(.walk)
+        let school = form.fromChoices(kids: SeedData.kids, routines: SeedData.routines, items: [], editing: nil,
+                                      today: F.monday, calendar: F.calendar)[1]
+        form.setFrom(school)
+        XCTAssertEqual(form.after, .school)
+        XCTAssertEqual(form.start, 900)
+        XCTAssertEqual(form.end, 960)
+        XCTAssertNil(form.trip)
+        XCTAssertFalse(form.canSwitchMedal)
+        let item = form.item(id: UUID(), today: F.monday)
+        XCTAssertEqual(item.after, .school)
+        XCTAssertNil(item.trip)
+        XCTAssertEqual(choices(form), ["Home", "School"], "a linked item still offers its event")
+    }
+
+    func testMedalNeedsATripAndKeepsThroughWayChanges() {
+        var form = form()
+        form.toggleMedal()
+        XCTAssertFalse(form.medalIsOn, "no trip, no medal")
+        form.setGoing(.car)
+        form.toggleMedal()
+        XCTAssertTrue(form.medalIsOn)
+        form.setGoing(.walk)
+        form.stepLeave(1)
+        XCTAssertTrue(form.medalIsOn, "the switch stays when the way or the leave time changes")
+        XCTAssertEqual(form.item(id: UUID(), today: F.monday).trip?.medal, true)
+    }
+
+    func testBringTogglesUpToFourAndNamesThePictures() {
+        var form = form()
+        for (n, picture) in ["backpack", "lunchBox", "waterBottle", "towel", "goggles"].enumerated() {
+            form.toggleBring(picture, id: UUID(uuidString: "00000000-0000-0000-0000-00000000000\(n)")!)
+        }
+        XCTAssertEqual(form.bring.map(\.picture), ["backpack", "lunchBox", "waterBottle", "towel"])
+        XCTAssertEqual(form.bringText, "Backpack · Lunch box · Water bottle · Towel")
+        form.toggleBring("lunchBox", id: UUID())
+        XCTAssertEqual(form.bring.map(\.picture), ["backpack", "waterBottle", "towel"])
+    }
+
+    func testMissionsBeforeAndAfterAreListedForTheRow() {
+        var form = form()
+        XCTAssertNil(form.missionsText)
+        let goggles = ItemMission(id: UUID(), name: "Goggles", picture: "goggles")
+        let hang = ItemMission(id: UUID(), name: "Hang swimsuit", picture: "towel")
+        form.saveMission(hang, in: .after)
+        form.saveMission(goggles, in: .before)
+        XCTAssertEqual(form.missionsText, "Goggles · Hang swimsuit (after)")
+        var renamed = goggles
+        renamed.name = "Pack goggles"
+        form.saveMission(renamed, in: .before)
+        XCTAssertEqual(form.missionsBefore.map(\.name), ["Pack goggles"])
+        let shoes = ItemMission(id: UUID(), name: "Shoes on", picture: "shoe")
+        form.saveMission(shoes, in: .before)
+        form.moveMission(shoes.id, to: 0, in: .before)
+        XCTAssertEqual(form.missionsBefore.map(\.name), ["Shoes on", "Pack goggles"])
+        form.removeMission(hang.id)
+        XCTAssertEqual(form.missionsAfter, [])
+        let saved = form.item(id: UUID(), today: F.monday)
+        XCTAssertEqual(ItemForm(item: saved).missionsBefore, form.missionsBefore)
+    }
 }

@@ -12,13 +12,45 @@ public struct Mission: Identifiable, Hashable, Codable, Sendable {
     /// A `KitSlot` raw value.
     public var picture: String
     public var order: Int
+    /// The weekdays it is on (spec C5 "days per mission"): every day unless the grown-up picks fewer.
+    public var days: Set<Weekday>
 
-    public init(id: UUID, kid: Kid.ID, name: String, picture: String, order: Int) {
+    public init(id: UUID, kid: Kid.ID, name: String, picture: String, order: Int,
+                days: Set<Weekday> = Set(Weekday.allCases)) {
         self.id = id
         self.kid = kid
         self.name = String(name.prefix(Self.longestName))
         self.picture = picture
         self.order = order
+        self.days = days
+    }
+
+    private enum CodingKeys: String, CodingKey { case id, kid, name, picture, order, days }
+
+    /// Missions stored before days existed are on every day.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(id: try c.decode(UUID.self, forKey: .id), kid: try c.decode(Kid.ID.self, forKey: .kid),
+                  name: try c.decode(String.self, forKey: .name), picture: try c.decode(String.self, forKey: .picture),
+                  order: try c.decode(Int.self, forKey: .order),
+                  days: try c.decodeIfPresent(Set<Weekday>.self, forKey: .days) ?? Set(Weekday.allCases))
+    }
+}
+
+/// A mission or a thing to bring on an item (spec "Event form rows"): a picture and a short name,
+/// at most `most` per list.
+public struct ItemMission: Identifiable, Hashable, Codable, Sendable {
+    public static let most = 4
+
+    public var id: UUID
+    public var name: String
+    /// A `KitSlot` raw value.
+    public var picture: String
+
+    public init(id: UUID, name: String, picture: String) {
+        self.id = id
+        self.name = String(name.prefix(Mission.longestName))
+        self.picture = picture
     }
 }
 

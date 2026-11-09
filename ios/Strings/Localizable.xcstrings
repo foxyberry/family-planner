@@ -1035,6 +1035,17 @@
         }
       }
     },
+    "editor.row.bring" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring"
+          }
+        }
+      }
+    },
     "editor.row.for" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1046,6 +1057,39 @@
         }
       }
     },
+    "editor.row.from" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From"
+          }
+        }
+      }
+    },
+    "editor.row.medal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medal"
+          }
+        }
+      }
+    },
+    "editor.row.missions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missions"
+          }
+        }
+      }
+    },
     "editor.row.name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1053,6 +1097,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Name"
+          }
+        }
+      }
+    },
+    "editor.row.nothing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing"
           }
         }
       }
@@ -1251,6 +1306,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On the clock every %1$@ from %2$@."
+          }
+        }
+      }
+    },
+    "from.after" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After %@"
+          }
+        }
+      }
+    },
+    "from.home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        }
+      }
+    },
+    "from.school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "School"
+          }
+        }
+      }
+    },
+    "from.start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "after %@"
           }
         }
       }
@@ -1460,6 +1559,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Missions"
+          }
+        }
+      }
+    },
+    "home.missions.after" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After %@"
+          }
+        }
+      }
+    },
+    "home.missions.before" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Before %@"
           }
         }
       }
@@ -2179,6 +2300,17 @@
         }
       }
     },
+    "missions.add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
     "missions.back" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2443,6 +2575,39 @@
         }
       }
     },
+    "missions.row.after" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (after)"
+          }
+        }
+      }
+    },
+    "missions.section.after" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After"
+          }
+        }
+      }
+    },
+    "missions.section.before" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Before"
+          }
+        }
+      }
+    },
     "missions.slide" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2504,7 +2669,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Good morning!"
+            "value" : "Missions · %@"
+          }
+        }
+      }
+    },
+    "missions.title.new" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "new item"
           }
         }
       }

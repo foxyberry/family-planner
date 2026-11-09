@@ -95,6 +95,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: night mapping table (user): every day token maps to one night token; no pure white at night; `nightText` #D8D2E8, `nightSoft` #A6A0C2, white surfaces → `moonPaper` #D8D2E8, buttons → `nightControl` (#2E2C4A fill, chalk #E9E4F5 outline, same shapes). Replaces the chalk-filled main button and the white hub at night.
 - 2026-11-09: School edits on the E5 screen like any event (Terms instead of Runs, plus Going, Bring, Missions, Medal); only day-template slots use the C6 slice card. Fixes a clash between the plain-screens rule and "Events: one shape".
 - 2026-11-09: grown-up mode final (user): boards G0–G8; C6 absorbed into G1, C1 becomes Settings (G6), a List view (G8) is kept; School edits on G4; sketches SK1–SK11 archived.
+- 2026-11-10: event form rows for 6b (main session asked): From / Bring / Missions / Medal rows and what each opens, the home button labels per window, C5 days per mission; board G2b in layout v24.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -492,6 +493,15 @@ Research: reports/calendar-event-features.md (Apple, Google, Outlook, RFC 5545 /
 - **Notes** row: free text, grown-up screens only.
 - **Not in this app**: attendees and invitations, attachments, busy/free, privacy flags, URL field, per-event time zone (the family zone is N4). Live-traffic leave times stay later (the fixed `leaveBefore` covers it); export to Apple Calendar is later and writes plain times (EventKit keeps one rule, no skipped or added dates, no links).
 - Order of work: after "Events: one shape" (the anchor model is its `From`), before the grown-up mode boards (SK6–SK9) are redrawn as real boards.
+
+### Event form rows for 6b (2026-11-10; board G2b, layout v24)
+At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, label 104, value 232, "›" at 814, pitch 96: **From**, **Bring**, **Missions**, **Medal**. (No school days and Runs come with 6c.)
+- **From** → a centred `ConfirmCard` (like the C5 editor, tap outside = cancel) with `ChoiceCircles`: **Home** (`home` picture) first, then each of the kid's items that ends at or before this item's start on every one of its days (School first, then by end time), up to 5. Picking "After {item}" sets the start to that item's end, hides the Going / Leave rows (same place, no trip) and makes the start field read-only ("after {item}"). Picking Home shows Going / Leave as C3g. Row value: "Home" or "After {item}".
+- **Bring** → a centred `ConfirmCard` with an `IconPicker` in multi-pick mode (up to 4): the kit's bring group (today: backpack, lunchBox, waterBottle; the bring kit batch adds swimsuit, goggles, towel, rollerblades, helmet, libraryBag) and a "More" slot for the whole kit. Row value: the first picture 48 + names joined by " · "; "Nothing" (soft) when empty.
+- **Missions** → a pushed sub-page in the same form card, header "← Missions · {item}": two sections **Before** and **After**, each with C5 rows (≡, picture 48, name, "›"; reorder by ≡) and "+ Add" (up to 4 per section); add / edit uses the C5 `ConfirmCard` editor. Row value: the names, "before" ones first, the after ones with "(after)"; "Nothing" when empty.
+- **Medal** → a `CrayonSwitch` 96 × 52 on the row itself (x 232, centred on the row), no sub-page. Off and at 45 % (not tappable) when the item has no trip (From = After, or Going = None).
+- **Home button label per window**: morning "Missions →"; before an outing "Before {item} →"; after coming home "After {item} →"; evening (later) "Pack for tomorrow →". {item} is the item's name as typed; if the label does not fit on one line, it is "Missions →".
+- **C5 days per mission**: the C5 editor `ConfirmCard` gets a **Days** row: seven `DayChip` 56 (all on by default). A mission with fewer days shows them as the caption under its name in the C5 list ("Thu", "Mon · Wed"); every day shows no caption.
 
 ### Trips on items: the "Going" row [board C3g]
 - C3, C4 and E5 get two rows at the end of the form, under "Skip school holidays" (the form card scrolls to them; board C3g shows it scrolled down, with the top edge fading into the card):

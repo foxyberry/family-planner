@@ -16,7 +16,7 @@ import Strings
 public struct MissionsFeature {
     /// One place in the mission row: a mission, the done ones folded into one ✓, or "+n" for the next page.
     public enum Circle: Equatable, Sendable, Identifiable {
-        case mission(Mission, isDone: Bool, isCurrent: Bool)
+        case mission(WindowMission, isDone: Bool, isCurrent: Bool)
         case folded(count: Int)
         case more(count: Int)
         /// On the last page: "‹" back to the first page.
@@ -92,6 +92,10 @@ public struct MissionsFeature {
         public var kids: [Kid] = []
         public var missions: [Mission] = []
         public var slots: [Kid.ID: [Slot]] = [:]
+        public var items: [ScheduleItem] = []
+        /// Each kid's mission window when the screen opened (spec "Mission windows"): the open one,
+        /// else the morning. It stays while the screen is open, so leaving does not empty the list.
+        public var spans: [Kid.ID: WindowSpan] = [:]
         public var days: [Kid.ID: MissionDay] = [:]
         public var chosen: Kid.ID?
         public var page = 0
@@ -107,13 +111,27 @@ public struct MissionsFeature {
 
         public var chosenKid: Kid? { kids.first { $0.id == chosen } }
 
-        public func missions(of kid: Kid.ID) -> [Mission] {
-            missions.filter { $0.kid == kid }.sorted { $0.order < $1.order }
+        /// The kid's circles in their window: the routine's missions for today, then the outing's
+        /// "before" missions and Bring, or the "after" missions of what just ended.
+        public func list(of kid: Kid.ID) -> [WindowMission] {
+            guard let span = spans[kid] else { return [] }
+            return DayPlanner.missions(in: span, routine: missions.filter { $0.kid == kid }, items: items,
+                                       weekday: weekday ?? .monday)
         }
 
-        /// The event of the kid's first outing today, which the slide belongs to.
-        public func firstOuting(of kid: Kid.ID) -> EventRef? {
-            (slots[kid] ?? []).sorted { $0.start < $1.start }.first { $0.trip != nil }.flatMap(EventRef.init)
+        /// The event of the outing the kid's window leads to, which the slide belongs to (nil: the
+        /// window's own "All done? Slide!").
+        public func outingEvent(of kid: Kid.ID) -> EventRef? {
+            spans[kid]?.outing.flatMap { EventRef($0.slot) }
+        }
+
+        /// Each kid's window at `minute`: the open one, else the day's morning.
+        static func spans(_ slots: [Kid.ID: [Slot]], nights: [Kid.ID: NightSpan?], minute: Int) -> [Kid.ID: WindowSpan] {
+            Dictionary(uniqueKeysWithValues: slots.compactMap { kid, slots in
+                let spans = DayPlanner.missionWindows(slots: slots, night: nights[kid] ?? nil)
+                let span = DayPlanner.window(at: minute, in: spans) ?? spans.first { $0.parts.first == .morning }
+                return span.map { (kid, $0) }
+            })
         }
 
         public func day(of kid: Kid.ID) -> MissionDay {
@@ -122,7 +140,7 @@ public struct MissionsFeature {
 
         public var rows: [KidRow] {
             kids.map { kid in
-                let list = missions(of: kid.id), day = day(of: kid.id)
+                let list = list(of: kid.id), day = day(of: kid.id)
                 return KidRow(kid: kid, done: list.filter { day.done.contains($0.id) }.count, total: list.count,
                               isReady: day.ready, medal: day.ready ? Self.medalKind(day.medal) : nil)
             }
@@ -369,9 +387,9 @@ public struct MissionsFeature {
         /// last page.
         public var circles: [Circle] {
             guard let chosen else { return [] }
-            let list = missions(of: chosen), done = day(of: chosen).done
+            let list = list(of: chosen), done = day(of: chosen).done
             let current = list.first { !done.contains($0.id) }?.id
-            func circle(_ mission: Mission) -> Circle {
+            func circle(_ mission: WindowMission) -> Circle {
                 .mission(mission, isDone: done.contains(mission.id), isCurrent: mission.id == current)
             }
             if list.count <= capacity { return list.map(circle) }
@@ -460,18 +478,25 @@ public struct MissionsFeature {
                 state.minute = Day.minute(of: now, calendar: calendar)
                 state.now = now
                 return .merge(
-                    .run { [scheduleStore, holidays] send in
+                    .run { [scheduleStore, holidays, calendar, minute = state.minute] send in
                         let snapshot = try? await scheduleStore.load()
+                        let holidayList = await holidays.holidays(today.year)
+                        let spans = snapshot.map {
+                            State.spans(Self.slots($0, today: today, holidays: holidayList, calendar: calendar),
+                                        nights: Self.nights($0, today: today, holidays: holidayList, calendar: calendar),
+                                        minute: minute)
+                        } ?? [:]
                         var marks: [WindowMissions] = []
                         var slides: [OutingSlide] = []
                         for kid in snapshot?.kids ?? [] {
-                            if let window = try? await scheduleStore.windowMissions(kid.id, today, .morning) {
-                                marks.append(window)
+                            for part in spans[kid.id]?.parts ?? [.morning] {
+                                if let window = try? await scheduleStore.windowMissions(kid.id, today, part) {
+                                    marks.append(window)
+                                }
                             }
                             slides += (try? await scheduleStore.slides(kid.id, today)) ?? []
                         }
-                        await send(.loaded(snapshot, holidays: await holidays.holidays(today.year), marks: marks,
-                                           slides: slides))
+                        await send(.loaded(snapshot, holidays: holidayList, marks: marks, slides: slides))
                     },
                     // The mover moves by the clock: a new minute redraws it.
                     .run { [clock, date] send in
@@ -503,17 +528,19 @@ public struct MissionsFeature {
 
             case let .loaded(snapshot, holidays, marks, slides):
                 guard let snapshot, let today = state.today else { return .none }
-                let holidayDays = Set(holidays.map(\.day))
                 state.kids = snapshot.kids
                 state.missions = snapshot.missions
-                state.slots = Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
-                    (kid.id, DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines, items: snapshot.items,
-                                              holidays: holidayDays, calendar: calendar))
-                })
-                // The morning screen's day: the morning window's missions and the first outing's slide.
+                state.items = snapshot.items
+                state.slots = Self.slots(snapshot, today: today, holidays: holidays, calendar: calendar)
+                state.spans = State.spans(state.slots,
+                                          nights: Self.nights(snapshot, today: today, holidays: holidays, calendar: calendar),
+                                          minute: state.minute)
+                // The screen's day: the window's missions (each part's marks) and its outing's slide.
                 state.days = Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
-                    let done = marks.first { $0.kid == kid.id }?.done ?? []
-                    let outing = state.firstOuting(of: kid.id)
+                    let parts = state.spans[kid.id]?.parts ?? [.morning]
+                    let done = marks.filter { $0.kid == kid.id && parts.contains($0.window) }
+                        .reduce(into: Set<Mission.ID>()) { $0.formUnion($1.done) }
+                    let outing = state.outingEvent(of: kid.id)
                     let slide = slides.first { $0.kid == kid.id && $0.outing == outing }
                     return (kid.id, MissionDay(kid: kid.id, date: today, done: done, ready: slide?.ready ?? false,
                                                readyAt: slide?.readyAt, medal: slide?.medal))
@@ -635,15 +662,40 @@ public struct MissionsFeature {
         return LiveMorning.medal(readyAt: state.minute, ideal: targets.ideal, latest: targets.latest)
     }
 
-    /// Splits the screen's day into its records: the morning window's missions and the slide of the
-    /// kid's first outing (the morning's own slide on a day with no outing).
+    /// Splits the screen's day into its records: each window part's done missions, and the slide of
+    /// the outing the window leads to (the window's own slide when it leads to none).
     private func save(_ day: MissionDay, in state: State) -> Effect<Action> {
-        let marks = WindowMissions(kid: day.kid, date: day.date, window: .morning, done: day.done)
-        let slide = OutingSlide(kid: day.kid, date: day.date, outing: state.firstOuting(of: day.kid), ready: day.ready,
+        let list = state.list(of: day.kid)
+        let parts = state.spans[day.kid]?.parts ?? [.morning]
+        let marks = parts.map { part in
+            WindowMissions(kid: day.kid, date: day.date, window: part,
+                           done: Set(list.filter { $0.window == part && day.done.contains($0.id) }.map(\.id)))
+        }
+        let slide = OutingSlide(kid: day.kid, date: day.date, outing: state.outingEvent(of: day.kid), ready: day.ready,
                                 readyAt: day.readyAt, medal: day.medal)
         return .run { [scheduleStore] _ in
-            try? await scheduleStore.saveWindowMissions(marks)
+            for window in marks { try? await scheduleStore.saveWindowMissions(window) }
             try? await scheduleStore.saveSlide(slide)
         }
+    }
+
+    /// Every kid's slots today.
+    static func slots(_ snapshot: ScheduleSnapshot, today: Day, holidays: [Holiday],
+                      calendar: Calendar) -> [Kid.ID: [Slot]] {
+        let days = Set(holidays.map(\.day))
+        return Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
+            (kid.id, DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines, items: snapshot.items,
+                                      holidays: days, calendar: calendar))
+        })
+    }
+
+    /// Every kid's night (wake-up and evening) from today's template.
+    static func nights(_ snapshot: ScheduleSnapshot, today: Day, holidays: [Holiday],
+                       calendar: Calendar) -> [Kid.ID: NightSpan?] {
+        let days = Set(holidays.map(\.day))
+        return Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
+            (kid.id, DayPlanner.nightSpan(of: DayPlanner.template(for: kid.id, on: today, routines: snapshot.routines,
+                                                                  holidays: days, calendar: calendar)))
+        })
     }
 }
