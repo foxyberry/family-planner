@@ -36,9 +36,6 @@ public struct LaunchOptions: Equatable, Sendable {
     /// `-fpSkipFaceID` (`make run SKIP_FACE_ID=1`): turn "Skip Face ID" on. It only works where the
     /// switch exists (a simulator); a real iPad still asks for Face ID.
     public var skipsFaceID = false
-    /// `-fpFakeBuses` turns "Fake buses" on, `-fpNoFakeBuses` off (the switch is saved on the iPad).
-    /// devicectl reads app flags with an "l" as its own `-l`, so flag names avoid that letter.
-    public var fakesBuses: Bool?
 
     public init(now: Date?, speed: Double?, grid: Bool = false) {
         self.now = now
@@ -60,8 +57,6 @@ public struct LaunchOptions: Equatable, Sendable {
         speed = value(after: "-fpSpeed").flatMap(Double.init).flatMap { $0 > 0 ? $0 : nil }
         grid = arguments.contains("-fpGrid")
         skipsFaceID = arguments.contains("-fpSkipFaceID")
-        if arguments.contains("-fpFakeBuses") { fakesBuses = true }
-        if arguments.contains("-fpNoFakeBuses") { fakesBuses = false }
     }
 }
 
@@ -110,8 +105,6 @@ public struct DebugSettings: Codable, Equatable, Sendable {
     public var showsLayoutGrid = false
     public var skipsFaceID = false
     public var bubble = BubbleDock()
-    /// "Fake buses": made-up live arrivals for the kid's buses (optional so older saved settings load).
-    public var fakesBuses: Bool?
     /// Spec "Picture rigs": the debug "Rig scale" slider (1.0–1.5); `nil` keeps the kit data's scale.
     public var rigScale: Double?
 
@@ -133,7 +126,6 @@ public struct DebugSettings: Codable, Equatable, Sendable {
     public mutating func apply(_ options: LaunchOptions, realNow: Date) {
         if options.grid { showsLayoutGrid = true }
         if options.skipsFaceID { skipsFaceID = true }
-        if let fakes = options.fakesBuses { fakesBuses = fakes }
         if let now = options.now {
             time = TimeTravel(anchor: now, realAnchor: realNow, speed: options.speed ?? 1)
         } else if let speed = options.speed {
@@ -160,8 +152,6 @@ public final class DebugCore: Sendable {
     public func realDate() -> Date { realNow() }
 
     public var skipsFaceID: Bool { settings.withLock { $0.skipsFaceID } }
-
-    public var fakesBuses: Bool { settings.withLock { $0.fakesBuses ?? false } }
 
     public func update(_ new: DebugSettings) { settings.withLock { $0 = new } }
 }

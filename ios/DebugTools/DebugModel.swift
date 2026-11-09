@@ -4,7 +4,6 @@ import Domain
 import Foundation
 import KitArt
 import Observation
-import BusClient
 import ParentAuthClient
 import ScheduleStore
 
@@ -143,13 +142,6 @@ extension DebugModel {
             dependencies.parentAuth.authenticate = { reason in
                 core.skipsFaceID ? .success : await live.authenticate(reason)
             }
-        }
-        // "Fake buses": the kid's own buses from the stored plan for that stop, made up.
-        let liveArrivals = dependencies.bus.arrivals
-        dependencies.bus.arrivals = { stop in
-            guard core.fakesBuses else { return try await liveArrivals(stop) }
-            let plans = (try? await store.load().busPlans) ?? []
-            return FakeBuses.arrivals(services: plans.first { $0.stop == stop }?.services ?? [])
         }
         dependencies.debugTools = model
         installed = model
