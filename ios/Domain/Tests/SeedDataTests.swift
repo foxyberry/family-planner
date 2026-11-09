@@ -169,11 +169,4 @@ final class SeedDataTests: XCTestCase {
                        "Swimming", "Monday's swimming at 3:30 pm by car")
         XCTAssertNil(DayPlanner.nextOuting(in: slots(SeedData.kidB, on: Fixture.tuesday), after: 400))
     }
-
-    func testMissionMorningRunsFromTheEarliestWakeUpToNoon() {
-        XCTAssertFalse(DayPlanner.isMissionMorning(at: 389, wakes: [390, 390]))
-        XCTAssertTrue(DayPlanner.isMissionMorning(at: 390, wakes: [390, 450]))
-        XCTAssertTrue(DayPlanner.isMissionMorning(at: 719, wakes: [390]))
-        XCTAssertFalse(DayPlanner.isMissionMorning(at: 720, wakes: [390]))
-    }
 }

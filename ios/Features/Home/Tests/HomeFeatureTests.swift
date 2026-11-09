@@ -22,7 +22,7 @@ final class HomeFeatureTests: XCTestCase {
 
     private func snapshot(kids: [Kid] = SeedData.kids) -> ScheduleSnapshot {
         ScheduleSnapshot(kids: kids, routines: SeedData.routines,
-                         items: SeedData.items(today: tuesday, calendar: calendar))
+                         items: SeedData.items(today: tuesday, calendar: calendar), missions: SeedData.missions)
     }
 
     private func store(on day: Day, minute: Int, snapshot: ScheduleSnapshot? = nil,
@@ -204,12 +204,12 @@ final class HomeFeatureTests: XCTestCase {
         await store.receive(\.playEnded)
     }
 
-    /// Spec A1 "Mission morning": wake-up to noon, with Kid A's outing when it starts within 3 hours.
+    /// Spec "Mission windows": the morning runs from wake-up to the leave, with Kid A's outing.
     func testMissionMorningShowsTheOutingAndTheButton() async {
         let early = store(on: tuesday, minute: 412)   // 6:52 am
         await early.send(.task)
         await early.receive(\.loaded)
-        XCTAssertTrue(early.state.isMissionMorning)
+        XCTAssertTrue(early.state.showsMissions)
         XCTAssertEqual(early.state.morningOuting?.slot.title, "School")
         XCTAssertEqual(early.state.outingHeading, "Leave in")
         XCTAssertEqual(early.state.minutesToLeave, 33)
@@ -218,13 +218,34 @@ final class HomeFeatureTests: XCTestCase {
         let beforeWake = store(on: tuesday, minute: 380)
         await beforeWake.send(.task)
         await beforeWake.receive(\.loaded)
-        XCTAssertFalse(beforeWake.state.isMissionMorning)
+        XCTAssertFalse(beforeWake.state.showsMissions)
 
         let noon = store(on: tuesday, minute: 720)
         await noon.send(.task)
         await noon.receive(\.loaded)
-        XCTAssertFalse(noon.state.isMissionMorning)
+        XCTAssertFalse(noon.state.showsMissions)
         XCTAssertNil(noon.state.morningOuting)
+    }
+
+    /// Spec "Mission windows": the button needs missions in the open window, and the morning ends
+    /// when Kid A leaves (Kid B, at home, keeps hers until noon).
+    func testTheButtonFollowsTheWindowsWithMissions() async {
+        let none = store(on: tuesday, minute: 412,
+                         snapshot: ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: []))
+        await none.send(.task)
+        await none.receive(\.loaded)
+        XCTAssertFalse(none.state.showsMissions, "no missions, no button")
+        XCTAssertEqual(none.state.morningOuting?.slot.title, "School", "the countdown does not need missions")
+
+        let kidAOnly = store(on: tuesday, minute: 450, snapshot: snapshot(kids: [SeedData.kidA]))
+        await kidAOnly.send(.task)
+        await kidAOnly.receive(\.loaded)
+        XCTAssertFalse(kidAOnly.state.showsMissions, "Kid A has left for school")
+
+        let both = store(on: tuesday, minute: 450)
+        await both.send(.task)
+        await both.receive(\.loaded)
+        XCTAssertTrue(both.state.showsMissions, "Kid B's morning runs to noon")
     }
 
     func testAnOutingMoreThanThreeHoursAwayShowsTheNextRowInstead() async {
@@ -232,7 +253,7 @@ final class HomeFeatureTests: XCTestCase {
         let store = store(on: Day(year: 2026, month: 11, day: 16), minute: 600)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertTrue(store.state.isMissionMorning)
+        XCTAssertTrue(store.state.showsMissions)
         XCTAssertNil(store.state.morningOuting)
     }
 

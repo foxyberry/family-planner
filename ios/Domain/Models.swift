@@ -278,10 +278,13 @@ public struct Slot: Hashable, Sendable {
     public var source: Source
     public var showsStar: Bool
     public var trip: Trip?
+    /// The event this slot follows ("From: After {event}"); it starts when that one ends.
+    public var after: EventRef?
 
     public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, source: Source,
-                showsStar: Bool, trip: Trip? = nil) {
+                showsStar: Bool, trip: Trip? = nil, after: EventRef? = nil) {
         self.trip = trip
+        self.after = after
         self.title = title
         self.iconName = iconName
         self.kind = kind

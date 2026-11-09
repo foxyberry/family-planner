@@ -82,7 +82,8 @@ public enum DayPlanner {
             candidates.append((item.isWeekly ? 1 : 2,
                                Slot(title: item.title, iconName: item.iconName, kind: item.kind, start: start,
                                     end: start + item.end - item.start, source: source,
-                                    showsStar: item.showsStar && !item.isWeekly, trip: item.trip)))
+                                    showsStar: item.showsStar && !item.isWeekly, trip: item.trip,
+                                    after: item.after)))
         }
         candidates.sort { ($0.priority, $0.slot.start) > ($1.priority, $1.slot.start) }
 

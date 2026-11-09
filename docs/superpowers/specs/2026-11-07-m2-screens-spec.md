@@ -94,6 +94,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: a pending place change can be changed ("Pick another school") or cancelled ("Cancel the change" → "Stay at {old place}?") until its date; after the date, going back is another change (user).
 - 2026-11-09: night mapping table (user): every day token maps to one night token; no pure white at night; `nightText` #D8D2E8, `nightSoft` #A6A0C2, white surfaces → `moonPaper` #D8D2E8, buttons → `nightControl` (#2E2C4A fill, chalk #E9E4F5 outline, same shapes). Replaces the chalk-filled main button and the white hub at night.
 - 2026-11-09: School edits on the E5 screen like any event (Terms instead of Runs, plus Going, Bring, Missions, Medal); only day-template slots use the C6 slice card. Fixes a clash between the plain-screens rule and "Events: one shape".
+- 2026-11-09: grown-up mode final (user): boards G0–G8; C6 absorbed into G1, C1 becomes Settings (G6), a List view (G8) is kept; School edits on G4; sketches SK1–SK11 archived.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -699,10 +700,23 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 
 ---
 
+## Grown-up mode (final design 2026-11-09; boards G0–G8 on page "Grown-up mode (next to build)") [board, ahead of build]
+User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settings; a List view is kept. Screens are as plain as the built ones (values, pictures, short labels; no explanatory sentences; no lines in cards).
+- **G0 · Way in**: the pencil `RoundButton` 80 (yellow pencil picture 56) at x 1212, y 44 on every kid home → C0 Face ID → G1. The 2 s clock hold stays; a hold on a slice opens G1 with that slice picked.
+- **G1 · The day on the clock** (replaces C6; boards G1, G1c): C6's clock, drag rules and slice card, on a real date. Header: "←" (back to the kid home; locks again), "Our day", kid tabs, then `CrayonTabs` **List** 110 · **Undo** 130 · **Settings** 160 at the right. Right column: one **day button** (382 × 72, `CrayonTabs` off look): "Today" (body bold) + "Mon 9 Nov" (body soft) + a down chevron; on another day it reads "Sat 14 Nov". Tap → **G1c** day picker (user, 2026-11-09: look ahead, e.g. at the weekend): a small card with the month (head) and ‹ › round buttons, two weeks of date chips (62 × 84, today underlined, the picked one in sky), and a "Today" link. Picking a day closes the card and shows that day on the clock. A template slot (wake, meals, bed) opens the C6 slice card with "This day" / "All days" under the title; School and activities open G2/G4. "+" on free time adds (C3/C4). "Save" (InkButton). **Undo** only steps back drags made since the last Save; it is not a change history. **Undo / Redo** (user, 2026-11-09): two `RoundButton` 72 at the bottom right of the clock area (x 722 and 810, y 880), with the new marker glyphs `undo` / `redo` (36, ink). Always shown; **off** = the button at 45 % with the soft glyph (nothing to undo / redo), **on** = full ink. One tap = one step: Undo takes back the last change (one finished drag, one time typed in the slice card, one "Make this free time"), Redo puts it back; they only reach back to the last Save, and Save clears them. Throwing away every unsaved change at once is "Don't save" on G1d. The header right end is always List · Settings. **Leaving with unsaved drags** (List, Settings, ←, a kid tab, another day) asks first (G1d): "Save the changes?" (head), one line naming the change (body soft), then Save (ink) · "Don't save" (`lateText`) · Cancel.
+- **G8 · List**: the kid's repeating and one-off items in one card, sections "Every week" (School, activities) and "Just once"; rows: picture 56, title (body) over "{days} · {time}" (caption), "›" → G2/G4/C4. Right column: "Add every week", "Add once" (plus 56 + link). Day-template slots are not listed (they are the day).
+- **G2 · Edit an item, All days** (E5): For, What, Name, When, **Days**, **Runs** ("{start}" → "End of term"), Skip school holidays; scrolling on (**G2b**): From, No school days, Bring, Missions, Medal (switch), one line each. Side column: tabs "This day" / "All days", "Every {days}" (head), "Remove every week". "Save changes" → G5.
+- **G3 · This day**: Days, Runs and holidays hidden; side column "{Day d Mon} only" and "Skip this day".
+- **G4 · Edit School**: School (name ›), When, Days, Arrive by + latest, **Terms**, Going, Bring, Missions, Medal (on). Side column: tabs, "Every school day". Changing the school itself is G7.
+- **G5 · From when?**: the small card on Save in All days ("Today" / "Next {weekday}" / "Date", one caption when changed days no longer fit, Save / Cancel).
+- **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face/colour), School (School, Hours, Terms), Getting there (To school, Home), Routines (Missions). Family tab: This iPad (lock, live bus, medals), Add a child, School lists. Foot: "School lists · {d Mon}" and "Data sources".
+- **G7 · Change school**: "Starts on" card ("Next term" / "Date"); then S3 for the new trip; pending row and cancel as in "Where the kid goes changes".
+- Night: grown-up screens follow the iPad's dark mode through the night mapping table.
+
 ## C0 · Grown-up lock [board + proposed details]
 
 ### Entry: the pencil button (user, 2026-11-09; proposed with grown-up mode, sketch SK5b)
-- Every kid home (A1, A1m, A1n, E1, E3, E3b) gets a white `RoundButton` 80 with the kit picture `pencil` (56: a yellow crayon pencil with wood tip, lead, ferrule and pink eraser; user, 2026-11-09) at the top-right corner, x 1256, y 44: the mirror of the sky switch (x 40, y 36, 160 × 96; both centred on y 84). Same look by day and night. VoiceOver: "Grown-up mode".
+- Every kid home (A1, A1m, A1n, E1, E3, E3b) gets a white `RoundButton` 80 with the kit picture `pencil` (56: a yellow crayon pencil with wood tip, lead, ferrule and pink eraser; user, 2026-11-09) at the top-right corner, x 1212, y 44 (user, 2026-11-09: its drawn right edge lines up with the main button's drawn edge, ≈ 1288, not the frame; centred on y 84 like the sky switch). Same look by day and night. VoiceOver: "Grown-up mode".
 - Tap → C0 (Face ID) → grown-up mode on today's clock (SK6). The 2 s hold on the clock stays as a second way in; a hold that starts on a slice opens grown-up mode with that slice picked.
 - Grown-up mode header: "←" (back to the kid home, locks again), "Our day", kid tabs, then "Undo" and "Settings" (SK9) at the right.
 
