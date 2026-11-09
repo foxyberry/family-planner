@@ -147,7 +147,7 @@ public struct EditClock: View {
         ForEach(sectors, id: \.self) { sector in
             let middle = Double(sector.start + sector.end) / 2
             if sector.style == .free {
-                PlusGlyph(size: 40)
+                PlusGlyph(size: 56) // board C6: a 56 ring
                     .position(point(radius: (Self.hubRadius + r) / 2, minute: middle))
                     .onTapGesture { onPlusTap(sector.start) }
                     .accessibilityElement()
@@ -226,7 +226,7 @@ public struct PlusGlyph: View {
     public var body: some View {
         ZStack {
             CrayonSurface(.circle, fill: CrayonFill(color: CrayonColor.card, hachure: nil),
-                          marker: MarkerStyle(width: 3, roughness: 0.6, bowing: 0.6), seed: CrayonStyle.Seed.plus)
+                          seed: CrayonStyle.Seed.plus)
             MarkerIcon(.plus, size: size * 0.7)
         }
         .frame(width: size, height: size)

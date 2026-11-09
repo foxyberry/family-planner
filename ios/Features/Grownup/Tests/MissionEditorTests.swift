@@ -34,7 +34,7 @@ final class MissionEditorTests: XCTestCase {
         let store = await loaded()
         XCTAssertEqual(store.state.rows.map(\.name),
                        ["Wake up", "Brush teeth", "Get dressed", "Breakfast", "Pack bag", "Shoes on"])
-        XCTAssertEqual(store.state.caption, "Same order as Kid A's morning screen")
+        XCTAssertEqual(store.state.caption, "Same order as Kid A’s morning screen")
         XCTAssertEqual(store.state.addTitle, "Add a mission (6 of 8)")
         XCTAssertFalse(store.state.showsCardsNote)
         await store.send(.kidTabTapped(kidB))

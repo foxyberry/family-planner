@@ -25,8 +25,9 @@ public struct MissionEditorView: View {
                 header
             } content: { layout in
                 HStack(alignment: .top, spacing: layout.gap) {
-                    PaperCard(seed: 41) { list }
-                        .frame(width: layout.form.width)
+                    // Board C5: the card runs 176–968 whatever the list's length.
+                    PaperCard(seed: 41) { list.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading) }
+                        .frame(width: layout.form.width, height: layout.form.height)
                     side.frame(width: layout.side.width, alignment: .topLeading)
                 }
             } primaryAction: { layout in
@@ -54,9 +55,11 @@ public struct MissionEditorView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: L10n.tr("c5.title"), onBack: { store.send(.doneTapped) }) {
+        // Board C5: the kid tabs at the header's right end, in place of "Grown-ups only".
+        GrownupHeader(title: L10n.tr("c5.title"), onBack: { store.send(.doneTapped) }, accessory: { EmptyView() }) {
             CrayonTabs(selection: Binding(get: { store.selectedKid }, set: { store.send(.kidTabTapped($0)) }),
-                       items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
+                       items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) },
+                       itemSize: CGSize(width: 200, height: 72), spacing: Spacing.sm)
         }
     }
 
@@ -64,15 +67,16 @@ public struct MissionEditorView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 .padding(.bottom, Spacing.s)
+            // Board C5: a rule under the caption and above each row, none above the Add row.
             ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, mission in
-                row(mission, index: index)
                 Rectangle().fill(CrayonColor.softText.opacity(0.3)).frame(height: 1)
+                row(mission, index: index)
             }
             if store.canAdd {
                 Button { store.send(.addTapped) } label: {
                     HStack(spacing: Spacing.s) {
-                        MarkerIcon(.plus, size: 24, color: CrayonColor.link)
-                            .frame(width: 40, height: 40)
+                        MarkerIcon(.plus, size: 28, color: CrayonColor.link)
+                            .frame(width: 56, height: 56)
                             .crayonBackground(.circle, fill: nil, seed: 1801)
                         Text(store.addTitle).crayonType(.body).foregroundStyle(CrayonColor.link)
                     }
@@ -91,14 +95,15 @@ public struct MissionEditorView: View {
 
     private func row(_ mission: Mission, index: Int) -> some View {
         Button { store.send(.rowTapped(mission.id)) } label: {
-            HStack(spacing: Spacing.s) {
+            // Board C5: rows 88 tall; the handle, the picture, then the name on about 240.
+            HStack(spacing: Spacing.m) {
                 MarkerIcon(.handle, size: 32, color: CrayonColor.softText)
                 KitIcon(KitSlot(iconName: mission.picture), size: 48)
                 Text(mission.name).crayonType(.body).foregroundStyle(CrayonColor.ink)
                 Spacer()
                 MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
             }
-            .frame(height: 72)
+            .frame(height: 88)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -115,6 +120,8 @@ public struct MissionEditorView: View {
     private var side: some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             if store.showsCardsNote {
+                Text(store.kids.first { $0.id == store.selectedKid }?.name ?? "").crayonType(.head)
+                    .foregroundStyle(CrayonColor.ink)
                 Text(L10n.tr("c5.cards_note")).crayonType(.body).foregroundStyle(CrayonColor.ink)
             }
         }
