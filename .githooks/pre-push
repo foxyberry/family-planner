@@ -78,7 +78,11 @@ fi
 if printf '%s' "$changed" | grep -Eq '^(scripts/|\.githooks/|\.claude/hooks/|tools/crayon-art/|ios/KitArt/Resources/)'; then
   for test in scripts/tests/*-test.sh; do
     [ -f "$test" ] || continue
-    out="$(bash "$test" </dev/null 2>&1)" || {
+    # Git sets GIT_DIR (and more) for hooks run from a worktree; a test that inherits it runs its
+    # scratch-repo commands against this repository instead (it once set core.bare and user.email
+    # here). Each test gets a clean git environment.
+    out="$(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_COMMON_DIR -u GIT_PREFIX \
+      -u GIT_OBJECT_DIRECTORY -u GIT_ALTERNATE_OBJECT_DIRECTORIES bash "$test" </dev/null 2>&1)" || {
       echo "pre-push: guard test failed: $test" >&2
       printf '%s\n' "$out" | grep -E '^FAIL' >&2 || printf '%s\n' "$out" | tail -5 >&2
       status=1
