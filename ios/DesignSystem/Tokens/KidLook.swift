@@ -1,3 +1,4 @@
+import CrayonKit
 import SwiftUI
 
 /// The kid screens' day or night look (board A1n). Views read their colours from here, so the
@@ -15,6 +16,8 @@ public enum KidLook: String, Equatable, Sendable {
     public var tick: Color { self == .day ? CrayonColor.marker : CrayonColor.nightText }
     /// The clock face under the slots: page paper by day, a lit paper face at night.
     public var clockFace: Color { self == .day ? CrayonColor.paper : CrayonColor.litPaper }
+    /// White surfaces (the clock hub): white paper by day, moon paper at night.
+    public var surface: CrayonFill { self == .day ? CrayonStyle.paper : .paper(CrayonColor.moonPaper) }
 
     /// A kid's colour: the same by day and night (board 00).
     public func kid(_ colorIndex: Int) -> Color { CrayonColor.kid(colorIndex) }

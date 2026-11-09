@@ -28,6 +28,14 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testInkButton() { snap(InkButton("Missions") {}) }
 
+    /// Spec "Night mapping": a night control (board A1n's Diary button).
+    func testInkButtonNight() {
+        snap(InkButton("Diary", arrow: true, look: .night) {}
+            .frame(width: 384)
+            .padding(Spacing.l)
+            .background(CrayonColor.night))
+    }
+
 
     func testRoundButtons() {
         snap(HStack(spacing: Spacing.m) {

@@ -104,7 +104,7 @@ public struct HomeView: View {
                 nextRow(next, at: layout.leaveNextRow)
             }
             if store.isMissionMorning {
-                InkButton(L10n.tr("home.missions"), arrow: true) { store.send(.missionsTapped) }
+                InkButton(L10n.tr("home.missions"), arrow: true, look: store.look) { store.send(.missionsTapped) }
                     .place(layout.button)
             }
         }

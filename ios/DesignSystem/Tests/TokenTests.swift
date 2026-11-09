@@ -38,8 +38,11 @@ final class TokenTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.link, paper), 4.5)
         }
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightText, CrayonPalette.night), 7)
-        // Board A1n: soft text 9.2:1; the kid colours ≥ 3:1 (non-text) on the night page and on paper.
-        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightSoftText, CrayonPalette.night), 7)
+        // Spec "Night mapping": soft text 6.2:1, ink on moon paper 9.9:1, labels on night controls;
+        // the kid colours ≥ 3:1 (non-text) on the night page and on paper.
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightSoftText, CrayonPalette.night), 6)
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, CrayonPalette.moonPaper), 9)
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightText, CrayonPalette.nightControl), 7)
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.kidA, CrayonPalette.night), 3)
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.kidB, CrayonPalette.night), 3)
     }
