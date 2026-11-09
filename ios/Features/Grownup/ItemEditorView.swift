@@ -175,7 +175,8 @@ public struct ItemEditorView: View {
             }
         }
         row("") {
-            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar) { store.form.showsStar.toggle() }
+            // Board C4 (v20): the check, then the star it adds to the clock (40), then the words.
+            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar, picture: .star) { store.form.showsStar.toggle() }
         }
         goingRows
     }
@@ -205,10 +206,12 @@ public struct ItemEditorView: View {
         }
     }
 
-    private func checkbox(_ title: String, isOn: Bool, toggle: @escaping () -> Void) -> some View {
+    private func checkbox(_ title: String, isOn: Bool, picture: KitSlot? = nil,
+                          toggle: @escaping () -> Void) -> some View {
         Button(action: toggle) {
-            HStack(spacing: Spacing.s) {
+            HStack(spacing: Spacing.sm) {
                 CheckMark(isDone: isOn, size: 48)
+                if let picture { KitIcon(picture, size: 40) }
                 Text(title).crayonType(.body).foregroundStyle(CrayonColor.ink)
             }
         }

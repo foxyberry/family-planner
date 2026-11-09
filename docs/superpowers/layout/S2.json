@@ -1,5 +1,5 @@
 {
- "version": "19",
+ "version": "20",
  "board": "S2",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -108,7 +108,7 @@
   {
    "id": "header.note.1",
    "kind": "text",
-   "x": 597,
+   "x": 376,
    "y": 66,
    "w": 151,
    "h": 45,
@@ -121,7 +121,7 @@
   {
    "id": "header.note.2",
    "kind": "text",
-   "x": 817,
+   "x": 595,
    "y": 66,
    "w": 136,
    "h": 45,
@@ -134,7 +134,7 @@
   {
    "id": "header.picture.1",
    "kind": "picture",
-   "x": 597,
+   "x": 376,
    "y": 68,
    "w": 40,
    "h": 40,
@@ -145,7 +145,7 @@
   {
    "id": "header.picture.2",
    "kind": "picture",
-   "x": 817,
+   "x": 595,
    "y": 68,
    "w": 40,
    "h": 40,
@@ -169,7 +169,7 @@
   {
    "id": "header.picture.3",
    "kind": "picture",
-   "x": 600,
+   "x": 379,
    "y": 71,
    "w": 34,
    "h": 34,
@@ -180,7 +180,7 @@
   {
    "id": "header.picture.4",
    "kind": "picture",
-   "x": 820,
+   "x": 598,
    "y": 71,
    "w": 34,
    "h": 34,
@@ -596,7 +596,7 @@
    "kind": "text",
    "x": 930,
    "y": 623,
-   "w": 377,
+   "w": 357,
    "h": 67,
    "region": "side",
    "anchor": "right",

@@ -86,6 +86,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: drift-sweep calls: crayon outlines 6 pt inside every box; body/caption weight 500; clock fill = long hachure at −50° over a light wash (boards); sky switch on every kid home (E1, E3, E3b added) with the night pill the same size as the day pill; DayChip 56 for read-only rows. Layout v19.
 - 2026-11-09: CrayonSwitch track is a 92 × 28 pill centred in its 96 × 52 box; line heights are total line boxes (title 1.15, head 1.2, body 1.25, caption 1.3), not added to the font leading; A2 legend plate shows the 1st-choice bus number (PR 34, 35).
 - 2026-11-09: "Repeats, dates and changes" (user): Repeat, Runs (start + end: end of term / date / count / none), Skip school holidays from the term data, linked time "School end + n" worked out per day, "No school days" (Skip or At a set time), two edit tabs with "Change from when?" on Save, exception rule on series change, skipped slices fade with "Bring back" (no change list, no undo; SK6 hub shows "Mon", day tabs 140/200 without ›); SK7 School card drops "Skip today" from the "School days" tab. Sketches SK10–SK11.
+- 2026-11-09: built copy from the drift-sweep fixes (PR 37/38) written in: C2 has no route heading or "For {kid}", side column adds "On the morning map", row captions "to the stop" / "on {bus}" / "still Bronze", "Buses"; C1 "Getting there" is a section with "To school", "More" in the side column; S3 side copy; A2 weekend greeting; C5 rows 88 and Add ring 56; no problem caption before the first change. Main session's calls: S2/S3 kid tabs follow the title (boards fixed); C4 star row = CheckMark 48 + star picture 40 + text (board fixed); S2 medal caption shortened to "Later: just “Ready!”. No medal, no sad face." Layout v20.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -325,7 +326,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 ## A2 · Morning: missions and the way there (new 2026-11-08) [boards A2t, A2t-w (timetable look), A2 (live look), A3 (done), A2m (many missions)]
 One morning screen. Its strip region has two looks: the **timetable look** (this section: car, taxi, on foot, and the bus when there are no live times) and the **live look** (the bus with live times, see "A2 live look" below). Going somewhere is the point of the morning, so the top shows the way there (user, 2026-11-08).
-- **Header** (48–128): `RoundButton` 80 with `MarkerGlyph.chevronLeft` 40 → home; "Good morning!" title 48; right: "Leave in" (body, `softText`) + "{n} min" (title 48), counting to the family outing's leave time (start − "leave before"); the live look adds the status (below).
+- **Header** (48–128): `RoundButton` 80 with `MarkerGlyph.chevronLeft` 40 → home; "Good morning!" title 48 ("Good morning! {Weekday}" on a weekend, built PR 38); right: "Leave in" (body, `softText`) + "{n} min" (title 48), counting to the family outing's leave time (start − "leave before"); the live look adds the status (below).
 - **Way strip** (x 64–1312, y 176–516; boards A2, A2t, A2t-w, A3; the first design, back by user request 2026-11-08): a straight crayon road with our stop and home in the middle and the destination on the right. Reference: `handover/crayon-ui-ref/way-strip.js` → `svg/way-bus.svg` (with stops), `svg/way-car.svg` (no stops). Coordinates are in the strip's own frame (0–1248 × 0–340). Everything is one `CrayonKit` `WayStrip` view except the home, destination and mover pictures (`KitIcon`s). No new kit slot.
   - **Layers, back to front**: ground → trees → stems → road → stops → pictures → labels → movers and bubbles → legend or card.
   - **Ground**: crayon rounded rectangle (4, 4, 1240 × 332, radius 36), fill #D6ECC3 (wash 0.22, hachure −35°, gap 12), marker edge 4 ink.
@@ -403,10 +404,10 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
 - **Home (A1)** on a live bus morning: the Kid A block adds the status line under `TimeLeft` (the A1 board look), and "Leave in" counts to the chosen bus; the timetable look counts to start − "leave before" with no status.
 
 ### Bus settings (C2 "Our buses") [board C2, redrawn 2026-11-09 to the built screen]
-- One route per kid with a bus outing ("Plan A · usual"). The Plan B card and "+ Add a route" are hidden (plan B comes later).
+- One route per kid with a bus outing. No route heading and no "For {kid}" line (built, PR 38). The Plan B card and "+ Add a route" are hidden (plan B comes later). The Buses row label reads "Buses".
 - Layout: the S3 form without the "Going" row. Header "←" 80 → C1, "Our buses" (title 48), "Grown-ups only" (caption) at the right. Rows (label 104, control 232): **Stop** at 208, **Buses** at 352, **Walk** at 496, **Ride** at 600, **Late up to** at 704.
 - Rows (copy from the iPad review, 2026-11-09): **Stop** (search by name or code; user review PR #24, 2026-11-09: families do not know the 5-digit code): a 400 × 80 field, placeholder "Stop name or code". Caption "Type the stop name, or the 5-digit code on its pole". With 2 or more letters, up to 8 matching stops (by stop name or road) list under the field: the caption reads "Tap your stop" (y field bottom + 8) and the list card (400 wide, `CrayonCard` white) starts 40 below the field, over the rows below it. **Result list card** (shared by the stop and school searches; fixed 2026-11-09 after the iPad check: rows overlapped, names were cut, rows below showed through): 610 wide (the whole control column 232–842, wider than the 400 stop field), opaque white `CrayonCard`, padding 12 top and bottom; rows **72** tall: the name (body bold, `link`, one line, "…" only past 610) over the caption (one line), gap 2, divided by a 2 pt paper line. While the list is open, everything outside the field, its caption and the card is veiled with paper at 72 % (no tap goes through; tapping the veil closes the list). The card shows as many rows as fit above the form card's bottom (968 − 16): S3 6, C2 8, S2 6; more rows scroll inside the card. No match: "No stop with that name" (caption `hurry`). Tapping a row closes the list, fills the field with the stop name, shows the check picture 32 + "{road} · {code}" as the caption, and fills the bus pills. Five digits still work as before (the code match fills the same way). Board S3 shows the list open; board C2 shows a stop picked. **Buses**: pills (180 × 72) of the numbers that call at that stop; pick one or more. Before a stop is picked the row reads "Pick the stop first" (caption). **Walk**: −/+ minutes, "to the stop" (default 10). **Ride**: −/+ minutes, "stop to school" (default 10). **Late up to**: 0–30, step 5 (default 15), "still Bronze". Labels stay on one line in the 104–232 column.
-- Side column: "{Kid} to school" (head), "“Leave in” = the bus at the stop − the walk." (body), "Arrive by and latest are in School; they set the medals." (caption). Button "Done" → C1.
+- Side column: "{Kid} to school" (head), "“Leave in” = the bus at the stop − the walk." (body), "Arrive by and latest are in School; they set the medals." (caption), then "On the morning map" (body bold) and "{n} is “my bus”: bold, it sets Leave in and the medal." (caption). Row captions: Walk "to the stop", Ride "on {bus}", Late up to "still Bronze". Button "Done" → C1.
 - **1st and 2nd choice** (user, 2026-11-09; boards C2, C2c, A2): the kid's route has a **1st choice** ("my bus", one bus number at our stop) and an optional **2nd choice**. The 2nd is never switched to: both show on the same road, the 2nd faded. "Leave in", the status and the medal come from the 1st only.
   - **2nd choice, kinds**: (a) another bus from our stop that also reaches school (often the long way round), with its own ride time ("Ride 2nd"); or (b) a bus that **changes**: a first bus from our stop to a change stop, a walk between, then a second bus to school (board C2c). One 2nd choice per kid, (a) or (b), not both.
   - **C2 rows**: Buses pills: the first tap makes a pill "1st" (`tab-on` + a "1st" tag), a tap on another makes it "2nd" (`tab-off` at 70 % + a "2nd" tag); tapping a picked pill clears it. Caption "Tap your bus (1st). A 2nd choice is optional." Rows: Walk 496, Ride ("on {1st}") 600, **Ride 2nd** ("on {2nd} · the long way") 704 when a direct 2nd is picked, Late up to 808, then the link "+ 2nd choice changes buses…" (y 900) → C2c.
@@ -506,7 +507,7 @@ Research: reports/calendar-event-features.md (Apple, Google, Outlook, RFC 5545 /
 - "Next →" is off until every card has a name, an age and a face (user, 2026-11-09: a face is not optional). Until a face is picked the field shows the colour dot.
 
 ### S2 · School [boards S2 (picked), S2s (search open)]
-- Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1.
+- Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1. The tabs follow the title at gap 24 (no fixed x); "Step {n} of 4" and the dots stay at the right end (S2, S2s, S3; board fixed 2026-11-09, layout v20).
 - **School** (search, 2026-11-09; data: bundled `schools-sg.json` (MOE, 337) and `international-schools-sg.json` (81), searched together):
   - Field 610 × 80 at (232, 304), placeholder "School name". Caption "Type your school's name" (y 392).
   - From 2 letters: caption "Tap your school"; a list card 610 wide at field bottom + 40 (y 424), over the rows below, with up to 8 matches, rows 64: the school name (body bold, `link`) over a caption: MOE school "MOE primary · {planning area}" (secondary / mixed by level); other school "International · {first curriculum}" plus " · own term dates" when it does not follow MOE terms. The **last row is always** "+ Not in the list? Type the name" (plus 32 + body bold `link`).
@@ -520,7 +521,7 @@ Research: reports/calendar-event-features.md (Apple, Google, Outlook, RFC 5545 /
   - MOE school, or `followsMoeTerms: true`: `CheckMark` on, "Use MOE school terms for holidays".
   - `followsMoeTerms: false`: off, and the row reads "Uses its own term dates" (body) with "{n} breaks from the school website" (caption) when `termDates` exist; otherwise "Add the school's holidays later in Our kids" (caption). The app fills the holiday list from `termDates`.
   - Not known (`null`) or typed by hand: off, and the row asks "Does your school follow the MOE term dates?" on one row so the card still ends at 968: the question (caption) at y 792, then "Yes" / "Not sure" pills 140 × 64 at y 828 (gap 12); "Yes" turns the check on. Nothing scrolls.
-- Side column "Medals come from these times" (head): Gold, Silver and Bronze, each with its medal picture 64, the name (body bold) and one caption filled from the fields ("ready 5 min before it's time to leave", "ready when it's time to leave, in by {arrive by}", "ready in time to be in by {latest}"). Then: "Later than that: just "Ready!". No medal, and never a sad face." The rule itself is in "A2 live look", Medal.
+- Side column "Medals come from these times" (head): Gold, Silver and Bronze, each with its medal picture 64, the name (body bold) and one caption filled from the fields ("ready 5 min before it's time to leave", "ready when it's time to leave, in by {arrive by}", "ready in time to be in by {latest}"). Then: "Later: just “Ready!”. No medal, no sad face." (two caption lines at s 0.984) The rule itself is in "A2 live look", Medal.
 - Only the chosen school's id and the values the grown-up confirmed are stored, on the iPad. The app never sends which school was picked.
 - Data sources are shown on an About / Data sources screen (Singapore Open Data Licence attribution for data.gov.sg and OneMap). **School data in builds** (user, 2026-11-09): the school, preschool and calendar data is public information and **every real build ships with all of it**, so search works offline from the first run. Files that cannot sit in the public repo (the international and preschool lists) are versioned in a **private data repo**, and the build copies them into the git-ignored resource paths (a `make private` step); "private" means not tracked in git, never left out of the build: every build anyone installs (local, device, TestFlight, App Store) must contain them, and a device or release build fails with "run make private" when they are missing. Only CI and public clones, behind an explicit flag, build without them (MOE-only search plus "Not in the list?"). Later the app fetches the latest data from a data store, with the bundled copy as the offline fallback. Before the app goes to other families, the international names and addresses are rebuilt from the schools' own sites (backlog).
 - **Side column on the other tabs**: Preschool: "Drop-off and pick-up go on {Name}'s clock." (body) and "No medals for preschool. Missions are picture cards a grown-up taps." (caption). At home: "{Name}'s day is on the clock: naps, meals and play." (body) and "Change the times later in Our day." (caption). The medals list shows only on a School tab.
@@ -536,7 +537,7 @@ Research: reports/calendar-event-features.md (Apple, Google, Outlook, RFC 5545 /
 - **Stop** (Bus only): the same search field as C2 (see "Bus settings (C2)"): name or code, list of up to 8 matches, tap to pick. Board names are made up ("Opp Sunny Park"). No match leaves Next on.
 - **Buses** (Bus only): pills (180 × 72) for the numbers that call at that stop; pick one or more. Caption "Buses that stop there. Pick the ones to school."
 - **Walk** and **Ride**: −/+ steppers, minutes (default 10 each). Car, taxi or walk: only "Leave {n} min before" (as the Going row).
-- Side column: "On school mornings" — "Leave in" = her bus at the stop − the walk; arrive-by and latest come from S2 and set the medals; change it later in Our kids › Getting there. Next → S4.
+- Side column: "On school mornings" — "Leave in" = her bus at the stop − the walk; "Arrive by and latest come from the school step; they set the medals." (board copy); change it later in Our kids › Getting there. Next → S4.
 - Footnote: "Live bus times are built into the app. If they are off, the morning shows the timetable instead."
 - Bus pills on the board read 12 / 34 / 56: made-up numbers. The real list comes from the LTA stop.
 
@@ -746,10 +747,10 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - "Days" → seven read-only `DayChip` 56 (on = school day).
   - "Hours" → "{start} – {end}" in "h:mm am" form.
   - "Holidays" → "Term {n} ends {Day d Mon}" or "No holidays set", "›" → C7 (later; hidden in M2).
-- **Getting there** → C2 (build step 5, with the live bus); hidden until then.
-  - "To school" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2.
+- **Getting there** (a section; built, PR 38):
+  - "To school" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2. The built row is plainer; the board's richer rows are ahead of the build.
   - "Home time" → "{h:mm} · pick-up at the gate", "›" → C2.
-- **More** (board, 2026-11-08): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
+- **More** (board, 2026-11-08; in the side column, under "Add every week" and "Just once"): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
 
 ### Side column
 - "After school" (head, h 52), then one `ListRow`-style item per every-week item:
@@ -784,8 +785,8 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - `GrownupScreen`. Header: `RoundButton` "←" 80 → C1 (or E6), "Morning missions" (title 48), kid `CrayonTabs` (Kid A, Kid B with `KidFace` 40) at the right.
 - Left: `PaperCard` columns 1–8, y 176–968:
   - Caption "Same order as {Kid}'s morning screen".
-  - One row per mission, 72 tall, divider lines: drag handle `MarkerGlyph` ≡ (soft), `KitIcon` 48, name (body), "›" (body `softText`). Drag ≡ to reorder; the order is the circle order on A2t.
-  - "+ Add a mission ({n} of 8)" (`MarkerGlyph.plus` in a 40 ring + body `link`). At 8 the row is replaced by "8 is the most" (caption).
+  - One row per mission, 88 tall (built, PR 38), divider lines: drag handle `MarkerGlyph` ≡ (soft), `KitIcon` 48, name (body), "›" (body `softText`). Drag ≡ to reorder; the order is the circle order on A2t.
+  - "+ Add a mission ({n} of 8)" (`MarkerGlyph.plus` in a 56 ring + body `link`). At 8 the row is replaced by "8 is the most" (caption).
   - Footer caption: "Drag {handle} to reorder. Tap a row to change it." {handle} is `MarkerGlyph.handle` drawn inline at the text size (24, `softText`), the same rule as inline arrows; never the ≡ character, which Playpen Sans lacks.
 - Tap a row or "Add" → a `ConfirmCard`-style editor, **centred over a dimmed screen** (tapping the dim area cancels without saving; main session's call, accepted 2026-11-08): Name `CrayonField` (max 14), `IconPicker` (kit pictures, no "+" until M6), "Remove" (`lateText`, edit only; asks "Remove {name}?" / "Remove" / "Keep") and "Save" (`InkButton`). A new mission defaults to `star` and an empty name; Save is off while the name is empty.
 - Right column (cols 9–12): Kid B note "Picture cards. A grown-up taps them for now." (on the Kid B tab). No "Evening · coming later" note (removed 2026-11-09). The board's "Ready by" block is **N2** (hidden).
@@ -837,7 +838,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - "←" without changes → back at once.
 
 ### Validation [proposed]
-- The button is disabled until valid. The first problem shows as a caption in `lateText` under its row:
+- The button is disabled until valid. The first problem shows as a caption in `lateText` under its row, only after the first change (a fresh form shows no problem caption):
   - Name empty: "Give it a name"
   - End not after start: "Ends before it starts"
   - No day picked: "Pick at least one day"
@@ -851,7 +852,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - At y 732, a row of `DateChip` 96 × 104 instead of day chips: weekday (24 `softText`) over date number (36 bold). One date picked.
     - Shows 5 dates starting today. **Paging** (board, 2026-11-09): "‹" `RoundButton` 64 in the free label column at x 104, and "›" `RoundButton` 64 at x 772 (12 after the fifth chip, ending at 836). Both are centred on the chip row (y 752). The chips stay 96 wide and 12 apart, from x 232. "›" moves 5 days on. "‹" moves 5 days back and hides on the first page, since past dates are not shown.
     - Past dates are not shown.
-  - At y 864: `CheckMark` 48 + "A star on the clock that day" (body). On by default for events. It adds a star picture at the slot on the clock.
+  - At y 864: `CheckMark` 48, the star picture 40 (what it adds; not a state), then "A star on the clock that day" (body); gap 12. On by default for events. It adds a star picture at the slot on the clock.
 - Side column:
   - Heading "{Weekday d Mon}" (head), e.g. "Saturday 14 Nov".
   - Caption "Just this day, for {Kid A | Kid B | both kids}." (The midnight sentence was dropped in the iPad review, 2026-11-09.)
