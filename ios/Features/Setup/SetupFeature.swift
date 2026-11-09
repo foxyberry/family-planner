@@ -62,7 +62,10 @@ public struct SetupFeature {
         public var canAddKid: Bool { kids.count < Self.mostKids }
 
         /// "Next →" is off until every card has a name and an age.
-        public var familyIsComplete: Bool { kids.allSatisfy { !$0.trimmedName.isEmpty && $0.age != nil } }
+        /// S1: every card has a name, an age and a face (user, 2026-11-09: the face too).
+        public var familyIsComplete: Bool {
+            kids.allSatisfy { !$0.trimmedName.isEmpty && $0.age != nil && $0.face != nil }
+        }
 
         // MARK: S2
 
