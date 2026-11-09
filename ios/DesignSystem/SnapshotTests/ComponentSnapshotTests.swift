@@ -271,6 +271,14 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// Boards C3/C4: day preview rows, plain and the new item on its card.
+    func testPreviewRows() {
+        snap(VStack(spacing: Spacing.xs) {
+            PreviewRow(time: "3:30 pm", isNew: false) { Text("Play").crayonType(.body) }
+            PreviewRow(time: "4:00 pm", isNew: true) { Text("Swimming").crayonType(.head) }
+        }, width: 382 + 2 * Spacing.m)
+    }
+
     /// Boards C2/S3: bus pills, one on and one off.
     func testPillToggles() {
         snap(HStack(spacing: Spacing.sm) { PillToggle("12", isOn: true) {}; PillToggle("345", isOn: false) {} })

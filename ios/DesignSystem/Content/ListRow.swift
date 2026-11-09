@@ -1,3 +1,4 @@
+import CrayonKit
 import SwiftUI
 
 /// A plain row, 80 tall: a short leading label (a time) and content. In a grown-up form the label
@@ -51,6 +52,35 @@ public struct TodayRow<Content: View>: View {
         .frame(minHeight: 80)
         .padding(.horizontal, Spacing.m)
         .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+    }
+}
+
+/// A row of a day preview (boards C3/C4 side column): 72 tall, the time (caption, ink) 24 in, then
+/// the content 112 after it. `isNew` (the item being added) sits on a white paper card in bold.
+public struct PreviewRow<Content: View>: View {
+    private let time: String
+    private let isNew: Bool
+    private let content: Content
+
+    public init(time: String, isNew: Bool, @ViewBuilder content: () -> Content) {
+        self.time = time
+        self.isNew = isNew
+        self.content = content()
+    }
+
+    public var body: some View {
+        HStack(spacing: 0) {
+            Text(time).crayonType(.caption, bold: isNew).lineLimit(1).frame(width: 112, alignment: .leading)
+            content.frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .foregroundStyle(CrayonColor.ink)
+        .padding(.leading, Spacing.m)
+        .frame(height: 72)
+        .background {
+            if isNew {
+                CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+            }
+        }
     }
 }
 

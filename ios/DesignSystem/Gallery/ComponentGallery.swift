@@ -91,6 +91,8 @@ public struct ComponentGallery: View {
                     }
                     .environment(\.formLabelWidth, 128)
                     TodayRow(leading: "Today") { Text("Swimming 15:30") }
+                    PreviewRow(time: "3:30 pm", isNew: false) { Text("Play").crayonType(.body) }
+                    PreviewRow(time: "4:00 pm", isNew: true) { Text("Swimming").crayonType(.head) }
                     PaperCard { Text("A sheet of paper").crayonType(.body) }
                     PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: $choice, anchor: 0.3)
                         .frame(width: 360)
