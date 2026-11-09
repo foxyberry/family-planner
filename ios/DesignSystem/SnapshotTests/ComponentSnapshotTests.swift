@@ -465,7 +465,7 @@ final class ComponentSnapshotTests: XCTestCase {
                                      minutes: "28 min", isMine: true, isTooSoon: false, showsBubble: true)],
             destination: .wolfie, destinationLabel: "School", ourStopLabel: "Our stop",
             owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A", myBus: "my bus",
-            tooSoon: "too soon")
+            tooSoon: "too soon", myService: "1")
         snap(WayStrip(live: live).frame(width: 1248, height: 340), width: 1300)
     }
 

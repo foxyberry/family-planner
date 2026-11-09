@@ -42,7 +42,8 @@ public struct MissionsFeature {
 
     /// The header's right side: "Leave in" / "{Place} in", the minutes, and the live status.
     public struct Header: Equatable, Sendable {
-        public var label: String
+        /// "Leave in"; nil when no bus can be caught (the status alone says "Ask a grown-up").
+        public var label: String?
         public var minutes: String
         public var status: StatusLine?
     }
@@ -166,7 +167,9 @@ public struct MissionsFeature {
         /// On the live look it is now + "Leave in" for the kid whose bus it is (spec "Header right").
         public var leaveAt: String? {
             guard let outing else { return nil }
-            if let live, let leaveIn = live.leaveIn, familyOuting?.kid.id == chosen {
+            if let live, familyOuting?.kid.id == chosen {
+                // No bus can be caught ("Ask a grown-up"): no leave time to give.
+                guard let leaveIn = live.leaveIn else { return nil }
                 return L10n.tr("missions.leave_at", TimeText.withPeriod(minute + max(leaveIn, 0)))
             }
             return L10n.tr("missions.leave_at", TimeText.withPeriod(outing.leave))
@@ -232,7 +235,8 @@ public struct MissionsFeature {
                                  destinationLabel: outing.slot.title, ourStopLabel: L10n.tr("missions.our_stop"),
                                  owner: KidFace.Badge(face: owner.face, colorIndex: owner.colorIndex),
                                  ownerName: owner.name, myBus: L10n.tr("missions.my_bus"),
-                                 tooSoon: L10n.tr("missions.too_soon"))
+                                 tooSoon: L10n.tr("missions.too_soon"),
+                                 myService: live.chosen?.service ?? busPlans[owner.id]?.services.first ?? "")
         }
 
         /// "Live bus map. Bus 1 in 28 minutes, your bus. Leave in 18 minutes, on time."
@@ -307,7 +311,7 @@ public struct MissionsFeature {
         public var header: Header? {
             guard let (_, outing) = familyOuting else { return nil }
             if let live {
-                return Header(label: L10n.tr("missions.leave_in"),
+                return Header(label: live.leaveIn == nil ? nil : L10n.tr("missions.leave_in"),
                               minutes: live.leaveIn.map { TimeLeft.presentation(minutes: max($0, 0)).text } ?? "",
                               status: live.status.map(Self.statusLine))
             }

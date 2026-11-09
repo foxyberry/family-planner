@@ -57,7 +57,9 @@ public struct MissionsView: View {
             .place(left: layout.titleLeft, baseline: layout.headerBaseline)
         if let header = store.header {
             HStack(alignment: .firstTextBaseline, spacing: sizing.space(Spacing.sm)) {
-                Text(header.label).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                if let label = header.label {
+                    Text(label).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                }
                 Text(header.minutes).crayonType(.title).foregroundStyle(CrayonColor.ink)
                 if let status = header.status {
                     StatusDot(status.text, tone: Self.tone(status.tone)).padding(.leading, sizing.space(Spacing.xxs))

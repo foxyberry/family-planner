@@ -180,6 +180,22 @@ final class MissionsTests: XCTestCase {
         await store.send(.backTapped)
     }
 
+    /// Live times with no bus to catch (only one arriving now): "Ask a grown-up", no leave time, and
+    /// the legend still shows the kid's bus number.
+    func testNoCatchableBusKeepsTheLegendAndDropsLeaveAt() async {
+        let store = store(on: tuesday, minute: 412, arrivals: [BusArrival(service: "1", minutes: 0, type: .double)])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.refresh)
+        await store.receive(\.arrivalsLoaded)
+        XCTAssertNil(store.state.live?.leaveIn)
+        XCTAssertNil(store.state.leaveAt)
+        XCTAssertNil(store.state.header?.label, "no \"Leave in\" before \"Ask a grown-up\"")
+        XCTAssertEqual(store.state.header?.status?.text, "Ask a grown-up")
+        XCTAssertEqual(store.state.liveStrip?.myService, "1")
+        await store.send(.backTapped)
+    }
+
     /// No live times: the bus fallback counts to "leave" with no status.
     func testBusFallbackCountsToLeave() async {
         let store = store(on: tuesday, minute: 412)
