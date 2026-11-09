@@ -58,7 +58,7 @@ final class ScheduleStoreLiveTests: XCTestCase {
 
     func testReplaceFamilyWritesEverythingAndDropsTheOldFamily() async throws {
         let store = try await seeded()
-        try await store.saveMissionDay(MissionDay(kid: SeedData.kidA.id, date: monday, ready: true))
+        try await store.saveSlide(OutingSlide(kid: SeedData.kidA.id, date: monday, outing: .school, ready: true))
         let kid = Kid(id: UUID(), name: "Kid C", colorIndex: 2, age: 6, schoolYear: nil, school: nil)
         let family = ScheduleSnapshot(
             kids: [kid], routines: StarterDays.routines(for: kid, trip: nil, from: monday), items: [],
@@ -71,8 +71,8 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(Set(loaded.missions), Set(family.missions))
         XCTAssertEqual(loaded.busPlans, family.busPlans)
         XCTAssertEqual(loaded.items, [])
-        let marks = try await self.store().missionDay(SeedData.kidA.id, monday)
-        XCTAssertEqual(marks, MissionDay(kid: SeedData.kidA.id, date: monday), "old marks are gone")
+        let slides = try await self.store().slides(SeedData.kidA.id, monday)
+        XCTAssertEqual(slides, [], "old marks are gone")
     }
 
     func testSaveKidReplacesTheRecordInPlace() async throws {
@@ -127,12 +127,21 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(plans, [BusPlan(kid: kid, stop: "00000", services: ["1", "2"], walk: 8)])
     }
 
-    func testMissionDayKeepsTheSlideTimeAndMedal() async throws {
-        let day = MissionDay(kid: SeedData.kidA.id, date: Day(year: 2026, month: 11, day: 10), ready: true,
-                             readyAt: 418, medal: .gold)
-        try await store().saveMissionDay(day)
-        let loaded = try await store().missionDay(day.kid, day.date)
-        XCTAssertEqual(loaded, day)
+    /// A slide per outing: School's and an item's are kept apart; the morning's (no outing) too.
+    func testSlidesKeepEachOutingsTimeAndMedal() async throws {
+        let date = Day(year: 2026, month: 11, day: 10)
+        let school = OutingSlide(kid: SeedData.kidA.id, date: date, outing: .school, ready: true, readyAt: 418,
+                                 medal: .gold)
+        let swim = OutingSlide(kid: SeedData.kidA.id, date: date, outing: .item(UUID()), ready: true, readyAt: 950)
+        let morning = OutingSlide(kid: SeedData.kidA.id, date: date, outing: nil, ready: true)
+        for slide in [school, swim, morning] { try await store().saveSlide(slide) }
+        let loaded = try await store().slides(SeedData.kidA.id, date)
+        XCTAssertEqual(Set(loaded), [school, swim, morning])
+        var again = school
+        again.medal = .silver
+        try await store().saveSlide(again)
+        let replaced = try await store().slides(SeedData.kidA.id, date)
+        XCTAssertEqual(Set(replaced), [again, swim, morning], "replaced, not added")
     }
 
     func testDeleteRemoves() async throws {
@@ -185,18 +194,23 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(again.filter { $0.kid == SeedData.kidB.id }.count, 3, "Kid B untouched")
     }
 
-    func testMissionDayRoundTripsAndOldDaysAreDropped() async throws {
+    func testWindowMissionsRoundTripAndOldOnesAreDropped() async throws {
         let store = store()
-        let empty = try await store.missionDay(SeedData.kidA.id, monday)
-        XCTAssertEqual(empty, MissionDay(kid: SeedData.kidA.id, date: monday))
-        let old = MissionDay(kid: SeedData.kidA.id, date: monday.adding(days: -20, calendar: calendar), done: [UUID()])
-        try await store.saveMissionDay(old)
-        let today = MissionDay(kid: SeedData.kidA.id, date: monday, done: [SeedData.missions[0].id], ready: true)
-        try await store.saveMissionDay(today)
+        let empty = try await store.windowMissions(SeedData.kidA.id, monday, .morning)
+        XCTAssertEqual(empty, WindowMissions(kid: SeedData.kidA.id, date: monday, window: .morning))
+        let old = WindowMissions(kid: SeedData.kidA.id, date: monday.adding(days: -20, calendar: calendar),
+                                 window: .morning, done: [UUID()])
+        try await store.saveWindowMissions(old)
+        let today = WindowMissions(kid: SeedData.kidA.id, date: monday, window: .morning, done: [SeedData.missions[0].id])
+        let beforeSwim = WindowMissions(kid: SeedData.kidA.id, date: monday, window: .before(.item(UUID())), done: [UUID()])
+        try await store.saveWindowMissions(today)
+        try await store.saveWindowMissions(beforeSwim)
         let reloaded = self.store()
-        let loaded = try await reloaded.missionDay(SeedData.kidA.id, monday)
-        XCTAssertEqual(loaded, today)
-        let dropped = try await reloaded.missionDay(SeedData.kidA.id, old.date)
+        let morning = try await reloaded.windowMissions(SeedData.kidA.id, monday, .morning)
+        let before = try await reloaded.windowMissions(SeedData.kidA.id, monday, beforeSwim.window)
+        XCTAssertEqual(morning, today)
+        XCTAssertEqual(before, beforeSwim)
+        let dropped = try await reloaded.windowMissions(SeedData.kidA.id, old.date, .morning)
         XCTAssertEqual(dropped.done, [], "older than 14 days")
     }
 

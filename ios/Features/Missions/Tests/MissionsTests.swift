@@ -35,12 +35,30 @@ final class MissionsTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.continuousClock = TestClock()
             $0.scheduleStore.load = { snapshot }
-            $0.scheduleStore.missionDay = { kid, date in
-                saved.value.first { $0.kid == kid && $0.date == date } ?? MissionDay(kid: kid, date: date)
+            // The store keeps the morning window's missions and the outing's slide; `saved` holds them
+            // joined back into one day per kid, for the assertions.
+            $0.scheduleStore.windowMissions = { kid, date, window in
+                WindowMissions(kid: kid, date: date, window: window,
+                               done: saved.value.first { $0.kid == kid && $0.date == date }?.done ?? [])
             }
-            $0.scheduleStore.saveMissionDay = { day in
+            $0.scheduleStore.saveWindowMissions = { marks in
                 saved.withValue { list in
-                    list.removeAll { $0.kid == day.kid && $0.date == day.date }
+                    var day = list.first { $0.kid == marks.kid && $0.date == marks.date }
+                        ?? MissionDay(kid: marks.kid, date: marks.date)
+                    day.done = marks.done
+                    list.removeAll { $0.kid == marks.kid && $0.date == marks.date }
+                    list.append(day)
+                }
+            }
+            $0.scheduleStore.slides = { kid, date in [] }
+            $0.scheduleStore.saveSlide = { slide in
+                saved.withValue { list in
+                    var day = list.first { $0.kid == slide.kid && $0.date == slide.date }
+                        ?? MissionDay(kid: slide.kid, date: slide.date)
+                    day.ready = slide.ready
+                    day.readyAt = slide.readyAt
+                    day.medal = slide.medal
+                    list.removeAll { $0.kid == slide.kid && $0.date == slide.date }
                     list.append(day)
                 }
             }

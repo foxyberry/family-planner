@@ -37,10 +37,17 @@ extension ScheduleStore {
             delete: { id in try database.run { try $0.delete(id) } },
             saveRoutine: { routine in try database.run { try $0.put(routine) } },
             saveMissions: { kid, missions in try database.run { try $0.put(missions, of: kid) } },
-            missionDay: { kid, date in try database.run { try $0.missionDay(kid: kid, date: date) } },
-            saveMissionDay: { day in
+            windowMissions: { kid, date, window in
+                try database.run { try $0.windowMissions(kid: kid, date: date, window: window) }
+            },
+            saveWindowMissions: { marks in
                 @Dependency(\.calendar) var calendar
-                try database.run { try $0.put(day, calendar: calendar) }
+                try database.run { try $0.put(marks, calendar: calendar) }
+            },
+            slides: { kid, date in try database.run { try $0.slides(kid: kid, date: date) } },
+            saveSlide: { slide in
+                @Dependency(\.calendar) var calendar
+                try database.run { try $0.put(slide, calendar: calendar) }
             },
             saveBusPlan: { plan in try database.run { try $0.put(plan) } },
             saveKid: { kid in try database.run { try $0.put(kid) } },
@@ -64,6 +71,9 @@ private final class Database: Sendable {
                 try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
                                                         withIntermediateDirectories: true)
                 container = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
+                // Per-day mission marks from before mission windows (2026-11-09) were development data
+                // only: they are dropped, not moved (user decision).
+                try Records(context: ModelContext(container!)).dropOldMissionDays()
             }
             return try body(Records(context: ModelContext(container!)))
         }
@@ -146,29 +156,76 @@ private struct Records {
         try context.save()
     }
 
-    func missionDay(kid: Kid.ID, date: Day) throws -> MissionDay {
-        let key = Self.dayKey(kid: kid, date: date)
-        guard let record = try fetch("missionDay").first(where: { $0.key == key }) else {
-            return MissionDay(kid: kid, date: date)
+    func windowMissions(kid: Kid.ID, date: Day, window: MissionWindow) throws -> WindowMissions {
+        let key = Self.windowKey(kid: kid, date: date, window: window)
+        guard let record = try fetch("window").first(where: { $0.key == key }) else {
+            return WindowMissions(kid: kid, date: date, window: window)
         }
-        return try decoder.decode(MissionDay.self, from: record.payload)
+        return try decoder.decode(WindowMissions.self, from: record.payload)
     }
 
-    /// Saves the day and drops days older than `MissionDay.kept` before it.
-    func put(_ day: MissionDay, calendar: Calendar) throws {
-        let oldest = day.date.adding(days: -MissionDay.kept, calendar: calendar)
-        for record in try fetch("missionDay") {
-            guard let stored = try? decoder.decode(MissionDay.self, from: record.payload) else { continue }
-            if record.key == Self.dayKey(kid: day.kid, date: day.date) || stored.date < oldest {
-                context.delete(record)
-            }
-        }
-        try insert(Self.dayKey(kid: day.kid, date: day.date), group: "missionDay", order: 0, day)
+    func slides(kid: Kid.ID, date: Day) throws -> [OutingSlide] {
+        let prefix = "slide:\(kid):\(Self.dateKey(date)):"
+        return try fetch("slide").filter { $0.key.hasPrefix(prefix) }
+            .compactMap { try? decoder.decode(OutingSlide.self, from: $0.payload) }
+    }
+
+    /// Saves a window's marks and drops windows older than `MissionDay.kept` days before it.
+    func put(_ marks: WindowMissions, calendar: Calendar) throws {
+        let key = Self.windowKey(kid: marks.kid, date: marks.date, window: marks.window)
+        try prune("window", replacing: key, oldest: marks.date.adding(days: -MissionDay.kept, calendar: calendar),
+                  date: { try? decoder.decode(WindowMissions.self, from: $0).date })
+        try insert(key, group: "window", order: 0, marks)
         try context.save()
     }
 
-    static func dayKey(kid: Kid.ID, date: Day) -> String {
-        "missionDay:\(kid):\(date.year)-\(date.month)-\(date.day)"
+    /// Saves a slide and drops slides older than `MissionDay.kept` days before it.
+    func put(_ slide: OutingSlide, calendar: Calendar) throws {
+        let key = Self.slideKey(slide)
+        try prune("slide", replacing: key, oldest: slide.date.adding(days: -MissionDay.kept, calendar: calendar),
+                  date: { try? decoder.decode(OutingSlide.self, from: $0).date })
+        try insert(key, group: "slide", order: 0, slide)
+        try context.save()
+    }
+
+    func dropOldMissionDays() throws {
+        let old = try fetch("missionDay")
+        guard !old.isEmpty else { return }
+        for record in old { context.delete(record) }
+        try context.save()
+    }
+
+    /// Deletes the record with `key` and every record of `group` dated before `oldest`.
+    private func prune(_ group: String, replacing key: String, oldest: Day, date: (Data) -> Day?) throws {
+        for record in try fetch(group) where record.key == key || (date(record.payload).map { $0 < oldest } ?? false) {
+            context.delete(record)
+        }
+    }
+
+    static func dateKey(_ date: Day) -> String { "\(date.year)-\(date.month)-\(date.day)" }
+
+    static func windowKey(kid: Kid.ID, date: Day, window: MissionWindow) -> String {
+        "window:\(kid):\(dateKey(date)):\(eventKey(window))"
+    }
+
+    static func slideKey(_ slide: OutingSlide) -> String {
+        "slide:\(slide.kid):\(dateKey(slide.date)):\(slide.outing.map(eventKey) ?? "morning")"
+    }
+
+    private static func eventKey(_ window: MissionWindow) -> String {
+        switch window {
+        case .morning: "morning"
+        case let .before(event): "before-" + eventKey(event)
+        case let .after(event): "after-" + eventKey(event)
+        case .evening: "evening"
+        }
+    }
+
+    private static func eventKey(_ event: EventRef) -> String {
+        switch event {
+        case .school: "school"
+        case let .item(id): "item-\(id)"
+        }
     }
 
     static func key(_ routine: Routine) -> String {

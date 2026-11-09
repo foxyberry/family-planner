@@ -111,6 +111,11 @@ public struct MissionsFeature {
             missions.filter { $0.kid == kid }.sorted { $0.order < $1.order }
         }
 
+        /// The event of the kid's first outing today, which the slide belongs to.
+        public func firstOuting(of kid: Kid.ID) -> EventRef? {
+            (slots[kid] ?? []).sorted { $0.start < $1.start }.first { $0.trip != nil }.flatMap(EventRef.init)
+        }
+
         public func day(of kid: Kid.ID) -> MissionDay {
             days[kid] ?? MissionDay(kid: kid, date: today ?? Day(year: 2000, month: 1, day: 1))
         }
@@ -412,7 +417,7 @@ public struct MissionsFeature {
     public enum Action: Equatable {
         case task
         case tick(Date)
-        case loaded(ScheduleSnapshot?, holidays: [Holiday], days: [MissionDay])
+        case loaded(ScheduleSnapshot?, holidays: [Holiday], marks: [WindowMissions], slides: [OutingSlide])
         case kidTapped(Kid.ID)
         case missionTapped(Mission.ID)
         case moreTapped
@@ -457,11 +462,16 @@ public struct MissionsFeature {
                 return .merge(
                     .run { [scheduleStore, holidays] send in
                         let snapshot = try? await scheduleStore.load()
-                        var days: [MissionDay] = []
+                        var marks: [WindowMissions] = []
+                        var slides: [OutingSlide] = []
                         for kid in snapshot?.kids ?? [] {
-                            if let day = try? await scheduleStore.missionDay(kid.id, today) { days.append(day) }
+                            if let window = try? await scheduleStore.windowMissions(kid.id, today, .morning) {
+                                marks.append(window)
+                            }
+                            slides += (try? await scheduleStore.slides(kid.id, today)) ?? []
                         }
-                        await send(.loaded(snapshot, holidays: await holidays.holidays(today.year), days: days))
+                        await send(.loaded(snapshot, holidays: await holidays.holidays(today.year), marks: marks,
+                                           slides: slides))
                     },
                     // The mover moves by the clock: a new minute redraws it.
                     .run { [clock, date] send in
@@ -491,7 +501,7 @@ public struct MissionsFeature {
                 state.now = at
                 return .none
 
-            case let .loaded(snapshot, holidays, days):
+            case let .loaded(snapshot, holidays, marks, slides):
                 guard let snapshot, let today = state.today else { return .none }
                 let holidayDays = Set(holidays.map(\.day))
                 state.kids = snapshot.kids
@@ -500,7 +510,14 @@ public struct MissionsFeature {
                     (kid.id, DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines, items: snapshot.items,
                                               holidays: holidayDays, calendar: calendar))
                 })
-                state.days = Dictionary(uniqueKeysWithValues: days.map { ($0.kid, $0) })
+                // The morning screen's day: the morning window's missions and the first outing's slide.
+                state.days = Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
+                    let done = marks.first { $0.kid == kid.id }?.done ?? []
+                    let outing = state.firstOuting(of: kid.id)
+                    let slide = slides.first { $0.kid == kid.id && $0.outing == outing }
+                    return (kid.id, MissionDay(kid: kid.id, date: today, done: done, ready: slide?.ready ?? false,
+                                               readyAt: slide?.readyAt, medal: slide?.medal))
+                })
                 // The kid's school late grace wins over the plan's (spec "Latest lives on the school record").
                 state.busPlans = Dictionary(snapshot.busPlans.map { plan in
                     (plan.kid, plan.graced(by: snapshot.kids.first { $0.id == plan.kid }))
@@ -529,7 +546,7 @@ public struct MissionsFeature {
                 state.days[kid] = day
                 state.confetti += 1
                 // The kid stays chosen and sees their done view; 3 s later the next kid comes up.
-                return .merge(save(day), .run { [clock] send in
+                return .merge(save(day, in: state), .run { [clock] send in
                     try await clock.sleep(for: .seconds(3))
                     await send(.readyShown)
                 }
@@ -542,7 +559,7 @@ public struct MissionsFeature {
                 day.readyAt = nil
                 day.medal = nil
                 state.days[kid] = day
-                return .merge(.cancel(id: CancelID.advance), save(day))
+                return .merge(.cancel(id: CancelID.advance), save(day, in: state))
 
             case .readyShown:
                 state.chosen = nextKid(in: state) ?? state.chosen
@@ -555,7 +572,7 @@ public struct MissionsFeature {
                 if day.done.contains(id) { day.done.remove(id) } else { day.done.insert(id) }
                 state.days[kid] = day
                 state.plays[id, default: 0] += 1
-                return save(day)
+                return save(day, in: state)
 
             case .moreTapped:
                 state.page += 1
@@ -612,7 +629,15 @@ public struct MissionsFeature {
         return LiveMorning.medal(readyAt: state.minute, ideal: targets.ideal, latest: targets.latest)
     }
 
-    private func save(_ day: MissionDay) -> Effect<Action> {
-        .run { [scheduleStore] _ in try? await scheduleStore.saveMissionDay(day) }
+    /// Splits the screen's day into its records: the morning window's missions and the slide of the
+    /// kid's first outing (the morning's own slide on a day with no outing).
+    private func save(_ day: MissionDay, in state: State) -> Effect<Action> {
+        let marks = WindowMissions(kid: day.kid, date: day.date, window: .morning, done: day.done)
+        let slide = OutingSlide(kid: day.kid, date: day.date, outing: state.firstOuting(of: day.kid), ready: day.ready,
+                                readyAt: day.readyAt, medal: day.medal)
+        return .run { [scheduleStore] _ in
+            try? await scheduleStore.saveWindowMissions(marks)
+            try? await scheduleStore.saveSlide(slide)
+        }
     }
 }
