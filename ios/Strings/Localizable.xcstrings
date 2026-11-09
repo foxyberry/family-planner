@@ -117,7 +117,40 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The 5-digit code on the stop pole"
+            "value" : "Type the stop name, or the 5-digit code on its pole"
+          }
+        }
+      }
+    },
+    "c2.stop.match" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "c2.stop.none_found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No stop with that name"
+          }
+        }
+      }
+    },
+    "c2.stop.pick" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap your stop"
           }
         }
       }
@@ -128,7 +161,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "5 digits"
+            "value" : "Stop name or code"
           }
         }
       }

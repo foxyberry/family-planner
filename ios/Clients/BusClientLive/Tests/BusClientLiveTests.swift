@@ -1,3 +1,4 @@
+import BusClient
 import BusClientLive
 import Domain
 import XCTest
@@ -28,5 +29,17 @@ final class BusClientLiveTests: XCTestCase {
         let page = try LTA.stops(from: Data(json.utf8))
         XCTAssertEqual(page.first?.code, "00000")
         XCTAssertEqual(page.first?.name, "Example Stop")
+    }
+
+    /// Families know the stop's name, not its code (user, 2026-11-09). Made-up stops only.
+    func testSearchByNameRoadOrCode() {
+        let stops = [BusStop(code: "11111", name: "Opp Example Park", road: "Sample Ave"),
+                     BusStop(code: "22222", name: "Example Pr Sch", road: "Sample Ave"),
+                     BusStop(code: "33333", name: "Blk 12", road: "Other Rd")]
+        XCTAssertEqual(LTA.search("example", in: stops).map(\.code), ["22222", "11111"])
+        XCTAssertEqual(LTA.search("park sample", in: stops).map(\.code), ["11111"])
+        XCTAssertEqual(LTA.search("other", in: stops).map(\.code), ["33333"])
+        XCTAssertEqual(LTA.search("333", in: stops).map(\.code), ["33333"])
+        XCTAssertEqual(LTA.search("  ", in: stops), [])
     }
 }

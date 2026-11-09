@@ -18,17 +18,34 @@ extension BusClient {
             },
             stopName: { stop in
                 guard let key else { throw LTA.Failure.noKey }
-                // The stop list comes 500 at a time; Singapore has about 5,200 stops.
-                for skip in stride(from: 0, to: 6000, by: 500) {
-                    let data = try await LTA.get(LTA.stopsPath, query: [(LTA.skipParameter, "\(skip)")], key: key,
-                                                 session: session)
-                    let page = try LTA.stops(from: data)
-                    if let match = page.first(where: { $0.code == stop }) { return match.name }
-                    if page.count < 500 { return nil }
-                }
-                return nil
+                return try await stops.all(key: key, session: session).first { $0.code == stop }?.name
+            },
+            searchStops: { text in
+                guard let key else { throw LTA.Failure.noKey }
+                return LTA.search(text, in: try await stops.all(key: key, session: session))
             }
         )
+    }
+}
+
+/// The whole stop list (about 5,200 stops, 500 a page), fetched once per app run.
+private let stops = StopList()
+
+private actor StopList {
+    private var cached: [BusStop]?
+
+    func all(key: String, session: URLSession) async throws -> [BusStop] {
+        if let cached { return cached }
+        var list: [BusStop] = []
+        for skip in stride(from: 0, to: 6000, by: 500) {
+            let data = try await LTA.get(LTA.stopsPath, query: [(LTA.skipParameter, "\(skip)")], key: key,
+                                         session: session)
+            let page = try LTA.stops(from: data)
+            list += page
+            if page.count < 500 { break }
+        }
+        cached = list
+        return list
     }
 }
 
@@ -74,8 +91,27 @@ public enum LTA {
     }
 
     /// One page of the BusStops list.
-    public static func stops(from data: Data) throws -> [(code: String, name: String)] {
-        try JSONDecoder().decode(StopsAnswer.self, from: data).value.map { ($0.code, $0.description) }
+    public static func stops(from data: Data) throws -> [BusStop] {
+        try JSONDecoder().decode(StopsAnswer.self, from: data).value
+            .map { BusStop(code: $0.code, name: $0.description, road: $0.road ?? "") }
+    }
+
+    /// Stops whose name or road holds every word of `text` (any case), names starting with the
+    /// first word first; a run of digits matches the start of the code. At most `limit`.
+    public static func search(_ text: String, in stops: [BusStop], limit: Int = 8) -> [BusStop] {
+        let words = text.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
+        guard !words.isEmpty else { return [] }
+        let matches = stops.filter { stop in
+            let haystack = (stop.name + " " + stop.road).lowercased()
+            return words.allSatisfy { word in
+                haystack.contains(word) || (word.allSatisfy(\.isNumber) && stop.code.hasPrefix(word))
+            }
+        }
+        return matches.sorted { a, b in
+            let aStarts = a.name.lowercased().hasPrefix(words[0]), bStarts = b.name.lowercased().hasPrefix(words[0])
+            return aStarts != bStarts ? aStarts : a.name < b.name
+        }
+        .prefix(limit).map { $0 }
     }
 
     /// DD double deck, BD bendy, SD (or anything else) single deck.
@@ -115,6 +151,9 @@ public enum LTA {
     private struct Stop: Decodable {
         let code: String
         let description: String
-        enum CodingKeys: String, CodingKey { case code = "BusStopCode", description = "Description" } // copy-ok: JSON keys
+        let road: String?
+        enum CodingKeys: String, CodingKey { // copy-ok: JSON keys
+            case code = "BusStopCode", description = "Description", road = "RoadName" // copy-ok: JSON keys
+        }
     }
 }

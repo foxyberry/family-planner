@@ -10,6 +10,23 @@ public struct BusClient: Sendable {
     public var arrivals: @Sendable (_ stop: String) async throws -> [BusArrival]
     /// The stop's name for the C2 confirm ("Opp Blk 123" style), or nil for an unknown code.
     public var stopName: @Sendable (_ stop: String) async throws -> String?
+    /// Stops whose name or road has every word of `text` (user, 2026-11-09: families know the
+    /// name, not the 5-digit code), at most 8.
+    public var searchStops: @Sendable (_ text: String) async throws -> [BusStop]
+}
+
+/// A bus stop from the LTA list: the 5-digit code on its pole, its name and road.
+public struct BusStop: Equatable, Identifiable, Sendable {
+    public var code: String
+    public var name: String
+    public var road: String
+    public var id: String { code }
+
+    public init(code: String, name: String, road: String) {
+        self.code = code
+        self.name = name
+        self.road = road
+    }
 }
 
 extension BusClient: TestDependencyKey {
@@ -19,7 +36,8 @@ extension BusClient: TestDependencyKey {
         arrivals: { _ in
             [BusArrival(service: "1", minutes: 4, type: .single), BusArrival(service: "1", minutes: 28, type: .double)]
         },
-        stopName: { _ in "Example Stop" } // copy-ok: preview data
+        stopName: { _ in "Example Stop" }, // copy-ok: preview data
+        searchStops: { _ in [BusStop(code: "00000", name: "Example Stop", road: "Example Rd")] } // copy-ok: preview data
     )
 }
 

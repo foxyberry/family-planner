@@ -33,10 +33,22 @@ public struct BusSettingsView: View {
             ListRow(leading: L10n.tr("c2.stop")) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     CrayonField(L10n.tr("c2.stop.placeholder"),
-                                text: Binding(get: { store.stop }, set: { store.send(.stopChanged($0)) }))
-                        .keyboardType(.numberPad)
-                        .frame(width: 240)
+                                text: Binding(get: { store.stopText }, set: { store.send(.stopChanged($0)) }))
+                        .frame(width: 400)
                     Text(store.stopCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    // Matching stops by name: tap one to use its code.
+                    ForEach(store.stopMatches) { stop in
+                        Button { store.send(.stopPicked(stop)) } label: {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(stop.name).crayonType(.body).foregroundStyle(CrayonColor.link).lineLimit(1)
+                                Text(L10n.tr("c2.stop.match", stop.road, stop.code)).crayonType(.caption)
+                                    .foregroundStyle(CrayonColor.softText).lineLimit(1)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
             ListRow(leading: L10n.tr("c2.buses")) {

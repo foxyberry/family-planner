@@ -29,6 +29,8 @@ public struct PieClock: View {
     private let plays: [Int: Int]
     private let rigScale: Double
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The slot whose title the hub shows; it follows `motion.slotStart` (see `hubDisc`).
+    @State private var shownSlotStart: Int?
     @Environment(\.sizing) private var sizing
 
     /// Board 0g2 triggers, all from State: a new current slot (its picture hops, the hub text slides
@@ -210,7 +212,7 @@ public struct PieClock: View {
                                 weight: .bold, color: CrayonColor.ink, baseline: baseline)
                     }
                 }
-                .id(reduceMotion ? nil : motion.slotStart)
+                .id(reduceMotion ? nil : shownSlotStart)
                 .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
             }
             if let subtitle = hub.subtitle {
@@ -218,7 +220,17 @@ public struct PieClock: View {
                         baseline: untilBaseline)
             }
         }
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.4), value: motion.slotStart)
+        // Board 0g2 "new slot": the title rises only when the slot changes while the clock is on
+        // screen, never when the first slot arrives at launch (user, 2026-11-09).
+        .onChange(of: motion.slotStart, initial: true) { old, new in
+            if old == nil || old == new || reduceMotion {
+                var quiet = Transaction()
+                quiet.disablesAnimations = true
+                withTransaction(quiet) { shownSlotStart = new }
+            } else {
+                withAnimation(.easeOut(duration: 0.4)) { shownSlotStart = new }
+            }
+        }
         .frame(width: 2 * hubR, height: 2 * hubR)
         .crayonBackground(.circle, fill: CrayonStyle.paper, seed: 3003)
         .accessibilityHidden(true)

@@ -16,6 +16,10 @@ public struct BusSettingsFeature {
         public var kidName = ""
         public var stop = ""
         public var stopName: String?
+        /// The stop field: a name to search for, or the 5-digit code.
+        public var stopText = ""
+        /// Stops whose name or road matches `stopText` (user, 2026-11-09: families know the name).
+        public var stopMatches: [BusStop] = []
         /// Bus numbers that call at the stop (from its live arrivals), and the kid's picks.
         public var servicesAtStop: [String] = []
         public var services: [String] = []
@@ -35,6 +39,8 @@ public struct BusSettingsFeature {
         /// The name under the stop code, or a hint while it is not 5 digits or unknown.
         public var stopCaption: String {
             if let stopName { return stopName }
+            if !stopMatches.isEmpty { return L10n.tr("c2.stop.pick") }
+            if stopText.filter(\.isLetter).count >= 2 { return L10n.tr("c2.stop.none_found") }
             return stop.count == 5 ? L10n.tr("c2.stop.unknown") : L10n.tr("c2.stop.hint")
         }
 
@@ -48,6 +54,8 @@ public struct BusSettingsFeature {
         case task
         case loaded(ScheduleSnapshot?)
         case stopChanged(String)
+        case stopsFound([BusStop])
+        case stopPicked(BusStop)
         case stopLooked(name: String?, services: [String])
         case serviceTapped(String)
         case walkChanged(Int)
@@ -79,6 +87,7 @@ public struct BusSettingsFeature {
                 state.kidName = snapshot?.kids.first { $0.id == state.kid }?.name ?? ""
                 if let plan = snapshot?.busPlans.first(where: { $0.kid == state.kid }) {
                     state.stop = plan.stop
+                    state.stopText = plan.stop
                     state.services = plan.services
                     state.walk = plan.walk
                     state.ride = plan.ride
@@ -87,9 +96,31 @@ public struct BusSettingsFeature {
                 return lookUp(state)
 
             case let .stopChanged(text):
-                state.stop = String(text.filter(\.isNumber).prefix(5))
+                state.stopText = text
                 state.stopName = nil
                 state.servicesAtStop = []
+                // Two or more letters: a name to look for; otherwise the digits of the code.
+                if text.filter(\.isLetter).count >= 2 {
+                    state.stop = ""
+                    return .run { [bus] send in
+                        try await Task.sleep(for: .milliseconds(300))
+                        await send(.stopsFound((try? await bus.searchStops(text)) ?? []))
+                    }
+                    .cancellable(id: SearchID.stops, cancelInFlight: true)
+                }
+                state.stopMatches = []
+                state.stop = String(text.filter(\.isNumber).prefix(5))
+                return .merge(.cancel(id: SearchID.stops), lookUp(state))
+
+            case let .stopsFound(stops):
+                state.stopMatches = stops
+                return .none
+
+            case let .stopPicked(stop):
+                state.stop = stop.code
+                state.stopText = stop.code
+                state.stopName = stop.name
+                state.stopMatches = []
                 return lookUp(state)
 
             case let .stopLooked(name, services):
@@ -125,6 +156,8 @@ public struct BusSettingsFeature {
             }
         }
     }
+
+    private enum SearchID: Hashable { case stops }
 
     /// With a 5-digit stop: the stop's name and the bus numbers calling there now (nothing without a key).
     private func lookUp(_ state: State) -> Effect<Action> {

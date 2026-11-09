@@ -22,6 +22,9 @@ final class BusSettingsTests: XCTestCase {
             $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: [], items: [], busPlans: saved.value) }
             $0.scheduleStore.saveBusPlan = { plan in saved.withValue { $0.removeAll { $0.kid == plan.kid }; $0.append(plan) } }
             $0.bus.stopName = { stop in stop == "00000" ? "Example Stop" : nil }
+            $0.bus.searchStops = { text in
+                "example stop".contains(text.lowercased()) ? [BusStop(code: "00000", name: "Example Stop", road: "Example Rd")] : []
+            }
             $0.bus.arrivals = { _ in
                 [BusArrival(service: "2", minutes: 3, type: .single), BusArrival(service: "1", minutes: 5, type: .double),
                  BusArrival(service: "1", minutes: 20, type: .double)]
@@ -52,5 +55,23 @@ final class BusSettingsTests: XCTestCase {
         await store.send(.walkChanged(8))
         await store.finish(timeout: .seconds(1))
         XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1"], walk: 8)])
+    }
+
+    /// Families know the stop's name (user, 2026-11-09): typing a name lists stops; picking one
+    /// fills the code and its buses.
+    func testStopByName() async {
+        let store = store()
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.stopChanged("exam"))
+        XCTAssertEqual(store.state.stop, "")
+        await store.receive(\.stopsFound, timeout: .seconds(2))
+        XCTAssertEqual(store.state.stopMatches.map(\.code), ["00000"])
+        XCTAssertEqual(store.state.stopCaption, "Tap your stop")
+        await store.send(.stopPicked(store.state.stopMatches[0]))
+        XCTAssertEqual(store.state.stop, "00000")
+        XCTAssertEqual(store.state.stopCaption, "Example Stop")
+        await store.receive(\.stopLooked)
+        XCTAssertEqual(store.state.servicesAtStop, ["1", "2"])
     }
 }
