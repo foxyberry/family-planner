@@ -1,7 +1,8 @@
 import Foundation
 
-/// The fake family the app starts with until first-run setup (M4) exists. Public repo: fake names,
-/// a made-up school and ordinary example times, never a real timetable.
+/// The sample family: tests, previews and the debug menu's "Load sample family" (the app itself
+/// starts empty and runs first-run setup). Public repo: fake names, a made-up school and ordinary
+/// example times, never a real timetable.
 public enum SeedData {
     public static let kidA = Kid(
         id: UUID(uuidString: "5EED0000-0000-4000-8000-00000000000A")!, name: "Kid A", colorIndex: 0, age: 8,
@@ -14,9 +15,6 @@ public enum SeedData {
         schoolYear: nil, school: nil, face: "kidBoy")
 
     public static var kids: [Kid] { [kidA, kidB] }
-
-    /// Raised whenever the seed changes shape; the live store reseeds a store written by an older version.
-    public static let version = 3
 
     /// Every seed template starts here, so the debug time machine can visit any recent day.
     public static let templatesFrom = Day(year: 2026, month: 1, day: 1)

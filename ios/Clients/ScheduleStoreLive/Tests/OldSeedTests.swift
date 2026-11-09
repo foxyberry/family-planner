@@ -86,7 +86,7 @@ final class OldSeedTests: XCTestCase {
 
     func testCurrentSeedVersionKeepsUserItems() async throws {
         let routine = String(decoding: try JSONEncoder().encode(SeedData.routines[0]), as: UTF8.self)
-        try writeStore(seedVersion: SeedData.version, routinePayload: routine)
+        try writeStore(seedVersion: 3, routinePayload: routine)
         let snapshot = try await ScheduleStore.live(directory: directory).load()
         XCTAssertEqual(snapshot.items.map(\.title), ["Pottery"])
         XCTAssertEqual(snapshot.routines, [SeedData.routines[0]])

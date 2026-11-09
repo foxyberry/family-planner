@@ -10,8 +10,7 @@ final class SetupLayoutTests: XCTestCase {
     func testSharedLinesOnEveryIPad() {
         for sizing in iPads {
             let layout = SetupLayout(sizing: sizing), w = sizing.width
-            // The step dots end on 1312 with the side column and the action button.
-            XCTAssertEqual(layout.dots.maxX, layout.grown.right, accuracy: 0.01, "\(w)")
+            // The step dots end the header on 1312, with the side column and the action button.
             XCTAssertEqual(layout.grown.action.maxX, layout.grown.right, accuracy: 0.01, "\(w)")
             // S1 cards are the form card's width on 64; each next card starts 32 below the last.
             XCTAssertEqual(layout.kidCard(0).minX, layout.grown.form.minX, accuracy: 0.01, "\(w)")
@@ -23,15 +22,13 @@ final class SetupLayoutTests: XCTestCase {
             XCTAssertEqual(layout.settingRow(0).minX, layout.grown.labelLeft, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.settingRow(1).minY - layout.settingRow(0).maxY, layout.settingRowGap,
                            accuracy: 0.01, "\(w)")
-            // Everything stays below the status band and inside the window.
-            XCTAssertGreaterThanOrEqual(layout.dots.minY, sizing.safeTop, "\(w)")
+            // The cards never reach the side column.
             XCTAssertLessThanOrEqual(layout.grown.form.maxX, layout.grown.side.minX, "\(w)")
         }
     }
 
     func testThirteenInchIsTheBoard() {
         let layout = SetupLayout(sizing: Sizing(width: 1376, height: 1032))
-        XCTAssertEqual(layout.dots, CGRect(x: 1176, y: 74, width: 136, height: 28))
         XCTAssertEqual(layout.kidCard(0), CGRect(x: 64, y: 176, width: 818, height: 296))
         XCTAssertEqual(layout.kidCard(1).minY, 504, "board S1: the second card's Name row is at 548")
         XCTAssertEqual(layout.settingRow(0).minY, 216)

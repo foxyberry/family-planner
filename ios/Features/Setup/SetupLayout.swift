@@ -2,7 +2,7 @@ import CoreGraphics
 import DesignSystem
 
 /// Boards S1–S4 (layout v10) on the grown-up lines (`GrownupLayout`) through "Sizing formulas":
-/// the step note and dots end on 1312 in the header; S1 kid cards are 296 tall and 32 apart from
+/// the header ends on 1312 like every grown-up header; S1 kid cards are 296 tall and 32 apart from
 /// 176; S4 rows are 120 tall on a 140 pitch from 216. Inside a card, rows start on 104 (labels)
 /// and 232 (controls).
 public struct SetupLayout: Equatable, Sendable {
@@ -14,9 +14,6 @@ public struct SetupLayout: Equatable, Sendable {
 
     private var sizing: Sizing { grown.sizing }
     private var s: CGFloat { sizing.s }
-
-    /// The four dots 28, 8 apart, ending on 1312.
-    public var dots: CGRect { sizing.right(1176, 74, 136, 28) }
 
     /// S1: one card per kid, 64–882.
     public func kidCard(_ index: Int) -> CGRect {
@@ -35,5 +32,4 @@ public struct SetupLayout: Equatable, Sendable {
     /// S4: a row 120 tall on a 140 pitch from 216.
     public func settingRow(_ index: Int) -> CGRect { sizing.left(104, 216 + 140 * CGFloat(index), 738, 120) }
     public var settingRowGap: CGFloat { 20 * s }
-    public var settingTopInset: CGFloat { 40 * s }
 }
