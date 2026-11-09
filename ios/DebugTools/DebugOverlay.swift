@@ -49,9 +49,7 @@ struct DebugBubble: View {
             KitIcon(.debugLadybug, size: model.isTravelling ? 36 : 44)
             if model.isTravelling {
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    // 24-hour (en_GB), so 15:00 does not read as 03:00 without am / pm.
-                    Text(model.core.now(), format: .dateTime.weekday(.abbreviated).hour(.twoDigits(amPM: .omitted))
-                        .minute().locale(Locale(identifier: "en_GB")))
+                    Text(verbatim: DebugModel.bubbleText(model.core.now(), calendar: model.calendar))
                         .font(.system(size: 9, weight: .bold).monospacedDigit())
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)

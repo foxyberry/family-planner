@@ -84,6 +84,16 @@ public final class DebugModel {
 }
 
 extension DebugModel {
+    /// The bubble's pretend time in 24-hour form ("Sat 15:00") in the app calendar's time zone, so
+    /// 15:00 never reads as 03:00 (a format style with the am/pm left out stays 12-hour).
+    public nonisolated static func bubbleText(_ date: Date, calendar: Calendar) -> String {
+        let parts = calendar.dateComponents([.weekday, .hour, .minute], from: date)
+        var symbols = calendar
+        symbols.locale = Locale(identifier: "en_US_POSIX")
+        let day = symbols.shortWeekdaySymbols[((parts.weekday ?? 1) - 1) % 7]
+        return String(format: "%@ %02d:%02d", day, parts.hour ?? 0, parts.minute ?? 0)
+    }
+
     /// Debug builds only (`AppDelegate.bootstrap`): the app clock runs on the time machine, and the
     /// "Skip Face ID" flag opens grown-up screens at once. Launch arguments `-fpNow` / `-fpSpeed` set the time.
     public static func install(into dependencies: inout DependencyValues,
