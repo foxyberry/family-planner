@@ -16,12 +16,8 @@ public struct BusSettingsView: View {
         GrownupScreen {
             GrownupHeader(title: store.title, onBack: { store.send(.doneTapped) })
         } content: { layout in
-            HStack(alignment: .top, spacing: layout.gap) {
-                PaperCard(seed: 51) { plan }
-                    .frame(width: layout.form.width)
-                PaperCard(seed: 53) { keyCard.frame(maxWidth: .infinity, alignment: .leading) }
-                    .frame(width: layout.side.width)
-            }
+            PaperCard(seed: 51) { plan }
+                .frame(width: layout.form.width)
         } primaryAction: { layout in
             InkButton(L10n.tr("c2.done")) { store.send(.doneTapped) }
                 .frame(width: layout.side.width)
@@ -70,24 +66,6 @@ public struct BusSettingsView: View {
                 RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - step) }
                 Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 112)
                 RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }
-            }
-        }
-    }
-
-    private var keyCard: some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
-            Text(L10n.tr("c2.key")).crayonType(.head).foregroundStyle(CrayonColor.ink)
-            Text(store.keyCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-            if let draft = store.keyDraft {
-                CrayonField(L10n.tr("c2.key.field"),
-                            text: Binding(get: { draft }, set: { store.send(.keyDraftChanged($0)) }), isSecure: true)
-                InkButton(L10n.tr("c2.key.save")) { store.send(.keySaveTapped) }
-            } else {
-                // The key is built in; grown-ups only change it (spec "Bus settings").
-                Button { store.send(.keyRowTapped) } label: {
-                    Text(L10n.tr("c2.key.change")).crayonType(.body).foregroundStyle(CrayonColor.link)
-                }
-                .buttonStyle(.plain)
             }
         }
     }

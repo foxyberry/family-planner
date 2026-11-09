@@ -44,8 +44,11 @@ final class MissionsTests: XCTestCase {
                 }
             }
             $0.holidays.holidays = { _ in [] }
-            $0.secrets = .inMemory(arrivals == nil ? [:] : [.busKey: "test-key"])
-            $0.bus.arrivals = { _, _ in arrivals ?? [] }
+            // nil: no live times (no key built in), so the call fails and the timetable shows.
+            $0.bus.arrivals = { _ in
+                guard let arrivals else { throw URLError(.userAuthenticationRequired) }
+                return arrivals
+            }
         }
         store.exhaustivity = .off
         return store

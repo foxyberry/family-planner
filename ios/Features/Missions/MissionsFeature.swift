@@ -6,7 +6,6 @@ import BusClient
 import HolidayProvider
 import KitArt
 import ScheduleStore
-import SecretStore
 import Strings
 
 /// A2-MVP · Morning missions (spec "A2-MVP", "MVP data"): the way to the chosen kid's next outing,
@@ -403,7 +402,6 @@ public struct MissionsFeature {
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
     @Dependency(\.bus) var bus
-    @Dependency(\.secrets) var secrets
     @Dependency(\.calendar) var calendar
     @Dependency(\.date) var date
     @Dependency(\.continuousClock) var clock
@@ -442,9 +440,8 @@ public struct MissionsFeature {
             case .refresh:
                 guard let (owner, outing) = state.familyOuting, outing.trip.way == .bus,
                       let plan = state.busPlans[owner.id] else { return .none }
-                return .run { [bus, secrets, date] send in
-                    guard let key = await secrets.read(.busKey) else { return }
-                    let arrivals = try? await bus.arrivals(plan.stop, key)
+                return .run { [bus, date] send in
+                    let arrivals = try? await bus.arrivals(plan.stop)
                     await send(.arrivalsLoaded(arrivals, at: date.now))
                 }
 

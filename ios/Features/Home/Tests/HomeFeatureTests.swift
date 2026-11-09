@@ -6,7 +6,6 @@ import Foundation
 import HolidayProvider
 import Home
 import ScheduleStore
-import SecretStore
 import XCTest
 
 @MainActor
@@ -35,8 +34,7 @@ final class HomeFeatureTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.scheduleStore.load = { snapshot }
             $0.holidays.holidays = { _ in holidays }
-            $0.secrets = .inMemory([.busKey: "test-key"])
-            $0.bus.arrivals = { _, _ in
+            $0.bus.arrivals = { _ in
                 [BusArrival(service: "1", minutes: 4, type: .single), BusArrival(service: "1", minutes: 28, type: .double)]
             }
         }

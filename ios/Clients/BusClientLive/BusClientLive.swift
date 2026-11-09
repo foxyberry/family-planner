@@ -4,17 +4,20 @@ import Domain
 import Foundation
 
 extension BusClient {
-    /// LTA DataMall: BusArrival v3 for live times and BusStops (paged) for a stop's name. The key
-    /// comes from the caller (the Keychain); the current time is read at call time from `\.date`.
-    public static func live(session: URLSession = .shared) -> Self {
+    /// LTA DataMall: BusArrival v3 for live times and BusStops (paged) for a stop's name, with the
+    /// key built into the app (`nil`: every call throws `LTA.Failure.noKey`). The current time is
+    /// read at call time from `\.date`.
+    public static func live(key: String?, session: URLSession = .shared) -> Self {
         Self(
-            arrivals: { stop, key in
+            arrivals: { stop in
+                guard let key else { throw LTA.Failure.noKey }
                 @Dependency(\.date) var date
                 let data = try await LTA.get(LTA.arrivalPath, query: [(LTA.stopParameter, stop)], key: key,
                                              session: session)
                 return try LTA.arrivals(from: data, now: date.now)
             },
-            stopName: { stop, key in
+            stopName: { stop in
+                guard let key else { throw LTA.Failure.noKey }
                 // The stop list comes 500 at a time; Singapore has about 5,200 stops.
                 for skip in stride(from: 0, to: 6000, by: 500) {
                     let data = try await LTA.get(LTA.stopsPath, query: [(LTA.skipParameter, "\(skip)")], key: key,
@@ -39,6 +42,8 @@ public enum LTA {
 
     public struct Failure: Error, Equatable {
         public let status: Int
+        /// No key is built into this app (no local config).
+        public static let noKey = Failure(status: 0)
     }
 
     static func get(_ path: String, query: [(String, String)], key: String, session: URLSession) async throws -> Data {

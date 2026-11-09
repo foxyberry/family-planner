@@ -22,8 +22,6 @@ fp_swift_library(
         "//ios/Clients/ParentAuthClientLive",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/ScheduleStoreLive",
-        "//ios/Clients/SecretStore",
-        "//ios/Clients/SecretStoreLive",
         "//ios/DebugTools",
         "//ios/DeviceConfig",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
