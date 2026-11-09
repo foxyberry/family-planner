@@ -174,7 +174,7 @@ extension SetupFeature.State {
     public var summarySchool: (title: String, hours: String)? {
         guard let kid = goingKids.first, let start = kid.school.start, let end = kid.school.end else { return nil }
         return (kid.school.kind == .preschool ? L10n.tr("starter.preschool") : L10n.tr("s4.school"),
-                TimeText.range(start, end))
+                TimeText.hours(start, end))
     }
 
     public var summaryWay: (picture: String, title: String, detail: String)? {

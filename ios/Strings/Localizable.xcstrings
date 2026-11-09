@@ -1519,6 +1519,17 @@
         }
       }
     },
+    "hub.about.age.only" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      }
+    },
     "hub.about.age.school" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1559,6 +1570,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nap %@"
+          }
+        }
+      }
+    },
+    "hub.about.part" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ·"
           }
         }
       }
@@ -1614,6 +1636,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nothing yet"
+          }
+        }
+      }
+    },
+    "hub.getting.to_school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To school"
           }
         }
       }

@@ -4,11 +4,14 @@ import SwiftUI
 /// fills the label column (`formLabelWidth`) and the content starts on the control line.
 public struct ListRow<Content: View>: View {
     private let leading: String
+    private let minHeight: CGFloat
     private let content: Content
     @Environment(\.formLabelWidth) private var formLabelWidth
 
-    public init(leading: String, @ViewBuilder content: () -> Content) {
+    /// `minHeight`: 80 for form rows; 60 for the read-only rows of C1/E6.
+    public init(leading: String, minHeight: CGFloat = 80, @ViewBuilder content: () -> Content) {
         self.leading = leading
+        self.minHeight = minHeight
         self.content = content()
     }
 
@@ -19,7 +22,7 @@ public struct ListRow<Content: View>: View {
                 .frame(width: formLabelWidth ?? 120, alignment: .leading)
             content.crayonType(.body).frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(minHeight: 80)
+        .frame(minHeight: minHeight)
         .padding(.horizontal, formLabelWidth == nil ? Spacing.m : 0)
     }
 }

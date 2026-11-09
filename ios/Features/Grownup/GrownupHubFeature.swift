@@ -27,6 +27,12 @@ public struct GrownupHubFeature {
 
         public var weeklyHeading: String { kid.map(HubModel.weeklyHeading) ?? "" }
 
+        /// Board C1's side "More" row (school kids).
+        public var moreRow: HubMoreRow? {
+            guard let kid, let snapshot else { return nil }
+            return HubModel.moreRow(kid: kid, missions: snapshot.missions)
+        }
+
         public var weeklyRows: [HubItemRow] {
             guard let kid, let snapshot else { return [] }
             return HubModel.weeklyRows(kid: kid, items: snapshot.items)

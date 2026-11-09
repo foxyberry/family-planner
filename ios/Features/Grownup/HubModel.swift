@@ -3,12 +3,43 @@ import Foundation
 import Strings
 
 public struct HubRow: Equatable, Sendable {
+    /// A piece of the value: an optional picture (a `KitSlot` raw value) before its words.
+    public struct Part: Equatable, Sendable {
+        public var picture: String?
+        public var text: String
+
+        public init(picture: String? = nil, text: String) {
+            self.picture = picture
+            self.text = text
+        }
+    }
+
     public var key: String
-    public var value: String
+    public var parts: [Part]
+    /// The words alone ("Up 6:30 am · Bed 8:00 pm"), for VoiceOver and tests.
+    public var value: String { parts.map(\.text).joined(separator: " ") }
 
     public init(key: String, value: String) {
         self.key = key
-        self.value = value
+        parts = [Part(text: value)]
+    }
+
+    public init(key: String, parts: [Part]) {
+        self.key = key
+        self.parts = parts
+    }
+}
+
+/// C1's side "More" row (board C1): the sun picture, "Morning missions" over the count, to C5.
+public struct HubMoreRow: Equatable, Sendable {
+    public var picture: String
+    public var title: String
+    public var caption: String
+
+    public init(picture: String, title: String, caption: String) {
+        self.picture = picture
+        self.title = title
+        self.caption = caption
     }
 }
 
@@ -80,19 +111,26 @@ public enum HubModel {
         }
         var rows = schoolRows(kid: kid).map(HubSection.Row.text)
         rows.insert(.schoolDays(key: L10n.tr("hub.school.days"), days: school.days), at: 1)
-        let count = switch own.count {
-        case 0: L10n.tr("hub.empty")
-        case 1: L10n.tr("hub.more.missions.one")
-        default: L10n.tr("hub.more.missions.count", own.count)
-        }
         // C1 "Getting there" → C2 (spec "Bus settings"): the kid's buses and walk, or "Not set yet".
+        // Board C1 has it last in the School card; "More" moved to the side column (`moreRow`).
         let buses = busPlan.map { L10n.tr("hub.more.buses.value", $0.services.joined(separator: ", "), $0.walk) }
             ?? L10n.tr("hub.more.buses.none")
-        let more = HubSection(title: L10n.tr("hub.more"), rows: [
-            .link(HubRow(key: L10n.tr("hub.more.missions"), value: count), to: .missions),
-            .link(HubRow(key: L10n.tr("hub.more.buses"), value: buses), to: .buses),
-        ])
-        return [about, HubSection(title: L10n.tr("hub.school"), rows: rows), more]
+        let gettingThere = HubSection(title: L10n.tr("hub.more.buses"),
+                                      rows: [.link(HubRow(key: L10n.tr("hub.getting.to_school"), value: buses), to: .buses)])
+        return [about, HubSection(title: L10n.tr("hub.school"), rows: rows), gettingThere]
+    }
+
+    /// Board C1's side "More" for a school kid: "Morning missions" over the kid's count. A kid at
+    /// home has the Morning section in the card instead.
+    public static func moreRow(kid: Kid, missions: [Mission]) -> HubMoreRow? {
+        guard kid.school != nil else { return nil }
+        let own = missions.filter { $0.kid == kid.id }.count
+        let count = switch own {
+        case 0: L10n.tr("hub.empty")
+        case 1: L10n.tr("hub.more.missions.one")
+        default: L10n.tr("hub.more.missions.count", own)
+        }
+        return HubMoreRow(picture: "sun", title: L10n.tr("hub.more.missions"), caption: count) // copy-ok: a KitSlot name
     }
 
     /// The heading over the every-week items.
@@ -108,22 +146,25 @@ public enum HubModel {
         let wake = sleeps.first { $0.start == 0 }?.end
         let bed = sleeps.first { $0.end == 1440 }?.start
         let nap = sleeps.first { $0.start != 0 && $0.end != 1440 }
-        let age = kid.school == nil
-            ? L10n.tr("hub.about.age.home", kid.age) : L10n.tr("hub.about.age.school", kid.age, kid.schoolYear ?? "")
-        var day: [String] = []
-        if kid.school != nil, let wake { day.append(L10n.tr("hub.about.up", TimeText.withPeriod(wake))) }
-        if let nap { day.append(L10n.tr("hub.about.nap", TimeText.range(nap.start, nap.end))) }
-        if let bed { day.append(L10n.tr("hub.about.bed", TimeText.withPeriod(bed))) }
+        let year = kid.schoolYear?.trimmingCharacters(in: .whitespaces) ?? ""
+        let age = kid.school == nil ? L10n.tr("hub.about.age.home", kid.age)
+            : year.isEmpty ? L10n.tr("hub.about.age.only", kid.age) : L10n.tr("hub.about.age.school", kid.age, year)
+        // Board C1: the sun before "Up", the moon before "Nap" and "Bed"; " ·" ends all but the last.
+        var day: [HubRow.Part] = []
+        if kid.school != nil, let wake { day.append(HubRow.Part(picture: "sun", text: L10n.tr("hub.about.up", TimeText.withPeriod(wake)))) } // copy-ok: a KitSlot name
+        if let nap { day.append(HubRow.Part(picture: "actSleep", text: L10n.tr("hub.about.nap", TimeText.range(nap.start, nap.end)))) } // copy-ok: a KitSlot name
+        if let bed { day.append(HubRow.Part(picture: "actSleep", text: L10n.tr("hub.about.bed", TimeText.withPeriod(bed)))) } // copy-ok: a KitSlot name
+        for index in day.indices.dropLast() { day[index].text = L10n.tr("hub.about.part", day[index].text) }
         return [HubRow(key: L10n.tr("hub.about.age"), value: age),
-                HubRow(key: L10n.tr("hub.about.day"), value: day.joined(separator: " · "))]
+                HubRow(key: L10n.tr("hub.about.day"), parts: day)]
     }
 
     /// School name, hours and holidays (`sections` adds the school days after the name).
     public static func schoolRows(kid: Kid) -> [HubRow] {
         guard let school = kid.school else { return [] }
         return [
-            HubRow(key: L10n.tr("hub.school"), value: school.name),
-            HubRow(key: L10n.tr("hub.school.hours"), value: TimeText.range(school.start, school.end)),
+            HubRow(key: L10n.tr("hub.school"), parts: [HubRow.Part(picture: "actSchool", text: school.name)]), // copy-ok: a KitSlot name
+            HubRow(key: L10n.tr("hub.school.hours"), value: TimeText.hours(school.start, school.end)),
             HubRow(key: L10n.tr("hub.school.holidays"), value: L10n.tr("hub.school.no_holidays")),
         ]
     }
