@@ -118,6 +118,9 @@ public struct WayStrip: View {
     /// A bus's x from its minutes to our stop: 30 min or more at x 60, at our stop at 0.
     public static func liveX(minutes: Int) -> CGFloat { homeX - CGFloat(min(max(minutes, 0), 30)) * 800 / 30 }
 
+    /// Where the mover waits once the outing has started: at the destination's side (x 1070).
+    public static let arrivedX: CGFloat = 1070
+
     /// A car, taxi or walk: waits at x 990 until "leave", then reaches 1070 at the start.
     public static func vehicleX(minute: Int, leave: Int, start: Int) -> CGFloat {
         guard minute > leave, start > leave else { return 990 }
