@@ -105,7 +105,7 @@ private struct Records {
             try insert("mission:\(mission.id)", group: "mission", order: mission.order, mission)
         }
         for plan in family.busPlans {
-            try insert("busPlan:\(plan.kid)", group: "busPlan", order: 0, plan)
+            try insert(Self.planKey(plan), group: "busPlan", order: 0, plan)
         }
         try context.save()
     }
@@ -122,11 +122,17 @@ private struct Records {
         try context.save()
     }
 
+    /// Saves one route per kid and event. A School route stored before routes were per event (key
+    /// "busPlan:{kid}") is replaced by it.
     func put(_ plan: BusPlan) throws {
-        for old in try fetch("busPlan").filter({ $0.key == "busPlan:\(plan.kid)" }) { context.delete(old) }
-        try insert("busPlan:\(plan.kid)", group: "busPlan", order: 0, plan)
+        let key = Self.planKey(plan)
+        let legacy = plan.event == .school ? "busPlan:\(plan.kid)" : key
+        for old in try fetch("busPlan") where old.key == key || old.key == legacy { context.delete(old) }
+        try insert(key, group: "busPlan", order: 0, plan)
         try context.save()
     }
+
+    static func planKey(_ plan: BusPlan) -> String { "busPlan:\(plan.kid):\(eventKey(plan.event))" }
 
     func put(_ items: [ScheduleItem]) throws {
         for item in items {
@@ -221,7 +227,7 @@ private struct Records {
         }
     }
 
-    private static func eventKey(_ event: EventRef) -> String {
+    static func eventKey(_ event: EventRef) -> String {
         switch event {
         case .school: "school"
         case let .item(id): "item-\(id)"
