@@ -1,5 +1,5 @@
 {
- "version": "9",
+ "version": "10",
  "board": "S2",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -216,16 +216,16 @@
   {
    "id": "main.row.school.text",
    "kind": "text",
-   "x": 256,
-   "y": 224,
-   "w": 271,
-   "h": 48,
+   "x": 316,
+   "y": 225,
+   "w": 309,
+   "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 248,
+   "baseline": 260,
    "font": 30,
-   "text": "Wolfie’s school"
+   "text": "Sunny Park Primary"
   },
   {
    "id": "side.line.2",
@@ -246,14 +246,25 @@
    "kind": "text",
    "x": 232,
    "y": 293,
-   "w": 369,
+   "w": 346,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 321,
+   "baseline": 312,
    "font": 24,
-   "text": "Picked from the MOE school list"
+   "text": "MOE primary · Woodlands"
+  },
+  {
+   "id": "main.picture.1",
+   "kind": "picture",
+   "x": 232,
+   "y": 296,
+   "w": 32,
+   "h": 32,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
   },
   {
    "id": "side.picture.1",
@@ -442,9 +453,9 @@
   {
    "id": "main.row.hours.text.1",
    "kind": "text",
-   "x": 258,
+   "x": 261,
    "y": 465,
-   "w": 127,
+   "w": 123,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -455,9 +466,9 @@
   {
    "id": "main.row.hours.text.2",
    "kind": "text",
-   "x": 510,
+   "x": 515,
    "y": 465,
-   "w": 127,
+   "w": 119,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -502,6 +513,19 @@
    "align": "start"
   },
   {
+   "id": "main.text.2",
+   "kind": "text",
+   "x": 232,
+   "y": 533,
+   "w": 458,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 561,
+   "font": 24
+  },
+  {
    "id": "side.line.7",
    "kind": "text",
    "x": 1010,
@@ -518,7 +542,7 @@
    "id": "main.label.arrive-by",
    "kind": "label",
    "x": 104,
-   "y": 560,
+   "y": 584,
    "w": 150,
    "h": 80,
    "region": "main",
@@ -529,29 +553,29 @@
   {
    "id": "main.row.arrive-by.text.1",
    "kind": "text",
-   "x": 258,
-   "y": 577,
-   "w": 127,
+   "x": 261,
+   "y": 601,
+   "w": 123,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 600,
+   "baseline": 624,
    "font": 30
   },
   {
    "id": "main.row.arrive-by.text.2",
    "kind": "text",
    "x": 428,
-   "y": 581,
-   "w": 147,
+   "y": 605,
+   "w": 150,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 609,
+   "baseline": 633,
    "font": 24,
-   "text": "school opens"
+   "text": "school starts"
   },
   {
    "id": "side.line.8",
@@ -570,7 +594,7 @@
    "id": "main.label.latest",
    "kind": "label",
    "x": 104,
-   "y": 672,
+   "y": 696,
    "w": 150,
    "h": 80,
    "region": "main",
@@ -581,35 +605,35 @@
   {
    "id": "main.row.latest.text.1",
    "kind": "text",
-   "x": 264,
-   "y": 689,
-   "w": 116,
+   "x": 260,
+   "y": 713,
+   "w": 123,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 712,
+   "baseline": 736,
    "font": 30
   },
   {
    "id": "main.row.latest.text.2",
    "kind": "text",
    "x": 428,
-   "y": 693,
-   "w": 135,
+   "y": 717,
+   "w": 129,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 721,
+   "baseline": 745,
    "font": 24,
-   "text": "class starts"
+   "text": "gate closes"
   },
   {
-   "id": "main.picture",
+   "id": "main.picture.2",
    "kind": "picture",
    "x": 232,
-   "y": 788,
+   "y": 812,
    "w": 48,
    "h": 48,
    "region": "main",
@@ -617,30 +641,17 @@
    "align": "inside"
   },
   {
-   "id": "main.text.2",
+   "id": "main.text.3",
    "kind": "text",
    "x": 292,
-   "y": 789,
+   "y": 813,
    "w": 509,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 824,
+   "baseline": 848,
    "font": 30
-  },
-  {
-   "id": "main.text.3",
-   "kind": "text",
-   "x": 104,
-   "y": 869,
-   "w": 559,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 897,
-   "font": 24
   },
   {
    "id": "action.button",
@@ -653,6 +664,19 @@
    "anchor": "right",
    "align": "fill",
    "text": "Next"
+  },
+  {
+   "id": "main.text.4",
+   "kind": "text",
+   "x": 104,
+   "y": 893,
+   "w": 559,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 921,
+   "font": 24
   }
  ]
 }

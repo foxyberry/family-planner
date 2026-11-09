@@ -65,6 +65,9 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: morning strip after the outing has started: new "arrived look" (road kept, mover at the destination, no countdown); the empty look only on a day with no outing (user's iPad review). C2 "Live bus times" card and "Change key" removed (user, PR #22). Crown kit picture replaces the check for a kid who is ready with no time rule.
 - 2026-11-09: home Kid B block follows Kid A (name box 40 below Kid A's last box, never below baseline 584) instead of the fixed 584 line (user: the Next row and Kid B looked too far apart); A1n Tomorrow plate 80. Layout v8.
 - 2026-11-09: user review PR #24: stop field searches by name or code (C2, S3; list of up to 8, tap to pick); morning kid list face has no colour ring of its own (colour only from the progress arc); C6 new slice takes the first hour of free time, any day picture (sleep too) sets the slice kind, picture grid 3 per row, freeing joins free neighbours. Layout v9.
+- 2026-11-09: S2 school search (boards S2 picked, S2s list open): MOE and international schools searched together, last row "Not in the list?", hours prefilled from the school website with a source caption, MOE terms row set from `followsMoeTerms` (own dates / ask when unknown). Layout v10 adds S2s.
+- 2026-11-09: new-slot motion (0g2): the hub title swipes sideways inside the hub disc, new from the left (from the right when time goes back), 0.45 s, not at launch; it no longer slides up (user, PR #26).
+- 2026-11-09: time left over an hour reads "1h 20m" / "2h" (was "1 h 20 min", cut off in the home panel; PR #27). First run: the app starts empty and runs S1–S4; the seed family is only the debug action "Load sample family", which overwrites after a confirm (user).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -122,7 +125,8 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Main button: `InkButton`, side column, y 872–968.
 
 ### Seed data in M2
-- Two kids from a fixed seed, editable through C3, C4, E5 and C6. Adding a child is M4 (S1).
+- **First run** (user, 2026-11-09): the app starts empty on every build and runs first-run setup S1–S4, where the grown-up enters the real kids and settings. Nothing below is loaded on its own.
+- **"Load sample family"** is a debug-tools action only. It loads the seed below and **overwrites** the stored family, so it asks first: "Replace your family with the sample family? Everything you entered here is deleted." with "Replace" (`lateText`) / "Cancel". Tests and previews use the seed directly.
 - **Kid A, Mon–Fri template** (user-approved 2026-11-08; generic canvas values, safe for the public repo). It matches boards A1, E1 and C6:
 
   | slot | time | kind (colour) | picture |
@@ -256,7 +260,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - `KidFace` 48 (face in the kid's colour ring, replaces `KidDot`), gap 16, name head 36.
   - 24 below: "Next" caption 24 `softText`.
   - 8 below: Next row: `KitIcon` 104, gap 24, then the title **head 36 bold** over "at {h:mm am/pm}" body 30 `softText`. Both lines are one line: start time only (the range is on the clock), no wrap; a long title ends with "…". A just-once item keeps its star sticker on the picture.
-  - 24 below: time left to that thing: "in" body 30 `softText`, then `TimeLeft` display 96 ("38 min"). Over 60 minutes: "1 h 20 min" in the same size; over 3 h: leave the time left out.
+  - 24 below: time left to that thing: "in" body 30 `softText`, then `TimeLeft` display 96 ("38 min"). Over 60 minutes: "1h 20m" in the same size, whole hours "2h" (user, PR #27, 2026-11-09: "1 h 30 min" was 503 wide and cut off in the 384 panel; "1h 30m" measures 356, "38 min" 330). VoiceOver still says "1 hour 20 minutes". Over 3 h: leave the time left out. The A2 header uses the same format ("2h 59m" at title 48 is 177 wide).
   - **With the live bus (build step 5, "A2 live look")** on bus mornings the time left becomes "Leave in" + `TimeLeft` to the leave time + "On time" (boards A1, E1). Same place and sizes; only the words and the target time change. On A1 (two kids) the Next row is hidden on school mornings to leave room for Kid B; E1 (one kid) keeps it under "On time".
 - **Night** (A1n look; board order confirmed 2026-11-09): the time left comes first: "Bed in" (first line, baseline 301) + `TimeLeft` (baseline 403) to Sleep. Then the "Tomorrow" row: a 64 picture on a 104 plate at y 436, "Tomorrow" (body bold, baseline 484) over "School, leave {h:mm}" (caption, baseline 516). There is no Next row at night: Next would be Sleep, which the time left already says.
 - Kid B block: unchanged (now 160 / next 104 circles, captions "now" / "next").
@@ -280,7 +284,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2. Shows only in the mission morning (below).
 - **Mission morning (board A1m)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
   - "Missions →" shows at the bottom of the panel (E3's "Diary →" is M5, so there is no clash).
-  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: "Leave in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the leave time (start − "leave before") ("38 min", "1 h 20 min"). This is the A1 board layout; the "On time" line shows only with live bus times. Otherwise: the Next row without the time left.
+  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: "Leave in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the leave time (start − "leave before") ("38 min", "1h 20m"). This is the A1 board layout; the "On time" line shows only with live bus times. Otherwise: the Next row without the time left.
   - Kid B block unchanged.
   - **Panel fit** (board A1m; 2026-11-08): the panel is the column x 928–1312, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "Leave in" row 72 (the 80 way picture may stand 8 above the row); 8; "33 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 24; now/next row 160 + 8 + caption. That ends at about y 650. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 220 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 64 → 40. The clock never moves.
   - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. On a bus morning with live times the Kid A block shows "Leave in" + "On time" instead (see "A2 live look").
@@ -405,16 +409,25 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
 - Side column: the kit `home` picture 280, "This iPad is for the whole family." (head), "Names, ages and colours show on every screen." (body). The family's own home drawing is never used here.
 - "Next →" is off until every card has a name and an age.
 
-### S2 · School [board S2]
+### S2 · School [boards S2 (picked), S2s (search open)]
 - Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1.
-- Rows (label 104, control 232):
-  - "School": field 610 × 80 (232–842) with the school picture; caption "Picked from the MOE school list". Tapping opens a search sheet over the bundled school list.
-  - "Days": seven `DayChip` 56 (Mon–Fri on).
-  - "Hours": `TimeField` → `TimeField`.
-  - "Arrive by": `TimeField` + caption "school opens". "Latest": `TimeField` + caption "class starts".
-  - `CheckMark` + "Use MOE school terms for holidays" (fills the holiday list; on by default).
-- A kid with no school yet: the card's last line reads "{Name}: no school yet. Skip, or add nursery later." (caption). On that kid's tab the rows are hidden, and the line shows at the top of the card.
-- Side column "Medals come from these times" (head): Gold, Silver and Bronze, each with its medal picture 56, the name (body bold) and one caption line filled from the fields ("ready 5 min before it's time to leave", "ready when it's time to leave, in by {arrive by}", "ready in time to be in by {latest}"). Then: "Later than that: just "Ready!". No medal, and never a sad face." The rule itself is in "A2 live look", Medal.
+- **School** (search, 2026-11-09; data: bundled `schools-sg.json` (MOE, 337) and `international-schools-sg.json` (81), searched together):
+  - Field 610 × 80 at (232, 208), placeholder "School name". Caption "Type your school's name" (y 296).
+  - From 2 letters: caption "Tap your school"; a list card 610 wide at field bottom + 40 (y 328), over the rows below, with up to 8 matches, rows 64: the school name (body bold, `link`) over a caption: MOE school "MOE primary · {planning area}" (secondary / mixed by level); other school "International · {first curriculum}" plus " · own term dates" when it does not follow MOE terms. The **last row is always** "+ Not in the list? Type the name" (plus 32 + body bold `link`).
+  - Matching: every typed word is the start of a word in the school's `searchKeys`, or the whole text equals a key (initials such as "PLMGS"). Order: exact key, name prefix, word prefix; primary before others; then A–Z.
+  - No match: only the "Not in the list?" row, caption "No school with that name".
+  - **Picked** (board S2): the field shows the school picture 48 + the name (body bold); the caption becomes the check picture 32 + the match caption ("MOE primary · Woodlands"). Days default Mon–Fri.
+  - **Hours from the school**: when the school's own website states them (`school-hours.json` / `dailyHours`, status found or partial), Hours, Arrive by and Latest are prefilled, and a caption under Hours reads "From the school website, checked {d Mon}". Arrive by = the stated start; Latest = start + 10 min unless the site gives a later "gate closes" time. Everything stays editable; editing a value removes the caption. Nothing known: the fields stay empty with the seed placeholders.
+  - **Not in the list**: the field keeps the typed text as the school name; no picture (school picture slot as before); hours empty; MOE terms off.
+- Rows (label 104, control 232; picked state): School 208, Days 352, Hours 448 (source caption 536), Arrive by 584 + caption "school starts", Latest 696 + caption "gate closes", MOE terms row 808, kid-without-school line 896.
+- **MOE terms row**, set from the pick:
+  - MOE school, or `followsMoeTerms: true`: `CheckMark` on, "Use MOE school terms for holidays".
+  - `followsMoeTerms: false`: off, and the row reads "Uses its own term dates" (body) with "{n} breaks from the school website" (caption) when `termDates` exist; otherwise "Add the school's holidays later in Our kids" (caption). The app fills the holiday list from `termDates`.
+  - Not known (`null`) or typed by hand: off, and the row asks "Does your school follow the MOE term dates?" with two pills "Yes" / "Not sure" (180 × 72); "Yes" turns the check on.
+- A kid with no school yet: the last card line reads "{Name}: no school yet. Skip, or add nursery later." (caption). On that kid's tab the rows are hidden and the line shows at the top of the card.
+- Side column "Medals come from these times" (head): Gold, Silver and Bronze, each with its medal picture 64, the name (body bold) and one caption filled from the fields ("ready 5 min before it's time to leave", "ready when it's time to leave, in by {arrive by}", "ready in time to be in by {latest}"). Then: "Later than that: just "Ready!". No medal, and never a sad face." The rule itself is in "A2 live look", Medal.
+- Only the chosen school's id and the values the grown-up confirmed are stored, on the iPad. The app never sends which school was picked.
+- Data sources are shown on an About / Data sources screen (Singapore Open Data Licence attribution for data.gov.sg and OneMap). The international list ships only in the private build for now (user, 2026-11-09: the search exists to fill in term dates and hours, which come from each school's own site); before the app goes to other families, its names and addresses are rebuilt from the schools' own sites (backlog).
 - "Next →" goes to S3 for each kid with a school, in tab order. Kids without a school skip S3.
 
 ### S3 · Getting to school (new 2026-11-08) [board S3]
@@ -517,7 +530,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 | moment | what moves | time | Reduce Motion |
 |---|---|---|---|
 | Sky switch | as above | 1.2 s | crossfade 0.3 s |
-| New slot | the slot picture hops 1 → 1.15 → 1; hub text slides up | 0.4 s | text changes in place |
+| New slot | the slot picture hops 1 → 1.15 → 1; the hub title swipes sideways inside the hub disc (clipped to the disc): the new title comes in from the left and pushes the old one out to the right; when time goes back (time machine) it comes from the right. Not played for the first slot at launch (user, 2026-11-09) | 0.45 s | text changes in place |
 | On the hour | the red hand disc pulses once | 0.6 s | none |
 | Mission done | the check draws itself, 6 crayon sparks | 0.35 s | check appears |
 | Slide to go (build step 5) | from touch-down to release the knob picture plays (user, 2026-11-09): the bus rocks and its wheels turn at the finger's speed, backwards when dragged back; the star knob twinkles; a hop and a green wash at the end | while dragging | colour change only |
