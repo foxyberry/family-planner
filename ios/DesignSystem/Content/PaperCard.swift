@@ -15,7 +15,7 @@ public struct PaperCard<Content: View>: View {
     public var body: some View {
         content
             .padding(inset)
-            .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
+            .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                               seed: CrayonStyle.Seed.card + seed)
     }
 }

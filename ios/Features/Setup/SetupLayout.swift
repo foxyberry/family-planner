@@ -17,11 +17,12 @@ public struct SetupLayout: Equatable, Sendable {
 
     /// S1: one card per kid, 64–882.
     public func kidCard(_ index: Int) -> CGRect {
-        sizing.left(64, 176 + (296 + 32) * CGFloat(index), 818, 296)
+        sizing.left(64, 176 + (304 + 20) * CGFloat(index), 818, 304)
     }
 
-    public var cardHeight: CGFloat { 296 * s }
-    public var cardGap: CGFloat { 32 * s }
+    /// Layout v18: S1 cards 304 tall, 20 apart.
+    public var cardHeight: CGFloat { 304 * s }
+    public var cardGap: CGFloat { 20 * s }
     /// S1 card rows: Name at 48 below the card top, Colour 40 below it.
     public var cardTopInset: CGFloat { 48 * s }
     public var cardRowGap: CGFloat { 40 * s }

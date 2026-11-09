@@ -43,12 +43,13 @@ public struct SlideToGo: View {
         Text(title)
             .crayonType(.head)
             .lineLimit(2)
-            .multilineTextAlignment(.center)
+            .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(CrayonColor.ink)
-            // Done (board A3r): "Ready!" ends 24 before the knob, which sits 86 from the right end.
-            .frame(maxWidth: .infinity, alignment: isDone ? .trailing : .center)
-            .padding(.leading, isDone ? 0 : handleSize)
+            // Board A2: the words start 24 right of the knob; done (A3r): "Ready!" ends 24 before the
+            // knob, which sits 86 from the right end.
+            .frame(maxWidth: .infinity, alignment: isDone ? .trailing : .leading)
+            .padding(.leading, isDone ? 0 : handleSize + Spacing.l)
             // The capsule's round ends cut in when the words take two lines.
             .padding(.leading, Spacing.m)
             .padding(.trailing, isDone ? 110 : Spacing.l)
@@ -108,9 +109,15 @@ public struct SlideToGo: View {
     /// (board A3r). Reduce Motion: still.
     @ViewBuilder private func handle(roll: CGFloat) -> some View {
         let prize = isDone ? doneKnob : nil
-        RollingKitIcon(prize ?? knob, size: isDone && prize == nil ? handleSize * 0.75 : handleSize, roll: roll,
-                       isHeld: isHeld)
+        // Board A2: the picture (60) on a white paper disc (74); the done prize keeps its own look.
+        RollingKitIcon(prize ?? knob, size: prize == nil ? 60 : handleSize, roll: roll, isHeld: isHeld)
             .frame(width: handleSize, height: handleSize)
+            .background {
+                if prize == nil {
+                    CrayonSurface(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.slider + 7)
+                        .frame(width: 74, height: 74)
+                }
+            }
             .overlay(alignment: .bottomTrailing) {
                 if isDone, prize == nil { CheckMark(isDone: true, size: handleSize * 0.45) }
             }

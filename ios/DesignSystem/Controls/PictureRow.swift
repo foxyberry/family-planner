@@ -31,13 +31,22 @@ public struct PictureRow: View {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
                 let isOn = slot == selection
                 Button { selection = slot } label: {
+                    // Boards C3/C4: 88 paper circles with an ink outline; the picked one gets a 104
+                    // blue ring around it.
                     KitIcon(slot, size: 64)
                         .frame(width: 88, height: 88)
                         .background(
-                            CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
-                                          markerColor: isOn ? CrayonColor.link : CrayonColor.marker.opacity(0.25),
+                            CrayonSurface(.circle, fill: CrayonStyle.paper,
                                           seed: CrayonStyle.Seed.iconPicker + UInt32(index))
+                                .padding(CrayonStyle.artInset)
                         )
+                        .overlay {
+                            if isOn {
+                                CrayonSurface(.circle, fill: nil, markerColor: CrayonColor.link,
+                                              seed: CrayonStyle.Seed.iconPicker + 500 + UInt32(index))
+                                    .frame(width: 104, height: 104)
+                            }
+                        }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(slot.rawValue)

@@ -40,7 +40,7 @@ public struct ChoiceCircles: View {
                             }
                         }
                         .frame(width: 88, height: 88)
-                        .crayonBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.iconPicker)
+                        .partBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.iconPicker)
                         .overlay {
                             if choice.isPicked {
                                 Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 96, height: 96)

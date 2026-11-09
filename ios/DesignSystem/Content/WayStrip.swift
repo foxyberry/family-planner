@@ -296,7 +296,7 @@ public struct WayStrip: View {
             // Legend at (946, 16): the white plate with the kid's 1st-choice bus number means "my bus"
             // (an empty plate read as broken on the iPad, 2026-11-09).
             HStack(spacing: Spacing.xs) {
-                NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true)
+                NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true, small: true)
                 Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink).fixedSize()
             }
             .offset(x: 946 * kx, y: 16 * k)

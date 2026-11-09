@@ -46,7 +46,7 @@ public struct RoundButton: View {
             }
             .foregroundStyle(CrayonColor.ink)
             .frame(width: size, height: size)
-            .crayonBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.roundButton)
+            .partBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.roundButton)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

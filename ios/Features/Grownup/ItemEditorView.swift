@@ -73,13 +73,17 @@ public struct ItemEditorView: View {
                 }
             }
             .zIndex(1)
-            row(L10n.tr("editor.row.name"), problem: .name) { CrayonField(L10n.tr("editor.row.name"), text: $store.form.name).frame(width: 520) }
+            // Board C3: the name field fills the control column (232 … 842).
+            row(L10n.tr("editor.row.name"), problem: .name) {
+                CrayonField(L10n.tr("editor.row.name"), text: $store.form.name).frame(maxWidth: .infinity)
+            }
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
                 row(L10n.tr("editor.row.repeat")) {
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
                                items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
-                                       (.weekly, L10n.tr("editor.repeat.weekly"), nil)])
+                                       (.weekly, L10n.tr("editor.repeat.weekly"), nil)],
+                               itemSize: CGSize(width: 220, height: 72), spacing: Spacing.sm)
                 }
             }
             if store.form.repeats == .weekly { weeklyRows } else { onceRows }
@@ -96,21 +100,26 @@ public struct ItemEditorView: View {
     private func row(_ label: String, problem row: FormRow? = nil, @ViewBuilder control: () -> some View)
         -> some View {
         let shown = row.flatMap { store.state.problem(for: $0) }
-        // Labels from 104, controls on 232 (GrownupLayout, boards C3 / C4 / E5).
-        return HStack(alignment: .top, spacing: 0) {
+        // Labels from 104, controls on 232 (GrownupLayout, boards C3 / C4 / E5). A problem caption
+        // hangs under its control without moving the rows below off their lines.
+        return HStack(alignment: .center, spacing: 0) {
             FormLabel(label)
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                control()
-                if let shown {
-                    Text(shown.message).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+            control()
+                .overlay(alignment: .bottomLeading) {
+                    if let shown {
+                        Text(shown.message).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+                            .fixedSize()
+                            .alignmentGuide(.bottom) { $0[.top] - 2 }
+                    }
                 }
-            }
         }
     }
 
     private var audienceTabs: some View {
+        // Board C3: three tabs 180 × 72, gap 12.
         CrayonTabs(selection: Binding(get: { store.form.audience }, set: { store.send(.audienceTapped($0)) }),
-                   items: store.audienceTabs.map { ($0.audience, $0.title, $0.badge) })
+                   items: store.audienceTabs.map { ($0.audience, $0.title, $0.badge) },
+                   itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
     }
 
     private var whenRow: some View {
@@ -133,7 +142,7 @@ public struct ItemEditorView: View {
 
     @ViewBuilder private var weeklyRows: some View {
         row("", problem: .days) {
-            HStack(spacing: Spacing.xs) {
+            HStack(spacing: Spacing.sm) {
                 ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                     DayChip(DayText.initial(day), isOn: Binding(get: { store.form.days.contains(day) },
                                                                 set: { _ in store.send(.dayToggled(day)) }))
@@ -166,7 +175,8 @@ public struct ItemEditorView: View {
             }
         }
         row("") {
-            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar) { store.form.showsStar.toggle() }
+            // Board C4 (v20): the check, then the star it adds to the clock (40), then the words.
+            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar, picture: .star) { store.form.showsStar.toggle() }
         }
         goingRows
     }
@@ -196,10 +206,12 @@ public struct ItemEditorView: View {
         }
     }
 
-    private func checkbox(_ title: String, isOn: Bool, toggle: @escaping () -> Void) -> some View {
+    private func checkbox(_ title: String, isOn: Bool, picture: KitSlot? = nil,
+                          toggle: @escaping () -> Void) -> some View {
         Button(action: toggle) {
-            HStack(spacing: Spacing.s) {
+            HStack(spacing: Spacing.sm) {
                 CheckMark(isDone: isOn, size: 48)
+                if let picture { KitIcon(picture, size: 40) }
                 Text(title).crayonType(.body).foregroundStyle(CrayonColor.ink)
             }
         }
@@ -236,19 +248,16 @@ public struct ItemEditorView: View {
     // MARK: Side column (preview)
 
     private func sideColumn(_ preview: FormPreview) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(preview.heading).crayonType(.head).foregroundStyle(CrayonColor.ink)
+            // Boards C3/C4: rows 72 tall on an 80 pitch; C4's "Just this day" note comes after them.
+            ForEach(Array(preview.rows.enumerated()), id: \.offset) { _, row in
+                PreviewRow(time: row.time, isNew: row.isNew) { previewLabel(row.slot, bold: row.isNew) }
+            }
             if let note = preview.note {
                 Text(note)
                     .crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .fixedSize(horizontal: false, vertical: true)
-            }
-            ForEach(Array(preview.rows.enumerated()), id: \.offset) { _, row in
-                if row.isNew {
-                    TodayRow(leading: row.time) { previewLabel(row.slot, bold: true) }
-                } else {
-                    ListRow(leading: row.time) { previewLabel(row.slot, bold: false) }
-                }
             }
             if let summary = preview.summary {
                 Text(summary).crayonType(.caption).foregroundStyle(CrayonColor.softText)
@@ -262,7 +271,7 @@ public struct ItemEditorView: View {
     }
 
     private func previewLabel(_ slot: Slot, bold: Bool) -> some View {
-        HStack(spacing: Spacing.s) {
+        HStack(spacing: Spacing.sm) {
             KitIcon(KitSlot(iconName: slot.iconName), size: 48)
             Text(slot.title).crayonType(bold ? .head : .body).foregroundStyle(CrayonColor.ink).lineLimit(1)
         }

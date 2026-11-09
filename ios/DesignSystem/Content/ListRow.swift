@@ -1,24 +1,34 @@
+import CrayonKit
 import SwiftUI
 
 /// A plain row, 80 tall: a short leading label (a time) and content. In a grown-up form the label
 /// fills the label column (`formLabelWidth`) and the content starts on the control line.
 public struct ListRow<Content: View>: View {
     private let leading: String
+    private let minHeight: CGFloat
+    private let labelHeight: CGFloat?
     private let content: Content
     @Environment(\.formLabelWidth) private var formLabelWidth
 
-    public init(leading: String, @ViewBuilder content: () -> Content) {
+    /// `minHeight`: 80 for form rows; 60 for the read-only rows of C1/E6.
+    /// `labelHeight`: top-align the row and centre the label on the control's first line of that
+    /// height (C2 "Stop": the 80 field, not the field plus its caption).
+    public init(leading: String, minHeight: CGFloat = 80, labelHeight: CGFloat? = nil,
+                @ViewBuilder content: () -> Content) {
         self.leading = leading
+        self.minHeight = minHeight
+        self.labelHeight = labelHeight
         self.content = content()
     }
 
     public var body: some View {
-        HStack(spacing: formLabelWidth == nil ? Spacing.m : 0) {
-            Text(leading).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                .frame(width: formLabelWidth ?? 120, alignment: .leading)
+        HStack(alignment: labelHeight == nil ? .center : .top, spacing: formLabelWidth == nil ? Spacing.m : 0) {
+            // Boards C1–C4: row labels are caption bold in soft text.
+            Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
+                .frame(width: formLabelWidth ?? 120, height: labelHeight, alignment: .leading)
             content.crayonType(.body).frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(minHeight: 80)
+        .frame(minHeight: minHeight)
         .padding(.horizontal, formLabelWidth == nil ? Spacing.m : 0)
     }
 }
@@ -41,7 +51,37 @@ public struct TodayRow<Content: View>: View {
         .foregroundStyle(CrayonColor.ink)
         .frame(minHeight: 80)
         .padding(.horizontal, Spacing.m)
-        .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+        .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+    }
+}
+
+/// A row of a day preview (boards C3/C4 side column): 72 tall, the time (caption, ink) 24 in, then
+/// the content 112 after it. `isNew` (the item being added) sits on a white paper card in bold.
+public struct PreviewRow<Content: View>: View {
+    private let time: String
+    private let isNew: Bool
+    private let content: Content
+
+    public init(time: String, isNew: Bool, @ViewBuilder content: () -> Content) {
+        self.time = time
+        self.isNew = isNew
+        self.content = content()
+    }
+
+    public var body: some View {
+        HStack(spacing: 0) {
+            Text(time).crayonType(.caption, bold: isNew).lineLimit(1).frame(width: 112, alignment: .leading)
+            content.frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .foregroundStyle(CrayonColor.ink)
+        .padding(.leading, Spacing.m)
+        .frame(height: 72)
+        .background {
+            if isNew {
+                CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+                    .padding(CrayonStyle.artInset)
+            }
+        }
     }
 }
 
@@ -55,7 +95,7 @@ public struct FormLabel: View {
     }
 
     public var body: some View {
-        FormLabelColumn { Text(text).crayonType(.body).foregroundStyle(CrayonColor.softText) }
+        FormLabelColumn { Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText) }
     }
 }
 

@@ -245,6 +245,9 @@ final class ItemEditorTests: XCTestCase {
 
     func testProblemShowsUnderItsRowOnly() async {
         let store = store(mode: .add(kidA))
+        XCTAssertNil(store.state.problem(for: .name), "board C3: no warning before the first change")
+        XCTAssertFalse(store.state.canSave)
+        await store.send(.binding(.set(\.form.name, " ")))
         XCTAssertEqual(store.state.problem(for: .name), .noName)
         XCTAssertNil(store.state.problem(for: .when))
         await fill(store)

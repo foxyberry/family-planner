@@ -66,7 +66,7 @@ public struct ResultListCard: View {
         }
         .padding(.vertical, Self.padding)
         .frame(width: Self.width, height: height, alignment: .top)
-        .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
+        .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                           seed: CrayonStyle.Seed.card + seed)
         .contentShape(Rectangle())
     }
@@ -84,9 +84,7 @@ public struct ResultListCard: View {
     private func label(_ row: Row) -> some View {
         HStack(spacing: Spacing.sm) {
             if let glyph = row.glyph { MarkerIcon(glyph, size: 32, color: CrayonColor.link) }
-            // Playpen's line boxes carry tall leading; −4 keeps the visible gap near the spec's 2 and
-            // leaves the two lines clear of the dividers inside 72.
-            VStack(alignment: .leading, spacing: -4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(row.title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
                     .lineLimit(1).truncationMode(.tail)
                 if let caption = row.caption {

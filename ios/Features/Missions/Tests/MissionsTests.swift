@@ -195,6 +195,15 @@ final class MissionsTests: XCTestCase {
         await store.send(.backTapped)
     }
 
+    /// Board A2t-w: on the weekend the greeting names the day.
+    func testWeekendGreetingNamesTheDay() async {
+        let saturday = Day(year: 2026, month: 11, day: 14)
+        let store = store(on: saturday, minute: 480)
+        await store.send(.task)
+        XCTAssertEqual(store.state.title, "Good morning! Saturday")
+        await store.send(.backTapped)
+    }
+
     /// S4 "Medals" off: sliding at a gold time gives no medal.
     func testMedalsOffGiveNoMedal() async {
         let store = store(on: tuesday, minute: 440)

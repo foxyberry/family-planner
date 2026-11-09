@@ -18,7 +18,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My buses"
+            "value" : "Buses"
           }
         }
       }
@@ -45,17 +45,6 @@
         }
       }
     },
-    "c2.for" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For %@"
-          }
-        }
-      }
-    },
     "c2.grace" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -63,6 +52,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Late up to"
+          }
+        }
+      }
+    },
+    "c2.grace.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "still Bronze"
           }
         }
       }
@@ -78,17 +78,6 @@
         }
       }
     },
-    "c2.plan" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan A · usual"
-          }
-        }
-      }
-    },
     "c2.ride" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -96,6 +85,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ride"
+          }
+        }
+      }
+    },
+    "c2.ride.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on %@"
+          }
+        }
+      }
+    },
+    "c2.side.arrive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrive by and latest are in School; they set the medals."
+          }
+        }
+      }
+    },
+    "c2.side.map" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On the morning map"
+          }
+        }
+      }
+    },
+    "c2.side.map.bus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is “my bus”: bold, it sets Leave in and the medal."
+          }
+        }
+      }
+    },
+    "c2.side.map.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick your bus: it sets Leave in and the medal."
+          }
+        }
+      }
+    },
+    "c2.side.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ to school"
           }
         }
       }
@@ -199,6 +254,17 @@
         }
       }
     },
+    "c2.walk.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to the stop"
+          }
+        }
+      }
+    },
     "c5.add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -216,7 +282,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Same order as %@'s morning screen"
+            "value" : "Same order as %@’s morning screen"
           }
         }
       }
@@ -1519,6 +1585,17 @@
         }
       }
     },
+    "hub.about.age.only" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      }
+    },
     "hub.about.age.school" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1559,6 +1636,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nap %@"
+          }
+        }
+      }
+    },
+    "hub.about.part" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ·"
           }
         }
       }
@@ -1614,6 +1702,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nothing yet"
+          }
+        }
+      }
+    },
+    "hub.getting.to_school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To school"
           }
         }
       }
@@ -2410,6 +2509,17 @@
         }
       }
     },
+    "missions.title.weekend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good morning! %@"
+          }
+        }
+      }
+    },
     "missions.too_soon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3153,7 +3263,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Later than that: just \"Ready!\". No medal, and never a sad face."
+            "value" : "Later: just “Ready!”. No medal, no sad face."
           }
         }
       }
@@ -3538,7 +3648,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Leave in\" = the bus at the stop - the walk."
+            "value" : "“Leave in” = the bus at the stop – the walk."
           }
         }
       }
@@ -3549,7 +3659,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arrive by %1$@ and latest %2$@ come from School; they set the medals."
+            "value" : "Arrive by and latest come from the school step; they set the medals."
           }
         }
       }

@@ -62,7 +62,8 @@ public struct MissionsView: View {
                 }
                 Text(header.minutes).crayonType(.title).foregroundStyle(CrayonColor.ink)
                 if let status = header.status {
-                    StatusDot(status.text, tone: Self.tone(status.tone)).padding(.leading, sizing.space(Spacing.xxs))
+                    // Board A2: the status 40 after the minutes (the stack's 12 plus 28).
+                    StatusDot(status.text, tone: Self.tone(status.tone)).padding(.leading, sizing.space(28))
                 }
             }
             .place(right: layout.headerRight, baseline: layout.headerBaseline)

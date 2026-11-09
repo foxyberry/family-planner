@@ -87,8 +87,10 @@ public struct OurDayView: View {
             if store.showsHolidayNote {
                 Text(L10n.tr("day.sun_holidays")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
-            // The slice card hugs its content; the bottom stack hangs from the Save button.
+            // Board C6: the slice card is a fixed 382 × 440 box (a new slice's form may grow it); the
+            // bottom stack hangs from the Save button.
             PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
+                .frame(minHeight: 440 * layout.sizing.s, alignment: .top)
             Spacer(minLength: Spacing.xs)
             ViewThatFits(in: .vertical) {
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
@@ -98,6 +100,10 @@ public struct OurDayView: View {
                 }
                 tomorrow
             }
+            // Board C6: "Changes start tomorrow." on baseline 850, so its descenders stay above the
+            // paper behind the Save button (the line box is the type's own height, spec "Line height
+            // is total").
+            .padding(.bottom, Spacing.xs)
         }
     }
 

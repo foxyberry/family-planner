@@ -26,7 +26,8 @@ public struct ClockKnob: View {
                           marker: MarkerStyle(width: 3.5, roughness: 0.6, bowing: 0.6), seed: CrayonStyle.Seed.knob)
                 .frame(width: Self.size, height: Self.size)
             if state == .locked {
-                Image(systemName: "lock.fill").font(.system(size: 14, weight: .bold)).foregroundStyle(CrayonColor.ink)
+                // Board C6: a hand-drawn padlock filling most of the light knob.
+                MarkerIcon(.lock, size: 22, color: CrayonColor.ink)
             }
         }
         .frame(width: Self.touch, height: Self.touch)
@@ -37,7 +38,7 @@ public struct ClockKnob: View {
         switch state {
         case .idle: CrayonColor.card
         case .dragging: CrayonColor.pickBlue
-        case .locked: CrayonColor.softText.opacity(0.35)
+        case .locked: CrayonColor.softText.opacity(0.2)
         }
     }
 }

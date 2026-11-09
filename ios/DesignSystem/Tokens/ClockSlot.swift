@@ -1,7 +1,7 @@
 import CrayonKit
 import SwiftUI
 
-/// Colours of the 24-hour clock's slots (board A1). The hatch angles differ so neighbours read apart.
+/// Colours of the 24-hour clock's slots (board A1): long hachure at about −50°, nudged per slot.
 /// Free time has no fill: plain paper between its radial edges.
 public enum ClockSlotStyle: String, CaseIterable, Sendable {
     case sleep, morning, school, afterSchool, play, dinner, evening, event, free
@@ -19,6 +19,11 @@ public enum ClockSlotStyle: String, CaseIterable, Sendable {
         case .evening: (CrayonPalette.lilac, -60)
         case .event: (CrayonPalette.pink, 50)
         }
-        return CrayonFill(color: rgb.color, hachure: HachureStyle(degrees: degrees))
+        // Spec "Clock fill" (boards A1/E3, 2026-11-09): a light wash with long parallel strokes at
+        // about −50°, paper showing between them; each slot leans a few degrees its own way.
+        return CrayonFill(color: rgb.color,
+                          hachure: HachureStyle(degrees: -50 + degrees / 12, gap: 9, weight: 4, washOpacity: 0.22,
+                                                strokeLength: 220...420, bendRadius: 1600, taper: 0.45,
+                                                edgeJitter: 0.4, angleJitter: 2))
     }
 }

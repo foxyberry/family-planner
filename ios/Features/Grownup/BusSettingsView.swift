@@ -16,9 +16,13 @@ public struct BusSettingsView: View {
         GrownupScreen {
             GrownupHeader(title: store.title, onBack: { store.send(.doneTapped) })
         } content: { layout in
-            // Exactly the card's inner width, so a long row of buses can never widen the card.
-            PaperCard(seed: 51) { plan.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading) }
-                .frame(width: layout.form.width)
+            HStack(alignment: .top, spacing: layout.gap) {
+                // Board C2: the card runs 176–968; exactly its inner width, so a long row of buses
+                // can never widen it.
+                PaperCard(seed: 51) { plan.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading) }
+                    .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
+                side.frame(width: layout.side.width, alignment: .topLeading)
+            }
         } primaryAction: { layout in
             InkButton(L10n.tr("c2.done")) { store.send(.doneTapped) }
                 .frame(width: layout.side.width)
@@ -27,45 +31,62 @@ public struct BusSettingsView: View {
         .task { await store.send(.task).finish() }
     }
 
+    /// Board C2's rows: Stop (80 field and its caption), Buses (pills 180 × 72), then the steppers
+    /// on a 104 pitch.
     private var plan: some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
-            Text(L10n.tr("c2.plan")).crayonType(.head).foregroundStyle(CrayonColor.ink)
-            Text(L10n.tr("c2.for", store.kidName)).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-            ListRow(leading: L10n.tr("c2.stop")) {
+            ListRow(leading: L10n.tr("c2.stop"), labelHeight: 80) {
                 StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 8)
             }
             .zIndex(1)
-            ListRow(leading: L10n.tr("c2.buses")) {
+            ListRow(leading: L10n.tr("c2.buses"), labelHeight: PillToggle.size.height) {
                 if store.search.servicesAtStop.isEmpty {
                     Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                        .frame(height: PillToggle.size.height)
                 } else {
-                    // As many rows as the buses need, never wider than the controls (232 … 842).
-                    // Seven 72 chips 12 apart fill 576 of the 610 control width; an adaptive grid would centre.
-                    LazyVGrid(columns: Array(repeating: GridItem(.fixed(72), spacing: Spacing.sm), count: 7),
-                              alignment: .leading, spacing: Spacing.sm) {
-                        ForEach(store.search.servicesAtStop, id: \.self) { service in
-                            DayChip(service, isOn: Binding(get: { store.services.contains(service) },
-                                                           set: { _ in store.send(.serviceTapped(service)) }))
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        LazyVGrid(columns: PillToggle.columns, alignment: .leading, spacing: Spacing.sm) {
+                            ForEach(store.search.servicesAtStop, id: \.self) { service in
+                                PillToggle(service, isOn: store.services.contains(service)) {
+                                    store.send(.serviceTapped(service))
+                                }
+                            }
                         }
+                        Text(L10n.tr("s3.buses.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     }
                 }
             }
-            stepper(L10n.tr("c2.walk"), text: store.walkText, step: 1,
+            stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("c2.walk.caption"), step: 1,
                     value: store.walk) { store.send(.walkChanged($0)) }
-            stepper(L10n.tr("c2.ride"), text: store.rideText, step: 1,
+            stepper(L10n.tr("c2.ride"), text: store.rideText, caption: store.rideCaption, step: 1,
                     value: store.ride) { store.send(.rideChanged($0)) }
-            stepper(L10n.tr("c2.grace"), text: store.graceText, step: 5,
+            stepper(L10n.tr("c2.grace"), text: store.graceText, caption: L10n.tr("c2.grace.caption"), step: 5,
                     value: store.lateGrace) { store.send(.graceChanged($0)) }
         }
     }
 
-    private func stepper(_ label: String, text: String, step: Int, value: Int,
+    /// Board C2's side column: whose route it is, how "Leave in" works, then the morning map.
+    private var side: some View {
+        VStack(alignment: .leading, spacing: Spacing.s) {
+            Text(store.sideTitle).crayonType(.head)
+            Text(L10n.tr("s3.side.leave_in")).crayonType(.body)
+            Text(L10n.tr("c2.side.arrive")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            Text(L10n.tr("c2.side.map")).crayonType(.head).padding(.top, Spacing.m)
+            Text(store.mapCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+        }
+        .foregroundStyle(CrayonColor.ink)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// − 72, the value, + 72, then what the number means (board C2).
+    private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int,
                          change: @escaping (Int) -> Void) -> some View {
-        ListRow(leading: label) {
+        ListRow(leading: label, minHeight: 72) {
             HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - step) }
+                RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - step) }.size(72)
                 Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 112)
-                RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }
+                RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }.size(72)
+                Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
             }
         }
     }

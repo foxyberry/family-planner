@@ -10,37 +10,47 @@ final class HubModelTests: XCTestCase {
 
     func testAboutRowsForSchoolKid() {
         XCTAssertEqual(HubModel.aboutRows(kid: SeedData.kidA, routines: SeedData.routines),
-                       [HubRow(key: "Age", value: "8 · Year 3"), HubRow(key: "Day", value: "Up 6:30 am · Bed 8:00 pm")])
+                       [HubRow(key: "Age", value: "8 · Year 3"),
+                        HubRow(key: "Day", parts: [.init(picture: "sun", text: "Up 6:30 am ·"),
+                                                   .init(picture: "actSleep", text: "Bed 8:00 pm")])])
+        var noYear = SeedData.kidA
+        noYear.schoolYear = nil
+        XCTAssertEqual(HubModel.aboutRows(kid: noYear, routines: SeedData.routines).first?.value, "8",
+                       "no dangling separator without a school year")
     }
 
     func testAboutRowsForHomeKid() {
         XCTAssertEqual(HubModel.aboutRows(kid: SeedData.kidB, routines: SeedData.routines),
-                       [HubRow(key: "Age", value: "4 · at home"), HubRow(key: "Day", value: "Nap 1:00–3:00 pm · Bed 7:30 pm")])
+                       [HubRow(key: "Age", value: "4 · at home"),
+                        HubRow(key: "Day", parts: [.init(picture: "actSleep", text: "Nap 1:00–3:00 pm ·"),
+                                                   .init(picture: "actSleep", text: "Bed 7:30 pm")])])
     }
 
     func testSchoolRows() {
         XCTAssertEqual(HubModel.schoolRows(kid: SeedData.kidA),
-                       [HubRow(key: "School", value: "Example Primary School"),
-                        HubRow(key: "Hours", value: "7:30 am–3:00 pm"),
+                       [HubRow(key: "School", parts: [.init(picture: "actSchool", text: "Example Primary School")]),
+                        HubRow(key: "Hours", value: "7:30 am – 3:00 pm"),
                         HubRow(key: "Holidays", value: "No holidays set")])
         XCTAssertEqual(HubModel.schoolRows(kid: SeedData.kidB), [])
     }
 
     func testSectionsForSchoolKid() {
         let sections = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines, missions: SeedData.missions)
-        XCTAssertEqual(sections.map(\.title), ["About", "School", "More"])
-        XCTAssertEqual(sections[0].rows, [.text(HubRow(key: "Age", value: "8 · Year 3")),
-                                          .link(HubRow(key: "Day", value: "Up 6:30 am · Bed 8:00 pm"), to: .day)])
-        XCTAssertEqual(sections[2].rows, [.link(HubRow(key: "Morning missions", value: "6 missions"), to: .missions),
-                                          .link(HubRow(key: "Getting there", value: "Not set yet"), to: .buses)])
+        XCTAssertEqual(sections.map(\.title), ["About", "School", "Getting there"],
+                       "More moved to the side column (board C1)")
+        XCTAssertEqual(sections[0].rows.first, .text(HubRow(key: "Age", value: "8 · Year 3")))
+        XCTAssertEqual(HubModel.moreRow(kid: SeedData.kidA, missions: SeedData.missions),
+                       HubMoreRow(picture: "sun", title: "Morning missions", caption: "6 missions"))
+        XCTAssertNil(HubModel.moreRow(kid: SeedData.kidB, missions: SeedData.missions))
+        XCTAssertEqual(sections[2].rows, [.link(HubRow(key: "To school", value: "Not set yet"), to: .buses)])
         // C1 "Getting there" with a made-up plan (privacy rule).
         let planned = HubModel.sections(kid: SeedData.kidA, routines: SeedData.routines,
                                         busPlan: BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1", "2"]))
-        XCTAssertEqual(planned[2].rows.last, .link(HubRow(key: "Getting there", value: "Bus 1, 2 · walk 10 min"), to: .buses))
-        XCTAssertEqual(sections[1].rows, [
-            .text(HubRow(key: "School", value: "Example Primary School")),
+        XCTAssertEqual(planned[2].rows, [.link(HubRow(key: "To school", value: "Bus 1, 2 · walk 10 min"), to: .buses)])
+        XCTAssertEqual(Array(sections[1].rows.prefix(4)), [
+            .text(HubRow(key: "School", parts: [.init(picture: "actSchool", text: "Example Primary School")])),
             .schoolDays(key: "Days", days: Weekday.schoolDays),
-            .text(HubRow(key: "Hours", value: "7:30 am–3:00 pm")),
+            .text(HubRow(key: "Hours", value: "7:30 am – 3:00 pm")),
             .text(HubRow(key: "Holidays", value: "No holidays set")),
         ])
     }
@@ -133,7 +143,7 @@ final class GrownupHubFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.weeklyRows.map(\.title), ["Swimming"])
         XCTAssertEqual(store.state.onceRows.map(\.detail), ["Wed 11 Nov · 4:00–5:00 pm"])
         XCTAssertEqual(store.state.weeklyHeading, "After school")
-        XCTAssertEqual(store.state.sections.map(\.title), ["About", "School", "More"])
+        XCTAssertEqual(store.state.sections.map(\.title), ["About", "School", "Getting there"])
         await store.send(.kidTabTapped(SeedData.kidB.id))
         XCTAssertEqual(store.state.weeklyRows, [])
         XCTAssertEqual(store.state.onceRows, [])

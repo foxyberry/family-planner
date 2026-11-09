@@ -145,8 +145,11 @@ public struct ItemEditorFeature {
             return form.problem(today: today, nowMinute: nowMinute, keptStart: keptStart)
         }
         /// The problem shown under `row`, if the form's first problem belongs there.
+        /// The problem shown under a row: none before the first change (board C3 opens with an
+        /// empty name and no warning); Save stays off meanwhile.
         public func problem(for row: FormRow) -> FormProblem? {
-            problem.flatMap { $0.row == row ? $0 : nil }
+            guard hasChanges else { return nil }
+            return problem.flatMap { $0.row == row ? $0 : nil }
         }
         public var canSave: Bool { problem == nil && !isSaving }
         public var hasChanges: Bool { form != original }

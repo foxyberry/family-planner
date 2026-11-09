@@ -22,7 +22,7 @@ public enum CrayonType: CaseIterable, Sendable {
         }
     }
 
-    /// Line height as a multiple of the size.
+    /// Line height as a multiple of the size: the whole line box, not spacing added to the font's.
     public var lineHeight: CGFloat {
         switch self {
         case .hero, .display: 1.0
@@ -59,8 +59,10 @@ private struct CrayonTypeModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let size = sizing.size(of: type)
+        // Spec "Line height is total" (2026-11-09): a line is size × factor in all, as on the boards
+        // (CSS line-height), not Playpen's own leading plus extra spacing.
         content
             .font(Font(FontRegistrar.font(size: size, weight: bold ? .bold : .medium)))
-            .lineSpacing(size * (type.lineHeight - 1))
+            .lineHeight(.exact(points: size * type.lineHeight))
     }
 }

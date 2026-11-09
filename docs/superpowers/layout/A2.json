@@ -1,5 +1,5 @@
 {
- "version": "17",
+ "version": "20",
  "board": "A2",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -320,46 +320,46 @@
   {
    "id": "strip.mover.1",
    "kind": "mover",
-   "x": 88,
-   "y": 308,
-   "w": 124,
-   "h": 124,
+   "x": 91,
+   "y": 316,
+   "w": 120,
+   "h": 120,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
-    "x": 24,
-    "y": 132
+    "x": 27,
+    "y": 140
    }
   },
   {
    "id": "strip.mover.2",
    "kind": "mover",
-   "x": 381,
-   "y": 308,
-   "w": 124,
-   "h": 124,
+   "x": 384,
+   "y": 316,
+   "w": 120,
+   "h": 120,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
-    "x": 317,
-    "y": 132
+    "x": 320,
+    "y": 140
    }
   },
   {
    "id": "strip.mover.3",
    "kind": "mover",
-   "x": 648,
-   "y": 308,
-   "w": 124,
-   "h": 124,
+   "x": 651,
+   "y": 316,
+   "w": 120,
+   "h": 120,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
-    "x": 584,
-    "y": 132
+    "x": 587,
+    "y": 140
    }
   },
   {
@@ -658,7 +658,7 @@
    "kind": "text",
    "x": 1084,
    "y": 729,
-   "w": 44,
+   "w": 43,
    "h": 36,
    "region": "missions",
    "anchor": "stretch",
@@ -695,10 +695,10 @@
   {
    "id": "bottom.knob",
    "kind": "mover",
-   "x": 473,
-   "y": 883,
-   "w": 62,
-   "h": 62,
+   "x": 474,
+   "y": 890,
+   "w": 60,
+   "h": 60,
    "region": "bottom",
    "anchor": "stretch",
    "align": "inside"

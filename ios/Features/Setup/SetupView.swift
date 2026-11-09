@@ -150,7 +150,7 @@ private struct FamilyStep: View {
                 if store.canAddKid {
                     Button { store.send(.addKidTapped) } label: {
                         HStack(spacing: Spacing.s) {
-                            RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("s1.add")) {}.allowsHitTesting(false)
+                            RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("s1.add")) {}.size(72).allowsHitTesting(false)
                             Text(L10n.tr("s1.add")).crayonType(.body).foregroundStyle(CrayonColor.link)
                         }
                     }
@@ -198,7 +198,7 @@ private struct FamilyStep: View {
                 }
                 .frame(width: 352)
                 Spacer(minLength: Spacing.s)
-                Text(L10n.tr("s1.age")).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                Text(L10n.tr("s1.age")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
                     .padding(.trailing, Spacing.s)
                 CrayonField(L10n.tr("s1.age.placeholder"),
                             text: Binding(get: { kid.ageText }, set: { store.send(.ageChanged(kid.id, $0)) }))
@@ -216,9 +216,10 @@ private struct FamilyStep: View {
                     }
                 }
                 .padding(.leading, -Spacing.xs)
-                Spacer(minLength: Spacing.s)
-                Text(L10n.tr("s1.face")).crayonType(.body).foregroundStyle(CrayonColor.softText)
-                    .padding(.trailing, Spacing.s)
+                // Board S1: "Face" on 576, the faces on 648 and 724.
+                .frame(width: 344 * layout.grown.sizing.s, alignment: .leading)
+                Text(L10n.tr("s1.face")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
+                    .frame(width: 72 * layout.grown.sizing.s, alignment: .leading)
                 HStack(spacing: Spacing.sm) {
                     face(.kidGirl, label: L10n.tr("s1.face.girl"), kid: kid)
                     face(.kidBoy, label: L10n.tr("s1.face.boy"), kid: kid)
@@ -231,8 +232,10 @@ private struct FamilyStep: View {
 
     private func face(_ slot: KitSlot, label: String, kid: KidEntry) -> some View {
         Button { store.send(.faceTapped(kid.id, slot.rawValue)) } label: {
-            KitIcon(slot, size: 64)
+            // Board S1: each face on a white disc with an ink circle; the pick adds the blue ring.
+            KitIcon(slot, size: 56)
                 .frame(width: 64, height: 64)
+                .background { CrayonSurface(.circle, fill: CrayonStyle.paper, marker: .thin, seed: 1650) }
                 .overlay {
                     if kid.face == slot.rawValue {
                         Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 72, height: 72)
@@ -256,7 +259,8 @@ private struct SchoolStep: View {
         PaperCard(seed: 71) {
             rows.frame(width: layout.grown.form.width - 2 * layout.grown.formInset, alignment: .leading)
         }
-        .frame(width: layout.grown.form.width)
+        // Boards S2/S3: the card fills the main region down to 968, whatever its rows.
+        .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
     }
 
     /// Board S2 (layout v11): Goes to 208, School 304, Days 448, Hours 544, Arrive by 680, MOE 792.
@@ -282,23 +286,23 @@ private struct SchoolStep: View {
         row(school.kind == .preschool ? L10n.tr("s2.preschool") : L10n.tr("s2.school")) { schoolField(school) }
             .zIndex(1)
         row(L10n.tr("s2.days")) {
-            HStack(spacing: Spacing.xs) {
+            // Board S2: 56 circles on a 72 pitch.
+            HStack(spacing: Spacing.s) {
                 ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                     DayChip(DayText.initial(day), isOn: Binding(get: { school.days.contains(day) },
-                                                                set: { _ in store.send(.dayToggled(day)) }))
+                                                                set: { _ in store.send(.dayToggled(day)) }), size: 56)
                 }
             }
         }
         row(L10n.tr("s2.hours")) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack(spacing: Spacing.s) {
-                    time(.start)
+                    time(.start, width: 180)
                     MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
-                    time(.end)
+                    time(.end, width: 180)
                 }
-                if let source = school.hoursSource {
-                    Text(source).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                }
+                // The caption's line is kept even when empty, so the rows below stay on their lines.
+                Text(school.hoursSource ?? " ").crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
         }
         if school.kind == .school {
@@ -311,7 +315,8 @@ private struct SchoolStep: View {
                 }
             }
         }
-        if let terms = school.termsRow { termsRow(terms) }
+        // Board S2: the MOE row starts on the control column (232).
+        if let terms = school.termsRow { termsRow(terms).padding(.leading, layout.grown.labelWidth) }
     }
 
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
@@ -380,7 +385,7 @@ private struct SchoolStep: View {
                 CrayonTabs(selection: Binding(get: { answer }, set: { if let yes = $0 { store.send(.moeAnswered(yes)) } }),
                            items: [(Optional(true), L10n.tr("s2.terms.yes"), nil),
                                    (Optional(false), L10n.tr("s2.terms.not_sure"), nil)],
-                           itemSize: CGSize(width: 140, height: 64), spacing: Spacing.sm)
+                           itemSize: CGSize(width: 180, height: 64), spacing: Spacing.sm)
             }
         }
     }
@@ -424,7 +429,7 @@ private struct GoingStep: View {
         PaperCard(seed: 81) {
             rows.frame(width: grown.form.width - 2 * grown.formInset, alignment: .leading)
         }
-        .frame(width: grown.form.width)
+        .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
     }
 
     @ViewBuilder private var rows: some View {
@@ -445,13 +450,16 @@ private struct GoingStep: View {
                     row(L10n.tr("s3.buses")) {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             if going.search.servicesAtStop.isEmpty {
+                                // Board S3: the empty row keeps the pills' 72 slot.
                                 Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                                    .frame(height: PillToggle.size.height)
                             } else {
-                                LazyVGrid(columns: Array(repeating: GridItem(.fixed(72), spacing: Spacing.sm), count: 7),
-                                          alignment: .leading, spacing: Spacing.sm) {
+                                // Boards S3/C2: bus pills 180 × 72, three across.
+                                LazyVGrid(columns: PillToggle.columns, alignment: .leading, spacing: Spacing.sm) {
                                     ForEach(going.search.servicesAtStop, id: \.self) { service in
-                                        DayChip(service, isOn: Binding(get: { going.services.contains(service) },
-                                                                       set: { _ in store.send(.serviceTapped(service)) }))
+                                        PillToggle(service, isOn: going.services.contains(service)) {
+                                            store.send(.serviceTapped(service))
+                                        }
                                     }
                                 }
                                 Text(L10n.tr("s3.buses.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
@@ -478,12 +486,14 @@ private struct GoingStep: View {
 
     private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
                          change: @escaping (Int) -> Void) -> some View {
+        // Board S3: − 72 on 232, the value centred in 304–448, + 72 on 448, the caption on 536.
         row(label) {
-            HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - step) }
-                Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 112)
-                RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }
+            HStack(spacing: 0) {
+                RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - step) }.size(72)
+                Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 144)
+                RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }.size(72)
                 Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
+                    .padding(.leading, Spacing.s)
             }
         }
     }
@@ -517,7 +527,7 @@ private struct AlmostDoneStep: View {
             }
             let caption = layout.s4Main(104, 681)
             Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                .frame(width: layout.length(704), alignment: .leading)
+                .frame(width: layout.length(738), alignment: .leading)
                 .place(left: caption.x, baseline: caption.y)
         }
         .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
@@ -544,7 +554,7 @@ private struct SummarySide: View {
             let title = layout.s4Side(930, 212)
             Text(L10n.tr("s4.side.title")).crayonType(.head).place(left: title.x, baseline: title.y)
             let kidsLine = layout.s4Side(930, 263)
-            HStack(spacing: Spacing.l) { kids }.place(left: kidsLine.x, baseline: kidsLine.y)
+            HStack(spacing: Spacing.sm) { kids }.place(left: kidsLine.x, baseline: kidsLine.y)
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                 let top = layout.s4SummaryTop(index)
                 KitIcon(row.slot, size: layout.length(56))
@@ -557,7 +567,7 @@ private struct SummarySide: View {
             }
             let caption = layout.s4Side(930, layout.s4SummaryTop(rows.count) + 28)
             Text(L10n.tr("s4.side.later")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                .frame(width: layout.length(361), alignment: .leading)
+                .frame(width: layout.grown.side.width, alignment: .leading)
                 .place(left: caption.x, baseline: caption.y)
         }
         .foregroundStyle(CrayonColor.ink)
@@ -577,7 +587,10 @@ private struct SummarySide: View {
                 KidFace(.init(face: kid.face ?? "", colorIndex: kid.colorIndex), name: kid.shownName(index: index),
                         size: KidFace.medium)
                     .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
-                Text(kid.shownName(index: index)).crayonType(.body).lineLimit(1)
+                // Board S4: "Kid A · Kid B".
+                Text(index + 1 < store.kids.count ? L10n.tr("hub.about.part", kid.shownName(index: index))
+                                                  : kid.shownName(index: index))
+                    .crayonType(.body).lineLimit(1)
             }
         }
     }

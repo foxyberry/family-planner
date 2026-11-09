@@ -1,5 +1,5 @@
 {
- "version": "17",
+ "version": "20",
  "board": "E3b",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -114,6 +114,17 @@
    "w": 900,
    "h": 1032,
    "region": "clock",
+   "anchor": "left",
+   "align": "fill"
+  },
+  {
+   "id": "skySwitch.skySwitch",
+   "kind": "button",
+   "x": 40,
+   "y": 36,
+   "w": 160,
+   "h": 96,
+   "region": "skySwitch",
    "anchor": "left",
    "align": "fill"
   },

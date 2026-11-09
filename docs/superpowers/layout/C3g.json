@@ -1,5 +1,5 @@
 {
- "version": "17",
+ "version": "20",
  "board": "C3g",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -67,6 +67,18 @@
   }
  },
  "elements": [
+  {
+   "id": "main.card",
+   "kind": "card",
+   "part": "PaperCard",
+   "x": 64,
+   "y": 176,
+   "w": 818,
+   "h": 792,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
   {
    "id": "header.back",
    "kind": "back",

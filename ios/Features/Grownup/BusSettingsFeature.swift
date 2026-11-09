@@ -34,6 +34,17 @@ public struct BusSettingsFeature {
         public var rideText: String { L10n.tr("c2.minutes", ride) }
         public var graceText: String { L10n.tr("c2.minutes", lateGrace) }
 
+        /// Board C2's side column and stepper captions.
+        public var sideTitle: String { L10n.tr("c2.side.title", kidName) }
+        /// "on 12" for the first picked bus, else what the ride covers.
+        public var rideCaption: String {
+            services.first.map { L10n.tr("c2.ride.on", $0) } ?? L10n.tr("s3.ride.caption")
+        }
+        /// "On the morning map": the first picked bus is "my bus" (the 2nd choice comes later).
+        public var mapCaption: String {
+            services.first.map { L10n.tr("c2.side.map.bus", $0) } ?? L10n.tr("c2.side.map.none")
+        }
+
         public var plan: BusPlan? {
             guard search.stop.count == 5, !services.isEmpty else { return nil }
             return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace)

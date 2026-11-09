@@ -31,6 +31,8 @@ public struct ComponentGallery: View {
                         RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
                         RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
                         RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(48)
+                        PillToggle("12", isOn: true) {}
+                        PillToggle("34", isOn: false) {}
                         CrayonSwitch(isOn: true)
                         CrayonSwitch(isOn: false)
                         CheckMark(isDone: true)
@@ -89,6 +91,8 @@ public struct ComponentGallery: View {
                     }
                     .environment(\.formLabelWidth, 128)
                     TodayRow(leading: "Today") { Text("Swimming 15:30") }
+                    PreviewRow(time: "3:30 pm", isNew: false) { Text("Play").crayonType(.body) }
+                    PreviewRow(time: "4:00 pm", isNew: true) { Text("Swimming").crayonType(.head) }
                     PaperCard { Text("A sheet of paper").crayonType(.body) }
                     PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: $choice, anchor: 0.3)
                         .frame(width: 360)
@@ -167,6 +171,10 @@ public struct ComponentGallery: View {
                         StatusDot("On time", tone: .onTime)
                         StatusDot("Leave now!", tone: .hurry)
                         StatusDot("Ask a grown-up", tone: .quiet)
+                    }
+                    HStack(spacing: Spacing.l) {
+                        StatusDot("On time", tone: .onTime, compact: true)
+                        NumberPlate("1", isMine: true, small: true)
                     }
                 }
                 section("A2 · Way strip") {
