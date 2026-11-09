@@ -11,10 +11,10 @@ final class TimeLeftTests: XCTestCase {
     func testZeroOrNegativeUsesLateRed() {
         XCTAssertEqual(TimeLeft.presentation(minutes: 0).tone, .late)
         XCTAssertEqual(TimeLeft.presentation(minutes: -2).tone, .late)
-        // Over an hour: "1 h 20 min" in the same size.
-        XCTAssertEqual(TimeLeft.presentation(minutes: 80).text, "1 h 20 min")
+        // Over an hour: "1h 20m" in the same size, so it fits the 384 panel (user, 2026-11-09).
+        XCTAssertEqual(TimeLeft.presentation(minutes: 80).text, "1h 20m")
         XCTAssertEqual(TimeLeft.presentation(minutes: 60).text, "60 min")
-        XCTAssertEqual(TimeLeft.presentation(minutes: 120).text, "2 h")
+        XCTAssertEqual(TimeLeft.presentation(minutes: 120).text, "2h")
     }
 
     func testNegativeLabelHasMinusSign() {

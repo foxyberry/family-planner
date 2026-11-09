@@ -1,5 +1,5 @@
 {
- "version": "8",
+ "version": "9",
  "board": "C2",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -133,40 +133,18 @@
    "text": "Stop"
   },
   {
-   "id": "main.row.stop.field",
-   "kind": "field",
-   "x": 232,
-   "y": 208,
-   "w": 200,
-   "h": 80,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "main.row.stop.text",
    "kind": "text",
-   "x": 508,
+   "x": 256,
    "y": 225,
    "w": 246,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 260,
+   "baseline": 248,
    "font": 30,
    "text": "Opp Sunny Park"
-  },
-  {
-   "id": "main.row.stop.picture",
-   "kind": "picture",
-   "x": 456,
-   "y": 228,
-   "w": 40,
-   "h": 40,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
   },
   {
    "id": "side.line.2",
@@ -186,13 +164,24 @@
    "kind": "text",
    "x": 232,
    "y": 293,
-   "w": 386,
+   "w": 247,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 321,
+   "baseline": 312,
    "font": 24
+  },
+  {
+   "id": "main.picture",
+   "kind": "picture",
+   "x": 232,
+   "y": 296,
+   "w": 32,
+   "h": 32,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
   },
   {
    "id": "side.line.3",

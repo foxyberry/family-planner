@@ -1,5 +1,5 @@
 {
- "version": "8",
+ "version": "9",
  "board": "S3",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -275,40 +275,18 @@
    "text": "Stop"
   },
   {
-   "id": "main.row.stop.field",
-   "kind": "field",
-   "x": 232,
-   "y": 360,
-   "w": 200,
-   "h": 80,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "main.row.stop.text",
    "kind": "text",
-   "x": 508,
+   "x": 256,
    "y": 377,
-   "w": 246,
+   "w": 91,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 412,
+   "baseline": 400,
    "font": 30,
-   "text": "Opp Sunny Park"
-  },
-  {
-   "id": "main.row.stop.picture",
-   "kind": "picture",
-   "x": 456,
-   "y": 380,
-   "w": 40,
-   "h": 40,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
+   "text": "sunny"
   },
   {
    "id": "side.line.4",
@@ -328,13 +306,28 @@
    "kind": "text",
    "x": 232,
    "y": 445,
-   "w": 386,
+   "w": 161,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 473,
-   "font": 24
+   "font": 24,
+   "text": "Tap your stop"
+  },
+  {
+   "id": "main.text.6",
+   "kind": "text",
+   "x": 254,
+   "y": 496,
+   "w": 246,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 531,
+   "font": 30,
+   "text": "Opp Sunny Park"
   },
   {
    "id": "main.label.buses",
@@ -382,7 +375,34 @@
    "align": "inside"
   },
   {
-   "id": "main.text.6",
+   "id": "main.row.buses.text.1",
+   "kind": "text",
+   "x": 254,
+   "y": 530,
+   "w": 207,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 558,
+   "font": 24
+  },
+  {
+   "id": "main.row.buses.text.2",
+   "kind": "text",
+   "x": 254,
+   "y": 562,
+   "w": 236,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 597,
+   "font": 30,
+   "text": "Sunny Park Stn"
+  },
+  {
+   "id": "main.text.7",
    "kind": "text",
    "x": 232,
    "y": 581,
@@ -393,6 +413,33 @@
    "align": "inside",
    "baseline": 609,
    "font": 24
+  },
+  {
+   "id": "main.text.8",
+   "kind": "text",
+   "x": 254,
+   "y": 596,
+   "w": 219,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 624,
+   "font": 24
+  },
+  {
+   "id": "main.text.9",
+   "kind": "text",
+   "x": 254,
+   "y": 628,
+   "w": 214,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 663,
+   "font": 30,
+   "text": "Bef Sunny Hill"
   },
   {
    "id": "main.label.walk",
@@ -458,6 +505,19 @@
    "text": "door to the stop"
   },
   {
+   "id": "main.row.walk.text.3",
+   "kind": "text",
+   "x": 254,
+   "y": 662,
+   "w": 160,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 690,
+   "font": 24
+  },
+  {
    "id": "main.label.ride",
    "kind": "label",
    "x": 104,
@@ -521,7 +581,7 @@
    "text": "stop to school"
   },
   {
-   "id": "main.text.7",
+   "id": "main.text.10",
    "kind": "text",
    "x": 104,
    "y": 861,

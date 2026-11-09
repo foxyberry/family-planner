@@ -108,4 +108,12 @@ final class PieClockLayoutTests: XCTestCase {
         XCTAssertNil(PieClockLayout.sector(at: point(minute: 600, distance: 100), in: sectors, radius: r, hub: hub))
         XCTAssertNil(PieClockLayout.sector(at: point(minute: 600, distance: 380), in: sectors, radius: r, hub: hub))
     }
+
+    /// The hub swipes left to right for a later slot (and over midnight), right to left going back.
+    func testHubSwipeDirection() {
+        XCTAssertTrue(PieClock.isForward(from: 450, to: 900))
+        XCTAssertFalse(PieClock.isForward(from: 900, to: 450))
+        XCTAssertTrue(PieClock.isForward(from: 1290, to: 0))
+        XCTAssertFalse(PieClock.isForward(from: 0, to: 1290))
+    }
 }

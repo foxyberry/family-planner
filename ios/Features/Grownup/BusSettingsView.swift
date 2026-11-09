@@ -30,27 +30,23 @@ public struct BusSettingsView: View {
         VStack(alignment: .leading, spacing: Spacing.m) {
             Text(L10n.tr("c2.plan")).crayonType(.head).foregroundStyle(CrayonColor.ink)
             Text(L10n.tr("c2.for", store.kidName)).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            // Board C2 (v9): the stop field (400 × 80 on 232), its caption 8 below, and the list of
+            // matches as a card 40 below the field, over the rows under it.
             ListRow(leading: L10n.tr("c2.stop")) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     CrayonField(L10n.tr("c2.stop.placeholder"),
                                 text: Binding(get: { store.stopText }, set: { store.send(.stopChanged($0)) }))
                         .frame(width: 400)
-                    Text(store.stopCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    // Matching stops by name: tap one to use its code.
-                    ForEach(store.stopMatches) { stop in
-                        Button { store.send(.stopPicked(stop)) } label: {
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text(stop.name).crayonType(.body).foregroundStyle(CrayonColor.link).lineLimit(1)
-                                Text(L10n.tr("c2.stop.match", stop.road, stop.code)).crayonType(.caption)
-                                    .foregroundStyle(CrayonColor.softText).lineLimit(1)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-                            .contentShape(Rectangle())
+                        .overlay(alignment: .topLeading) {
+                            if !store.stopMatches.isEmpty { matches.offset(y: 80 + Spacing.l) }
                         }
-                        .buttonStyle(.plain)
+                    HStack(spacing: Spacing.xs) {
+                        if store.pickedStop != nil { CheckMark(isDone: true, size: 32) }
+                        Text(store.stopCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     }
                 }
             }
+            .zIndex(1)
             ListRow(leading: L10n.tr("c2.buses")) {
                 if store.servicesAtStop.isEmpty {
                     Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
@@ -84,5 +80,28 @@ public struct BusSettingsView: View {
                 RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }
             }
         }
+    }
+
+    /// Stops matching the typed name: a white card of 64-tall rows, the name over road and code.
+    private var matches: some View {
+        PaperCard(seed: 55) {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(store.stopMatches.enumerated()), id: \.element.id) { index, stop in
+                    if index > 0 { Rectangle().fill(CrayonColor.paper).frame(height: 2) }
+                    Button { store.send(.stopPicked(stop)) } label: {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(stop.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link).lineLimit(1)
+                            Text(L10n.tr("c2.stop.match", stop.road, stop.code)).crayonType(.caption)
+                                .foregroundStyle(CrayonColor.softText).lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .environment(\.cardInset, Spacing.m)
+        .frame(width: 400)
     }
 }
