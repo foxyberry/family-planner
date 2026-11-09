@@ -4,8 +4,7 @@ import SchoolDirectory
 
 extension SchoolDirectory {
     /// The bundled lists (`Resources/`, see `SOURCE.md`): every MOE school from data.gov.sg with the
-    /// hours the school websites state, and, when a developer's machine has it, the git-ignored
-    /// international list (`Private/`, licence not decided yet).
+    /// hours the school websites state, and the international and private schools.
     public static let live: SchoolDirectory = {
         let lists = BundledSchools.load()
         return SchoolDirectory(schools: { lists.schools }, sources: { lists.sources })
@@ -22,8 +21,12 @@ enum BundledSchools {
         let hours = decode(HoursFile.self, "school-hours", from: publicBundle)?.schools ?? [:]
         guard let moe = decode(MoeFile.self, "schools-sg", from: publicBundle) else { return Lists(schools: [], sources: []) }
         var schools = moe.schools.map { $0.entry(hours: hours[$0.id]?.hours) }
-        if let other = decode(OtherFile.self, "international-schools-sg", from: privateBundle) {
+        if let other = decode(OtherFile.self, "international-schools-sg", from: publicBundle) {
             schools += other.schools.map(\.entry)
+        }
+        // Schools kept off the public list (this family's private terms), on this machine only.
+        if let local = decode(OtherFile.self, "international-schools-local", from: localBundle) {
+            schools += local.schools.map(\.entry)
         }
         let sources = [moe.source, moe.geocoding].map {
             DataSource(name: $0.name, attribution: $0.attribution, licenceURL: $0.licenceUrl)
@@ -56,7 +59,7 @@ enum BundledSchools {
     }
 
     static let publicBundle = bundle(named: "SchoolDirectoryResources") // copy-ok: bundle name
-    static let privateBundle = bundle(named: "SchoolDirectoryPrivateResources") // copy-ok: bundle name
+    static let localBundle = bundle(named: "SchoolDirectoryLocalResources") // copy-ok: bundle name
 
     /// Resource bundles sit next to this module's code: in the app, or in a test bundle.
     private static func bundle(named name: String) -> Bundle? {

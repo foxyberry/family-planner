@@ -11,7 +11,10 @@ the app reads only the fields listed in `SchoolDirectoryLive.swift`.
 
 - The attribution notices (`source.attribution`, `geocoding.attribution`) are shown on the grown-up
   "Data sources" screen, as both licences require. The app does not imply government endorsement.
-- `international-schools-sg.json` is **not** in this repository: its main source (the SWDA register)
-  is not open data. Put a copy in `ios/Clients/SchoolDirectoryLive/Private/` (git-ignored) to build
-  it in; without it, S2 searches the MOE list only.
+- `international-schools-sg.json`: 81 international and private schools (names, curricula, campus
+  addresses, term dates and hours from each school's website, cross-checked with the SWDA
+  register, the MOE private-schools list and data.gov.sg; sources and their terms are listed in
+  the file). Included by the user's decision on 2026-11-09 (public facts about the schools);
+  see the file's `sources` for each source's terms. A school on the family's private-terms list
+  stays off this file, in `Private/international-schools-local.json` (git-ignored, same shape).
 - The app stores only the picked school's id and the values the grown-up confirmed, on the iPad.
