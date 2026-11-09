@@ -95,6 +95,15 @@ public struct SetupFeature {
             set { if let id = goingKid?.id { kids[id: id]?.going.search = newValue } }
         }
 
+        /// Layout v14: the S2 school list or the S3 stop list is open, and the screen is veiled.
+        public var isResultListOpen: Bool {
+            switch step {
+            case .school: tabKid?.school.isListOpen ?? false
+            case .gettingThere: goingSearch.isListOpen
+            case .family, .almostDone: false
+            }
+        }
+
         public var canGoNext: Bool {
             switch step {
             case .family: familyIsComplete
@@ -141,6 +150,8 @@ public struct SetupFeature {
         case schoolTextChanged(String)
         case schoolPicked(SchoolEntry)
         case notInListTapped
+        /// A tap on the veil around an open result list.
+        case resultVeilTapped
         case dayToggled(Weekday)
         case timeChanged(TimeRow, Int)
         /// A time wheel moved.
@@ -315,6 +326,7 @@ public struct SetupFeature {
                     school.text = text
                     school.picked = nil
                     school.typedByHand = false
+                    school.isListClosed = false
                 }
                 let open = state.tabKid?.school.isListOpen ?? false
                 let matches = open ? SchoolSearch.matches(text, in: state.directory) : []
@@ -406,6 +418,17 @@ public struct SetupFeature {
 
             case .stopSearch:
                 return .none
+
+            case .resultVeilTapped:
+                switch state.step {
+                case .school:
+                    updateSchool(&state) { $0.isListClosed = true }
+                    return .none
+                case .gettingThere:
+                    return .send(.stopSearch(.listClosed))
+                case .family, .almostDone:
+                    return .none
+                }
 
             case let .serviceTapped(service):
                 updateGoing(&state) { going in

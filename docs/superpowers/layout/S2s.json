@@ -1,5 +1,5 @@
 {
- "version": "13",
+ "version": "14",
  "board": "S2s",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -363,14 +363,14 @@
   {
    "id": "main.text.2",
    "kind": "text",
-   "x": 254,
-   "y": 432,
+   "x": 252,
+   "y": 434,
    "w": 309,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 467,
+   "baseline": 469,
    "font": 30,
    "text": "Sunny Park Primary"
   },
@@ -487,30 +487,16 @@
   {
    "id": "main.row.days.text.8",
    "kind": "text",
-   "x": 254,
-   "y": 466,
+   "x": 252,
+   "y": 471,
    "w": 306,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 494,
+   "baseline": 499,
    "font": 24,
    "text": "MOE primary · Woodlands"
-  },
-  {
-   "id": "main.row.days.text.9",
-   "kind": "text",
-   "x": 254,
-   "y": 498,
-   "w": 286,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 533,
-   "font": 30,
-   "text": "Sunny Hill Primary"
   },
   {
    "id": "side.line.6",
@@ -527,6 +513,20 @@
    "text": "Bronze"
   },
   {
+   "id": "main.row.days.text.9",
+   "kind": "text",
+   "x": 252,
+   "y": 507,
+   "w": 286,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 542,
+   "font": 30,
+   "text": "Sunny Hill Primary"
+  },
+  {
    "id": "side.picture.3",
    "kind": "picture",
    "x": 930,
@@ -536,20 +536,6 @@
    "region": "side",
    "anchor": "right",
    "align": "start"
-  },
-  {
-   "id": "main.text.3",
-   "kind": "text",
-   "x": 254,
-   "y": 532,
-   "w": 252,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 560,
-   "font": 24,
-   "text": "MOE primary · Bedok"
   },
   {
    "id": "main.label.hours",
@@ -562,6 +548,20 @@
    "anchor": "left",
    "align": "inside",
    "text": "Hours"
+  },
+  {
+   "id": "main.row.hours.text.1",
+   "kind": "text",
+   "x": 252,
+   "y": 544,
+   "w": 252,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 572,
+   "font": 24,
+   "text": "MOE primary · Bedok"
   },
   {
    "id": "side.line.7",
@@ -577,7 +577,7 @@
    "font": 24
   },
   {
-   "id": "main.row.hours.text.1",
+   "id": "main.row.hours.text.2",
    "kind": "text",
    "x": 261,
    "y": 561,
@@ -590,7 +590,7 @@
    "font": 30
   },
   {
-   "id": "main.row.hours.text.2",
+   "id": "main.row.hours.text.3",
    "kind": "text",
    "x": 515,
    "y": 561,
@@ -601,20 +601,6 @@
    "align": "inside",
    "baseline": 584,
    "font": 30
-  },
-  {
-   "id": "main.row.hours.text.3",
-   "kind": "text",
-   "x": 254,
-   "y": 564,
-   "w": 480,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 599,
-   "font": 30,
-   "text": "Sunny Bay International School"
   },
   {
    "id": "main.row.hours.picture",
@@ -630,14 +616,28 @@
   {
    "id": "main.row.hours.text.4",
    "kind": "text",
-   "x": 254,
-   "y": 598,
+   "x": 252,
+   "y": 579,
+   "w": 480,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 614,
+   "font": 30,
+   "text": "Sunny Bay International School"
+  },
+  {
+   "id": "main.row.hours.text.5",
+   "kind": "text",
+   "x": 252,
+   "y": 616,
    "w": 406,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 626,
+   "baseline": 644,
    "font": 24
   },
   {
@@ -654,7 +654,7 @@
    "font": 24
   },
   {
-   "id": "main.text.4",
+   "id": "main.text.3",
    "kind": "text",
    "x": 232,
    "y": 629,
@@ -667,24 +667,24 @@
    "font": 24
   },
   {
-   "id": "main.text.5",
+   "id": "main.text.4",
    "kind": "text",
-   "x": 298,
-   "y": 643,
+   "x": 296,
+   "y": 666,
    "w": 450,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 678,
+   "baseline": 701,
    "font": 30,
    "text": "Not in the list? Type the name"
   },
   {
    "id": "main.picture.1",
    "kind": "picture",
-   "x": 254,
-   "y": 650,
+   "x": 252,
+   "y": 673,
    "w": 32,
    "h": 32,
    "region": "main",
@@ -755,7 +755,7 @@
    "align": "inside"
   },
   {
-   "id": "main.text.6",
+   "id": "main.text.5",
    "kind": "text",
    "x": 292,
    "y": 797,

@@ -27,6 +27,9 @@ public struct StopSearchFeature {
             text = stop
         }
 
+        /// The result list is open while there are matches (layout v14 veils the screen meanwhile).
+        public var isListOpen: Bool { !matches.isEmpty }
+
         /// The name under the field, or a hint while it is not 5 digits or unknown.
         public var caption: String {
             if let pickedStop { return L10n.tr("c2.stop.match", pickedStop.road, pickedStop.code) }
@@ -43,6 +46,8 @@ public struct StopSearchFeature {
         case stopLooked(stop: BusStop?, services: [String])
         /// Looks up the stored code's name and buses (after a load).
         case lookUp
+        /// A tap on the veil around the open list closes it; the typed text stays.
+        case listClosed
     }
 
     @Dependency(\.bus) var bus
@@ -93,6 +98,10 @@ public struct StopSearchFeature {
 
             case .lookUp:
                 return lookUp(state)
+
+            case .listClosed:
+                state.matches = []
+                return .cancel(id: SearchID.stops)
             }
         }
     }
