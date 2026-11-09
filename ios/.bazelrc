@@ -14,3 +14,7 @@ test --local_test_jobs=1
 # A signed build for a real iPad (`make device`).
 build:device --ios_multi_cpus=arm64
 build:device --define=fp_device=1
+
+# Public build (CI and public clones only): skips the private school-data check in
+# ios/Clients/SchoolDirectoryLive. Real builds must not use it; run `make private` instead.
+build:public --define=public_build=1

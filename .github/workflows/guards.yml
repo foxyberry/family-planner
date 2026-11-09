@@ -52,6 +52,8 @@ jobs:
         run: bash scripts/tests/check-skills-test.sh
       - name: Lessons reminder tests
         run: bash scripts/tests/lessons-reminder-test.sh
+      - name: Private data sync tests
+        run: bash scripts/tests/private-sync-test.sh
       # The checks themselves, on this commit.
       - name: Repo checks (kid screens, dependencies, strings, skills)
         run: |

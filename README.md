@@ -23,3 +23,13 @@ the `Makefile`.
 ## Privacy
 This repository is public. Real personal data never goes into it; local-only values live in
 git-ignored files, and commits are checked by `.githooks/` (run `make setup` to enable them).
+
+Private here means "not in git", never "left out of the build". The international/private
+school list and the preschool files (public sources, kept out of this repo for licence reasons)
+live in a separate private repo, checked out next to this one as `../family-planner-private`.
+`make setup` runs `make private`, which clones it with `gh` when it is missing and copies the
+required files into the git-ignored `ios/Clients/SchoolDirectoryLive/Private/`. Every
+installable build (make build/run/device, Xcode) needs them and stops with
+"School data missing: run make private" otherwise. Only CI and public clones build without them,
+on purpose: `make build PUBLIC_BUILD=1` (Bazel `--config=public`; for Xcode add
+`build --config=public` to `user.bazelrc`). The private repo holds no family information.
