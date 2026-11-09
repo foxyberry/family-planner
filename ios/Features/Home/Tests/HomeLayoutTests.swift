@@ -13,7 +13,7 @@ final class HomeLayoutTests: XCTestCase {
             // x 928: badges, rows, now circle and the button start on the panel's left line.
             let lefts = [layout.kidBadge(top: layout.kidATop).minX, layout.nextRow.picture.minX,
                          layout.timeLeftRow.picture.minX, layout.leaveNextRow.picture.minX,
-                         layout.nowNext(kidBTop: layout.kidBTop).x, layout.button.minX]
+                         layout.nowNext(kidBTop: layout.kidBTop(after: .status)).x, layout.button.minX]
             for left in lefts {
                 XCTAssertEqual(left, layout.panelLeft, accuracy: 0.01, "\(w)")
             }
@@ -22,27 +22,34 @@ final class HomeLayoutTests: XCTestCase {
             XCTAssertEqual(layout.button.maxX, layout.panelRight, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.panelRight, w - 64 * sizing.s, accuracy: 0.01, "\(w)")
             // Each row's text starts 24 right of its picture.
-            for row in [layout.nextRow, layout.timeLeftRow, layout.leaveNextRow] {
+            for row in [layout.nextRow, layout.leaveNextRow] {
                 XCTAssertEqual(row.textLeft, row.picture.maxX + 24 * sizing.s, accuracy: 0.01, "\(w)")
             }
+            XCTAssertEqual(layout.timeLeftRow.textLeft, layout.timeLeftRow.picture.maxX + 16 * sizing.s,
+                           accuracy: 0.01, "\(w)")
             // The button ends on 968; the sky switch stays below the status band.
             XCTAssertEqual(layout.button.maxY, sizing.y(968), accuracy: 0.01, "\(w)")
             XCTAssertGreaterThanOrEqual(layout.skySwitch.minY, Sizing.statusBand, "\(w)")
         }
     }
 
-    /// Layout v5 "Home panel lines": Kid B's name on 584, the circles' bottom on 792 and the captions
-    /// above the button (872) whatever Kid A shows; Kid A's rows end above Kid B.
-    func testFixedPanelLines() {
+    /// Layout v8 "kidBRule": Kid B's name 40 below Kid A's last part, never lower than 584; the
+    /// circles 48 below the name baseline. Expected values are the boards' measured ones (±1).
+    func testKidBFollowsKidA() {
         let layout = HomeLayout(sizing: Sizing(width: 1376, height: 1032))
-        XCTAssertEqual(layout.kidNameBaseline(top: layout.kidBTop), 584)
-        XCTAssertEqual(layout.nowNext(kidBTop: layout.kidBTop).y + 160, 792)
-        XCTAssertLessThanOrEqual(792 + 8 + 36, 872)
+        let boards: [(HomeLayout.KidAEnd, CGFloat, CGFloat)] = [
+            (.status, 536, 744), (.timeLeft, 502, 710), (.timeLeftRow, 584, 792), (.nextRow, 486, 694),
+        ]
+        for (end, name, circlesBottom) in boards {
+            let top = layout.kidBTop(after: end)
+            XCTAssertEqual(layout.kidNameBaseline(top: top), name, accuracy: 1, "\(end)")
+            XCTAssertEqual(layout.nowNext(kidBTop: top).y + 160, circlesBottom, accuracy: 1, "\(end)")
+            XCTAssertLessThanOrEqual(circlesBottom + 33 + 12, 872, "captions stay above the button")
+        }
         XCTAssertEqual(layout.firstLineBaseline, 301)
         XCTAssertEqual(layout.timeBaseline, 402)
-        for row in [layout.nextRow, layout.timeLeftRow] {
-            XCTAssertLessThan(row.picture.maxY, layout.kidBTop)
-        }
+        XCTAssertEqual(layout.timeLeftRow.picture, CGRect(x: 928, y: 436, width: 80, height: 80))
+        XCTAssertEqual(layout.timeLeftRow.textLeft, 1024)
         XCTAssertEqual(layout.leaveNextCaptionBaseline, 584)
     }
 

@@ -1,5 +1,5 @@
 {
- "version": "7",
+ "version": "8",
  "board": "A1n",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -56,6 +56,11 @@
    "status": 446,
    "kidBName": 584,
    "nowNextCaptions": 825
+  },
+  "kidBRule": {
+   "gapBelowKidA": 40,
+   "lowestNameBaseline": 584,
+   "note": "Kid B block (name, now/next circles, captions) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584"
   },
   "nowNextBottom": 792
  },
@@ -231,12 +236,12 @@
    "align": "inside"
   },
   {
-   "id": "panel.picture.1",
+   "id": "panel.kidAWay",
    "kind": "picture",
    "x": 928,
    "y": 436,
-   "w": 104,
-   "h": 104,
+   "w": 80,
+   "h": 80,
    "region": "panel",
    "anchor": "stretch",
    "align": "start"
@@ -244,24 +249,24 @@
   {
    "id": "panel.text.1",
    "kind": "text",
-   "x": 1048,
-   "y": 449,
+   "x": 1024,
+   "y": 437,
    "w": 152,
    "h": 45,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 484,
+   "baseline": 472,
    "font": 30,
    "text": "Tomorrow"
   },
   {
-   "id": "panel.picture.2",
+   "id": "panel.picture.1",
    "kind": "picture",
-   "x": 948,
-   "y": 456,
-   "w": 64,
-   "h": 64,
+   "x": 940,
+   "y": 448,
+   "w": 56,
+   "h": 56,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside"
@@ -269,14 +274,14 @@
   {
    "id": "panel.text.2",
    "kind": "text",
-   "x": 1048,
-   "y": 488,
+   "x": 1024,
+   "y": 476,
    "w": 253,
    "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 516,
+   "baseline": 504,
    "font": 24
   },
   {
@@ -359,7 +364,7 @@
    "align": "start"
   },
   {
-   "id": "panel.picture.3",
+   "id": "panel.picture.2",
    "kind": "picture",
    "x": 956,
    "y": 660,
@@ -370,7 +375,7 @@
    "align": "inside"
   },
   {
-   "id": "panel.picture.4",
+   "id": "panel.picture.3",
    "kind": "picture",
    "x": 1128,
    "y": 688,
@@ -381,7 +386,7 @@
    "align": "inside"
   },
   {
-   "id": "panel.picture.5",
+   "id": "panel.picture.4",
    "kind": "picture",
    "x": 1148,
    "y": 708,

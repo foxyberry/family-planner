@@ -1,9 +1,10 @@
 import CoreGraphics
 import DesignSystem
 
-/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v5 "Home panel lines") through
-/// "Sizing formulas": the home screen's parts as screen rects, lines and baselines. The panel lines
-/// are fixed: a block with less content leaves space below it, nothing moves up. The clock area is left-anchored (disc
+/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v8 "Home panel lines") through
+/// "Sizing formulas": the home screen's parts as screen rects, lines and baselines. Kid A's lines are
+/// fixed; Kid B's block moves as one unit 40 below Kid A's last part (`kidBTop(after:)`). The clock
+/// area is left-anchored (disc
 /// centre (448, 528), R 372); the panel stretches from 928 s to W − 64 s with every part's left
 /// on 928 and the way picture's right on 1312.
 public struct HomeLayout: Equatable, Sendable {
@@ -55,28 +56,59 @@ public struct HomeLayout: Equatable, Sendable {
                  textLeft: sizing.left(1056), titleBaseline: sizing.y(top + 48), atBaseline: sizing.y(top + 86))
     }
 
+    /// The smaller row under the time left (A1n, v8): an 80 plate, text at 1024 (gap 16),
+    /// baselines 36 and 68 below its top.
+    private func smallRow(top: CGFloat) -> RowPlace {
+        RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: 80 * s, height: 80 * s),
+                 textLeft: sizing.left(1024), titleBaseline: sizing.y(top + 36), atBaseline: sizing.y(top + 68))
+    }
+
     /// Kid A's first line ("Leave in", "Bed in", "Next") on 301 on every home board (layout v5).
     public var firstLineBaseline: CGFloat { sizing.y(301) }
 
     /// E3 / E3b: "Next" (caption) on 301, then the row at 315.
     public var nextRow: RowPlace { row(top: 315) }
 
-    /// A1n: "Bed in" on 301 and the time left on 402, then the row at 436.
-    public var timeLeftRow: RowPlace { row(top: 436) }
-
-    /// A1n "Tomorrow" row: the plate (104) at 436, its two lines at 1048 on 484 and 516.
-    public var tomorrowTextLeft: CGFloat { sizing.left(1048) }
-    public var tomorrowTitleBaseline: CGFloat { sizing.y(484) }
-    public var tomorrowLineBaseline: CGFloat { sizing.y(516) }
+    /// A1n: "Bed in" on 301 and the time left on 402, then the 80 row at 436 (Tomorrow, or Next by
+    /// day), its lines on 472 and 504.
+    public var timeLeftRow: RowPlace { smallRow(top: 436) }
 
     /// E1 (one kid, leaving): "Next" on 584 (Kid B's name line), the row at 598.
     public var leaveNextCaptionBaseline: CGFloat { sizing.y(584) }
     public var leaveNextRow: RowPlace { row(top: 598) }
 
-    /// Kid B's badge top: 560 on every home board (name on 584; layout v5), whatever Kid A shows.
-    public let kidBTop: CGFloat = 560
+    /// The last part of Kid A's block, whose bottom Kid B's block hangs from (board units).
+    public enum KidAEnd: Equatable, Sendable {
+        /// Only the name (nothing next today): the name box ends at 214.
+        case name
+        /// E3 / E3b: the Next row ends at 419.
+        case nextRow
+        /// A1m: the time-left box ends at 435.
+        case timeLeft
+        /// A1: "On time" ends at 468.
+        case status
+        /// A1n: the 80 row under the time left ends at 516.
+        case timeLeftRow
 
-    /// Now (160) and next (104) circles, bottoms aligned on 792, 72 below Kid B's badge top.
+        var bottom: CGFloat {
+            switch self {
+            case .name: 214
+            case .nextRow: 419
+            case .timeLeft: 435
+            case .status: 468
+            case .timeLeftRow: 516
+            }
+        }
+    }
+
+    /// Layout v8 "kidBRule": Kid B's name box starts 40 (a space token, 28 at the floor) below Kid
+    /// A's last part, its baseline never lower than 584; returns the badge top (board units).
+    public func kidBTop(after end: KidAEnd) -> CGFloat {
+        let nameBaseline = min(end.bottom + sizing.space(40) / s + 28, 584)
+        return nameBaseline - 24
+    }
+
+    /// Now (160) and next (104) circles, bottoms aligned, 48 below Kid B's name baseline.
     public func nowNext(kidBTop: CGFloat) -> CGPoint { CGPoint(x: panelLeft, y: sizing.y(kidBTop + 72)) }
 
     /// "Missions →", the panel's width, bottom 968.

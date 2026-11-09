@@ -8,20 +8,21 @@ public struct KitPlate<Picture: View>: View {
     private let look: KidLook
     private let size: CGFloat
     private let picture: Picture
+    private let nightPicture: CGFloat
 
-    public init(look: KidLook, size: CGFloat, @ViewBuilder picture: () -> Picture) {
+    /// `nightPicture`: the picture's share of the plate at night (A1n: 64 of 104; the 80 row: 56 of 80).
+    public init(look: KidLook, size: CGFloat, nightPicture: CGFloat = 64.0 / 104.0,
+                @ViewBuilder picture: () -> Picture) {
         self.look = look
         self.size = size
+        self.nightPicture = nightPicture
         self.picture = picture()
     }
-
-    /// Board A1n: a 64 picture on a 104 plate.
-    public static var nightPicture: CGFloat { 64.0 / 104.0 }
 
     public var body: some View {
         picture
             .frame(width: size, height: size)
-            .scaleEffect(look == .night ? Self.nightPicture : 1)
+            .scaleEffect(look == .night ? nightPicture : 1)
             .background {
                 if look == .night {
                     Circle().fill(CrayonColor.plate)

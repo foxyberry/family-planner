@@ -63,6 +63,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: first-run setup S1–S4 brought to the current rules and moved to "Building now" (new section "S1–S4"; S3 moved there; S1 uses the kit home picture, no draw-a-face slot; S4 rows for later features hidden, side summary and "Start →"). A1n night order written as on the board (time left, then Tomorrow). C3/C4 "What": 5 slots + "More" popover. C4 date paging (‹ at 104, › at 772). C6 bottom stack placed from the button up. Layout v6 (adds S1–S4).
 - 2026-11-09: copy from the user's iPad review (PR #21): "Grown-ups only" without "· behind the parent lock"; C2 board redrawn to the built screen with "5 digits", "Type the stop code first", "Walk", "Late up to"; C4 note without the midnight sentence; C5 footer "Drag ≡ to reorder. Tap a row to change it.", no Evening note; C6 hint without "Tap +", day tabs label + 16 inset; C1/E6 side without the footer caption and without "›" on schedule rows, days over time when the line does not fit. Layout v7.
 - 2026-11-09: morning strip after the outing has started: new "arrived look" (road kept, mover at the destination, no countdown); the empty look only on a day with no outing (user's iPad review). C2 "Live bus times" card and "Change key" removed (user, PR #22). Crown kit picture replaces the check for a kid who is ready with no time rule.
+- 2026-11-09: home Kid B block follows Kid A (name box 40 below Kid A's last box, never below baseline 584) instead of the fixed 584 line (user: the Next row and Kid B looked too far apart); A1n Tomorrow plate 80. Layout v8.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -260,7 +261,11 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Kid B block: unchanged (now 160 / next 104 circles, captions "now" / "next").
 
 ### Right panel
-- **Home panel lines** (all home boards A1, A1m, A1n, E1, E3, E3b; fixed 2026-11-09 so the blocks no longer move with their content): panel x 928 … 1312, top 96. Baselines: weekday **132**, Kid A name **187** (face 48 at y 163), Kid A first line **301** ("Leave in" / "Bed in" / "Next"), time-left display **402**, status **446**, Kid B name **584** (the same line as the morning screen's name line), now/next captions **825**; now circle 160 and next circle 104 bottom-aligned at y 792; main button 872–968. On E1 (one child) the second block's "Next" sits on 584. A block with less content leaves space below it; nothing moves up.
+- **Home panel lines** (all home boards A1, A1m, A1n, E1, E3, E3b; fixed 2026-11-09, Kid B rule changed the same day after the user's iPad check: the fixed Kid B line left about 140 empty under a short Kid A block): panel x 928 … 1312, top 96.
+  - **Kid A block, fixed lines**: weekday baseline **132**, Kid A name **187** (face 48 at y 163), first line **301** ("Leave in" / "Bed in" / "Next"), time-left display **402**, status **446**.
+  - **Kid B block, one rule**: the Kid B block (name, now/next circles, captions) moves as one unit. Its name box top = the bottom of Kid A's last box + **40**, and its name baseline is never lower than **584**. Inside the block: circles top = name baseline + 48 (now 160, next 104, bottom-aligned), captions baseline = circles bottom + 33. Board values (layout v8, name baseline / circles bottom / captions): A1 536 / 744 / 777, A1m 502 / 710 / 743, A1n 584 / 792 / 825, E3 and E3b 486 / 694 / 727.
+  - A1n's Tomorrow row uses an 80 plate with a 56 picture (was 104 / 64), so the night block ends at 516 and Kid B sits on 584.
+  - Main button 872–968 stays pinned; the space a short Kid A block leaves now sits above the button, not between the kids. On E1 (one child) the second "Next" sits on 584.
 - **Kid A block** (spacing from the board):
   - `KidFace` 48 (Kid A), gap 16, name head 36.
   - **With the live bus (build step 5)** bus mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).

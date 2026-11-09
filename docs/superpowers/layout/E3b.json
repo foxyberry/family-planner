@@ -1,5 +1,5 @@
 {
- "version": "7",
+ "version": "8",
  "board": "E3b",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -54,10 +54,15 @@
    "kidAFirstLine": 301,
    "timeLeft": 402,
    "status": 446,
-   "kidBName": 584,
-   "nowNextCaptions": 825
+   "kidBName": 486,
+   "nowNextCaptions": 727
   },
-  "nowNextBottom": 792
+  "kidBRule": {
+   "gapBelowKidA": 40,
+   "lowestNameBaseline": 584,
+   "note": "Kid B block (name, now/next circles, captions) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584"
+  },
+  "nowNextBottom": 694
  },
  "regions": {
   "skySwitch": {
@@ -248,20 +253,20 @@
    "id": "panel.kidName.3",
    "kind": "text",
    "x": 928,
-   "y": 557,
+   "y": 459,
    "w": 173,
    "h": 54,
    "region": "panel",
    "anchor": "stretch",
    "align": "start",
-   "baseline": 584,
+   "baseline": 486,
    "font": 36
   },
   {
    "id": "panel.kidRing.2",
    "kind": "picture",
    "x": 928,
-   "y": 560,
+   "y": 462,
    "w": 48,
    "h": 48,
    "region": "panel",
@@ -272,9 +277,53 @@
    "id": "panel.kidFace.2",
    "kind": "picture",
    "x": 932,
-   "y": 564,
+   "y": 466,
    "w": 41,
    "h": 41,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.nowCircle",
+   "kind": "picture",
+   "x": 928,
+   "y": 534,
+   "w": 160,
+   "h": 160,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.picture.2",
+   "kind": "picture",
+   "x": 956,
+   "y": 562,
+   "w": 104,
+   "h": 104,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.picture.3",
+   "kind": "picture",
+   "x": 1128,
+   "y": 590,
+   "w": 104,
+   "h": 104,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.picture.4",
+   "kind": "picture",
+   "x": 1148,
+   "y": 610,
+   "w": 64,
+   "h": 64,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside"
@@ -291,17 +340,6 @@
    "align": "inside"
   },
   {
-   "id": "panel.nowCircle",
-   "kind": "picture",
-   "x": 928,
-   "y": 632,
-   "w": 160,
-   "h": 160,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
-  },
-  {
    "id": "clock.slotPicture.6",
    "kind": "picture",
    "x": 217,
@@ -310,17 +348,6 @@
    "h": 104,
    "region": "clock",
    "anchor": "left",
-   "align": "inside"
-  },
-  {
-   "id": "panel.picture.2",
-   "kind": "picture",
-   "x": 956,
-   "y": 660,
-   "w": 104,
-   "h": 104,
-   "region": "panel",
-   "anchor": "stretch",
    "align": "inside"
   },
   {
@@ -335,26 +362,32 @@
    "align": "inside"
   },
   {
-   "id": "panel.picture.3",
-   "kind": "picture",
-   "x": 1128,
-   "y": 688,
-   "w": 104,
-   "h": 104,
+   "id": "panel.nowCaption",
+   "kind": "text",
+   "x": 985,
+   "y": 699,
+   "w": 47,
+   "h": 36,
    "region": "panel",
    "anchor": "stretch",
-   "align": "inside"
+   "align": "inside",
+   "baseline": 727,
+   "font": 24,
+   "text": "now"
   },
   {
-   "id": "panel.picture.4",
-   "kind": "picture",
-   "x": 1148,
-   "y": 708,
-   "w": 64,
-   "h": 64,
+   "id": "panel.nextCaption",
+   "kind": "text",
+   "x": 1154,
+   "y": 699,
+   "w": 51,
+   "h": 36,
    "region": "panel",
    "anchor": "stretch",
-   "align": "inside"
+   "align": "inside",
+   "baseline": 727,
+   "font": 24,
+   "text": "next"
   },
   {
    "id": "clock.slotPicture.8",
@@ -366,34 +399,6 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "panel.nowCaption",
-   "kind": "text",
-   "x": 985,
-   "y": 797,
-   "w": 47,
-   "h": 36,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 825,
-   "font": 24,
-   "text": "now"
-  },
-  {
-   "id": "panel.nextCaption",
-   "kind": "text",
-   "x": 1154,
-   "y": 797,
-   "w": 51,
-   "h": 36,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 825,
-   "font": 24,
-   "text": "next"
   },
   {
    "id": "panel.button",

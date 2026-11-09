@@ -154,6 +154,17 @@ public struct HomeFeature {
             return .next(next)
         }
 
+        /// The last part of Kid A's block; Kid B's block hangs 40 below it (layout v8).
+        public var kidAEnd: HomeLayout.KidAEnd {
+            switch kidABlock {
+            case .leave: status == nil ? .timeLeft : .status
+            case .timeLeft: .timeLeftRow
+            case let .bedTime(_, tomorrow): tomorrow == nil ? .timeLeft : .timeLeftRow
+            case .next: .nextRow
+            case .nothing: .name
+            }
+        }
+
         /// E1 (one kid): the Next row stays under "On time" on a leaving morning.
         public var leaveNext: NextRow? {
             guard days.count == 1, kidABlock == .leave, let first = days.first else { return nil }

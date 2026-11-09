@@ -95,7 +95,7 @@ public struct HomeView: View {
             kidHeader(first.kid, top: layout.kidATop, layout: layout)
             kidABlock(layout: layout)
             if store.days.count > 1 {
-                let top = layout.kidBTop
+                let top = layout.kidBTop(after: store.kidAEnd)
                 kidHeader(store.days[1].kid, top: top, layout: layout)
                 let now = DayPlanner.now(at: store.minute, in: store.days[1].slots)
                 KidNowNext(now: now.current?.iconName ?? "actPlay", next: now.next?.iconName, look: store.look)
@@ -165,15 +165,16 @@ public struct HomeView: View {
 
     /// A1n: tomorrow's outing on a plate at 436, "Tomorrow" (body bold) over its line (caption).
     @ViewBuilder private func tomorrowRow(_ row: TomorrowRow, layout: HomeLayout) -> some View {
-        let picture = layout.timeLeftRow.picture
-        KitPlate(look: store.look, size: picture.width) {
-            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: picture.width)
+        let place = layout.timeLeftRow
+        // Board A1n (v8): a 56 picture on an 80 plate.
+        KitPlate(look: store.look, size: place.picture.width, nightPicture: 56.0 / 80.0) {
+            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: place.picture.width)
         }
-        .place(picture)
+        .place(place.picture)
         Text(row.title).crayonType(.body, bold: true).foregroundStyle(store.look.ink).lineLimit(1)
-            .place(left: layout.tomorrowTextLeft, baseline: layout.tomorrowTitleBaseline)
+            .place(left: place.textLeft, baseline: place.titleBaseline)
         Text(row.line).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
-            .place(left: layout.tomorrowTextLeft, baseline: layout.tomorrowLineBaseline)
+            .place(left: place.textLeft, baseline: place.atBaseline)
     }
 
     private func nextCaption(baseline: CGFloat, layout: HomeLayout) -> some View {
