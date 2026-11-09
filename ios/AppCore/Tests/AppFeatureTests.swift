@@ -141,10 +141,25 @@ final class AppFeatureTests: XCTestCase {
         }
         store.exhaustivity = .off
         await store.send(.home(.missionsTapped))
-        XCTAssertNotNil(store.state.missions)
+        XCTAssertTrue(store.state.isShowingMissions, "pushed over home")
+        XCTAssertFalse(store.state.hasGrownupScreens, "a kid screen: no grown-up rules")
+        await store.send(.path(.element(id: 0, action: .missions(.delegate(.finished)))))
         XCTAssertTrue(store.state.path.isEmpty)
-        await store.send(\.missions.delegate.finished)
-        XCTAssertNil(store.state.missions)
+    }
+
+    /// The morning screen is a kid screen: going to the background neither closes nor covers it.
+    func testMissionsStayWhenTheAppGoesToTheBackground() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(.home(.missionsTapped))
+        await store.send(.scenePhaseChanged(.background))
+        XCTAssertTrue(store.state.isShowingMissions)
+        XCTAssertFalse(store.state.coversGrownupScreens)
     }
 
     func testHubMissionsRowOpensTheMissionEditor() async {

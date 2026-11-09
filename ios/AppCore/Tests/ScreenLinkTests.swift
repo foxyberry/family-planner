@@ -20,9 +20,9 @@ final class ScreenLinkTests: XCTestCase {
         let store = TestStore(initialState: AppFeature.State()) { AppFeature() }
         store.exhaustivity = .off
         await store.send(.linkOpened(.missions))
-        XCTAssertNotNil(store.state.missions)
+        XCTAssertTrue(store.state.isShowingMissions)
         await store.send(.linkOpened(.home))
-        XCTAssertNil(store.state.missions)
+        XCTAssertTrue(store.state.path.isEmpty)
     }
 
     private func snapshot() -> ScheduleSnapshot {

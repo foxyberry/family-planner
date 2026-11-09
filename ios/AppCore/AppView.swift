@@ -22,7 +22,7 @@ public struct AppView: View {
             navigation
             // Also read the scene phase here, so the cover is drawn before the system takes its snapshot
             // even if the reducer has not seen the change yet.
-            if store.coversGrownupScreens || (scenePhase != .active && !store.path.isEmpty) {
+            if store.coversGrownupScreens || (scenePhase != .active && store.hasGrownupScreens) {
                 CrayonColor.paper.ignoresSafeArea()
             }
             if let lock = store.lock {
@@ -31,7 +31,8 @@ public struct AppView: View {
             }
             #if DEBUG
             if let debugTools = DebugModel.installed {
-                DebugOverlay(model: debugTools, lines: store.path.isEmpty ? .home : .grownup)
+                DebugOverlay(model: debugTools,
+                             lines: store.isShowingMissions ? .morning : store.path.isEmpty ? .home : .grownup)
             }
             #endif
         }
@@ -56,15 +57,13 @@ public struct AppView: View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             HomeView(store: store.scope(state: \.home, action: \.home))
                 .toolbar(.hidden, for: .navigationBar)
-                .fullScreenCover(item: $store.scope(state: \.missions, action: \.missions)) { store in
-                    MissionsView(store: store)
-                    #if DEBUG
-                        // The cover sits above the root's debug overlay; give it its own.
-                        .overlay { if let debugTools = DebugModel.installed { DebugOverlay(model: debugTools, lines: .morning) } }
-                    #endif
-                }
         } destination: { store in
             switch store.case {
+            case let .missions(store):
+                // Pushed over home; its own ← goes back (no system bar or edge swipe).
+                MissionsView(store: store)
+                    .toolbar(.hidden, for: .navigationBar)
+                    .navigationBarBackButtonHidden()
             case let .hub(store):
                 GrownupHubView(store: store)
             case let .editor(store):
@@ -81,7 +80,7 @@ public struct AppView: View {
         }
         // Any touch on a grown-up screen keeps it open for another 2 minutes.
         .simultaneousGesture(DragGesture(minimumDistance: 0).onEnded { _ in
-            if !store.path.isEmpty { store.send(.grownupTouched) }
+            if store.hasGrownupScreens { store.send(.grownupTouched) }
         })
         .environment(\.relockCaption, store.relockCaption)
     }
