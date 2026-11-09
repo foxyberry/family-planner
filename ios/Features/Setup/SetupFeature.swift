@@ -1,7 +1,9 @@
+import AppSettings
 import ComposableArchitecture
 import Domain
 import Foundation
 import Grownup
+import ParentAuthClient
 import SchoolDirectory
 import ScheduleStore
 import Strings
@@ -46,6 +48,12 @@ public struct SetupFeature {
         /// A debug link opened setup over an existing family: Start asks before replacing it.
         public var replacesFamily = false
         public var isConfirmingReplace = false
+        /// S4: the feature switches, saved with Start.
+        public var settings = AppSettings.defaults
+        /// S4: turning the lock on checks Face ID first; while it runs the switch waits.
+        public var isCheckingLock = false
+        /// S4: the lock could not be turned on (no Face ID, or it failed).
+        public var lockNeedsFaceID = false
         /// S1: the kid whose × asks "Remove {name}?" (a card with something typed asks first).
         public var removeConfirm: KidEntry.ID?
 
@@ -166,6 +174,8 @@ public struct SetupFeature {
         case rideChanged(Int)
         case leaveChanged(Int)
         // S4
+        case settingTapped(Setting)
+        case lockChecked(ParentAuthOutcome)
         case replaceConfirmed
         case replaceCancelled
         case saved(Bool)
@@ -178,9 +188,14 @@ public struct SetupFeature {
         }
     }
 
+    /// S4's switch rows (spec "S4 · Almost done"), in board order.
+    public enum Setting: CaseIterable, Hashable, Sendable { case grownupLock, liveBusTimes, medals }
+
     /// S2's four times.
     public enum TimeRow: Hashable, Sendable { case start, end, arriveBy, latest }
 
+    @Dependency(\.appSettings) var appSettings
+    @Dependency(\.parentAuth) var parentAuth
     @Dependency(\.schoolDirectory) var schoolDirectory
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.uuid) var uuid
@@ -232,9 +247,11 @@ public struct SetupFeature {
                     state.saveFailed = false
                     let today = Day(now, calendar: calendar)
                     let family = state.family(from: Day(year: today.year, month: 1, day: 1), id: { uuid() })
-                    return .run { [scheduleStore] send in
+                    let settings = state.settings
+                    return .run { [scheduleStore, appSettings] send in
                         do {
                             try await scheduleStore.replaceFamily(family)
+                            appSettings.save(settings)
                             await send(.saved(true))
                         } catch {
                             await send(.saved(false))
@@ -453,6 +470,40 @@ public struct SetupFeature {
                 return .none
 
             // MARK: S4
+
+            case let .settingTapped(setting):
+                switch setting {
+                case .grownupLock:
+                    guard !state.isCheckingLock else { return .none }
+                    if state.settings.grownupLock {
+                        // Off needs no check and no dialog (spec: the caption warns instead).
+                        state.settings.grownupLock = false
+                        return .none
+                    }
+                    // On: check Face ID works first, once.
+                    state.isCheckingLock = true
+                    return .run { [parentAuth] send in
+                        await send(.lockChecked(parentAuth.authenticate(L10n.tr("auth.reason"))))
+                    }
+                case .liveBusTimes:
+                    state.settings.liveBusTimes.toggle()
+                case .medals:
+                    state.settings.medals.toggle()
+                }
+                return .none
+
+            case let .lockChecked(outcome):
+                state.isCheckingLock = false
+                switch outcome {
+                case .success:
+                    state.settings.grownupLock = true
+                    state.lockNeedsFaceID = false
+                case .notAvailable, .notRecognised, .lockedOut:
+                    state.lockNeedsFaceID = true
+                case .cancelled:
+                    break
+                }
+                return .none
 
             case .replaceConfirmed:
                 return .send(.nextTapped)

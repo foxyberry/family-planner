@@ -270,6 +270,19 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// S4 switch list (layout v17): the switch on and off, and a row with a warning caption.
+    func testSettingRows() {
+        snap(HStack(spacing: Spacing.m) { CrayonSwitch(isOn: true); CrayonSwitch(isOn: false) }, named: "switches")
+        snap(VStack(spacing: 20) {
+            SettingRow(title: "Grown-up lock", caption: "Face ID before grown-up screens", isOn: true, action: {}) {
+                LockMark(size: 56)
+            }
+            SettingRow(title: "Grown-up lock",
+                       caption: "Off: anyone who holds the clock for 2 s can change the plan.",
+                       captionIsWarning: true, isOn: false, action: {}) { LockMark(size: 56) }
+        }, width: 738 + 2 * Spacing.m, named: "rows")
+    }
+
     /// Layout v14: rows 72 tall never overlap, a long name ends in "…" only at 610, and more rows
     /// than fit scroll inside the card.
     func testResultListCard() {

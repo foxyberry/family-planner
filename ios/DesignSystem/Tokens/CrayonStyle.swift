@@ -41,5 +41,6 @@ public enum CrayonStyle {
         static let status: UInt32 = 2301
         static let stepDots: UInt32 = 2401
         static let swatch: UInt32 = 2501
+        static let crayonSwitch: UInt32 = 2601
     }
 }

@@ -158,4 +158,31 @@ extension SetupFeature.State {
         }
         return (going.way.moverPicture, Self.wayCaption(going.way), L10n.tr("s4.way.leave", going.leaveBefore))
     }
+
+    /// S4's switch rows: title, caption (the "off" meaning where it matters) and whether it warns.
+    public struct SettingRowText: Equatable, Sendable {
+        public let setting: SetupFeature.Setting
+        public let title: String
+        public let caption: String
+        public let isWarning: Bool
+        public let isOn: Bool
+    }
+
+    public var settingRows: [SettingRowText] {
+        SetupFeature.Setting.allCases.map { setting in
+            switch setting {
+            case .grownupLock:
+                let on = settings.grownupLock
+                let caption = lockNeedsFaceID && !on ? L10n.tr("s4.lock.needs_face_id")
+                    : on ? L10n.tr("s4.lock.caption") : L10n.tr("s4.lock.off")
+                return SettingRowText(setting: setting, title: L10n.tr("s4.lock"), caption: caption, isWarning: !on, isOn: on)
+            case .liveBusTimes:
+                return SettingRowText(setting: setting, title: L10n.tr("s4.live_bus"), caption: L10n.tr("s4.live_bus.caption"),
+                                      isWarning: false, isOn: settings.liveBusTimes)
+            case .medals:
+                return SettingRowText(setting: setting, title: L10n.tr("s4.medals"), caption: L10n.tr("s4.medals.caption"),
+                                      isWarning: false, isOn: settings.medals)
+            }
+        }
+    }
 }

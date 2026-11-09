@@ -1,3 +1,4 @@
+import AppSettings
 import BusClient
 import ComposableArchitecture
 import DesignSystem
@@ -198,6 +199,7 @@ public struct HomeFeature {
     @Dependency(\.continuousClock) var clock
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
+    @Dependency(\.appSettings) var appSettings
     @Dependency(\.bus) var bus
 
     public init() {}
@@ -236,7 +238,8 @@ public struct HomeFeature {
 
             case .refresh:
                 state.secondsSinceRefresh = 0
-                guard state.wantsLive, let plan = state.busPlan else { return .none }
+                // S4 "Live bus times" off: no LTA call; home shows the timetable look.
+                guard state.wantsLive, appSettings.load().liveBusTimes, let plan = state.busPlan else { return .none }
                 return .run { [bus, date] send in
                     let arrivals = try? await bus.arrivals(plan.stop)
                     await send(.arrivalsLoaded(arrivals, at: date.now))

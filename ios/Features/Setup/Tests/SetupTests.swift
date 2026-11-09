@@ -1,7 +1,9 @@
+import AppSettings
 import BusClient
 import ComposableArchitecture
 import Domain
 import Grownup
+import ParentAuthClient
 import SchoolDirectory
 import ScheduleStore
 import Setup
@@ -265,6 +267,41 @@ final class SetupTests: XCTestCase {
         await asking.send(.replaceConfirmed)
         await asking.receive(\.delegate.finished)
         XCTAssertEqual(saved.value.count, 1)
+    }
+
+    /// S4 (layout v17): the lock goes off at once; on asks Face ID and stays off without it.
+    /// Start saves the switches with the family.
+    func testSwitchesAndTheLockCheck() async {
+        let outcome = LockIsolated(ParentAuthOutcome.notAvailable)
+        let savedSettings = LockIsolated<[AppSettings]>([])
+        var state = SetupFeature.State(firstKid: first, calendar: calendar)
+        state.step = .almostDone
+        let store = TestStore(initialState: state) { SetupFeature() } withDependencies: { [calendar, now] in
+            $0.calendar = calendar
+            $0.date.now = now
+            $0.uuid = .incrementing
+            $0.parentAuth.authenticate = { _ in outcome.value }
+            $0.appSettings.save = { settings in savedSettings.withValue { $0.append(settings) } }
+            $0.scheduleStore.replaceFamily = { _ in }
+        }
+        store.exhaustivity = .off
+        XCTAssertEqual(store.state.settingRows.map(\.isOn), [true, true, true], "every switch starts on")
+        await store.send(.settingTapped(.grownupLock))
+        XCTAssertFalse(store.state.settings.grownupLock)
+        XCTAssertEqual(store.state.settingRows[0].caption, "Off: anyone who holds the clock for 2 s can change the plan.")
+        XCTAssertTrue(store.state.settingRows[0].isWarning)
+        await store.send(.settingTapped(.grownupLock))
+        await store.receive(\.lockChecked)
+        XCTAssertFalse(store.state.settings.grownupLock, "no Face ID: the lock stays off")
+        XCTAssertEqual(store.state.settingRows[0].caption, "Set up Face ID in iPad Settings first.")
+        outcome.setValue(.success)
+        await store.send(.settingTapped(.grownupLock))
+        await store.receive(\.lockChecked)
+        XCTAssertTrue(store.state.settings.grownupLock)
+        await store.send(.settingTapped(.medals))
+        await store.send(.nextTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(savedSettings.value, [AppSettings(grownupLock: true, liveBusTimes: true, medals: false)])
     }
 
     func testStartSavesTheWholeFamilyOnce() async {

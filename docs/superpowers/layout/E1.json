@@ -1,5 +1,5 @@
 {
- "version": "14",
+ "version": "17",
  "board": "E1",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -51,9 +51,22 @@
   "baselines": {
    "weekday": 132,
    "kidAName": 187,
-   "kidAFirstLine": 301,
-   "timeLeft": 402,
-   "status": 446
+   "kidALabel": 265,
+   "timeLeft72": 337,
+   "status": 374,
+   "nextLabel": 259,
+   "nextTitle": 300,
+   "nextAt": 338
+  },
+  "kidARow": {
+   "pictureLeft": 928,
+   "picture": 96,
+   "pictureTop": 241,
+   "nextPicture": 104,
+   "nextPictureTop": 238,
+   "textLeft": 1040,
+   "nextTextLeft": 1048,
+   "gap": 16
   },
   "kidBRule": {
    "gapBelowKidA": 40,
@@ -162,15 +175,18 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidAWay",
-   "kind": "picture",
-   "x": 1232,
-   "y": 227,
-   "w": 80,
-   "h": 80,
+   "id": "panel.kidALabel.1",
+   "kind": "text",
+   "x": 1040,
+   "y": 230,
+   "w": 117,
+   "h": 45,
    "region": "panel",
    "anchor": "stretch",
-   "align": "end"
+   "align": "inside",
+   "baseline": 265,
+   "font": 30,
+   "text": "Leave in"
   },
   {
    "id": "clock.slotPicture.2",
@@ -184,31 +200,42 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.1",
-   "kind": "text",
+   "id": "panel.picture.1",
+   "kind": "picture",
    "x": 928,
-   "y": 266,
-   "w": 117,
+   "y": 241,
+   "w": 96,
+   "h": 96,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.text.1",
+   "kind": "text",
+   "x": 1040,
+   "y": 253,
+   "w": 253,
+   "h": 108,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 337,
+   "font": 72
+  },
+  {
+   "id": "panel.kidAStatus",
+   "kind": "text",
+   "x": 1040,
+   "y": 351,
+   "w": 151,
    "h": 45,
    "region": "panel",
    "anchor": "stretch",
-   "align": "start",
-   "baseline": 301,
+   "align": "inside",
+   "baseline": 374,
    "font": 30,
-   "text": "Leave in"
-  },
-  {
-   "id": "panel.time",
-   "kind": "text",
-   "x": 928,
-   "y": 290,
-   "w": 337,
-   "h": 145,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start",
-   "baseline": 402,
-   "font": 96
+   "text": "On time"
   },
   {
    "id": "clock.slotPicture.3",
@@ -222,18 +249,18 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidAStatus",
+   "id": "panel.kidALabel.2",
    "kind": "text",
-   "x": 928,
-   "y": 423,
-   "w": 151,
-   "h": 45,
+   "x": 1048,
+   "y": 429,
+   "w": 56,
+   "h": 36,
    "region": "panel",
    "anchor": "stretch",
-   "align": "start",
-   "baseline": 446,
-   "font": 30,
-   "text": "On time"
+   "align": "inside",
+   "baseline": 457,
+   "font": 24,
+   "text": "Next"
   },
   {
    "id": "clock.slotPicture.4",
@@ -245,6 +272,44 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
+  },
+  {
+   "id": "panel.picture.2",
+   "kind": "picture",
+   "x": 928,
+   "y": 435,
+   "w": 104,
+   "h": 104,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.kidName.2",
+   "kind": "text",
+   "x": 1048,
+   "y": 455,
+   "w": 119,
+   "h": 54,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 497,
+   "font": 36,
+   "text": "School"
+  },
+  {
+   "id": "panel.text.2",
+   "kind": "text",
+   "x": 1048,
+   "y": 501,
+   "w": 165,
+   "h": 45,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 536,
+   "font": 30
   },
   {
    "id": "clock.slotPicture.5",
@@ -269,45 +334,6 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.2",
-   "kind": "text",
-   "x": 928,
-   "y": 556,
-   "w": 56,
-   "h": 36,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start",
-   "baseline": 584,
-   "font": 24,
-   "text": "Next"
-  },
-  {
-   "id": "panel.picture",
-   "kind": "picture",
-   "x": 928,
-   "y": 598,
-   "w": 104,
-   "h": 104,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
-  },
-  {
-   "id": "panel.kidName.2",
-   "kind": "text",
-   "x": 1056,
-   "y": 604,
-   "w": 119,
-   "h": 54,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 646,
-   "font": 36,
-   "text": "School"
-  },
-  {
    "id": "clock.slotPicture.7",
    "kind": "picture",
    "x": 187,
@@ -317,19 +343,6 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "panel.text",
-   "kind": "text",
-   "x": 1056,
-   "y": 649,
-   "w": 165,
-   "h": 45,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 684,
-   "font": 30
   },
   {
    "id": "clock.slotPicture.8",

@@ -1,6 +1,8 @@
 // The app target stays thin: entry point + live dependency injection only.
 // Screens, state and lifecycle handling live in AppCore.
 import AppCore
+import AppSettings
+import AppSettingsLive
 import BusClient
 import BusClientLive
 import ComposableArchitecture
@@ -21,6 +23,7 @@ import SwiftUI
 final class AppDelegate: AppDelegateBase {
     override func bootstrap(_ dependencies: inout DependencyValues) {
         dependencies.parentAuth = .live
+        dependencies.appSettings = .live()
         dependencies.holidays = .live
         dependencies.scheduleStore = .live(directory: .applicationSupportDirectory)
         dependencies.schoolDirectory = .live

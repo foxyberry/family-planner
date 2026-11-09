@@ -494,27 +494,31 @@ private struct AlmostDoneStep: View {
     let store: StoreOf<SetupFeature>
     let layout: SetupLayout
 
+    /// Spec "S4 · Almost done": the switch rows 120 tall on a 140 pitch from 216 (picture at 104,
+    /// switch ending at 842), then the caption. Rows for features not built yet are not listed.
     var body: some View {
-        PaperCard(seed: 91) {
-            VStack(alignment: .leading, spacing: layout.settingRowGap) {
-                // Notifications appear once the nudge is built; microphone, camera and Screen Time later.
-                HStack(spacing: Spacing.m) {
-                    LockMark(size: 56)
-                    VStack(alignment: .leading, spacing: Spacing.xxs) {
-                        Text(L10n.tr("s4.lock")).crayonType(.body, bold: true)
-                        Text(L10n.tr("s4.lock.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    }
-                    Spacer(minLength: Spacing.s)
-                    CheckMark(isDone: true, size: 48)
-                    Text(L10n.tr("s4.lock.on")).crayonType(.body)
+        VStack(alignment: .leading, spacing: layout.settingRowGap) {
+            ForEach(store.settingRows, id: \.setting) { row in
+                SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
+                           action: { store.send(.settingTapped(row.setting)) }) {
+                    picture(row.setting)
                 }
-                .frame(minHeight: layout.settingRow(0).height)
-                Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                .frame(width: layout.settingRow(0).width, height: layout.settingRow(0).height)
             }
-            .foregroundStyle(CrayonColor.ink)
-            .frame(width: layout.grown.form.width - 2 * layout.grown.formInset, alignment: .leading)
+            Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                .frame(width: layout.settingRow(0).width, alignment: .leading)
         }
-        .frame(width: layout.grown.form.width)
+        .padding(.leading, layout.settingRow(0).minX - layout.grown.form.minX)
+        .padding(.top, layout.settingRow(0).minY - layout.grown.contentTop)
+        .frame(width: layout.grown.form.width, alignment: .topLeading)
+    }
+
+    @ViewBuilder private func picture(_ setting: SetupFeature.Setting) -> some View {
+        switch setting {
+        case .grownupLock: LockMark(size: 56)
+        case .liveBusTimes: KitIcon(.busSingle, size: 56)
+        case .medals: KitIcon(.medalGold, size: 56)
+        }
     }
 }
 

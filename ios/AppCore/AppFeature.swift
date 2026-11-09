@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import DesignSystem
 import Domain
@@ -49,6 +50,9 @@ public struct AppFeature {
         public var hasFamily: Bool?
         /// First-run setup (S1–S4) instead of the home, while the iPad has no family.
         public var setup: SetupFeature.State?
+        /// S4 "Grown-up lock" (layout v17). Off: the 2 s hold is the only gate, no Face ID and no
+        /// app-switcher cover; the 2-minute return home stays.
+        public var grownupLock = true
 
         public init() {}
 
@@ -58,7 +62,9 @@ public struct AppFeature {
 
         /// Grown-up screens are hidden whenever the app is not active, so the app-switcher snapshot
         /// and brief interruptions (Control Center) never show them to a child.
-        public var coversGrownupScreens: Bool { scenePhase != .active && (coverUntilActive || hasGrownupScreens) }
+        public var coversGrownupScreens: Bool {
+            grownupLock && scenePhase != .active && (coverUntilActive || hasGrownupScreens)
+        }
 
         /// The morning screen is on the stack (pushed from home or by its link).
         public var isShowingMissions: Bool {
@@ -96,6 +102,7 @@ public struct AppFeature {
         case linkOpened(ScreenLink)
     }
 
+    @Dependency(\.appSettings) var appSettings
     @Dependency(\.calendar) var calendar
     @Dependency(\.continuousClock) var clock
     @Dependency(\.date) var date
@@ -138,6 +145,7 @@ public struct AppFeature {
                 return .none
 
             case .checkFamily:
+                state.grownupLock = appSettings.load().grownupLock
                 return .run { [scheduleStore] send in
                     // An unreadable store is not an empty one: setup would replace it, so it never opens then.
                     guard let snapshot = try? await scheduleStore.load() else { return }
@@ -154,6 +162,7 @@ public struct AppFeature {
             case .setup(.delegate(.finished)):
                 state.setup = nil
                 state.hasFamily = true
+                state.grownupLock = appSettings.load().grownupLock
                 return .send(.home(.reload))
 
             case .setup:
@@ -200,8 +209,7 @@ public struct AppFeature {
                     // The usual unlock, as after the hold; the board opens once the hub has loaded.
                     state.path.removeAll()
                     state.pendingBoard = board
-                    state.lock = .scanning
-                    return authenticate()
+                    return unlock(&state)
                 case let .setup(step):
                     // Debug builds only. No unlock: setup has no grown-up lock, and nothing is
                     // saved until Start on S4.
@@ -243,8 +251,7 @@ public struct AppFeature {
                 return .none
 
             case .home(.clockHoldCompleted):
-                state.lock = .scanning
-                return authenticate()
+                return unlock(&state)
 
             case .parentAuthResponse(.success):
                 openGrownupScreens(&state)
@@ -370,6 +377,16 @@ public struct AppFeature {
         }
         .forEach(\.path, action: \.path)
         .ifLet(\.setup, action: \.setup) { SetupFeature() }
+    }
+
+    /// After the hold (or a grown-up link): Face ID, or straight in while the lock is off.
+    private func unlock(_ state: inout State) -> Effect<Action> {
+        guard state.grownupLock else {
+            openGrownupScreens(&state)
+            return .none
+        }
+        state.lock = .scanning
+        return authenticate()
     }
 
     private func authenticate() -> Effect<Action> {

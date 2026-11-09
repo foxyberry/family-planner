@@ -6,6 +6,7 @@ fp_swift_library(
     name = "AppCore",
     visibility = ["//ios:__subpackages__"],
     deps = [
+        "//ios/Clients/AppSettings",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/DebugTools",
