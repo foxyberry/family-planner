@@ -18,7 +18,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My buses"
+            "value" : "Buses"
           }
         }
       }
@@ -45,17 +45,6 @@
         }
       }
     },
-    "c2.for" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For %@"
-          }
-        }
-      }
-    },
     "c2.grace" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -63,6 +52,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Late up to"
+          }
+        }
+      }
+    },
+    "c2.grace.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "still Bronze"
           }
         }
       }
@@ -78,17 +78,6 @@
         }
       }
     },
-    "c2.plan" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan A · usual"
-          }
-        }
-      }
-    },
     "c2.ride" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -96,6 +85,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ride"
+          }
+        }
+      }
+    },
+    "c2.ride.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on %@"
+          }
+        }
+      }
+    },
+    "c2.side.arrive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrive by and latest are in School; they set the medals."
+          }
+        }
+      }
+    },
+    "c2.side.map" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On the morning map"
+          }
+        }
+      }
+    },
+    "c2.side.map.bus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is “my bus”: bold, it sets Leave in and the medal."
+          }
+        }
+      }
+    },
+    "c2.side.map.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick your bus: it sets Leave in and the medal."
+          }
+        }
+      }
+    },
+    "c2.side.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ to school"
           }
         }
       }
@@ -195,6 +250,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Walk"
+          }
+        }
+      }
+    },
+    "c2.walk.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to the stop"
           }
         }
       }
@@ -3571,7 +3637,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Leave in\" = the bus at the stop - the walk."
+            "value" : "“Leave in” = the bus at the stop – the walk."
           }
         }
       }

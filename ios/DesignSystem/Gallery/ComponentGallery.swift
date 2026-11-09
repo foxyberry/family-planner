@@ -31,6 +31,8 @@ public struct ComponentGallery: View {
                         RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
                         RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
                         RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(48)
+                        PillToggle("12", isOn: true) {}
+                        PillToggle("34", isOn: false) {}
                         CrayonSwitch(isOn: true)
                         CrayonSwitch(isOn: false)
                         CheckMark(isDone: true)

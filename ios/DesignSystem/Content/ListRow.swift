@@ -5,21 +5,26 @@ import SwiftUI
 public struct ListRow<Content: View>: View {
     private let leading: String
     private let minHeight: CGFloat
+    private let labelHeight: CGFloat?
     private let content: Content
     @Environment(\.formLabelWidth) private var formLabelWidth
 
     /// `minHeight`: 80 for form rows; 60 for the read-only rows of C1/E6.
-    public init(leading: String, minHeight: CGFloat = 80, @ViewBuilder content: () -> Content) {
+    /// `labelHeight`: top-align the row and centre the label on the control's first line of that
+    /// height (C2 "Stop": the 80 field, not the field plus its caption).
+    public init(leading: String, minHeight: CGFloat = 80, labelHeight: CGFloat? = nil,
+                @ViewBuilder content: () -> Content) {
         self.leading = leading
         self.minHeight = minHeight
+        self.labelHeight = labelHeight
         self.content = content()
     }
 
     public var body: some View {
-        HStack(spacing: formLabelWidth == nil ? Spacing.m : 0) {
+        HStack(alignment: labelHeight == nil ? .center : .top, spacing: formLabelWidth == nil ? Spacing.m : 0) {
             // Boards C1–C4: row labels are caption bold in soft text.
             Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
-                .frame(width: formLabelWidth ?? 120, alignment: .leading)
+                .frame(width: formLabelWidth ?? 120, height: labelHeight, alignment: .leading)
             content.crayonType(.body).frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minHeight: minHeight)

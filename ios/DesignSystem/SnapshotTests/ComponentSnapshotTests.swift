@@ -271,6 +271,11 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// Boards C2/S3: bus pills, one on and one off.
+    func testPillToggles() {
+        snap(HStack(spacing: Spacing.sm) { PillToggle("12", isOn: true) {}; PillToggle("345", isOn: false) {} })
+    }
+
     /// S4 switch list (layout v17): the switch on and off, and a row with a warning caption.
     func testSettingRows() {
         snap(HStack(spacing: Spacing.m) { CrayonSwitch(isOn: true); CrayonSwitch(isOn: false) }, named: "switches")

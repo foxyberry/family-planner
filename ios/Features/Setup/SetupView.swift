@@ -447,11 +447,12 @@ private struct GoingStep: View {
                             if going.search.servicesAtStop.isEmpty {
                                 Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                             } else {
-                                LazyVGrid(columns: Array(repeating: GridItem(.fixed(72), spacing: Spacing.sm), count: 7),
-                                          alignment: .leading, spacing: Spacing.sm) {
+                                // Boards S3/C2: bus pills 180 × 72, three across.
+                                LazyVGrid(columns: PillToggle.columns, alignment: .leading, spacing: Spacing.sm) {
                                     ForEach(going.search.servicesAtStop, id: \.self) { service in
-                                        DayChip(service, isOn: Binding(get: { going.services.contains(service) },
-                                                                       set: { _ in store.send(.serviceTapped(service)) }))
+                                        PillToggle(service, isOn: going.services.contains(service)) {
+                                            store.send(.serviceTapped(service))
+                                        }
                                     }
                                 }
                                 Text(L10n.tr("s3.buses.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
