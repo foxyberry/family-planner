@@ -6,12 +6,25 @@ public struct School: Hashable, Codable, Sendable {
     /// Minutes after midnight.
     public var start: Int
     public var end: Int
+    /// The school's id in the bundled school list (`SchoolEntry.id`); nil for a name typed by hand.
+    /// It stays on the iPad (spec S2: the app never sends which school was picked).
+    public var directoryID: String?
+    /// "Use MOE school terms for holidays" (S2).
+    public var usesMoeTerms: Bool?
+    /// Arrive by and Latest as the grown-up confirmed them in S2 (minutes after midnight).
+    public var arriveBy: Int?
+    public var latest: Int?
 
-    public init(name: String, days: Set<Weekday>, start: Int, end: Int) {
+    public init(name: String, days: Set<Weekday>, start: Int, end: Int, directoryID: String? = nil,
+                usesMoeTerms: Bool? = nil, arriveBy: Int? = nil, latest: Int? = nil) {
         self.name = name
         self.days = days
         self.start = start
         self.end = end
+        self.directoryID = directoryID
+        self.usesMoeTerms = usesMoeTerms
+        self.arriveBy = arriveBy
+        self.latest = latest
     }
 }
 

@@ -74,18 +74,14 @@ final class OldSeedTests: XCTestCase {
         #"{"kid":"\#(SeedData.kidA.id)","dayKind":"schoolDay","blocks":[]}"#
     }
 
-    func testOldSeedVersionIsReplaced() async throws {
+    /// An older build's seed is never wiped (user, 2026-11-09: no data lost without asking); its
+    /// routines in the first shape are skipped and the rest loads.
+    func testOldSeedIsKeptAndOldRoutinesAreSkipped() async throws {
         try writeStore(seedVersion: 1, routinePayload: oldRoutineJSON)
         let snapshot = try await ScheduleStore.live(directory: directory).load()
-        XCTAssertEqual(snapshot.kids, SeedData.kids)
-        XCTAssertEqual(snapshot.routines, SeedData.routines)
-        XCTAssertEqual(Set(snapshot.items), Set(SeedData.items(today: monday, calendar: calendar)))
-    }
-
-    func testRoutinesThatDoNotDecodeAreReplacedNotAnError() async throws {
-        try writeStore(seedVersion: SeedData.version, routinePayload: oldRoutineJSON)
-        let snapshot = try await ScheduleStore.live(directory: directory).load()
-        XCTAssertEqual(snapshot.routines, SeedData.routines)
+        XCTAssertEqual(snapshot.kids, [SeedData.kidA])
+        XCTAssertEqual(snapshot.items.map(\.title), ["Pottery"])
+        XCTAssertEqual(snapshot.routines, [])
     }
 
     func testCurrentSeedVersionKeepsUserItems() async throws {

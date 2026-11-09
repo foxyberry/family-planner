@@ -7,6 +7,7 @@ import Grownup
 import Home
 import Missions
 import KitArt
+import Setup
 import SwiftUI
 
 public struct AppView: View {
@@ -19,7 +20,15 @@ public struct AppView: View {
 
     public var body: some View {
         ZStack {
-            navigation
+            if let setup = store.scope(state: \.setup, action: \.setup) {
+                // First run (S1–S4): no home and no grown-up lock until the family is saved.
+                SetupView(store: setup)
+            } else if store.hasFamily == nil {
+                // The store is read once at launch; plain paper until then, never an empty home.
+                CrayonColor.paper.ignoresSafeArea()
+            } else {
+                navigation
+            }
             // Also read the scene phase here, so the cover is drawn before the system takes its snapshot
             // even if the reducer has not seen the change yet.
             if store.coversGrownupScreens || (scenePhase != .active && store.hasGrownupScreens) {
@@ -32,15 +41,21 @@ public struct AppView: View {
             #if DEBUG
             if let debugTools = DebugModel.installed {
                 DebugOverlay(model: debugTools,
-                             lines: store.isShowingMissions ? .morning : store.path.isEmpty ? .home : .grownup)
+                             lines: store.setup != nil ? .grownup
+                                 : store.isShowingMissions ? .morning : store.path.isEmpty ? .home : .grownup)
             }
             #endif
         }
+        #if DEBUG
+        // "Load sample family" in the debug menu replaced the stored family.
+        .onChange(of: DebugModel.installed?.familyGeneration) { store.send(.familyReplaced) }
+        #endif
         .environment(\.rigScale, Self.rigScale)
         // Spec "Sizing formulas": one Sizing for the window, read once here.
         .readsSizing()
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
         // the home disappear, which would cancel its task and stop the idle relock.
+        .task { store.send(.checkFamily) }
         .task { await store.send(.task).finish() }
     }
 
@@ -74,6 +89,8 @@ public struct AppView: View {
                 MissionEditorView(store: store)
             case let .busSettings(store):
                 BusSettingsView(store: store)
+            case let .dataSources(store):
+                DataSourcesView(store: store)
             case let .gallery(store):
                 ComponentGallery(onBack: { store.send(.backTapped) })
             }

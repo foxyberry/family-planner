@@ -1,0 +1,1701 @@
+{
+ "schemaVersion": 1,
+ "dataVersion": "2026.11.09",
+ "checkedAt": "2026-11-09",
+ "scope": "MOE primary schools (level primary + mixed P1-S4), ids match schools-sg.json",
+ "method": "Official school website only (*.moe.edu.sg). Sitemap keyword search then full-page scan; every value has a quote and sourceUrl. Blank = no official page states it. Sample = every 9th primary school in alphabetical order (21 of 182).",
+ "fieldMeaning": {
+  "start": "earliest time the school says pupils must be there (reporting / flag-raising / assembly); if only a school-hours range is given, its start",
+  "end": "normal dismissal time when one value applies to every level and weekday; otherwise null and see variants",
+  "reportBy": "time pupils are expected/encouraged to be in school, when earlier than start",
+  "gateOpens": "gates open",
+  "flagRaising": "flag-raising ceremony",
+  "lessonsStart": "first lesson",
+  "variants": "per weekday / level rows [{days, levels, start, end}]; end null = not stated",
+  "confidence": "high = dedicated hours/FAQ/info page updated in 2026; medium = school-rules/contact page, undated, or end inferred from a second official page; low = ambiguous"
+ },
+ "coverage": {
+  "primarySchools": 182,
+  "checked": 21,
+  "found": 16,
+  "not_checked": 161,
+  "partial": 4,
+  "not_found": 1,
+  "byConfidence": {
+   "high": 13,
+   "medium": 7,
+   "null": 1
+  }
+ },
+ "schools": {
+  "admiralty-primary-school": {
+   "status": "found",
+   "gateOpens": "06:45",
+   "variants": [
+    {
+     "days": [
+      "mon"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "09:30",
+     "end": "14:10"
+    },
+    {
+     "days": [
+      "mon"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "14:10"
+    },
+    {
+     "days": [
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "14:10"
+    }
+   ],
+   "quote": "Tuesday to Friday Reporting Time: 7:30am Dismissal Time: 2:10pm; Monday P1,P2 reporting 9:30am, P3-P6 7:30am; dismissal 2:10pm",
+   "sourceUrl": "https://www.admiraltypri.moe.edu.sg/general-information/school-hours/school-hours/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Dismissal 2:10pm all levels all days; Monday P1-P2 report 9:30. Page updated 25 Jun 2026. Gates open 06:45.",
+   "pageYear": 2026,
+   "start": null,
+   "end": null
+  },
+  "ahmad-ibrahim-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "ai-tong-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "alexandra-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "anchor-green-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "anderson-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "ang-mo-kio-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "anglo-chinese-school-junior": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "anglo-chinese-school-primary": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "angsana-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "end": "13:30",
+   "gateOpens": "06:45",
+   "quote": "Monday To Friday 7.30 a.m. - 1.30 p.m.",
+   "sourceUrl": "https://www.angsanapri.moe.edu.sg/school-information/school-hours/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Page updated 23 Jul 2026. Gates 06:45-07:30.",
+   "pageYear": 2026
+  },
+  "beacon-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "bedok-green-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "bendemeer-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "blangah-rise-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "boon-lay-garden-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "bukit-panjang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "bukit-timah-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "bukit-view-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "canberra-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "end": "13:30",
+   "lessonsStart": "07:45",
+   "quote": "School Hours Monday to Friday 7.45 a.m. to 1.30 p.m.; Pupils are required to report to school by 7.30 a.m. to participate in the pre-assembly activities.",
+   "sourceUrl": "https://www.canberrapri.moe.edu.sg/about-us/our-school-information/school-hours/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Reporting 7:30 (pre-assembly); lessons 7:45.",
+   "pageYear": 2026
+  },
+  "canossa-catholic-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "cantonment-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "casuarina-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "catholic-high-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "cedar-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "changkat-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chij-katong-primary": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chij-kellock": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chij-our-lady-of-good-counsel": {
+   "status": "partial",
+   "start": "07:30",
+   "quote": "Students must be on time for assembly at 7.30 a.m. every school day.",
+   "sourceUrl": "https://www.chijourladyofgoodcounsel.moe.edu.sg/our-school/school-rules/",
+   "checkedAt": "2026-11-09",
+   "confidence": "medium",
+   "notes": "Assembly time only; no dismissal time found on school-rules, general-information, parents, or any of ~110 sitemap pages (no school-hours page). Page undated.",
+   "pageYear": null,
+   "end": null
+  },
+  "chij-our-lady-of-the-nativity": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chij-our-lady-queen-of-peace": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chij-primary-toa-payoh": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chij-st-nicholas-girls-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chongfu-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chongzheng-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "chua-chu-kang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "clementi-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "compassvale-primary-school": {
+   "status": "found",
+   "start": "07:45",
+   "lessonsStart": "08:05",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:45",
+     "end": "13:40"
+    },
+    {
+     "days": [
+      "tue"
+     ],
+     "levels": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:45",
+     "end": "14:40"
+    }
+   ],
+   "quote": "Reporting Time Before 7.45a.m.; Flag-raising 7.45 a.m.; Start of Lesson 8.05 a.m.; Dismissal Mon, Wed, Thu, Fri 1.40 p.m.; Tuesday 2.40 p.m.",
+   "sourceUrl": "https://www.compassvalepri.moe.edu.sg/parents/generalschoolinfo/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Page updated 4 Nov 2026. Tuesday dismissal 14:40 (so top-level end is Mon/Wed/Thu/Fri).",
+   "pageYear": 2026,
+   "end": null
+  },
+  "concord-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "corporation-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "damai-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "dazhong-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "de-la-salle-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "east-spring-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "edgefield-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "elias-park-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "endeavour-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "07:30",
+     "end": "13:25"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "13:30"
+    },
+    {
+     "days": [
+      "wed"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "07:30",
+     "end": "12:55"
+    },
+    {
+     "days": [
+      "wed"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "13:00"
+    }
+   ],
+   "quote": "Reporting Time for Primary 1 to Primary 6: Flag-Raising Ceremony 7.30am. Dismissal Mon-Fri (except Wed): P1-P2 1.25pm, P3-P6 1.30pm; Wednesday 12:55pm / 1:00pm",
+   "sourceUrl": "https://www.endeavourpri.moe.edu.sg/general-information/school-hours/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Titled 2026 School Hours, updated 29 Sep 2026.",
+   "pageYear": 2026,
+   "end": null
+  },
+  "evergreen-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "fairfield-methodist-school-primary": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "farrer-park-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "fengshan-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "fern-green-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "fernvale-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "first-toa-payoh-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "frontier-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "fuchun-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "end": "13:30",
+   "quote": "School Hours Reporting Time 7.30 a.m. Dismissal Time 1.30 p.m.",
+   "sourceUrl": "https://www.fuchunpri.moe.edu.sg/for-parents/school-services-and-information/school-information/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Updated 5 Jun 2026; students encouraged to arrive 15 min early.",
+   "pageYear": 2026
+  },
+  "fuhua-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "gan-eng-seng-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "geylang-methodist-school-primary": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "gongshang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "greendale-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "greenridge-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "greenwood-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "haig-girls-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "henry-park-primary-school": {
+   "status": "found",
+   "start": "07:15",
+   "flagRaising": "07:25",
+   "lessonsStart": "07:30",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:15",
+     "end": "13:30"
+    },
+    {
+     "days": [
+      "wed"
+     ],
+     "levels": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:15",
+     "end": "13:00"
+    }
+   ],
+   "quote": "Monday, Tuesday, Thursday and Friday: 7.15a.m. to 1.30p.m. Wednesday: 7.15a.m. to 1.00p.m. Flag raising commences at 7.25a.m. and lessons start at 7.30a.m.",
+   "sourceUrl": "https://www.henryparkpri.moe.edu.sg/about-us/faq/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "FAQ 'arrival and dismissal time', updated 13 Aug 2026. Flag-raising 07:25 is the required assembly; arrival from 07:15. Staggered dismissal by level detailed in a PDF appendix not read.",
+   "pageYear": 2026,
+   "end": null
+  },
+  "holy-innocents-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "hong-wen-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "horizon-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "hougang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "huamin-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "innova-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "jiemin-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "jing-shan-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "junyuan-primary-school": {
+   "status": "partial",
+   "start": "07:30",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu"
+     ],
+     "levels": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "13:30"
+    },
+    {
+     "days": [
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": null
+    }
+   ],
+   "quote": "Flag Raising Ceremony 7.30 am | 7.30 am - 1.30 pm* ... Do note the revision in school hours on Friday",
+   "sourceUrl": "https://www.junyuanpri.moe.edu.sg/about-us/school-and-recess-hours/",
+   "checkedAt": "2026-11-09",
+   "confidence": "medium",
+   "notes": "Page updated 17 Aug 2026. Table marks Friday as revised but the Friday end time is not stated; Friday end left blank.",
+   "pageYear": 2026,
+   "end": null
+  },
+  "jurong-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "jurong-west-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "keming-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "kheng-cheng-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "kong-hwa-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "kranji-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "kuo-chuan-presbyterian-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "lakeside-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "lianhua-primary-school": {
+   "status": "found",
+   "start": "07:25",
+   "lessonsStart": "07:30",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "07:25",
+     "end": "13:20"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:25",
+     "end": "13:30"
+    }
+   ],
+   "quote": "School hours: 7.30am to 1.30pm. Students are encouraged to report by 7.25 am. Staggered Dismissal: P1 and P2 1.20pm, P3 to P6 1.30pm",
+   "sourceUrl": "https://www.lianhuapri.moe.edu.sg/for-parents/school-info/school-hours-n-recess-timings/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Updated 31 Jul 2026. Report-by time is 'encouraged', not mandatory; end differs for P1-P2 (13:20).",
+   "pageYear": 2026,
+   "end": null
+  },
+  "maha-bodhi-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "maris-stella-high-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "marsiling-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "marymount-convent-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "mayflower-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "mee-toh-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "meridian-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "methodist-girls-school-primary": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "montfort-junior-school": {
+   "status": "found",
+   "start": "07:30",
+   "reportBy": "07:15",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P3"
+     ],
+     "start": "07:15",
+     "end": "13:30"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P4"
+     ],
+     "start": "07:15",
+     "end": "13:33"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1"
+     ],
+     "start": "07:15",
+     "end": "13:37"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P2"
+     ],
+     "start": "07:15",
+     "end": "13:42"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P5"
+     ],
+     "start": "07:15",
+     "end": "13:45"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P6"
+     ],
+     "start": "07:15",
+     "end": "13:48"
+    }
+   ],
+   "quote": "School starts at 7.30am and ends at 1.35pm. All students are expected to be in school by 7.15am during term time.",
+   "sourceUrl": "https://www.montfortjunior.moe.edu.sg/faq/",
+   "endSourceUrl": "https://www.montfortjunior.moe.edu.sg/announcements/dismissal-timings-by-level/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "FAQ (updated 22 Jul 2026): school starts 7.30am and ends 1.35pm; students expected in school by 7.15am (reportBy). Staggered dismissal by level 1.30-1.48pm per the dismissal-timings page (updated 22 Jul 2026), so top-level end is blank.",
+   "pageYear": 2026,
+   "end": null
+  },
+  "nan-chiau-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "nan-hua-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "nanyang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "naval-base-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "new-town-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "ngee-ann-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "north-spring-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "north-view-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "north-vista-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "end": "13:30",
+   "reportBy": "07:25",
+   "quote": "7.30 a.m. Flag Raising and Pledge Taking Ceremony; 1.30 p.m. Dismissal Time",
+   "sourceUrl": "https://www.northvistapri.moe.edu.sg/about-north-vista/school-hours/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Updated 26 Aug 2026; students report by 7.25am per school-information page.",
+   "pageYear": 2026
+  },
+  "northland-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "northoaks-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "northshore-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "oasis-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "opera-estate-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "palm-view-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "park-view-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "pasir-ris-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "paya-lebar-methodist-girls-school-primary": {
+   "status": "found",
+   "start": "07:30",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "07:30",
+     "end": "13:25"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "13:30"
+    }
+   ],
+   "quote": "Monday to Friday 7.30am - 1.30pm. Students assemble in the Hall every morning at 7.30am for the flag-raising ceremony. Dismissal: P1 and P2 1.25 pm, P3 to P6 1.30 pm",
+   "sourceUrl": "https://www.payalebarmethodistgirlspri.moe.edu.sg/about-pl/school-information/school-information/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Updated 12 Aug 2026; P1-P2 dismissed 13:25.",
+   "pageYear": 2026,
+   "end": null
+  },
+  "pei-chun-public-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "pei-hwa-presbyterian-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "pei-tong-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "peiying-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "pioneer-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "poi-ching-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "princess-elizabeth-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "punggol-cove-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "punggol-green-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "07:30",
+     "end": "13:30"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "13:40"
+    },
+    {
+     "days": [
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "07:30",
+     "end": "12:30"
+    },
+    {
+     "days": [
+      "fri"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "12:40"
+    }
+   ],
+   "quote": "Curriculum Time 7.30 a.m. - 1.40 p.m. (Monday - Thursday); 7.30 a.m. - 12.40 p.m. (Friday). Dismissal 2026: P1,P2 1.30pm (Fri 12.30pm); P3-P6 1.40pm (Fri 12.40pm)",
+   "sourceUrl": "https://www.punggolgreenpri.moe.edu.sg/our-school/school-history-and-information/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Page updated 20 Aug 2026. Also /school-safety-information/: children should report at 7.30 a.m. daily.",
+   "pageYear": 2026,
+   "end": null
+  },
+  "punggol-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "punggol-view-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "qifa-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "qihua-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "queenstown-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "radin-mas-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "raffles-girls-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "red-swastika-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "river-valley-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "variants": [
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+     ],
+     "levels": [
+      "P1",
+      "P2"
+     ],
+     "start": "07:30",
+     "end": "13:30"
+    },
+    {
+     "days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "13:30"
+    },
+    {
+     "days": [
+      "fri"
+     ],
+     "levels": [
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+     ],
+     "start": "07:30",
+     "end": "14:30"
+    }
+   ],
+   "quote": "P1&2 Mon-Fri 7.30 am - 1.30 pm; P3-P6 Mon-Thu 7.30 am - 1.30 pm, Friday 7.30 am - 2.30 pm",
+   "sourceUrl": "https://www.rivervalleypri.moe.edu.sg/rv-information/school-hours/",
+   "checkedAt": "2026-11-09",
+   "confidence": "high",
+   "notes": "Updated 22 Jul 2026. Friday P3-P6 ends 14:30.",
+   "pageYear": 2026,
+   "end": null
+  },
+  "riverside-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "rivervale-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "rosyth-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "rulang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "sembawang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "seng-kang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "sengkang-green-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "shuqun-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "si-ling-primary-school": {
+   "status": "not_found",
+   "checkedAt": "2026-11-09",
+   "notes": "Contact-us page says 'For School Hours, click here' but the link target is not in the HTML (rendered as plain text). Checked /contact-us/, /about-us/*, /parents/*, academic-calendar and ~98 sitemap pages; no times found.",
+   "pageYear": null,
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "singapore-chinese-girls-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "south-view-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "springdale-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "st-andrew-s-school-junior": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "st-anthony-s-canossian-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "st-anthony-s-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "st-gabriel-s-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "st-hilda-s-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "st-joseph-s-institution-junior": {
+   "status": "found",
+   "start": "07:20",
+   "end": "13:30",
+   "lessonsStart": "07:30",
+   "quote": "The school hours from Monday to Friday are from 7.30am to 1.30pm. Pupils are to report for assembly in the School Hall/ classroom by 7.20am.",
+   "sourceUrl": "https://www.sjijunior.moe.edu.sg/for-parents/school-rules/",
+   "checkedAt": "2026-11-09",
+   "confidence": "medium",
+   "notes": "Inside School Rules page; undated.",
+   "pageYear": null
+  },
+  "st-margaret-s-school-primary": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "st-stephen-s-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "tampines-north-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "tampines-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "tanjong-katong-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "tao-nan-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "teck-ghee-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "teck-whye-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "telok-kurau-primary-school": {
+   "status": "found",
+   "start": "07:30",
+   "end": "13:45",
+   "quote": "School hours: 7.30 a.m. - 1.45 p.m. (Contact Us); students report and assemble by 7.30am every morning (School Rules)",
+   "sourceUrl": "https://www.telokkuraupri.moe.edu.sg/our-school--our-story/school-information/contact-us/",
+   "checkedAt": "2026-11-09",
+   "confidence": "medium",
+   "notes": "Contact-us updated 3 Aug 2026; assembly time from /our-school--our-story/school-rules/. Dismissal gates open 13:40-14:15.",
+   "pageYear": 2026
+  },
+  "temasek-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "townsville-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "unity-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "valour-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "waterway-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "wellington-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "west-grove-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "west-spring-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "west-view-primary-school": {
+   "status": "found",
+   "start": "07:25",
+   "end": "13:30",
+   "lessonsStart": "07:30",
+   "quote": "Reporting Time by 7.25 a.m. Session Begins 7.30 a.m. (School Hours page); student care: 'From school dismissal at 1.30 p.m.' (School Services page)",
+   "sourceUrl": "https://www.westviewpri.moe.edu.sg/ps-aboutus/ps-aboutus-ourschool/ps-aboutus-ourschool-schoolhours/",
+   "endSourceUrl": "https://www.westviewpri.moe.edu.sg/ps-resources/ps-resources-resourcesforparents/ps-resourcesforparents-schoolservices/",
+   "checkedAt": "2026-11-09",
+   "confidence": "medium",
+   "notes": "Start from school-hours page (updated 24 Jul 2026); end only indirectly from https://www.westviewpri.moe.edu.sg/ps-resources/ps-resources-resourcesforparents/ps-resourcesforparents-schoolservices/ (student care operating hours).",
+   "pageYear": 2026
+  },
+  "westwood-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "white-sands-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "woodgrove-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "woodlands-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "woodlands-ring-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "xinghua-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "xingnan-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "xinmin-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "xishan-primary-school": {
+   "status": "partial",
+   "start": "07:30",
+   "quote": "Students must report to school by 7.30 a.m.",
+   "sourceUrl": "https://www.xishanpri.moe.edu.sg/general-information/school-rules-and-regulations/",
+   "checkedAt": "2026-11-09",
+   "confidence": "medium",
+   "notes": "Report time only; no dismissal time on any of ~130 sitemap pages checked (bookshop says 'after school dismissal until 3:30pm'). Undated.",
+   "pageYear": null,
+   "end": null
+  },
+  "yangzheng-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "yew-tee-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "yio-chu-kang-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "yishun-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "yu-neng-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "yuhua-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "yumin-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "zhangde-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  },
+  "zhenghua-primary-school": {
+   "status": "partial",
+   "start": "07:30",
+   "quote": "Students must be punctual for flag-raising which commences at 7.30 a.m.",
+   "sourceUrl": "https://www.zhenghuapri.moe.edu.sg/our-info-hub/information-for-parents/school-rules/",
+   "checkedAt": "2026-11-09",
+   "confidence": "medium",
+   "notes": "Flag-raising only; no dismissal time found in ~145 sitemap pages. Undated.",
+   "pageYear": null,
+   "end": null
+  },
+  "zhonghua-primary-school": {
+   "status": "not_checked",
+   "start": null,
+   "end": null,
+   "confidence": null
+  }
+ }
+}

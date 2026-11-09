@@ -49,6 +49,20 @@ final class ComponentSnapshotTests: XCTestCase {
         ]))
     }
 
+    /// S1–S4 parts: step dots, colour swatches (one picked), a placeholder time, a face not picked yet.
+    func testSetupParts() {
+        snap(HStack(spacing: Spacing.m) {
+            StepDots(current: 2)
+            HStack(spacing: Spacing.xs) {
+                ForEach(0..<4, id: \.self) { index in
+                    ColourSwatch(colorIndex: index, isPicked: index == 0, accessibilityLabel: "Colour") {}
+                }
+            }
+            TimeField(label: "7:30 am", time: .constant(Date(timeIntervalSince1970: 0)), isPlaceholder: true)
+            KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
+        })
+    }
+
     func testChips() {
         snap(HStack(spacing: Spacing.s) {
             DayChip("M", isOn: .constant(true))

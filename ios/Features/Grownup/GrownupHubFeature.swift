@@ -54,6 +54,8 @@ public struct GrownupHubFeature {
         case addOnceTapped
         case backTapped
         case galleryButtonTapped
+        /// "Data sources": the open-data notices the school list's licences ask for.
+        case dataSourcesTapped
     }
 
     @Dependency(\.calendar) var calendar
@@ -86,7 +88,7 @@ public struct GrownupHubFeature {
                 return .none
 
             case .weeklyItemTapped, .onceItemTapped, .addWeeklyTapped, .addOnceTapped, .backTapped, .dayRowTapped, .missionsRowTapped, .busesRowTapped,
-                 .galleryButtonTapped:
+                 .galleryButtonTapped, .dataSourcesTapped:
                 return .none
             }
         }

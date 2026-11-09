@@ -10,6 +10,9 @@ public enum ScreenLink: Equatable, Sendable {
     /// A grown-up board (`familyplanner://c2`), debug builds only: it opens after the usual
     /// unlock (Face ID, or "Enter" without it), so a link never skips the lock.
     case grownup(GrownupBoard)
+    /// First-run setup at step 1–4 (`familyplanner://s2`), debug builds only: S2–S4 come filled
+    /// with the sample family. No unlock (setup has none); nothing is saved until Start.
+    case setup(Int)
 
     public static let scheme = "familyplanner" // copy-ok: URL scheme
 
@@ -21,6 +24,10 @@ public enum ScreenLink: Equatable, Sendable {
         case "missions": self = .missions // copy-ok: link name
         default:
             #if DEBUG
+            if let step = ["s1", "s2", "s3", "s4"].firstIndex(of: host) { // copy-ok: link names
+                self = .setup(step + 1)
+                return
+            }
             guard let board = GrownupBoard(rawValue: host) else { return nil }
             self = .grownup(board)
             #else

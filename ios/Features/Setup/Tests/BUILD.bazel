@@ -1,0 +1,26 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+fp_swift_library(
+    name = "SetupTestsLib",
+    testonly = True,
+    deps = [
+        "//ios/Clients/BusClient",
+        "//ios/Clients/ScheduleStore",
+        "//ios/Clients/SchoolDirectory",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/Features/Grownup",
+        "//ios/Features/Setup",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)
+
+ios_unit_test(
+    name = "SetupTests",
+    bundle_id = BUNDLE_ID + ".setup.tests",
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    deps = [":SetupTestsLib"],
+)

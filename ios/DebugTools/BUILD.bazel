@@ -11,7 +11,9 @@ fp_swift_library(
     ],
     deps = [
         "//ios/Clients/ParentAuthClient",
+        "//ios/Clients/ScheduleStore",
         "//ios/DesignSystem",
+        "//ios/Domain",
         "//ios/KitArt",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],

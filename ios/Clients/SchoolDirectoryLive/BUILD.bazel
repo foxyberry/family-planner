@@ -1,0 +1,39 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("//:project.bzl", "BUNDLE_ID")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Open data from data.gov.sg and OneMap (see Resources/SOURCE.md).
+apple_resource_bundle(
+    name = "SchoolDirectoryResources",
+    bundle_id = BUNDLE_ID + ".schools",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = glob(["Resources/*.json"]),
+)
+
+# The international and private school list exists only on a developer's machine: its licence is
+# not decided, so the folder is git-ignored and CI and clones build without it.
+apple_resource_bundle(
+    name = "SchoolDirectoryPrivateResources",
+    bundle_id = BUNDLE_ID + ".schools.private",
+    infoplists = ["ResourceBundle-Info.plist"],
+    resources = glob(
+        ["Private/*.json"],
+        allow_empty = True,
+    ),
+)
+
+fp_swift_library(
+    name = "SchoolDirectoryLive",
+    data = [
+        ":SchoolDirectoryPrivateResources",
+        ":SchoolDirectoryResources",
+    ],
+    visibility = [
+        "//ios:__pkg__",
+        "//ios/Clients/SchoolDirectoryLive/Tests:__pkg__",
+    ],
+    deps = [
+        "//ios/Clients/SchoolDirectory",
+        "//ios/Domain",
+    ],
+)

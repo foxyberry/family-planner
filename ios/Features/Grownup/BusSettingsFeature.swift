@@ -14,15 +14,9 @@ public struct BusSettingsFeature {
     public struct State: Equatable {
         public var kid: Kid.ID
         public var kidName = ""
-        public var stop = ""
-        /// The stop the code belongs to (picked from the list or looked up from the code).
-        public var pickedStop: BusStop?
-        /// The stop field: a name to search for, or the 5-digit code.
-        public var stopText = ""
-        /// Stops whose name or road matches `stopText` (user, 2026-11-09: families know the name).
-        public var stopMatches: [BusStop] = []
-        /// Bus numbers that call at the stop (from its live arrivals), and the kid's picks.
-        public var servicesAtStop: [String] = []
+        /// The stop field (shared with S3).
+        public var search = StopSearchFeature.State()
+        /// The kid's bus numbers, picked from what calls at the stop.
         public var services: [String] = []
         public var walk = BusPlan.defaultWalk
         public var ride = BusPlan.defaultRide
@@ -37,27 +31,16 @@ public struct BusSettingsFeature {
         public var rideText: String { L10n.tr("c2.minutes", ride) }
         public var graceText: String { L10n.tr("c2.minutes", lateGrace) }
 
-        /// The name under the stop code, or a hint while it is not 5 digits or unknown.
-        public var stopCaption: String {
-            if let pickedStop { return L10n.tr("c2.stop.match", pickedStop.road, pickedStop.code) }
-            if !stopMatches.isEmpty { return L10n.tr("c2.stop.pick") }
-            if stopText.filter(\.isLetter).count >= 2 { return L10n.tr("c2.stop.none_found") }
-            return stop.count == 5 ? L10n.tr("c2.stop.unknown") : L10n.tr("c2.stop.hint")
-        }
-
         public var plan: BusPlan? {
-            guard stop.count == 5, !services.isEmpty else { return nil }
-            return BusPlan(kid: kid, stop: stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace)
+            guard search.stop.count == 5, !services.isEmpty else { return nil }
+            return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace)
         }
     }
 
     public enum Action: Equatable {
         case task
         case loaded(ScheduleSnapshot?)
-        case stopChanged(String)
-        case stopsFound([BusStop])
-        case stopPicked(BusStop)
-        case stopLooked(stop: BusStop?, services: [String])
+        case search(StopSearchFeature.Action)
         case serviceTapped(String)
         case walkChanged(Int)
         case rideChanged(Int)
@@ -72,11 +55,11 @@ public struct BusSettingsFeature {
     }
 
     @Dependency(\.scheduleStore) var scheduleStore
-    @Dependency(\.bus) var bus
 
     public init() {}
 
     public var body: some ReducerOf<Self> {
+        Scope(state: \.search, action: \.search) { StopSearchFeature() }
         Reduce { state, action in
             switch action {
             case .task:
@@ -87,50 +70,15 @@ public struct BusSettingsFeature {
             case let .loaded(snapshot):
                 state.kidName = snapshot?.kids.first { $0.id == state.kid }?.name ?? ""
                 if let plan = snapshot?.busPlans.first(where: { $0.kid == state.kid }) {
-                    state.stop = plan.stop
-                    state.stopText = plan.stop
+                    state.search = StopSearchFeature.State(stop: plan.stop)
                     state.services = plan.services
                     state.walk = plan.walk
                     state.ride = plan.ride
                     state.lateGrace = plan.lateGrace
                 }
-                return lookUp(state)
+                return .send(.search(.lookUp))
 
-            case let .stopChanged(text):
-                state.stopText = text
-                state.pickedStop = nil
-                state.servicesAtStop = []
-                // Two or more letters: a name to look for; otherwise the digits of the code.
-                if text.filter(\.isLetter).count >= 2 {
-                    state.stop = ""
-                    return .run { [bus] send in
-                        try await Task.sleep(for: .milliseconds(300))
-                        await send(.stopsFound((try? await bus.searchStops(text)) ?? []))
-                    }
-                    .cancellable(id: SearchID.stops, cancelInFlight: true)
-                }
-                state.stopMatches = []
-                state.stop = String(text.filter(\.isNumber).prefix(5))
-                return .merge(.cancel(id: SearchID.stops), lookUp(state))
-
-            case let .stopsFound(stops):
-                state.stopMatches = stops
-                return .none
-
-            case let .stopPicked(stop):
-                state.stop = stop.code
-                // Board C2 (v9): the field shows the stop's name, the caption its road and code.
-                state.stopText = stop.name
-                state.pickedStop = stop
-                state.stopMatches = []
-                return lookUp(state)
-
-            case let .stopLooked(stop, services):
-                if let stop, stop.code == state.stop {
-                    state.pickedStop = stop
-                    state.stopText = stop.name
-                }
-                state.servicesAtStop = services
+            case .search:
                 return .none
 
             case let .serviceTapped(service):
@@ -159,21 +107,6 @@ public struct BusSettingsFeature {
             case .delegate:
                 return .none
             }
-        }
-    }
-
-    private enum SearchID: Hashable { case stops }
-
-    /// With a 5-digit stop: the stop's name and the bus numbers calling there now (nothing without a key).
-    private func lookUp(_ state: State) -> Effect<Action> {
-        guard state.stop.count == 5 else { return .none }
-        let stop = state.stop
-        return .run { [bus] send in
-            let found = try? await bus.stop(stop)
-            let arrivals = (try? await bus.arrivals(stop)) ?? []
-            var seen: [String] = []
-            for arrival in arrivals where !seen.contains(arrival.service) { seen.append(arrival.service) }
-            await send(.stopLooked(stop: found, services: seen.sorted { $0.localizedStandardCompare($1) == .orderedAscending }))
         }
     }
 

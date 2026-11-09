@@ -43,6 +43,10 @@ public struct ScheduleStore: Sendable {
     public var saveMissionDay: @Sendable (_ day: MissionDay) async throws -> Void
     /// Saves a kid's bus route (C2), replacing the old one.
     public var saveBusPlan: @Sendable (_ plan: BusPlan) async throws -> Void
+    /// Replaces everything on this iPad with `family` in one write: kids, templates, items, missions
+    /// and bus plans; mission marks are dropped. First-run setup's "Start" and the debug tools'
+    /// "Load sample family" use it.
+    public var replaceFamily: @Sendable (_ family: ScheduleSnapshot) async throws -> Void
 }
 
 extension ScheduleStore: TestDependencyKey {
@@ -51,6 +55,7 @@ extension ScheduleStore: TestDependencyKey {
     /// Seed data in memory, for previews. Seeded on the first load around the preview's `\.date` and
     /// `\.calendar`, so a preview can pin the day like a test does.
     public static var previewValue: Self {
+        let kids = LockIsolated(SeedData.kids)
         let items = LockIsolated<[ScheduleItem]?>(nil)
         let routines = LockIsolated(SeedData.routines)
         let missions = LockIsolated(SeedData.missions)
@@ -65,7 +70,7 @@ extension ScheduleStore: TestDependencyKey {
             }
         }
         return Self(
-            load: { ScheduleSnapshot(kids: SeedData.kids, routines: routines.value, items: seeded(),
+            load: { ScheduleSnapshot(kids: kids.value, routines: routines.value, items: seeded(),
                                      missions: missions.value, busPlans: plans.value) },
             save: { item in
                 _ = seeded()
@@ -108,10 +113,27 @@ extension ScheduleStore: TestDependencyKey {
                     list.removeAll { $0.kid == plan.kid }
                     list.append(plan)
                 }
+            },
+            replaceFamily: { family in
+                kids.setValue(family.kids)
+                routines.setValue(family.routines)
+                items.setValue(family.items)
+                missions.setValue(family.missions)
+                plans.setValue(family.busPlans)
+                days.setValue([])
             }
         )
     }
 
+}
+
+extension ScheduleSnapshot {
+    /// The sample family (`SeedData`) around the preview's day, for previews and the debug tools'
+    /// "Load sample family".
+    public static func sampleFamily(today: Day, calendar: Calendar) -> ScheduleSnapshot {
+        ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines,
+                         items: SeedData.items(today: today, calendar: calendar), missions: SeedData.missions)
+    }
 }
 
 extension DependencyValues {

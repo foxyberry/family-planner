@@ -11,6 +11,7 @@ fp_swift_library(
         "//ios/Clients/ScheduleStore",
         "//ios/Domain",
         "//ios/Features/Grownup",
+        "//ios/Features/Setup",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )
