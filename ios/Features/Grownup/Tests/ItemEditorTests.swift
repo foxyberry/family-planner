@@ -15,7 +15,7 @@ final class ItemEditorTests: XCTestCase {
 
     private func store(mode: ItemEditorFeature.Mode, repeats: ItemForm.Repeat = .weekly, items: [ScheduleItem] = [],
                        saved: LockIsolated<[ScheduleItem]> = .init([]), deleted: LockIsolated<[UUID]> = .init([]),
-                       saveError: Bool = false) -> TestStoreOf<ItemEditorFeature> {
+                       saveError: Bool = false, school: SchoolCalendar = .none) -> TestStoreOf<ItemEditorFeature> {
         let now = F.monday.date(minute: 600, calendar: F.calendar)
         let snapshot = F.snapshot(items: items)
         let store = TestStore(initialState: ItemEditorFeature.State(mode: mode, repeats: repeats, now: now,
@@ -32,7 +32,7 @@ final class ItemEditorTests: XCTestCase {
             }
             $0.scheduleStore.delete = { id in deleted.withValue { $0.append(id) } }
             $0.holidays.holidays = { _ in [] }
-            $0.schoolDirectory.calendar = { _, _ in .none }
+            $0.schoolDirectory.calendar = { _, _ in school }
         }
         store.exhaustivity = .off
         return store
@@ -398,5 +398,44 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.goingTapped(.car))
         await store.send(.medalToggled)
         XCTAssertTrue(store.state.form.medalIsOn)
+    }
+
+    // MARK: Runs (board G2)
+
+    func testRunsEndOfTermByDefaultAndTheCardPutsItBackOnATapOutside() async {
+        let term = SchoolCalendar.Term(name: "Term 4", start: Day(year: 2026, month: 9, day: 14),
+                                       end: Day(year: 2026, month: 11, day: 20))
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let store = store(mode: .add(kidA), saved: saved, school: SchoolCalendar(terms: [term]))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.runsStartText, "9 Nov")
+        XCTAssertEqual(store.state.runsEndText, "End of term")
+        XCTAssertEqual(store.state.termCaption, "This term ends 20 Nov")
+        XCTAssertEqual(store.state.runsEndTabs.map(\.1), ["End of term", "Date", "Times", "No end"])
+
+        await store.send(.runsEndTapped)
+        await store.send(.runsEndKindPicked(.date))
+        XCTAssertEqual(store.state.runsEndText, "20 Nov", "a date starts at the term's end")
+        await store.send(.cardClosed)
+        XCTAssertEqual(store.state.runsEndText, "End of term")
+
+        await store.send(.runsEndTapped)
+        await store.send(.runsEndKindPicked(.count))
+        await store.send(.runsTimesStepped(-2))
+        await store.send(.runsEndDoneTapped)
+        XCTAssertEqual(store.state.runsEndText, "After 8 times")
+        await fill(store)
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.first?.runsEnd, .count(8))
+    }
+
+    func testNoSchoolCalendarOffersNoEndOfTerm() async {
+        let store = store(mode: .add(kidA))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.runsEndText, "No end")
+        XCTAssertEqual(store.state.runsEndTabs.map(\.0), [.date, .count, .none])
     }
 }

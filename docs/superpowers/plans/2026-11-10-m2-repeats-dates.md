@@ -26,12 +26,16 @@ Grown-up mode (G1, the C6 slice card tabs, G4 School) is 6d.
 
 ## PR 2: Runs and school holidays (G2)
 
-- `Recurrence.weekly` gets an end: `term` (resolved per day from the calendar, so a data update moves
-  it), `date` (inclusive), `count` (after n runs), `none`; the start stays `from`.
-- E5 All days and C3: the Repeat row becomes **Days** (chips) and **Runs** ("{start}" → "End of term"
-  / a date / "After n times" / "No end", a small card per field); "Skip school holidays" skips the
-  kid's closed days (default on for School-linked items, off for others).
-- Linked items always follow School's days.
+- `ScheduleItem.runsEnd`: `term` and `count` are worked out when the days are (`FamilyCalendar.resolving`,
+  so a calendar update moves a term end), `date` is the recurrence's `until`, `none` runs on. Items
+  saved before Runs keep their `until`.
+- `FamilyCalendar` (Domain) replaces PR 1's days-off map: each kid's school calendar and the public
+  holidays, days off per kid or audience, and the runs' ends.
+- E5 All days and C3: **Days** (chips) and **Runs** ("{start}" → "End of term" / a date / "After n
+  times" / "No end"; the end opens a small card, a tap outside puts it back). A new item runs to the
+  end of term when the kid's school has terms. "Skip school holidays" skips the kid's days off; it is
+  off by default for an activity and turns on when the item follows School.
+- New parts `FieldButton` and `DateField` (TimeField now uses FieldButton).
 
 ## PR 3: This day / All days (G3, G5)
 

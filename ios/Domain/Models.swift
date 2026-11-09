@@ -119,6 +119,16 @@ public enum Recurrence: Hashable, Codable, Sendable {
     case weekly(Set<Weekday>, from: Day, until: Day?)
 }
 
+/// How an every-week item's run ends (spec "Repeats, dates and changes", Runs). `term` is worked out
+/// from the kid's school calendar each time the days are (so a calendar update moves it); `date` and
+/// `count` are kept in the recurrence's `until`.
+public enum RunsEnd: Hashable, Codable, Sendable {
+    case term
+    case date
+    case count(Int)
+    case none
+}
+
 /// How a kid goes to an outing (spec "MVP data"). The mover on the way strip: walk `shoe`, bus
 /// `busDouble`, car `car`, taxi `taxi`, shuttle `busShuttle` (hidden until N1b).
 public enum Way: String, Codable, CaseIterable, Sendable {
@@ -200,11 +210,14 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     /// Missions in the window before leaving for this item, and after coming home from it.
     public var missionsBefore: [ItemMission]
     public var missionsAfter: [ItemMission]
+    /// How the run ends (Runs); nil for items saved before Runs, whose `until` decides.
+    public var runsEnd: RunsEnd?
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
                 recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
                 trip: Trip? = nil, after: EventRef? = nil, bring: [ItemMission] = [],
-                missionsBefore: [ItemMission] = [], missionsAfter: [ItemMission] = []) {
+                missionsBefore: [ItemMission] = [], missionsAfter: [ItemMission] = [], runsEnd: RunsEnd? = nil) {
+        self.runsEnd = runsEnd
         self.trip = after == nil ? trip : nil
         self.after = after
         self.bring = Array(bring.prefix(ItemMission.most))
@@ -228,7 +241,7 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id, title, iconName, audience, start, end, recurrence, skippedDays, skipsHolidays, showsStar, trip, after,
-             bring, missionsBefore, missionsAfter
+             bring, missionsBefore, missionsAfter, runsEnd
     }
 
     /// Items stored before Bring and the item missions existed load with none.
@@ -246,7 +259,8 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
                   after: try c.decodeIfPresent(EventRef.self, forKey: .after),
                   bring: try c.decodeIfPresent([ItemMission].self, forKey: .bring) ?? [],
                   missionsBefore: try c.decodeIfPresent([ItemMission].self, forKey: .missionsBefore) ?? [],
-                  missionsAfter: try c.decodeIfPresent([ItemMission].self, forKey: .missionsAfter) ?? [])
+                  missionsAfter: try c.decodeIfPresent([ItemMission].self, forKey: .missionsAfter) ?? [],
+                  runsEnd: try c.decodeIfPresent(RunsEnd.self, forKey: .runsEnd))
     }
 }
 

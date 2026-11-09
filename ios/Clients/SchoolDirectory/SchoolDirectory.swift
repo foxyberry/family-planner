@@ -29,16 +29,14 @@ public struct DataSource: Equatable, Identifiable, Sendable {
 }
 
 extension SchoolDirectory {
-    /// Each kid's days off (spec "Repeats, dates and changes"): their school's closed days (vacations,
-    /// school holidays, days off in lieu) and the public holidays. Kids without a school: public
-    /// holidays only.
-    public func daysOff(kids: [Kid], publicHolidays: [Day]) async -> [Kid.ID: Set<Day>] {
-        var result: [Kid.ID: Set<Day>] = [:]
+    /// The family's year: each kid's school calendar (none for a kid without a school) and the
+    /// public holidays.
+    public func family(kids: [Kid], publicHolidays: [Day]) async -> FamilyCalendar {
+        var schools: [Kid.ID: SchoolCalendar] = [:]
         for kid in kids {
-            let year = if let school = kid.school { await calendar(school, kid.age) } else { SchoolCalendar.none }
-            result[kid.id] = year.daysOff(publicHolidays: Set(publicHolidays))
+            schools[kid.id] = if let school = kid.school { await calendar(school, kid.age) } else { SchoolCalendar.none }
         }
-        return result
+        return FamilyCalendar(schools: schools, publicHolidays: Set(publicHolidays))
     }
 }
 

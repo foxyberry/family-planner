@@ -220,8 +220,8 @@ public struct HomeFeature {
         case task
         case tick(Date)
         case reload
-        /// The family and each kid's days off (school closures and public holidays).
-        case loaded(ScheduleSnapshot?, daysOff: [Kid.ID: Set<Day>])
+        /// The family and its year (each kid's school calendar and the public holidays).
+        case loaded(ScheduleSnapshot?, family: FamilyCalendar)
         /// The clock was held for 2 seconds; the app opens the grown-up lock.
         case clockHoldCompleted
         /// The kid tapped the day/night switch (board 0g).
@@ -301,33 +301,34 @@ public struct HomeFeature {
                 guard let year = state.today?.year else { return .none }
                 return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let daysOff = await schoolDirectory.daysOff(kids: snapshot?.kids ?? [],
-                                                                publicHolidays: await holidays.holidays(year).map(\.day))
-                    await send(.loaded(snapshot, daysOff: daysOff))
+                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
+                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    await send(.loaded(snapshot, family: family))
                 }
 
-            case let .loaded(snapshot, daysOff):
+            case let .loaded(snapshot, family):
                 guard let snapshot, let today = state.today else {
                     state.days = []
                     return .none
                 }
+                let items = family.resolving(snapshot.items, calendar: calendar)
                 state.days = snapshot.kids.map { kid in
-                    let holidayDays = daysOff[kid.id] ?? []
+                    let holidayDays = family.daysOff(kid.id)
                     return KidDay(kid: kid,
                                   dayType: DayPlanner.dayType(on: today, holidays: holidayDays, calendar: calendar),
                                   slots: DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines,
-                                                          items: snapshot.items, holidays: holidayDays, calendar: calendar),
+                                                          items: items, holidays: holidayDays, calendar: calendar),
                                   night: DayPlanner.nightSpan(of: DayPlanner.template(
                                       for: kid.id, on: today, routines: snapshot.routines, holidays: holidayDays,
                                       calendar: calendar)),
                                   tomorrow: DayPlanner.nextOuting(
                                       in: DayPlanner.slots(on: today.adding(days: 1, calendar: calendar), kid: kid,
-                                                           routines: snapshot.routines, items: snapshot.items,
+                                                           routines: snapshot.routines, items: items,
                                                            holidays: holidayDays, calendar: calendar),
                                       after: -1),
                                   missions: snapshot.missions.filter { $0.kid == kid.id })
                 }
-                state.items = snapshot.items
+                state.items = items
                 state.busPlan = snapshot.kids.first.flatMap { kid in
                     snapshot.busPlans.route(kid: kid.id)?.graced(by: kid)
                 }

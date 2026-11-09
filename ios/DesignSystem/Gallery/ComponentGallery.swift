@@ -48,6 +48,8 @@ public struct ComponentGallery: View {
                     HStack(spacing: Spacing.m) {
                         CrayonField("Activity name", text: $name).frame(width: 480)
                         TimeField(label: "7:30 am", time: $time)
+                        DateField(label: "9 Nov", date: $time)
+                        FieldButton("End of term") {}
                     }
                     // S1–S4: setup progress, kid colour swatches, a time not chosen yet.
                     HStack(spacing: Spacing.m) {

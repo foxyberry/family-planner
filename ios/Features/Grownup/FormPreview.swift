@@ -48,7 +48,7 @@ extension ItemForm {
     /// The preview for the form's kid (the first kid for both).
     /// `draftID`: the edited item's id, or an id kept for a new item; the draft replaces any item with it.
     /// `showsDraft`: false while the form has a problem, so only the day as it is shows.
-    public func preview(kids: [Kid], routines: [Routine], items: [ScheduleItem], daysOff: [Kid.ID: Set<Day>],
+    public func preview(kids: [Kid], routines: [Routine], items: [ScheduleItem], family: FamilyCalendar,
                         draftID: ScheduleItem.ID?, showsDraft: Bool, today: Day, calendar: Calendar) -> FormPreview {
         let kid: Kid? = switch audience {
         case let .kid(id): kids.first { $0.id == id }
@@ -71,7 +71,7 @@ extension ItemForm {
                 if showsDraft { dayItems.append(item(id: draftID, today: today)) }
             }
             rows = DayPlanner.slots(on: day, kid: kid, routines: routines, items: dayItems,
-                                    holidays: daysOff[kid.id] ?? [], calendar: calendar)
+                                    holidays: family.daysOff(kid.id), calendar: calendar)
                 .filter { $0.kind != .sleep }
                 .map { slot in
                     let isNew = draftID.map { slot.source == .weekly($0) || slot.source == .once($0) } ?? false

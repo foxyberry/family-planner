@@ -50,6 +50,13 @@ public struct ItemForm: Equatable, Sendable {
     public var bring: [ItemMission] = []
     public var missionsBefore: [ItemMission] = []
     public var missionsAfter: [ItemMission] = []
+    /// Runs (board G2): how an every-week item's run ends; `date` is its start.
+    public var runsEnd: RunsEndKind = .none
+    public var untilDate: Day
+    public var times = 10
+
+    /// The end choices in the Runs card.
+    public enum RunsEndKind: Hashable, Sendable { case term, date, count, none }
 
     public static let defaultLeave = 10
 
@@ -57,8 +64,10 @@ public struct ItemForm: Equatable, Sendable {
     public static func defaults(audience: Audience, now: Date, calendar: Calendar) -> ItemForm {
         let today = Day(now, calendar: calendar)
         let nextHour = min((Day.minute(of: now, calendar: calendar) / 60 + 1) * 60, 1380)
+        // Spec "Repeats, dates and changes": Skip school holidays is off for an activity (on when it
+        // follows School).
         return ItemForm(audience: audience, iconName: nil, name: "", start: nextHour, end: nextHour + 60,
-                        repeats: .weekly, days: [today.weekday(calendar)], date: today, skipsHolidays: true,
+                        repeats: .weekly, days: [today.weekday(calendar)], date: today, skipsHolidays: false,
                         showsStar: true)
     }
 
@@ -75,6 +84,7 @@ public struct ItemForm: Equatable, Sendable {
         self.date = date
         self.skipsHolidays = skipsHolidays
         self.showsStar = showsStar
+        untilDate = date
     }
 
     /// The form for editing `item`.
@@ -90,6 +100,15 @@ public struct ItemForm: Equatable, Sendable {
                       showsStar: true, trip: item.trip)
         }
         after = item.after
+        if case let .weekly(_, _, until) = item.recurrence {
+            switch item.runsEnd {
+            case .term?: runsEnd = .term
+            case let .count(n)?: runsEnd = .count; times = n
+            case .date?: runsEnd = .date
+            case .none?, nil: runsEnd = until == nil ? .none : .date
+            }
+            if let until { untilDate = until }
+        }
         bring = item.bring
         missionsBefore = item.missionsBefore
         missionsAfter = item.missionsAfter
@@ -159,6 +178,8 @@ public struct ItemForm: Equatable, Sendable {
     public mutating func setFrom(_ choice: FromChoice) {
         after = choice.event
         guard choice.event != nil else { return }
+        // An item after School follows School's days, holidays included.
+        if choice.event == .school { skipsHolidays = true }
         let length = max(end - start, 5)
         start = choice.end
         end = min(choice.end + length, 1440)
@@ -219,6 +240,36 @@ public struct ItemForm: Equatable, Sendable {
     private mutating func setMissions(_ list: [ItemMission], _ section: MissionSection) {
         if section == .before { missionsBefore = list } else { missionsAfter = list }
     }
+
+    // MARK: Runs (board G2)
+
+    /// The stored `until`: the picked date; term and count ends are worked out with the calendar.
+    var until: Day? { runsEnd == .date ? max(untilDate, date) : nil }
+
+    var storedRunsEnd: RunsEnd {
+        switch runsEnd {
+        case .term: .term
+        case .date: .date
+        case .count: .count(times)
+        case .none: .none
+        }
+    }
+
+    /// "9 Nov", the Runs start field.
+    public func runsStartText(calendar: Calendar) -> String { DayText.dayMonth(date, calendar: calendar) }
+
+    /// The Runs end field: "End of term", "20 Nov", "After 8 times" or "No end".
+    public func runsEndText(calendar: Calendar) -> String {
+        switch runsEnd {
+        case .term: L10n.tr("runs.end.term")
+        case .date: DayText.dayMonth(max(untilDate, date), calendar: calendar)
+        case .count: L10n.tr("runs.end.count", times)
+        case .none: L10n.tr("runs.end.none")
+        }
+    }
+
+    /// −/+ in the Runs card: 1–40 times.
+    public mutating func stepTimes(_ step: Int) { times = min(max(times + step, 1), 40) }
 
     /// The Bring row's words: "Swimsuit · Goggles"; nil when nothing is picked.
     public var bringText: String? { bring.isEmpty ? nil : bring.map(\.name).joined(separator: " · ") }
@@ -325,14 +376,14 @@ public struct ItemForm: Equatable, Sendable {
 
     /// A note under "When" if another item for the same kid shares this time (not blocking).
     /// Only items still ahead count: a stopped series or a past event says nothing.
-    public func overlapCaption(items: [ScheduleItem], kids: [Kid], daysOff: [Kid.ID: Set<Day>], editing: ScheduleItem.ID?,
+    public func overlapCaption(items: [ScheduleItem], kids: [Kid], family: FamilyCalendar, editing: ScheduleItem.ID?,
                                today: Day? = nil, calendar: Calendar) -> String? {
         let mine = kids.filter { audience.includes($0.id) }.map(\.id)
         let from = max(date, today ?? date)
         for other in items where other.id != editing && other.start < end && start < other.end {
             let shared = mine.filter { other.audience.includes($0) }
             guard let kid = shared.first,
-                  sharesDay(with: other, kid: kid, from: from, holidays: daysOff[kid] ?? [], calendar: calendar)
+                  sharesDay(with: other, kid: kid, from: from, holidays: family.daysOff(kid), calendar: calendar)
             else { continue }
             let myPriority = repeats == .once ? 2 : 1
             let otherPriority = other.isWeekly ? 1 : 2
@@ -368,9 +419,10 @@ public struct ItemForm: Equatable, Sendable {
         switch repeats {
         case .weekly:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
-                                end: end, recurrence: .weekly(days, from: today, until: nil), skippedDays: [],
+                                end: end, recurrence: .weekly(days, from: max(date, today), until: until), skippedDays: [],
                                 skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
-                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter)
+                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter,
+                                runsEnd: storedRunsEnd)
         case .once:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .once(date), skippedDays: [], skipsHolidays: false,
