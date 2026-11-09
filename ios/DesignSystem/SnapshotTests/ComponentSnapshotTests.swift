@@ -102,6 +102,7 @@ final class ComponentSnapshotTests: XCTestCase {
     func testTimeLeft() {
         snap(TimeLeft(minutes: 19), named: "19")
         snap(TimeLeft(minutes: -2), named: "minus2")
+        snap(TimeLeft(minutes: 80, compact: true), named: "compact")
     }
 
     /// Board A3r: a kid ready with no medal has the crown on the done knob, no check.

@@ -29,7 +29,7 @@ extension SetupFeature.State {
         state.kids = [kidA, kidB]
         state.step = switch step {
         case 2: .school
-        case 3: .gettingThere(0)
+        case 3: .gettingThere
         default: .almostDone
         }
         return state

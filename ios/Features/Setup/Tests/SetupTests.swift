@@ -69,6 +69,31 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTabTapped(first))
     }
 
+    /// S3 (layout v17): one screen with a tab per going kid; Next waits for every tab.
+    func testGettingThereHasATabPerKid() async {
+        let store = store()
+        await family(store)
+        await store.send(.nextTapped)
+        await store.send(.schoolPicked(school))
+        let kidB = store.state.kids[1].id
+        await store.send(.schoolTabTapped(kidB))
+        await store.send(.goesToTapped(.school))
+        await store.send(.schoolPicked(school))
+        await store.send(.nextTapped)
+        XCTAssertEqual(store.state.step, .gettingThere)
+        XCTAssertEqual(store.state.stepText, "Step 3 of 4")
+        XCTAssertEqual(store.state.unfinishedGoingTabs, [first, kidB])
+        await store.send(.wayPicked(.car))
+        XCTAssertEqual(store.state.unfinishedGoingTabs, [kidB], "the car route is finished")
+        XCTAssertFalse(store.state.canGoNext)
+        await store.send(.goingTabTapped(kidB))
+        XCTAssertEqual(store.state.goingKid?.id, kidB)
+        await store.send(.stopSearch(.textChanged("00000")))
+        XCTAssertTrue(store.state.canGoNext, "a bus route needs a stop; bus numbers are optional")
+        await store.send(.nextTapped)
+        XCTAssertEqual(store.state.step, .almostDone)
+    }
+
     func testNextNeedsEveryKidsNameAgeAndFace() async {
         let store = store()
         XCTAssertFalse(store.state.canGoNext)
@@ -189,8 +214,12 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTabTapped(first))
         await store.send(.schoolPicked(school))
         await store.send(.nextTapped)
-        XCTAssertEqual(store.state.step, .gettingThere(0))
+        XCTAssertEqual(store.state.step, .gettingThere)
         XCTAssertEqual(store.state.goingKid?.id, first, "only Kid A goes to school")
+        XCTAssertFalse(store.state.canGoNext, "by bus, Next waits for a stop")
+        XCTAssertEqual(store.state.unfinishedGoingTabs, [first])
+        await store.send(.wayPicked(.walk))
+        XCTAssertTrue(store.state.unfinishedGoingTabs.isEmpty)
         await store.send(.nextTapped)
         XCTAssertEqual(store.state.step, .almostDone)
         await store.send(.backTapped)
@@ -229,7 +258,7 @@ final class SetupTests: XCTestCase {
         await store.send(.timeChanged(.end, 720))
         XCTAssertTrue(store.state.canGoNext)
         await store.send(.nextTapped)
-        XCTAssertEqual(store.state.step, .gettingThere(0))
+        XCTAssertEqual(store.state.step, .gettingThere)
         await store.send(.wayPicked(.walk))
         await store.send(.nextTapped)
         await store.send(.nextTapped)

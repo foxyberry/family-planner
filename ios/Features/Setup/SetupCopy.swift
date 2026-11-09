@@ -4,11 +4,12 @@ import Strings
 
 /// Everything S1–S4 print, decided here so the views only render (spec "S1–S4").
 extension SetupFeature.State {
-    /// "Step 2 of 4"; S3 adds the kid it asks about: "Step 3 of 4 · Kid A".
-    public var stepText: String {
-        let text = L10n.tr("setup.step", step.number, 4)
-        guard let kid = goingKid else { return text }
-        return L10n.tr("s2.school.with_area", text, kid.trimmedName)
+    /// "Step 2 of 4" (S3's kid tabs say whose route it is).
+    public var stepText: String { L10n.tr("setup.step", step.number, 4) }
+
+    /// S3 tabs whose route is not finished yet (a hurry dot on the face).
+    public var unfinishedGoingTabs: Set<KidEntry.ID> {
+        Set(goingKids.filter { !$0.going.isFinished }.map(\.id))
     }
 
     public var title: String {

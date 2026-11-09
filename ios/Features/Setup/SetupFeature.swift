@@ -16,8 +16,8 @@ public struct SetupFeature {
     public enum Step: Hashable, Sendable {
         case family
         case school
-        /// S3 for the kid at this index of `goingKids`.
-        case gettingThere(Int)
+        /// S3: every kid who goes somewhere, one tab each (layout v17).
+        case gettingThere
         case almostDone
 
         /// "Step n of 4".
@@ -39,6 +39,8 @@ public struct SetupFeature {
         public var kids: IdentifiedArrayOf<KidEntry>
         /// S2's kid tab.
         public var schoolTab: KidEntry.ID
+        /// S3's kid tab (the first going kid when nil or gone).
+        public var goingTab: KidEntry.ID?
         /// The bundled school lists, loaded once.
         public var directory: [SchoolEntry] = []
         public var isSaving = false
@@ -93,8 +95,9 @@ public struct SetupFeature {
         // MARK: S3
 
         public var goingKid: KidEntry? {
-            guard case let .gettingThere(index) = step, goingKids.indices.contains(index) else { return nil }
-            return goingKids[index]
+            guard step == .gettingThere else { return nil }
+            let kids = goingKids
+            return kids.first { $0.id == goingTab } ?? kids.first
         }
 
         /// The S3 stop field of the kid on screen (a placeholder elsewhere).
@@ -116,7 +119,7 @@ public struct SetupFeature {
             switch step {
             case .family: familyIsComplete
             case .school: schoolIsComplete
-            case .gettingThere: true
+            case .gettingThere: goingKids.allSatisfy(\.going.isFinished)
             case .almostDone: !isSaving && !isSaved
             }
         }
@@ -167,6 +170,7 @@ public struct SetupFeature {
         case moeTermsToggled
         case moeAnswered(Bool)
         // S3
+        case goingTabTapped(KidEntry.ID)
         case wayPicked(Way)
         case stopSearch(StopSearchFeature.Action)
         case serviceTapped(String)
@@ -220,10 +224,8 @@ public struct SetupFeature {
                 switch state.step {
                 case .family: break
                 case .school: state.step = .family
-                case let .gettingThere(index): state.step = index > 0 ? .gettingThere(index - 1) : .school
-                case .almostDone:
-                    let count = state.goingKids.count
-                    state.step = count > 0 ? .gettingThere(count - 1) : .school
+                case .gettingThere: state.step = .school
+                case .almostDone: state.step = state.goingKids.isEmpty ? .school : .gettingThere
                 }
                 return .none
 
@@ -234,9 +236,9 @@ public struct SetupFeature {
                     state.step = .school
                     if state.kids[id: state.schoolTab] == nil, let first = state.kids.first { state.schoolTab = first.id }
                 case .school:
-                    state.step = state.goingKids.isEmpty ? .almostDone : .gettingThere(0)
-                case let .gettingThere(index):
-                    state.step = index + 1 < state.goingKids.count ? .gettingThere(index + 1) : .almostDone
+                    state.step = state.goingKids.isEmpty ? .almostDone : .gettingThere
+                case .gettingThere:
+                    state.step = .almostDone
                 case .almostDone:
                     if state.replacesFamily, !state.isConfirmingReplace {
                         state.isConfirmingReplace = true
@@ -423,6 +425,10 @@ public struct SetupFeature {
                 return .none
 
             // MARK: S3
+
+            case let .goingTabTapped(id):
+                state.goingTab = id
+                return .none
 
             case let .wayPicked(way):
                 updateGoing(&state) { $0.way = way }

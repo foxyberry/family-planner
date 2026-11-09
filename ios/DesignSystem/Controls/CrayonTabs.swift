@@ -9,12 +9,19 @@ public struct CrayonTabs<ID: Hashable>: View {
     private let inset: CGFloat
     private let itemSize: CGSize?
     private let spacing: CGFloat
+    private let faceOnly: Bool
+    private let marked: Set<ID>
 
     /// `compact`: 16 inside each tab instead of 24, so three short tabs fit the 382 side column (C6).
     /// `itemSize`: every tab the same size, `spacing` apart (S2 "Goes to" 180 × 72 gap 12; the MOE
     /// question's pills 140 × 64).
+    /// `faceOnly`: the kid's face without the name (S2/S3 with 3–4 kids, 88 × 72); VoiceOver still
+    /// reads the name. `marked`: tabs that show a small hurry dot on the face (S3: route not finished).
     public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)], compact: Bool = false,
-                itemSize: CGSize? = nil, spacing: CGFloat = Spacing.s) {
+                itemSize: CGSize? = nil, spacing: CGFloat = Spacing.s, faceOnly: Bool = false,
+                marked: Set<ID> = []) {
+        self.faceOnly = faceOnly
+        self.marked = marked
         _selection = selection
         self.items = items
         inset = compact ? Spacing.s : Spacing.m
@@ -30,9 +37,17 @@ public struct CrayonTabs<ID: Hashable>: View {
                     HStack(spacing: KidFace.gap(for: KidFace.medium)) {
                         if let badge = item.2 {
                             KidFace(badge, name: item.1, size: KidFace.medium).accessibilityHidden(true)
+                                .overlay(alignment: .topTrailing) {
+                                    if marked.contains(item.0) {
+                                        Circle().fill(CrayonColor.hurry).frame(width: 14, height: 14)
+                                            .offset(x: 4, y: -4)
+                                    }
+                                }
                         }
                         // A tab label never wraps ("Mon–Fri" split over two lines on C6).
-                        Text(item.1).crayonType(.body).lineLimit(1).fixedSize()
+                        if !faceOnly || item.2 == nil {
+                            Text(item.1).crayonType(.body).lineLimit(1).fixedSize()
+                        }
                     }
                     .foregroundStyle(CrayonColor.ink)
                     .padding(.horizontal, itemSize == nil ? inset : 0)
@@ -42,6 +57,7 @@ public struct CrayonTabs<ID: Hashable>: View {
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(item.1)
                 .accessibilityAddTraits(isOn ? .isSelected : [])
             }
         }

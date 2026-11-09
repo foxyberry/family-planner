@@ -72,13 +72,28 @@ public struct SetupView: View {
     @ViewBuilder private var headerAccessory: some View {
         switch store.step {
         case .school:
-            CrayonTabs(selection: Binding(get: { store.schoolTab }, set: { store.send(.schoolTabTapped($0)) }),
-                       items: store.kids.enumerated().map { index, kid in
-                           (kid.id, kid.shownName(index: index), KidFace.Badge(face: kid.face ?? "", colorIndex: kid.colorIndex))
-                       })
+            kidTabs(store.kids.elements, selection: Binding(get: { store.schoolTab }, set: { store.send(.schoolTabTapped($0)) }))
+        case .gettingThere:
+            kidTabs(store.goingKids, selection: Binding(get: { store.goingKid?.id ?? store.schoolTab },
+                                                        set: { store.send(.goingTabTapped($0)) }),
+                    marked: store.unfinishedGoingTabs)
         default:
             EmptyView()
         }
+    }
+
+    /// S2 and S3 kid tabs (layout v17): 200 × 72 with the face 40, gap 12; face only with 3–4 kids.
+    private func kidTabs(_ kids: [KidEntry], selection: Binding<KidEntry.ID>,
+                         marked: Set<KidEntry.ID> = []) -> some View {
+        let faceOnly = kids.count >= 3
+        return CrayonTabs(selection: selection,
+                          items: kids.map { kid in
+                              let index = store.kids.index(id: kid.id) ?? 0
+                              return (kid.id, kid.shownName(index: index),
+                                      KidFace.Badge(face: kid.face ?? "", colorIndex: kid.colorIndex))
+                          },
+                          itemSize: CGSize(width: faceOnly ? 88 : 200, height: 72), spacing: Spacing.sm,
+                          faceOnly: faceOnly, marked: marked)
     }
 
     // MARK: Main column
