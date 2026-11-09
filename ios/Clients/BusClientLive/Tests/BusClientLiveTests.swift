@@ -24,6 +24,13 @@ final class BusClientLiveTests: XCTestCase {
         ])
     }
 
+    /// Minutes count from LTA's clock: the HTTP Date header parses to the server's time.
+    func testServerDateHeader() {
+        let date = LTA.httpDate("Tue, 10 Nov 2026 07:00:00 GMT")
+        XCTAssertEqual(date, Date(timeIntervalSince1970: 1_794_294_000))
+        XCTAssertNil(LTA.httpDate("not a date"))
+    }
+
     func testStopsPage() throws {
         let json = #"{"value":[{"BusStopCode":"00000","RoadName":"Example Rd","Description":"Example Stop"}]}"#
         let page = try LTA.stops(from: Data(json.utf8))

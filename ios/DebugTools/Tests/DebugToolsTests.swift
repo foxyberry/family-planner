@@ -319,4 +319,14 @@ final class FakeBusesTests: XCTestCase {
         XCTAssertEqual(Set(arrivals.map(\.service)), ["1", "2"])
         XCTAssertEqual(FakeBuses.arrivals(services: []).map(\.service), ["1", "1", "1"], "no plan: bus 1")
     }
+
+    func testLaunchFlagsTurnFakeBusesOnAndOff() {
+        var settings = DebugSettings()
+        settings.apply(LaunchOptions(arguments: ["-fpFakeBuses"], calendar: Calendar(identifier: .gregorian)), realNow: Date())
+        XCTAssertEqual(settings.fakesBuses, true)
+        settings.apply(LaunchOptions(arguments: ["-fpNoFakeBuses"], calendar: Calendar(identifier: .gregorian)), realNow: Date())
+        XCTAssertEqual(settings.fakesBuses, false)
+        settings.apply(LaunchOptions(arguments: [], calendar: Calendar(identifier: .gregorian)), realNow: Date())
+        XCTAssertEqual(settings.fakesBuses, false, "no flag keeps the saved switch")
+    }
 }

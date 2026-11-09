@@ -45,9 +45,12 @@ public struct WayStrip: View {
         public var ownerName: String
         public var myBus: String
         public var tooSoon: String
+        /// The kid's 1st-choice bus number for the legend plate, also when no bus can be caught.
+        public var myService: String
 
         public init(buses: [LiveBus], destination: KitSlot, destinationLabel: String, ourStopLabel: String,
-                    owner: KidFace.Badge, ownerName: String, myBus: String, tooSoon: String) {
+                    owner: KidFace.Badge, ownerName: String, myBus: String, tooSoon: String, myService: String = "") {
+            self.myService = myService
             self.buses = buses
             self.destination = destination
             self.destinationLabel = destinationLabel
@@ -290,10 +293,10 @@ public struct WayStrip: View {
         case let .live(live):
             label(live.ourStopLabel, x: Self.homeX, kx: kx, k: k)
             label(live.destinationLabel, x: Self.destinationX, kx: kx, k: k)
-            // Legend at (946, 16): the white plate with the kid's bus number means "my bus" (an empty
-            // plate read as broken on the iPad, 2026-11-09).
+            // Legend at (946, 16): the white plate with the kid's 1st-choice bus number means "my bus"
+            // (an empty plate read as broken on the iPad, 2026-11-09).
             HStack(spacing: Spacing.xs) {
-                NumberPlate(live.buses.first(where: \.isMine)?.service ?? " ", isMine: true)
+                NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true)
                 Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink).fixedSize()
             }
             .offset(x: 946 * kx, y: 16 * k)
