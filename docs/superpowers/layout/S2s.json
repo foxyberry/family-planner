@@ -1,5 +1,5 @@
 {
- "version": "20",
+ "version": "21",
  "board": "S2s",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -511,6 +511,20 @@
    "text": "MOE primary · Woodlands"
   },
   {
+   "id": "main.row.days.text.9",
+   "kind": "text",
+   "x": 252,
+   "y": 506,
+   "w": 286,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 541,
+   "font": 30,
+   "text": "Sunny Hill Primary"
+  },
+  {
    "id": "side.line.6",
    "kind": "text",
    "x": 1010,
@@ -525,20 +539,6 @@
    "text": "Bronze"
   },
   {
-   "id": "main.row.days.text.9",
-   "kind": "text",
-   "x": 252,
-   "y": 507,
-   "w": 286,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 542,
-   "font": 30,
-   "text": "Sunny Hill Primary"
-  },
-  {
    "id": "side.picture.3",
    "kind": "picture",
    "x": 930,
@@ -548,6 +548,20 @@
    "region": "side",
    "anchor": "right",
    "align": "start"
+  },
+  {
+   "id": "main.text.3",
+   "kind": "text",
+   "x": 252,
+   "y": 543,
+   "w": 252,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 571,
+   "font": 24,
+   "text": "MOE primary · Bedok"
   },
   {
    "id": "main.label.hours",
@@ -560,20 +574,6 @@
    "anchor": "left",
    "align": "inside",
    "text": "Hours"
-  },
-  {
-   "id": "main.row.hours.text.1",
-   "kind": "text",
-   "x": 252,
-   "y": 544,
-   "w": 252,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 572,
-   "font": 24,
-   "text": "MOE primary · Bedok"
   },
   {
    "id": "side.line.7",
@@ -589,7 +589,7 @@
    "font": 24
   },
   {
-   "id": "main.row.hours.text.2",
+   "id": "main.row.hours.text.1",
    "kind": "text",
    "x": 261,
    "y": 561,
@@ -602,7 +602,7 @@
    "font": 30
   },
   {
-   "id": "main.row.hours.text.3",
+   "id": "main.row.hours.text.2",
    "kind": "text",
    "x": 515,
    "y": 561,
@@ -626,30 +626,30 @@
    "align": "inside"
   },
   {
-   "id": "main.row.hours.text.4",
+   "id": "main.row.hours.text.3",
    "kind": "text",
    "x": 252,
-   "y": 579,
+   "y": 578,
    "w": 480,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 614,
+   "baseline": 613,
    "font": 30,
    "text": "Sunny Bay International School"
   },
   {
-   "id": "main.row.hours.text.5",
+   "id": "main.row.hours.text.4",
    "kind": "text",
    "x": 252,
-   "y": 616,
+   "y": 615,
    "w": 406,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 644,
+   "baseline": 643,
    "font": 24
   },
   {
@@ -666,7 +666,7 @@
    "font": 24
   },
   {
-   "id": "main.text.3",
+   "id": "main.text.4",
    "kind": "text",
    "x": 232,
    "y": 629,
@@ -679,16 +679,16 @@
    "font": 24
   },
   {
-   "id": "main.text.4",
+   "id": "main.text.5",
    "kind": "text",
    "x": 296,
-   "y": 666,
+   "y": 665,
    "w": 450,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 701,
+   "baseline": 700,
    "font": 30,
    "text": "Not in the list? Type the name"
   },
@@ -696,7 +696,7 @@
    "id": "main.picture.1",
    "kind": "picture",
    "x": 252,
-   "y": 673,
+   "y": 672,
    "w": 32,
    "h": 32,
    "region": "main",
@@ -767,7 +767,7 @@
    "align": "inside"
   },
   {
-   "id": "main.text.5",
+   "id": "main.text.6",
    "kind": "text",
    "x": 292,
    "y": 797,
