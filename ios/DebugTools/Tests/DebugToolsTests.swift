@@ -2,6 +2,7 @@ import ComposableArchitecture
 import CoreGraphics
 @testable import DebugTools
 import Foundation
+import Domain
 import ParentAuthClient
 import XCTest
 
@@ -308,5 +309,14 @@ final class DebugMenuGateTests: XCTestCase {
         model.settings.skipsFaceID = true
         await model.menuTapped()
         XCTAssertFalse(model.isMenuShown, "Skip Face ID must not open its own switch")
+    }
+}
+
+final class FakeBusesTests: XCTestCase {
+    func testTheKidsBusesComeSoonThenCatchable() {
+        let arrivals = FakeBuses.arrivals(services: ["1", "2"])
+        XCTAssertEqual(arrivals.map(\.minutes), [4, 7, 15, 18, 27, 30])
+        XCTAssertEqual(Set(arrivals.map(\.service)), ["1", "2"])
+        XCTAssertEqual(FakeBuses.arrivals(services: []).map(\.service), ["1", "1", "1"], "no plan: bus 1")
     }
 }
