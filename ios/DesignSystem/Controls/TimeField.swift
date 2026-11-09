@@ -6,11 +6,17 @@ import SwiftUI
 /// screen prints it ("3:30 pm", from State), so the iPad's 24-hour setting never changes it.
 public struct TimeField: View {
     private let label: String
+    private let isPlaceholder: Bool
+    private let width: CGFloat?
     @Binding private var time: Date
     @State private var isPicking = false
 
-    public init(label: String, time: Binding<Date>) {
+    /// `isPlaceholder`: no time chosen yet; `label` is an example time in `softText` (S2).
+    /// `width`: a fixed width (S2 Arrive by and latest, 180); otherwise at least 200.
+    public init(label: String, time: Binding<Date>, isPlaceholder: Bool = false, width: CGFloat? = nil) {
         self.label = label
+        self.isPlaceholder = isPlaceholder
+        self.width = width
         _time = time
     }
 
@@ -18,9 +24,9 @@ public struct TimeField: View {
         Button { isPicking = true } label: {
             Text(label)
                 .crayonType(.body)
-                .foregroundStyle(CrayonColor.ink)
+                .foregroundStyle(isPlaceholder ? CrayonColor.softText : CrayonColor.ink)
                 .padding(.horizontal, Spacing.m)
-                .frame(minWidth: 200, minHeight: 80)
+                .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
                 .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1)
         }
         .buttonStyle(.plain)

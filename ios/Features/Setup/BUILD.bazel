@@ -1,0 +1,19 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# First-run setup S1–S4: the family, school, the way to school, then Start saves it all.
+fp_swift_library(
+    name = "Setup",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Clients/BusClient",
+        "//ios/Clients/ScheduleStore",
+        "//ios/Clients/SchoolDirectory",
+        "//ios/CrayonKit",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/Features/Grownup",
+        "//ios/KitArt",
+        "//ios/Strings",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)

@@ -30,11 +30,16 @@ public struct GrownupHubView: View {
                 }
             }
         } primaryAction: { _ in
-            #if DEBUG
-                Button("Design gallery") { store.send(.galleryButtonTapped) } // copy-ok: debug builds only
+            HStack(spacing: Spacing.m) {
+                Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
                     .crayonType(.caption)
                     .foregroundStyle(CrayonColor.link)
-            #endif
+                #if DEBUG
+                    Button("Design gallery") { store.send(.galleryButtonTapped) } // copy-ok: debug builds only
+                        .crayonType(.caption)
+                        .foregroundStyle(CrayonColor.link)
+                #endif
+            }
         }
         .task { await store.send(.task).finish() }
     }

@@ -79,4 +79,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
 - Deciding in the view because "it is just one ternary": the choice is then untested, and it drifts from the reducer's guard.
 - Copy assembled in views: it cannot move to the String Catalog.
 - Mapping one enum onto another with `X(rawValue: y.rawValue)!` (a Domain kind onto a DesignSystem style): a new case then traps on screen, not in a build. Map with a `switch` or a fallback, and test every `allCases` value.
+- A grown-up form card sized by its rows: `.frame(maxWidth: .infinity)` does not cap a wider child, so one wide row (date chips, steppers) widens the card past 64…882. Pin the form to the card's inner width with `.frame(width:)` and check the widest row on the grid.
+- Row labels in body type ("Arrive by") wrap in the 104–232 label column. Use caption labels on one line, as C2 and S2 do.
+- `TestStore` with `exhaustivity = .off`: each `send` skips the received actions not yet asserted, so `receive` an effect's actions before the next `send`.
 - Fixed test dates on a public holiday: 9 Nov 2026 (Deepavali observed) is a Sunday-template day in the app. Check the holiday list before a weekday fixture becomes a "school day" check, on the iPad too.

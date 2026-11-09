@@ -38,7 +38,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   take a clock from `bootstrap`.
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
 - `ios/Domain`: pure rules (Foundation and `//ios/Strings` only): kids, routines, schedule items,
-  `DayPlanner`, `SeriesEdits`, copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor).
+  `DayPlanner`, `SeriesEdits`, copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor),
+  `ios/Features/Setup` (first-run S1–S4).
 - Outside data (time, calendar and time zone, locale, device, bundle, settings, launch arguments)
   comes only through dependencies (`\.date`, `\.calendar`, `\.continuousClock`, clients), read in
   reducers or Live values; the reference time zone is set once in `bootstrap`.
@@ -46,12 +47,14 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   `@Dependency`. Days are `Day` values and minutes after midnight (0–1440). Elapsed time counts
   clock ticks, never `date` differences. Tests pin `Asia/Singapore` and a fixed date.
 - New screens, reducers and services: follow the `tca-feature` skill.
-- Kids are fake seed data (`SeedData`, Kid A / Kid B) until first-run setup (M4).
+- The app starts empty and runs first-run setup (S1–S4); `ScheduleStoreLive` never seeds or wipes.
+  `SeedData` (Kid A / Kid B) is only for tests, previews and the debug menu's "Load sample family".
 - Grown-up screens: hold the clock 2 s, then Face ID (no passcode). An iPad without Face ID set up
   gets an "Enter" button (the hold is the gate).
 - `ios/DebugTools`: debug builds only (`#if DEBUG` in every file). Floating bubble + menu: time
   machine (feeds `\.date`; `make run NOW=2026-11-09T07:30 SPEED=60`), layout grid, flags
-  (Skip Face ID, simulator only). On a real iPad the menu opens only after Face ID (the bubble sits over kids'
+  (Skip Face ID, simulator only), "Load sample family" (overwrites after a confirm). Debug links
+  `familyplanner://s1`…`s4` open setup filled with the sample family. On a real iPad the menu opens only after Face ID (the bubble sits over kids'
   screens). New developer switches go here, never into release code paths. System UI is
   fine there; product screens still use only `DesignSystem`.
 

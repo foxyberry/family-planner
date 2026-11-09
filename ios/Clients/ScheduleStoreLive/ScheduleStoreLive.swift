@@ -26,9 +26,8 @@ extension ScheduleStore {
     /// The store file inside the folder passed to `live(directory:)`.
     public static let liveFileName = "schedule.store"
 
-    /// The SwiftData store on this device. The first load seeds the fake family (`SeedData`) around
-    /// today, read from the app's `\.date` and `\.calendar` at the time of the call, so it follows the
-    /// app's clock and time zone (and the developer time machine), never the device's.
+    /// The SwiftData store on this device. It starts empty: first-run setup (S1–S4) writes the family
+    /// with `replaceFamily` (user, 2026-11-09). A store an older build seeded is kept as it is.
     public static func live(directory: URL) -> ScheduleStore {
         let database = Database(url: directory.appendingPathComponent(liveFileName))
         return ScheduleStore(
@@ -43,7 +42,9 @@ extension ScheduleStore {
                 @Dependency(\.calendar) var calendar
                 try database.run { try $0.put(day, calendar: calendar) }
             },
-            saveBusPlan: { plan in try database.run { try $0.put(plan) } }
+            saveBusPlan: { plan in try database.run { try $0.put(plan) } },
+            saveKid: { kid in try database.run { try $0.put(kid) } },
+            replaceFamily: { family in try database.run { try $0.replace(with: family) } }
         )
     }
 }
@@ -64,11 +65,7 @@ private final class Database: Sendable {
                                                         withIntermediateDirectories: true)
                 container = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
             }
-            let records = Records(context: ModelContext(container!))
-            @Dependency(\.date.now) var now
-            @Dependency(\.calendar) var calendar
-            try records.seedIfNeeded(today: Day(now, calendar: calendar), calendar: calendar)
-            return try body(records)
+            return try body(Records(context: ModelContext(container!)))
         }
     }
 }
@@ -82,35 +79,37 @@ private struct Records {
         self.context = context
     }
 
-    /// Seeds an empty store. A store written by an older seed (a lower or missing `meta:seeded`
-    /// version, or routines in an old shape) is cleared and seeded again: the data is fake until M4.
-    func seedIfNeeded(today: Day, calendar: Calendar) throws {
-        let meta = try fetch("meta")
-        if !meta.isEmpty {
-            let version = meta.first { $0.key == "meta:seeded" }.flatMap { try? decoder.decode(Int.self, from: $0.payload) }
-            let routinesDecode = (try? values("routine") as [Routine]) != nil
-            if let version, version >= SeedData.version, routinesDecode { return }
-        }
+    /// Everything replaced by `family`, saved once.
+    func replace(with family: ScheduleSnapshot) throws {
         for record in try context.fetch(FetchDescriptor<StoredRecord>()) { context.delete(record) }
-        for (index, kid) in SeedData.kids.enumerated() {
+        for (index, kid) in family.kids.enumerated() {
             try insert("kid:\(kid.id)", group: "kid", order: index, kid)
         }
-        for (index, routine) in SeedData.routines.enumerated() {
+        for (index, routine) in family.routines.enumerated() {
             try insert(Self.key(routine), group: "routine", order: index, routine)
         }
-        for item in SeedData.items(today: today, calendar: calendar) {
+        for item in family.items {
             try insert("item:\(item.id)", group: "item", order: 0, item)
         }
-        for mission in SeedData.missions {
+        for mission in family.missions {
             try insert("mission:\(mission.id)", group: "mission", order: mission.order, mission)
         }
-        try insert("meta:seeded", group: "meta", order: 0, SeedData.version)
+        for plan in family.busPlans {
+            try insert("busPlan:\(plan.kid)", group: "busPlan", order: 0, plan)
+        }
         try context.save()
     }
 
     func snapshot() throws -> ScheduleSnapshot {
         ScheduleSnapshot(kids: try values("kid"), routines: try values("routine"), items: try values("item"),
                          missions: try values("mission"), busPlans: try values("busPlan"))
+    }
+
+    /// Replaces the kid's record in place (keeping its order); a kid not stored yet is not added.
+    func put(_ kid: Kid) throws {
+        guard let old = try fetch("kid").first(where: { $0.key == "kid:\(kid.id)" }) else { return }
+        old.payload = try encoder.encode(kid)
+        try context.save()
     }
 
     func put(_ plan: BusPlan) throws {
@@ -186,8 +185,10 @@ private struct Records {
                                                         sortBy: [SortDescriptor(\.order)]))
     }
 
+    /// A record an older build wrote in another shape (the first seed's routines) is skipped, not an
+    /// error, so the rest of the family still loads.
     private func values<T: Decodable>(_ group: String) throws -> [T] {
-        try fetch(group).map { try decoder.decode(T.self, from: $0.payload) }
+        try fetch(group).compactMap { try? decoder.decode(T.self, from: $0.payload) }
     }
 
     private func insert(_ key: String, group: String, order: Int, _ value: some Encodable) throws {

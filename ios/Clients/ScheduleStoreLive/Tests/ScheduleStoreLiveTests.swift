@@ -43,30 +43,60 @@ final class ScheduleStoreLiveTests: XCTestCase {
                      skipsHolidays: true, showsStar: false)
     }
 
-    func testFirstLoadSeeds() async throws {
+    /// A store with the sample family in it, as "Load sample family" leaves it.
+    private func seeded() async throws -> ScheduleStore {
+        let store = store()
+        try await store.replaceFamily(ScheduleSnapshot.sampleFamily(today: monday, calendar: calendar))
+        return store
+    }
+
+    /// The app starts empty and runs first-run setup (user, 2026-11-09).
+    func testFirstLoadIsEmpty() async throws {
         let snapshot = try await store().load()
+        XCTAssertEqual(snapshot, ScheduleSnapshot(kids: [], routines: [], items: []))
+    }
+
+    func testReplaceFamilyWritesEverythingAndDropsTheOldFamily() async throws {
+        let store = try await seeded()
+        try await store.saveMissionDay(MissionDay(kid: SeedData.kidA.id, date: monday, ready: true))
+        let kid = Kid(id: UUID(), name: "Kid C", colorIndex: 2, age: 6, schoolYear: nil, school: nil)
+        let family = ScheduleSnapshot(
+            kids: [kid], routines: StarterDays.routines(for: kid, trip: nil, from: monday), items: [],
+            missions: StarterDays.missions(for: kid, id: { UUID() }),
+            busPlans: [BusPlan(kid: kid.id, stop: "00000", services: ["1"])])
+        try await store.replaceFamily(family)
+        let loaded = try await self.store().load()   // a fresh store, like an app restart
+        XCTAssertEqual(loaded.kids, family.kids)
+        XCTAssertEqual(loaded.routines, family.routines)
+        XCTAssertEqual(Set(loaded.missions), Set(family.missions))
+        XCTAssertEqual(loaded.busPlans, family.busPlans)
+        XCTAssertEqual(loaded.items, [])
+        let marks = try await self.store().missionDay(SeedData.kidA.id, monday)
+        XCTAssertEqual(marks, MissionDay(kid: SeedData.kidA.id, date: monday), "old marks are gone")
+    }
+
+    func testSaveKidReplacesTheRecordInPlace() async throws {
+        let store = try await seeded()
+        var kidA = SeedData.kidA
+        kidA.school?.latest = 465
+        try await store.saveKid(kidA)
+        let kids = try await self.store().load().kids
+        XCTAssertEqual(kids, [kidA, SeedData.kidB])
+    }
+
+    func testSampleFamilyLoadsTheSeed() async throws {
+        let snapshot = try await seeded().load()
         XCTAssertEqual(snapshot.kids, SeedData.kids)
         XCTAssertEqual(snapshot.routines, SeedData.routines)
         XCTAssertEqual(Set(snapshot.items), Set(SeedData.items(today: monday, calendar: calendar)))
     }
 
-    /// The first-run seed follows the app's clock (and so the developer time machine), not the device clock.
-    func testSeedFollowsTheAppClock() async throws {
-        let wednesday = Day(year: 2026, month: 11, day: 11)
-        let snapshot = try await withDependencies { [calendar] in
-            $0.date.now = wednesday.date(minute: 600, calendar: calendar)
-        } operation: {
-            try await store().load()
-        }
-        XCTAssertEqual(Set(snapshot.items), Set(SeedData.items(today: wednesday, calendar: calendar)))
-    }
-
     func testSaveThenLoadInNewStoreKeepsItem() async throws {
         let swim = item("Pottery")
-        try await store().save(swim)
+        try await seeded().save(swim)
         let reloaded = try await store().load()   // a new store on the same folder, like an app restart
         XCTAssertTrue(reloaded.items.contains(swim))
-        XCTAssertEqual(reloaded.kids, SeedData.kids, "seeding happens once")
+        XCTAssertEqual(reloaded.kids, SeedData.kids)
         XCTAssertEqual(reloaded.items.filter { $0.title == "Swimming" }.count, 1)
     }
 
@@ -116,7 +146,7 @@ final class ScheduleStoreLiveTests: XCTestCase {
 
     /// C6 "Save the day": a template saved from tomorrow leaves today on the old one.
     func testSavedTemplateStartsOnItsDay() async throws {
-        let store = store()
+        let store = try await seeded()
         let old = try await store.load().routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!
         var new = old
         new.from = Day(year: 2026, month: 11, day: 10)
@@ -141,7 +171,7 @@ final class ScheduleStoreLiveTests: XCTestCase {
     // MARK: Missions (spec "MVP data")
 
     func testSeedMissionsLoadAndASavedListReplacesTheKids() async throws {
-        let store = store()
+        let store = try await seeded()
         let missions = try await store.load().missions
         XCTAssertEqual(Set(missions), Set(SeedData.missions))
         var kidA = missions.filter { $0.kid == SeedData.kidA.id }.sorted { $0.order < $1.order }

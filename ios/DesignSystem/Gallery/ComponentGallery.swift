@@ -44,6 +44,20 @@ public struct ComponentGallery: View {
                         CrayonField("Activity name", text: $name).frame(width: 480)
                         TimeField(label: "7:30 am", time: $time)
                     }
+                    // S1–S4: setup progress, kid colour swatches, a time not chosen yet.
+                    HStack(spacing: Spacing.m) {
+                        StepDots(current: 2)
+                        HStack(spacing: Spacing.xs) {
+                            ForEach(0..<4, id: \.self) { index in
+                                ColourSwatch(colorIndex: index, isPicked: index == 0, accessibilityLabel: "Colour") {}
+                            }
+                        }
+                        TimeField(label: "7:30 am", time: $time, isPlaceholder: true)
+                        KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
+                        LockMark(size: 56)
+                    }
+                    CrayonTabs(selection: .constant(0), items: [(0, "School", nil), (1, "Preschool", nil), (2, "At home", nil)],
+                               itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
                     PictureRow(slots: [.actSwim, .actArt, .actMusic, .actPiano, .actDance], selection: .constant(.actSwim),
                                all: [.actSwim, .actArt], isShowingAll: false, moreTitle: "More", moreLabel: "More pictures") {}
                     IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {}

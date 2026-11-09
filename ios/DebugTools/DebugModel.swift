@@ -1,9 +1,11 @@
 #if DEBUG
 import ComposableArchitecture
+import Domain
 import Foundation
 import KitArt
 import Observation
 import ParentAuthClient
+import ScheduleStore
 
 /// What the debug bubble and menu show and change. Every change goes to `core` (read by the app's
 /// `\.date` and Face ID) and to UserDefaults.
@@ -17,6 +19,13 @@ public final class DebugModel {
     @ObservationIgnored private let requiresUnlock: Bool
     /// The real Face ID check, never the "Skip Face ID" wrapper.
     @ObservationIgnored private let unlock: @Sendable (String) async -> ParentAuthOutcome
+    /// Writes the sample family over the stored one ("Load sample family").
+    @ObservationIgnored private let replaceWithSample: @Sendable () async throws -> Void
+
+    /// Goes up each time "Load sample family" replaced the stored family; the app reloads on it.
+    public private(set) var familyGeneration = 0
+    /// The last "Load sample family" could not write the store.
+    public var sampleFamilyFailed = false
 
     public var settings: DebugSettings {
         didSet {
@@ -36,7 +45,9 @@ public final class DebugModel {
 
     public init(core: DebugCore, defaults: UserDefaults, calendar: Calendar, requiresUnlock: Bool = false,
                 allowsSkipFaceID: Bool = true,
-                unlock: @escaping @Sendable (String) async -> ParentAuthOutcome = { _ in .success }) {
+                unlock: @escaping @Sendable (String) async -> ParentAuthOutcome = { _ in .success },
+                replaceWithSample: @escaping @Sendable () async throws -> Void = {}) {
+        self.replaceWithSample = replaceWithSample
         self.allowsSkipFaceID = allowsSkipFaceID
         self.core = core
         self.defaults = defaults
@@ -76,6 +87,18 @@ public final class DebugModel {
 
     public func backToRealTime() { settings.time = nil }
 
+    /// Debug only (spec "Seed data in M2"): overwrites the stored family with the sample family
+    /// (`SeedData`), after the menu's confirm.
+    public func loadSampleFamily() async {
+        do {
+            try await replaceWithSample()
+            sampleFamilyFailed = false
+            familyGeneration += 1
+        } catch {
+            sampleFamilyFailed = true
+        }
+    }
+
     /// `hour:minute` on the travelled day plus `dayOffset` days.
     public func preset(dayOffset: Int, hour: Int, minute: Int) -> Date {
         let day = calendar.date(byAdding: .day, value: dayOffset, to: calendar.startOfDay(for: core.now())) ?? core.now()
@@ -102,9 +125,16 @@ extension DebugModel {
                                allowsSkipFaceID: Bool = isSimulator) {
         let core = DebugCore(settings: DebugSettings())
         let live = dependencies.parentAuth
-        let model = DebugModel(core: core, defaults: defaults, calendar: dependencies.calendar,
+        let store = dependencies.scheduleStore
+        let calendar = dependencies.calendar
+        let model = DebugModel(core: core, defaults: defaults, calendar: calendar,
                                requiresUnlock: !isSimulator, allowsSkipFaceID: allowsSkipFaceID,
-                               unlock: live.authenticate)
+                               unlock: live.authenticate,
+                               replaceWithSample: {
+                                   // Around the app's day, so the time machine sees the sample week.
+                                   let today = Day(core.now(), calendar: calendar)
+                                   try await store.replaceFamily(.sampleFamily(today: today, calendar: calendar))
+                               })
         model.settings.apply(LaunchOptions(arguments: arguments, calendar: dependencies.calendar),
                              realNow: core.realDate())
         dependencies.date = DateGenerator { core.now() }

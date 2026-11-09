@@ -12,6 +12,8 @@ import HolidayProvider
 import HolidayProviderLive
 import ParentAuthClient
 import ParentAuthClientLive
+import SchoolDirectory
+import SchoolDirectoryLive
 import ScheduleStore
 import ScheduleStoreLive
 import SwiftUI
@@ -21,6 +23,7 @@ final class AppDelegate: AppDelegateBase {
         dependencies.parentAuth = .live
         dependencies.holidays = .live
         dependencies.scheduleStore = .live(directory: .applicationSupportDirectory)
+        dependencies.schoolDirectory = .live
         dependencies.bus = .live(key: DeviceConfig.bundled?.usableBusKey)
         #if DEBUG
         DebugModel.install(into: &dependencies)

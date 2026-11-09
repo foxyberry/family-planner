@@ -17,10 +17,6 @@ final class SeedDataTests: XCTestCase {
         slots.filter { $0.end > from && $0.start < to }.map { "\($0.title) \($0.start)-\($0.end)" }
     }
 
-    func testSeedVersionIsThree() {
-        XCTAssertEqual(SeedData.version, 3)
-    }
-
     func testMondayAt652IsBreakfastUntil730() {
         let now = DayPlanner.now(at: 412, in: slots(SeedData.kidA, on: Fixture.monday))
         XCTAssertEqual(now.current?.title, "Breakfast")

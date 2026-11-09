@@ -1,5 +1,5 @@
 {
- "version": "9",
+ "version": "12",
  "board": "A2",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -207,7 +207,7 @@
    }
   },
   {
-   "id": "strip.text",
+   "id": "strip.text.1",
    "kind": "text",
    "x": 1020,
    "y": 192,
@@ -225,6 +225,21 @@
   },
   {
    "id": "strip.bubble.2",
+   "kind": "bubble",
+   "x": 349,
+   "y": 204,
+   "w": 190,
+   "h": 104,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 285,
+    "y": 28
+   }
+  },
+  {
+   "id": "strip.bubble.3",
    "kind": "bubble",
    "x": 616,
    "y": 204,
@@ -254,6 +269,40 @@
    }
   },
   {
+   "id": "strip.text.2",
+   "kind": "text",
+   "x": 1082,
+   "y": 235,
+   "w": 46,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 263,
+   "font": 24,
+   "stripLocal": {
+    "x": 1018,
+    "y": 59
+   }
+  },
+  {
+   "id": "strip.text.3",
+   "kind": "text",
+   "x": 1026,
+   "y": 236,
+   "w": 32,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 254,
+   "font": 24,
+   "stripLocal": {
+    "x": 962,
+    "y": 60
+   }
+  },
+  {
    "id": "strip.destination",
    "kind": "picture",
    "x": 1154,
@@ -272,30 +321,45 @@
    "id": "strip.mover.1",
    "kind": "mover",
    "x": 90,
-   "y": 314,
-   "w": 122,
-   "h": 122,
+   "y": 310,
+   "w": 124,
+   "h": 124,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
     "x": 26,
-    "y": 138
+    "y": 134
    }
   },
   {
    "id": "strip.mover.2",
    "kind": "mover",
+   "x": 383,
+   "y": 310,
+   "w": 124,
+   "h": 124,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 319,
+    "y": 134
+   }
+  },
+  {
+   "id": "strip.mover.3",
+   "kind": "mover",
    "x": 650,
-   "y": 314,
-   "w": 122,
-   "h": 122,
+   "y": 310,
+   "w": 124,
+   "h": 124,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
     "x": 586,
-    "y": 138
+    "y": 134
    }
   },
   {
@@ -632,9 +696,9 @@
    "id": "bottom.knob",
    "kind": "mover",
    "x": 473,
-   "y": 889,
-   "w": 61,
-   "h": 61,
+   "y": 885,
+   "w": 62,
+   "h": 62,
    "region": "bottom",
    "anchor": "stretch",
    "align": "inside"

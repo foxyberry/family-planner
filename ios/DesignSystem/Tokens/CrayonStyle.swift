@@ -12,6 +12,11 @@ public enum CrayonStyle {
     public static let ink = CrayonFill(color: CrayonColor.marker, hachure: nil)
     public static let paper = CrayonFill.paper(CrayonColor.card)
 
+    /// A kid's colour as crayon (S1 swatches, a face not picked yet).
+    public static func kid(_ colorIndex: Int) -> CrayonFill {
+        CrayonFill(color: CrayonColor.kid(colorIndex), hachure: HachureStyle(degrees: -40))
+    }
+
     enum Seed {
         static let inkButton: UInt32 = 101
         static let roundButton: UInt32 = 301
@@ -34,5 +39,7 @@ public enum CrayonStyle {
         static let band: UInt32 = 2101
         static let way: UInt32 = 2201
         static let status: UInt32 = 2301
+        static let stepDots: UInt32 = 2401
+        static let swatch: UInt32 = 2501
     }
 }

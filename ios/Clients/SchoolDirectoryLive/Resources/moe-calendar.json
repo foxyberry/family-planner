@@ -1,0 +1,829 @@
+{
+ "schemaVersion": 1,
+ "dataVersion": "2026.11.09",
+ "retrievedAt": "2026-11-09T08:15:00+08:00",
+ "levels": {
+  "mk": "MOE Kindergarten",
+  "primary": "Primary",
+  "secondary": "Secondary",
+  "jc1": "JC Year 1",
+  "jc2": "JC Year 2",
+  "mi1": "MI Year 1",
+  "mi2": "MI Year 2",
+  "mi3": "MI Year 3"
+ },
+ "eventTypes": {
+  "term": "school term (inclusive dates)",
+  "vacation": "school vacation (inclusive)",
+  "school_holiday": "MOE scheduled school holiday (schools closed, not a public holiday)",
+  "public_holiday": "gazetted public holiday as listed by MOE; \"(observed)\" = the following Monday holiday",
+  "day_off_in_lieu": "MOE-designated school closure in lieu of a public holiday on Saturday"
+ },
+ "licence": "Facts reproduced from moe.gov.sg press releases; see README for terms of use",
+ "timezone": "Asia/Singapore",
+ "years": {
+  "2026": {
+   "year": 2026,
+   "source": {
+    "title": "School Terms and Holidays for 2026",
+    "publisher": "Ministry of Education, Singapore",
+    "url": "https://www.moe.gov.sg/news/press-releases/20250730-school-terms-and-holidays-for-2026",
+    "publishedOn": "2025-07-30",
+    "crossCheckedWith": "https://www.moe.gov.sg/calendar"
+   },
+   "schoolYear": {
+    "start": "2026-01-02",
+    "end": "2026-11-20"
+   },
+   "events": [
+    {
+     "type": "public_holiday",
+     "name": "New Year's Day",
+     "date": "2026-01-01",
+     "appliesTo": "all"
+    },
+    {
+     "type": "term",
+     "name": "Term 1",
+     "term": 1,
+     "start": "2026-01-02",
+     "end": "2026-03-13",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 1",
+     "term": 1,
+     "start": "2026-01-12",
+     "end": "2026-03-13",
+     "appliesTo": [
+      "jc2",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 1",
+     "term": 1,
+     "start": "2026-02-04",
+     "end": "2026-03-13",
+     "appliesTo": [
+      "jc1",
+      "mi1"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Chinese New Year",
+     "date": "2026-02-17",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Chinese New Year",
+     "date": "2026-02-18",
+     "appliesTo": "all"
+    },
+    {
+     "type": "vacation",
+     "name": "March holidays",
+     "start": "2026-03-14",
+     "end": "2026-03-22",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Hari Raya Puasa",
+     "date": "2026-03-21",
+     "appliesTo": "all"
+    },
+    {
+     "type": "day_off_in_lieu",
+     "name": "Day off-in-lieu for Hari Raya Puasa",
+     "date": "2026-03-23",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ],
+     "forHoliday": "2026-03-21",
+     "note": "schools incl. General Office, Student Care Centres and KCare closed"
+    },
+    {
+     "type": "term",
+     "name": "Term 2",
+     "term": 2,
+     "start": "2026-03-23",
+     "end": "2026-05-29",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 2",
+     "term": 2,
+     "start": "2026-03-23",
+     "end": "2026-05-29",
+     "appliesTo": [
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Good Friday",
+     "date": "2026-04-03",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Labour Day",
+     "date": "2026-05-01",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Hari Raya Haji",
+     "date": "2026-05-27",
+     "appliesTo": "all"
+    },
+    {
+     "type": "vacation",
+     "name": "June holidays",
+     "start": "2026-05-30",
+     "end": "2026-06-28",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Vesak Day",
+     "date": "2026-05-31",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Vesak Day (observed)",
+     "date": "2026-06-01",
+     "appliesTo": "all",
+     "observedFor": "2026-05-31"
+    },
+    {
+     "type": "term",
+     "name": "Term 3",
+     "term": 3,
+     "start": "2026-06-29",
+     "end": "2026-09-04",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 3",
+     "term": 3,
+     "start": "2026-06-29",
+     "end": "2026-09-04",
+     "appliesTo": [
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "school_holiday",
+     "name": "Youth Day (school holiday)",
+     "date": "2026-07-06",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ],
+     "note": "Youth Day falls on Sun 5 Jul; the following Monday is a school holiday"
+    },
+    {
+     "type": "public_holiday",
+     "name": "National Day",
+     "date": "2026-08-09",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "National Day (observed)",
+     "date": "2026-08-10",
+     "appliesTo": "all",
+     "observedFor": "2026-08-09"
+    },
+    {
+     "type": "school_holiday",
+     "name": "Teachers' Day",
+     "date": "2026-09-04",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "vacation",
+     "name": "September holidays",
+     "start": "2026-09-05",
+     "end": "2026-09-13",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 4",
+     "term": 4,
+     "start": "2026-09-14",
+     "end": "2026-11-20",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 4",
+     "term": 4,
+     "start": "2026-09-14",
+     "end": "2026-11-27",
+     "appliesTo": [
+      "jc1",
+      "mi1",
+      "mi2"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 4",
+     "term": 4,
+     "start": "2026-09-14",
+     "end": null,
+     "endNote": "end of GCE A-Level examinations",
+     "appliesTo": [
+      "jc2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "school_holiday",
+     "name": "Children's Day",
+     "date": "2026-10-02",
+     "appliesTo": [
+      "mk",
+      "primary"
+     ],
+     "note": "primary schools and primary sections of full schools only (MOE calendar also lists MK)"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Deepavali",
+     "date": "2026-11-08",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Deepavali (observed)",
+     "date": "2026-11-09",
+     "appliesTo": "all",
+     "observedFor": "2026-11-08"
+    },
+    {
+     "type": "vacation",
+     "name": "End-of-year holidays",
+     "start": "2026-11-21",
+     "end": "2026-12-31",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "vacation",
+     "name": "End-of-year holidays",
+     "start": "2026-11-28",
+     "end": "2026-12-31",
+     "appliesTo": [
+      "jc1",
+      "mi1",
+      "mi2"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Christmas Day",
+     "date": "2026-12-25",
+     "appliesTo": "all"
+    },
+    {
+     "type": "vacation",
+     "name": "End-of-year holidays",
+     "start": null,
+     "startNote": "end of GCE A-Level examinations",
+     "end": "2026-12-31",
+     "appliesTo": [
+      "jc2",
+      "mi3"
+     ]
+    }
+   ],
+   "primaryNoSchoolWeekdaysInTerm": [
+    "2026-02-17",
+    "2026-02-18",
+    "2026-03-23",
+    "2026-04-03",
+    "2026-05-01",
+    "2026-05-27",
+    "2026-07-06",
+    "2026-08-10",
+    "2026-09-04",
+    "2026-10-02",
+    "2026-11-09"
+   ],
+   "notes": [
+    "P1 and K1 start Fri 2 Jan 2026; P2-P6 and K2 start Mon 5 Jan 2026.",
+    "Mon 23 Mar 2026 (first day of Term 2) is a designated day off-in-lieu for Hari Raya Puasa (Sat 21 Mar): schools, General Office, Student Care Centres and KCare closed.",
+    "Schools used as GCE O-Level written exam venues end Term 4 on Fri 23 Oct 2026."
+   ]
+  },
+  "2027": {
+   "year": 2027,
+   "source": {
+    "title": "School Terms and Holidays for 2027",
+    "publisher": "Ministry of Education, Singapore",
+    "url": "https://www.moe.gov.sg/news/press-releases/20260714-school-terms-and-holidays-for-2027",
+    "publishedOn": "2026-07-14",
+    "crossCheckedWith": "https://www.moe.gov.sg/calendar"
+   },
+   "schoolYear": {
+    "start": "2027-01-04",
+    "end": "2027-11-19"
+   },
+   "events": [
+    {
+     "type": "public_holiday",
+     "name": "New Year's Day",
+     "date": "2027-01-01",
+     "appliesTo": "all"
+    },
+    {
+     "type": "term",
+     "name": "Term 1",
+     "term": 1,
+     "start": "2027-01-04",
+     "end": "2027-03-12",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 1",
+     "term": 1,
+     "start": "2027-01-11",
+     "end": "2027-03-12",
+     "appliesTo": [
+      "jc2",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 1",
+     "term": 1,
+     "start": "2027-02-03",
+     "end": "2027-03-12",
+     "appliesTo": [
+      "jc1",
+      "mi1"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Chinese New Year",
+     "date": "2027-02-06",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Chinese New Year",
+     "date": "2027-02-07",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Chinese New Year (observed)",
+     "date": "2027-02-08",
+     "appliesTo": "all",
+     "observedFor": "2027-02-07"
+    },
+    {
+     "type": "day_off_in_lieu",
+     "name": "Day off-in-lieu for Chinese New Year",
+     "date": "2027-02-09",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ],
+     "forHoliday": "2027-02-06",
+     "note": "schools incl. General Office, Student Care Centres and KCare closed"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Hari Raya Puasa",
+     "date": "2027-03-10",
+     "appliesTo": "all"
+    },
+    {
+     "type": "vacation",
+     "name": "March holidays",
+     "start": "2027-03-13",
+     "end": "2027-03-21",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 2",
+     "term": 2,
+     "start": "2027-03-22",
+     "end": "2027-05-28",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 2",
+     "term": 2,
+     "start": "2027-03-22",
+     "end": "2027-05-28",
+     "appliesTo": [
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Good Friday",
+     "date": "2027-03-26",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Labour Day",
+     "date": "2027-05-01",
+     "appliesTo": "all"
+    },
+    {
+     "type": "day_off_in_lieu",
+     "name": "Day off-in-lieu for Labour Day",
+     "date": "2027-05-03",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ],
+     "forHoliday": "2027-05-01",
+     "note": "schools incl. General Office, Student Care Centres and KCare closed"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Hari Raya Haji",
+     "date": "2027-05-17",
+     "appliesTo": "all"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Vesak Day",
+     "date": "2027-05-20",
+     "appliesTo": "all"
+    },
+    {
+     "type": "vacation",
+     "name": "June holidays",
+     "start": "2027-05-29",
+     "end": "2027-06-27",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 3",
+     "term": 3,
+     "start": "2027-06-28",
+     "end": "2027-09-03",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 3",
+     "term": 3,
+     "start": "2027-06-28",
+     "end": "2027-09-03",
+     "appliesTo": [
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "school_holiday",
+     "name": "Youth Day (school holiday)",
+     "date": "2027-07-05",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ],
+     "note": "Youth Day falls on Sun 4 Jul; the following Monday is a school holiday"
+    },
+    {
+     "type": "public_holiday",
+     "name": "National Day",
+     "date": "2027-08-09",
+     "appliesTo": "all"
+    },
+    {
+     "type": "school_holiday",
+     "name": "Day after National Day",
+     "date": "2027-08-10",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "school_holiday",
+     "name": "Teachers' Day",
+     "date": "2027-09-03",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "vacation",
+     "name": "September holidays",
+     "start": "2027-09-04",
+     "end": "2027-09-12",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 4",
+     "term": 4,
+     "start": "2027-09-13",
+     "end": "2027-11-19",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 4",
+     "term": 4,
+     "start": "2027-09-13",
+     "end": "2027-11-26",
+     "appliesTo": [
+      "jc1",
+      "mi1",
+      "mi2"
+     ]
+    },
+    {
+     "type": "term",
+     "name": "Term 4",
+     "term": 4,
+     "start": "2027-09-13",
+     "end": null,
+     "endNote": "end of GCE A-Level examinations",
+     "appliesTo": [
+      "jc2",
+      "mi3"
+     ]
+    },
+    {
+     "type": "school_holiday",
+     "name": "Children's Day",
+     "date": "2027-10-08",
+     "appliesTo": [
+      "mk",
+      "primary"
+     ],
+     "note": "primary schools and primary sections of full schools only"
+    },
+    {
+     "type": "public_holiday",
+     "name": "Deepavali",
+     "date": "2027-10-28",
+     "appliesTo": "all"
+    },
+    {
+     "type": "vacation",
+     "name": "End-of-year holidays",
+     "start": "2027-11-20",
+     "end": "2027-12-31",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary"
+     ]
+    },
+    {
+     "type": "vacation",
+     "name": "End-of-year holidays",
+     "start": "2027-11-27",
+     "end": "2027-12-31",
+     "appliesTo": [
+      "jc1",
+      "mi1",
+      "mi2"
+     ]
+    },
+    {
+     "type": "public_holiday",
+     "name": "Christmas Day",
+     "date": "2027-12-25",
+     "appliesTo": "all"
+    },
+    {
+     "type": "day_off_in_lieu",
+     "name": "Day off-in-lieu for Christmas Day",
+     "date": "2027-12-27",
+     "appliesTo": [
+      "mk",
+      "primary",
+      "secondary",
+      "jc1",
+      "jc2",
+      "mi1",
+      "mi2",
+      "mi3"
+     ],
+     "forHoliday": "2027-12-25",
+     "note": "schools incl. General Office, Student Care Centres and KCare closed"
+    },
+    {
+     "type": "vacation",
+     "name": "End-of-year holidays",
+     "start": null,
+     "startNote": "end of GCE A-Level examinations",
+     "end": "2027-12-31",
+     "appliesTo": [
+      "jc2",
+      "mi3"
+     ]
+    }
+   ],
+   "primaryNoSchoolWeekdaysInTerm": [
+    "2027-02-08",
+    "2027-02-09",
+    "2027-03-10",
+    "2027-03-26",
+    "2027-05-03",
+    "2027-05-17",
+    "2027-05-20",
+    "2027-07-05",
+    "2027-08-09",
+    "2027-08-10",
+    "2027-09-03",
+    "2027-10-08",
+    "2027-10-28"
+   ],
+   "notes": [
+    "P1 and K1 start Mon 4 Jan 2027; P2-P6 and K2 start Tue 5 Jan 2027.",
+    "Schools used as SEC written exam venues end Term 4 on Fri 29 Oct 2027.",
+    "The MOE calendar page renders 2027 only with JavaScript; 2027 is verified against the press release only."
+   ]
+  }
+ }
+}

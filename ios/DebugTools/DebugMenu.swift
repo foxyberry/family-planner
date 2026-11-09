@@ -7,6 +7,7 @@ struct DebugMenu: View {
     @Bindable var model: DebugModel
     @Environment(\.dismiss) private var dismiss
     @State private var picked: Date
+    @State private var isConfirmingSample = false
 
     init(model: DebugModel) {
         self.model = model
@@ -41,6 +42,28 @@ struct DebugMenu: View {
                     Text("Flags")
                 } footer: {
                     Text("Holding the clock opens grown-up screens without the Face ID check.")
+                }
+                Section {
+                    Button("Load sample family", role: .destructive) { isConfirmingSample = true }
+                    if model.sampleFamilyFailed {
+                        Text("Couldn't write the store. Try again.").foregroundStyle(.red)
+                    }
+                } header: {
+                    Text("Family")
+                } footer: {
+                    Text("Kid A and Kid B with the seed days, items and missions. This replaces everything on this iPad.")
+                }
+                .confirmationDialog("Replace your family with the sample family?", isPresented: $isConfirmingSample,
+                                    titleVisibility: .visible) {
+                    Button("Replace", role: .destructive) {
+                        Task {
+                            await model.loadSampleFamily()
+                            if !model.sampleFamilyFailed { dismiss() }
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Everything you entered here is deleted.")
                 }
                 Section("Network") {
                     Text("No network clients yet. Bus arrivals (M3) will log their requests here.")

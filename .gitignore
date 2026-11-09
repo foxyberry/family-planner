@@ -42,3 +42,6 @@ node_modules/
 
 # Snapshot diffs are produced locally only
 ios/DesignSystem/SnapshotTests/__Diffs__/
+
+# Private school list (licence not decided); loaded when present
+ios/Clients/SchoolDirectoryLive/Private/

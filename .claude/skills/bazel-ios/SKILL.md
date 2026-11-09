@@ -45,7 +45,8 @@ then once the sheet shows, `notifyutil -p com.apple.BiometricKit_Sim.pearl.match
 - Layout check: `make device NOW=… OPEN=missions GRID=1` opens the screen by deep link with the
   board-line grid on; `pymobiledevice3 developer dvt screenshot x.png`; a part off its line is a bug.
   Grown-up boards (`OPEN=c1`…`c6`, `e6`) need Face ID: use `make run … SKIP_FACE_ID=1 OPEN=c3`
-  and `simctl io booted screenshot`; relaunch the app before the next board.
+  and `simctl io booted screenshot`; relaunch before the next board. Setup (`OPEN=s1`…`s4`)
+  needs no unlock.
 
 ## Commands
 

@@ -6,6 +6,8 @@ import Grownup
 import Home
 import Missions
 import ParentAuthClient
+import ScheduleStore
+import Setup
 import Strings
 import SwiftUI
 
@@ -20,6 +22,7 @@ public struct AppFeature {
         case ourDay(OurDayFeature)
         case missionEditor(MissionEditorFeature)
         case busSettings(BusSettingsFeature)
+        case dataSources(DataSourcesFeature)
         case gallery(GalleryFeature)
         /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
         /// grown-up rules (idle lock, app-switcher cover) skip it.
@@ -42,6 +45,10 @@ public struct AppFeature {
         public var relockCaption: String?
         /// A debug link's grown-up board, opened once the unlock passes and the hub has loaded.
         public var pendingBoard: GrownupBoard?
+        /// Whether this iPad has a family yet; nil until the store has been read at launch.
+        public var hasFamily: Bool?
+        /// First-run setup (S1–S4) instead of the home, while the iPad has no family.
+        public var setup: SetupFeature.State?
 
         public init() {}
 
@@ -72,6 +79,12 @@ public struct AppFeature {
         case appDelegate(AppDelegateAction)
         case scenePhaseChanged(ScenePhase)
         case task
+        /// Reads the store once at launch: no kids means first-run setup.
+        case checkFamily
+        case familyChecked(hasFamily: Bool)
+        /// The debug tools replaced the stored family ("Load sample family").
+        case familyReplaced
+        case setup(SetupFeature.Action)
         case tick(Date)
         case parentAuthResponse(ParentAuthOutcome)
         case lockPrimaryTapped
@@ -87,6 +100,8 @@ public struct AppFeature {
     @Dependency(\.continuousClock) var clock
     @Dependency(\.date) var date
     @Dependency(\.parentAuth) var parentAuth
+    @Dependency(\.scheduleStore) var scheduleStore
+    @Dependency(\.uuid) var uuid
 
     /// Grown-up screens close after this many seconds without a touch.
     static let idleLimit = 120
@@ -121,6 +136,35 @@ public struct AppFeature {
                 }
                 if phase == .background { relock(&state) }
                 return .none
+
+            case .checkFamily:
+                return .run { [scheduleStore] send in
+                    // An unreadable store is not an empty one: setup would replace it, so it never opens then.
+                    guard let snapshot = try? await scheduleStore.load() else { return }
+                    await send(.familyChecked(hasFamily: !snapshot.kids.isEmpty))
+                }
+
+            case let .familyChecked(hasFamily):
+                state.hasFamily = hasFamily
+                if !hasFamily, state.setup == nil {
+                    state.setup = SetupFeature.State(firstKid: uuid(), calendar: calendar)
+                }
+                return .none
+
+            case .setup(.delegate(.finished)):
+                state.setup = nil
+                state.hasFamily = true
+                return .send(.home(.reload))
+
+            case .setup:
+                return .none
+
+            case .familyReplaced:
+                state.path.removeAll()
+                relock(&state)
+                state.setup = nil
+                state.hasFamily = true
+                return .send(.home(.reload))
 
             case .task:
                 return .run { [clock, date] send in
@@ -158,6 +202,19 @@ public struct AppFeature {
                     state.pendingBoard = board
                     state.lock = .scanning
                     return authenticate()
+                case let .setup(step):
+                    // Debug builds only. No unlock: setup has no grown-up lock, and nothing is
+                    // saved until Start on S4.
+                    #if DEBUG
+                    state.path.removeAll()
+                    var setup = SetupFeature.State.sample(step: step, calendar: calendar)
+                    // Over a family, Start asks before replacing it (spec S1–S4 "Debug only").
+                    setup.replacesFamily = state.hasFamily != false
+                    state.setup = setup
+                    #else
+                    _ = step
+                    #endif
+                    return .none
                 }
                 return .none
 
@@ -295,6 +352,14 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
+            case .path(.element(id: _, action: .hub(.dataSourcesTapped))):
+                state.path.append(.dataSources(DataSourcesFeature.State()))
+                return .none
+
+            case let .path(.element(id: id, action: .dataSources(.backTapped))):
+                state.path.pop(from: id)
+                return .none
+
             case .path(.element(id: _, action: .hub(.galleryButtonTapped))):
                 state.path.append(.gallery(GalleryFeature.State()))
                 return .none
@@ -304,6 +369,7 @@ public struct AppFeature {
             }
         }
         .forEach(\.path, action: \.path)
+        .ifLet(\.setup, action: \.setup) { SetupFeature() }
     }
 
     private func authenticate() -> Effect<Action> {

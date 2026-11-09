@@ -4,8 +4,9 @@ import CoreGraphics
 /// 48 box, drawn as one slightly wobbly marker pass with a fixed seed, so it looks the same every
 /// time and like the rest of the crayon UI. Playpen Sans has no arrows, so these replace text glyphs.
 public enum MarkerGlyph: String, CaseIterable, Sendable {
-    /// `handle` is the drag handle ≡ of reorderable rows (C5). New cases go last: the order seeds them.
-    case chevronLeft, chevronRight, arrowRight, plus, minus, handle
+    /// `handle` is the drag handle ≡ of reorderable rows (C5); `lock` the grown-up lock (S4, over a
+    /// yellow crayon body: `LockMark`). New cases go last: the order seeds them.
+    case chevronLeft, chevronRight, arrowRight, plus, minus, handle, lock
 
     /// The strokes in the 48 box (spec paths).
     public var strokes: [[CGPoint]] {
@@ -16,6 +17,9 @@ public enum MarkerGlyph: String, CaseIterable, Sendable {
         case .plus: [[p(24, 10), p(24, 38)], [p(10, 24), p(38, 24)]]
         case .minus: [[p(10, 24), p(38, 24)]]
         case .handle: [[p(12, 15), p(36, 15)], [p(12, 24), p(36, 24)], [p(12, 33), p(36, 33)]]
+        case .lock:
+            [[p(15, 22), p(15, 15), p(18, 10), p(24, 8), p(30, 10), p(33, 15), p(33, 22)],
+             [p(10, 22), p(38, 22), p(38, 42), p(10, 42), p(10, 22)], [p(24, 29), p(24, 35)]]
         }
     }
 
@@ -40,6 +44,9 @@ public enum MarkerGlyph: String, CaseIterable, Sendable {
             return points
         }
     }
+
+    /// The lock's body in the 48 box, for the crayon fill under it.
+    public static let lockBody = CGRect(x: 10, y: 22, width: 28, height: 20)
 
     private func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: x, y: y) }
 }
