@@ -270,6 +270,19 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// Layout v14: rows 72 tall never overlap, a long name ends in "…" only at 610, and more rows
+    /// than fit scroll inside the card.
+    func testResultListCard() {
+        let rows: [ResultListCard.Row] = (0..<3).map { index in
+            .init(id: "\(index)", title: index == 0 ? "Opp Example Hotel With A Very Long Name Past The Card Edge"
+                                                   : "Example Stop \(index)",
+                  caption: "Example Rd · 0000\(index)") {}
+        } + [.init(id: "more", glyph: .plus, title: "Not in the list? Type the name") {}]
+        snap(ResultListCard(rows: rows, visibleRows: 6, seed: 55), named: "fits")
+        snap(ResultListCard(rows: rows, visibleRows: 2, seed: 55), named: "scrolls")
+        XCTAssertEqual(ResultListCard.height(rows: 8, visible: 6), 6 * 72 + 5 * 2 + 24)
+    }
+
     func testConfirmCard() {
         snap(ConfirmCard(title: "Remove Swimming every week?",
                          message: "It leaves Kid A's clock from Mon 16 Nov. Days before stay in the diary.",

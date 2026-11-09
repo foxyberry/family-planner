@@ -23,6 +23,7 @@ public struct BusSettingsView: View {
             InkButton(L10n.tr("c2.done")) { store.send(.doneTapped) }
                 .frame(width: layout.side.width)
         }
+        .resultVeil(isOpen: store.search.isListOpen) { store.send(.search(.listClosed)) }
         .task { await store.send(.task).finish() }
     }
 
@@ -31,7 +32,7 @@ public struct BusSettingsView: View {
             Text(L10n.tr("c2.plan")).crayonType(.head).foregroundStyle(CrayonColor.ink)
             Text(L10n.tr("c2.for", store.kidName)).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             ListRow(leading: L10n.tr("c2.stop")) {
-                StopSearchField(store: store.scope(state: \.search, action: \.search))
+                StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 8)
             }
             .zIndex(1)
             ListRow(leading: L10n.tr("c2.buses")) {

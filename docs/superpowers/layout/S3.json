@@ -1,5 +1,5 @@
 {
- "version": "12",
+ "version": "14",
  "board": "S3",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -318,14 +318,14 @@
   {
    "id": "main.text.6",
    "kind": "text",
-   "x": 254,
-   "y": 496,
+   "x": 252,
+   "y": 490,
    "w": 246,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 531,
+   "baseline": 525,
    "font": 30,
    "text": "Opp Sunny Park"
   },
@@ -377,29 +377,29 @@
   {
    "id": "main.row.buses.text.1",
    "kind": "text",
-   "x": 254,
-   "y": 530,
+   "x": 252,
+   "y": 527,
    "w": 207,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 558,
+   "baseline": 555,
    "font": 24
   },
   {
    "id": "main.row.buses.text.2",
    "kind": "text",
-   "x": 254,
-   "y": 562,
-   "w": 236,
+   "x": 252,
+   "y": 563,
+   "w": 333,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 597,
+   "baseline": 598,
    "font": 30,
-   "text": "Sunny Park Stn"
+   "text": "Sunny Park Stn Exit B"
   },
   {
    "id": "main.text.7",
@@ -417,29 +417,29 @@
   {
    "id": "main.text.8",
    "kind": "text",
-   "x": 254,
-   "y": 596,
+   "x": 252,
+   "y": 600,
    "w": 219,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 624,
+   "baseline": 628,
    "font": 24
   },
   {
    "id": "main.text.9",
    "kind": "text",
-   "x": 254,
-   "y": 628,
-   "w": 214,
+   "x": 252,
+   "y": 635,
+   "w": 427,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 663,
+   "baseline": 670,
    "font": 30,
-   "text": "Bef Sunny Hill"
+   "text": "Bef Sunny Hill Condominium"
   },
   {
    "id": "main.label.walk",
@@ -507,14 +507,14 @@
   {
    "id": "main.row.walk.text.3",
    "kind": "text",
-   "x": 254,
-   "y": 662,
+   "x": 252,
+   "y": 672,
    "w": 160,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 690,
+   "baseline": 700,
    "font": 24
   },
   {

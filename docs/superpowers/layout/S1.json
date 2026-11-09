@@ -1,5 +1,5 @@
 {
- "version": "12",
+ "version": "14",
  "board": "S1",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -93,6 +93,17 @@
    "align": "inside",
    "baseline": 97,
    "font": 24
+  },
+  {
+   "id": "main.removeKid.1",
+   "kind": "button",
+   "x": 846,
+   "y": 164,
+   "w": 48,
+   "h": 48,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
   },
   {
    "id": "side.picture",
@@ -248,6 +259,17 @@
    "align": "start",
    "baseline": 559,
    "font": 36
+  },
+  {
+   "id": "main.removeKid.2",
+   "kind": "button",
+   "x": 846,
+   "y": 488,
+   "w": 48,
+   "h": 48,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
   },
   {
    "id": "main.label.name.2",

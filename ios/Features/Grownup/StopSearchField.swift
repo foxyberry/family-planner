@@ -9,9 +9,12 @@ import SwiftUI
 /// the rows under it. Give the row holding it a higher `zIndex` so the card covers the next rows.
 public struct StopSearchField: View {
     let store: StoreOf<StopSearchFeature>
+    /// Rows that fit above the form card's bottom (layout v14: S3 6, C2 8); more scroll.
+    let visibleRows: Int
 
-    public init(store: StoreOf<StopSearchFeature>) {
+    public init(store: StoreOf<StopSearchFeature>, visibleRows: Int) {
         self.store = store
+        self.visibleRows = visibleRows
     }
 
     public var body: some View {
@@ -20,35 +23,22 @@ public struct StopSearchField: View {
                         text: Binding(get: { store.text }, set: { store.send(.textChanged($0)) }))
                 .frame(width: 400)
                 .overlay(alignment: .topLeading) {
-                    if !store.matches.isEmpty { matches.offset(y: 80 + Spacing.l) }
+                    if store.isListOpen { matches.resultVeilHole().offset(y: 80 + Spacing.l) }
                 }
             HStack(spacing: Spacing.xs) {
                 if store.pickedStop != nil { CheckMark(isDone: true, size: 32) }
                 Text(store.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
         }
+        .resultVeilHole()
     }
 
-    /// Stops matching the typed name: a white card of 64-tall rows, the name over road and code.
+    /// Stops matching the typed name: the shared result card, the name over road and code.
     private var matches: some View {
-        PaperCard(seed: 55) {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(store.matches.enumerated()), id: \.element.id) { index, stop in
-                    if index > 0 { Rectangle().fill(CrayonColor.paper).frame(height: 2) }
-                    Button { store.send(.stopPicked(stop)) } label: {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(stop.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link).lineLimit(1)
-                            Text(L10n.tr("c2.stop.match", stop.road, stop.code)).crayonType(.caption)
-                                .foregroundStyle(CrayonColor.softText).lineLimit(1)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
+        ResultListCard(rows: store.matches.map { stop in
+            .init(id: stop.code, title: stop.name, caption: L10n.tr("c2.stop.match", stop.road, stop.code)) {
+                store.send(.stopPicked(stop))
             }
-        }
-        .environment(\.cardInset, Spacing.m)
-        .frame(width: 400)
+        }, visibleRows: visibleRows, seed: 55)
     }
 }

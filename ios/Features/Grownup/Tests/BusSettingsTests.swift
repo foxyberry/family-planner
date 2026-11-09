@@ -70,6 +70,13 @@ final class BusSettingsTests: XCTestCase {
         await store.receive(\.search.stopsFound, timeout: .seconds(2))
         XCTAssertEqual(store.state.search.matches.map(\.code), ["00000"])
         XCTAssertEqual(store.state.search.caption, "Tap your stop")
+        XCTAssertTrue(store.state.search.isListOpen)
+        // Layout v14: a tap on the veil closes the list and keeps the typed text.
+        await store.send(.search(.listClosed))
+        XCTAssertFalse(store.state.search.isListOpen)
+        XCTAssertEqual(store.state.search.text, "exam")
+        await store.send(.search(.textChanged("exam")))
+        await store.receive(\.search.stopsFound, timeout: .seconds(2))
         await store.send(.search(.stopPicked(store.state.search.matches[0])))
         XCTAssertEqual(store.state.search.stop, "00000")
         XCTAssertEqual(store.state.search.text, "Example Stop")

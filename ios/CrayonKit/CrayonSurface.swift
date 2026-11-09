@@ -35,9 +35,20 @@ public struct CrayonSurface: View {
         self.seed = seed
     }
 
+    /// How far the line may wobble past the frame: the jitter (roughness + bowing), half the line
+    /// and the closing overshoot. The canvas reaches this far out, because a Canvas clips what it
+    /// draws to its bounds and cut every wobble flat at the frame (user, 2026-11-09: outlines cut).
+    nonisolated static func bleed(_ marker: MarkerStyle) -> CGFloat {
+        (marker.roughness + marker.bowing + marker.width / 2 + 2).rounded(.up)
+    }
+
     public var body: some View {
+        let bleed = Self.bleed(marker)
         Canvas { context, size in
-            let g = Self.geometry(kind: kind, size: size, fill: fill, marker: marker, seed: seed,
+            // The part's own frame, inside the bleed; positions and the cache stay as they were.
+            let frame = CGSize(width: max(size.width - 2 * bleed, 0), height: max(size.height - 2 * bleed, 0))
+            context.translateBy(x: bleed, y: bleed)
+            let g = Self.geometry(kind: kind, size: frame, fill: fill, marker: marker, seed: seed,
                                   cache: .shared)
             if let fill {
                 let wash = Self.closedPath(g.washOutline)
@@ -55,6 +66,7 @@ public struct CrayonSurface: View {
             context.stroke(line, with: .color(markerColor),
                            style: StrokeStyle(lineWidth: marker.width, lineCap: .round, lineJoin: .round))
         }
+        .padding(-bleed)
         .accessibilityHidden(true)
     }
 

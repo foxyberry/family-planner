@@ -46,6 +46,11 @@ public struct SetupFeature {
         /// A debug link opened setup over an existing family: Start asks before replacing it.
         public var replacesFamily = false
         public var isConfirmingReplace = false
+        /// S1: the kid whose × asks "Remove {name}?" (a card with something typed asks first).
+        public var removeConfirm: KidEntry.ID?
+
+        /// S1 (layout v13): every card has a × while there are two or more.
+        public var canRemoveKids: Bool { kids.count >= 2 }
         /// Data sources (spec S2), opened from the link under the school caption.
         @Presents public var dataSources: DataSourcesFeature.State?
         /// The app's calendar, for the time wheels (minutes after midnight in its time zone).
@@ -62,7 +67,10 @@ public struct SetupFeature {
         public var canAddKid: Bool { kids.count < Self.mostKids }
 
         /// "Next →" is off until every card has a name and an age.
-        public var familyIsComplete: Bool { kids.allSatisfy { !$0.trimmedName.isEmpty && $0.age != nil } }
+        /// S1: every card has a name, an age and a face (user, 2026-11-09: the face too).
+        public var familyIsComplete: Bool {
+            kids.allSatisfy { !$0.trimmedName.isEmpty && $0.age != nil && $0.face != nil }
+        }
 
         // MARK: S2
 
@@ -85,6 +93,15 @@ public struct SetupFeature {
         public var goingSearch: StopSearchFeature.State {
             get { goingKid?.going.search ?? StopSearchFeature.State() }
             set { if let id = goingKid?.id { kids[id: id]?.going.search = newValue } }
+        }
+
+        /// Layout v14: the S2 school list or the S3 stop list is open, and the screen is veiled.
+        public var isResultListOpen: Bool {
+            switch step {
+            case .school: tabKid?.school.isListOpen ?? false
+            case .gettingThere: goingSearch.isListOpen
+            case .family, .almostDone: false
+            }
         }
 
         public var canGoNext: Bool {
@@ -123,6 +140,8 @@ public struct SetupFeature {
         case faceTapped(KidEntry.ID, String)
         case addKidTapped
         case removeKidTapped(KidEntry.ID)
+        case removeConfirmed
+        case removeCancelled
         // S2
         case schoolTabTapped(KidEntry.ID)
         case goesToTapped(GoesTo)
@@ -131,6 +150,8 @@ public struct SetupFeature {
         case schoolTextChanged(String)
         case schoolPicked(SchoolEntry)
         case notInListTapped
+        /// A tap on the veil around an open result list.
+        case resultVeilTapped
         case dayToggled(Weekday)
         case timeChanged(TimeRow, Int)
         /// A time wheel moved.
@@ -253,9 +274,22 @@ public struct SetupFeature {
                 return .none
 
             case let .removeKidTapped(id):
-                guard state.kids.first?.id != id else { return .none }
-                state.kids.remove(id: id)
-                if state.schoolTab == id, let first = state.kids.first { state.schoolTab = first.id }
+                guard state.canRemoveKids, let kid = state.kids[id: id] else { return .none }
+                // An empty card goes at once; one with a name or an age asks first.
+                if kid.trimmedName.isEmpty, kid.ageText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    Self.remove(id, from: &state)
+                } else {
+                    state.removeConfirm = id
+                }
+                return .none
+
+            case .removeConfirmed:
+                if let id = state.removeConfirm { Self.remove(id, from: &state) }
+                state.removeConfirm = nil
+                return .none
+
+            case .removeCancelled:
+                state.removeConfirm = nil
                 return .none
 
             // MARK: S2
@@ -292,6 +326,7 @@ public struct SetupFeature {
                     school.text = text
                     school.picked = nil
                     school.typedByHand = false
+                    school.isListClosed = false
                 }
                 let open = state.tabKid?.school.isListOpen ?? false
                 let matches = open ? SchoolSearch.matches(text, in: state.directory) : []
@@ -384,6 +419,17 @@ public struct SetupFeature {
             case .stopSearch:
                 return .none
 
+            case .resultVeilTapped:
+                switch state.step {
+                case .school:
+                    updateSchool(&state) { $0.isListClosed = true }
+                    return .none
+                case .gettingThere:
+                    return .send(.stopSearch(.listClosed))
+                case .family, .almostDone:
+                    return .none
+                }
+
             case let .serviceTapped(service):
                 updateGoing(&state) { going in
                     if let index = going.services.firstIndex(of: service) {
@@ -464,5 +510,13 @@ extension KidEntry {
         guard going.way == .bus, going.search.stop.count == 5 else { return nil }
         return BusPlan(kid: id, stop: going.search.stop, services: going.services, walk: going.walk, ride: going.ride,
                        lateGrace: kid.school?.lateGrace ?? BusPlan.defaultLateGrace)
+    }
+}
+
+extension SetupFeature {
+    static func remove(_ id: KidEntry.ID, from state: inout State) {
+        guard state.kids.count >= 2 else { return }
+        state.kids.remove(id: id)
+        if state.schoolTab == id, let first = state.kids.first { state.schoolTab = first.id }
     }
 }

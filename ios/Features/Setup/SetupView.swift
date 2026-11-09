@@ -36,6 +36,7 @@ public struct SetupView: View {
                 }
             }
         }
+        .resultVeil(isOpen: store.isResultListOpen) { store.send(.resultVeilTapped) }
         .overlay {
             if store.isConfirmingReplace {
                 ZStack {
@@ -141,6 +142,8 @@ private struct FamilyStep: View {
             ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
                 PaperCard(seed: 61 + UInt32(index)) { card(kid, index: index) }
                     .frame(width: layout.grown.form.width, height: layout.cardHeight, alignment: .topLeading)
+                    .overlay(alignment: .topTrailing) { removeButton(kid, index: index) }
+                    .zIndex(store.removeConfirm == kid.id ? 1 : 0)
             }
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 if store.canAddKid {
@@ -155,6 +158,31 @@ private struct FamilyStep: View {
                 Text(L10n.tr("s1.one_child")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
             .padding(.leading, layout.grown.formInset)
+        }
+    }
+
+    /// Layout v13 "Remove a kid": a round × (48, touch 64) centred 12 in from the card's top-right
+    /// corner, over its edge; "Remove {name}?" points down from it when the card has something typed.
+    @ViewBuilder private func removeButton(_ kid: KidEntry, index: Int) -> some View {
+        if store.canRemoveKids {
+            let name = kid.trimmedName
+            RoundButton(glyph: .close, accessibilityLabel: name.isEmpty ? L10n.tr("s1.remove.label.empty")
+                                                                       : L10n.tr("s1.remove.label", name)) {
+                store.send(.removeKidTapped(kid.id))
+            }
+            .size(48)
+            .frame(width: 64, height: 64)
+            .contentShape(Rectangle())
+            .offset(x: 20, y: -20)
+            .overlay(alignment: .topTrailing) {
+                if store.removeConfirm == kid.id {
+                    ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
+                                cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
+                                onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
+                        .frame(width: 360)
+                        .offset(x: 20, y: 48)
+                }
+            }
         }
     }
 
@@ -198,15 +226,6 @@ private struct FamilyStep: View {
         }
         .padding(.top, layout.cardTopInset - layout.grown.formInset)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .overlay(alignment: .topTrailing) {
-            if index > 0 {
-                Button { store.send(.removeKidTapped(kid.id)) } label: {
-                    Text(L10n.tr("s1.remove")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.lateText)
-                }
-                .buttonStyle(.plain)
-                .offset(y: -Spacing.m)
-            }
-        }
     }
 
     private func face(_ slot: KitSlot, label: String, kid: KidEntry) -> some View {
@@ -313,7 +332,7 @@ private struct SchoolStep: View {
             }
             .frame(width: layout.schoolFieldWidth)
             .overlay(alignment: .topLeading) {
-                if school.isListOpen { matches(school).offset(y: 80 + Spacing.l) }
+                if school.isListOpen { matches(school).resultVeilHole().offset(y: 80 + Spacing.l) }
             }
             HStack(spacing: Spacing.xs) {
                 if school.picked != nil { CheckMark(isDone: true, size: 32) }
@@ -325,37 +344,16 @@ private struct SchoolStep: View {
                 }
             }
         }
+        .resultVeilHole()
     }
 
-    /// Up to 8 schools, then always "Not in the list? Type the name" (board S2s).
+    /// Up to 8 schools, then always "Not in the list? Type the name" (board S2s), in the shared
+    /// result card (layout v14: 6 rows fit, more scroll).
     private func matches(_ school: SchoolForm) -> some View {
-        PaperCard(seed: 75) {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(school.matches) { entry in
-                    Button { store.send(.schoolPicked(entry)) } label: {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(entry.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link).lineLimit(1)
-                            Text(entry.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    Rectangle().fill(CrayonColor.paper).frame(height: 2)
-                }
-                Button { store.send(.notInListTapped) } label: {
-                    HStack(spacing: Spacing.sm) {
-                        MarkerIcon(.plus, size: 32, color: CrayonColor.link)
-                        Text(L10n.tr("s2.school.not_listed")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .environment(\.cardInset, Spacing.m)
-        .frame(width: layout.schoolFieldWidth)
+        ResultListCard(rows: school.matches.map { entry in
+            .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.schoolPicked(entry)) }
+        } + [.init(id: "not-listed", glyph: .plus, title: L10n.tr("s2.school.not_listed")) { store.send(.notInListTapped) }],
+        visibleRows: 6, seed: 75)
     }
 
     @ViewBuilder private func termsRow(_ row: SchoolForm.TermsRow) -> some View {
@@ -440,7 +438,7 @@ private struct GoingStep: View {
                 }
                 if going.way == .bus {
                     row(L10n.tr("c2.stop")) {
-                        StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch))
+                        StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch), visibleRows: 6)
                     }
                     .zIndex(1)
                     row(L10n.tr("s3.buses")) {

@@ -86,4 +86,12 @@ final class CrayonGeometryTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(small.outline.count, 24)
         XCTAssertEqual(CrayonGeometry.spacing(for: CGRect(x: 0, y: 0, width: 300, height: 300)), 12)
     }
+
+    /// A rounded box keeps 6 samples or more on each 24 pt corner, so it never looks cut off.
+    func testRoundedCornersAreSampledFinely() {
+        let field = CGRect(x: 0, y: 0, width: 352, height: 80)
+        let spacing = CrayonGeometry.spacing(for: field, kind: .roundedRect(cornerRadius: 24))
+        XCTAssertLessThanOrEqual(spacing, 24 * .pi / 2 / 6 + 0.001)
+        XCTAssertEqual(CrayonGeometry.spacing(for: field, kind: .circle), CrayonGeometry.spacing(for: field))
+    }
 }

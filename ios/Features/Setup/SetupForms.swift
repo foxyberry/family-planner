@@ -95,8 +95,12 @@ public struct SchoolForm: Equatable, Sendable {
 
     /// The list is open from 2 letters until a school is picked or typed by hand.
     public var isListOpen: Bool {
-        kind == .school && picked == nil && !typedByHand && text.filter(\.isLetter).count >= Self.searchFrom
+        kind == .school && picked == nil && !typedByHand && !isListClosed
+            && text.filter(\.isLetter).count >= Self.searchFrom
     }
+
+    /// A tap on the veil closed the list; typing opens it again.
+    public var isListClosed = false
 
     public var isComplete: Bool {
         guard name != nil, !days.isEmpty, let start, let end, start < end else { return false }
