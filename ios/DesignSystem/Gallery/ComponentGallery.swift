@@ -72,6 +72,11 @@ public struct ComponentGallery: View {
                 }
                 section("0c · Content") {
                     ListRow(leading: "7:30") { Text("Bus to school") }
+                    ResultListCard(rows: [
+                        .init(id: "1", title: "Opp Example Hotel With A Very Long Name Past The Card", caption: "Example Rd · 00000") {},
+                        .init(id: "2", title: "Example Primary School", caption: "Example Rd · 00001") {},
+                        .init(id: "3", glyph: .plus, title: "Not in the list? Type the name") {},
+                    ], visibleRows: 6, seed: 55)
                     HStack(spacing: 0) {
                         FormLabel("Name")
                         Text("Swimming").crayonType(.body)

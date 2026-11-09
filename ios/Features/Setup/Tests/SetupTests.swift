@@ -137,6 +137,12 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTextChanged("exam"))
         XCTAssertEqual(store.state.tabKid?.school.matches.map(\.id), ["example-international", "example-primary"])
         XCTAssertEqual(store.state.schoolCaption, "Tap your school")
+        XCTAssertTrue(store.state.isResultListOpen)
+        // Layout v14: a tap on the veil closes the list; typing opens it again.
+        await store.send(.resultVeilTapped)
+        XCTAssertFalse(store.state.isResultListOpen)
+        await store.send(.schoolTextChanged("exam"))
+        XCTAssertTrue(store.state.isResultListOpen)
         await store.send(.schoolPicked(school))
         let picked = store.state.tabKid?.school
         XCTAssertEqual([picked?.start, picked?.end, picked?.arriveBy, picked?.latest], [450, 810, 450, 460])

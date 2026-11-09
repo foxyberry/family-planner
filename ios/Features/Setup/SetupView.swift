@@ -36,6 +36,7 @@ public struct SetupView: View {
                 }
             }
         }
+        .resultVeil(isOpen: store.isResultListOpen) { store.send(.resultVeilTapped) }
         .overlay {
             if store.isConfirmingReplace {
                 ZStack {
@@ -331,7 +332,7 @@ private struct SchoolStep: View {
             }
             .frame(width: layout.schoolFieldWidth)
             .overlay(alignment: .topLeading) {
-                if school.isListOpen { matches(school).offset(y: 80 + Spacing.l) }
+                if school.isListOpen { matches(school).resultVeilHole().offset(y: 80 + Spacing.l) }
             }
             HStack(spacing: Spacing.xs) {
                 if school.picked != nil { CheckMark(isDone: true, size: 32) }
@@ -343,37 +344,16 @@ private struct SchoolStep: View {
                 }
             }
         }
+        .resultVeilHole()
     }
 
-    /// Up to 8 schools, then always "Not in the list? Type the name" (board S2s).
+    /// Up to 8 schools, then always "Not in the list? Type the name" (board S2s), in the shared
+    /// result card (layout v14: 6 rows fit, more scroll).
     private func matches(_ school: SchoolForm) -> some View {
-        PaperCard(seed: 75) {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(school.matches) { entry in
-                    Button { store.send(.schoolPicked(entry)) } label: {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(entry.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link).lineLimit(1)
-                            Text(entry.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    Rectangle().fill(CrayonColor.paper).frame(height: 2)
-                }
-                Button { store.send(.notInListTapped) } label: {
-                    HStack(spacing: Spacing.sm) {
-                        MarkerIcon(.plus, size: 32, color: CrayonColor.link)
-                        Text(L10n.tr("s2.school.not_listed")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .environment(\.cardInset, Spacing.m)
-        .frame(width: layout.schoolFieldWidth)
+        ResultListCard(rows: school.matches.map { entry in
+            .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.schoolPicked(entry)) }
+        } + [.init(id: "not-listed", glyph: .plus, title: L10n.tr("s2.school.not_listed")) { store.send(.notInListTapped) }],
+        visibleRows: 6, seed: 75)
     }
 
     @ViewBuilder private func termsRow(_ row: SchoolForm.TermsRow) -> some View {
@@ -458,7 +438,7 @@ private struct GoingStep: View {
                 }
                 if going.way == .bus {
                     row(L10n.tr("c2.stop")) {
-                        StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch))
+                        StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch), visibleRows: 6)
                     }
                     .zIndex(1)
                     row(L10n.tr("s3.buses")) {
