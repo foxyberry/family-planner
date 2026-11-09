@@ -518,9 +518,10 @@ public struct MissionsFeature {
                     return (kid.id, MissionDay(kid: kid.id, date: today, done: done, ready: slide?.ready ?? false,
                                                readyAt: slide?.readyAt, medal: slide?.medal))
                 })
-                // The kid's school late grace wins over the plan's (spec "Latest lives on the school record").
-                state.busPlans = Dictionary(snapshot.busPlans.map { plan in
-                    (plan.kid, plan.graced(by: snapshot.kids.first { $0.id == plan.kid }))
+                // The kids' School routes (the morning screen follows School); the kid's school late
+                // grace wins over the plan's (spec "Latest lives on the school record").
+                state.busPlans = Dictionary(snapshot.kids.compactMap { kid in
+                    snapshot.busPlans.route(kid: kid.id).map { (kid.id, $0.graced(by: kid)) }
                 }, uniquingKeysWith: { $1 })
                 state.chosen = nextKid(in: state)
                 state.page = 0
@@ -614,11 +615,16 @@ public struct MissionsFeature {
                     slot.trip.map { Outing(slot: slot, trip: $0) } })
         else { return .none }
         // Spec S1–S4: a preschool trip earns no medal.
-        if outing.slot.kind == .school, state.kids.first(where: { $0.id == kid })?.school?.isPreschool == true {
+        let isSchool = outing.slot.kind == .school
+        if isSchool, state.kids.first(where: { $0.id == kid })?.school?.isPreschool == true {
             return .none
         }
-        let plan = state.busPlans[kid]
-        let grace = state.kids.first { $0.id == kid }?.school?.lateGrace ?? plan?.lateGrace ?? BusPlan.defaultLateGrace
+        // Spec "Events: one shape", Medal: on by default for School, off for other events.
+        guard outing.trip.givesMedal(isSchool: isSchool) else { return .none }
+        let plan = isSchool ? state.busPlans[kid] : nil
+        let grace = isSchool
+            ? state.kids.first { $0.id == kid }?.school?.lateGrace ?? plan?.lateGrace ?? BusPlan.defaultLateGrace
+            : outing.trip.lateGrace ?? BusPlan.defaultLateGrace
         if outing.trip.way == .bus, state.live != nil, let plan, let arrivals = state.arrivals,
            let targets = LiveMorning.leaveTargets(arrivals: arrivals, plan: plan, minute: state.minute,
                                                   start: outing.slot.start) {

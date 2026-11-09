@@ -26,15 +26,19 @@ public struct BusPlan: Hashable, Codable, Sendable {
     public static let defaultLateGrace = 15
 
     public var kid: Kid.ID
+    /// The event this route is for (spec "Events: one shape": a route per event); School by default.
+    public var event: EventRef
     public var stop: String
     public var services: [String]
     public var walk: Int
     public var ride: Int
     public var lateGrace: Int
 
-    public init(kid: Kid.ID, stop: String, services: [String], walk: Int = BusPlan.defaultWalk,
-                ride: Int = BusPlan.defaultRide, lateGrace: Int = BusPlan.defaultLateGrace) {
+    public init(kid: Kid.ID, event: EventRef = .school, stop: String, services: [String],
+                walk: Int = BusPlan.defaultWalk, ride: Int = BusPlan.defaultRide,
+                lateGrace: Int = BusPlan.defaultLateGrace) {
         self.kid = kid
+        self.event = event
         self.stop = stop
         self.services = services
         self.walk = walk
@@ -44,12 +48,30 @@ public struct BusPlan: Hashable, Codable, Sendable {
 }
 
 extension BusPlan {
+    /// Plans stored before routes were per event are the kid's School route, as they were.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(kid: try values.decode(Kid.ID.self, forKey: .kid),
+                  event: try values.decodeIfPresent(EventRef.self, forKey: .event) ?? .school,
+                  stop: try values.decode(String.self, forKey: .stop),
+                  services: try values.decode([String].self, forKey: .services),
+                  walk: try values.decode(Int.self, forKey: .walk), ride: try values.decode(Int.self, forKey: .ride),
+                  lateGrace: try values.decode(Int.self, forKey: .lateGrace))
+    }
+
     /// The plan with the kid's school late grace, which wins over the plan's own (spec "Latest lives
     /// on the school record"); the plan's value stays for a kid with no school times.
     public func graced(by kid: Kid?) -> BusPlan {
         var plan = self
         if let grace = kid?.school?.lateGrace { plan.lateGrace = grace }
         return plan
+    }
+}
+
+extension Array where Element == BusPlan {
+    /// The kid's route for an event (School when not given).
+    public func route(kid: Kid.ID, event: EventRef = .school) -> BusPlan? {
+        first { $0.kid == kid && $0.event == event }
     }
 }
 

@@ -280,7 +280,7 @@ public struct HomeFeature {
                                after: -1))
                 }
                 state.busPlan = snapshot.kids.first.flatMap { kid in
-                    snapshot.busPlans.first { $0.kid == kid.id }?.graced(by: kid)
+                    snapshot.busPlans.route(kid: kid.id)?.graced(by: kid)
                 }
                 return state.wantsLive ? .send(.refresh) : .none
 

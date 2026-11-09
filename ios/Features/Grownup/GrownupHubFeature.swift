@@ -22,7 +22,7 @@ public struct GrownupHubFeature {
         public var sections: [HubSection] {
             guard let kid, let snapshot else { return [] }
             return HubModel.sections(kid: kid, routines: snapshot.routines, missions: snapshot.missions,
-                                     busPlan: snapshot.busPlans.first { $0.kid == kid.id })
+                                     busPlan: snapshot.busPlans.route(kid: kid.id))
         }
 
         public var weeklyHeading: String { kid.map(HubModel.weeklyHeading) ?? "" }

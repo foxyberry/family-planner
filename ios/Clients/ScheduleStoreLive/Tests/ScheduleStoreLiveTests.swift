@@ -144,6 +144,19 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(Set(replaced), [again, swim, morning], "replaced, not added")
     }
 
+    /// A route per event: School's replaces the old one; another event's is kept beside it.
+    func testBusPlansPerEvent() async throws {
+        let kid = SeedData.kidA.id
+        try await store().saveBusPlan(BusPlan(kid: kid, stop: "00000", services: ["1"]))
+        let swim = BusPlan(kid: kid, event: .item(UUID()), stop: "00001", services: ["2"])
+        try await store().saveBusPlan(swim)
+        try await store().saveBusPlan(BusPlan(kid: kid, stop: "00000", services: ["3"]))
+        let plans = try await store().load().busPlans
+        XCTAssertEqual(plans.count, 2)
+        XCTAssertEqual(plans.route(kid: kid)?.services, ["3"])
+        XCTAssertEqual(plans.route(kid: kid, event: swim.event), swim)
+    }
+
     func testDeleteRemoves() async throws {
         let store = store()
         let pottery = item("Pottery")
