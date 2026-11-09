@@ -47,3 +47,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v18 (2026-11-09): every grown-up board lists its PaperCard(s) as `main.card` (`main.card.2`… when a board has several); no other layout change. Board PNGs for drift checks in `handover/boards/` (2x).
 - v19 (2026-11-09): E1, E3, E3b get the sky switch at (40, 36, 160 × 96), as on A1 and A1m.
 - v20 (2026-11-09): S2, S2s, S3 kid tabs follow the title at gap 24 (no fixed x); "Step n of 4" and dots stay right. C4 star row: CheckMark 48 + star picture 40 + text. S2/S2s medal caption shortened to two lines.
+- v21 (2026-11-09): no divider lines inside cards: C5 mission rows, S2s and S3 result lists (separated by space only). No geometry change.
