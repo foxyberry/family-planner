@@ -67,9 +67,8 @@ public struct MissionEditorView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 .padding(.bottom, Spacing.s)
-            // Board C5: a rule under the caption and above each row, none above the Add row.
+            // Layout v21: no divider lines inside cards; the rows are separated by space only.
             ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, mission in
-                Rectangle().fill(CrayonColor.softText.opacity(0.3)).frame(height: 1)
                 row(mission, index: index)
             }
             if store.canAdd {

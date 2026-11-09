@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Spec C2 "Result list card" (layout v14), shared by the stop and school searches: an opaque white
 /// card 610 wide (the control column 232–842), 12 padding top and bottom, rows 72 tall with the
-/// name (body bold, link, one line) over its caption, divided by a 2 pt paper line. Past
+/// name (body bold, link, one line) over its caption, 2 apart with no line (layout v21). Past
 /// `visibleRows` the rows scroll inside the card.
 ///
 /// It sits in a field's overlay, which proposes the field's own size, so the card fixes its own
@@ -74,7 +74,8 @@ public struct ResultListCard: View {
     private var list: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                if index > 0 { Rectangle().fill(CrayonColor.paper).frame(height: 2) }
+                // Layout v21: no lines inside cards; rows keep the 2 gap as space.
+                if index > 0 { Color.clear.frame(height: 2) }
                 Button(action: row.action) { label(row) }
                     .buttonStyle(.plain)
             }
