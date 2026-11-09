@@ -1,5 +1,5 @@
 {
- "version": "21",
+ "version": "23",
  "board": "A1n",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -472,7 +472,7 @@
   },
   {
    "id": "panel.button",
-   "kind": "primary",
+   "kind": "button",
    "x": 928,
    "y": 872,
    "w": 384,

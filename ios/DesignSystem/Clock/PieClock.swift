@@ -249,7 +249,7 @@ public struct PieClock: View {
         .frame(width: 2 * hubR, height: 2 * hubR)
         // The swipe stays inside the hub disc.
         .clipShape(Circle())
-        .crayonBackground(.circle, fill: CrayonStyle.paper, seed: 3003)
+        .crayonBackground(.circle, fill: look.surface, seed: 3003)
         .accessibilityHidden(true)
     }
 

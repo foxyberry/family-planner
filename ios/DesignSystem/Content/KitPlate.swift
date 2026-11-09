@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Board A1n: at night, kit pictures off the clock sit on a paper plate (a light circle with a
-/// 3.5 pt chalk ring), because their black outlines need a light ground. The plate is the part's
+/// Board A1n: at night, kit pictures off the clock sit on a plate (a moon-paper circle with a
+/// 3.5 pt chalk ring; spec "Night mapping"), because their black outlines need a light ground. The plate is the part's
 /// box (its ring's outer edge on the frame) and the picture shrinks to 64 of 104 inside it.
 /// By day the picture fills the box as it is.
 public struct KitPlate<Picture: View>: View {
@@ -25,8 +25,8 @@ public struct KitPlate<Picture: View>: View {
             .scaleEffect(look == .night ? nightPicture : 1)
             .background {
                 if look == .night {
-                    Circle().fill(CrayonColor.plate)
-                        .overlay(Circle().strokeBorder(CrayonColor.nightText, lineWidth: 3.5))
+                    Circle().fill(CrayonColor.moonPaper)
+                        .overlay(Circle().strokeBorder(CrayonColor.chalk, lineWidth: 3.5))
                 }
             }
             .frame(width: size, height: size)

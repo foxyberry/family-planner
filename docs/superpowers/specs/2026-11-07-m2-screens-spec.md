@@ -89,6 +89,11 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: built copy from the drift-sweep fixes (PR 37/38) written in: C2 has no route heading or "For {kid}", side column adds "On the morning map", row captions "to the stop" / "on {bus}" / "still Bronze", "Buses"; C1 "Getting there" is a section with "To school", "More" in the side column; S3 side copy; A2 weekend greeting; C5 rows 88 and Add ring 56; no problem caption before the first change. Main session's calls: S2/S3 kid tabs follow the title (boards fixed); C4 star row = CheckMark 48 + star picture 40 + text (board fixed); S2 medal caption shortened to "Later: just “Ready!”. No medal, no sad face." Layout v20.
 - 2026-11-09: one scope rule (user): every item except a just-once event (template slots, School, every-week items) edits with "This day" / "Every week" and "Change from when?" on Save; a clock drag changes this day; tab renamed "This day".
 - 2026-11-09: plain again (user): scope tabs renamed "This day" / "All days"; edit screens reuse E5 (All days: Days + Runs + holidays; This day: "Skip this day") and the C6 slice card; Runs only on repeating items, type fixed after adding; no explanatory text on screen; no divider lines inside any card (C5 mission rows and the S2s/S3 result lists lose theirs). Sketches SK6–SK10 redrawn, SK11 retired. Layout v21.
+- 2026-11-09: School keeps its terms (Terms row, no Runs); changing where a kid goes (transfer, preschool → school, → at home) uses "Starts on" (Next term / Date), splits the School item, refills terms, hours and medals, then opens S3 for the new trip (user). Sketch SK7b.
+- 2026-11-09: the way in (user): a pencil `RoundButton` 80 at the top right of every kid home (mirror of the sky switch) → Face ID → grown-up mode; the 2 s clock hold stays, and on a slice it opens with that slice picked; grown-up header adds "Settings". New kit picture `pencil` (yellow; handover/crayon-art/pencil.svg). Sketch SK5b.
+- 2026-11-09: a pending place change can be changed ("Pick another school") or cancelled ("Cancel the change" → "Stay at {old place}?") until its date; after the date, going back is another change (user).
+- 2026-11-09: night mapping table (user): every day token maps to one night token; no pure white at night; `nightText` #D8D2E8, `nightSoft` #A6A0C2, white surfaces → `moonPaper` #D8D2E8, buttons → `nightControl` (#2E2C4A fill, chalk #E9E4F5 outline, same shapes). Replaces the chalk-filled main button and the white hub at night.
+- 2026-11-09: School edits on the E5 screen like any event (Terms instead of Runs, plus Going, Bring, Missions, Medal); only day-template slots use the C6 slice card. Fixes a clash between the plain-screens rule and "Events: one shape".
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -469,9 +474,18 @@ Research: reports/calendar-event-features.md (Apple, Google, Outlook, RFC 5545 /
 - **Keep it as plain as the built screens** (user, 2026-11-09: the sketches had grown wordy; the built C4, E5 and C6 are the measure):
   - The type (Just once / Every week) is picked once, when adding (C3/C4 Repeat tabs). Every week there adds only **Runs**: two fields "{start date}" → "End of term" (or a date, or "No end"), under the Days chips. A just-once item has no Runs and no scope tabs. The type is not changed later: remove it and add it again.
   - Editing a repeating activity is **E5** with the scope tabs at the top of the side column. **All days** (SK7): the Repeat row becomes **Days** (chips) and **Runs**, then "Skip school holidays"; side column: "Every {days}" (head) and "Remove every week". **This day** (SK8): Days, Runs and holidays are hidden; side column: "{Day d Mon} only" (head) and "Skip this day". "Save changes" as now.
-  - Day-template slots and School edit in the **C6 slice card** with the same tabs under the title (SK6); the right column's day tabs become "Today" / "Tomorrow" in grown-up mode. "Changes start tomorrow." goes away (Save on All days asks from when).
+  - Day-template slots (wake, meals, bed) edit in the **C6 slice card** with the same tabs under the title (SK6); the right column's day tabs become "Today" / "Tomorrow" in grown-up mode. "Changes start tomorrow." goes away (Save on All days asks from when).
+  - **School is an event, so it edits on the same E5 screen as an activity** (fixes a clash with "Events: one shape", 2026-11-09): All days shows Days, Hours, Arrive by, **Terms** (no Runs), then Going, Bring, Missions, Medal as one-line rows; This day shows the hours and "Skip this day". Tapping the School slice in grown-up mode opens it.
   - **No explanatory sentences on these screens.** Values, pictures and short labels only; rules live in this spec. Sketch notes are drawn outside the screen, never as screen text.
   - Linked time, No school days and the event parts (From, Bring, Missions, Medal) stay as rows further down the E5 form (as C3g), each one line, no caption.
+- **School keeps its terms** (user, 2026-11-09): School has no Runs. Its days come from the term data (MOE, or the school's own `termDates`), so its All days screen shows **Days**, **Hours**, **Arrive by** and a **Terms** row ("MOE 2026 · Term 4 ends 20 Nov ›", opening the term and holiday list) instead of Runs.
+- **Where the kid goes changes: "from when?"** (user, 2026-11-09). One rule for a school transfer, preschool → school (Primary 1 starts), school or preschool → at home, and adding a place later:
+  - Entry: Settings → the kid's School section → the "School" row (Goes to, then the S2 search). After a pick, Save asks **"Starts on"**: tabs "Next term" (default; the first day of the next MOE term, e.g. Term 1 for Primary 1) and "Date". A small card like "Change from when?", with Save / Cancel.
+  - The kid's School item is split there: the old place ends the day before, the new one starts that day. Past days never change (the diary keeps the old school).
+  - From the new place: terms and holidays, hours, arrive-by and latest (the medals), the medal switch (on for a school, off for a preschool). The trip is new too: after Save, **S3 "Getting there" opens** for that kid; until a route is set the new place has no strip.
+  - Kept: items linked "After School" follow the new School's end; every-week items and missions stay.
+  - Until the date: the School section shows one extra row "From {d Mon}" → "{new place}" with "›". It opens the same "Starts on" card with the picked place, plus **"Pick another school"** (back to the search; the date stays) and **"Cancel the change"** (`lateText`; user, 2026-11-09: the plan can change or fall through). Cancel asks once ("Stay at {old place}?" Stay / Keep the change), then removes the split and the new trip; the old place simply carries on. Nothing else on screen.
+  - After the date has passed there is nothing pending to cancel: going back (or to a third place) is just another change with its own "Starts on". Days already lived keep the place they had.
 - **Exceptions when the series changes**: an exception is kept when its original date is still a day of the new series; otherwise it is removed, and the save card lists them first ("2 changed days no longer fit", one caption line each, "They will be removed." in `lateText`) with Save / Cancel.
 - **Skipped today** (replaces the "Changed today" list and Undo, user comment 2026-11-09): a skipped slice stays on the clock, faded; tapping it opens the card with **"Bring back"** where "Skip today" was. There is no change list and no undo stack: Bring back and Cancel are the only undo.
 - **Notes** row: free text, grown-up screens only.
@@ -600,25 +614,23 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - They switch back at the kid's **wake-up**.
   - The change is a 2 s crossfade, never a flash.
   - Grown-up screens follow the iPad's own light/dark setting instead.
-- **Colours** (contrast on #22213A):
+- **Night mapping** (user, 2026-11-09: "map the base design set to dark"). On the canvas the one picture of this table is board **0a2 · Night colours** (next to 0a); board A1n is drawn with it (layout v22). Every day token has one night token, and no screen picks night colours by hand. **No pure white at night.** Contrast is on `night` #22213A.
 
-  | role | colour | contrast |
-  |---|---|---|
-  | page | `night` #22213A | — |
-  | text | `nightText` #F4EFFF | 13.8:1 |
-  | soft text | #C9C3E0 | 9.2:1 |
-  | Kid A dot | #56B4E9 | 6.8:1, non-text |
-  | Kid B dot | #E69F00 | 6.9:1, non-text |
-  | link | #56B4E9 | — |
+  | day token | day | night token | night | contrast / note |
+  |---|---|---|---|---|
+  | `paper` (page) | #F6F2EA | `night` | #22213A | — |
+  | `ink` (text) | #2B2833 | `nightText` | **#D8D2E8** (was #F4EFFF) | 10.6:1 |
+  | `softText` | #625D6E | `nightSoft` | **#A6A0C2** (was #C9C3E0) | 6.2:1 |
+  | white surfaces: hub, picture plates and circles (#FFFFFF, #FBF8F1) | white | `moonPaper` | **#D8D2E8**, ink outline, ink text on it | ink on it 9.9:1 |
+  | clock face under the slots | #EFE8D8 | same | #EFE8D8 (lit, not dimmed) | the crayon slot colours read as by day |
+  | `InkButton` (ink fill, white text) and white `RoundButton` / off tabs | ink / white | `nightControl` | fill **#2E2C4A**, marker outline `chalk` **#E9E4F5** (4 pt), label and glyphs `nightText` | same shapes and sizes as by day (e.g. `InkButton` 382 × 96, corner ≈ 26) |
+  | selected tab (sky crayon) | #8FD3F4 | same | #8FD3F4 | — |
+  | Kid A / Kid B dots | blue / orange | night kid colours | #56B4E9 / #E69F00 | non-text |
+  | `link` | #2F6FD0 | `nightLink` | #56B4E9 | — |
+  | kit pictures | — | same | unchanged; on `moonPaper` plates | the yellow pencil sits on a `nightControl` round |
 
-  - The night kid colours and the chalk outline already exist as the B1 night parts.
-- **Clock**:
-  - The disc keeps a **lit paper face** (#EFE8D8) under the slots, so the crayon colours read as by day. It is not dimmed.
-  - Hour ticks and hour numbers turn chalk: #F4EFFF for the 12/6 labels, #C9C3E0 for the rest.
-  - The hub stays white with ink text.
-  - The red hand is unchanged.
-- **Kit pictures off the clock** sit on a paper plate: a 104 circle in #FBF8F1 with a 3.5 pt chalk ring. Their black outlines need a light ground.
-- **Main button**: chalk fill (#F4EFFF) with `night` text. It is the inverse of the ink button.
+  - The clock's hour ticks and numbers use `nightText` for 12/6 and `nightSoft` for the rest. The red hand is unchanged.
+  - Grown-up screens follow the iPad's own dark mode with the same table (their boards come later).
 - **Right panel at night** (board):
   - Kid A: "Bed in" (body, soft) and `TimeLeft` display 96 "20 min" until bedtime.
   - Then a "Tomorrow" row: plated 64 picture, "Tomorrow" (body bold) over "School, leave {h:mm}" (caption).
@@ -688,6 +700,11 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 ---
 
 ## C0 · Grown-up lock [board + proposed details]
+
+### Entry: the pencil button (user, 2026-11-09; proposed with grown-up mode, sketch SK5b)
+- Every kid home (A1, A1m, A1n, E1, E3, E3b) gets a white `RoundButton` 80 with the kit picture `pencil` (56: a yellow crayon pencil with wood tip, lead, ferrule and pink eraser; user, 2026-11-09) at the top-right corner, x 1256, y 44: the mirror of the sky switch (x 40, y 36, 160 × 96; both centred on y 84). Same look by day and night. VoiceOver: "Grown-up mode".
+- Tap → C0 (Face ID) → grown-up mode on today's clock (SK6). The 2 s hold on the clock stays as a second way in; a hold that starts on a slice opens grown-up mode with that slice picked.
+- Grown-up mode header: "←" (back to the kid home, locks again), "Our day", kid tabs, then "Undo" and "Settings" (SK9) at the right.
 
 ### Entry: hold the clock for 2 s
 - The long-press starts on the clock disc only (not the right panel).

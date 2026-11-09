@@ -27,8 +27,10 @@ public enum CrayonColor {
     public static let night = CrayonPalette.night.color
     public static let nightText = CrayonPalette.nightText.color
     public static let nightSoftText = CrayonPalette.nightSoftText.color
+    public static let moonPaper = CrayonPalette.moonPaper.color
+    public static let nightControl = CrayonPalette.nightControl.color
+    public static let chalk = CrayonPalette.chalk.color
     public static let litPaper = CrayonPalette.litPaper.color
-    public static let plate = CrayonPalette.plate.color
 
     /// Colours a parent can pick for a child (blue, orange, green, purple).
     public static let kidPalette: [Color] = [

@@ -61,9 +61,15 @@ public enum CrayonPalette {
     public static let link = RGB(hex: 0x2F6FD0)
     // Night
     public static let night = RGB(hex: 0x22213A)
-    public static let nightText = RGB(hex: 0xF4EFFF)
-    /// Board A1n: soft text, the lit clock face and the plate under pictures at night.
-    public static let nightSoftText = RGB(hex: 0xC9C3E0)
+    // Spec "Night mapping" (2026-11-09, board 0a2): every day token has one night token, and
+    // nothing is pure white at night.
+    public static let nightText = RGB(hex: 0xD8D2E8)
+    public static let nightSoftText = RGB(hex: 0xA6A0C2)
+    /// White surfaces at night: the clock hub and the plates under pictures (ink outline and text).
+    public static let moonPaper = RGB(hex: 0xD8D2E8)
+    /// Buttons at night: the fill, with a chalk marker outline and `nightText` labels.
+    public static let nightControl = RGB(hex: 0x2E2C4A)
+    public static let chalk = RGB(hex: 0xE9E4F5)
+    /// The clock face under the slots at night: lit, so the crayon colours read as by day.
     public static let litPaper = RGB(hex: 0xEFE8D8)
-    public static let plate = RGB(hex: 0xFBF8F1)
 }

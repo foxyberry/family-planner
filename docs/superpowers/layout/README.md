@@ -48,3 +48,5 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v19 (2026-11-09): E1, E3, E3b get the sky switch at (40, 36, 160 × 96), as on A1 and A1m.
 - v20 (2026-11-09): S2, S2s, S3 kid tabs follow the title at gap 24 (no fixed x); "Step n of 4" and dots stay right. C4 star row: CheckMark 48 + star picture 40 + text. S2/S2s medal caption shortened to two lines.
 - v21 (2026-11-09): no divider lines inside cards: C5 mission rows, S2s and S3 result lists (separated by space only). No geometry change.
+- v22 (2026-11-09): A1n redrawn with the night mapping (spec "Night mapping", board 0a2): moon-paper hub and plates, softer night text, the Diary button as a night control. Colours only, no geometry change.
+- v23 (2026-11-09): car and taxi redrawn (bubble car, option A, no cheeks) on C3g, S3, A2t-w and kit sheet 0d2. Pictures only, no geometry change.

@@ -52,7 +52,8 @@ public enum CrayonStyle {
 extension View {
     /// A part's crayon shape, drawn `CrayonStyle.artInset` inside the view's box (spec "Art inset").
     public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
-                               marker: MarkerStyle = .standard) -> some View {
-        background(CrayonSurface(kind, fill: fill, marker: marker, seed: seed).padding(CrayonStyle.artInset))
+                               marker: MarkerStyle = .standard, markerColor: Color = .init(white: 0.12)) -> some View {
+        background(CrayonSurface(kind, fill: fill, marker: marker, markerColor: markerColor, seed: seed)
+            .padding(CrayonStyle.artInset))
     }
 }

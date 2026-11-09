@@ -212,6 +212,7 @@ public struct ComponentGallery: View {
                             SkySwitch(look: .night, isAnimating: false, label: "Night. Tap for day.") {}
                             Text("Night look").crayonType(.head)
                             KitPlate(look: .night, size: 72) { KitIcon(.actDinner, size: 72) }
+                            InkButton("Diary", arrow: true, look: .night) {}.frame(width: 384)
                         }
                         .padding(Spacing.m)
                     }
