@@ -141,6 +141,8 @@ private struct FamilyStep: View {
             ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
                 PaperCard(seed: 61 + UInt32(index)) { card(kid, index: index) }
                     .frame(width: layout.grown.form.width, height: layout.cardHeight, alignment: .topLeading)
+                    .overlay(alignment: .topTrailing) { removeButton(kid, index: index) }
+                    .zIndex(store.removeConfirm == kid.id ? 1 : 0)
             }
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 if store.canAddKid {
@@ -155,6 +157,31 @@ private struct FamilyStep: View {
                 Text(L10n.tr("s1.one_child")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
             .padding(.leading, layout.grown.formInset)
+        }
+    }
+
+    /// Layout v13 "Remove a kid": a round × (48, touch 64) centred 12 in from the card's top-right
+    /// corner, over its edge; "Remove {name}?" points down from it when the card has something typed.
+    @ViewBuilder private func removeButton(_ kid: KidEntry, index: Int) -> some View {
+        if store.canRemoveKids {
+            let name = kid.trimmedName
+            RoundButton(glyph: .close, accessibilityLabel: name.isEmpty ? L10n.tr("s1.remove.label.empty")
+                                                                       : L10n.tr("s1.remove.label", name)) {
+                store.send(.removeKidTapped(kid.id))
+            }
+            .size(48)
+            .frame(width: 64, height: 64)
+            .contentShape(Rectangle())
+            .offset(x: 20, y: -20)
+            .overlay(alignment: .topTrailing) {
+                if store.removeConfirm == kid.id {
+                    ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
+                                cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
+                                onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
+                        .frame(width: 360)
+                        .offset(x: 20, y: 48)
+                }
+            }
         }
     }
 
@@ -198,15 +225,6 @@ private struct FamilyStep: View {
         }
         .padding(.top, layout.cardTopInset - layout.grown.formInset)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .overlay(alignment: .topTrailing) {
-            if index > 0 {
-                Button { store.send(.removeKidTapped(kid.id)) } label: {
-                    Text(L10n.tr("s1.remove")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.lateText)
-                }
-                .buttonStyle(.plain)
-                .offset(y: -Spacing.m)
-            }
-        }
     }
 
     private func face(_ slot: KitSlot, label: String, kid: KidEntry) -> some View {
