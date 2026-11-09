@@ -25,7 +25,7 @@ public struct PillToggle: View {
                 .foregroundStyle(CrayonColor.ink)
                 .lineLimit(1)
                 .frame(width: Self.size.width, height: Self.size.height)
-                .crayonBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
+                .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                   seed: CrayonStyle.Seed.tabs + 50)
         }
         .buttonStyle(.plain)

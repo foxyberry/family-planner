@@ -4,6 +4,10 @@ import SwiftUI
 /// Shared crayon fills and fixed seeds, so every instance of a part looks the same.
 /// Lists add their index to the seed so neighbours differ.
 public enum CrayonStyle {
+    /// Spec "Art inset" (2026-11-09): every part's crayon outline is drawn 6 inside its box on every
+    /// side; the touch area is the whole box.
+    public static let artInset: CGFloat = 6
+
     public static let skyPill = CrayonFill(color: CrayonColor.nowSky, hachure: HachureStyle(degrees: -30))
     public static let yellowSlider = CrayonFill(color: CrayonColor.goYellow, hachure: HachureStyle(degrees: -50))
     public static let apricot = CrayonFill(color: CrayonColor.kidApricot, hachure: HachureStyle(degrees: -35))
@@ -42,5 +46,13 @@ public enum CrayonStyle {
         static let stepDots: UInt32 = 2401
         static let swatch: UInt32 = 2501
         static let crayonSwitch: UInt32 = 2601
+    }
+}
+
+extension View {
+    /// A part's crayon shape, drawn `CrayonStyle.artInset` inside the view's box (spec "Art inset").
+    public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
+                               marker: MarkerStyle = .standard) -> some View {
+        background(CrayonSurface(kind, fill: fill, marker: marker, seed: seed).padding(CrayonStyle.artInset))
     }
 }

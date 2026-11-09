@@ -60,7 +60,7 @@ struct CardButton: View {
                 .foregroundStyle(isDestructive ? CrayonColor.lateText : CrayonColor.ink)
                 .lineLimit(1)
                 .frame(width: 240, height: 72)
-                .crayonBackground(.capsule, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.tabs + 9)
+                .partBackground(.capsule, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.tabs + 9)
         }
         .buttonStyle(.plain)
     }

@@ -83,7 +83,9 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-09: S2 Preschool uses the researched ECDA list (address as the second line, international early years too), hours prefilled from the ECDA listing or type default, closures by centre type (child care: public holidays + Teachers' / Children's Day; kindergarten: MOE terms), Development Days added by the grown-up.
 - 2026-11-09: v17 build notes accepted: S3 Home card ships with N11 (hidden until then); S3 tab finished rule (bus = has a stop; numbers optional); Live bus times off stops live arrivals only, stop search keeps using LTA stop data; S4 captions may wrap to two lines within the 140 pitch; caption without "› This iPad".
 - 2026-11-09: school data delivery planned (user): public lists bundled, all lists refreshed from the CloudKit public DB with a manifest and schema check, a "School lists" refresh row with its states on S2 and C9 (sketch SK5), remote data safety rules. Later, N14.
+- 2026-11-09: drift-sweep calls: crayon outlines 6 pt inside every box; body/caption weight 500; clock fill = long hachure at −50° over a light wash (boards); sky switch on every kid home (E1, E3, E3b added) with the night pill the same size as the day pill; DayChip 56 for read-only rows. Layout v19.
 - 2026-11-09: CrayonSwitch track is a 92 × 28 pill centred in its 96 × 52 box; line heights are total line boxes (title 1.15, head 1.2, body 1.25, caption 1.3), not added to the font leading; A2 legend plate shows the 1st-choice bus number (PR 34, 35).
+- 2026-11-09: "Repeats, dates and changes" (user): Repeat, Runs (start + end: end of term / date / count / none), Skip school holidays from the term data, linked time "School end + n" worked out per day, "No school days" (Skip or At a set time), two edit tabs with "Change from when?" on Save, exception rule on series change, skipped slices fade with "Bring back" (no change list, no undo; SK6 hub shows "Mon", day tabs 140/200 without ›); SK7 School card drops "Skip today" from the "School days" tab. Sketches SK10–SK11.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -106,6 +108,9 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 - **Crayon rounded boxes** (main session, 2026-11-09): every rounded rect keeps at least 6 outline samples per corner so corners draw round (at 12 pt sampling a 24 pt corner had only 3 and looked cut off). Small circles such as the 28 step dots use a calmer line: width 3, roughness 0.4.
 
+- **Crayon part inset** (2026-11-09, drift sweep): every crayon outline (InkButton, RoundButton, CrayonTabs, TimeField, cards, chips) is drawn **6 pt inside its box on every side**, so the spill of the crayon stays inside and the touch area is the whole box. Some boards show extra side margins (InkButton ≈ 337 × 90 in 382 × 96, tabs ≈ 173 × 54 in 180 × 72): that is an artwork aspect artefact on the canvas, not intended; do not copy it.
+- **Text weights**: body and caption 500 (Playpen medium), labels and emphasis 700. The boards set 500 too; a heavier look there comes from the web font rendering, not from the spec.
+- **DayChip** sizes: 72 in editors, 56 (pitch 64) in read-only rows (C1 / E6 "Days").
 - **Line height is total** (boards, 2026-11-09): the type steps' line heights are the whole line box, font size × factor: title 1.15, head 1.2, body 1.25, caption 1.3 (caption 24 → 31.2 per line). Never add the factor on top of the font's own leading (that made iPad captions about 25 % taller per line than the boards).
 
 ### Grid and frame (iPad landscape 1376 × 1032 pt)
@@ -219,7 +224,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - 12 (midnight, top), 6 (right, 6 am), 12 (noon, bottom) and 6 (left, 6 pm) are 30 pt semibold `ink`. The rest are 24 pt semibold `softText`.
   - A 40 pt moon picture sits above the top 12, and a 44 pt sun below the bottom 12.
 - **Slots**: one sector per schedule slot, from its start angle to its end angle. Touching slots of the same kind (the two halves of sleep) are merged into one sector first.
-  - Fill: crayon fill (wash + flicks, as in M1 `CrayonSurface`) in the slot colour. **Free time has no fill**: plain paper with the normal radial edges, and no picture.
+  - Fill (matched to the boards, 2026-11-09): a light wash plus long parallel hachure strokes at about −50° with paper showing between them (the boards' look), in the slot colour; not a dense wash with short flicks. **Free time has no fill**: plain paper with the normal radial edges, and no picture.
   - Edges: radial marker line 2.5 pt between slots, outer ring 4.5 pt.
   - The **current slot** gets a 6 pt outline.
 - **Slot colours** (new token group `ClockSlot`; hex from the board):
@@ -450,6 +455,20 @@ School is no longer special in the model. Every item that can sit on a kid's clo
 - **C5** keeps only the day routines (morning, evening) with days per mission (Library bag: Thursdays). Event missions and Bring are edited on the event (C3/C4/E5 and the School event).
 - Build order: the model first (From, `homeAfter`, route per event, done per outing, medal switch), keeping today's screens working; then the event form rows (From, Bring, Before/After, Medal), then the windows and home button. Nothing here is a cut-down version: today's school morning is the first case of the same rules.
 
+### Repeats, dates and changes (user, 2026-11-09) [proposed; sketches SK10–SK11 on "Sketches (review)"]
+Research: reports/calendar-event-features.md (Apple, Google, Outlook, RFC 5545 / 9253, family apps). No mainstream calendar links one event's start to another's end, and none skips school holidays. Both are this app's own rules. Every repeating event (template slots excepted: they follow the day types) gets these parts on the edit card's "Every …" tab (SK8). The tab label is "Every week".
+- **Repeat**: every week on chosen days (DayChips, in a sub-page of the card), every 2–4 weeks, or every day. Monthly ("2nd Tuesday", "the 15th"), yearly, multi-day all-day events and an extra one-off session (a make-up class) come next in the same plan (backlog 6c).
+- **Runs** (sub-page, SK10 ②): **Starts** {date} (default: the next day it happens) and **Ends**: "End of this term" (from the term data: MOE, or the school's own `termDates`; the caption names the date), "On a date" (inclusive), "After … times", or "No end". Stored as `startDate` + `end {kind: term | date | count | none, value}`. A `term` end is resolved when the days are worked out, so a term-data update moves it.
+- **Skip school holidays** (switch, in Runs): on by default for School and for events linked to School, off for others. Applied when the days are worked out, from the bundled calendar (vacation, school holiday, public holiday, day off in lieu), never stored as skipped dates, so a data update leaves nothing stale. An event linked to School always follows School's days, so for it the switch is replaced by "No school days".
+- **Linked time** (Time row): "School end + {n} min" (0–60, step 5) with the length kept; the caption shows that day's worked-out time ("1:45 – 2:45 pm today"). Worked out per day: a half day or a shorter school day moves the class and the bus home with it. Chains as in "Events: one shape": the bus home follows the last event of the chain on that day (the class when there is one, else School).
+- **No school days** (row and sub-page, only on linked events, SK10 ③; user, 2026-11-09): "Skip" (default; today's rule) or "At a set time" with its own time and **Going** row: on those days the event starts from Home and needs a trip.
+- **Edit scope** (user, 2026-11-09: two tabs, no third choice): "Today" changes that day only. It is stored as an exception keyed by the original date (`EventException { eventId, originalDate, cancelled?, start?, end?, bring? }`); only the fields changed override the series. "Every week" asks one thing on Save: **"Change from when?"** with tabs "Today" (default) and "Next {weekday}", and a "Pick a date" row (SK11 ②). The series is split there: the old part ends the day before and the new part starts on that date. Days before it never change.
+- **Exceptions when the series changes**: an exception is kept when its original date is still a day of the new series; otherwise it is removed, and the save card lists them first ("2 changed days no longer fit", one caption line each, "They will be removed." in `lateText`) with Save / Cancel.
+- **Skipped today** (replaces the "Changed today" list and Undo, user comment 2026-11-09): a skipped slice stays on the clock, faded; tapping it opens the card with **"Bring back"** where "Skip today" was. There is no change list and no undo stack: Bring back and Cancel are the only undo.
+- **Notes** row: free text, grown-up screens only.
+- **Not in this app**: attendees and invitations, attachments, busy/free, privacy flags, URL field, per-event time zone (the family zone is N4). Live-traffic leave times stay later (the fixed `leaveBefore` covers it); export to Apple Calendar is later and writes plain times (EventKit keeps one rule, no skipped or added dates, no links).
+- Order of work: after "Events: one shape" (the anchor model is its `From`), before the grown-up mode boards (SK6–SK9) are redrawn as real boards.
+
 ### Trips on items: the "Going" row [board C3g]
 - C3, C4 and E5 get two rows at the end of the form, under "Skip school holidays" (the form card scrolls to them; board C3g shows it scrolled down, with the top edge fading into the card):
   - **Going** (label as the other rows; part `ChoiceCircles`, also usable for any one-of picker with pictures): five 88 slot circles with a caption under each, gap 24: None ("–" in `softText`), Walk (`shoe`), Bus (`busDouble`), Car (`car`), Taxi (`taxi`). The chosen one has the pick-blue ring and a bold caption, like "What". Default None.
@@ -597,7 +616,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - Kid B: now/next circles as by day; next = wake-up (sun).
   - Button "Diary →". **[later M5]**: hidden in M2, as by day.
 
-## Sky switch: the kid's day/night switch (new 2026-11-08) [board 0g, on A1 and A1n]
+## Sky switch: the kid's day/night switch (new 2026-11-08) [board 0g; on every kid home: A1, A1m, A1n, E1, E3, E3b]
 - On every kid home screen (A1, E1, E3, E3b): top-left of the clock area at x 40, y 36, 160 × 96. That is clear of the hour labels and is a ≥ 96 pt target.
 - **Looks**: `SkySwitch` shows kit slots `skyDay`, `skyDusk` and `skyNight` with `KitIcon` (5:3 pills in the 240 box, aspect-fit into 160 × 96):
   - day: a sky pill with a smiling sun on the left and a cloud

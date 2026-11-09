@@ -32,6 +32,7 @@ public struct CrayonField<Leading: View>: View {
                           marker: isFocused ? .standard : .thin,
                           markerColor: isFocused ? CrayonColor.link : CrayonColor.marker,
                           seed: CrayonStyle.Seed.field)
+                .padding(CrayonStyle.artInset)
         )
     }
 

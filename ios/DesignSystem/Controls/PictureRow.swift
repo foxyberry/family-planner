@@ -38,6 +38,7 @@ public struct PictureRow: View {
                         .background(
                             CrayonSurface(.circle, fill: CrayonStyle.paper,
                                           seed: CrayonStyle.Seed.iconPicker + UInt32(index))
+                                .padding(CrayonStyle.artInset)
                         )
                         .overlay {
                             if isOn {

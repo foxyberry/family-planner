@@ -54,7 +54,7 @@ public struct CrayonTabs<ID: Hashable>: View {
                     .padding(.horizontal, itemSize == nil ? inset : 0)
                     .frame(width: itemSize?.width)
                     .frame(minHeight: itemSize?.height ?? 72)
-                    .crayonBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
+                    .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }
                 .buttonStyle(.plain)

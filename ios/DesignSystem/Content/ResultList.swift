@@ -66,7 +66,7 @@ public struct ResultListCard: View {
         }
         .padding(.vertical, Self.padding)
         .frame(width: Self.width, height: height, alignment: .top)
-        .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
+        .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                           seed: CrayonStyle.Seed.card + seed)
         .contentShape(Rectangle())
     }

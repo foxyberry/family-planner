@@ -23,7 +23,7 @@ public struct DateChip: View {
             }
             .foregroundStyle(CrayonColor.ink)
             .frame(width: 96, height: 104)
-            .crayonBackground(.roundedRect(cornerRadius: 24), fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
+            .partBackground(.roundedRect(cornerRadius: 24), fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                               seed: CrayonStyle.Seed.dateChip)
         }
         .buttonStyle(.plain)

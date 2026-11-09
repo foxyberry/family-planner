@@ -20,7 +20,7 @@ public struct DayChip: View {
                 .crayonType(size < 72 ? .caption : .head, bold: isOn)
                 .foregroundStyle(CrayonColor.ink)
                 .frame(width: size, height: size)
-                .crayonBackground(.circle, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
+                .partBackground(.circle, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                   seed: CrayonStyle.Seed.dayChip)
         }
         .buttonStyle(.plain)

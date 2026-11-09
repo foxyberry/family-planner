@@ -23,7 +23,7 @@ public struct InkButton: View {
                 .foregroundStyle(CrayonColor.card)
                 .padding(.horizontal, Spacing.l)
                 .frame(maxWidth: .infinity, minHeight: 96)
-                .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.ink, seed: CrayonStyle.Seed.inkButton)
+                .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.ink, seed: CrayonStyle.Seed.inkButton)
         }
         .buttonStyle(.plain)
     }

@@ -51,7 +51,7 @@ public struct TodayRow<Content: View>: View {
         .foregroundStyle(CrayonColor.ink)
         .frame(minHeight: 80)
         .padding(.horizontal, Spacing.m)
-        .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+        .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
     }
 }
 
@@ -79,6 +79,7 @@ public struct PreviewRow<Content: View>: View {
         .background {
             if isNew {
                 CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+                    .padding(CrayonStyle.artInset)
             }
         }
     }

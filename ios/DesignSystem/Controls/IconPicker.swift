@@ -47,7 +47,7 @@ public struct IconPicker: View {
             Button(action: onRequestDrawing) {
                 MarkerIcon(.plus, size: 40)
                     .frame(width: 88, height: 88)
-                    .crayonBackground(.roundedRect(cornerRadius: 24), fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
+                    .partBackground(.roundedRect(cornerRadius: 24), fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(L10n.tr("picker.draw"))

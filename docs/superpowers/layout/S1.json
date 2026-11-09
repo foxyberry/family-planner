@@ -1,5 +1,5 @@
 {
- "version": "18",
+ "version": "19",
  "board": "S1",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -68,11 +68,11 @@
  },
  "elements": [
   {
-   "id": "main.card.1",
+   "id": "main.card.2",
    "kind": "card",
    "part": "PaperCard",
    "x": 64,
-   "y": 176,
+   "y": 500,
    "w": 818,
    "h": 304,
    "region": "main",
@@ -80,11 +80,11 @@
    "align": "inside"
   },
   {
-   "id": "main.card.2",
+   "id": "main.card",
    "kind": "card",
    "part": "PaperCard",
    "x": 64,
-   "y": 500,
+   "y": 176,
    "w": 818,
    "h": 304,
    "region": "main",

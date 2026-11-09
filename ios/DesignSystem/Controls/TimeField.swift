@@ -27,7 +27,7 @@ public struct TimeField: View {
                 .foregroundStyle(isPlaceholder ? CrayonColor.softText : CrayonColor.ink)
                 .padding(.horizontal, Spacing.m)
                 .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
-                .crayonBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1)
+                .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1)
         }
         .buttonStyle(.plain)
         .popover(isPresented: $isPicking) {
