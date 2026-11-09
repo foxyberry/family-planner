@@ -17,6 +17,8 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 ## Machine limits (8 GB Mac)
 - One Bazel build/test at a time, one simulator. `make sim-stop` when done.
 - `make run` builds first, then boots the simulator. Shut down idle Bazel servers of other projects.
+- Check screens on the iPad (`make device`), never the dev simulator; for tap or Face ID states,
+  ask the user or add a launch flag.
 - Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
 
 ## Commands
@@ -62,7 +64,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Screens use only `DesignSystem` tokens, parts and frames. No color hex, font size numbers or
   (in kid screens) `ScrollView` outside the part files (`scripts/check-kid-screens.sh` enforces the last).
 - A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
-- Every crayon shape has a fixed seed per part (`CrayonStyle.Seed`).
+- Every crayon shape has a fixed seed per part (`CrayonStyle.Seed`). Any `Canvas` other than
+  `CrayonSurface` needs a `// bleed-ok:` note (a Canvas clips crayon wobble; `check-crayon-canvas.sh`).
 - Pictures only through `KitIcon(slot)`, so kid drawings can replace them later.
 - Copy only through `L10n.tr("key")` and `ios/Strings/Localizable.xcstrings`; `scripts/check-strings.sh` enforces it.
 - Playpen Sans has no arrows or ticks (→ ← ✓). The system fallback for them differs between

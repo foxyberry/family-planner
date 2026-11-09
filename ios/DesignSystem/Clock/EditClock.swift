@@ -122,7 +122,7 @@ public struct EditClock: View {
 
     private var ticksAndLabels: some View {
         ZStack {
-            Canvas { context, _ in
+            Canvas { context, _ in  // bleed-ok: straight ticks well inside the dial frame
                 var path = Path()
                 for hour in 0..<24 {
                     path.move(to: point(radius: r + 4, minute: Double(hour * 60)))
