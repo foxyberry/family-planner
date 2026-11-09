@@ -15,7 +15,8 @@ public struct BusSettingsFeature {
         public var kid: Kid.ID
         public var kidName = ""
         public var stop = ""
-        public var stopName: String?
+        /// The stop the code belongs to (picked from the list or looked up from the code).
+        public var pickedStop: BusStop?
         /// The stop field: a name to search for, or the 5-digit code.
         public var stopText = ""
         /// Stops whose name or road matches `stopText` (user, 2026-11-09: families know the name).
@@ -38,7 +39,7 @@ public struct BusSettingsFeature {
 
         /// The name under the stop code, or a hint while it is not 5 digits or unknown.
         public var stopCaption: String {
-            if let stopName { return stopName }
+            if let pickedStop { return L10n.tr("c2.stop.match", pickedStop.road, pickedStop.code) }
             if !stopMatches.isEmpty { return L10n.tr("c2.stop.pick") }
             if stopText.filter(\.isLetter).count >= 2 { return L10n.tr("c2.stop.none_found") }
             return stop.count == 5 ? L10n.tr("c2.stop.unknown") : L10n.tr("c2.stop.hint")
@@ -56,7 +57,7 @@ public struct BusSettingsFeature {
         case stopChanged(String)
         case stopsFound([BusStop])
         case stopPicked(BusStop)
-        case stopLooked(name: String?, services: [String])
+        case stopLooked(stop: BusStop?, services: [String])
         case serviceTapped(String)
         case walkChanged(Int)
         case rideChanged(Int)
@@ -97,7 +98,7 @@ public struct BusSettingsFeature {
 
             case let .stopChanged(text):
                 state.stopText = text
-                state.stopName = nil
+                state.pickedStop = nil
                 state.servicesAtStop = []
                 // Two or more letters: a name to look for; otherwise the digits of the code.
                 if text.filter(\.isLetter).count >= 2 {
@@ -118,13 +119,17 @@ public struct BusSettingsFeature {
 
             case let .stopPicked(stop):
                 state.stop = stop.code
-                state.stopText = stop.code
-                state.stopName = stop.name
+                // Board C2 (v9): the field shows the stop's name, the caption its road and code.
+                state.stopText = stop.name
+                state.pickedStop = stop
                 state.stopMatches = []
                 return lookUp(state)
 
-            case let .stopLooked(name, services):
-                state.stopName = name
+            case let .stopLooked(stop, services):
+                if let stop, stop.code == state.stop {
+                    state.pickedStop = stop
+                    state.stopText = stop.name
+                }
                 state.servicesAtStop = services
                 return .none
 
@@ -164,11 +169,11 @@ public struct BusSettingsFeature {
         guard state.stop.count == 5 else { return .none }
         let stop = state.stop
         return .run { [bus] send in
-            let name = try? await bus.stopName(stop)
+            let found = try? await bus.stop(stop)
             let arrivals = (try? await bus.arrivals(stop)) ?? []
             var seen: [String] = []
             for arrival in arrivals where !seen.contains(arrival.service) { seen.append(arrival.service) }
-            await send(.stopLooked(name: name, services: seen.sorted { $0.localizedStandardCompare($1) == .orderedAscending }))
+            await send(.stopLooked(stop: found, services: seen.sorted { $0.localizedStandardCompare($1) == .orderedAscending }))
         }
     }
 

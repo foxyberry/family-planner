@@ -31,6 +31,8 @@ public struct PieClock: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The slot whose title the hub shows; it follows `motion.slotStart` (see `hubDisc`).
     @State private var shownSlotStart: Int?
+    /// True when the clock moved forward to the new slot; false when it went back (time machine).
+    @State private var hubForward = true
     @Environment(\.sizing) private var sizing
 
     /// Board 0g2 triggers, all from State: a new current slot (its picture hops, the hub text slides
@@ -199,6 +201,12 @@ public struct PieClock: View {
     /// - one title line: title 48 at 540, "until" 590;
     /// - two title lines (head 36, 38 apart): 512 and 550, "until" 594.
     /// Lines are placed by baseline, not stacked, because Playpen Sans has tall built-in line gaps.
+    /// Forward when the new slot is less than 12 hours ahead around the clock (so the evening to
+    /// the first slot after midnight is forward); otherwise time went back.
+    public static func isForward(from old: Int, to new: Int) -> Bool {
+        ((new - old) % 1440 + 1440) % 1440 < 720
+    }
+
     private var hubDisc: some View {
         let title = hub.title.map { Self.hubTitleLines($0, sizing: sizing) }
         let isTwoLines = (title?.lines.count ?? 1) > 1
@@ -213,7 +221,10 @@ public struct PieClock: View {
                     }
                 }
                 .id(reduceMotion ? nil : shownSlotStart)
-                .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                // User, 2026-11-09: a new slot swipes in from the left inside the hub (from the
+                // right when time goes back), pushing the old title out the other side.
+                .transition(.asymmetric(insertion: .move(edge: hubForward ? .leading : .trailing),
+                                        removal: .move(edge: hubForward ? .trailing : .leading)))
             }
             if let subtitle = hub.subtitle {
                 hubLine(subtitle, size: sizing.size(of: .body), weight: .medium, color: CrayonColor.softText,
@@ -228,10 +239,13 @@ public struct PieClock: View {
                 quiet.disablesAnimations = true
                 withTransaction(quiet) { shownSlotStart = new }
             } else {
-                withAnimation(.easeOut(duration: 0.4)) { shownSlotStart = new }
+                hubForward = PieClock.isForward(from: old ?? 0, to: new ?? 0)
+                withAnimation(.easeInOut(duration: 0.45)) { shownSlotStart = new }
             }
         }
         .frame(width: 2 * hubR, height: 2 * hubR)
+        // The swipe stays inside the hub disc.
+        .clipShape(Circle())
         .crayonBackground(.circle, fill: CrayonStyle.paper, seed: 3003)
         .accessibilityHidden(true)
     }

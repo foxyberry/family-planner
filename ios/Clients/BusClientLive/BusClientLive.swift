@@ -16,9 +16,9 @@ extension BusClient {
                                              session: session)
                 return try LTA.arrivals(from: data, now: date.now)
             },
-            stopName: { stop in
+            stop: { code in
                 guard let key else { throw LTA.Failure.noKey }
-                return try await stops.all(key: key, session: session).first { $0.code == stop }?.name
+                return try await stops.all(key: key, session: session).first { $0.code == code }
             },
             searchStops: { text in
                 guard let key else { throw LTA.Failure.noKey }
