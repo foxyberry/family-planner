@@ -518,7 +518,7 @@ private struct AlmostDoneStep: View {
     private var rows: some View {
         ZStack(alignment: .topLeading) {
             ForEach(Array(store.settingRows.enumerated()), id: \.element.setting) { index, row in
-                let origin = layout.s4Main(104, 216 + 140 * CGFloat(index))
+                let origin = layout.s4Main(80, 216 + 140 * CGFloat(index))
                 SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
                            action: { store.send(.settingTapped(row.setting)) }) {
                     picture(row.picture)
@@ -526,7 +526,7 @@ private struct AlmostDoneStep: View {
                 .frame(width: layout.length(738), height: layout.length(120))
                 .place(topLeft: origin)
             }
-            let caption = layout.s4Main(104, 681)
+            let caption = layout.s4Main(80, 681)
             Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 .frame(width: layout.length(738), alignment: .leading)
                 .place(left: caption.x, baseline: caption.y)
@@ -551,21 +551,21 @@ private struct SummarySide: View {
     var body: some View {
         let rows = summaryRows
         ZStack(alignment: .topLeading) {
-            let title = layout.s4Side(930, 212)
+            let title = layout.s4Side(864, 212)
             Text(L10n.tr("s4.side.title")).crayonType(.head).place(left: title.x, baseline: title.y)
-            let kidsLine = layout.s4Side(930, 263)
+            let kidsLine = layout.s4Side(864, 263)
             HStack(spacing: Spacing.sm) { kids }.place(left: kidsLine.x, baseline: kidsLine.y)
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                 let top = layout.s4SummaryTop(index)
                 KitIcon(row.slot, size: layout.length(56))
-                    .place(topLeft: layout.s4Side(930, top + 11))
-                let titleLine = layout.s4Side(1002, top + 35)
+                    .place(topLeft: layout.s4Side(864, top + 11))
+                let titleLine = layout.s4Side(936, top + 35)
                 Text(row.title).crayonType(.body).lineLimit(1).place(left: titleLine.x, baseline: titleLine.y)
-                let detailLine = layout.s4Side(1002, top + 67)
+                let detailLine = layout.s4Side(936, top + 67)
                 Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
                     .place(left: detailLine.x, baseline: detailLine.y)
             }
-            let caption = layout.s4Side(930, layout.s4SummaryTop(rows.count) + 28)
+            let caption = layout.s4Side(864, layout.s4SummaryTop(rows.count) + 28)
             Text(L10n.tr("s4.side.later")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 .frame(width: layout.grown.side.width, alignment: .leading)
                 .place(left: caption.x, baseline: caption.y)

@@ -1,5 +1,5 @@
 {
- "version": "30",
+ "version": "31",
  "board": "S2s",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -10,23 +10,23 @@
    0,
    24
   ],
-  "margin": 64,
-  "right": 1312,
+  "margin": 40,
+  "right": 1336,
   "gutter": 24,
-  "column": 82,
+  "column": 88,
   "columnLefts": [
-   64,
-   170,
-   276,
-   382,
+   40,
+   152,
+   264,
+   376,
    488,
-   594,
-   700,
-   806,
-   912,
-   1018,
-   1124,
-   1230
+   600,
+   712,
+   824,
+   936,
+   1048,
+   1160,
+   1272
   ],
   "headerTop": 48,
   "headerBottom": 128,
@@ -35,34 +35,36 @@
   "contentBottom": 968
  },
  "lines": {
-  "formLeft": 64,
-  "formRight": 882,
-  "labelLeft": 104,
-  "controlLeft": 232,
-  "sideLeft": 930,
-  "right": 1312,
+  "margin": 40,
+  "formLeft": 40,
+  "formRight": 840,
+  "labelLeft": 80,
+  "controlLeft": 208,
+  "sideLeft": 864,
+  "sideWidth": 472,
+  "right": 1336,
   "formTop": 176,
   "formBottom": 968
  },
  "regions": {
   "header": {
-   "left": 64,
-   "right": 1312,
+   "left": 40,
+   "right": 1336,
    "anchor": "stretch"
   },
   "main": {
-   "left": 64,
-   "right": 882,
+   "left": 40,
+   "right": 840,
    "anchor": "left"
   },
   "side": {
-   "left": 930,
-   "right": 1312,
+   "left": 864,
+   "right": 1336,
    "anchor": "right"
   },
   "action": {
-   "left": 930,
-   "right": 1312,
+   "left": 864,
+   "right": 1336,
    "anchor": "right"
   }
  },
@@ -71,9 +73,9 @@
    "id": "main.card",
    "kind": "card",
    "part": "PaperCard",
-   "x": 64,
+   "x": 40,
    "y": 176,
-   "w": 818,
+   "w": 800,
    "h": 792,
    "region": "main",
    "anchor": "left",
@@ -82,7 +84,7 @@
   {
    "id": "header.back",
    "kind": "back",
-   "x": 64,
+   "x": 40,
    "y": 48,
    "w": 80,
    "h": 80,
@@ -94,7 +96,7 @@
   {
    "id": "header.title",
    "kind": "title",
-   "x": 168,
+   "x": 144,
    "y": 51,
    "w": 159,
    "h": 72,
@@ -108,7 +110,7 @@
   {
    "id": "header.note.1",
    "kind": "text",
-   "x": 376,
+   "x": 352,
    "y": 66,
    "w": 151,
    "h": 45,
@@ -121,7 +123,7 @@
   {
    "id": "header.note.2",
    "kind": "text",
-   "x": 595,
+   "x": 571,
    "y": 66,
    "w": 136,
    "h": 45,
@@ -134,7 +136,7 @@
   {
    "id": "header.picture.1",
    "kind": "picture",
-   "x": 376,
+   "x": 352,
    "y": 68,
    "w": 40,
    "h": 40,
@@ -145,7 +147,7 @@
   {
    "id": "header.picture.2",
    "kind": "picture",
-   "x": 595,
+   "x": 571,
    "y": 68,
    "w": 40,
    "h": 40,
@@ -156,7 +158,7 @@
   {
    "id": "header.note.3",
    "kind": "text",
-   "x": 1033,
+   "x": 1057,
    "y": 69,
    "w": 131,
    "h": 36,
@@ -169,7 +171,7 @@
   {
    "id": "header.picture.3",
    "kind": "picture",
-   "x": 379,
+   "x": 355,
    "y": 71,
    "w": 34,
    "h": 34,
@@ -180,7 +182,7 @@
   {
    "id": "header.picture.4",
    "kind": "picture",
-   "x": 598,
+   "x": 574,
    "y": 71,
    "w": 34,
    "h": 34,
@@ -191,9 +193,9 @@
   {
    "id": "side.line.1",
    "kind": "text",
-   "x": 930,
+   "x": 864,
    "y": 170,
-   "w": 332,
+   "w": 438,
    "h": 97,
    "region": "side",
    "anchor": "right",
@@ -205,7 +207,7 @@
   {
    "id": "main.label.goes-to",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 208,
    "w": 150,
    "h": 72,
@@ -217,7 +219,7 @@
   {
    "id": "main.row.goes-to.text.1",
    "kind": "text",
-   "x": 272,
+   "x": 248,
    "y": 222,
    "w": 100,
    "h": 45,
@@ -231,7 +233,7 @@
   {
    "id": "main.row.goes-to.text.2",
    "kind": "text",
-   "x": 444,
+   "x": 420,
    "y": 222,
    "w": 141,
    "h": 45,
@@ -245,7 +247,7 @@
   {
    "id": "main.row.goes-to.text.3",
    "kind": "text",
-   "x": 644,
+   "x": 620,
    "y": 222,
    "w": 124,
    "h": 45,
@@ -259,7 +261,7 @@
   {
    "id": "side.line.2",
    "kind": "text",
-   "x": 1010,
+   "x": 944,
    "y": 274,
    "w": 69,
    "h": 45,
@@ -273,7 +275,7 @@
   {
    "id": "side.picture.1",
    "kind": "picture",
-   "x": 930,
+   "x": 864,
    "y": 296,
    "w": 64,
    "h": 64,
@@ -284,7 +286,7 @@
   {
    "id": "main.label.school",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 304,
    "w": 150,
    "h": 80,
@@ -296,9 +298,9 @@
   {
    "id": "side.line.3",
    "kind": "text",
-   "x": 1010,
+   "x": 944,
    "y": 313,
-   "w": 260,
+   "w": 350,
    "h": 67,
    "region": "side",
    "anchor": "right",
@@ -337,7 +339,7 @@
   {
    "id": "side.line.4",
    "kind": "text",
-   "x": 1010,
+   "x": 944,
    "y": 390,
    "w": 86,
    "h": 45,
@@ -351,7 +353,7 @@
   {
    "id": "side.picture.2",
    "kind": "picture",
-   "x": 930,
+   "x": 864,
    "y": 412,
    "w": 64,
    "h": 64,
@@ -362,9 +364,9 @@
   {
    "id": "side.line.5",
    "kind": "text",
-   "x": 1010,
+   "x": 944,
    "y": 429,
-   "w": 266,
+   "w": 368,
    "h": 67,
    "region": "side",
    "anchor": "right",
@@ -375,7 +377,7 @@
   {
    "id": "main.text.2",
    "kind": "text",
-   "x": 252,
+   "x": 228,
    "y": 434,
    "w": 309,
    "h": 45,
@@ -389,7 +391,7 @@
   {
    "id": "main.label.days",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 448,
    "w": 150,
    "h": 64,
@@ -401,7 +403,7 @@
   {
    "id": "main.row.days.text.1",
    "kind": "text",
-   "x": 250,
+   "x": 226,
    "y": 458,
    "w": 28,
    "h": 45,
@@ -415,7 +417,7 @@
   {
    "id": "main.row.days.text.2",
    "kind": "text",
-   "x": 326,
+   "x": 302,
    "y": 458,
    "w": 20,
    "h": 45,
@@ -429,7 +431,7 @@
   {
    "id": "main.row.days.text.3",
    "kind": "text",
-   "x": 392,
+   "x": 368,
    "y": 458,
    "w": 32,
    "h": 45,
@@ -443,7 +445,7 @@
   {
    "id": "main.row.days.text.4",
    "kind": "text",
-   "x": 470,
+   "x": 446,
    "y": 458,
    "w": 20,
    "h": 45,
@@ -457,7 +459,7 @@
   {
    "id": "main.row.days.text.5",
    "kind": "text",
-   "x": 543,
+   "x": 519,
    "y": 458,
    "w": 18,
    "h": 45,
@@ -471,7 +473,7 @@
   {
    "id": "main.row.days.text.6",
    "kind": "text",
-   "x": 615,
+   "x": 591,
    "y": 458,
    "w": 19,
    "h": 45,
@@ -485,7 +487,7 @@
   {
    "id": "main.row.days.text.7",
    "kind": "text",
-   "x": 687,
+   "x": 663,
    "y": 458,
    "w": 19,
    "h": 45,
@@ -499,7 +501,7 @@
   {
    "id": "main.row.days.text.8",
    "kind": "text",
-   "x": 252,
+   "x": 228,
    "y": 471,
    "w": 306,
    "h": 36,
@@ -513,7 +515,7 @@
   {
    "id": "main.row.days.text.9",
    "kind": "text",
-   "x": 252,
+   "x": 228,
    "y": 506,
    "w": 286,
    "h": 45,
@@ -527,7 +529,7 @@
   {
    "id": "side.line.6",
    "kind": "text",
-   "x": 1010,
+   "x": 944,
    "y": 506,
    "w": 105,
    "h": 45,
@@ -541,8 +543,8 @@
   {
    "id": "side.picture.3",
    "kind": "picture",
-   "x": 930,
-   "y": 528,
+   "x": 864,
+   "y": 512,
    "w": 64,
    "h": 64,
    "region": "side",
@@ -552,7 +554,7 @@
   {
    "id": "main.text.3",
    "kind": "text",
-   "x": 252,
+   "x": 228,
    "y": 543,
    "w": 252,
    "h": 36,
@@ -566,7 +568,7 @@
   {
    "id": "main.label.hours",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 544,
    "w": 150,
    "h": 80,
@@ -578,20 +580,20 @@
   {
    "id": "side.line.7",
    "kind": "text",
-   "x": 1010,
+   "x": 944,
    "y": 545,
-   "w": 283,
-   "h": 67,
+   "w": 389,
+   "h": 36,
    "region": "side",
    "anchor": "right",
    "align": "inside",
-   "baseline": 604,
+   "baseline": 573,
    "font": 24
   },
   {
    "id": "main.row.hours.text.1",
    "kind": "text",
-   "x": 261,
+   "x": 237,
    "y": 561,
    "w": 123,
    "h": 45,
@@ -604,7 +606,7 @@
   {
    "id": "main.row.hours.text.2",
    "kind": "text",
-   "x": 515,
+   "x": 491,
    "y": 561,
    "w": 119,
    "h": 45,
@@ -617,7 +619,7 @@
   {
    "id": "main.row.hours.picture",
    "kind": "picture",
-   "x": 428,
+   "x": 404,
    "y": 567,
    "w": 40,
    "h": 40,
@@ -628,7 +630,7 @@
   {
    "id": "main.row.hours.text.3",
    "kind": "text",
-   "x": 252,
+   "x": 228,
    "y": 578,
    "w": 480,
    "h": 45,
@@ -640,9 +642,22 @@
    "text": "Sunny Bay International School"
   },
   {
+   "id": "side.line.8",
+   "kind": "text",
+   "x": 864,
+   "y": 592,
+   "w": 440,
+   "h": 67,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "baseline": 651,
+   "font": 24
+  },
+  {
    "id": "main.row.hours.text.4",
    "kind": "text",
-   "x": 252,
+   "x": 228,
    "y": 615,
    "w": 406,
    "h": 36,
@@ -653,22 +668,9 @@
    "font": 24
   },
   {
-   "id": "side.line.8",
-   "kind": "text",
-   "x": 930,
-   "y": 623,
-   "w": 357,
-   "h": 67,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 682,
-   "font": 24
-  },
-  {
    "id": "main.text.4",
    "kind": "text",
-   "x": 232,
+   "x": 208,
    "y": 629,
    "w": 458,
    "h": 36,
@@ -681,7 +683,7 @@
   {
    "id": "main.text.5",
    "kind": "text",
-   "x": 296,
+   "x": 272,
    "y": 665,
    "w": 450,
    "h": 45,
@@ -695,7 +697,7 @@
   {
    "id": "main.picture.1",
    "kind": "picture",
-   "x": 252,
+   "x": 228,
    "y": 672,
    "w": 32,
    "h": 32,
@@ -706,7 +708,7 @@
   {
    "id": "main.label.arrive-by",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 680,
    "w": 150,
    "h": 80,
@@ -718,7 +720,7 @@
   {
    "id": "main.row.arrive-by.text.1",
    "kind": "text",
-   "x": 261,
+   "x": 237,
    "y": 697,
    "w": 123,
    "h": 45,
@@ -731,7 +733,7 @@
   {
    "id": "main.row.arrive-by.text.2",
    "kind": "text",
-   "x": 538,
+   "x": 514,
    "y": 697,
    "w": 123,
    "h": 45,
@@ -744,7 +746,7 @@
   {
    "id": "main.row.arrive-by.text.3",
    "kind": "text",
-   "x": 428,
+   "x": 404,
    "y": 701,
    "w": 66,
    "h": 36,
@@ -758,7 +760,7 @@
   {
    "id": "main.picture.2",
    "kind": "picture",
-   "x": 232,
+   "x": 208,
    "y": 796,
    "w": 48,
    "h": 48,
@@ -769,7 +771,7 @@
   {
    "id": "main.text.6",
    "kind": "text",
-   "x": 292,
+   "x": 268,
    "y": 797,
    "w": 509,
    "h": 45,
@@ -782,9 +784,9 @@
   {
    "id": "action.button",
    "kind": "button",
-   "x": 930,
+   "x": 864,
    "y": 872,
-   "w": 382,
+   "w": 472,
    "h": 96,
    "region": "action",
    "anchor": "right",

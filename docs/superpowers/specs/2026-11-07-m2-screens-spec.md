@@ -103,6 +103,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-10: home right panel widened to x 928–1336 (user: right margin 40 = left; use the width), main button 408 wide; pencil x 1260. Layout v29 (v28 moved the panel instead and is replaced).
 - 2026-11-10: the midnight moon (40) sits centred above the top "12" (x 428, y 48) and the noon sun (44) centred below the bottom "12" (x 426, y 964), not beside them (user). Layout v30.
 - 2026-11-10: scrolling: the G1 clock and header never scroll; the right column is its own scroll view (day button pinned top, Save pinned bottom); main card and side column scroll separately on every grown-up screen (user).
+- 2026-11-10: grown-up screens use 40 side margins like home (user): header 40–1336, form card 40–840 (w 800), labels 80, controls 208, side column 864–1336 (w 472) with every side part widened to 472; the G1 clock moves 66 left so its hour labels line up with the home clock (x 30). Layout v31.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -140,7 +141,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   3. **Human view**: the canvas page "Redlines" shows every screen with its lines, regions and part boxes, generated from the same JSON (do not edit by hand). Read a screen's redline before building or fixing it.
   4. **Check**: the app's layout test compares part frames with the table (shared lines ±1 pt after scaling) on 1376 × 1032, 1366 × 1024, 1180 × 820 and 1133 × 744, and a debug overlay draws the same lines on the device.
   - Any board change re-exports the JSON and the redlines together and bumps `layout vN`; the message to the main session names the version and the changed ids. A part missing from the table is a question to the design session, not a guess.
-  - Global lines (all screens): status band 0–24, margins 64 / 1312, header 48–128 with baseline 107, content 176–968. Screen lines (home panel 928–1336 since 2026-11-10; morning 172 / 448, baselines 584 / 757; grown-up 104 / 232 / 930) belong to their screens and are listed in each JSON.
+  - Global lines (all screens): status band 0–24, header 48–128 with baseline 107, content 176–968. Side margins: **40 / 1336 on home and every grown-up screen** (since 2026-11-10, layout v31; user: use the width, no extra inset on the right), 64 / 1312 on the morning screens. Screen lines (home panel 928–1336; morning 172 / 448, baselines 584 / 757; grown-up 80 / 208 / 840 / 864) belong to their screens and are listed in each JSON.
 - Spacing tokens: **4 · 8 · 12 · 16 · 24 · 40 · 64** (changed 2026-11-08). 4 and 12 are for the inside of one part only (icon to label, chip padding, caption under a picture); between parts use 16 or more. No other gaps (2, 6, 10, 14, 20, 32, 48, 56 were mapped to the nearest token on every board). Line pitch inside a text block (e.g. the two-line hub, 38) is type, not spacing.
 - Type: `CrayonType` hero 144, display 96, title 48, head 36, body 30, caption 24. Nothing smaller than 24.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
@@ -150,7 +151,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (the family's, 1366 × 1024, safe top 32): 0.984 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714. The reference height is 1008 (the 13" safe area), not 1032: this is the fix for the overflow bug. Never `scaleEffect` the whole screen (blurry text, wrong hit areas); multiply each value by s instead.
   - **Floors**: `fluid(ref, lo) = max(lo, ref × s)`. Floors are design choices, not research values: check them on the family iPad and on a mini simulator [proposed].
   - **Vertical position**: y = safe.top + (y_board − 24) × s. Header top 48 → 24 + 24 s; main button bottom 968 → 24 + 944 s (mini: 41 and 698, leaving 46 below).
-  - **Horizontal position**: every region has an anchor. Default, when a screen does not name one: a region that spans both margins (64 … 1312) **stretches** (left = 64 s, right = W − 64 s); otherwise it is **left**-anchored (x = x_board × s) when its board centre is left of 688, else **right**-anchored (x = W − (1376 − x_board) × s). Named exceptions: the home right panel (A1, A1n, E1, E3, E3b) stretches from 928 s to W − 64 s, so the extra width of a narrower-but-taller iPad goes to the text, not to a gap.
+  - **Horizontal position**: every region has an anchor. Default, when a screen does not name one: a region that spans both margins (64 … 1312 on the morning screens; 40 … 1336 on home and grown-up screens) **stretches** (left = margin × s, right = W − margin × s); otherwise it is **left**-anchored (x = x_board × s) when its board centre is left of 688, else **right**-anchored (x = W − (1376 − x_board) × s). Named exceptions: the home right panel (A1, A1n, E1, E3, E3b) stretches from 928 s to W − 40 s, so the extra width of a narrower-but-taller iPad goes to the text, not to a gap.
   - **Type**: hero `fluid(144, 96)`, display `fluid(96, 64)`, title `fluid(48, 36)`, head `fluid(36, 30)`, body `fluid(30, 24)`, caption **24 fixed** (still nothing under 24). Mini: 103 / 69 / 36 / 30 / 24 / 24. Use `Font.custom(_:size:relativeTo:)` with the scaled size so Dynamic Type still works on top; do not also use `@ScaledMetric` on the same size. Text that may not fit at its floor wraps or uses `ViewThatFits`; it never shrinks below the floor.
   - **Spacing**: 4, 8, 12 fixed (inside one part). 16 → `fluid(16, 12)`, 24 → `fluid(24, 16)`, 40 → `fluid(40, 28)`, 64 → `fluid(64, 40)`. Grid: margin `fluid(64, 40)`, gutter `fluid(24, 16)`, column = (W − 2 margin − 11 gutter) / 12 (82 at 13").
   - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip: the ground and the road fill the strip region (64 s … W − 64 s) and its height is 340 s; stop, stem and picture **x** positions are proportional to the strip width, every **size and y** uses s, and nothing is stretched (a tree stays round); labels and the card sit on top at their own type sizes (changed 2026-11-09 from keep-aspect, which left a 6 pt gap per side)). Kid tap targets stay ≥ 64 [proposed]. Crayon outlines × s; focus rings and hairlines fixed.
@@ -159,12 +160,14 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 64.
 - Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
 
-### Grown-up form layout (C3, C4, E5, C3k)
-- Form card: `PaperCard`, columns 1–8 (x 64, w 818 to keep the marker stroke inside 824), y 176–968.
-- Label column inside the card: x 88, caption-weight body text in `softText`, label tops align with their control tops.
-- Controls start at x 232.
-- Side column: columns 9–12 (x 930, w 382, the 400 span inset 18 so the crayon spill stays inside).
-- Main button: `InkButton`, side column, y 872–968.
+### Grown-up form layout (every grown-up screen: C2–C5, C3k, E5, S1–S4, G1–G8, F1–F5; layout v31, 2026-11-10)
+- Side margins 40, like home (user, 2026-11-10: the old 64 + 18 inset wasted the right side). Header 40–1336: ← at 40, the right group ends at 1336.
+- Form card: `PaperCard`, x 40, w 800 (to 840), y 176–968. The marker stroke stays 6 inside its box.
+- Labels inside the card: x 80 (card + 40), caption-weight body text in `softText`, label tops align with their control tops.
+- Controls start at x 208 (label + 128). Full-width rows run 80–800 (w 720).
+- Gap 24, then the side column: x 864, w 472 (to 1336). Every side part that spans the column is 472 wide: day button, slice card, tabs row, list rows and their highlight, "Remove every week" / "Skip" buttons.
+- Main button: `InkButton`, side column, 864–1336 × 96, y 872–968.
+- G1 / G1c / G1d: the clock moves 66 left with the main column, so its hour labels start at x 30 as on the home clock (centre x 410). Undo / Redo move with it (656 / 744, y 880, 72).
 
 ### Seed data in M2
 - **First run** (user, 2026-11-09): the app starts empty on every build and runs first-run setup S1–S4, where the grown-up enters the real kids and settings. Nothing below is loaded on its own.
@@ -522,7 +525,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, l
 - Until it is built, trips come from the seed.
 
 ## S1–S4 · First-run setup (boards S1–S4 on "Building now", 2026-11-09; build step 6) [board]
-- Shown once, on an iPad with no family yet, before any kid screen. Four steps, one screen each, on the grown-up frame and lines (layout `grown`: form card 64–882 from 176, labels 104, controls 232, side column 930–1312, action button 930 / 872, 382 × 96).
+- Shown once, on an iPad with no family yet, before any kid screen. Four steps, one screen each, on the grown-up frame and lines (layout `grown`, v31: form card 40–840 from 176, labels 80, controls 208, side column 864–1336, action button 864 / 872, 472 × 96).
 - Header: "←" `RoundButton` 80 goes back one step (S2–S4; S1 has none), title (title 48) at 168 (64 on S1), then on the right "Step {n} of 4" (caption) and four 28 dots, filled up to the current step.
 - No grown-up lock during setup (there is no family yet). S4 turns it on.
 - Going back keeps every value. Nothing is saved until "Start" on S4; if the app quits before that, setup starts again at S1.
@@ -540,7 +543,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, l
 
 ### S1 · Family [board S1]
 - Title "Hello! Who's in the family?".
-- One form card per kid (64–882, 296 tall, 32 apart):
+- One form card per kid (40–840, 296 tall, 32 apart):
   - "Name": `CrayonField` 352 × 72 with the kid's `KidFace` 40 inside; "Age": field 112 × 72.
   - "Colour": four swatches 56 (blue, orange, green, purple); picked = ring. Two kids never share a colour: picking a taken one swaps the two kids' colours.
   - "Face": `kidGirl` and `kidBoy` 64; picked = 72 ring. A face the kid draws is M6 (hidden).
@@ -935,7 +938,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 
 ## C3k · Add, keyboard open [board]
 - When a text field has focus, the iPad keyboard covers about y 612–1032 (≈ 420 pt in landscape).
-- The form card shrinks to 818 × 352 at y 176 and becomes a scroll area. It keeps the field with focus in view.
+- The form card shrinks to 800 × 352 at y 176 and becomes a scroll area. It keeps the field with focus in view.
 - Inside it, rows are tighter: label at card x 40, controls at card x 168, rows at 20 / 136 / 248 / 360.
 - Focus: the focused field gets the blue focus outline (`pickBlue`, 610 wide) and a 3 × 36 caret in `pickBlue`. Its label turns `pickBlue`.
 - Side column: the preview heading only; the rows are hidden.
