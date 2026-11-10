@@ -51,6 +51,7 @@ public struct ItemEditorView: View {
                 switch card {
                 case .from: fromCard
                 case .bring: bringCard
+                case .runsEnd: runsEndCard
                 }
             }
             if let draft = store.missionDraft {
@@ -173,7 +174,7 @@ public struct ItemEditorView: View {
     }
 
     @ViewBuilder private var weeklyRows: some View {
-        row("", problem: .days) {
+        row(L10n.tr("editor.row.days"), problem: .days) {
             HStack(spacing: Spacing.sm) {
                 ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                     DayChip(DayText.initial(day), isOn: Binding(get: { store.form.days.contains(day) },
@@ -181,10 +182,60 @@ public struct ItemEditorView: View {
                 }
             }
         }
+        // Board G2: Runs, "{start}" → "End of term", then Skip school holidays.
+        row(L10n.tr("editor.row.runs")) {
+            HStack(spacing: Spacing.s) {
+                DateField(label: store.runsStartText,
+                          date: Binding(get: { store.runsStart }, set: { store.send(.runsStartPicked($0)) }))
+                MarkerIcon(.arrowRight, size: 32, color: CrayonColor.softText)
+                FieldButton(store.runsEndText) { store.send(.runsEndTapped) }
+            }
+        }
         row("") {
             checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
         }
         eventRows
+    }
+
+    /// Board G2 Runs' end: End of term (with its date), a date, a number of times, or no end.
+    private var runsEndCard: some View {
+        PaperCard(seed: 49) {
+            VStack(alignment: .leading, spacing: Spacing.m) {
+                Text(L10n.tr("runs.card.title")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                CrayonTabs(selection: Binding(get: { store.form.runsEnd }, set: { store.send(.runsEndKindPicked($0)) }),
+                           items: store.runsEndTabs.map { ($0.0, $0.1, nil) },
+                           itemSize: CGSize(width: 150, height: 72), spacing: Spacing.sm)
+                Group {
+                    switch store.form.runsEnd {
+                    case .term:
+                        Text(store.termCaption ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+                    case .date:
+                        DateField(label: store.runsEndText,
+                                  date: Binding(get: { store.runsUntil }, set: { store.send(.runsUntilPicked($0)) }))
+                    case .count:
+                        HStack(spacing: Spacing.m) {
+                            RoundButton(glyph: .minus, accessibilityLabel: L10n.tr("runs.tab.count")) {
+                                store.send(.runsTimesStepped(-1))
+                            }
+                            Text(L10n.tr("runs.count.value", store.form.times)).crayonType(.body, bold: true)
+                                .foregroundStyle(CrayonColor.ink).frame(width: 140)
+                            RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("runs.tab.count")) {
+                                store.send(.runsTimesStepped(1))
+                            }
+                        }
+                    case .none:
+                        EmptyView()
+                    }
+                }
+                .frame(minHeight: 80, alignment: .leading)
+                HStack {
+                    Spacer()
+                    InkButton(L10n.tr("c5.done")) { store.send(.runsEndDoneTapped) }
+                        .frame(width: 240)
+                }
+            }
+        }
+        .frame(width: 720)
     }
 
     @ViewBuilder private var onceRows: some View {

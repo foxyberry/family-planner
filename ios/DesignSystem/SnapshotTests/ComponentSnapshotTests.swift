@@ -90,6 +90,14 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// Board G2 Runs: the start date and the end, as paper fields.
+    func testRunsFields() {
+        snap(HStack(spacing: Spacing.m) {
+            DateField(label: "9 Nov", date: .constant(Date(timeIntervalSince1970: 0)))
+            FieldButton("End of term") {}
+        })
+    }
+
     /// Board C3 "What": five slots and "More", closed and open (every picture, 6 per row).
     func testPictureRow() {
         let row = [KitSlot.actSwim, .actArt, .actMusic, .actPiano, .actDance]

@@ -32,7 +32,7 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.repeats, .weekly)
         XCTAssertEqual(form.days, [.monday])
         XCTAssertEqual(form.date, F.monday)
-        XCTAssertTrue(form.skipsHolidays)
+        XCTAssertFalse(form.skipsHolidays, "off for an activity (spec: on when it follows School)")
         XCTAssertTrue(form.showsStar)
     }
 
@@ -76,24 +76,24 @@ final class ItemFormTests: XCTestCase {
         let swim = F.weekly()   // Mon · Wed 3:30–4:30 every week
         var once = form(start: 960, end: 1020, repeats: .once)
         once.date = F.monday
-        XCTAssertEqual(once.overlapCaption(items: [swim], kids: SeedData.kids, daysOff: [:], editing: nil,
+        XCTAssertEqual(once.overlapCaption(items: [swim], kids: SeedData.kids, family: FamilyCalendar(), editing: nil,
                                            calendar: F.calendar),
                        "Overlaps Swimming 3:30–4:30 pm. This one shows on the clock then.")
     }
 
     func testOverlapCaptionWhenOtherWins() {
         let party = F.once("Party", on: Day(year: 2026, month: 11, day: 11), start: 900, end: 1080)
-        XCTAssertEqual(form().overlapCaption(items: [party], kids: SeedData.kids, daysOff: [:], editing: nil,
+        XCTAssertEqual(form().overlapCaption(items: [party], kids: SeedData.kids, family: FamilyCalendar(), editing: nil,
                                              calendar: F.calendar),
                        "Party shows on the clock then.")
     }
 
     func testNoOverlapCaptionForEndedSeriesOrPastEvents() {
         let ended = F.weekly(until: Day(year: 2026, month: 11, day: 8))
-        XCTAssertNil(form().overlapCaption(items: [ended], kids: SeedData.kids, daysOff: [:], editing: nil,
+        XCTAssertNil(form().overlapCaption(items: [ended], kids: SeedData.kids, family: FamilyCalendar(), editing: nil,
                                            calendar: F.calendar))
         let pastParty = F.once("Party", on: Day(year: 2026, month: 11, day: 4), start: 900, end: 1080)
-        XCTAssertNil(form().overlapCaption(items: [pastParty], kids: SeedData.kids, daysOff: [:], editing: nil,
+        XCTAssertNil(form().overlapCaption(items: [pastParty], kids: SeedData.kids, family: FamilyCalendar(), editing: nil,
                                            calendar: F.calendar))
     }
 
@@ -102,16 +102,16 @@ final class ItemFormTests: XCTestCase {
         let old = F.weekly(until: F.monday)
         var newHalf = form()
         newHalf.date = Day(year: 2026, month: 11, day: 10)
-        XCTAssertNil(newHalf.overlapCaption(items: [old], kids: SeedData.kids, daysOff: [:], editing: UUID(),
+        XCTAssertNil(newHalf.overlapCaption(items: [old], kids: SeedData.kids, family: FamilyCalendar(), editing: UUID(),
                                             calendar: F.calendar))
     }
 
     func testNoOverlapCaptionForOtherKidOrEditedItem() {
         let swimB = F.weekly(kid: SeedData.kidB)
-        XCTAssertNil(form().overlapCaption(items: [swimB], kids: SeedData.kids, daysOff: [:], editing: nil,
+        XCTAssertNil(form().overlapCaption(items: [swimB], kids: SeedData.kids, family: FamilyCalendar(), editing: nil,
                                            calendar: F.calendar))
         let swim = F.weekly()
-        XCTAssertNil(form().overlapCaption(items: [swim], kids: SeedData.kids, daysOff: [:], editing: swim.id,
+        XCTAssertNil(form().overlapCaption(items: [swim], kids: SeedData.kids, family: FamilyCalendar(), editing: swim.id,
                                            calendar: F.calendar))
     }
 
@@ -126,7 +126,8 @@ final class ItemFormTests: XCTestCase {
         let id = UUID()
         let weekly = form().item(id: id, today: F.monday)
         XCTAssertEqual(weekly.recurrence, .weekly([.monday, .wednesday], from: F.monday, until: nil))
-        XCTAssertTrue(weekly.skipsHolidays)
+        XCTAssertFalse(weekly.skipsHolidays)
+        XCTAssertEqual(weekly.runsEnd, RunsEnd.none)
         XCTAssertFalse(weekly.showsStar)
         var onceForm = form(repeats: .once)
         onceForm.date = F.monday.adding(days: 3, calendar: F.calendar)
@@ -153,7 +154,7 @@ final class ItemFormTests: XCTestCase {
 
     private func preview(_ form: ItemForm, items: [ScheduleItem] = [], draftID: UUID? = UUID(),
                          showsDraft: Bool = true) -> FormPreview {
-        form.preview(kids: SeedData.kids, routines: SeedData.routines, items: items, daysOff: [:], draftID: draftID,
+        form.preview(kids: SeedData.kids, routines: SeedData.routines, items: items, family: FamilyCalendar(), draftID: draftID,
                      showsDraft: showsDraft, today: F.monday, calendar: F.calendar)
     }
 
@@ -205,7 +206,7 @@ final class ItemFormTests: XCTestCase {
     }
 
     func testPreviewWithoutKidsHasNoRows() {
-        let empty = form().preview(kids: [], routines: [], items: [], daysOff: [:], draftID: UUID(), showsDraft: true,
+        let empty = form().preview(kids: [], routines: [], items: [], family: FamilyCalendar(), draftID: UUID(), showsDraft: true,
                                    today: F.monday, calendar: F.calendar)
         XCTAssertEqual(empty.rows, [])
     }
@@ -322,5 +323,45 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.missionsAfter, [])
         let saved = form.item(id: UUID(), today: F.monday)
         XCTAssertEqual(ItemForm(item: saved).missionsBefore, form.missionsBefore)
+    }
+
+    // MARK: Runs (board G2)
+
+    func testRunsEndsAreStoredAndShown() {
+        var form = form()
+        XCTAssertEqual(form.runsStartText(calendar: F.calendar), "9 Nov")
+        XCTAssertEqual(form.runsEndText(calendar: F.calendar), "No end")
+        form.runsEnd = .term
+        XCTAssertEqual(form.runsEndText(calendar: F.calendar), "End of term")
+        XCTAssertEqual(form.item(id: UUID(), today: F.monday).runsEnd, .term)
+        XCTAssertEqual(form.item(id: UUID(), today: F.monday).recurrence,
+                       .weekly([.monday, .wednesday], from: F.monday, until: nil), "worked out with the calendar")
+        form.runsEnd = .date
+        form.untilDate = Day(year: 2026, month: 12, day: 14)
+        XCTAssertEqual(form.runsEndText(calendar: F.calendar), "14 Dec")
+        XCTAssertEqual(form.item(id: UUID(), today: F.monday).recurrence,
+                       .weekly([.monday, .wednesday], from: F.monday, until: Day(year: 2026, month: 12, day: 14)))
+        form.runsEnd = .count
+        form.stepTimes(-20)
+        XCTAssertEqual(form.times, 1)
+        XCTAssertEqual(form.runsEndText(calendar: F.calendar), "After 1 times")
+        XCTAssertEqual(form.item(id: UUID(), today: F.monday).runsEnd, .count(1))
+    }
+
+    func testAnItemAfterSchoolSkipsSchoolHolidays() {
+        var form = form()
+        let school = form.fromChoices(kids: SeedData.kids, routines: SeedData.routines, items: [], editing: nil,
+                                      today: F.monday, calendar: F.calendar)[1]
+        form.setFrom(school)
+        XCTAssertTrue(form.skipsHolidays)
+    }
+
+    func testEditingKeepsTheStoredEnd() {
+        let item = ScheduleItem(id: UUID(), title: "Swim", iconName: "actSwim", audience: kidA, start: 930, end: 990,
+                                recurrence: .weekly([.monday], from: F.monday, until: Day(year: 2026, month: 12, day: 7)),
+                                skippedDays: [], skipsHolidays: true, showsStar: false)
+        let form = ItemForm(item: item)
+        XCTAssertEqual(form.runsEnd, .date, "an item saved before Runs with an end date")
+        XCTAssertEqual(form.untilDate, Day(year: 2026, month: 12, day: 7))
     }
 }

@@ -1,4 +1,3 @@
-import CrayonKit
 import Strings
 import SwiftUI
 
@@ -21,15 +20,7 @@ public struct TimeField: View {
     }
 
     public var body: some View {
-        Button { isPicking = true } label: {
-            Text(label)
-                .crayonType(.body)
-                .foregroundStyle(isPlaceholder ? CrayonColor.softText : CrayonColor.ink)
-                .padding(.horizontal, Spacing.m)
-                .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
-                .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1)
-        }
-        .buttonStyle(.plain)
+        FieldButton(label, isPlaceholder: isPlaceholder, width: width) { isPicking = true }
         .popover(isPresented: $isPicking) {
             DatePicker(L10n.tr("time.field"), selection: $time, displayedComponents: .hourAndMinute)
                 .datePickerStyle(.wheel)

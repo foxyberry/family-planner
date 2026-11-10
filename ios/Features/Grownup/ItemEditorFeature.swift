@@ -26,6 +26,8 @@ public struct ItemEditorFeature {
         case from
         /// Bring, with the list as it was when the card opened (a tap outside puts it back).
         case bring(was: [ItemMission])
+        /// Runs' end (board G2), with the form as it was (a tap outside puts it back).
+        case runsEnd(was: ItemForm)
     }
 
     /// One tab under "For": a kid, or both kids.
@@ -81,10 +83,10 @@ public struct ItemEditorFeature {
                                      isPicked: way == .taxi),
             ]
         }
-        /// Each kid's days off (school closures and public holidays).
-        public var daysOff: [Kid.ID: Set<Day>] = [:]
+        /// The family's year: each kid's school calendar and the public holidays.
+        public var family = FamilyCalendar()
         /// The days off of the form's kid (for both kids: the days off for both).
-        public var holidays: Set<Day> { DayPlanner.daysOff(for: form.audience, in: daysOff) }
+        public var holidays: Set<Day> { family.daysOff(for: form.audience) }
         /// Board C3 "What" (layout v6): the "More" popover with every picture is open.
         public var isPickingMorePictures = false
 
@@ -178,6 +180,27 @@ public struct ItemEditorFeature {
             form.missions(section).count < ItemMission.most
         }
 
+        /// The last day of the term the run starts in, for the form's kid; nil without a school calendar.
+        public var termEnd: Day? { family.termEnd(for: form.audience, from: form.date) }
+
+        /// Board G2 Runs: "9 Nov" → "End of term".
+        public var runsStartText: String { form.runsStartText(calendar: calendar) }
+        public var runsEndText: String { form.runsEndText(calendar: calendar) }
+        public var runsStart: Date { form.date.date(calendar: calendar) }
+        public var runsUntil: Date { max(form.untilDate, form.date).date(calendar: calendar) }
+
+        /// The Runs card's tabs: "End of term" only when the kid's school has terms.
+        public var runsEndTabs: [(ItemForm.RunsEndKind, String)] {
+            (termEnd == nil ? [] : [(ItemForm.RunsEndKind.term, L10n.tr("runs.tab.term"))])
+                + [(.date, L10n.tr("runs.tab.date")), (.count, L10n.tr("runs.tab.count")), (.none, L10n.tr("runs.tab.none"))]
+        }
+
+        /// "Term 4 ends 20 Nov" under the End of term tab.
+        public var termCaption: String? {
+            guard let termEnd else { return nil }
+            return L10n.tr("runs.term.caption", DayText.dayMonth(termEnd, calendar: calendar))
+        }
+
         public var missionRemoveTitle: String? {
             guard let missionDraft, missionDraft.confirmsRemove else { return nil }
             return L10n.tr("c5.remove.title", missionDraft.name)
@@ -267,14 +290,14 @@ public struct ItemEditorFeature {
         public var preview: FormPreview? {
             guard !isEditingWeekly else { return nil }
             return form.preview(kids: snapshot?.kids ?? [], routines: snapshot?.routines ?? [],
-                                items: snapshot?.items ?? [], daysOff: daysOff,
+                                items: family.resolving(snapshot?.items ?? [], calendar: calendar), family: family,
                                 draftID: editingItem?.id ?? draftID, showsDraft: problem == nil, today: today,
                                 calendar: calendar)
         }
 
         public var overlapCaption: String? {
             guard let snapshot else { return nil }
-            return form.overlapCaption(items: snapshot.items, kids: snapshot.kids, daysOff: daysOff,
+            return form.overlapCaption(items: family.resolving(snapshot.items, calendar: calendar), kids: snapshot.kids, family: family,
                                        editing: editingItem?.id, today: today, calendar: calendar)
         }
 
@@ -336,7 +359,7 @@ public struct ItemEditorFeature {
 
     public enum Action: BindableAction, Equatable {
         case task
-        case loaded(ScheduleSnapshot?, daysOff: [Kid.ID: Set<Day>])
+        case loaded(ScheduleSnapshot?, family: FamilyCalendar)
         case binding(BindingAction<State>)
         case audienceTapped(Audience)
         case picturePicked(String)
@@ -386,6 +409,13 @@ public struct ItemEditorFeature {
         case missionRemoveConfirmed
         case missionRemoveCancelled
         case missionMoved(ItemMission.ID, to: Int, in: ItemForm.MissionSection)
+        /// Runs (board G2): the start date, and the end card (kind, date, times, Done).
+        case runsStartPicked(Date)
+        case runsEndTapped
+        case runsEndKindPicked(ItemForm.RunsEndKind)
+        case runsUntilPicked(Date)
+        case runsTimesStepped(Int)
+        case runsEndDoneTapped
         case delegate(Delegate)
 
         @CasePathable
@@ -413,14 +443,20 @@ public struct ItemEditorFeature {
                 let year = state.today.year
                 return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let daysOff = await schoolDirectory.daysOff(kids: snapshot?.kids ?? [],
-                                                                publicHolidays: await holidays.holidays(year).map(\.day))
-                    await send(.loaded(snapshot, daysOff: daysOff))
+                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
+                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    await send(.loaded(snapshot, family: family))
                 }
 
-            case let .loaded(snapshot, daysOff):
+            case let .loaded(snapshot, family):
                 state.snapshot = snapshot
-                state.daysOff = daysOff
+                // A new every-week item runs to the end of term when the kid's school has terms.
+                if state.isAdding, state.form == state.original, family.termEnd(for: state.form.audience,
+                                                                              from: state.form.date) != nil {
+                    state.form.runsEnd = .term
+                    state.original.runsEnd = .term
+                }
+                state.family = family
                 return .none
 
             case .binding:
@@ -480,7 +516,11 @@ public struct ItemEditorFeature {
                 if let weekly = state.weeklyItem, case let .weekly(_, from, until) = weekly.recurrence,
                    case let .weekly(days, _, _) = item.recurrence {
                     // Changes start from the next time; a run that already started today keeps its times.
-                    item.recurrence = .weekly(days, from: from, until: until)
+                    // Runs: a changed start or end is the series' own.
+                    let start = state.form.date == state.original.date ? from : state.form.date
+                    let end = state.form.runsEnd == state.original.runsEnd && state.form.untilDate == state.original.untilDate
+                        && state.form.times == state.original.times ? until : state.form.until
+                    item.recurrence = .weekly(days, from: start, until: end)
                     item.skippedDays = weekly.skippedDays
                     items = SeriesEdits.applying(edit: item, to: weekly, today: state.today, nowMinute: state.nowMinute,
                                                  newID: uuid(), holidays: state.holidays, calendar: state.calendar)
@@ -622,6 +662,7 @@ public struct ItemEditorFeature {
 
             case .cardClosed:
                 if case let .bring(was) = state.card { state.form.bring = was }
+                if case let .runsEnd(was) = state.card { state.form = was }
                 state.card = nil
                 return .none
 
@@ -685,6 +726,33 @@ public struct ItemEditorFeature {
 
             case let .missionMoved(id, index, section):
                 state.form.moveMission(id, to: index, in: section)
+                return .none
+
+            case let .runsStartPicked(date):
+                state.form.date = Day(date, calendar: state.calendar)
+                return .none
+
+            case .runsEndTapped:
+                state.card = .runsEnd(was: state.form)
+                return .none
+
+            case let .runsEndKindPicked(kind):
+                state.form.runsEnd = kind
+                if kind == .date, state.form.untilDate <= state.form.date {
+                    state.form.untilDate = state.termEnd ?? state.form.date.adding(days: 28, calendar: state.calendar)
+                }
+                return .none
+
+            case let .runsUntilPicked(date):
+                state.form.untilDate = max(Day(date, calendar: state.calendar), state.form.date)
+                return .none
+
+            case let .runsTimesStepped(step):
+                state.form.stepTimes(step)
+                return .none
+
+            case .runsEndDoneTapped:
+                state.card = nil
                 return .none
 
             case .delegate:
