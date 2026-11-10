@@ -145,10 +145,24 @@ final class OurDayTests: XCTestCase {
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
         await store.send(.scopeTapped(.allDays))
         await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .today, "All days asks from when first (board G5)")
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Next Wed", "Date"])
+        await store.send(.fromWhenPicked(.next))
+        await store.send(.fromWhenSaveTapped)
         await store.receive(\.saved)
+        XCTAssertNil(store.state.fromWhen)
         XCTAssertNil(saved.value.first?.onlyOn)
-        XCTAssertEqual(saved.value.first?.from, tuesday)
+        XCTAssertEqual(saved.value.first?.from, Day(year: 2026, month: 11, day: 11))
         XCTAssertEqual(saved.value.first?.dayType, .weekday)
+    }
+
+    /// Spec "G1 as built": the card is never empty: the slice now on today, else the day's first.
+    func testOpensWithASlicePicked() async {
+        let store = await loaded()
+        XCTAssertEqual(store.state.selectedBlock?.title, "School", "10:00 am on a school day")
+        await store.send(.dayButtonTapped)
+        await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 11)))
+        XCTAssertEqual(store.state.selected, 0, "another day opens on its first slice")
     }
 
     /// Board G1d: "Save the changes?" names the change; Save saves, then goes on.

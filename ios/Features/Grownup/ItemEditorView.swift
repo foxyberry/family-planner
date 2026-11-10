@@ -547,34 +547,14 @@ public struct ItemEditorView: View {
     }
 
     /// Board G5 "Change from when?": a small card over the form (560 wide).
+    /// Board G5, the shared DesignSystem card.
     private var fromWhenCard: some View {
-        PaperCard(seed: 51) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                Text(L10n.tr("from_when.title")).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                HStack(spacing: Spacing.sm) {
-                    CrayonTabs(selection: Binding(get: { store.fromWhen ?? .today }, set: { store.send(.fromWhenPicked($0)) }),
-                               items: store.fromWhenTabs.map { ($0.0, $0.1, nil) },
-                               itemSize: CGSize(width: 150, height: 64), spacing: Spacing.sm)
-                }
-                if store.fromWhen == .date {
-                    DateField(label: store.fromWhenDateLabel,
-                              date: Binding(get: { store.fromWhenDateValue }, set: { store.send(.fromWhenDatePicked($0)) }))
-                }
-                if let caption = store.fromWhenCaption {
-                    Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                HStack(spacing: Spacing.l) {
-                    InkButton(L10n.tr("from_when.save")) { store.send(.fromWhenSaveTapped) }
-                        .frame(width: 220)
-                    Button { store.send(.fromWhenCancelTapped) } label: {
-                        Text(L10n.tr("from_when.cancel")).crayonType(.head).foregroundStyle(CrayonColor.softText)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .frame(width: 560)
+        FromWhenCard(title: L10n.tr("from_when.title"), tabs: store.fromWhenTabs,
+                     selection: Binding(get: { store.fromWhen ?? .today }, set: { store.send(.fromWhenPicked($0)) }),
+                     dateChoice: ItemEditorFeature.FromWhen.date, dateLabel: store.fromWhenDateLabel,
+                     date: Binding(get: { store.fromWhenDateValue }, set: { store.send(.fromWhenDatePicked($0)) }),
+                     caption: store.fromWhenCaption, save: L10n.tr("from_when.save"), cancel: L10n.tr("from_when.cancel"),
+                     onSave: { store.send(.fromWhenSaveTapped) }, onCancel: { store.send(.fromWhenCancelTapped) })
     }
 
     // MARK: Side column (preview)

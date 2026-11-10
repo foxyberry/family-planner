@@ -595,17 +595,6 @@
         }
       }
     },
-    "day.pick" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap a slice to see its times."
-          }
-        }
-      }
-    },
     "day.picker.earlier" : {
       "extractionState" : "manual",
       "localizations" : {

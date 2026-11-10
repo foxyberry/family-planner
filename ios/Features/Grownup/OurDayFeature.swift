@@ -67,6 +67,9 @@ public struct OurDayFeature {
         /// The date on the clock (board G1's day button).
         public var day: Day
         public var saveScope: Scope = .thisDay
+        /// Board G5 on an All days save: the card's choice while it is open, and its date.
+        public var fromWhen: ItemEditorFeature.FromWhen?
+        public var fromWhenDate: Day
         /// Board G1c: the day picker's first date (a Monday) while it is open.
         public var pickerStart: Day?
         /// The kids' school days off and public holidays, for the day's template.
@@ -136,6 +139,7 @@ public struct OurDayFeature {
             self.kid = kid
             self.today = today
             self.day = today
+            self.fromWhenDate = today
             self.calendar = calendar
         }
 
@@ -154,7 +158,14 @@ public struct OurDayFeature {
             return (0..<14).map { start.adding(days: $0, calendar: calendar) }
         }
         public var pickerMonth: String { pickerStart.map { DayText.monthLong($0.month) } ?? "" }
-        public func pickerWeekday(_ day: Day) -> String { DayText.shortName(day.weekday(calendar)) }
+        /// The picker's two rows of chips (today underlined, the day on the clock picked).
+        public var pickerWeeks: [[DayPickerCard.Chip]] {
+            let chips = pickerDays.enumerated().map { index, date in
+                DayPickerCard.Chip(index: index, weekday: DayText.shortName(date.weekday(calendar)), day: date.day,
+                                   isPicked: date == day, isToday: date == today)
+            }
+            return stride(from: 0, to: chips.count, by: 7).map { Array(chips[$0..<min($0 + 7, chips.count)]) }
+        }
 
         /// Board G1d: the first changed slice as "Dinner 6:30 pm → 7:30 pm, this day".
         public var unsavedLine: String? {
@@ -167,16 +178,41 @@ public struct OurDayFeature {
         public var startDate: Date { day.date(minute: selectedBlock?.start ?? 0, calendar: calendar) }
         public var endDate: Date { day.date(minute: selectedBlock?.end ?? 0, calendar: calendar) }
 
-        /// What Save writes: this day's own template, or the day type's template from this day on
+        /// What Save writes: this day's own template, or the day type's template from G5's choice
         /// (never from before today).
         public var routineToSave: Routine {
             switch saveScope {
             case .thisDay:
                 Routine.day(day, kid: kid, dayType: dayType, blocks: edit.blocks)
             case .allDays:
-                Routine(kid: kid, dayType: dayType, from: max(day, today), blocks: edit.blocks)
+                Routine(kid: kid, dayType: dayType, from: allDaysFrom, blocks: edit.blocks)
             }
         }
+
+        /// Board G5's tabs: "Today", "Next Sat" (the next day of this day's type), "Date".
+        public var fromWhenTabs: [(ItemEditorFeature.FromWhen, String)] {
+            [(.today, L10n.tr("from_when.today")),
+             (.next, L10n.tr("from_when.next", nextOfType.map { DayText.shortName($0.weekday(calendar)) } ?? "")),
+             (.date, L10n.tr("from_when.date"))]
+        }
+
+        /// The first day after today that uses this day's template type.
+        var nextOfType: Day? {
+            (1...14).map { today.adding(days: $0, calendar: calendar) }.first {
+                DayPlanner.dayType(on: $0, holidays: family.daysOff(kid), calendar: calendar) == dayType
+            }
+        }
+
+        /// Where an All days template starts: G5's choice, never before today.
+        public var allDaysFrom: Day {
+            switch fromWhen {
+            case .next?: nextOfType ?? today
+            case .date?: max(fromWhenDate, today)
+            case .today?, nil: today
+            }
+        }
+        public var fromWhenDateLabel: String { DayText.dayMonth(max(fromWhenDate, today), calendar: calendar) }
+        public var fromWhenDateValue: Date { max(fromWhenDate, today).date(calendar: calendar) }
 
         public var sectors: [ClockSector] {
             edit.blocks.enumerated().map { index, block in
@@ -225,9 +261,16 @@ public struct OurDayFeature {
         case dayButtonTapped
         case pickerPageTapped(Int)
         case pickerDayTapped(Day)
+        /// A chip by its place in the picker's two weeks.
+        case pickerChipTapped(Int)
         case pickerTodayTapped
         case pickerClosed
         case scopeTapped(Scope)
+        /// Board G5 on an All days save: the choice, its date, Save and Cancel.
+        case fromWhenPicked(ItemEditorFeature.FromWhen)
+        case fromWhenDatePicked(Date)
+        case fromWhenSaveTapped
+        case fromWhenCancelTapped
         case knobDragged(index: Int, minute: Int)
         case knobReleased(Int)
         case knobAdjusted(index: Int, by: Int)
@@ -289,8 +332,9 @@ public struct OurDayFeature {
                 let year = state.today.year
                 return .run { [scheduleStore, schoolDirectory, holidays] send in
                     let snapshot = try? await scheduleStore.load()
-                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
-                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    // G1c pages into next year, so its public holidays count too.
+                    let days = await holidays.holidays(year).map(\.day) + holidays.holidays(year + 1).map(\.day)
+                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [], publicHolidays: days)
                     await send(.loaded(snapshot, family: family))
                 }
 
@@ -311,8 +355,7 @@ public struct OurDayFeature {
                     state.pickerStart = nil
                 } else {
                     // The picker opens on the week of the day on the clock (Monday first).
-                    let back = (state.day.weekday(calendar).rawValue + 5) % 7
-                    state.pickerStart = state.day.adding(days: -back, calendar: calendar)
+                    state.pickerStart = state.day.mondayOfWeek(calendar: calendar)
                 }
                 return .none
 
@@ -321,9 +364,11 @@ public struct OurDayFeature {
                 return .none
 
             case let .pickerDayTapped(day):
-                state.pickerStart = nil
-                guard day != state.day else { return .none }
-                return ask(.day(day), &state)
+                return pick(day, &state)
+
+            case let .pickerChipTapped(index):
+                guard state.pickerDays.indices.contains(index) else { return .none }
+                return pick(state.pickerDays[index], &state)
 
             case .pickerTodayTapped:
                 state.pickerStart = nil
@@ -337,6 +382,24 @@ public struct OurDayFeature {
             case let .scopeTapped(scope):
                 state.saveScope = scope
                 return .none
+
+            case let .fromWhenPicked(choice):
+                state.fromWhen = choice
+                return .none
+
+            case let .fromWhenDatePicked(date):
+                state.fromWhen = .date
+                state.fromWhenDate = max(Day(date, calendar: calendar), state.today)
+                return .none
+
+            case .fromWhenCancelTapped:
+                state.fromWhen = nil
+                state.leavesAfterSave = false
+                state.pendingSwitch = nil
+                return .none
+
+            case .fromWhenSaveTapped:
+                return save(&state)
 
             case let .knobDragged(index, minute):
                 guard state.edit.knobs.indices.contains(index) else { return .none }
@@ -442,15 +505,13 @@ public struct OurDayFeature {
                 return .send(.delegate(.add(state.kid, .once)))
 
             case .saveTapped:
-                let routine = state.routineToSave
-                return .run { [scheduleStore] send in
-                    do {
-                        try await scheduleStore.saveRoutine(routine)
-                        await send(.saved(.success(routine)))
-                    } catch {
-                        await send(.saved(.failure(SaveError())))
-                    }
+                // Spec "Edit scope": All days asks from when first (board G5), like every repeating item.
+                if state.saveScope == .allDays, state.fromWhen == nil {
+                    state.fromWhen = .today
+                    state.fromWhenDate = state.today
+                    return .none
                 }
+                return save(&state)
 
             case let .saved(.success(routine)):
                 state.routines.removeAll {
@@ -498,13 +559,37 @@ public struct OurDayFeature {
         }
     }
 
+    /// Board G1c: a picked day closes the picker and, after G1d if needed, shows on the clock.
+    private func pick(_ day: Day, _ state: inout State) -> Effect<Action> {
+        state.pickerStart = nil
+        guard day != state.day else { return .none }
+        return ask(.day(day), &state)
+    }
+
+    /// Writes `routineToSave`; the G5 card closes.
+    private func save(_ state: inout State) -> Effect<Action> {
+        let routine = state.routineToSave
+        state.fromWhen = nil
+        return .run { [scheduleStore] send in
+            do {
+                try await scheduleStore.saveRoutine(routine)
+                await send(.saved(.success(routine)))
+            } catch {
+                await send(.saved(.failure(SaveError())))
+            }
+        }
+    }
+
     /// The template on the clock's day: the day's own one, else the day type's.
     private func loadTemplate(_ state: inout State) {
         let template = DayPlanner.template(for: state.kid, on: state.day, routines: state.routines,
                                            holidays: state.family.daysOff(state.kid), calendar: calendar)
         state.edit = TemplateEdit(blocks: template?.blocks ?? [])
         state.saveScope = .thisDay
-        state.selected = nil
+        // Spec "G1 as built": the card is never empty: the slice now on today, else the day's first.
+        let now = state.day == state.today ? state.nowMinute : nil
+        state.selected = state.edit.blocks.firstIndex { block in now.map { block.start <= $0 && $0 < block.end } ?? false }
+            ?? (state.edit.blocks.isEmpty ? nil : 0)
         state.dragging = nil
         state.dragOrigin = nil
         state.newSlice = nil

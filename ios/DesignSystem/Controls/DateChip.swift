@@ -1,7 +1,7 @@
 import CrayonKit
 import SwiftUI
 
-/// A date button (weekday over day number), 96 × 104; sky blue when on. `compact` is G1c's 70 × 84
+/// A date button (weekday over day number), 96 × 104; sky blue when on. `compact` is G1c's 74 × 84
 /// chip; `isToday` underlines the number.
 public struct DateChip: View {
     private let weekday: String
@@ -28,7 +28,7 @@ public struct DateChip: View {
                 Text("\(day)").crayonType(.head).underline(isToday)
             }
             .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
-            .frame(width: compact ? 70 : 96, height: compact ? 84 : 104)
+            .frame(width: compact ? 74 : 96, height: compact ? 84 : 104)
             .partBackground(.roundedRect(cornerRadius: compact ? 14 : 24), fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                               seed: CrayonStyle.Seed.dateChip)
         }
