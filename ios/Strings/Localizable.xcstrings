@@ -12,6 +12,17 @@
         }
       }
     },
+    "bring.shoes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shoes"
+          }
+        }
+      }
+    },
     "c2.buses" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2120,17 +2131,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enter"
-          }
-        }
-      }
-    },
-    "lock.held" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Held the clock for 2 seconds"
           }
         }
       }

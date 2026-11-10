@@ -45,8 +45,8 @@ public struct LockOverlay: View {
     public var body: some View {
         ZStack {
             CrayonColor.marker.opacity(0.6).ignoresSafeArea()
+            // Spec "Lock": no line above the card for any entry (hold, pencil, link); the title is enough.
             VStack(spacing: Spacing.m) {
-                Text(L10n.tr("lock.held")).crayonType(.body).foregroundStyle(CrayonColor.nightText)
                 PaperCard(seed: CrayonStyle.Seed.card + 11) {
                     VStack(alignment: .leading, spacing: Spacing.m) {
                         HStack(spacing: Spacing.s) {

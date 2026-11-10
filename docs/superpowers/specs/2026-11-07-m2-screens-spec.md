@@ -98,6 +98,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-10: event form rows for 6b (main session asked): From / Bring / Missions / Medal rows and what each opens, the home button labels per window, C5 days per mission; board G2b in layout v24.
 - 2026-11-10: copy "…later in Our kids" → "…later in Settings" everywhere (S2, S3, S4), since G6 Settings replaces C1 (built, PR 55).
 - 2026-11-10: night mapping extended (main session, iPad review): chrome vs picture grounds split, `nightLate`, lit way strip, crayon on-states keep ink labels, dim black 45 %, status bar light on night; night boards G1, G6, C3, G2/E5 and A2; form cards F1–F5 drawn (From 640 × 420, Bring 640 × 420, Ends 560 × 420, No school days 640 × 560, Missions sub-page); add-screen feedback: buttons stay enabled, the first problem shows under its field on tap, the preview shows the new item live.
+- 2026-11-10: form card rules as built (close only on Done / Cancel, Cancel restores the form; No school days end time and Walk/Bus/Car; Bring row of 4 with More swapping in; Ends controls under the picked row); ChoiceCircles at a 112 pitch with wrapping 104 captions; "Shoes" label; the C0 line above the card removed.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -505,9 +506,12 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, l
 - **Home button label per window**: morning "Missions →"; before an outing "Before {item} →"; after coming home "After {item} →"; evening (later) "Pack for tomorrow →". {item} is the item's name as typed; if the label does not fit on one line, it is "Missions →".
 - **C5 days per mission**: the C5 editor `ConfirmCard` gets a **Days** row: seven `DayChip` 56 (all on by default). A mission with fewer days shows them as the caption under its name in the C5 list ("Thu", "Mon · Wed"); every day shows no caption.
 
+- **Form cards, built rules** (main session, 2026-11-10; boards F1–F5): every card closes only on Done (keeps) or Cancel / a tap outside (puts the whole form back as it was when the card opened); picking a choice never closes it. No school days "At a set time" has a start → end (without an end the item keeps its length; moving the start moves the end) and Going offers Walk / Bus / Car, Walk picked first. Bring shows the kit's bring group in one row of 4 (Backpack, Lunch box, Water bottle, Shoes); a "More" pick takes the place of an unpicked slot so all picks always fit. Ends shows the date field or the − n times + stepper under its picked row, indented 56; "End of this term" has the short date as caption.
+- The bring label for the kit `shoe` picture is **"Shoes"** (things to bring are named as said aloud).
+
 ### Trips on items: the "Going" row [board C3g]
 - C3, C4 and E5 get two rows at the end of the form, under "Skip school holidays" (the form card scrolls to them; board C3g shows it scrolled down, with the top edge fading into the card):
-  - **Going** (label as the other rows; part `ChoiceCircles`, also usable for any one-of picker with pictures): five 88 slot circles with a caption under each, gap 24: None ("–" in `softText`), Walk (`shoe`), Bus (`busDouble`), Car (`car`), Taxi (`taxi`). The chosen one has the pick-blue ring and a bold caption, like "What". Default None.
+  - **Going** (label as the other rows; part `ChoiceCircles`, also usable for any one-of picker with pictures): five 88 slot circles with a caption under each, at a 112 pitch (2026-11-10: 104 pick ring, captions up to 104 wide that wrap, e.g. "After / School"; the same for every `ChoiceCircles`): None ("–" in `softText`), Walk (`shoe`), Bus (`busDouble`), Car (`car`), Taxi (`taxi`). The chosen one has the pick-blue ring and a bold caption, like "What". Default None.
   - **Leave** (shown when Going is Walk, Car or Taxi): `−` 72 · "{n} min" (body bold, 112 wide) · `+` 72 · "before · {h:mm am}" (body `softText`, the leave time from the item's start). 0–90 in steps of 5; default 10.
   - By Bus the Leave row reads "Uses Our buses ›" (body) and opens C2: the stop, buses and walk time come from there.
 - The preview line under the day list adds "Leave {h:mm am} by {way}."
@@ -744,7 +748,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 
 ### Layout [board]
 - Overlay: marker colour #1E1B22 at 60 % over the home screen. The home stays visible underneath.
-- Line above the card: "Held the clock for 2 seconds" (body, `nightText`), centred, y 248.
+- No line above the card (user rule: no explanatory text; it was wrong for the pencil and debug links anyway). The card's "Grown-ups only" title says enough.
 - Card: `PaperCard`, 818 × 352, centred horizontally, y 320. Padding 40 × 64, gap 24.
   - Lock icon + "Grown-ups only" (title 48).
   - Message line (body).

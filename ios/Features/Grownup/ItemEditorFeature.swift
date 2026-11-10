@@ -219,7 +219,7 @@ public struct ItemEditorFeature {
                 row.remove(at: index)
             }
             return row.map { slot in
-                ChoiceCircles.Choice(id: slot.rawValue, picture: slot, caption: ItemForm.label(for: slot.rawValue),
+                ChoiceCircles.Choice(id: slot.rawValue, picture: slot, caption: ItemForm.bringLabel(for: slot.rawValue),
                                      isPicked: picked.contains(slot))
             } + [ChoiceCircles.Choice(id: Self.bringMoreID, picture: nil, caption: "", isPicked: isPickingMoreBring,
                                       word: L10n.tr("picker.more"))]

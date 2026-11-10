@@ -133,6 +133,11 @@ public struct ItemForm: Equatable, Sendable {
     }
 
     /// "actSwim" → "Swim", "busDouble" → "Bus double".
+    /// A thing to bring, named the way people say it ("Shoes", spec "Form cards, built rules").
+    static func bringLabel(for picture: String) -> String {
+        picture == "shoe" ? L10n.tr("bring.shoes") : label(for: picture) // copy-ok: KitSlot name
+    }
+
     static func label(for iconName: String) -> String {
         var raw = Substring(iconName)
         if raw.hasPrefix("act"), raw.dropFirst(3).first?.isUppercase == true { raw = raw.dropFirst(3) }
@@ -237,7 +242,7 @@ public struct ItemForm: Equatable, Sendable {
         if let index = bring.firstIndex(where: { $0.picture == picture }) {
             bring.remove(at: index)
         } else if bring.count < ItemMission.most {
-            bring.append(ItemMission(id: id, name: Self.label(for: picture), picture: picture))
+            bring.append(ItemMission(id: id, name: Self.bringLabel(for: picture), picture: picture))
         }
     }
 

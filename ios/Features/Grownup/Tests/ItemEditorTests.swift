@@ -511,7 +511,7 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         await store.send(.bringRowTapped)
-        XCTAssertEqual(store.state.bringRow.map(\.caption), ["Backpack", "Lunch box", "Water bottle", "Shoe", ""])
+        XCTAssertEqual(store.state.bringRow.map(\.caption), ["Backpack", "Lunch box", "Water bottle", "Shoes", ""])
         XCTAssertEqual(store.state.bringRow.last?.word, "More")
         await store.send(.bringCircleTapped("backpack"))
         await store.send(.bringCircleTapped("more"))
