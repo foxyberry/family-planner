@@ -4,6 +4,7 @@ import Foundation
 import Grownup
 import HolidayProvider
 import ScheduleStore
+import SchoolDirectory
 import XCTest
 
 /// Board E5: skip just one date, stop the series, or change it from the next time on.
@@ -28,6 +29,7 @@ final class WeeklyEditTests: XCTestCase {
             $0.scheduleStore.save = { item in saved.withValue { $0.append([item]) } }
             $0.scheduleStore.saveAll = { items in saved.withValue { $0.append(items) } }
             $0.holidays.holidays = { _ in [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
         }
         store.exhaustivity = .off
         return store

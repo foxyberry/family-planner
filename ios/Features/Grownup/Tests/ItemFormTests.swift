@@ -76,24 +76,24 @@ final class ItemFormTests: XCTestCase {
         let swim = F.weekly()   // Mon · Wed 3:30–4:30 every week
         var once = form(start: 960, end: 1020, repeats: .once)
         once.date = F.monday
-        XCTAssertEqual(once.overlapCaption(items: [swim], kids: SeedData.kids, holidays: [], editing: nil,
+        XCTAssertEqual(once.overlapCaption(items: [swim], kids: SeedData.kids, daysOff: [:], editing: nil,
                                            calendar: F.calendar),
                        "Overlaps Swimming 3:30–4:30 pm. This one shows on the clock then.")
     }
 
     func testOverlapCaptionWhenOtherWins() {
         let party = F.once("Party", on: Day(year: 2026, month: 11, day: 11), start: 900, end: 1080)
-        XCTAssertEqual(form().overlapCaption(items: [party], kids: SeedData.kids, holidays: [], editing: nil,
+        XCTAssertEqual(form().overlapCaption(items: [party], kids: SeedData.kids, daysOff: [:], editing: nil,
                                              calendar: F.calendar),
                        "Party shows on the clock then.")
     }
 
     func testNoOverlapCaptionForEndedSeriesOrPastEvents() {
         let ended = F.weekly(until: Day(year: 2026, month: 11, day: 8))
-        XCTAssertNil(form().overlapCaption(items: [ended], kids: SeedData.kids, holidays: [], editing: nil,
+        XCTAssertNil(form().overlapCaption(items: [ended], kids: SeedData.kids, daysOff: [:], editing: nil,
                                            calendar: F.calendar))
         let pastParty = F.once("Party", on: Day(year: 2026, month: 11, day: 4), start: 900, end: 1080)
-        XCTAssertNil(form().overlapCaption(items: [pastParty], kids: SeedData.kids, holidays: [], editing: nil,
+        XCTAssertNil(form().overlapCaption(items: [pastParty], kids: SeedData.kids, daysOff: [:], editing: nil,
                                            calendar: F.calendar))
     }
 
@@ -102,16 +102,16 @@ final class ItemFormTests: XCTestCase {
         let old = F.weekly(until: F.monday)
         var newHalf = form()
         newHalf.date = Day(year: 2026, month: 11, day: 10)
-        XCTAssertNil(newHalf.overlapCaption(items: [old], kids: SeedData.kids, holidays: [], editing: UUID(),
+        XCTAssertNil(newHalf.overlapCaption(items: [old], kids: SeedData.kids, daysOff: [:], editing: UUID(),
                                             calendar: F.calendar))
     }
 
     func testNoOverlapCaptionForOtherKidOrEditedItem() {
         let swimB = F.weekly(kid: SeedData.kidB)
-        XCTAssertNil(form().overlapCaption(items: [swimB], kids: SeedData.kids, holidays: [], editing: nil,
+        XCTAssertNil(form().overlapCaption(items: [swimB], kids: SeedData.kids, daysOff: [:], editing: nil,
                                            calendar: F.calendar))
         let swim = F.weekly()
-        XCTAssertNil(form().overlapCaption(items: [swim], kids: SeedData.kids, holidays: [], editing: swim.id,
+        XCTAssertNil(form().overlapCaption(items: [swim], kids: SeedData.kids, daysOff: [:], editing: swim.id,
                                            calendar: F.calendar))
     }
 
@@ -153,7 +153,7 @@ final class ItemFormTests: XCTestCase {
 
     private func preview(_ form: ItemForm, items: [ScheduleItem] = [], draftID: UUID? = UUID(),
                          showsDraft: Bool = true) -> FormPreview {
-        form.preview(kids: SeedData.kids, routines: SeedData.routines, items: items, holidays: [], draftID: draftID,
+        form.preview(kids: SeedData.kids, routines: SeedData.routines, items: items, daysOff: [:], draftID: draftID,
                      showsDraft: showsDraft, today: F.monday, calendar: F.calendar)
     }
 
@@ -205,7 +205,7 @@ final class ItemFormTests: XCTestCase {
     }
 
     func testPreviewWithoutKidsHasNoRows() {
-        let empty = form().preview(kids: [], routines: [], items: [], holidays: [], draftID: UUID(), showsDraft: true,
+        let empty = form().preview(kids: [], routines: [], items: [], daysOff: [:], draftID: UUID(), showsDraft: true,
                                    today: F.monday, calendar: F.calendar)
         XCTAssertEqual(empty.rows, [])
     }

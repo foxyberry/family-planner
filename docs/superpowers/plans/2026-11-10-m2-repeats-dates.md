@@ -1,0 +1,53 @@
+# M2 repeats, dates and changes (build row 6c)
+
+Spec: `2026-11-07-m2-screens-spec.md` › "Repeats, dates and changes" and "Keep it as plain as the
+built screens"; boards G2 (All days), G3 (This day), G5 (Change from when?), layout v25.
+Grown-up mode (G1, the C6 slice card tabs, G4 School) is 6d.
+
+## Where things stand
+
+- Holidays are Singapore public holidays only (`HolidayProviderLive`). School terms, vacations,
+  MOE school holidays and days off in lieu are in `SchoolDirectoryLive/Resources/moe-calendar.json`
+  but nothing reads them, so a weekday in the school vacation still shows School.
+- Every-week items are `.weekly(days, from:, until:)`; "Skip school holidays" skips public holidays.
+- E5 edits a series from the next run (`SeriesEdits.applying`), skips one day (`skippedDays`), and
+  has no This day / All days tabs.
+
+## PR 1: the school calendar
+
+- Port `SchoolCalendarClient` + Live: for a kid's school, the terms (start/end, inclusive) and the
+  closed days (vacation, MOE school holiday, public holiday, day off in lieu) of a year, from
+  `moe-calendar.json` by level (primary, secondary, MOE kindergarten); a school with its own
+  `termDates` (international list, private) uses those. Public holidays keep coming from
+  `HolidayProvider` for kids with no school.
+- `DayPlanner`: a kid's weekday is a day off (the Sunday template, as a public holiday is today) when
+  the kid's school is closed that day. Kids without a school follow public holidays only.
+- Home, Missions, Our day and the editors read the kid's closed days instead of public holidays.
+
+## PR 2: Runs and school holidays (G2)
+
+- `Recurrence.weekly` gets an end: `term` (resolved per day from the calendar, so a data update moves
+  it), `date` (inclusive), `count` (after n runs), `none`; the start stays `from`.
+- E5 All days and C3: the Repeat row becomes **Days** (chips) and **Runs** ("{start}" → "End of term"
+  / a date / "After n times" / "No end", a small card per field); "Skip school holidays" skips the
+  kid's closed days (default on for School-linked items, off for others).
+- Linked items always follow School's days.
+
+## PR 3: This day / All days (G3, G5)
+
+- `EventException { item, originalDate, cancelled?, start?, end? }` stored next to the item; only
+  changed fields override the series.
+- E5 side column: tabs "This day" / "All days". This day hides Days / Runs / holidays, reads
+  "{Day d Mon} only" and "Skip this day"; All days reads "Every {days}" and "Remove every week".
+- Save on All days opens G5 "Change from when?" (Today / Next {weekday} / Date): the series splits
+  there; exceptions whose day no longer fits are listed in the card and removed.
+
+## PR 4: linked time and no-school days
+
+- The Time row of a linked item: "School end + {n} min" (0–60, step 5), length kept, with today's
+  worked-out time as the caption.
+- "No school days": Skip (default) or "At a set time" with its own time and Going row.
+
+## Later in 6c
+
+Repeat every 2–4 weeks / every day; monthly, yearly, multi-day and extra sessions; Notes row.

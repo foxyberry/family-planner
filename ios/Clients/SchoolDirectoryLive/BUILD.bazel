@@ -63,5 +63,6 @@ fp_swift_library(
     deps = [
         "//ios/Clients/SchoolDirectory",
         "//ios/Domain",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )

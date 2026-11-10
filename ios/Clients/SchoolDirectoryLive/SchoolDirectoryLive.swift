@@ -1,3 +1,4 @@
+import Dependencies
 import Domain
 import Foundation
 import SchoolDirectory
@@ -8,7 +9,10 @@ extension SchoolDirectory {
     /// international list (`Private/`, licence not decided yet).
     public static let live: SchoolDirectory = {
         let lists = BundledSchools.load()
-        return SchoolDirectory(schools: { lists.schools }, sources: { lists.sources })
+        return SchoolDirectory(schools: { lists.schools }, sources: { lists.sources }, calendar: { school, age in
+            @Dependency(\.calendar) var calendar
+            return lists.calendars(calendar).calendar(for: school, age: age)
+        })
     }()
 }
 
@@ -16,19 +20,32 @@ enum BundledSchools {
     struct Lists: Sendable {
         var schools: [SchoolEntry]
         var sources: [DataSource]
+        /// The school calendars for the app's calendar (read at call time).
+        var calendars: @Sendable (Calendar) -> SchoolCalendars = { _ in
+            SchoolCalendars(moeLevels: [:], own: [:], moe: { _ in .none })
+        }
     }
 
     static func load() -> Lists {
         let hours = decode(HoursFile.self, "school-hours", from: publicBundle)?.schools ?? [:]
         guard let moe = decode(MoeFile.self, "schools-sg", from: publicBundle) else { return Lists(schools: [], sources: []) }
         var schools = moe.schools.map { $0.entry(hours: hours[$0.id]?.hours) }
-        if let other = decode(OtherFile.self, "international-schools-sg", from: privateBundle) {
-            schools += other.schools.map(\.entry)
-        }
+        let other = decode(OtherFile.self, "international-schools-sg", from: privateBundle)
+        schools += other?.schools.map(\.entry) ?? []
         let sources = [moe.source, moe.geocoding].map {
             DataSource(name: $0.name, attribution: $0.attribution, licenceURL: $0.licenceUrl)
         }
-        return Lists(schools: schools, sources: sources)
+        let moeCalendar = decode(MoeCalendarFile.self, "moe-calendar", from: publicBundle)
+        var levels: [String: SchoolEntry.MoeLevel] = [:]
+        for entry in schools { if case let .moe(level) = entry.kind { levels[entry.id] = level } }
+        let moeLevels = levels
+        return Lists(schools: schools, sources: sources, calendars: { calendar in
+            let own = Dictionary((other?.schools ?? []).compactMap { school in
+                school.calendar(calendar: calendar).map { (school.id, $0) }
+            }, uniquingKeysWith: { first, _ in first })
+            return SchoolCalendars(moeLevels: moeLevels, own: own,
+                                   moe: { moeCalendar?.calendar($0, calendar: calendar) ?? .none })
+        })
     }
 
     /// The highest file shape this build reads (README "Versioning").
@@ -172,10 +189,16 @@ struct HoursFile: Decodable, Versioned {
 struct OtherFile: Decodable, Versioned {
     struct School: Decodable {
         struct TermYear: Decodable {
-            let breaksAndHolidays: [Breaks]?
+            let terms: [Range]?
+            let breaksAndHolidays: [Range]?
         }
 
-        struct Breaks: Decodable {}
+        /// A term or a break from the school's website (inclusive dates).
+        struct Range: Decodable {
+            let name: String
+            let start: String?
+            let end: String?
+        }
 
         let id: String
         let name: String

@@ -7,6 +7,7 @@ import BusClient
 import HolidayProvider
 import KitArt
 import ScheduleStore
+import SchoolDirectory
 import Strings
 
 /// A2-MVP · Morning missions (spec "A2-MVP", "MVP data"): the way to the chosen kid's next outing,
@@ -435,7 +436,7 @@ public struct MissionsFeature {
     public enum Action: Equatable {
         case task
         case tick(Date)
-        case loaded(ScheduleSnapshot?, holidays: [Holiday], marks: [WindowMissions], slides: [OutingSlide])
+        case loaded(ScheduleSnapshot?, daysOff: [Kid.ID: Set<Day>], marks: [WindowMissions], slides: [OutingSlide])
         case kidTapped(Kid.ID)
         case missionTapped(Mission.ID)
         case moreTapped
@@ -459,6 +460,7 @@ public struct MissionsFeature {
 
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
+    @Dependency(\.schoolDirectory) var schoolDirectory
     @Dependency(\.appSettings) var appSettings
     @Dependency(\.bus) var bus
     @Dependency(\.calendar) var calendar
@@ -478,12 +480,13 @@ public struct MissionsFeature {
                 state.minute = Day.minute(of: now, calendar: calendar)
                 state.now = now
                 return .merge(
-                    .run { [scheduleStore, holidays, calendar, minute = state.minute] send in
+                    .run { [scheduleStore, holidays, schoolDirectory, calendar, minute = state.minute] send in
                         let snapshot = try? await scheduleStore.load()
-                        let holidayList = await holidays.holidays(today.year)
+                        let daysOff = await schoolDirectory.daysOff(
+                            kids: snapshot?.kids ?? [], publicHolidays: await holidays.holidays(today.year).map(\.day))
                         let spans = snapshot.map {
-                            State.spans(Self.slots($0, today: today, holidays: holidayList, calendar: calendar),
-                                        nights: Self.nights($0, today: today, holidays: holidayList, calendar: calendar),
+                            State.spans(Self.slots($0, today: today, daysOff: daysOff, calendar: calendar),
+                                        nights: Self.nights($0, today: today, daysOff: daysOff, calendar: calendar),
                                         minute: minute)
                         } ?? [:]
                         var marks: [WindowMissions] = []
@@ -496,7 +499,7 @@ public struct MissionsFeature {
                             }
                             slides += (try? await scheduleStore.slides(kid.id, today)) ?? []
                         }
-                        await send(.loaded(snapshot, holidays: holidayList, marks: marks, slides: slides))
+                        await send(.loaded(snapshot, daysOff: daysOff, marks: marks, slides: slides))
                     },
                     // The mover moves by the clock: a new minute redraws it.
                     .run { [clock, date] send in
@@ -526,14 +529,14 @@ public struct MissionsFeature {
                 state.now = at
                 return .none
 
-            case let .loaded(snapshot, holidays, marks, slides):
+            case let .loaded(snapshot, daysOff, marks, slides):
                 guard let snapshot, let today = state.today else { return .none }
                 state.kids = snapshot.kids
                 state.missions = snapshot.missions
                 state.items = snapshot.items
-                state.slots = Self.slots(snapshot, today: today, holidays: holidays, calendar: calendar)
+                state.slots = Self.slots(snapshot, today: today, daysOff: daysOff, calendar: calendar)
                 state.spans = State.spans(state.slots,
-                                          nights: Self.nights(snapshot, today: today, holidays: holidays, calendar: calendar),
+                                          nights: Self.nights(snapshot, today: today, daysOff: daysOff, calendar: calendar),
                                           minute: state.minute)
                 // The screen's day: the window's missions (each part's marks) and its outing's slide.
                 state.days = Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
@@ -680,22 +683,20 @@ public struct MissionsFeature {
     }
 
     /// Every kid's slots today.
-    static func slots(_ snapshot: ScheduleSnapshot, today: Day, holidays: [Holiday],
+    static func slots(_ snapshot: ScheduleSnapshot, today: Day, daysOff: [Kid.ID: Set<Day>],
                       calendar: Calendar) -> [Kid.ID: [Slot]] {
-        let days = Set(holidays.map(\.day))
-        return Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
+        Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
             (kid.id, DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines, items: snapshot.items,
-                                      holidays: days, calendar: calendar))
+                                      holidays: daysOff[kid.id] ?? [], calendar: calendar))
         })
     }
 
     /// Every kid's night (wake-up and evening) from today's template.
-    static func nights(_ snapshot: ScheduleSnapshot, today: Day, holidays: [Holiday],
+    static func nights(_ snapshot: ScheduleSnapshot, today: Day, daysOff: [Kid.ID: Set<Day>],
                        calendar: Calendar) -> [Kid.ID: NightSpan?] {
-        let days = Set(holidays.map(\.day))
-        return Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
+        Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
             (kid.id, DayPlanner.nightSpan(of: DayPlanner.template(for: kid.id, on: today, routines: snapshot.routines,
-                                                                  holidays: days, calendar: calendar)))
+                                                                  holidays: daysOff[kid.id] ?? [], calendar: calendar)))
         })
     }
 }

@@ -5,6 +5,7 @@ import Foundation
 import Grownup
 import HolidayProvider
 import ScheduleStore
+import SchoolDirectory
 import XCTest
 
 @MainActor
@@ -31,6 +32,7 @@ final class ItemEditorTests: XCTestCase {
             }
             $0.scheduleStore.delete = { id in deleted.withValue { $0.append(id) } }
             $0.holidays.holidays = { _ in [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
         }
         store.exhaustivity = .off
         return store

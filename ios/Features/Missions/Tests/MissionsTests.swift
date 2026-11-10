@@ -6,6 +6,7 @@ import Foundation
 import HolidayProvider
 import Missions
 import ScheduleStore
+import SchoolDirectory
 import XCTest
 
 @MainActor
@@ -64,6 +65,7 @@ final class MissionsTests: XCTestCase {
                 }
             }
             $0.holidays.holidays = { _ in [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
             // nil: no live times (no key built in), so the call fails and the timetable shows.
             $0.bus.arrivals = { _ in
                 guard let arrivals else { throw URLError(.userAuthenticationRequired) }

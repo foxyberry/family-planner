@@ -7,6 +7,7 @@ import Foundation
 import HolidayProvider
 import Home
 import ScheduleStore
+import SchoolDirectory
 import XCTest
 
 @MainActor
@@ -26,7 +27,7 @@ final class HomeFeatureTests: XCTestCase {
     }
 
     private func store(on day: Day, minute: Int, snapshot: ScheduleSnapshot? = nil,
-                       holidays: [Holiday] = []) -> TestStoreOf<HomeFeature> {
+                       holidays: [Holiday] = [], schoolClosed: Set<Day> = []) -> TestStoreOf<HomeFeature> {
         let snapshot = snapshot ?? self.snapshot()
         let store = TestStore(initialState: HomeFeature.State()) {
             HomeFeature()
@@ -35,6 +36,7 @@ final class HomeFeatureTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.scheduleStore.load = { snapshot }
             $0.holidays.holidays = { _ in holidays }
+            $0.schoolDirectory.calendar = { _, _ in SchoolCalendar(closed: schoolClosed) }
             $0.bus.arrivals = { _ in
                 [BusArrival(service: "1", minutes: 4, type: .single), BusArrival(service: "1", minutes: 28, type: .double)]
             }
@@ -175,6 +177,13 @@ final class HomeFeatureTests: XCTestCase {
         await holiday.receive(\.loaded)
         XCTAssertTrue(holiday.state.isSchoolHoliday)
         XCTAssertEqual(holiday.state.dayHeading, "Wednesday · Holiday")
+        // Spec "Repeats, dates and changes": a weekday in the school's vacation is Kid A's day off
+        // too, while Kid B (no school) keeps the weekday.
+        let vacation = store(on: wednesday, minute: 600, schoolClosed: [wednesday])
+        await vacation.send(.task)
+        await vacation.receive(\.loaded)
+        XCTAssertEqual(vacation.state.dayHeading, "Wednesday · Holiday")
+        XCTAssertEqual(vacation.state.days.map(\.dayType), [.sunday, .weekday])
         let weekend = store(on: saturday, minute: 600)
         await weekend.send(.task)
         await weekend.receive(\.loaded)
@@ -343,6 +352,7 @@ final class HomeFeatureTests: XCTestCase {
             $0.date.now = wednesday.date(minute: 600, calendar: calendar)
             $0.scheduleStore.load = { throw CocoaError(.fileReadCorruptFile) }
             $0.holidays.holidays = { _ in [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
         }
         store.exhaustivity = .off
         await store.send(.task)
