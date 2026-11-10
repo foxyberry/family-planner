@@ -50,10 +50,10 @@ public struct AppView: View {
         // "Load sample family" in the debug menu replaced the stored family.
         .onChange(of: DebugModel.installed?.familyGeneration) { store.send(.familyReplaced) }
         #endif
-        // One colour scheme for the window (status bar, system fallbacks): dark only for the kid home
-        // at night. Grown-up screens, A2 and setup stay in the day look until their night boards
-        // exist (spec "Night mapping"); a pushed screen cannot override the home underneath.
-        .preferredColorScheme(store.isNightHome ? .dark : .light)
+        // One colour scheme for the window, set here because a pushed screen cannot override the home
+        // underneath: grown-up screens follow the iPad's dark mode through the colour tokens.
+        .preferredColorScheme(colorScheme)
+        .environment(\.crayonOutline, CrayonColor.outline)
         .environment(\.rigScale, Self.rigScale)
         // Spec "Sizing formulas": one Sizing for the window, read once here.
         .readsSizing()
@@ -61,6 +61,13 @@ public struct AppView: View {
         // the home disappear, which would cancel its task and stop the idle relock.
         .task { store.send(.checkFamily) }
         .task { await store.send(.task).finish() }
+    }
+
+    private var colorScheme: ColorScheme? {
+        #if DEBUG
+        if let dark = DebugModel.installed?.forcedDark, store.colorScheme == nil { return dark ? .dark : .light }
+        #endif
+        return store.colorScheme
     }
 
     /// The debug menu's "Rig scale" in debug builds; the kit data's scale otherwise.

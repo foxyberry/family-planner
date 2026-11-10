@@ -45,7 +45,8 @@ public struct SlideToGo: View {
             .lineLimit(2)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
-            .foregroundStyle(CrayonColor.ink)
+            // A crayon on-state: the label stays ink at night (spec "Night mapping").
+            .foregroundStyle(CrayonColor.pictureInk)
             // Board A2: the words start 24 right of the knob; done (A3r): "Ready!" ends 24 before the
             // knob, which sits 86 from the right end.
             .frame(maxWidth: .infinity, alignment: isDone ? .trailing : .leading)
@@ -114,7 +115,8 @@ public struct SlideToGo: View {
             .frame(width: handleSize, height: handleSize)
             .background {
                 if prize == nil {
-                    CrayonSurface(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.slider + 7)
+                    CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
+                                  seed: CrayonStyle.Seed.slider + 7)
                         .frame(width: 74, height: 74)
                 }
             }

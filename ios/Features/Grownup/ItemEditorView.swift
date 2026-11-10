@@ -53,7 +53,7 @@ public struct ItemEditorView: View {
                 }
             }
             if let draft = store.missionDraft {
-                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                CrayonColor.dim.ignoresSafeArea()
                     .onTapGesture { store.send(.missionDraftClosed) }
                 if let title = store.missionRemoveTitle {
                     ConfirmCard(title: title, message: nil, cancel: L10n.tr("c5.remove.keep"),
@@ -68,12 +68,12 @@ public struct ItemEditorView: View {
                 }
             }
             if store.fromWhen != nil {
-                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                CrayonColor.dim.ignoresSafeArea()
                     .onTapGesture { store.send(.fromWhenCancelTapped) }
                 fromWhenCard
             }
             if let title = store.confirmTitle {
-                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                CrayonColor.dim.ignoresSafeArea()
                 ConfirmCard(title: title, message: store.confirmMessage,
                             cancel: store.confirmCancelTitle, confirm: store.confirmAcceptTitle,
                             isDestructive: store.confirmIsDestructive,

@@ -601,6 +601,38 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// Spec "Night mapping" (boards C3, G1, G6 night): grown-up parts in dark mode. Chrome turns
+    /// night control with chalk lines, picture grounds moon paper with ink, on-states keep ink.
+    func testGrownupPartsAtNight() {
+        snap(VStack(alignment: .leading, spacing: Spacing.m) {
+            GrownupHeader(title: "Add to the day", onBack: {})
+            PaperCard(seed: 31) {
+                VStack(alignment: .leading, spacing: Spacing.m) {
+                    CrayonTabs(selection: .constant(0), items: [
+                        (0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)),
+                        (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Both", nil),
+                    ])
+                    ChoiceCircles([.init(id: "a", picture: .actSwim, caption: "Swim", isPicked: true),
+                                   .init(id: "b", picture: .wolfie, caption: "School", isPicked: false),
+                                   .init(id: "m", picture: nil, caption: "", isPicked: false, word: "More")]) { _ in }
+                    CrayonField("Name", text: .constant(""))
+                    HStack(spacing: Spacing.m) {
+                        FieldButton("3:30 pm") {}
+                        DayChip("M", isOn: .constant(true))
+                        DayChip("T", isOn: .constant(false))
+                        CheckMark(isDone: true, size: 40)
+                    }
+                    ListRow(leading: "From", minHeight: 60) { Text("After School") }
+                    Text("Give it a name").crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+                }
+            }
+            HStack(spacing: Spacing.m) {
+                RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
+                InkButton("Add to the clock") {}.frame(width: 382)
+            }
+        }, width: 900, dark: true)
+    }
+
     func testKidFullScreen() {
         // The frame fills the window the Sizing describes, from its top-left corner.
         snap(KidFullScreen {
@@ -610,9 +642,10 @@ final class ComponentSnapshotTests: XCTestCase {
         .frame(width: 720, height: 160))
     }
 
-    private func snap(_ view: some View, width: CGFloat? = nil, named name: String? = nil,
+    private func snap(_ view: some View, width: CGFloat? = nil, named name: String? = nil, dark: Bool = false,
                       file: StaticString = #filePath, testName: String = #function, line: UInt = #line) {
         let framed = view
+            .environment(\.crayonOutline, CrayonColor.outline)
             .padding(Spacing.m)
             .frame(width: width)
             .fixedSize(horizontal: width == nil, vertical: true)
@@ -621,9 +654,12 @@ final class ComponentSnapshotTests: XCTestCase {
             .environment(\.locale, Locale(identifier: "en_US_POSIX"))
             .environment(\.timeZone, TimeZone(identifier: "UTC")!)
             .environment(\.kitArt, Self.art)
+            .environment(\.colorScheme, dark ? .dark : .light)
+        let traits = UITraitCollection(traitsFrom: [UITraitCollection(displayScale: 2),
+                                                    UITraitCollection(userInterfaceStyle: dark ? .dark : .light)])
         let failure = verifySnapshot(
             of: framed,
-            as: .image(layout: .sizeThatFits, traits: UITraitCollection(displayScale: 2)),
+            as: .image(layout: .sizeThatFits, traits: traits),
             named: name,
             record: SnapshotLocation.recordDirectory == nil ? .never : .all,
             snapshotDirectory: SnapshotLocation.directory,

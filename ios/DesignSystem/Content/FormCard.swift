@@ -27,7 +27,7 @@ public struct FormCard<Content: View>: View {
 
     public var body: some View {
         ZStack {
-            CrayonColor.ink.opacity(0.35).ignoresSafeArea()
+            CrayonColor.dim.ignoresSafeArea()
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onCancel)
             VStack(alignment: .leading, spacing: Spacing.s) {

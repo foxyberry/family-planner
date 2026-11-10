@@ -225,6 +225,14 @@ final class MissionsTests: XCTestCase {
         await store.send(.backTapped)
     }
 
+    /// Board A2: a weekday greets without a day (the key once took the editor's "Missions · %@").
+    func testWeekdayGreeting() async {
+        let store = store(on: Day(year: 2026, month: 11, day: 10), minute: 480)
+        await store.send(.task)
+        XCTAssertEqual(store.state.title, "Good morning!")
+        await store.send(.backTapped)
+    }
+
     /// S4 "Medals" off: sliding at a gold time gives no medal.
     func testMedalsOffGiveNoMedal() async {
         let store = store(on: tuesday, minute: 440)

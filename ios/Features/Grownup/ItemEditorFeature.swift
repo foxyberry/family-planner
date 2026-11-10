@@ -262,7 +262,7 @@ public struct ItemEditorFeature {
 
         /// "Missions · Swimming", the sub-page's header.
         public var missionsTitle: String {
-            L10n.tr("missions.title", form.name.isEmpty ? L10n.tr("missions.title.new") : form.name)
+            L10n.tr("item_missions.title", form.name.isEmpty ? L10n.tr("missions.title.new") : form.name)
         }
 
         /// Going / Leave show when the item starts from Home (C3g); a linked item has no trip.

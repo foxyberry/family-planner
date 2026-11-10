@@ -50,7 +50,7 @@ public struct CrayonTabs<ID: Hashable>: View {
                             Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
                         }
                     }
-                    .foregroundStyle(isOn ? CrayonColor.ink : CrayonColor.softText)
+                    .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
                     .padding(.horizontal, itemSize == nil ? inset : 0)
                     .frame(width: itemSize?.width)
                     .frame(minHeight: itemSize?.height ?? 72)

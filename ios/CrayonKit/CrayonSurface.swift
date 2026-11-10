@@ -23,11 +23,13 @@ public struct CrayonSurface: View {
     let kind: CrayonShapeKind
     let fill: CrayonFill?
     let marker: MarkerStyle
-    let markerColor: Color
+    let markerColor: Color?
     let seed: UInt32
+    @Environment(\.crayonOutline) private var outline
 
+    /// `markerColor`: the line's colour; nil takes the environment's `crayonOutline`.
     public init(_ kind: CrayonShapeKind, fill: CrayonFill?, marker: MarkerStyle = .standard,
-                markerColor: Color = .init(white: 0.12), seed: UInt32) {
+                markerColor: Color? = nil, seed: UInt32) {
         self.kind = kind
         self.fill = fill
         self.marker = marker
@@ -44,6 +46,7 @@ public struct CrayonSurface: View {
 
     public var body: some View {
         let bleed = Self.bleed(marker)
+        let lineColor = markerColor ?? outline
         Canvas { context, size in
             // The part's own frame, inside the bleed; positions and the cache stay as they were.
             let frame = CGSize(width: max(size.width - 2 * bleed, 0), height: max(size.height - 2 * bleed, 0))
@@ -63,7 +66,7 @@ public struct CrayonSurface: View {
             }
             var line = Path()
             line.addLines(g.outline)
-            context.stroke(line, with: .color(markerColor),
+            context.stroke(line, with: .color(lineColor),
                            style: StrokeStyle(lineWidth: marker.width, lineCap: .round, lineJoin: .round))
         }
         .padding(-bleed)
@@ -98,4 +101,11 @@ extension View {
                                  marker: MarkerStyle = .standard) -> some View {
         background(CrayonSurface(kind, fill: fill, marker: marker, seed: seed))
     }
+}
+
+
+extension EnvironmentValues {
+    /// The default colour of crayon outlines: the marker grey. The design system sets one that
+    /// turns chalk in dark mode.
+    @Entry public var crayonOutline: Color = .init(white: 0.12)
 }

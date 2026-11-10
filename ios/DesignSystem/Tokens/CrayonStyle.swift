@@ -14,7 +14,11 @@ public enum CrayonStyle {
     public static let blueCrayon = CrayonFill(color: CrayonColor.pickBlue, hachure: HachureStyle(degrees: -40))
     public static let doneGreen = CrayonFill(color: CrayonColor.doneGreen, hachure: HachureStyle(degrees: -50))
     public static let ink = CrayonFill(color: CrayonColor.marker, hachure: nil)
+    /// Chrome: white by day, night control in dark mode.
     public static let paper = CrayonFill.paper(CrayonColor.card)
+    /// Picture grounds (circles and plates under pictures, the clock hub, speech bubbles): white by
+    /// day, moon paper in dark mode; draw them with `CrayonColor.pictureOutline`.
+    public static let pictureGround = CrayonFill.paper(CrayonColor.pictureGround)
 
     /// A kid's colour as crayon (S1 swatches, a face not picked yet).
     public static func kid(_ colorIndex: Int) -> CrayonFill {
@@ -53,7 +57,7 @@ public enum CrayonStyle {
 extension View {
     /// A part's crayon shape, drawn `CrayonStyle.artInset` inside the view's box (spec "Art inset").
     public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
-                               marker: MarkerStyle = .standard, markerColor: Color = .init(white: 0.12)) -> some View {
+                               marker: MarkerStyle = .standard, markerColor: Color? = nil) -> some View {
         background(CrayonSurface(kind, fill: fill, marker: marker, markerColor: markerColor, seed: seed)
             .padding(CrayonStyle.artInset))
     }

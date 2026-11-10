@@ -383,6 +383,7 @@ final class ItemEditorTests: XCTestCase {
         await store.receive(\.loaded)
         await store.send(.missionsRowTapped)
         XCTAssertTrue(store.state.isEditingMissions)
+        XCTAssertEqual(store.state.missionsTitle, "Missions · new item")
         await store.send(.missionAddTapped(.after))
         await store.send(.missionNameChanged("Hang swimsuit"))
         await store.send(.missionPicturePicked("shirt"))

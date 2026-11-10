@@ -35,6 +35,9 @@ public final class DebugModel {
     }
 
     public var isMenuShown = false
+    /// `-fpDark` / `-fpLight` (`make device DARK=1`): grown-up screens in that look whatever the
+    /// iPad's own setting, for checking the night mapping.
+    public var forcedDark: Bool?
     /// "Skip Face ID" exists only on a simulator: on a real iPad a forgotten switch would leave
     /// grown-up screens open for good.
     public let allowsSkipFaceID: Bool
@@ -137,6 +140,7 @@ extension DebugModel {
                                })
         model.settings.apply(LaunchOptions(arguments: arguments, calendar: dependencies.calendar),
                              realNow: core.realDate())
+        model.forcedDark = arguments.contains("-fpDark") ? true : arguments.contains("-fpLight") ? false : nil
         dependencies.date = DateGenerator { core.now() }
         if allowsSkipFaceID {
             dependencies.parentAuth.authenticate = { reason in

@@ -181,7 +181,7 @@ public struct MissionCircle: View {
         switch content {
         case let .picture(picture):
             RiggedKitIcon(picture, size: circle * 0.64, playID: reduceMotion ? 0 : playID)
-        case let .text(text): Text(verbatim: text).crayonType(.title).foregroundStyle(CrayonColor.ink)
+        case let .text(text): Text(verbatim: text).crayonType(.title).foregroundStyle(CrayonColor.pictureInk)
         case .tick: CheckMark(isDone: true, size: circle * 0.56)
         case let .glyph(glyph): MarkerIcon(glyph, size: circle * 0.4)
         }

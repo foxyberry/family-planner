@@ -27,7 +27,7 @@ public struct FieldButton: View {
                 .padding(.horizontal, Spacing.m)
                 .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
                 .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,
-                                markerColor: hasProblem ? CrayonColor.lateText : .init(white: 0.12))
+                                markerColor: hasProblem ? CrayonColor.lateText : CrayonColor.outline)
         }
         .buttonStyle(.plain)
     }

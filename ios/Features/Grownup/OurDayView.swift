@@ -24,7 +24,7 @@ public struct OurDayView: View {
                 if !store.showsList { saveButton(layout) }
             }
             if store.isConfirmingLeave {
-                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                CrayonColor.dim.ignoresSafeArea()
                 ConfirmCard(title: L10n.tr("day.leave.title"), message: nil, cancel: L10n.tr("day.leave.keep"),
                             confirm: L10n.tr("day.leave.leave"), isDestructive: true,
                             onCancel: { store.send(.leaveCancelled) }, onConfirm: { store.send(.leaveConfirmed) })

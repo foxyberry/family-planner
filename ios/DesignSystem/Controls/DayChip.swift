@@ -18,7 +18,7 @@ public struct DayChip: View {
         Button { isOn.toggle() } label: {
             Text(letter)
                 .crayonType(size < 72 ? .caption : .head, bold: isOn)
-                .foregroundStyle(CrayonColor.ink)
+                .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
                 .frame(width: size, height: size)
                 .partBackground(.circle, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                   seed: CrayonStyle.Seed.dayChip)

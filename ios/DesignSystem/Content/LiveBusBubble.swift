@@ -26,24 +26,25 @@ public struct LiveBusBubble: View {
         VStack(alignment: isMine ? .leading : .center, spacing: Spacing.xxs) {
             HStack(spacing: Spacing.xs) {
                 NumberPlate(service, isMine: isMine)
-                Text(minutes).crayonType(isMine ? .head : .body, bold: true).foregroundStyle(CrayonColor.ink)
+                Text(minutes).crayonType(isMine ? .head : .body, bold: true).foregroundStyle(CrayonColor.pictureInk)
                     .lineLimit(1).fixedSize()
             }
             switch kind {
             case let .mine(face, name, myBus):
                 HStack(spacing: Spacing.xs) {
                     KidFace(face, name: name, size: 32)
-                    Text(myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink).fixedSize()
+                    Text(myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
                 }
             case let .tooSoon(text):
-                Text(text).crayonType(.caption).foregroundStyle(CrayonColor.softText).fixedSize()
+                Text(text).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText).fixedSize()
             }
         }
         .padding(.horizontal, Spacing.s)
         .padding(.top, Spacing.xs)
         .padding(.bottom, Spacing.xs + 16)
         .background {
-            CrayonSurface(.speechBubble(tailX: 0.5, tailHeight: 16), fill: CrayonStyle.paper,
+            CrayonSurface(.speechBubble(tailX: 0.5, tailHeight: 16), fill: CrayonStyle.pictureGround,
+                          markerColor: CrayonColor.pictureOutline,
                           seed: CrayonStyle.Seed.bubble + (isMine ? 1 : 2))
         }
         .fixedSize()
@@ -72,13 +73,13 @@ public struct NumberPlate: View {
         let big = isMine && !small
         Text(number)
             .font(Font(FontRegistrar.font(size: big ? 30 : 24, weight: .bold)))
-            .foregroundStyle(CrayonColor.ink)
+            .foregroundStyle(CrayonColor.pictureInk)
             .lineLimit(1).fixedSize()
             .frame(minWidth: small ? 56 : big ? 76 : 64, minHeight: small ? 30 : big ? 40 : 36)
             .background {
                 CrayonSurface(.roundedRect(cornerRadius: 8),
-                              fill: CrayonFill.paper(isMine ? CrayonColor.card : CrayonColor.plateCream),
-                              marker: .thin, seed: CrayonStyle.Seed.bubble + 7)
+                              fill: CrayonFill.paper(isMine ? CrayonColor.pictureGround : CrayonColor.plateCream),
+                              marker: .thin, markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 7)
             }
     }
 }

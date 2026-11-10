@@ -36,8 +36,14 @@ public struct AppFeature {
         public var scenePhase: ScenePhase = .inactive
         public var path = StackState<Path.State>()
 
-        /// The kid home is on screen in its night look (board A1n): the window's dark scheme.
-        public var isNightHome: Bool { setup == nil && path.isEmpty && home.look == .night }
+        /// The window's colour scheme (spec "Night mapping"): the iPad's own (nil) while grown-up
+        /// screens are open, light for setup, else the home's look (the kid home and A2).
+        public var colorScheme: ColorScheme? {
+            guard setup == nil else { return .light }
+            if hasGrownupScreens { return nil }
+            // The kid home and A2 follow the home's look.
+            return home.look == .night ? .dark : .light
+        }
         public var home = HomeFeature.State()
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
         public var lock: LockOverlay.State?
@@ -213,7 +219,7 @@ public struct AppFeature {
                 case .home:
                     state.path.removeAll()
                 case .missions:
-                    if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State())) }
+                    if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State(look: state.home.look))) }
                 case let .grownup(board):
                     // The usual unlock, as after the hold; the board opens once Our day has loaded.
                     state.path.removeAll()
@@ -266,7 +272,7 @@ public struct AppFeature {
                 return .none
 
             case .home(.missionsTapped):
-                if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State())) }
+                if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State(look: state.home.look))) }
                 return .none
 
             case let .path(.element(id: id, action: .missions(.delegate(.finished)))):
@@ -275,6 +281,16 @@ public struct AppFeature {
 
             case .home(.clockHoldCompleted), .home(.pencilTapped):
                 return unlock(&state)
+
+            case .home(.tick), .home(.skySwitchTapped):
+                // A2 after dusk takes the night look with the home (board A2 night).
+                for id in state.path.ids {
+                    if case var .missions(missions) = state.path[id: id], missions.look != state.home.look {
+                        missions.look = state.home.look
+                        state.path[id: id] = .missions(missions)
+                    }
+                }
+                return .none
 
             case .home(.loaded):
                 // The home's kids are known now (Scope ran first), so a waiting Our day can open.

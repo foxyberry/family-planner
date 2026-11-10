@@ -72,4 +72,8 @@ public enum CrayonPalette {
     public static let chalk = RGB(hex: 0xE9E4F5)
     /// The clock face under the slots at night: lit, so the crayon colours read as by day.
     public static let litPaper = RGB(hex: 0xEFE8D8)
+    /// Problems and Remove at night (spec "Night mapping", 6.9:1 on the night page).
+    public static let nightLate = RGB(hex: 0xFF8A8E)
+    /// Links at night.
+    public static let nightLink = RGB(hex: 0x56B4E9)
 }

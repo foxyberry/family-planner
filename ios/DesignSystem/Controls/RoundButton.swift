@@ -67,7 +67,7 @@ public struct RoundButton: View {
             .frame(width: size, height: size)
             .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
                             seed: CrayonStyle.Seed.roundButton,
-                            markerColor: look == .day ? .init(white: 0.12) : CrayonColor.chalk)
+                            markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

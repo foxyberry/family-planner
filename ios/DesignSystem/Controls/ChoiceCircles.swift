@@ -41,13 +41,14 @@ public struct ChoiceCircles: View {
                             if let picture = choice.picture {
                                 KitIcon(picture, size: 64)
                             } else if let word = choice.word {
-                                Text(word).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink)
+                                Text(word).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
                             } else {
-                                Text(verbatim: "–").crayonType(.title).foregroundStyle(CrayonColor.softText)
+                                Text(verbatim: "–").crayonType(.title).foregroundStyle(CrayonColor.pictureSoftText)
                             }
                         }
                         .frame(width: 88, height: 88)
-                        .partBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.iconPicker)
+                        .partBackground(.circle, fill: CrayonStyle.pictureGround, seed: CrayonStyle.Seed.iconPicker,
+                                        markerColor: CrayonColor.pictureOutline)
                         .overlay {
                             if choice.isPicked {
                                 Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 104, height: 104)

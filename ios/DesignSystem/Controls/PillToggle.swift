@@ -22,7 +22,7 @@ public struct PillToggle: View {
         Button(action: action) {
             Text(title)
                 .crayonType(.head, bold: isOn)
-                .foregroundStyle(CrayonColor.ink)
+                .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
                 .lineLimit(1)
                 .frame(width: Self.size.width, height: Self.size.height)
                 .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
