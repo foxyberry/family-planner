@@ -52,9 +52,13 @@ Grown-up mode (G1, the C6 slice card tabs, G4 School) is 6d.
 
 ## PR 4: linked time and no-school days
 
-- The Time row of a linked item: "School end + {n} min" (0–60, step 5), length kept, with today's
-  worked-out time as the caption.
-- "No school days": Skip (default) or "At a set time" with its own time and Going row.
+- `ScheduleItem.afterGap` (0–60, step 5): a linked item starts its gap after the event ends, length
+  kept. The From card gets "−  15 min after  +" once an event is picked; the row reads
+  "After School · 15 min after" (board G2b).
+- `ScheduleItem.noSchool` (`NoSchoolPlan { start, trip }`, only after School): the "No school" row
+  (Skip / "At 10:00 am") opens a card with Skip / At a set time, the time and Going. On a day
+  without School the item starts from Home at that time with that trip; without a plan it is
+  skipped. Items after School follow School's days, so "Skip school holidays" is hidden for them.
 
 ## Later in 6c
 

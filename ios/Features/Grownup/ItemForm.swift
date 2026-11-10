@@ -55,6 +55,12 @@ public struct ItemForm: Equatable, Sendable {
     public var untilDate: Day
     public var times = 10
 
+    /// "School end + 15 min" (0–60, step 5) for an item that follows an event.
+    public var afterGap = 0
+    /// No school days (an item after School): nil skips the day; a time keeps it, from Home.
+    public var noSchoolStart: Int?
+    public var noSchoolWay: Domain.Way?
+
     /// The end choices in the Runs card.
     public enum RunsEndKind: Hashable, Sendable { case term, date, count, none }
 
@@ -100,6 +106,9 @@ public struct ItemForm: Equatable, Sendable {
                       showsStar: true, trip: item.trip)
         }
         after = item.after
+        afterGap = item.afterGap
+        noSchoolStart = item.noSchool?.start
+        noSchoolWay = item.noSchool?.trip?.way
         if case let .weekly(_, _, until) = item.recurrence {
             switch item.runsEnd {
             case .term?: runsEnd = .term
@@ -181,9 +190,31 @@ public struct ItemForm: Equatable, Sendable {
         // An item after School follows School's days, holidays included.
         if choice.event == .school { skipsHolidays = true }
         let length = max(end - start, 5)
-        start = choice.end
-        end = min(choice.end + length, 1440)
+        start = min(choice.end + afterGap, 1435)
+        end = min(start + length, 1440)
         trip = nil
+    }
+
+    /// −/+ for the minutes after the event (0–60, step 5); a linked item's times move with it.
+    public mutating func stepGap(_ step: Int) {
+        let gap = min(max(afterGap + 5 * step, 0), 60)
+        guard after != nil else { afterGap = gap; return }
+        let length = end - start
+        start = min(max(start + gap - afterGap, 0), 1435)
+        end = min(start + length, 1440)
+        afterGap = gap
+    }
+
+    /// No school days: Skip, or at a set time (the item's own start by default).
+    public mutating func setNoSchool(atSetTime: Bool) {
+        noSchoolStart = atSetTime ? (noSchoolStart ?? start) : nil
+        if !atSetTime { noSchoolWay = nil }
+    }
+
+    var noSchool: NoSchoolPlan? {
+        guard after == .school, let noSchoolStart else { return nil }
+        return NoSchoolPlan(start: noSchoolStart,
+                            trip: noSchoolWay.map { Trip(way: $0, leaveBefore: trip?.leaveBefore ?? Self.defaultLeave) })
     }
 
     /// The Medal switch: on only with a trip; nil means the default (off for an item).
@@ -422,12 +453,13 @@ public struct ItemForm: Equatable, Sendable {
                                 end: end, recurrence: .weekly(days, from: max(date, today), until: until), skippedDays: [],
                                 skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
                                 bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter,
-                                runsEnd: storedRunsEnd)
+                                runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool)
         case .once:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .once(date), skippedDays: [], skipsHolidays: false,
                                 showsStar: showsStar, trip: trip, after: after,
-                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter)
+                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter,
+                                afterGap: after == nil ? 0 : afterGap)
         }
     }
 

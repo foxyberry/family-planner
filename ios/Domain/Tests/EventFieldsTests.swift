@@ -27,6 +27,28 @@ final class EventFieldsTests: XCTestCase {
         XCTAssertFalse(holiday.contains { $0.title == "Swimming" }, "no school that day, so no swimming after it")
     }
 
+    /// Spec "Repeats, dates and changes", Linked time: "School end + 15 min", length kept.
+    func testALinkedItemStartsItsGapAfterSchool() {
+        var swim = linked(F.weekly("Swimming", days: [.monday], start: 960, end: 1020), after: .school)
+        swim.afterGap = 15
+        let slot = F.slots(on: F.monday, items: [swim]).first { $0.title == "Swimming" }
+        XCTAssertEqual(slot.map { [$0.start, $0.end] }, [915, 975])
+    }
+
+    /// No school days: an item after School keeps its weekday on a school holiday at its own time,
+    /// from Home with its own trip; without a plan it is skipped.
+    func testNoSchoolDaysAtASetTime() {
+        var swim = linked(F.weekly("Swimming", days: [.monday], start: 960, end: 1020), after: .school)
+        swim.skipsHolidays = true
+        swim.noSchool = NoSchoolPlan(start: 600, trip: Trip(way: .car, leaveBefore: 15))
+        let holiday = F.slots(on: F.monday, items: [swim], holidays: [F.monday]).first { $0.title == "Swimming" }
+        XCTAssertEqual(holiday.map { [$0.start, $0.end] }, [600, 660])
+        XCTAssertEqual(holiday?.trip?.way, .car)
+        let schoolDay = F.slots(on: F.monday, items: [swim]).first { $0.title == "Swimming" }
+        XCTAssertEqual(schoolDay?.start, 900, "on a school day it still follows School")
+        XCTAssertNil(schoolDay?.trip)
+    }
+
     func testChainsFollowTheItemBefore() {
         let art = linked(F.weekly("Art", days: [.monday], start: 0, end: 45), after: .school)
         let snack = linked(F.weekly("Snack", days: [.monday], start: 0, end: 15), after: .item(art.id))

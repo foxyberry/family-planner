@@ -364,4 +364,35 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.runsEnd, .date, "an item saved before Runs with an end date")
         XCTAssertEqual(form.untilDate, Day(year: 2026, month: 12, day: 7))
     }
+
+    // MARK: Linked time and No school days
+
+    func testTheGapMovesALinkedItemAndIsSaved() {
+        var form = form(start: 930, end: 990)
+        let school = form.fromChoices(kids: SeedData.kids, routines: SeedData.routines, items: [], editing: nil,
+                                      today: F.monday, calendar: F.calendar)[1]
+        form.setFrom(school)
+        form.stepGap(3)
+        XCTAssertEqual([form.start, form.end], [915, 975], "School ends at 3 pm; 15 min after, an hour long")
+        form.stepGap(20)
+        XCTAssertEqual(form.afterGap, 60)
+        let item = form.item(id: UUID(), today: F.monday)
+        XCTAssertEqual(item.afterGap, 60)
+        XCTAssertNil(item.noSchool, "Skip by default")
+    }
+
+    func testNoSchoolDaysAtASetTimeGoFromHome() {
+        var form = form(start: 930, end: 990)
+        let school = form.fromChoices(kids: SeedData.kids, routines: SeedData.routines, items: [], editing: nil,
+                                      today: F.monday, calendar: F.calendar)[1]
+        form.setFrom(school)
+        form.setNoSchool(atSetTime: true)
+        form.noSchoolStart = 600
+        form.noSchoolWay = .car
+        let item = form.item(id: UUID(), today: F.monday)
+        XCTAssertEqual(item.noSchool, NoSchoolPlan(start: 600, trip: Trip(way: .car, leaveBefore: 10)))
+        XCTAssertEqual(ItemForm(item: item).noSchoolStart, 600)
+        form.setNoSchool(atSetTime: false)
+        XCTAssertNil(form.item(id: UUID(), today: F.monday).noSchool)
+    }
 }
