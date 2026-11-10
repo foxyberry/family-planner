@@ -1,6 +1,7 @@
 import AppSettings
 import ComposableArchitecture
 import DesignSystem
+import DeviceLook
 import Domain
 import Foundation
 import Grownup
@@ -24,7 +25,6 @@ public struct AppFeature {
         case missionEditor(MissionEditorFeature)
         case busSettings(BusSettingsFeature)
         case dataSources(DataSourcesFeature)
-        case gallery(GalleryFeature)
         /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
         /// grown-up rules (idle lock, app-switcher cover) skip it.
         case missions(MissionsFeature)
@@ -36,12 +36,14 @@ public struct AppFeature {
         public var scenePhase: ScenePhase = .inactive
         public var path = StackState<Path.State>()
 
-        /// The window's colour scheme (spec "Night mapping"): the iPad's own (nil) while grown-up
-        /// screens are open, light for setup, else the home's look (the kid home and A2).
-        public var colorScheme: ColorScheme? {
+        /// The iPad's own light or dark setting, read every second (`deviceLook`).
+        public var deviceIsDark = false
+        /// The window's colour scheme (spec "Night mapping"): the iPad's own while grown-up screens
+        /// are open, light for setup, else the home's look (the kid home and A2). Always a value:
+        /// going from dark back to nil (follow the system) kept the window dark on the iPad.
+        public var colorScheme: ColorScheme {
             guard setup == nil else { return .light }
-            if hasGrownupScreens { return nil }
-            // The kid home and A2 follow the home's look.
+            if hasGrownupScreens { return deviceIsDark ? .dark : .light }
             return home.look == .night ? .dark : .light
         }
         public var home = HomeFeature.State()
@@ -114,6 +116,7 @@ public struct AppFeature {
         case linkOpened(ScreenLink)
     }
 
+    @Dependency(\.deviceLook) var deviceLook
     @Dependency(\.appSettings) var appSettings
     @Dependency(\.calendar) var calendar
     @Dependency(\.continuousClock) var clock
@@ -196,6 +199,7 @@ public struct AppFeature {
 
             case let .tick(now):
                 state.now = now
+                state.deviceIsDark = deviceLook.isDark()
                 if state.hasGrownupScreens, let seconds = state.grownupIdleSeconds {
                     let idle = seconds + 1
                     state.grownupIdleSeconds = idle
@@ -386,20 +390,12 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
-            case let .path(.element(id: id, action: .gallery(.backTapped))):
-                state.path.pop(from: id)
-                return .none
-
             case .path(.element(id: _, action: .settings(.dataSourcesTapped))):
                 state.path.append(.dataSources(DataSourcesFeature.State()))
                 return .none
 
             case let .path(.element(id: id, action: .dataSources(.backTapped))):
                 state.path.pop(from: id)
-                return .none
-
-            case .path(.element(id: _, action: .settings(.galleryButtonTapped))):
-                state.path.append(.gallery(GalleryFeature.State()))
                 return .none
 
             case .path, .home:
@@ -449,19 +445,13 @@ public struct AppFeature {
                                                               now: date.now, calendar: calendar)))
         case .c5:
             state.path.append(.missionEditor(MissionEditorFeature.State(kid: first.id)))
-        case .f1, .f2, .f3, .f4, .f5:
-            #if DEBUG
-            var editor = ItemEditorFeature.State(mode: .add(.kid(first.id)), repeats: .weekly, now: date.now, calendar: calendar)
-            if let check = ItemEditorFeature.CheckBoard(rawValue: board.rawValue) { editor.open(check) }
-            state.path.append(.editor(editor))
-            #else
-            break
-            #endif
         }
     }
 
     /// Grown-up mode opens on the day on the clock (board G1) for the first kid.
     private func openGrownupScreens(_ state: inout State) {
+        // The first frame already in the iPad's own look, not a second later.
+        state.deviceIsDark = deviceLook.isDark()
         state.lock = nil
         state.grownupIdleSeconds = 0
         guard let kid = state.home.days.first?.kid.id else {

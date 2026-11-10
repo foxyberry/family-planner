@@ -48,6 +48,8 @@ jobs:
         run: bash scripts/tests/check-dependencies-test.sh
       - name: Crayon canvas check tests
         run: bash scripts/tests/check-crayon-canvas-test.sh
+      - name: Debug boundary check tests
+        run: bash scripts/tests/check-debug-boundary-test.sh
       - name: Strings check tests
         run: bash scripts/tests/check-strings-test.sh
       - name: Skills check tests
@@ -57,10 +59,11 @@ jobs:
       - name: Private data sync tests
         run: bash scripts/tests/private-sync-test.sh
       # The checks themselves, on this commit.
-      - name: Repo checks (kid screens, dependencies, crayon canvas, strings, skills)
+      - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, strings, skills)
         run: |
           bash scripts/check-kid-screens.sh
           bash scripts/check-dependencies.sh
           bash scripts/check-crayon-canvas.sh
+          bash scripts/check-debug-boundary.sh
           bash scripts/check-strings.sh
           bash scripts/check-skills.sh

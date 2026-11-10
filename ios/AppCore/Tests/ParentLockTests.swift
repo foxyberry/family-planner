@@ -1,6 +1,7 @@
 @testable import AppCore
 import AppSettings
 import ComposableArchitecture
+import DeviceLook
 import Domain
 import Grownup
 import Home
@@ -159,7 +160,7 @@ final class ParentLockTests: XCTestCase {
     func testIdleTwoMinutesRelocksAndDropsUnsavedForm() async {
         var state = unlockedState()
         state.grownupIdleSeconds = 118
-        state.path.append(.gallery(GalleryFeature.State()))   // stands in for an open form
+        state.path.append(.dataSources(DataSourcesFeature.State()))   // stands in for an open form
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
@@ -253,6 +254,28 @@ final class ParentLockTests: XCTestCase {
         await store.send(.linkOpened(.grownup(.c6)))
         XCTAssertFalse(asked.value)
         XCTAssertTrue(store.state.hasGrownupScreens)
+    }
+
+    /// Spec "Night mapping": grown-up screens take the iPad's own look as a value, even over the
+    /// night home (going back to nil kept the window dark on the iPad).
+    func testGrownupScreensTakeTheDeviceLook() async {
+        var state = AppFeature.State()
+        state.hasFamily = true
+        state.home.days = SeedData.kids.map { HomeFeature.KidDay(kid: $0, dayType: .weekday, slots: []) }
+        let dark = LockIsolated(false)
+        let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+            $0.appSettings.load = { AppSettings(grownupLock: false) }
+            $0.deviceLook.isDark = { dark.value }
+            $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        XCTAssertEqual(store.state.colorScheme, .light, "the day home")
+        await store.send(.linkOpened(.grownup(.c6)))
+        XCTAssertEqual(store.state.colorScheme, .light, "a light iPad")
+        dark.setValue(true)
+        await store.send(.tick(Date(timeIntervalSince1970: 1_800_000_001)))
+        XCTAssertEqual(store.state.colorScheme, .dark, "the iPad turned dark")
     }
 
     func testGrownupScreensCoveredWhileNotActive() {

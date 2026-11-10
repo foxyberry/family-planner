@@ -1,4 +1,5 @@
 #if DEBUG
+import DesignSystem
 import SwiftUI
 import UIKit
 
@@ -8,6 +9,7 @@ struct DebugMenu: View {
     @Environment(\.dismiss) private var dismiss
     @State private var picked: Date
     @State private var isConfirmingSample = false
+    @State private var showsGallery = false
 
     init(model: DebugModel) {
         self.model = model
@@ -22,6 +24,7 @@ struct DebugMenu: View {
                 timeSection
                 Section("Layout") {
                     Toggle("12-column grid and bands", isOn: $model.settings.showsLayoutGrid)
+                    Button("Design gallery") { showsGallery = true }
                 }
                 Section {
                     LabeledContent("Rig scale", value: String(format: "%.1f", model.rigScale))
@@ -78,6 +81,7 @@ struct DebugMenu: View {
                 }
             }
             .navigationTitle("Debug")
+            .fullScreenCover(isPresented: $showsGallery) { ComponentGallery(onBack: { showsGallery = false }) }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }

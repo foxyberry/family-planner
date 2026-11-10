@@ -8,6 +8,7 @@ fp_swift_library(
     deps = [
         "//ios/AppCore",
         "//ios/Clients/AppSettings",
+        "//ios/Clients/DeviceLook",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Domain",

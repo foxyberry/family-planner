@@ -35,7 +35,8 @@ new_repo() {
   mkdir -p "$REPO/.githooks" "$REPO/scripts"
   cp "$SRC/.githooks/pre-push" "$REPO/.githooks/"
   cp "$SRC/scripts/check-private-terms.sh" "$REPO/scripts/"
-  cp "$SRC/scripts/check-kid-screens.sh" "$SRC/scripts/check-crayon-canvas.sh" "$REPO/scripts/"
+  cp "$SRC/scripts/check-kid-screens.sh" "$SRC/scripts/check-crayon-canvas.sh" "$SRC/scripts/check-debug-boundary.sh" \
+     "$REPO/scripts/"
   cp "$SRC/scripts/check-dependencies.sh" "$SRC/scripts/check-skills.sh" "$SRC/scripts/check-strings.sh" "$REPO/scripts/"
   cp "$SRC/Makefile" "$REPO/"
   printf 'Zebra Stop 99999\n' > "$REPO/.private-terms"

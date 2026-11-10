@@ -1,3 +1,4 @@
+#if DEBUG
 import CrayonKit
 import KitArt
 import SwiftUI
@@ -303,3 +304,4 @@ extension ComponentGallery {
         }
     }
 }
+#endif

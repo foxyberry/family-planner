@@ -82,7 +82,7 @@ public struct MissionsView: View {
 
     @ViewBuilder private func kidList(_ layout: MorningLayout) -> some View {
         ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, row in
-            if row.id == store.chosen {
+            if row.isChosen {
                 KidBand(colorIndex: row.kid.colorIndex).place(layout.kidBand(index))
             }
             CrayonRing(progress: row.progress, colorIndex: row.kid.colorIndex, size: layout.kidRing(index).width)
@@ -94,21 +94,19 @@ public struct MissionsView: View {
                 // Board A3: the medal badge on the ring's lower right, dropping in once.
                 MedalBadge(medal, ring: layout.kidRing(index).width).place(layout.kidRing(index))
             }
-            // The chosen row's band is a crayon on-state: its words stay ink at night.
-            let onBand = row.id == store.chosen
             Text(row.kid.name).crayonType(.body, bold: true)
-                .foregroundStyle(onBand ? CrayonColor.pictureInk : CrayonColor.ink)
+                .foregroundStyle(row.isChosen ? CrayonColor.pictureInk : CrayonColor.ink)
                 .place(left: layout.kidTextLeft, baseline: layout.kidNameBaseline(index))
             // Ready rows read "Ready! Gold" in bold on-time green (board A3).
             Text(store.state.caption(row)).crayonType(.caption, bold: row.isReady)
-                .foregroundStyle(row.isReady ? CrayonColor.onTimeText : onBand ? CrayonColor.pictureSoftText : CrayonColor.softText)
+                .foregroundStyle(row.isReady ? CrayonColor.onTimeText : row.isChosen ? CrayonColor.pictureSoftText : CrayonColor.softText)
                 .place(left: layout.kidTextLeft, baseline: layout.kidCaptionBaseline(index))
             Button { store.send(.kidTapped(row.kid.id)) } label: { Color.clear.contentShape(Rectangle()) }
                 .buttonStyle(.plain)
                 .place(layout.kidRow(index))
                 .accessibilityLabel(row.kid.name)
                 .accessibilityValue(store.state.caption(row))
-                .accessibilityAddTraits(row.id == store.chosen ? [.isButton, .isSelected] : .isButton)
+                .accessibilityAddTraits(row.isChosen ? [.isButton, .isSelected] : .isButton)
         }
     }
 

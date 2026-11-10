@@ -368,7 +368,7 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.cardDoneTapped)
         XCTAssertEqual(store.state.form.bringText, "Backpack · Water bottle")
         await store.send(.bringRowTapped)
-        await store.send(.bringMoreTapped)
+        await store.send(.bringCircleTapped("more"))
         XCTAssertGreaterThan(store.state.bringSlots.count, 3)
         XCTAssertFalse(store.state.bringSlots.contains(.debugLadybug), "object pictures only")
         XCTAssertFalse(store.state.bringSlots.contains { $0.rawValue.contains("Pax") || $0.rawValue.hasPrefix("sky") })

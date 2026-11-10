@@ -219,11 +219,11 @@ public struct ItemEditorView: View {
     private var runsEndCard: some View {
         formCard(L10n.tr("runs.card.title"), width: 560) {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(store.runsEndTabs, id: \.0) { kind, title in
-                    PickRow(title, caption: kind == .term ? store.termCaption : nil, isPicked: store.form.runsEnd == kind) {
-                        store.send(.runsEndKindPicked(kind))
+                ForEach(store.runsEndRows, id: \.kind) { row in
+                    PickRow(row.title, caption: row.caption, isPicked: row.isPicked) {
+                        store.send(.runsEndKindPicked(row.kind))
                     }
-                    if store.form.runsEnd == kind { runsEndDetail(kind).padding(.leading, 56) }
+                    if row.isPicked { runsEndDetail(row.kind).padding(.leading, 56) }
                 }
             }
         }

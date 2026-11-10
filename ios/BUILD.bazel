@@ -18,6 +18,8 @@ fp_swift_library(
         "//ios/Clients/AppSettingsLive",
         "//ios/Clients/BusClient",
         "//ios/Clients/BusClientLive",
+        "//ios/Clients/DeviceLook",
+        "//ios/Clients/DeviceLookLive",
         "//ios/Clients/HolidayProvider",
         "//ios/Clients/HolidayProviderLive",
         "//ios/Clients/ParentAuthClient",

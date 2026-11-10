@@ -54,6 +54,4 @@ public enum GrownupBoard: String, CaseIterable, Equatable, Sendable {
     case c5
     /// C6 · Our day.
     case c6
-    /// F1–F5 · C3 with a form card open (From, Bring, Ends, No school days) or the Missions page.
-    case f1, f2, f3, f4, f5
 }

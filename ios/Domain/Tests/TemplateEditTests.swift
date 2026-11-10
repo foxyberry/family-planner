@@ -32,7 +32,7 @@ final class TemplateEditTests: XCTestCase {
     /// Board G1d names the first changed slice; nothing is named before a change or after a save.
     func testFirstChangeIsTheFirstMovedSlice() {
         var edit = edit
-        XCTAssertNil(edit.isChanged ? edit.firstChange : nil)
+        XCTAssertNil(edit.firstChange, "nothing moved yet")
         edit.beginChange()
         _ = edit.moveKnob(knob(edit, at: 1155), to: 1170)
         XCTAssertEqual(edit.firstChange?.title, "Dinner")

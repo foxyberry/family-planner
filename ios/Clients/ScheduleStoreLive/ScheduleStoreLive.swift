@@ -235,9 +235,8 @@ private struct Records {
     }
 
     static func key(_ routine: Routine) -> String {
-        let from = "\(routine.from.year)-\(routine.from.month)-\(routine.from.day)"
         // A day's own template has its own key, so it never replaces the day type's template.
-        return "routine:\(routine.kid):\(routine.dayType.rawValue):\(from)" + (routine.onlyOn == nil ? "" : ":only")
+        "routine:\(routine.kid):\(routine.dayType.rawValue):\(dateKey(routine.from))" + (routine.onlyOn == nil ? "" : ":only")
     }
 
     func delete(_ id: ScheduleItem.ID) throws {

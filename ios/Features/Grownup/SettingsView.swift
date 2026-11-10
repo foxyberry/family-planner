@@ -33,17 +33,10 @@ public struct SettingsView: View {
                 Color.clear.frame(width: layout.side.width, height: 1)
             }
         } primaryAction: { _ in
-            HStack(spacing: Spacing.m) {
-                Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
-                    .crayonType(.caption, bold: true)
-                    .foregroundStyle(CrayonColor.link)
-                #if DEBUG
-                    Button("Design gallery") { store.send(.galleryButtonTapped) } // copy-ok: debug builds only
-                        .crayonType(.caption)
-                        .foregroundStyle(CrayonColor.link)
-                #endif
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
+                .crayonType(.caption, bold: true)
+                .foregroundStyle(CrayonColor.link)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .task { await store.send(.task).finish() }
     }

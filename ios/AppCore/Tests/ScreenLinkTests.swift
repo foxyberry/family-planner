@@ -14,7 +14,6 @@ final class ScreenLinkTests: XCTestCase {
         XCTAssertEqual(ScreenLink(url: URL(string: "familyplanner://missions")!), .missions)
         XCTAssertEqual(ScreenLink(url: URL(string: "familyplanner://home")!), .home)
         XCTAssertEqual(ScreenLink(url: URL(string: "familyplanner://c2")!), .grownup(.c2))
-        XCTAssertEqual(ScreenLink(url: URL(string: "familyplanner://f4")!), .grownup(.f4))
         XCTAssertNil(ScreenLink(url: URL(string: "familyplanner://grownup")!))
         XCTAssertNil(ScreenLink(url: URL(string: "https://missions")!))
     }
