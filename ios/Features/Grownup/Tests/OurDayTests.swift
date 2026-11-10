@@ -17,6 +17,7 @@ final class OurDayTests: XCTestCase {
             OurDayFeature()
         } withDependencies: {
             $0.calendar = F.calendar
+            $0.date.now = self.tuesday.date(minute: 600, calendar: F.calendar)
             $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: []) }
             $0.scheduleStore.saveRoutine = { routine in saved.withValue { $0.append(routine) } }
         }
@@ -109,7 +110,7 @@ final class OurDayTests: XCTestCase {
         await store.send(.knobReleased(knob(store, at: 1170)))
         await store.send(.saveTapped)
         await store.receive(\.saved)
-        await store.receive(\.delegate.finished)
+        XCTAssertFalse(store.state.canUndo, "saved: nothing to undo, and the clock stays (board G1)")
         XCTAssertEqual(saved.value.first?.from, Day(year: 2026, month: 11, day: 11))
         XCTAssertEqual(saved.value.first?.blocks.first { $0.title == "Dinner" }?.end, 1170)
     }
@@ -121,5 +122,57 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(OurDayFeature.kind(forPicture: "actPiano"), .afterSchool)
         XCTAssertEqual(OurDayFeature.kind(forPicture: "blocks"), .play)
         XCTAssertTrue(OurDayFeature.pictures.contains(.actSleep))
+    }
+
+    // MARK: Grown-up mode (boards G1, G8)
+
+    func testUndoAndRedoStepThroughChanges() async {
+        let store = await loaded()
+        XCTAssertFalse(store.state.canUndo)
+        XCTAssertFalse(store.state.canRedo)
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.knobReleased(knob(store, at: 1170)))
+        XCTAssertTrue(store.state.canUndo)
+        await store.send(.undoTapped)
+        XCTAssertEqual(store.state.edit.knobs.map(\.minute).contains(1155), true)
+        XCTAssertTrue(store.state.canRedo)
+        await store.send(.redoTapped)
+        XCTAssertEqual(store.state.edit.knobs.map(\.minute).contains(1170), true)
+        XCTAssertFalse(store.state.canRedo)
+    }
+
+    func testListShowsEveryWeekAndJustOnceAndOpensItems() async {
+        let swim = F.weekly()
+        let store = TestStore(initialState: OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)) {
+            OurDayFeature()
+        } withDependencies: {
+            $0.calendar = F.calendar
+            $0.date.now = self.tuesday.date(minute: 600, calendar: F.calendar)
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: [swim]) }
+        }
+        store.exhaustivity = .off
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.listTapped)
+        XCTAssertTrue(store.state.showsList)
+        XCTAssertEqual(store.state.listSections.map(\.title), ["Every week"])
+        XCTAssertEqual(store.state.listSections.first?.rows.map(\.title), ["Example Primary School", "Swimming"])
+        await store.send(.listRowTapped(.item(swim.id)))
+        await store.receive(\.delegate.openItem)
+        await store.send(.addOnceTapped)
+        await store.receive(\.delegate.add)
+        await store.send(.settingsTapped)
+        await store.receive(\.delegate.openSettings)
+    }
+
+    func testListAndSettingsAskFirstWithUnsavedChanges() async {
+        let store = await loaded()
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.knobReleased(knob(store, at: 1170)))
+        await store.send(.listTapped)
+        XCTAssertTrue(store.state.isConfirmingLeave)
+        XCTAssertFalse(store.state.showsList)
+        await store.send(.leaveConfirmed)
+        XCTAssertTrue(store.state.showsList)
     }
 }

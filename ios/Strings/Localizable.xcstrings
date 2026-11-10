@@ -540,6 +540,17 @@
         }
       }
     },
+    "day.list" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List"
+          }
+        }
+      }
+    },
     "day.locked" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -595,6 +606,17 @@
         }
       }
     },
+    "day.redo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redo"
+          }
+        }
+      }
+    },
     "day.save" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -613,6 +635,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not save. Try again."
+          }
+        }
+      }
+    },
+    "day.settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
           }
         }
       }
@@ -2256,6 +2289,28 @@
         }
       }
     },
+    "list.add_once" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add once"
+          }
+        }
+      }
+    },
+    "list.add_weekly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add every week"
+          }
+        }
+      }
+    },
     "list.and" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2263,6 +2318,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ and %2$@"
+          }
+        }
+      }
+    },
+    "list.detail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "list.every_week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every week"
+          }
+        }
+      }
+    },
+    "list.once" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just once"
           }
         }
       }

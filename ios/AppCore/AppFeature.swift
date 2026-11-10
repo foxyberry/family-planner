@@ -229,21 +229,35 @@ public struct AppFeature {
                 }
                 return .none
 
-            case let .path(.element(id: id, action: .hub(.loaded(snapshot)))):
-                guard let board = state.pendingBoard else { return .none }
+            case let .path(.element(id: _, action: .ourDay(.loaded(snapshot)))),
+                 let .path(.element(id: _, action: .hub(.loaded(snapshot)))):
+                // A grown-up debug link opens its board over Our day once the family is known.
+                guard let board = state.pendingBoard, let kids = snapshot?.kids, let first = kids.first else { return .none }
                 state.pendingBoard = nil
-                let hub = { (action: GrownupHubFeature.Action) in
-                    Effect<Action>.send(.path(.element(id: id, action: .hub(action))))
-                }
-                switch board {
-                case .c1: return .none
-                case .e6: return snapshot?.kids.dropFirst().first.map { hub(.kidTabTapped($0.id)) } ?? .none
-                case .c2: return hub(.busesRowTapped)
-                case .c3: return hub(.addWeeklyTapped)
-                case .c4: return hub(.addOnceTapped)
-                case .c5: return hub(.missionsRowTapped)
-                case .c6: return hub(.dayRowTapped)
-                }
+                openBoard(board, kids: kids, first: first, &state)
+                return .none
+
+            case .path(.element(id: _, action: .ourDay(.delegate(.finished)))):
+                state.path.removeAll()
+                state.grownupIdleSeconds = nil
+                state.relockCaption = nil
+                return .none
+
+            case let .path(.element(id: _, action: .ourDay(.delegate(.openSettings(kid))))):
+                state.path.append(.hub(GrownupHubFeature.State(kid: kid)))
+                return .none
+
+            case let .path(.element(id: _, action: .ourDay(.delegate(.add(kid, repeats))))):
+                state.path.append(.editor(ItemEditorFeature.State(mode: .add(.kid(kid)), repeats: repeats,
+                                                                  now: date.now, calendar: calendar)))
+                return .none
+
+            case let .path(.element(id: id, action: .ourDay(.delegate(.openItem(itemID))))):
+                guard case let .ourDay(day) = state.path[id: id],
+                      let item = day.items.first(where: { $0.id == itemID }) else { return .none }
+                let mode: ItemEditorFeature.Mode = item.isWeekly ? .editWeekly(item) : .editOnce(item)
+                state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar)))
+                return .none
 
             case .home(.missionsTapped):
                 if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State())) }
@@ -300,10 +314,10 @@ public struct AppFeature {
                 state.relockCaption = nil
                 return .none
 
-            case .path(.element(id: _, action: .hub(.backTapped))):
-                state.path.removeAll()
-                state.grownupIdleSeconds = nil
-                state.relockCaption = nil
+            case let .path(.element(id: id, action: .hub(.backTapped))),
+                 let .path(.element(id: id, action: .hub(.dayRowTapped))):
+                // Settings sits over Our day (board G6): back returns to the clock.
+                state.path.pop(from: id)
                 return .none
 
             case let .path(.element(id: id, action: .hub(.addWeeklyTapped))),
@@ -322,12 +336,6 @@ public struct AppFeature {
                 state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar)))
                 return .none
 
-            case let .path(.element(id: id, action: .hub(.dayRowTapped))):
-                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
-                state.path.append(.ourDay(OurDayFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
-                                                              calendar: calendar)))
-                return .none
-
             case let .path(.element(id: id, action: .hub(.missionsRowTapped))):
                 guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
                 state.path.append(.missionEditor(MissionEditorFeature.State(kid: kid)))
@@ -343,10 +351,6 @@ public struct AppFeature {
                 return .none
 
             case let .path(.element(id: id, action: .busSettings(.delegate(.finished)))):
-                state.path.pop(from: id)
-                return .none
-
-            case let .path(.element(id: id, action: .ourDay(.delegate(.finished)))):
                 state.path.pop(from: id)
                 return .none
 
@@ -398,10 +402,42 @@ public struct AppFeature {
         }
     }
 
+    /// A debug link's board over Our day (or over the hub when no home was loaded yet).
+    private func openBoard(_ board: GrownupBoard, kids: [Kid], first: Kid, _ state: inout State) {
+        switch board {
+        case .c6:
+            break
+        case .c1:
+            if case .hub? = state.path.last { break }
+            state.path.append(.hub(GrownupHubFeature.State(kid: first.id)))
+        case .e6:
+            let second = kids.dropFirst().first?.id ?? first.id
+            if case var .hub(hub)? = state.path.last, let id = state.path.ids.last {
+                hub.selectedKid = second
+                state.path[id: id] = .hub(hub)
+            } else {
+                state.path.append(.hub(GrownupHubFeature.State(kid: second)))
+            }
+        case .c2:
+            state.path.append(.busSettings(BusSettingsFeature.State(kid: first.id)))
+        case .c3, .c4:
+            state.path.append(.editor(ItemEditorFeature.State(mode: .add(.kid(first.id)), repeats: board == .c3 ? .weekly : .once,
+                                                              now: date.now, calendar: calendar)))
+        case .c5:
+            state.path.append(.missionEditor(MissionEditorFeature.State(kid: first.id)))
+        }
+    }
+
+    /// Grown-up mode opens on the day on the clock (board G1) for the first kid.
     private func openGrownupScreens(_ state: inout State) {
         state.lock = nil
         state.grownupIdleSeconds = 0
-        state.path.append(.hub(GrownupHubFeature.State()))
+        guard let kid = state.home.days.first?.kid.id else {
+            state.path.append(.hub(GrownupHubFeature.State()))
+            return
+        }
+        state.path.append(.ourDay(OurDayFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                      calendar: calendar)))
     }
 
     /// Back to the home screen; the next grown-up screen needs Face ID again. Unsaved forms are dropped.

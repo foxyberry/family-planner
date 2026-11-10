@@ -81,7 +81,43 @@ public struct OurDayFeature {
             case kid(Kid.ID)
             case dayType(DayType)
             case back
+            /// Board G8: the List (or back to the clock); G6: Settings.
+            case list(Bool)
+            case settings
         }
+
+        /// Board G8: the kid's items as a list instead of the clock.
+        public var showsList = false
+        /// Every item, for the List.
+        public var items: [ScheduleItem] = []
+        public var nowMinute = 0
+
+        public var kidInfo: Kid? { kids.first { $0.id == kid } }
+
+        /// Board G8: "Every week" (School first, then activities) and "Just once".
+        public var listSections: [ListSection] {
+            guard let kid = kidInfo else { return [] }
+            var weekly: [ListSection.Row] = []
+            if let school = kid.school {
+                weekly.append(ListSection.Row(target: .school, picture: "actSchool", title: school.name, // copy-ok: a KitSlot name
+                                              detail: L10n.tr("list.detail", DayText.chips(school.days),
+                                                              TimeText.hours(school.start, school.end))))
+            }
+            weekly += HubModel.weeklyRows(kid: kid, items: items).map {
+                ListSection.Row(target: .item($0.id), picture: $0.iconName, title: $0.title,
+                                detail: L10n.tr("list.detail", $0.when, $0.time))
+            }
+            let once = HubModel.onceRows(kid: kid, items: items, routines: routines, today: today, nowMinute: nowMinute,
+                                         calendar: calendar).map {
+                ListSection.Row(target: .item($0.id), picture: $0.iconName, title: $0.title, detail: $0.detail)
+            }
+            return [ListSection(title: L10n.tr("list.every_week"), rows: weekly),
+                    ListSection(title: L10n.tr("list.once"), rows: once)].filter { !$0.rows.isEmpty }
+        }
+
+        /// Board G1: Undo and Redo, each on when it has a step to take.
+        public var canUndo: Bool { edit.isChanged }
+        public var canRedo: Bool { edit.canRedo }
 
         public init(kid: Kid.ID, today: Day, calendar: Calendar) {
             self.kid = kid
@@ -153,6 +189,14 @@ public struct OurDayFeature {
         case newSlicePicturePicked(String)
         case newSliceAddTapped
         case undoTapped
+        case redoTapped
+        /// Board G1 header: List (a toggle) and Settings.
+        case listTapped
+        case settingsTapped
+        /// Board G8: a row (School or an item) and the side column's adds.
+        case listRowTapped(ListSection.Target)
+        case addWeeklyTapped
+        case addOnceTapped
         case saveTapped
         case saved(Result<Routine, SaveError>)
         case backTapped
@@ -162,8 +206,11 @@ public struct OurDayFeature {
 
         @CasePathable
         public enum Delegate: Equatable {
-            /// Saved or left: the app pops this screen.
+            /// "←": the app leaves grown-up mode.
             case finished
+            case openSettings(Kid.ID)
+            case openItem(ScheduleItem.ID)
+            case add(Kid.ID, ItemForm.Repeat)
         }
     }
 
@@ -171,6 +218,7 @@ public struct OurDayFeature {
 
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.calendar) var calendar
+    @Dependency(\.date) var date
 
     public init() {}
 
@@ -182,11 +230,13 @@ public struct OurDayFeature {
                 return .none
 
             case .task:
+                state.nowMinute = Day.minute(of: date.now, calendar: calendar)
                 return .run { [scheduleStore] send in await send(.loaded(try? await scheduleStore.load())) }
 
             case let .loaded(snapshot):
                 state.kids = snapshot?.kids ?? []
                 state.routines = snapshot?.routines ?? []
+                state.items = snapshot?.items ?? []
                 loadTemplate(&state)
                 return .none
 
@@ -278,6 +328,29 @@ public struct OurDayFeature {
                 state.message = nil
                 return .none
 
+            case .redoTapped:
+                state.edit.redo()
+                state.message = nil
+                return .none
+
+            case .listTapped:
+                return ask(.list(!state.showsList), &state)
+
+            case .settingsTapped:
+                return ask(.settings, &state)
+
+            case let .listRowTapped(target):
+                switch target {
+                case .school: return .none
+                case let .item(id): return .send(.delegate(.openItem(id)))
+                }
+
+            case .addWeeklyTapped:
+                return .send(.delegate(.add(state.kid, .weekly)))
+
+            case .addOnceTapped:
+                return .send(.delegate(.add(state.kid, .once)))
+
             case .saveTapped:
                 let routine = Routine(kid: state.kid, dayType: state.dayType, from: state.tomorrow(calendar: calendar),
                                       blocks: state.edit.blocks)
@@ -295,7 +368,8 @@ public struct OurDayFeature {
                 state.routines.append(routine)
                 state.edit.markSaved()
                 state.saveError = nil
-                return .send(.delegate(.finished))
+                // Grown-up mode stays on the clock after a save (board G1).
+                return .none
 
             case .saved(.failure):
                 state.saveError = L10n.tr("day.save_failed")
@@ -355,6 +429,13 @@ public struct OurDayFeature {
             return .none
         case .back:
             return .send(.delegate(.finished))
+        case let .list(shows):
+            loadTemplate(&state)
+            state.showsList = shows
+            return .none
+        case .settings:
+            loadTemplate(&state)
+            return .send(.delegate(.openSettings(state.kid)))
         case nil:
             return .none
         }
@@ -375,4 +456,25 @@ public struct OurDayFeature {
             break
         }
     }
+}
+
+/// Board G8: a titled block of the List.
+public struct ListSection: Equatable, Sendable {
+    public enum Target: Hashable, Sendable {
+        case school
+        case item(ScheduleItem.ID)
+    }
+
+    public struct Row: Equatable, Identifiable, Sendable {
+        public var target: Target
+        /// A `KitSlot` raw value.
+        public var picture: String
+        public var title: String
+        /// "Mon · Wed · 3:30–4:30 pm", "Sat 14 Nov · 2:00–4:00 pm".
+        public var detail: String
+        public var id: Target { target }
+    }
+
+    public var title: String
+    public var rows: [Row]
 }
