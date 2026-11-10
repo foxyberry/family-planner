@@ -86,6 +86,8 @@ public struct MissionsFeature {
 
     @ObservableState
     public struct State: Equatable {
+        /// Day or night (board A2 night), the kid home's look; the app keeps it in step.
+        public var look: KidLook = .day
         public var today: Day?
         /// The day's weekday, for the weekend greeting (board A2t-w).
         public var weekday: Weekday?
@@ -108,7 +110,9 @@ public struct MissionsFeature {
         public var now: Date?
         /// "Not yet" asks once before a ready kid is undone.
 
-        public init() {}
+        public init(look: KidLook = .day) {
+            self.look = look
+        }
 
         public var chosenKid: Kid? { kids.first { $0.id == chosen } }
 

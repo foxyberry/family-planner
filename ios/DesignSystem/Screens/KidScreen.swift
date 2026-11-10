@@ -8,15 +8,20 @@ import SwiftUI
 public struct KidFullScreen<Body: View>: View {
     private let look: KidLook
     private let wipeFrom: CGPoint?
+    private let nightTokens: Bool
     private let content: () -> Body
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The page colour under a running wipe; `nil` when no wipe runs.
     @State private var under: KidLook?
     @State private var wipe: CGFloat = 0
 
-    public init(look: KidLook = .day, wipeFrom: CGPoint? = nil, @ViewBuilder content: @escaping () -> Body) {
+    /// `nightTokens`: at night the colour tokens take their night values (A2's night board); the kid
+    /// home keeps the light ones and draws its night from `KidLook`.
+    public init(look: KidLook = .day, wipeFrom: CGPoint? = nil, nightTokens: Bool = false,
+                @ViewBuilder content: @escaping () -> Body) {
         self.look = look
         self.wipeFrom = wipeFrom
+        self.nightTokens = nightTokens
         self.content = content
     }
 
@@ -26,7 +31,7 @@ public struct KidFullScreen<Body: View>: View {
             .background { page.ignoresSafeArea() }
             .foregroundStyle(look.ink)
             // Kid screens take their night look from `KidLook`, never from the colour tokens.
-            .environment(\.colorScheme, .light)
+            .environment(\.colorScheme, nightTokens && look == .night ? .dark : .light)
             // The status bar follows the app's root (`AppView`), which knows what is on top.
             .onChange(of: look) { old, _ in
                 guard wipeFrom != nil, !reduceMotion else { return }

@@ -1992,6 +1992,17 @@
         }
       }
     },
+    "item_missions.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missions · %@"
+          }
+        }
+      }
+    },
     "kid.next" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2625,7 +2636,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Missions · %@"
+            "value" : "Good morning!"
           }
         }
       }

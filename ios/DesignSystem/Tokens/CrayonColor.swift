@@ -59,6 +59,8 @@ public enum CrayonColor {
     public static let tick = CrayonPalette.card.color
     /// The edit clock's face under the slots: paper by day, lit paper in dark mode (a lit ground).
     public static let clockFace = adaptive(CrayonPalette.paper, night: CrayonPalette.litPaper)
+    /// Lit grounds under drawn scenery (A2's way strip): the page by day, lit paper in dark mode.
+    public static let litGround = adaptive(CrayonPalette.paper, night: CrayonPalette.litPaper)
     /// The layer behind a card: ink 35 % by day, black 45 % in dark mode.
     public static let dim = adaptiveDim()
 

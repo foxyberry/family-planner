@@ -21,7 +21,7 @@ public struct MissionsView: View {
         // Spec "A2 redlines" through "Sizing formulas": every part sits on the board's lines
         // (64, 448, 1312; baselines 107, 584, 757). No part's place comes from its content.
         let layout = MorningLayout(sizing: sizing)
-        KidFullScreen {
+        KidFullScreen(look: store.look, nightTokens: true) {
             ZStack(alignment: .topLeading) {
                 header(layout)
                 strip.place(layout.strip)
@@ -94,11 +94,14 @@ public struct MissionsView: View {
                 // Board A3: the medal badge on the ring's lower right, dropping in once.
                 MedalBadge(medal, ring: layout.kidRing(index).width).place(layout.kidRing(index))
             }
-            Text(row.kid.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
+            // The chosen row's band is a crayon on-state: its words stay ink at night.
+            let onBand = row.id == store.chosen
+            Text(row.kid.name).crayonType(.body, bold: true)
+                .foregroundStyle(onBand ? CrayonColor.pictureInk : CrayonColor.ink)
                 .place(left: layout.kidTextLeft, baseline: layout.kidNameBaseline(index))
             // Ready rows read "Ready! Gold" in bold on-time green (board A3).
             Text(store.state.caption(row)).crayonType(.caption, bold: row.isReady)
-                .foregroundStyle(row.isReady ? CrayonColor.onTimeText : CrayonColor.softText)
+                .foregroundStyle(row.isReady ? CrayonColor.onTimeText : onBand ? CrayonColor.pictureSoftText : CrayonColor.softText)
                 .place(left: layout.kidTextLeft, baseline: layout.kidCaptionBaseline(index))
             Button { store.send(.kidTapped(row.kid.id)) } label: { Color.clear.contentShape(Rectangle()) }
                 .buttonStyle(.plain)

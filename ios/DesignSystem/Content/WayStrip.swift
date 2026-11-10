@@ -185,10 +185,13 @@ public struct WayStrip: View {
 
     private func scenery(_ g: Geo) -> some View {
         ZStack(alignment: .topLeading) {
+            // Spec "Night mapping": the strip is a lit ground, so its art and labels read as by day.
+            RoundedRectangle(cornerRadius: g.len(36)).fill(CrayonColor.litGround)
+                .frame(width: g.x(Self.size.width), height: g.y(Self.size.height))
             CrayonSurface(.roundedRect(cornerRadius: g.len(36)),
                           fill: CrayonFill(color: CrayonColor.meadow,
                                            hachure: HachureStyle(degrees: -35, gap: 12, washOpacity: 0.22)),
-                          markerColor: CrayonColor.marker, seed: CrayonStyle.Seed.way)
+                          markerColor: CrayonColor.pictureMarker, seed: CrayonStyle.Seed.way)
                 // The ground's visible edge is the strip's edge (64 and 1312 on the screen).
                 .frame(width: g.x(Self.size.width), height: g.y(Self.size.height))
             ForEach(Self.trees.indices, id: \.self) { index in
@@ -196,11 +199,11 @@ public struct WayStrip: View {
                 let centre = g.point(tree.x, tree.y)
                 CrayonLine([CGPoint(x: centre.x, y: centre.y + r - g.len(4)),
                             CGPoint(x: centre.x, y: centre.y + r + g.len(18))],
-                           marker: .standard.with(width: 5), color: CrayonColor.marker,
+                           marker: .standard.with(width: 5), color: CrayonColor.pictureMarker,
                            seed: CrayonStyle.Seed.way + UInt32(30 + index))
                 CrayonSurface(.circle, fill: CrayonFill(color: CrayonColor.leaf,
                                                         hachure: HachureStyle(degrees: -40, gap: 4)),
-                              markerColor: CrayonColor.marker, seed: CrayonStyle.Seed.way + UInt32(40 + index))
+                              markerColor: CrayonColor.pictureMarker, seed: CrayonStyle.Seed.way + UInt32(40 + index))
                     .frame(width: 2 * (r + inset), height: 2 * (r + inset))
                     .offset(x: centre.x - r - inset, y: centre.y - r - inset)
             }
@@ -212,19 +215,19 @@ public struct WayStrip: View {
         let homeFoot = Self.roadY - 28, destinationFoot = Self.roadY - 15
         return ZStack(alignment: .topLeading) {
             stems(g, [(Self.homeX, homeFoot), (Self.destinationX, destinationFoot)])
-            CrayonLine(road, marker: MarkerStyle(width: g.len(28), roughness: 1, bowing: 0.6), color: CrayonColor.marker,
+            CrayonLine(road, marker: MarkerStyle(width: g.len(28), roughness: 1, bowing: 0.6), color: CrayonColor.pictureMarker,
                        seed: CrayonStyle.Seed.way + 50)
             CrayonLine(road, marker: MarkerStyle(width: g.len(17), roughness: 1.3, bowing: 0.6), color: CrayonColor.leaf,
                        seed: CrayonStyle.Seed.way + 51)
             if showsStops {
                 ForEach(Self.stopXs.indices, id: \.self) { index in
-                    stop(g, x: Self.stopXs[index], radius: 15, fill: CrayonStyle.paper, width: 4.5,
+                    stop(g, x: Self.stopXs[index], radius: 15, fill: CrayonStyle.pictureGround, width: 4.5,
                          seed: CrayonStyle.Seed.way + UInt32(60 + index))
                 }
             }
-            stop(g, x: Self.destinationX, radius: 15, fill: CrayonStyle.paper, width: 4.5, seed: CrayonStyle.Seed.way + 64)
-            stop(g, x: Self.homeX, radius: 28, fill: CrayonStyle.paper, width: 6, seed: CrayonStyle.Seed.way + 65)
-            stop(g, x: Self.homeX, radius: 11, fill: CrayonStyle.ink, width: 3, seed: CrayonStyle.Seed.way + 66)
+            stop(g, x: Self.destinationX, radius: 15, fill: CrayonStyle.pictureGround, width: 4.5, seed: CrayonStyle.Seed.way + 64)
+            stop(g, x: Self.homeX, radius: 28, fill: CrayonStyle.pictureGround, width: 6, seed: CrayonStyle.Seed.way + 65)
+            stop(g, x: Self.homeX, radius: 11, fill: CrayonFill(color: CrayonColor.pictureMarker, hachure: nil), width: 3, seed: CrayonStyle.Seed.way + 66)
         }
     }
 
@@ -247,7 +250,7 @@ public struct WayStrip: View {
                     y += 10
                 }
             }
-            context.stroke(path, with: .color(CrayonColor.marker),
+            context.stroke(path, with: .color(CrayonColor.pictureMarker),
                            style: StrokeStyle(lineWidth: g.len(5), lineCap: .round))
         }
         .accessibilityHidden(true)
@@ -255,7 +258,7 @@ public struct WayStrip: View {
 
     private func stop(_ g: Geo, x: CGFloat, radius: CGFloat, fill: CrayonFill, width: CGFloat, seed: UInt32) -> some View {
         let marker = MarkerStyle.standard.with(width: g.len(width)), outer = g.len(radius) + marker.inset
-        return CrayonSurface(.circle, fill: fill, marker: marker, markerColor: CrayonColor.marker, seed: seed)
+        return CrayonSurface(.circle, fill: fill, marker: marker, markerColor: CrayonColor.pictureMarker, seed: seed)
             .frame(width: 2 * outer, height: 2 * outer)
             .offset(x: g.x(x) - outer, y: g.y(Self.roadY) - outer)
     }
@@ -297,7 +300,7 @@ public struct WayStrip: View {
             // (an empty plate read as broken on the iPad, 2026-11-09).
             HStack(spacing: Spacing.xs) {
                 NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true, small: true)
-                Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink).fixedSize()
+                Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
             }
             .offset(x: 946 * kx, y: 16 * k)
             ForEach(live.buses.filter(\.showsBubble)) { bus in
@@ -321,7 +324,7 @@ public struct WayStrip: View {
         let half = min(100, Self.rightEdge - x)
         return Color.clear.frame(width: 2 * half * kx, height: 1)
             .overlay(alignment: .topTrailing) {
-                Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink)
+                Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
                     .lineLimit(1).fixedSize()
                     .frame(minWidth: 2 * half * kx)
             }
@@ -332,13 +335,14 @@ public struct WayStrip: View {
         HStack(spacing: Spacing.s) {
             if let owner { KidFace(owner.0, name: owner.1, size: 40) }
             VStack(alignment: .leading, spacing: Spacing.xxs) {
-                Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                if let caption { Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText) }
+                Text(title).crayonType(.head).foregroundStyle(CrayonColor.pictureInk)
+                if let caption { Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText) }
             }
         }
         .padding(.horizontal, Spacing.m)
         .padding(.vertical, Spacing.xs)
-        .crayonBackground(.roundedRect(cornerRadius: 18), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 21)
+        .background(CrayonSurface(.roundedRect(cornerRadius: 18), fill: CrayonStyle.pictureGround,
+                                  markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.card + 21))
         .fixedSize()
     }
 }
