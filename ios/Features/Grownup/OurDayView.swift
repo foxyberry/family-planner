@@ -6,7 +6,7 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// C6 · Our day (board C6): drag the times of a kid's day on the clock.
+/// G1 · The day on the clock (boards G1, G1c, G1d): drag the times of a kid's day on a real date.
 public struct OurDayView: View {
     @Bindable var store: StoreOf<OurDayFeature>
 
@@ -25,9 +25,8 @@ public struct OurDayView: View {
             }
             if store.isConfirmingLeave {
                 CrayonColor.dim.ignoresSafeArea()
-                ConfirmCard(title: L10n.tr("day.leave.title"), message: nil, cancel: L10n.tr("day.leave.keep"),
-                            confirm: L10n.tr("day.leave.leave"), isDestructive: true,
-                            onCancel: { store.send(.leaveCancelled) }, onConfirm: { store.send(.leaveConfirmed) })
+                    .onTapGesture { store.send(.leaveCancelled) }
+                unsavedCard
             }
         }
         .sensoryFeedback(.impact(flexibility: .soft), trigger: store.haptics.steps)
@@ -159,38 +158,102 @@ public struct OurDayView: View {
     /// Board C6 (layout v6): the tabs and the slice card from the top; "Changes start tomorrow." just
     /// above the Save button and the hint above that, placed from the button up. When the hint would
     /// come within 8 of the card (short iPads) it is left out and stays the clock's VoiceOver hint.
+    /// Board G1: the day button (382 × 72) over the slice card; the G1c picker opens over the card.
     private func sideColumn(_ layout: GrownupLayout) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
-            CrayonTabs(selection: Binding(get: { store.dayType }, set: { store.send(.dayTypeTapped($0)) }),
-                       items: [(DayType.weekday, L10n.tr("day.type.weekday"), nil),
-                               (.saturday, L10n.tr("day.type.saturday"), nil),
-                               (.sunday, L10n.tr("day.type.sunday"), nil)], compact: true)
-                .fixedSize(horizontal: false, vertical: true)
-            if store.showsHolidayNote {
-                Text(L10n.tr("day.sun_holidays")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-            }
-            // Board C6: the slice card is a fixed 382 × 440 box (a new slice's form may grow it); the
-            // bottom stack hangs from the Save button.
+        VStack(alignment: .leading, spacing: Spacing.m) {
+            dayButton
+            // Board G1: the slice card is a fixed 382 × 440 box (a new slice's form may grow it).
             PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
                 .frame(minHeight: 440 * layout.sizing.s, alignment: .top)
-            Spacer(minLength: Spacing.xs)
-            ViewThatFits(in: .vertical) {
-                VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    Text(L10n.tr("day.hint")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                        .fixedSize(horizontal: false, vertical: true)
-                    tomorrow
+                .overlay(alignment: .topTrailing) {
+                    if store.pickerStart != nil { dayPicker.offset(y: -Spacing.s) }
                 }
-                tomorrow
-            }
-            // Board C6: "Changes start tomorrow." on baseline 850, so its descenders stay above the
-            // paper behind the Save button (the line box is the type's own height, spec "Line height
-            // is total").
-            .padding(.bottom, Spacing.xs)
+            Spacer(minLength: 0)
         }
     }
 
-    private var tomorrow: some View {
-        Text(L10n.tr("day.tomorrow")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+    /// "Today Mon 9 Nov ⌄" (the today word bold, the date soft); another day reads "Sat 14 Nov".
+    private var dayButton: some View {
+        Button { store.send(.dayButtonTapped) } label: {
+            HStack(spacing: Spacing.sm) {
+                if let today = store.dayButtonToday {
+                    Text(today).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
+                    Text(store.dayButtonDate).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                } else {
+                    Text(store.dayButtonDate).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
+                }
+                Spacer(minLength: 0)
+                MarkerIcon(.chevronDown, size: 28, color: CrayonColor.softText)
+            }
+            .padding(.horizontal, Spacing.m)
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .partBackground(.capsule, fill: CrayonStyle.paper, seed: 75)
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Board G1c: the month, ‹ ›, two weeks of date chips (today underlined, the day in sky) and "Today".
+    private var dayPicker: some View {
+        PaperCard(seed: 77) {
+            VStack(alignment: .leading, spacing: Spacing.m) {
+                HStack {
+                    Text(store.pickerMonth).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                    Spacer()
+                    RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("day.picker.earlier")) {
+                        store.send(.pickerPageTapped(-1))
+                    }
+                    .size(64)
+                    RoundButton(glyph: .chevronRight, accessibilityLabel: L10n.tr("day.picker.later")) {
+                        store.send(.pickerPageTapped(1))
+                    }
+                    .size(64)
+                }
+                ForEach(0..<2, id: \.self) { week in
+                    HStack(spacing: Spacing.xs) {
+                        ForEach(store.pickerDays.dropFirst(7 * week).prefix(7), id: \.self) { day in
+                            DateChip(weekday: store.state.pickerWeekday(day), day: day.day, isOn: day == store.day,
+                                     isToday: day == store.today, compact: true) {
+                                store.send(.pickerDayTapped(day))
+                            }
+                        }
+                    }
+                }
+                Button { store.send(.pickerTodayTapped) } label: {
+                    Text(L10n.tr("day.picker.today")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        // Seven 70-wide chips 8 apart fit inside; "Wed" needs the 70 at the 24 caption size.
+        .frame(width: 600)
+    }
+
+    /// Board G1d: "Save the changes?", the change in one line, then Save · Don't save · Cancel.
+    private var unsavedCard: some View {
+        PaperCard(seed: 79) {
+            VStack(alignment: .leading, spacing: Spacing.m) {
+                Text(L10n.tr("day.unsaved.title")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                if let line = store.unsavedLine {
+                    GlyphText(line, glyph: .arrowRight, type: .body, color: CrayonColor.softText)
+                }
+                HStack(spacing: Spacing.l) {
+                    InkButton(L10n.tr("day.unsaved.save"), height: 80) { store.send(.unsavedSaveTapped) }
+                        .frame(width: 200)
+                    Button { store.send(.leaveConfirmed) } label: {
+                        Text(L10n.tr("day.unsaved.discard")).crayonType(.body, bold: true)
+                            .foregroundStyle(CrayonColor.lateText)
+                    }
+                    .buttonStyle(.plain)
+                    Button { store.send(.leaveCancelled) } label: {
+                        Text(L10n.tr("day.unsaved.cancel")).crayonType(.body, bold: true)
+                            .foregroundStyle(CrayonColor.softText)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(minHeight: 300, alignment: .topLeading)
+        }
+        .frame(width: 560)
     }
 
     @ViewBuilder private var card: some View {
@@ -215,6 +278,11 @@ public struct OurDayView: View {
                     if block.kind != .free { KitIcon(KitSlot(iconName: block.iconName), size: 64) }
                     Text(block.title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
+                // Spec "Edit scope": This day / All days under the title.
+                CrayonTabs(selection: Binding(get: { store.saveScope }, set: { store.send(.scopeTapped($0)) }),
+                           items: [(OurDayFeature.Scope.thisDay, L10n.tr("day.scope.this"), nil),
+                                   (.allDays, L10n.tr("day.scope.all"), nil)], compact: true)
+                    .fixedSize(horizontal: false, vertical: true)
                 timeRow(L10n.tr("day.starts"), label: store.startLabel ?? "", date: store.startDate) {
                     store.send(.startPicked($0))
                 }

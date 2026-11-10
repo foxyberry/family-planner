@@ -6,13 +6,15 @@ import CoreGraphics
 public enum MarkerGlyph: String, CaseIterable, Sendable {
     /// `handle` is the drag handle ≡ of reorderable rows (C5); `lock` the grown-up lock (S4, over a
     /// yellow crayon body: `LockMark`). New cases go last: the order seeds them.
-    case chevronLeft, chevronRight, arrowRight, plus, minus, handle, lock, close, undo, redo
+    case chevronLeft, chevronRight, arrowRight, plus, minus, handle, lock, close, undo, redo, chevronDown
 
     /// The strokes in the 48 box (spec paths).
     public var strokes: [[CGPoint]] {
         switch self {
         case .chevronLeft: [[p(30, 10), p(16, 24), p(30, 38)]]
         case .chevronRight: [[p(18, 10), p(32, 24), p(18, 38)]]
+        // G1's day button: the picker opens below.
+        case .chevronDown: [[p(10, 18), p(24, 32), p(38, 18)]]
         case .arrowRight: [[p(10, 24), p(38, 24)], [p(26, 12), p(38, 24), p(26, 36)]]
         case .plus: [[p(24, 10), p(24, 38)], [p(10, 24), p(38, 24)]]
         case .minus: [[p(10, 24), p(38, 24)]]

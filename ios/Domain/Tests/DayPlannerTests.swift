@@ -55,6 +55,19 @@ final class DayPlannerTests: XCTestCase {
         XCTAssertEqual(F.slots(on: F.thursday, routines: routines).map(\.title), ["New"])
     }
 
+    /// G1 "This day": a day's own template wins on that date only.
+    func testADaysOwnTemplateWinsOnThatDayOnly() {
+        let all = Routine(kid: F.kidA.id, dayType: .weekday, from: F.templatesFrom,
+                          blocks: [F.block("Usual", .play, 600, 700)])
+        let thursday = Routine.day(F.thursday, kid: F.kidA.id, dayType: .weekday,
+                                   blocks: [F.block("Just Thursday", .play, 600, 700)])
+        let routines = [all, thursday]
+        XCTAssertEqual(F.slots(on: F.thursday, routines: routines).map(\.title), ["Just Thursday"])
+        XCTAssertEqual(F.slots(on: F.wednesday, routines: routines).map(\.title), ["Usual"])
+        XCTAssertEqual(F.slots(on: F.thursday.adding(days: 7, calendar: F.calendar), routines: routines).map(\.title),
+                       ["Usual"], "not the next Thursday")
+    }
+
     func testFreeSlotHasNoPictureButIsASlot() {
         let routine = Routine(kid: F.kidA.id, dayType: .weekday, from: F.templatesFrom, blocks: [
             F.block("Snack", .play, 900, 960),

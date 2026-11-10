@@ -1,7 +1,9 @@
 @testable import AppCore
 import AppSettings
 import ComposableArchitecture
+import Domain
 import Grownup
+import Home
 import DesignSystem
 import Foundation
 import ParentAuthClient
@@ -232,6 +234,25 @@ final class ParentLockTests: XCTestCase {
         await store.send(.linkOpened(.grownup(.c1)))
         XCTAssertNil(store.state.lock)
         XCTAssertTrue(store.state.opensGrownupOnHomeLoad, "no Face ID; Our day opens once the home has its kids")
+    }
+
+    /// A link at launch, before the settings were read, follows the stored lock (off: no Face ID).
+    func testALinkAtLaunchReadsTheLockSetting() async {
+        var state = AppFeature.State()
+        state.hasFamily = true
+        state.home.days = SeedData.kids.map { HomeFeature.KidDay(kid: $0, dayType: .weekday, slots: []) }
+        let asked = LockIsolated(false)
+        let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+            $0.appSettings.load = { AppSettings(grownupLock: false) }
+            $0.parentAuth.authenticate = { _ in asked.setValue(true); return .success }
+            $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        XCTAssertTrue(store.state.grownupLock, "the default before the settings are read")
+        await store.send(.linkOpened(.grownup(.c6)))
+        XCTAssertFalse(asked.value)
+        XCTAssertTrue(store.state.hasGrownupScreens)
     }
 
     func testGrownupScreensCoveredWhileNotActive() {

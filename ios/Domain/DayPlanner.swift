@@ -33,8 +33,10 @@ public enum DayPlanner {
     /// The kid's template for `day`: the newest one of that day type that starts on or before it.
     public static func template(for kid: Kid.ID, on day: Day, routines: [Routine], holidays: Set<Day>,
                                 calendar: Calendar) -> Routine? {
+        if let own = routines.last(where: { $0.kid == kid && $0.onlyOn == day }) { return own }
         let type = dayType(on: day, holidays: holidays, calendar: calendar)
-        return routines.filter { $0.kid == kid && $0.dayType == type && $0.from <= day }.max { $0.from < $1.from }
+        return routines.filter { $0.kid == kid && $0.onlyOn == nil && $0.dayType == type && $0.from <= day }
+            .max { $0.from < $1.from }
     }
 
     /// The night look's span for a template, or `nil` when it has no evening routine or no

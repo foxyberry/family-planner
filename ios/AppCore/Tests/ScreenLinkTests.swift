@@ -1,4 +1,5 @@
 import AppCore
+import AppSettings
 import ComposableArchitecture
 import Domain
 import Grownup
@@ -57,6 +58,7 @@ final class ScreenLinkTests: XCTestCase {
         state.hasFamily = true
         state.home.today = Day(year: 2027, month: 1, day: 15)
         let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+            $0.appSettings.load = { AppSettings(grownupLock: false) }
             $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
             $0.calendar = Calendar(identifier: .gregorian)
         }
@@ -76,6 +78,7 @@ final class ScreenLinkTests: XCTestCase {
         state.hasFamily = true
         state.home.today = Day(year: 2027, month: 1, day: 15)
         let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+            $0.appSettings.load = { AppSettings(grownupLock: false) }
             $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
             $0.calendar = Calendar(identifier: .gregorian)
         }
@@ -99,7 +102,7 @@ final class ScreenLinkTests: XCTestCase {
         await store.send(.linkOpened(.grownup(.c2)))
         await store.receive(\.parentAuthResponse)
         guard case .ourDay = store.state.path.first else { return XCTFail("\(store.state.path)") }
-        await store.send(.path(.element(id: 0, action: .ourDay(.loaded(snapshot())))))
+        await store.send(.path(.element(id: 0, action: .ourDay(.loaded(snapshot(), family: FamilyCalendar())))))
         guard case .busSettings = store.state.path.last else { return XCTFail("\(store.state.path)") }
         XCTAssertNil(store.state.pendingBoard)
     }
@@ -131,7 +134,7 @@ final class ScreenLinkTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.linkOpened(.grownup(.e6)))
         await store.receive(\.parentAuthResponse)
-        await store.send(.path(.element(id: 0, action: .ourDay(.loaded(snapshot())))))
+        await store.send(.path(.element(id: 0, action: .ourDay(.loaded(snapshot(), family: FamilyCalendar())))))
         guard case let .settings(hub) = store.state.path.last else { return XCTFail("\(store.state.path)") }
         XCTAssertEqual(hub.selectedKid, SeedData.kids[1].id)
     }

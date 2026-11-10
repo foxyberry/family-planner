@@ -106,6 +106,24 @@ public enum DayText {
         return L10n.tr("list.and", names.dropLast().joined(separator: ", "), last)
     }
 
+    /// "November", for a month heading (board G1c).
+    public static func monthLong(_ month: Int) -> String {
+        switch month {
+        case 1: L10n.tr("month.long.jan")
+        case 2: L10n.tr("month.long.feb")
+        case 3: L10n.tr("month.long.mar")
+        case 4: L10n.tr("month.long.apr")
+        case 5: L10n.tr("month.long.may")
+        case 6: L10n.tr("month.long.jun")
+        case 7: L10n.tr("month.long.jul")
+        case 8: L10n.tr("month.long.aug")
+        case 9: L10n.tr("month.long.sep")
+        case 10: L10n.tr("month.long.oct")
+        case 11: L10n.tr("month.long.nov")
+        default: L10n.tr("month.long.dec")
+        }
+    }
+
     private static func monthName(_ month: Int) -> String {
         switch month {
         case 1: L10n.tr("month.jan")

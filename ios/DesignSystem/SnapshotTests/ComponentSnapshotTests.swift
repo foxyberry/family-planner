@@ -633,6 +633,15 @@ final class ComponentSnapshotTests: XCTestCase {
         }, width: 900, dark: true)
     }
 
+    /// Board G1c: the picker's 62 × 84 chips, today underlined, the picked day in sky.
+    func testCompactDateChips() {
+        snap(HStack(spacing: Spacing.xs) {
+            DateChip(weekday: "Mon", day: 9, isOn: false, isToday: true, compact: true) {}
+            DateChip(weekday: "Sat", day: 14, isOn: true, compact: true) {}
+            DateChip(weekday: "Sun", day: 15, isOn: false, compact: true) {}
+        })
+    }
+
     func testKidFullScreen() {
         // The frame fills the window the Sizing describes, from its top-left corner.
         snap(KidFullScreen {

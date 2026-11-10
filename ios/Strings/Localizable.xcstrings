@@ -463,6 +463,17 @@
         }
       }
     },
+    "day.button.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        }
+      }
+    },
     "day.effect" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -525,39 +536,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ starts"
-          }
-        }
-      }
-    },
-    "day.leave.keep" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep editing"
-          }
-        }
-      }
-    },
-    "day.leave.leave" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leave"
-          }
-        }
-      }
-    },
-    "day.leave.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leave without saving?"
           }
         }
       }
@@ -628,6 +606,39 @@
         }
       }
     },
+    "day.picker.earlier" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earlier days"
+          }
+        }
+      }
+    },
+    "day.picker.later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later days"
+          }
+        }
+      }
+    },
+    "day.picker.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        }
+      }
+    },
     "day.redo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -645,7 +656,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save the day"
+            "value" : "Save"
           }
         }
       }
@@ -657,6 +668,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not save. Try again."
+          }
+        }
+      }
+    },
+    "day.scope.all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All days"
+          }
+        }
+      }
+    },
+    "day.scope.this" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This day"
           }
         }
       }
@@ -683,17 +716,6 @@
         }
       }
     },
-    "day.sun_holidays" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sun is also used on school holidays."
-          }
-        }
-      }
-    },
     "day.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -705,50 +727,6 @@
         }
       }
     },
-    "day.tomorrow" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changes start tomorrow."
-          }
-        }
-      }
-    },
-    "day.type.saturday" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sat"
-          }
-        }
-      }
-    },
-    "day.type.sunday" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sun"
-          }
-        }
-      }
-    },
-    "day.type.weekday" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mon–Fri"
-          }
-        }
-      }
-    },
     "day.undo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -756,6 +734,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Undo"
+          }
+        }
+      }
+    },
+    "day.unsaved.all_days" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "all days"
+          }
+        }
+      }
+    },
+    "day.unsaved.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "day.unsaved.discard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't save"
+          }
+        }
+      }
+    },
+    "day.unsaved.line" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ %%@ %3$@, %4$@"
+          }
+        }
+      }
+    },
+    "day.unsaved.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "day.unsaved.this_day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this day"
+          }
+        }
+      }
+    },
+    "day.unsaved.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save the changes?"
           }
         }
       }
@@ -2802,6 +2857,138 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Jun"
+          }
+        }
+      }
+    },
+    "month.long.apr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "April"
+          }
+        }
+      }
+    },
+    "month.long.aug" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "August"
+          }
+        }
+      }
+    },
+    "month.long.dec" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "December"
+          }
+        }
+      }
+    },
+    "month.long.feb" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "February"
+          }
+        }
+      }
+    },
+    "month.long.jan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "January"
+          }
+        }
+      }
+    },
+    "month.long.jul" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "July"
+          }
+        }
+      }
+    },
+    "month.long.jun" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "June"
+          }
+        }
+      }
+    },
+    "month.long.mar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "March"
+          }
+        }
+      }
+    },
+    "month.long.may" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "May"
+          }
+        }
+      }
+    },
+    "month.long.nov" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "November"
+          }
+        }
+      }
+    },
+    "month.long.oct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "October"
+          }
+        }
+      }
+    },
+    "month.long.sep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "September"
           }
         }
       }

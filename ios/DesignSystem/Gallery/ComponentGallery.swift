@@ -50,6 +50,7 @@ public struct ComponentGallery: View {
                         DayChip("T", isOn: $tuesday)
                         DateChip(weekday: "Mon", day: 9, isOn: true) {}
                         DateChip(weekday: "Tue", day: 10, isOn: false) {}
+                        DateChip(weekday: "Wed", day: 11, isOn: false, isToday: true, compact: true) {}
                     }
                     HStack(spacing: Spacing.m) {
                         CrayonField("Activity name", text: $name).frame(width: 480)
