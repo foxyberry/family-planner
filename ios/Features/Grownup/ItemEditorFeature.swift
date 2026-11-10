@@ -34,6 +34,8 @@ public struct ItemEditorFeature {
         case bring(was: [ItemMission])
         /// Runs' end (board G2), with the form as it was (a tap outside puts it back).
         case runsEnd(was: ItemForm)
+        /// No school days (an item after School), with the form as it was.
+        case noSchool(was: ItemForm)
     }
 
     /// One tab under "For": a kid, or both kids.
@@ -168,8 +170,35 @@ public struct ItemEditorFeature {
             return L10n.tr("from.school")
         }
 
-        /// The From row: "Home" or "After School".
-        public var fromText: String { afterTitle.map { L10n.tr("from.after", $0) } ?? L10n.tr("from.home") }
+        /// The From row: "Home", "After School" or "After School · 15 min after" (board G2b).
+        public var fromText: String {
+            guard let afterTitle else { return L10n.tr("from.home") }
+            return form.afterGap == 0 ? L10n.tr("from.after", afterTitle) : L10n.tr("from.after.gap", afterTitle, form.afterGap)
+        }
+
+        /// "15 min after" between − and + in the From card.
+        public var gapText: String { L10n.tr("from.gap", form.afterGap) }
+
+        /// Board G2b: an item after School gets "No school"; it follows School's days, so it has no
+        /// "Skip school holidays".
+        public var showsNoSchool: Bool { form.after == .school }
+        public var showsSkipHolidays: Bool { form.after != .school }
+
+        /// "Skip", or "At 10:00 am".
+        public var noSchoolText: String {
+            form.noSchoolStart.map { L10n.tr("no_school.at", TimeText.withPeriod($0)) } ?? L10n.tr("no_school.skip")
+        }
+        public var noSchoolTime: Date { today.date(minute: form.noSchoolStart ?? form.start, calendar: calendar) }
+        public var noSchoolTimeLabel: String { TimeText.withPeriod(form.noSchoolStart ?? form.start) }
+
+        /// How the kid goes on a day without School: None, Walk, Bus, Car or Taxi.
+        public var noSchoolGoing: [ChoiceCircles.Choice] {
+            goingChoices.map { choice in
+                var copy = choice
+                copy.isPicked = choice.id == (form.noSchoolWay?.rawValue ?? "none")
+                return copy
+            }
+        }
         /// A linked item's start is not typed: "after School".
         public var linkedStartText: String? { afterTitle.map { L10n.tr("from.start", $0) } }
 
@@ -489,6 +518,14 @@ public struct ItemEditorFeature {
         case runsUntilPicked(Date)
         case runsTimesStepped(Int)
         case runsEndDoneTapped
+        /// From card: the minutes after the event.
+        case fromGapStepped(Int)
+        /// No school days card: Skip or a set time, the time, how the kid goes, Done.
+        case noSchoolRowTapped
+        case noSchoolSetTime(Bool)
+        case noSchoolStartPicked(Date)
+        case noSchoolGoingTapped(Domain.Way?)
+        case noSchoolDoneTapped
         /// Boards G2 / G3: the This day / All days tabs.
         case scopeTapped(Scope)
         /// Board G5: the choice, the date, Save and Cancel.
@@ -733,7 +770,8 @@ public struct ItemEditorFeature {
                 if let choice = state.fromChoices.first(where: { State.choiceID($0.event) == id }) {
                     state.form.setFrom(choice)
                 }
-                state.card = nil
+                // Home closes the card; after an event it stays open for the minutes after.
+                if state.form.after == nil { state.card = nil }
                 return .none
 
             case .bringRowTapped:
@@ -756,6 +794,7 @@ public struct ItemEditorFeature {
             case .cardClosed:
                 if case let .bring(was) = state.card { state.form.bring = was }
                 if case let .runsEnd(was) = state.card { state.form = was }
+                if case let .noSchool(was) = state.card { state.form = was }
                 state.card = nil
                 return .none
 
@@ -844,8 +883,28 @@ public struct ItemEditorFeature {
                 state.form.stepTimes(step)
                 return .none
 
-            case .runsEndDoneTapped:
+            case .runsEndDoneTapped, .noSchoolDoneTapped:
                 state.card = nil
+                return .none
+
+            case let .fromGapStepped(step):
+                state.form.stepGap(step)
+                return .none
+
+            case .noSchoolRowTapped:
+                state.card = .noSchool(was: state.form)
+                return .none
+
+            case let .noSchoolSetTime(atSetTime):
+                state.form.setNoSchool(atSetTime: atSetTime)
+                return .none
+
+            case let .noSchoolStartPicked(time):
+                state.form.noSchoolStart = Day.minute(of: time, calendar: state.calendar)
+                return .none
+
+            case let .noSchoolGoingTapped(way):
+                state.form.noSchoolWay = way
                 return .none
 
             case .delegate:

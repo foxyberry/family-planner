@@ -338,7 +338,8 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.card, .from)
         XCTAssertEqual(store.state.fromCircles.map(\.caption), ["Home", "School"])
         await store.send(.fromPicked("school"))
-        XCTAssertNil(store.state.card)
+        XCTAssertEqual(store.state.card, .from, "open for the minutes after")
+        await store.send(.cardClosed)
         XCTAssertEqual(store.state.fromText, "After School")
         XCTAssertEqual(store.state.linkedStartText, "after School")
         XCTAssertEqual(store.state.form.start, 900)
@@ -437,5 +438,39 @@ final class ItemEditorTests: XCTestCase {
         await store.receive(\.loaded)
         XCTAssertEqual(store.state.runsEndText, "No end")
         XCTAssertEqual(store.state.runsEndTabs.map(\.0), [.date, .count, .none])
+    }
+
+    // MARK: Linked time and No school days
+
+    func testAfterSchoolWithAGapAndNoSchoolDays() async {
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let store = store(mode: .add(kidA), saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await fill(store)
+        XCTAssertFalse(store.state.showsNoSchool)
+        await store.send(.fromRowTapped)
+        await store.send(.fromPicked("school"))
+        XCTAssertEqual(store.state.card, .from, "the card stays open for the minutes after")
+        await store.send(.fromGapStepped(1))
+        await store.send(.fromGapStepped(1))
+        await store.send(.fromGapStepped(1))
+        await store.send(.cardClosed)
+        XCTAssertEqual(store.state.fromText, "After School · 15 min after")
+        XCTAssertTrue(store.state.showsNoSchool)
+        XCTAssertFalse(store.state.showsSkipHolidays)
+        XCTAssertEqual(store.state.noSchoolText, "Skip")
+
+        await store.send(.noSchoolRowTapped)
+        await store.send(.noSchoolSetTime(true))
+        await store.send(.noSchoolStartPicked(F.monday.date(minute: 600, calendar: F.calendar)))
+        await store.send(.noSchoolGoingTapped(.walk))
+        await store.send(.noSchoolDoneTapped)
+        XCTAssertEqual(store.state.noSchoolText, "At 10:00 am")
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.first?.afterGap, 15)
+        XCTAssertEqual(saved.value.first?.noSchool?.start, 600)
+        XCTAssertEqual(saved.value.first?.noSchool?.trip?.way, .walk)
     }
 }

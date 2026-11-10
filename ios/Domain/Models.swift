@@ -139,6 +139,18 @@ public struct DayChange: Hashable, Codable, Sendable {
     public var isEmpty: Bool { start == nil && end == nil && title == nil && iconName == nil }
 }
 
+/// What an item that follows School does on a day without School (spec "Repeats, dates and changes",
+/// No school days): it starts from Home at its own time, with its own way of going.
+public struct NoSchoolPlan: Hashable, Codable, Sendable {
+    public var start: Int
+    public var trip: Trip?
+
+    public init(start: Int, trip: Trip? = nil) {
+        self.start = start
+        self.trip = trip
+    }
+}
+
 /// How an every-week item's run ends (spec "Repeats, dates and changes", Runs). `term` is worked out
 /// from the kid's school calendar each time the days are (so a calendar update moves it); `date` and
 /// `count` are kept in the recurrence's `until`.
@@ -234,14 +246,20 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var runsEnd: RunsEnd?
     /// Days changed on their own ("This day"), one per date.
     public var dayChanges: [DayChange]
+    /// Minutes after the event it follows ("School end + 15 min", 0–60 in steps of 5).
+    public var afterGap: Int
+    /// An item after School on a day without School: nil skips it, a plan keeps it at a set time.
+    public var noSchool: NoSchoolPlan?
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
                 recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
                 trip: Trip? = nil, after: EventRef? = nil, bring: [ItemMission] = [],
                 missionsBefore: [ItemMission] = [], missionsAfter: [ItemMission] = [], runsEnd: RunsEnd? = nil,
-                dayChanges: [DayChange] = []) {
+                dayChanges: [DayChange] = [], afterGap: Int = 0, noSchool: NoSchoolPlan? = nil) {
         self.runsEnd = runsEnd
         self.dayChanges = dayChanges
+        self.afterGap = min(max(afterGap / 5 * 5, 0), 60)
+        self.noSchool = after == .school ? noSchool : nil
         self.trip = after == nil ? trip : nil
         self.after = after
         self.bring = Array(bring.prefix(ItemMission.most))
@@ -279,7 +297,7 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id, title, iconName, audience, start, end, recurrence, skippedDays, skipsHolidays, showsStar, trip, after,
-             bring, missionsBefore, missionsAfter, runsEnd, dayChanges
+             bring, missionsBefore, missionsAfter, runsEnd, dayChanges, afterGap, noSchool
     }
 
     /// Items stored before Bring and the item missions existed load with none.
@@ -299,7 +317,9 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
                   missionsBefore: try c.decodeIfPresent([ItemMission].self, forKey: .missionsBefore) ?? [],
                   missionsAfter: try c.decodeIfPresent([ItemMission].self, forKey: .missionsAfter) ?? [],
                   runsEnd: try c.decodeIfPresent(RunsEnd.self, forKey: .runsEnd),
-                  dayChanges: try c.decodeIfPresent([DayChange].self, forKey: .dayChanges) ?? [])
+                  dayChanges: try c.decodeIfPresent([DayChange].self, forKey: .dayChanges) ?? [],
+                  afterGap: try c.decodeIfPresent(Int.self, forKey: .afterGap) ?? 0,
+                  noSchool: try c.decodeIfPresent(NoSchoolPlan.self, forKey: .noSchool))
     }
 }
 

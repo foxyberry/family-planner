@@ -56,7 +56,8 @@ public enum DayPlanner {
     /// Whether `item` falls on `day` for whoever it is for.
     static func matches(_ item: ScheduleItem, on day: Day, holidays: Set<Day>, calendar: Calendar) -> Bool {
         if item.skippedDays.contains(day) { return false }
-        if item.skipsHolidays && holidays.contains(day) { return false }
+        // An item after School follows School's days: its "No school days" decides a day off.
+        if item.skipsHolidays && item.after != .school && holidays.contains(day) { return false }
         switch item.recurrence {
         case let .once(date):
             return date == day
@@ -105,8 +106,10 @@ public enum DayPlanner {
     }
 
     /// The day's items with their start (spec "Events: one shape", From): an item "after" an event
-    /// starts when that event ends and keeps its length; if that event is not on the day (a holiday,
-    /// skipped, another weekday) the item is left out too. Chains resolve in order, a few links deep.
+    /// starts its gap after that event ends and keeps its length; if that event is not on the day (a
+    /// holiday, skipped, another weekday) the item is left out too, unless it follows School and has
+    /// a "No school days" time: then it starts from Home at that time with its own trip. Chains
+    /// resolve in order, a few links deep.
     static func placed(_ items: [ScheduleItem], schoolEnd: Int?) -> [(ScheduleItem, Int)] {
         var ends: [EventRef: Int] = [:]
         if let schoolEnd { ends[.school] = schoolEnd }
@@ -123,10 +126,21 @@ public enum DayPlanner {
         // Each pass places the links whose event is placed; four passes cover any real chain.
         for _ in 0..<4 where !waiting.isEmpty {
             waiting = waiting.filter { item in
-                guard let after = item.after, let start = ends[after] else { return true }
+                guard let after = item.after, let end = ends[after] else { return true }
+                let start = end + item.afterGap
                 placed.append((item, start))
                 ends[.item(item.id)] = start + item.end - item.start
                 return false
+            }
+        }
+        if schoolEnd == nil {
+            for item in waiting where item.after == .school {
+                guard let plan = item.noSchool else { continue }
+                var fromHome = item
+                fromHome.trip = plan.trip
+                fromHome.after = nil
+                placed.append((fromHome, plan.start))
+                ends[.item(item.id)] = plan.start + item.end - item.start
             }
         }
         return placed

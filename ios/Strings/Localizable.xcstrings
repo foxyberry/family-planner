@@ -1101,6 +1101,17 @@
         }
       }
     },
+    "editor.row.no_school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No school"
+          }
+        }
+      }
+    },
     "editor.row.nothing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1350,6 +1361,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "After %@"
+          }
+        }
+      }
+    },
+    "from.after.gap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After %1$@ · %2$lld min after"
+          }
+        }
+      }
+    },
+    "from.gap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min after"
           }
         }
       }
@@ -3011,6 +3044,61 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sep"
+          }
+        }
+      }
+    },
+    "no_school.at" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At %@"
+          }
+        }
+      }
+    },
+    "no_school.card.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No school days"
+          }
+        }
+      }
+    },
+    "no_school.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        }
+      }
+    },
+    "no_school.tab.at" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At a set time"
+          }
+        }
+      }
+    },
+    "no_school.tab.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
           }
         }
       }

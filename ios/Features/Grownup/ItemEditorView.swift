@@ -52,6 +52,7 @@ public struct ItemEditorView: View {
                 case .from: fromCard
                 case .bring: bringCard
                 case .runsEnd: runsEndCard
+                case .noSchool: noSchoolCard
                 }
             }
             if let draft = store.missionDraft {
@@ -199,8 +200,10 @@ public struct ItemEditorView: View {
                 FieldButton(store.runsEndText) { store.send(.runsEndTapped) }
             }
         }
-        row("") {
-            checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
+        if store.showsSkipHolidays {
+            row("") {
+                checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
+            }
         }
         eventRows
     }
@@ -278,6 +281,11 @@ public struct ItemEditorView: View {
         linkRow(L10n.tr("editor.row.from"), action: .fromRowTapped) {
             Text(store.fromText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
         }
+        if store.showsNoSchool {
+            linkRow(L10n.tr("editor.row.no_school"), action: .noSchoolRowTapped) {
+                Text(store.noSchoolText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+            }
+        }
         if store.showsGoing { goingRows }
         linkRow(L10n.tr("editor.row.bring"), action: .bringRowTapped) {
             if let first = store.form.bring.first, let text = store.form.bringText {
@@ -335,6 +343,41 @@ public struct ItemEditorView: View {
             VStack(alignment: .leading, spacing: Spacing.m) {
                 Text(L10n.tr("editor.row.from")).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 ChoiceCircles(store.fromCircles) { store.send(.fromPicked($0)) }
+                if store.form.after != nil {
+                    // "School end + 15 min" (spec "Repeats, dates and changes", Linked time).
+                    HStack(spacing: Spacing.m) {
+                        RoundButton(glyph: .minus, accessibilityLabel: store.gapText) { store.send(.fromGapStepped(-1)) }
+                        Text(store.gapText).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
+                            .frame(width: 180)
+                        RoundButton(glyph: .plus, accessibilityLabel: store.gapText) { store.send(.fromGapStepped(1)) }
+                        Spacer()
+                        InkButton(L10n.tr("c5.done")) { store.send(.cardClosed) }
+                            .frame(width: 200)
+                    }
+                }
+            }
+        }
+        .frame(width: 720)
+    }
+
+    /// No school days (an item after School): Skip, or at a set time from Home with its own Going.
+    private var noSchoolCard: some View {
+        PaperCard(seed: 53) {
+            VStack(alignment: .leading, spacing: Spacing.m) {
+                Text(L10n.tr("no_school.card.title")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                CrayonTabs(selection: Binding(get: { store.form.noSchoolStart != nil }, set: { store.send(.noSchoolSetTime($0)) }),
+                           items: [(false, L10n.tr("no_school.tab.skip"), nil), (true, L10n.tr("no_school.tab.at"), nil)],
+                           itemSize: CGSize(width: 220, height: 72), spacing: Spacing.sm)
+                if store.form.noSchoolStart != nil {
+                    TimeField(label: store.noSchoolTimeLabel,
+                              time: Binding(get: { store.noSchoolTime }, set: { store.send(.noSchoolStartPicked($0)) }))
+                    ChoiceCircles(store.noSchoolGoing) { id in store.send(.noSchoolGoingTapped(Domain.Way(rawValue: id))) }
+                }
+                HStack {
+                    Spacer()
+                    InkButton(L10n.tr("c5.done")) { store.send(.noSchoolDoneTapped) }
+                        .frame(width: 240)
+                }
             }
         }
         .frame(width: 720)
