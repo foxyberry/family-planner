@@ -25,8 +25,7 @@ public struct KidFullScreen<Body: View>: View {
             .modifier(FullScreenFrame())
             .background { page.ignoresSafeArea() }
             .foregroundStyle(look.ink)
-            // Status bar text: dark on day screens, light at night (spec "Status bar").
-            .preferredColorScheme(look == .night ? .dark : .light)
+            // The status bar follows the app's root (`AppView`), which knows what is on top.
             .onChange(of: look) { old, _ in
                 guard wipeFrom != nil, !reduceMotion else { return }
                 under = old

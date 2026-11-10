@@ -46,7 +46,13 @@ final class ComponentSnapshotTests: XCTestCase {
 
     /// Board G0: the pencil, 56 in an 80 circle.
     func testPencilButton() {
-        snap(RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {})
+        snap(HStack(spacing: Spacing.m) {
+            RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {}
+            // Night: the pencil on a night control round.
+            RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {}.look(.night)
+        }
+        .padding(Spacing.m)
+        .background(CrayonColor.night))
     }
 
     /// Board G1: Undo on, Redo off (45 %), 72 each.

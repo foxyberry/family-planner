@@ -1629,6 +1629,17 @@
         }
       }
     },
+    "going.preview.bring" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leave %1$@ %2$@ · bring %3$@."
+          }
+        }
+      }
+    },
     "going.taxi" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2905,6 +2916,17 @@
         }
       }
     },
+    "preview.bring_only" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring %@."
+          }
+        }
+      }
+    },
     "preview.heading.kid" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2912,6 +2934,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@'s %2$@"
+          }
+        }
+      }
+    },
+    "preview.new" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New"
           }
         }
       }
@@ -3791,7 +3824,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add the school's holidays later in Our kids"
+            "value" : "Add the school's holidays later in Settings"
           }
         }
       }
@@ -3901,7 +3934,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Change it later in Our kids."
+            "value" : "Change it later in Settings."
           }
         }
       }

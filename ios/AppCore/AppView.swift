@@ -50,6 +50,10 @@ public struct AppView: View {
         // "Load sample family" in the debug menu replaced the stored family.
         .onChange(of: DebugModel.installed?.familyGeneration) { store.send(.familyReplaced) }
         #endif
+        // One colour scheme for the window (status bar, system fallbacks): dark only for the kid home
+        // at night. Grown-up screens, A2 and setup stay in the day look until their night boards
+        // exist (spec "Night mapping"); a pushed screen cannot override the home underneath.
+        .preferredColorScheme(store.isNightHome ? .dark : .light)
         .environment(\.rigScale, Self.rigScale)
         // Spec "Sizing formulas": one Sizing for the window, read once here.
         .readsSizing()

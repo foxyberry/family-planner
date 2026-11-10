@@ -177,8 +177,9 @@ public struct EditClock: View {
                 Text(above).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
             if let time = hub.time {
-                Text(time).crayonType(.title).foregroundStyle(CrayonColor.pickBlue).lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                // At its own size, centred: shrinking to fit kept a full-width box and leaned the
+                // time left of the hub's middle (iPad review, 2026-11-10). "12:30 pm" fits the hub.
+                Text(time).crayonType(.title).foregroundStyle(CrayonColor.pickBlue).fixedSize()
             }
             if let below = hub.below {
                 Text(below).crayonType(.caption).foregroundStyle(CrayonColor.softText)
@@ -188,6 +189,7 @@ public struct EditClock: View {
                     .multilineTextAlignment(.center)
             }
         }
+        .multilineTextAlignment(.center)
         .frame(width: 2 * Self.hubRadius - Spacing.m)
         .frame(width: 2 * Self.hubRadius, height: 2 * Self.hubRadius)
         .crayonBackground(.circle, fill: CrayonStyle.paper, seed: 3003)

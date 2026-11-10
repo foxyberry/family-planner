@@ -8,6 +8,7 @@ public struct FieldButton: View {
     private let isPlaceholder: Bool
     private let width: CGFloat?
     private let action: () -> Void
+    @Environment(\.fieldHasProblem) private var hasProblem
 
     /// `isPlaceholder`: an example value in `softText`. `width`: fixed; otherwise at least 200.
     public init(_ label: String, isPlaceholder: Bool = false, width: CGFloat? = nil, action: @escaping () -> Void) {
@@ -25,7 +26,8 @@ public struct FieldButton: View {
                 .lineLimit(1)
                 .padding(.horizontal, Spacing.m)
                 .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
-                .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1)
+                .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,
+                                markerColor: hasProblem ? CrayonColor.lateText : .init(white: 0.12))
         }
         .buttonStyle(.plain)
     }

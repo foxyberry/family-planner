@@ -203,8 +203,17 @@ public struct ItemEditorFeature {
         public var linkedStartText: String? { afterTitle.map { L10n.tr("from.start", $0) } }
 
         /// The Bring card's pictures: the kit's bring group, or every picture after "More".
-        public var bringSlots: [KitSlot] { isPickingMoreBring ? KitSlot.allCases : Self.bringGroup }
+        public var bringSlots: [KitSlot] { isPickingMoreBring ? Self.bringAll : Self.bringGroup }
         public static let bringGroup: [KitSlot] = [.backpack, .lunchBox, .waterBottle]
+
+        /// "More" (spec "Event form rows"): object pictures only, never the debug, UI, rig, passenger,
+        /// medal, feeling or face pictures.
+        public static let bringAll: [KitSlot] = KitSlot.allCases.filter { slot in
+            let raw = slot.rawValue
+            let notThings: Set<KitSlot> = [.debugLadybug, .pencil, .skyDay, .skyDusk, .skyNight, .medalGold, .medalSilver,
+                                           .medalBronze, .crown, .star, .kidGirl, .kidBoy, .wolfie, .home]
+            return !notThings.contains(slot) && !raw.contains("Pax") && !raw.hasPrefix("feel") && !raw.hasPrefix("energy") // copy-ok: KitSlot name parts
+        }
         public var bringPicked: Set<KitSlot> { Set(form.bring.compactMap { KitSlot(rawValue: $0.picture) }) }
 
         /// "Missions · Swimming", the sub-page's header.
@@ -285,14 +294,19 @@ public struct ItemEditorFeature {
             let keptStart = !isAdding && form.date == original.date ? original.start : nil
             return form.problem(today: today, nowMinute: nowMinute, keptStart: keptStart)
         }
-        /// The problem shown under `row`, if the form's first problem belongs there.
-        /// The problem shown under a row: none before the first change (board C3 opens with an
-        /// empty name and no warning); Save stays off meanwhile.
+        /// Spec "Add-screen feedback": Save stays on; a tap with a problem shows the problem under
+        /// its field and scrolls there. Until then the form shows no warning (board C3 opens with an
+        /// empty name).
+        public var showsProblems = false
+        public var scrollTarget: GrownupScrollTarget?
+
+        /// The problem shown under `row`, once Save has been tapped with a problem.
         public func problem(for row: FormRow) -> FormProblem? {
-            guard hasChanges else { return nil }
+            guard showsProblems else { return nil }
             return problem.flatMap { $0.row == row ? $0 : nil }
         }
-        public var canSave: Bool { problem == nil && !isSaving }
+        /// Save can always be tapped (it explains a problem instead), except while it saves.
+        public var canSave: Bool { !isSaving }
         public var hasChanges: Bool { form != original }
 
         /// A tab per kid, and "Both" once there are two or more kids.
@@ -332,7 +346,7 @@ public struct ItemEditorFeature {
             guard !isEditingWeekly else { return nil }
             return form.preview(kids: snapshot?.kids ?? [], routines: snapshot?.routines ?? [],
                                 items: family.resolving(snapshot?.items ?? [], calendar: calendar), family: family,
-                                draftID: editingItem?.id ?? draftID, showsDraft: problem == nil, today: today,
+                                draftID: editingItem?.id ?? draftID, showsDraft: form.end > form.start, today: today,
                                 calendar: calendar)
         }
 
@@ -625,6 +639,12 @@ public struct ItemEditorFeature {
 
             case .saveTapped:
                 guard state.canSave else { return .none }
+                if let problem = state.problem {
+                    state.showsProblems = true
+                    state.scrollTarget = GrownupScrollTarget(id: problem.row.rawValue,
+                                                             request: (state.scrollTarget?.request ?? 0) + 1)
+                    return .none
+                }
                 if state.showsScopeTabs, let weekly = state.weeklyItem {
                     guard state.editScope == .thisDay, let day = state.thisDay else {
                         // All days asks from when first (board G5).

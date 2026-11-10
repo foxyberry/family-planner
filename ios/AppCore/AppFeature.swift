@@ -35,6 +35,9 @@ public struct AppFeature {
         public var now: Date?
         public var scenePhase: ScenePhase = .inactive
         public var path = StackState<Path.State>()
+
+        /// The kid home is on screen in its night look (board A1n): the window's dark scheme.
+        public var isNightHome: Bool { setup == nil && path.isEmpty && home.look == .night }
         public var home = HomeFeature.State()
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
         public var lock: LockOverlay.State?

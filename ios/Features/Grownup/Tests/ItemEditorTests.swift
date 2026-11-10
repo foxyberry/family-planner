@@ -223,11 +223,11 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertNil(store.state.saveError, "a change clears the old save error")
     }
 
-    func testCanSaveFollowsProblemAndSaving() async {
+    /// Spec "Add-screen feedback": Save stays on; only a save on its way blocks it.
+    func testCanSaveUnlessSaving() async {
         let store = store(mode: .add(kidA))
-        XCTAssertFalse(store.state.canSave, "no name yet")
+        XCTAssertTrue(store.state.canSave, "on even without a name: it explains instead")
         await fill(store)
-        XCTAssertTrue(store.state.canSave)
         await store.send(.saveTapped)
         XCTAssertFalse(store.state.canSave, "already saving")
     }
@@ -245,18 +245,25 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertTrue(store.state.confirmIsDestructive)
     }
 
-    func testProblemShowsUnderItsRowOnly() async {
-        let store = store(mode: .add(kidA))
-        XCTAssertNil(store.state.problem(for: .name), "board C3: no warning before the first change")
-        XCTAssertFalse(store.state.canSave)
+    /// Spec "Add-screen feedback": Save with a problem shows it under its field and scrolls there;
+    /// nothing is saved, and fixing it moves the caption to the next problem.
+    func testSaveWithAProblemShowsItUnderItsFieldAndScrollsThere() async {
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let store = store(mode: .add(kidA), saved: saved)
+        XCTAssertNil(store.state.problem(for: .name), "board C3: no warning before Save")
         await store.send(.binding(.set(\.form.name, " ")))
+        XCTAssertNil(store.state.problem(for: .name), "still none before Save")
+        await store.send(.saveTapped)
         XCTAssertEqual(store.state.problem(for: .name), .noName)
         XCTAssertNil(store.state.problem(for: .when))
+        XCTAssertEqual(store.state.scrollTarget?.id, "name")
+        XCTAssertEqual(saved.value, [])
         await fill(store)
         await store.send(.binding(.set(\.form.end, 900)))
         XCTAssertNil(store.state.problem(for: .name))
         XCTAssertEqual(store.state.problem(for: .when), .endsBeforeStart)
-        XCTAssertNil(store.state.problem(for: .days))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.scrollTarget, GrownupScrollTarget(id: "when", request: 2))
     }
 
     func testDateChipsNameTheWeekdayAndPageEarlierOnlyAfterPagingOn() async {
@@ -301,7 +308,9 @@ final class ItemEditorTests: XCTestCase {
         await store.receive(\.loaded)
         let draftID = try XCTUnwrap(store.state.draftID)
         XCTAssertNotEqual(draftID, swim.id)
-        XCTAssertEqual(store.state.preview?.rows.filter(\.isNew), [], "no draft while the form has a problem")
+        // Spec "Add-screen feedback": the new item shows as soon as it has a time, "New" until named.
+        XCTAssertEqual(store.state.preview?.rows.filter(\.isNew).map(\.title), ["New"])
+        XCTAssertEqual(store.state.preview?.rows.filter(\.isNew).first?.isUnnamed, true)
         await fill(store)
         XCTAssertEqual(store.state.preview?.heading, "Kid A's Monday")
         XCTAssertEqual(store.state.preview?.rows.filter(\.isNew).map(\.slot.title), ["Art"])
@@ -361,6 +370,8 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.bringRowTapped)
         await store.send(.bringMoreTapped)
         XCTAssertGreaterThan(store.state.bringSlots.count, 3)
+        XCTAssertFalse(store.state.bringSlots.contains(.debugLadybug), "object pictures only")
+        XCTAssertFalse(store.state.bringSlots.contains { $0.rawValue.contains("Pax") || $0.rawValue.hasPrefix("sky") })
         await store.send(.bringToggled(.lunchBox))
         await store.send(.cardClosed)
         XCTAssertEqual(store.state.form.bring.map(\.picture), ["backpack", "waterBottle"])

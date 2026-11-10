@@ -26,7 +26,7 @@ public enum FormProblem: Equatable, Sendable {
 }
 
 /// The form rows that can show a problem.
-public enum FormRow: Equatable, Sendable { case name, when, days }
+public enum FormRow: String, Equatable, Sendable { case name, when, days }
 
 /// The add/edit form's values and its rules (boards C3, C4, E5). Pure, so every rule is tested.
 public struct ItemForm: Equatable, Sendable {
@@ -385,11 +385,14 @@ public struct ItemForm: Equatable, Sendable {
         trip.map { L10n.tr("going.leave.before", TimeText.withPeriod(max(start - $0.leaveBefore, 0))) }
     }
 
-    /// The preview's line: "Leave 4:20 pm by car." (none without a trip).
+    /// The preview's line: "Leave 4:20 pm by car.", with "· bring Towel" once Bring has a thing
+    /// (spec "Add-screen feedback"); "Bring Towel." without a trip; none with neither.
     public var leaveLine: String? {
-        guard let trip else { return nil }
-        return L10n.tr("going.preview", TimeText.withPeriod(max(start - trip.leaveBefore, 0)),
-                       Self.wayWord(trip.way))
+        let bringing = bring.first?.name
+        guard let trip else { return bringing.map { L10n.tr("preview.bring_only", $0) } }
+        let time = TimeText.withPeriod(max(start - trip.leaveBefore, 0))
+        guard let bringing else { return L10n.tr("going.preview", time, Self.wayWord(trip.way)) }
+        return L10n.tr("going.preview.bring", time, Self.wayWord(trip.way), bringing)
     }
 
     static func wayWord(_ way: Domain.Way) -> String {
