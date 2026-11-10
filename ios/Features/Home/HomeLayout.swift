@@ -5,8 +5,8 @@ import DesignSystem
 /// "Sizing formulas": the home screen's parts as screen rects, lines and baselines. Kid A's lines are
 /// fixed; Kid B's block moves as one unit 40 below Kid A's last part (`kidBTop(after:)`). The clock
 /// area is left-anchored (disc
-/// centre (448, 528), R 372); the panel stretches from 928 s to W − 64 s with every part's left
-/// on 928.
+/// centre (448, 528), R 372); the panel stretches from 928 s to W − 40 s (layout v29) with every
+/// part's left on 928.
 public struct HomeLayout: Equatable, Sendable {
     public let sizing: Sizing
 
@@ -19,12 +19,12 @@ public struct HomeLayout: Equatable, Sendable {
     // Clock and sky switch
     public var clockCentre: CGPoint { CGPoint(x: sizing.left(448), y: sizing.y(528)) }
     public var skySwitch: CGRect { sizing.left(40, 36, 160, 96) }
-    /// Board G0: the pencil `RoundButton` 80 at (1212, 44), the sky switch's mirror on the right.
-    public var pencil: CGRect { CGRect(x: sizing.right(1212), y: sizing.y(44), width: 80 * s, height: 80 * s) }
+    /// Board G0: the pencil `RoundButton` 80 at (1260, 44), 40 from the glass like the sky switch.
+    public var pencil: CGRect { CGRect(x: sizing.right(1260), y: sizing.y(44), width: 80 * s, height: 80 * s) }
 
-    // Panel (928 s … W − 64 s)
+    // Panel (928 s … W − 40 s, layout v29: the right margin matches the sky switch's 40)
     public var panelLeft: CGFloat { sizing.left(928) }
-    public var panelRight: CGFloat { sizing.right(1312) }
+    public var panelRight: CGFloat { sizing.right(1336) }
     public var weekdayBaseline: CGFloat { sizing.y(132) }
 
     /// A kid's face badge (48) and name (head 36, left 992) at the top of their block.

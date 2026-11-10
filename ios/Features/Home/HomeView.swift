@@ -22,7 +22,7 @@ public struct HomeView: View {
     public var body: some View {
         KidFullScreen(look: store.look, wipeFrom: store.isSkyAnimating ? skySwitchCentre : nil) {
             // Boards A1 / A1m / E1 (docs/superpowers/layout) through "Sizing formulas": every part
-            // placed from HomeLayout; the panel's parts all start on 928 and end on 1312.
+            // placed from HomeLayout; the panel's parts all start on 928 and end on 1336 (layout v29).
             let layout = HomeLayout(sizing: sizing)
             ZStack(alignment: .topLeading) {
                 clockArea

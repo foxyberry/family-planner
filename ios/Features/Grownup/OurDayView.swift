@@ -16,7 +16,9 @@ public struct OurDayView: View {
 
     public var body: some View {
         ZStack {
-            GrownupScreen {
+            // Spec "Scrolling on G1": the header and the clock never scroll; the side column and the
+            // List card scroll on their own.
+            GrownupScreen(scrolls: false) {
                 header
             } content: { layout in
                 if store.showsList { list(layout) } else { clock(layout) }
@@ -110,40 +112,45 @@ public struct OurDayView: View {
     /// Board G8: Every week and Just once in one card; Add every week / Add once on the side.
     private func list(_ layout: GrownupLayout) -> some View {
         HStack(alignment: .top, spacing: layout.gap) {
+            // Board G8: the card stays put; its rows scroll under its top edge.
             PaperCard(seed: 63) {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    ForEach(store.listSections, id: \.title) { section in
-                        Text(section.title).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                            .padding(.top, Spacing.xs)
-                        ForEach(section.rows) { row in
-                            Button { store.send(.listRowTapped(row.target)) } label: {
-                                HStack(spacing: Spacing.m) {
-                                    KitIcon(KitSlot(iconName: row.picture), size: 56)
-                                    VStack(alignment: .leading, spacing: 0) {
-                                        Text(row.title).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
-                                        Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                                            .lineLimit(1)
+                ScrollColumn {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        ForEach(store.listSections, id: \.title) { section in
+                            Text(section.title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                                .padding(.top, Spacing.xs)
+                            ForEach(section.rows) { row in
+                                Button { store.send(.listRowTapped(row.target)) } label: {
+                                    HStack(spacing: Spacing.m) {
+                                        KitIcon(KitSlot(iconName: row.picture), size: 56)
+                                        VStack(alignment: .leading, spacing: 0) {
+                                            Text(row.title).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                                            Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                                                .lineLimit(1)
+                                        }
+                                        Spacer(minLength: 0)
+                                        if row.target != .school {
+                                            MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                                        }
                                     }
-                                    Spacer(minLength: 0)
-                                    if row.target != .school {
-                                        MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
-                                    }
+                                    .frame(minHeight: 88)
+                                    .contentShape(Rectangle())
                                 }
-                                .frame(minHeight: 88)
-                                .contentShape(Rectangle())
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .frame(width: layout.form.width, height: layout.form.height)
-            VStack(alignment: .leading, spacing: Spacing.s) {
-                addLink(L10n.tr("list.add_weekly")) { store.send(.addWeeklyTapped) }
-                addLink(L10n.tr("list.add_once")) { store.send(.addOnceTapped) }
+            ScrollColumn {
+                VStack(alignment: .leading, spacing: Spacing.s) {
+                    addLink(L10n.tr("list.add_weekly")) { store.send(.addWeeklyTapped) }
+                    addLink(L10n.tr("list.add_once")) { store.send(.addOnceTapped) }
+                }
             }
-            .frame(width: layout.side.width, alignment: .topLeading)
+            .frame(width: layout.side.width, height: layout.form.height, alignment: .topLeading)
         }
     }
 
@@ -190,12 +197,13 @@ public struct OurDayView: View {
             DayButton(today: store.dayButtonToday, date: store.dayButtonDate) { store.send(.dayButtonTapped) }
             // Board G1: the slice card is a fixed 382 × 440 box (a new slice's form may grow it), its
             // contents 24 inside (954 … 1288), so This day / All days fit and the card keeps the column.
-            PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
-                .environment(\.cardInset, Spacing.m)
-                .frame(width: layout.side.width)
-                .frame(minHeight: 440 * layout.sizing.s, alignment: .top)
-
-            Spacer(minLength: 0)
+            // The day button stays at the top and Save at the foot; only the card scrolls between them.
+            ScrollColumn {
+                PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
+                    .environment(\.cardInset, Spacing.m)
+                    .frame(width: layout.side.width)
+                    .frame(minHeight: 440 * layout.sizing.s, alignment: .top)
+            }
         }
     }
 
