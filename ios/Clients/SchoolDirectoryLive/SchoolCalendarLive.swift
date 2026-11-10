@@ -52,7 +52,7 @@ struct MoeCalendarFile: Decodable, Versioned {
         let closed = events.filter { Self.closures.contains($0.type) }.flatMap { event in
             BundledSchools.days(from: event.start ?? event.date, to: event.end ?? event.date, calendar: calendar)
         }
-        return SchoolCalendar(terms: terms.sorted { $0.start < $1.start }, closed: Set(closed))
+        return SchoolCalendar(terms: terms.sorted { $0.start < $1.start }, closed: Set(closed), isMoe: true)
     }
 }
 

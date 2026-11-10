@@ -38,11 +38,11 @@ public enum ScreenLink: Equatable, Sendable {
     }
 }
 
-/// The grown-up boards a debug link can open, by their board id (spec "C1 · Our kids", …).
+/// The grown-up boards a debug link can open, by their board id; each opens over Our day (G1).
 public enum GrownupBoard: String, CaseIterable, Equatable, Sendable {
-    /// C1 · Our kids, the first kid.
+    /// G6 · Settings, the first kid (was C1).
     case c1
-    /// E6 · Our kids, the second kid.
+    /// G6 · Settings, the second kid (was E6).
     case e6
     /// C2 · Our buses.
     case c2

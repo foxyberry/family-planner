@@ -40,7 +40,7 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   take a clock from `bootstrap`.
 - Every Swift module uses `fp_swift_library` (Swift 6 mode); tests use `runner = "//ios:test_runner"`.
 - `ios/Domain`: pure rules (Foundation and `//ios/Strings` only): kids, routines, schedule items,
-  `DayPlanner`, `SeriesEdits`, copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our kids, editor),
+  `DayPlanner`, `SeriesEdits`, copy formats. Screens: `ios/Features/Home` (kids' clock), `ios/Features/Grownup` (Our day, List, Settings, editors),
   `ios/Features/Setup` (first-run S1–S4).
 - Outside data (time, calendar and time zone, locale, device, bundle, settings, launch arguments)
   comes only through dependencies (`\.date`, `\.calendar`, `\.continuousClock`, clients), read in

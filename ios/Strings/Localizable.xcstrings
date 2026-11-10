@@ -1860,28 +1860,6 @@
         }
       }
     },
-    "hub.about" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About"
-          }
-        }
-      }
-    },
-    "hub.about.age" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Age"
-          }
-        }
-      }
-    },
     "hub.about.age.home" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1915,39 +1893,6 @@
         }
       }
     },
-    "hub.about.bed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bed %@"
-          }
-        }
-      }
-    },
-    "hub.about.day" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Day"
-          }
-        }
-      }
-    },
-    "hub.about.nap" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nap %@"
-          }
-        }
-      }
-    },
     "hub.about.part" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1959,39 +1904,6 @@
         }
       }
     },
-    "hub.about.up" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Up %@"
-          }
-        }
-      }
-    },
-    "hub.add_once" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add once"
-          }
-        }
-      }
-    },
-    "hub.add_weekly" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add every week"
-          }
-        }
-      }
-    },
     "hub.data_sources" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1999,50 +1911,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Data sources"
-          }
-        }
-      }
-    },
-    "hub.empty" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing yet"
-          }
-        }
-      }
-    },
-    "hub.getting.to_school" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "To school"
-          }
-        }
-      }
-    },
-    "hub.more" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More"
-          }
-        }
-      }
-    },
-    "hub.more.buses" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Getting there"
           }
         }
       }
@@ -2065,204 +1933,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bus %1$@ · walk %2$lld min"
-          }
-        }
-      }
-    },
-    "hub.more.missions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Morning missions"
-          }
-        }
-      }
-    },
-    "hub.more.missions.count" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld missions"
-          }
-        }
-      }
-    },
-    "hub.more.missions.one" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 mission"
-          }
-        }
-      }
-    },
-    "hub.morning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Morning"
-          }
-        }
-      }
-    },
-    "hub.morning.cards" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cards"
-          }
-        }
-      }
-    },
-    "hub.morning.taps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Taps"
-          }
-        }
-      }
-    },
-    "hub.morning.taps.value" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A grown-up taps for now"
-          }
-        }
-      }
-    },
-    "hub.nursery" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nursery"
-          }
-        }
-      }
-    },
-    "hub.nursery.not_yet" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not yet"
-          }
-        }
-      }
-    },
-    "hub.once" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Just once"
-          }
-        }
-      }
-    },
-    "hub.school" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "School"
-          }
-        }
-      }
-    },
-    "hub.school.days" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Days"
-          }
-        }
-      }
-    },
-    "hub.school.holidays" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Holidays"
-          }
-        }
-      }
-    },
-    "hub.school.hours" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hours"
-          }
-        }
-      }
-    },
-    "hub.school.no_holidays" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No holidays set"
-          }
-        }
-      }
-    },
-    "hub.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Our kids"
-          }
-        }
-      }
-    },
-    "hub.weekly.after_school" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "After school"
-          }
-        }
-      }
-    },
-    "hub.weekly.every_week" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Every week"
           }
         }
       }
@@ -4385,7 +4055,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Change any of this later in Our kids."
+            "value" : "Change any of this later in Settings."
           }
         }
       }
@@ -4407,7 +4077,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "More switches join this list as features arrive. Change any of them later in Our kids."
+            "value" : "More switches join this list as features arrive. Change any of them later in Settings."
           }
         }
       }
@@ -4463,6 +4133,204 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Leave %lld min before"
+          }
+        }
+      }
+    },
+    "settings.about" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        }
+      }
+    },
+    "settings.age" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Age"
+          }
+        }
+      }
+    },
+    "settings.face" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face, colour"
+          }
+        }
+      }
+    },
+    "settings.family" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Family"
+          }
+        }
+      }
+    },
+    "settings.getting_there" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Getting there"
+          }
+        }
+      }
+    },
+    "settings.hours" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hours"
+          }
+        }
+      }
+    },
+    "settings.hours.value" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "settings.hours.weekdays" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mon–Fri"
+          }
+        }
+      }
+    },
+    "settings.missions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missions"
+          }
+        }
+      }
+    },
+    "settings.missions.morning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "morning %lld"
+          }
+        }
+      }
+    },
+    "settings.routines" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routines"
+          }
+        }
+      }
+    },
+    "settings.school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "School"
+          }
+        }
+      }
+    },
+    "settings.terms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms"
+          }
+        }
+      }
+    },
+    "settings.terms.ends" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ ends %2$@"
+          }
+        }
+      }
+    },
+    "settings.terms.moe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MOE %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "settings.this_ipad" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This iPad"
+          }
+        }
+      }
+    },
+    "settings.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "settings.to_school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To school"
           }
         }
       }

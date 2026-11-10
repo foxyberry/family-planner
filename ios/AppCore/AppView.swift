@@ -79,8 +79,8 @@ public struct AppView: View {
                 MissionsView(store: store)
                     .toolbar(.hidden, for: .navigationBar)
                     .navigationBarBackButtonHidden()
-            case let .hub(store):
-                GrownupHubView(store: store)
+            case let .settings(store):
+                SettingsView(store: store)
             case let .editor(store):
                 ItemEditorView(store: store)
             case let .ourDay(store):

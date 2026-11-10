@@ -4,5 +4,8 @@ load("//ios:build_defs.bzl", "fp_swift_library")
 fp_swift_library(
     name = "AppSettings",
     visibility = ["//ios:__subpackages__"],
-    deps = ["@swiftpkg_swift_composable_architecture//:ComposableArchitecture"],
+    deps = [
+        "//ios/Strings",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
 )
