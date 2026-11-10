@@ -1,5 +1,5 @@
 {
- "version": "26",
+ "version": "27",
  "board": "A1m",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -229,7 +229,7 @@
    "kind": "text",
    "x": 1040,
    "y": 253,
-   "w": 250,
+   "w": 251,
    "h": 108,
    "region": "panel",
    "anchor": "stretch",

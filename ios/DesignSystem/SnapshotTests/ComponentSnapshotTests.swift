@@ -357,6 +357,27 @@ final class ComponentSnapshotTests: XCTestCase {
                          cancel: "Keep", confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {}))
     }
 
+    /// Boards F1 and F3: a form card (title, choices, Done and Cancel) over the dim layer.
+    func testFormCard() {
+        snap(FormCard(title: "Ends", size: CGSize(width: 560, height: 420), done: "Done", cancel: "Cancel",
+                      onDone: {}, onCancel: {}) {
+            VStack(alignment: .leading, spacing: 0) {
+                PickRow("End of this term", caption: "Fri 20 Nov", isPicked: true) {}
+                PickRow("On a date", isPicked: false) {}
+                PickRow("After … times", isPicked: false) {}
+                PickRow("No end", isPicked: false) {}
+            }
+        }
+        .frame(height: 480), width: 640)
+        snap(FormCard(title: "From", size: CGSize(width: 640, height: 420), done: "Done", cancel: "Cancel",
+                      onDone: {}, onCancel: {}) {
+            ChoiceCircles([.init(id: "home", picture: .home, caption: "Home", isPicked: false),
+                           .init(id: "school", picture: .wolfie, caption: "After School", isPicked: true),
+                           .init(id: "more", picture: nil, caption: "", isPicked: false, word: "More")]) { _ in }
+        }
+        .frame(height: 480), width: 720, named: "from")
+    }
+
     func testLockOverlayStates() {
         let states: [(String, LockOverlay.State)] = [
             ("scanning", .scanning), ("notRecognised", .notRecognised),

@@ -49,6 +49,15 @@ final class EventFieldsTests: XCTestCase {
         XCTAssertNil(schoolDay?.trip)
     }
 
+    /// Board F4: a set time with its own end (3:30 → 4:30 pm) on a day without School.
+    func testNoSchoolDaysWithTheirOwnEnd() {
+        var swim = linked(F.weekly("Swimming", days: [.monday], start: 960, end: 1020), after: .school)
+        swim.noSchool = NoSchoolPlan(start: 930, end: 1050, trip: Trip(way: .walk, leaveBefore: 10))
+        let holiday = F.slots(on: F.monday, items: [swim], holidays: [F.monday]).first { $0.title == "Swimming" }
+        XCTAssertEqual(holiday.map { [$0.start, $0.end] }, [930, 1050])
+        XCTAssertNil(NoSchoolPlan(start: 930, end: 900).end, "an end before the start is no end")
+    }
+
     func testChainsFollowTheItemBefore() {
         let art = linked(F.weekly("Art", days: [.monday], start: 0, end: 45), after: .school)
         let snack = linked(F.weekly("Snack", days: [.monday], start: 0, end: 15), after: .item(art.id))

@@ -158,6 +158,17 @@ public struct ComponentGallery: View {
                         LiveBusBubble(service: "1", minutes: "4 min", kind: .tooSoon("too soon"))
                     }
                 }
+                section("F1–F4 · Form cards") {
+                    VStack(alignment: .leading, spacing: Spacing.s) {
+                        PickRow("End of this term", caption: "Fri 20 Nov", isPicked: true) {}
+                        PickRow("No end", isPicked: false) {}
+                    }
+                    FormCard(title: "Ends", size: CGSize(width: 560, height: 420), done: "Done", cancel: "Cancel",
+                             onDone: {}, onCancel: {}) {
+                        PickRow("No end", isPicked: true) {}
+                    }
+                    .frame(height: 520)
+                }
                 section("C3g · Going") {
                     ChoiceCircles([.init(id: "none", picture: nil, caption: "None", isPicked: false),
                                    .init(id: "walk", picture: .shoe, caption: "Walk", isPicked: false),

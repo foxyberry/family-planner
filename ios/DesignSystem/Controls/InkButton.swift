@@ -8,13 +8,16 @@ public struct InkButton: View {
     private let title: String
     private let arrow: Bool
     private let look: KidLook
+    private let height: CGFloat
     private let action: () -> Void
 
-    /// `arrow`: a marker arrow 32 after the label, gap 12 ("Missions →").
-    public init(_ title: String, arrow: Bool = false, look: KidLook = .day, action: @escaping () -> Void) {
+    /// `arrow`: a marker arrow 32 after the label, gap 12 ("Missions →"). `height`: 80 on form cards.
+    public init(_ title: String, arrow: Bool = false, look: KidLook = .day, height: CGFloat = 96,
+                action: @escaping () -> Void) {
         self.title = title
         self.arrow = arrow
         self.look = look
+        self.height = height
         self.action = action
     }
 
@@ -28,7 +31,7 @@ public struct InkButton: View {
             }
                 .foregroundStyle(label)
                 .padding(.horizontal, Spacing.l)
-                .frame(maxWidth: .infinity, minHeight: 96)
+                .frame(maxWidth: .infinity, minHeight: height)
                 .modifier(Surface(look: look))
         }
         .buttonStyle(.plain)

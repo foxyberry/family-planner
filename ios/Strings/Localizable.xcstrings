@@ -419,6 +419,17 @@
         }
       }
     },
+    "card.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
     "check.done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1449,6 +1460,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "after %@"
+          }
+        }
+      }
+    },
+    "from.starts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts"
           }
         }
       }
@@ -2850,18 +2872,7 @@
         }
       }
     },
-    "no_school.skip" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip"
-          }
-        }
-      }
-    },
-    "no_school.tab.at" : {
+    "no_school.pick.at" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -2872,7 +2883,18 @@
         }
       }
     },
-    "no_school.tab.skip" : {
+    "no_school.pick.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        }
+      }
+    },
+    "no_school.skip" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -3048,29 +3070,29 @@
         }
       }
     },
-    "runs.tab.count" : {
+    "runs.pick.count" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Times"
+            "value" : "After … times"
           }
         }
       }
     },
-    "runs.tab.date" : {
+    "runs.pick.date" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Date"
+            "value" : "On a date"
           }
         }
       }
     },
-    "runs.tab.none" : {
+    "runs.pick.none" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -3081,24 +3103,13 @@
         }
       }
     },
-    "runs.tab.term" : {
+    "runs.pick.term" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "End of term"
-          }
-        }
-      }
-    },
-    "runs.term.caption" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This term ends %@"
+            "value" : "End of this term"
           }
         }
       }

@@ -140,13 +140,16 @@ public struct DayChange: Hashable, Codable, Sendable {
 }
 
 /// What an item that follows School does on a day without School (spec "Repeats, dates and changes",
-/// No school days): it starts from Home at its own time, with its own way of going.
+/// No school days): it starts from Home at its own time, with its own way of going. `end` (board F4)
+/// is its own end; without one it keeps the item's length.
 public struct NoSchoolPlan: Hashable, Codable, Sendable {
     public var start: Int
+    public var end: Int?
     public var trip: Trip?
 
-    public init(start: Int, trip: Trip? = nil) {
+    public init(start: Int, end: Int? = nil, trip: Trip? = nil) {
         self.start = start
+        self.end = end.flatMap { $0 > start ? $0 : nil }
         self.trip = trip
     }
 }

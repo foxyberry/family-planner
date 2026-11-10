@@ -139,8 +139,9 @@ public enum DayPlanner {
                 var fromHome = item
                 fromHome.trip = plan.trip
                 fromHome.after = nil
+                if let end = plan.end { fromHome.end = fromHome.start + end - plan.start }
                 placed.append((fromHome, plan.start))
-                ends[.item(item.id)] = plan.start + item.end - item.start
+                ends[.item(item.id)] = plan.start + fromHome.end - fromHome.start
             }
         }
         return placed
