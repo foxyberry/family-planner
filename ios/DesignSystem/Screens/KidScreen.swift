@@ -25,6 +25,8 @@ public struct KidFullScreen<Body: View>: View {
             .modifier(FullScreenFrame())
             .background { page.ignoresSafeArea() }
             .foregroundStyle(look.ink)
+            // Kid screens take their night look from `KidLook`, never from the colour tokens.
+            .environment(\.colorScheme, .light)
             // The status bar follows the app's root (`AppView`), which knows what is on top.
             .onChange(of: look) { old, _ in
                 guard wipeFrom != nil, !reduceMotion else { return }

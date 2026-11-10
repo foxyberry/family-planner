@@ -41,7 +41,7 @@ public struct SetupView: View {
         .overlay {
             if store.isConfirmingReplace {
                 ZStack {
-                    CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                    CrayonColor.dim.ignoresSafeArea()
                     ConfirmCard(title: L10n.tr("setup.replace.title"), message: L10n.tr("setup.replace.message"),
                                 cancel: L10n.tr("setup.replace.cancel"), confirm: L10n.tr("setup.replace.accept"),
                                 isDestructive: true, onCancel: { store.send(.replaceCancelled) },

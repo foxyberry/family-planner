@@ -47,8 +47,8 @@ public struct IconPicker: View {
                     KitIcon(slot, size: 64)
                         .frame(width: 88, height: 88)
                         .background(
-                            CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
-                                          markerColor: isOn ? CrayonColor.link : CrayonColor.marker.opacity(0.25),
+                            CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.pictureGround,
+                                          markerColor: isOn ? CrayonColor.link : CrayonColor.pictureMarker.opacity(0.25),
                                           seed: CrayonStyle.Seed.iconPicker + UInt32(index))
                         )
                 }

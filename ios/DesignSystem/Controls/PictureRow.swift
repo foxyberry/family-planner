@@ -36,7 +36,7 @@ public struct PictureRow: View {
                     KitIcon(slot, size: 64)
                         .frame(width: 88, height: 88)
                         .background(
-                            CrayonSurface(.circle, fill: CrayonStyle.paper,
+                            CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
                                           seed: CrayonStyle.Seed.iconPicker + UInt32(index))
                                 .padding(CrayonStyle.artInset)
                         )
@@ -53,9 +53,10 @@ public struct PictureRow: View {
                 .accessibilityAddTraits(isOn ? .isSelected : [])
             }
             Button(action: onMore) {
-                Text(moreTitle).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.ink)
+                Text(moreTitle).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
                     .frame(width: 88, height: 88)
-                    .crayonBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.iconPicker + 998)
+                    .background(CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
+                                              seed: CrayonStyle.Seed.iconPicker + 998))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(moreLabel)

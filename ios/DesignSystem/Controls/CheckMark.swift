@@ -18,7 +18,7 @@ public struct CheckMark: View {
             if isDone {
                 Image(systemName: "checkmark")
                     .font(.system(size: size * 0.45, weight: .heavy))
-                    .foregroundStyle(CrayonColor.card)
+                    .foregroundStyle(CrayonColor.tick)
             }
         }
         .frame(width: size, height: size)

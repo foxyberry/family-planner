@@ -23,11 +23,12 @@ public struct ClockKnob: View {
                     .frame(width: Self.size + 16, height: Self.size + 16)
             }
             CrayonSurface(.circle, fill: CrayonFill(color: fill, hachure: nil),
-                          marker: MarkerStyle(width: 3.5, roughness: 0.6, bowing: 0.6), seed: CrayonStyle.Seed.knob)
+                          marker: MarkerStyle(width: 3.5, roughness: 0.6, bowing: 0.6),
+                          markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.knob)
                 .frame(width: Self.size, height: Self.size)
             if state == .locked {
                 // Board C6: a hand-drawn padlock filling most of the light knob.
-                MarkerIcon(.lock, size: 22, color: CrayonColor.ink)
+                MarkerIcon(.lock, size: 22, color: CrayonColor.pictureInk)
             }
         }
         .frame(width: Self.touch, height: Self.touch)
@@ -36,7 +37,7 @@ public struct ClockKnob: View {
 
     private var fill: Color {
         switch state {
-        case .idle: CrayonColor.card
+        case .idle: CrayonColor.pictureGround
         case .dragging: CrayonColor.pickBlue
         case .locked: CrayonColor.softText.opacity(0.2)
         }

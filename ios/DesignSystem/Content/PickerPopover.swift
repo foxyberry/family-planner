@@ -19,7 +19,7 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
-            Text(title).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            Text(title).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText)
             ForEach(items, id: \.self) { item in
                 Button { selection = item } label: {
                     HStack {
@@ -27,7 +27,7 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
                         Spacer()
                         if item == selection { CheckMark(isDone: true, size: 40) }
                     }
-                    .foregroundStyle(CrayonColor.ink)
+                    .foregroundStyle(CrayonColor.pictureInk)
                     .frame(minHeight: 64)
                 }
                 .buttonStyle(.plain)
@@ -36,7 +36,7 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
         }
         .padding(Spacing.m)
         .padding(.bottom, Spacing.m)
-        .crayonBackground(.speechBubble(tailX: anchor, tailHeight: 24), fill: CrayonStyle.paper,
-                          seed: CrayonStyle.Seed.bubble + 7)
+        .background(CrayonSurface(.speechBubble(tailX: anchor, tailHeight: 24), fill: CrayonStyle.pictureGround,
+                                      markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 7))
     }
 }

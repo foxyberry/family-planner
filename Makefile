@@ -14,7 +14,7 @@ SIM_DEVICE ?= iPad Pro 13-inch (M5)
 SIM_OS     ?= 26.5
 # Debug builds start the app clock elsewhere (time machine): make run NOW=2026-11-09T07:30 SPEED=60
 LAUNCH_ARGS = $(if $(NOW),-fpNow $(NOW)) $(if $(SPEED),-fpSpeed $(SPEED)) $(if $(GRID),-fpGrid) \
-              $(if $(SKIP_FACE_ID),-fpSkipFaceID)
+              $(if $(SKIP_FACE_ID),-fpSkipFaceID) $(if $(DARK),-fpDark)
 # OPEN=missions opens a screen deep link (familyplanner://missions) on launch. Grown-up boards
 # (OPEN=c2, debug builds) open after the unlock; SKIP_FACE_ID=1 passes it on a simulator only.
 OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))

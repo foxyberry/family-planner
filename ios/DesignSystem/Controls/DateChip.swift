@@ -21,7 +21,7 @@ public struct DateChip: View {
                 Text(weekday).crayonType(.caption)
                 Text("\(day)").crayonType(.head)
             }
-            .foregroundStyle(CrayonColor.ink)
+            .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
             .frame(width: 96, height: 104)
             .partBackground(.roundedRect(cornerRadius: 24), fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                               seed: CrayonStyle.Seed.dateChip)

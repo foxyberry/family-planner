@@ -10,6 +10,7 @@ public struct InkButton: View {
     private let look: KidLook
     private let height: CGFloat
     private let action: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     /// `arrow`: a marker arrow 32 after the label, gap 12 ("Missions →"). `height`: 80 on form cards.
     public init(_ title: String, arrow: Bool = false, look: KidLook = .day, height: CGFloat = 96,
@@ -21,7 +22,9 @@ public struct InkButton: View {
         self.action = action
     }
 
-    private var label: Color { look == .day ? CrayonColor.card : CrayonColor.nightText }
+    /// Night controls at night on kid screens and in dark mode on grown-up screens.
+    private var isNight: Bool { look == .night || colorScheme == .dark }
+    private var label: Color { isNight ? CrayonColor.nightText : CrayonColor.card }
 
     public var body: some View {
         Button(action: action) {
@@ -32,16 +35,16 @@ public struct InkButton: View {
                 .foregroundStyle(label)
                 .padding(.horizontal, Spacing.l)
                 .frame(maxWidth: .infinity, minHeight: height)
-                .modifier(Surface(look: look))
+                .modifier(Surface(isNight: isNight))
         }
         .buttonStyle(.plain)
     }
 
     private struct Surface: ViewModifier {
-        let look: KidLook
+        let isNight: Bool
 
         func body(content: Content) -> some View {
-            if look == .day {
+            if !isNight {
                 content.partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.ink,
                                        seed: CrayonStyle.Seed.inkButton)
             } else {

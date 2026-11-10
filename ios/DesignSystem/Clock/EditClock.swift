@@ -74,7 +74,7 @@ public struct EditClock: View {
 
     public var body: some View {
         ZStack {
-            Circle().fill(CrayonColor.paper).frame(width: 2 * r, height: 2 * r)
+            Circle().fill(CrayonColor.clockFace).frame(width: 2 * r, height: 2 * r)
                 .onTapGesture(coordinateSpace: .local) { location in
                     guard let slice = PieClockLayout.sector(at: location, in: sectors, radius: r, hub: Self.hubRadius)
                     else { return }
@@ -84,17 +84,19 @@ public struct EditClock: View {
                 CrayonSurface(.sector(startDegrees: PieClockLayout.degrees(minute: sector.start),
                                       endDegrees: PieClockLayout.degrees(minute: sector.end)),
                               fill: sector.style.fill, marker: MarkerStyle(width: 2.5, roughness: 1.2, bowing: 1.4),
-                              seed: UInt32(3001 + sector.start))
+                              markerColor: CrayonColor.pictureOutline, seed: UInt32(3001 + sector.start))
                     .allowsHitTesting(false)
             }
             ForEach(sectors.filter(\.isCurrent), id: \.self) { sector in
                 CrayonSurface(.sector(startDegrees: PieClockLayout.degrees(minute: sector.start),
                                       endDegrees: PieClockLayout.degrees(minute: sector.end)),
                               fill: nil, marker: MarkerStyle(width: 6, roughness: 1.2, bowing: 1.4),
-                              seed: UInt32(3001 + sector.start))
+                              markerColor: CrayonColor.pictureOutline, seed: UInt32(3001 + sector.start))
                     .allowsHitTesting(false)
             }
-            CrayonSurface(.circle, fill: nil, marker: MarkerStyle(width: 4.5, roughness: 1.2, bowing: 1.4), seed: 3000)
+            // The face is a lit ground (spec "Night mapping"): its lines stay marker in dark mode.
+            CrayonSurface(.circle, fill: nil, marker: MarkerStyle(width: 4.5, roughness: 1.2, bowing: 1.4),
+                          markerColor: CrayonColor.pictureOutline, seed: 3000)
                 .allowsHitTesting(false)
             ticksAndLabels
             pictures
@@ -167,14 +169,14 @@ public struct EditClock: View {
             path.move(to: point(radius: Self.hubRadius, minute: Double(minute)))
             path.addLine(to: point(radius: r, minute: Double(minute)))
         }
-        .stroke(CrayonColor.marker, style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [8, 8]))
+        .stroke(CrayonColor.pictureMarker, style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [8, 8]))
         .allowsHitTesting(false)
     }
 
     private var hubDisc: some View {
         VStack(spacing: Spacing.xxs) {
             if let above = hub.above {
-                Text(above).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                Text(above).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText)
             }
             if let time = hub.time {
                 // At its own size, centred: shrinking to fit kept a full-width box and leaned the
@@ -182,17 +184,17 @@ public struct EditClock: View {
                 Text(time).crayonType(.title).foregroundStyle(CrayonColor.pickBlue).fixedSize()
             }
             if let below = hub.below {
-                Text(below).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                Text(below).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText)
             }
             if let title = hub.title {
-                Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(2)
+                Text(title).crayonType(.head).foregroundStyle(CrayonColor.pictureInk).lineLimit(2)
                     .multilineTextAlignment(.center)
             }
         }
         .multilineTextAlignment(.center)
         .frame(width: 2 * Self.hubRadius - Spacing.m)
         .frame(width: 2 * Self.hubRadius, height: 2 * Self.hubRadius)
-        .crayonBackground(.circle, fill: CrayonStyle.paper, seed: 3003)
+        .background(CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline, seed: 3003))
         .allowsHitTesting(false)
     }
 
@@ -227,9 +229,9 @@ public struct PlusGlyph: View {
 
     public var body: some View {
         ZStack {
-            CrayonSurface(.circle, fill: CrayonFill(color: CrayonColor.card, hachure: nil),
+            CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
                           seed: CrayonStyle.Seed.plus)
-            MarkerIcon(.plus, size: size * 0.7)
+            MarkerIcon(.plus, size: size * 0.7, color: CrayonColor.pictureInk)
         }
         .frame(width: size, height: size)
         .contentShape(Circle())

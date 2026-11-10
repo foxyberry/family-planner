@@ -38,6 +38,12 @@ public struct AppFeature {
 
         /// The kid home is on screen in its night look (board A1n): the window's dark scheme.
         public var isNightHome: Bool { setup == nil && path.isEmpty && home.look == .night }
+        /// The window's colour scheme (spec "Night mapping"): dark for the night home, the iPad's
+        /// own (nil) while grown-up screens are open, light otherwise (the day home, A2, setup).
+        public var colorScheme: ColorScheme? {
+            if isNightHome { return .dark }
+            return setup == nil && hasGrownupScreens ? nil : .light
+        }
         public var home = HomeFeature.State()
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
         public var lock: LockOverlay.State?

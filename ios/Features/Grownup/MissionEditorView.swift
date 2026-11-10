@@ -36,7 +36,7 @@ public struct MissionEditorView: View {
                 }
             }
             if let draft = store.draft {
-                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                CrayonColor.dim.ignoresSafeArea()
                     .onTapGesture { store.send(.draftClosed) }
                 if let title = store.removeTitle {
                     ConfirmCard(title: title, message: nil, cancel: L10n.tr("c5.remove.keep"),
