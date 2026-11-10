@@ -49,6 +49,9 @@ public struct AppFeature {
         public var relockCaption: String?
         /// A debug link's grown-up board, opened once the unlock passes and Our day has loaded.
         public var pendingBoard: GrownupBoard?
+        /// Grown-up mode was asked for before the home had loaded its kids (a link at launch with
+        /// the lock off); Our day opens as soon as they are known.
+        public var opensGrownupOnHomeLoad = false
         /// Whether this iPad has a family yet; nil until the store has been read at launch.
         public var hasFamily: Bool?
         /// First-run setup (S1–S4) instead of the home, while the iPad has no family.
@@ -205,7 +208,7 @@ public struct AppFeature {
 
             case let .linkOpened(link):
                 // A link leaves open grown-up screens locked again; a grown-up board asks again.
-                if state.hasGrownupScreens { relock(&state) }
+                if state.hasGrownupScreens || state.opensGrownupOnHomeLoad { relock(&state) }
                 switch link {
                 case .home:
                     state.path.removeAll()
@@ -273,6 +276,14 @@ public struct AppFeature {
             case .home(.clockHoldCompleted), .home(.pencilTapped):
                 return unlock(&state)
 
+            case .home(.loaded):
+                // The home's kids are known now (Scope ran first), so a waiting Our day can open.
+                if state.opensGrownupOnHomeLoad, !state.home.days.isEmpty {
+                    state.opensGrownupOnHomeLoad = false
+                    openGrownupScreens(&state)
+                }
+                return .none
+
             case .parentAuthResponse(.success):
                 openGrownupScreens(&state)
                 return .none
@@ -284,6 +295,7 @@ public struct AppFeature {
             case .parentAuthResponse(.cancelled):
                 state.lock = nil
                 state.pendingBoard = nil
+                state.opensGrownupOnHomeLoad = false
                 return .none
 
             case .parentAuthResponse(.notAvailable):
@@ -310,6 +322,7 @@ public struct AppFeature {
             case .lockCancelTapped:
                 state.lock = nil
                 state.pendingBoard = nil
+                state.opensGrownupOnHomeLoad = false
                 return .none
 
             case .grownupTouched:
@@ -433,6 +446,11 @@ public struct AppFeature {
         state.lock = nil
         state.grownupIdleSeconds = 0
         guard let kid = state.home.days.first?.kid.id else {
+            // Not loaded yet: wait for the home rather than open Settings in place of Our day.
+            if state.hasFamily == true {
+                state.opensGrownupOnHomeLoad = true
+                return
+            }
             state.path.append(.settings(SettingsFeature.State()))
             return
         }
@@ -448,6 +466,8 @@ public struct AppFeature {
         state.relockCaption = nil
         state.lock = nil
         state.pendingBoard = nil
+        // A grown-up open still waiting for the home never survives a relock (it passed the old gate).
+        state.opensGrownupOnHomeLoad = false
     }
 }
 

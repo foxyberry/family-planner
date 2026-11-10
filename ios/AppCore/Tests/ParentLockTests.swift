@@ -231,7 +231,7 @@ final class ParentLockTests: XCTestCase {
         XCTAssertFalse(store.state.grownupLock)
         await store.send(.linkOpened(.grownup(.c1)))
         XCTAssertNil(store.state.lock)
-        XCTAssertTrue(store.state.hasGrownupScreens)
+        XCTAssertTrue(store.state.opensGrownupOnHomeLoad, "no Face ID; Our day opens once the home has its kids")
     }
 
     func testGrownupScreensCoveredWhileNotActive() {
