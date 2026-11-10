@@ -180,7 +180,7 @@ public struct SetupFeature {
         case rideChanged(Int)
         case leaveChanged(Int)
         // S4
-        case settingTapped(Setting)
+        case settingTapped(AppSetting)
         case lockChecked(ParentAuthOutcome)
         case replaceConfirmed
         case replaceCancelled
@@ -194,8 +194,6 @@ public struct SetupFeature {
         }
     }
 
-    /// S4's switch rows (spec "S4 · Almost done"), in board order.
-    public enum Setting: CaseIterable, Hashable, Sendable { case grownupLock, liveBusTimes, medals }
 
     /// S2's four times.
     public enum TimeRow: Hashable, Sendable { case start, end, arriveBy, latest }

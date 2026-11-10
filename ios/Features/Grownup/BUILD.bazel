@@ -6,8 +6,10 @@ fp_swift_library(
     name = "Grownup",
     visibility = ["//ios:__subpackages__"],
     deps = [
+        "//ios/Clients/AppSettings",
         "//ios/Clients/BusClient",
         "//ios/Clients/HolidayProvider",
+        "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/SchoolDirectory",
         "//ios/CrayonKit",

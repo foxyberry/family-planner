@@ -18,7 +18,7 @@ import SwiftUI
 public struct AppFeature {
     @Reducer
     public enum Path {
-        case hub(GrownupHubFeature)
+        case settings(SettingsFeature)
         case editor(ItemEditorFeature)
         case ourDay(OurDayFeature)
         case missionEditor(MissionEditorFeature)
@@ -44,7 +44,7 @@ public struct AppFeature {
         public var grownupIdleSeconds: Int?
         /// "Locks in 0:30" during the last 30 seconds, shown instead of "Grown-ups only".
         public var relockCaption: String?
-        /// A debug link's grown-up board, opened once the unlock passes and the hub has loaded.
+        /// A debug link's grown-up board, opened once the unlock passes and Our day has loaded.
         public var pendingBoard: GrownupBoard?
         /// Whether this iPad has a family yet; nil until the store has been read at launch.
         public var hasFamily: Bool?
@@ -209,7 +209,7 @@ public struct AppFeature {
                 case .missions:
                     if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State())) }
                 case let .grownup(board):
-                    // The usual unlock, as after the hold; the board opens once the hub has loaded.
+                    // The usual unlock, as after the hold; the board opens once Our day has loaded.
                     state.path.removeAll()
                     state.pendingBoard = board
                     return unlock(&state)
@@ -230,7 +230,7 @@ public struct AppFeature {
                 return .none
 
             case let .path(.element(id: _, action: .ourDay(.loaded(snapshot)))),
-                 let .path(.element(id: _, action: .hub(.loaded(snapshot)))):
+                 let .path(.element(id: _, action: .settings(.loaded(snapshot, _)))):
                 // A grown-up debug link opens its board over Our day once the family is known.
                 guard let board = state.pendingBoard, let kids = snapshot?.kids, let first = kids.first else { return .none }
                 state.pendingBoard = nil
@@ -244,7 +244,7 @@ public struct AppFeature {
                 return .none
 
             case let .path(.element(id: _, action: .ourDay(.delegate(.openSettings(kid))))):
-                state.path.append(.hub(GrownupHubFeature.State(kid: kid)))
+                state.path.append(.settings(SettingsFeature.State(kid: kid)))
                 return .none
 
             case let .path(.element(id: _, action: .ourDay(.delegate(.add(kid, repeats))))):
@@ -314,30 +314,19 @@ public struct AppFeature {
                 state.relockCaption = nil
                 return .none
 
-            case let .path(.element(id: id, action: .hub(.backTapped))),
-                 let .path(.element(id: id, action: .hub(.dayRowTapped))):
+            case let .path(.element(id: _, action: .settings(.delegate(.grownupLockChanged(on))))):
+                // Settings saved the lock: the Face ID gate and the app-switcher cover follow it now,
+                // not only after the next launch.
+                state.grownupLock = on
+                return .none
+
+            case let .path(.element(id: id, action: .settings(.backTapped))):
                 // Settings sits over Our day (board G6): back returns to the clock.
                 state.path.pop(from: id)
                 return .none
 
-            case let .path(.element(id: id, action: .hub(.addWeeklyTapped))),
-                 let .path(.element(id: id, action: .hub(.addOnceTapped))):
-                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
-                let repeats: ItemForm.Repeat = if case .path(.element(_, .hub(.addOnceTapped))) = action { .once } else { .weekly }
-                state.path.append(.editor(ItemEditorFeature.State(mode: .add(.kid(kid)), repeats: repeats,
-                                                                  now: date.now, calendar: calendar)))
-                return .none
-
-            case let .path(.element(id: id, action: .hub(.onceItemTapped(itemID)))),
-                 let .path(.element(id: id, action: .hub(.weeklyItemTapped(itemID)))):
-                guard case let .hub(hub) = state.path[id: id],
-                      let item = hub.snapshot?.items.first(where: { $0.id == itemID }) else { return .none }
-                let mode: ItemEditorFeature.Mode = item.isWeekly ? .editWeekly(item) : .editOnce(item)
-                state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar)))
-                return .none
-
-            case let .path(.element(id: id, action: .hub(.missionsRowTapped))):
-                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
+            case let .path(.element(id: id, action: .settings(.missionsRowTapped))):
+                guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
                 state.path.append(.missionEditor(MissionEditorFeature.State(kid: kid)))
                 return .none
 
@@ -345,8 +334,8 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
-            case let .path(.element(id: id, action: .hub(.busesRowTapped))):
-                guard case let .hub(hub) = state.path[id: id], let kid = hub.selectedKid else { return .none }
+            case let .path(.element(id: id, action: .settings(.busesRowTapped))):
+                guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
                 state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
                 return .none
 
@@ -366,7 +355,7 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
-            case .path(.element(id: _, action: .hub(.dataSourcesTapped))):
+            case .path(.element(id: _, action: .settings(.dataSourcesTapped))):
                 state.path.append(.dataSources(DataSourcesFeature.State()))
                 return .none
 
@@ -374,7 +363,7 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
-            case .path(.element(id: _, action: .hub(.galleryButtonTapped))):
+            case .path(.element(id: _, action: .settings(.galleryButtonTapped))):
                 state.path.append(.gallery(GalleryFeature.State()))
                 return .none
 
@@ -402,21 +391,21 @@ public struct AppFeature {
         }
     }
 
-    /// A debug link's board over Our day (or over the hub when no home was loaded yet).
+    /// A debug link's board over Our day (or over Settings when no home was loaded yet).
     private func openBoard(_ board: GrownupBoard, kids: [Kid], first: Kid, _ state: inout State) {
         switch board {
         case .c6:
             break
         case .c1:
-            if case .hub? = state.path.last { break }
-            state.path.append(.hub(GrownupHubFeature.State(kid: first.id)))
+            if case .settings? = state.path.last { break }
+            state.path.append(.settings(SettingsFeature.State(kid: first.id)))
         case .e6:
             let second = kids.dropFirst().first?.id ?? first.id
-            if case var .hub(hub)? = state.path.last, let id = state.path.ids.last {
-                hub.selectedKid = second
-                state.path[id: id] = .hub(hub)
+            if case var .settings(settings)? = state.path.last, let id = state.path.ids.last {
+                settings.tab = .kid(second)
+                state.path[id: id] = .settings(settings)
             } else {
-                state.path.append(.hub(GrownupHubFeature.State(kid: second)))
+                state.path.append(.settings(SettingsFeature.State(kid: second)))
             }
         case .c2:
             state.path.append(.busSettings(BusSettingsFeature.State(kid: first.id)))
@@ -433,7 +422,7 @@ public struct AppFeature {
         state.lock = nil
         state.grownupIdleSeconds = 0
         guard let kid = state.home.days.first?.kid.id else {
-            state.path.append(.hub(GrownupHubFeature.State()))
+            state.path.append(.settings(SettingsFeature.State()))
             return
         }
         state.path.append(.ourDay(OurDayFeature.State(kid: kid, today: Day(date.now, calendar: calendar),

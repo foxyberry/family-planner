@@ -15,12 +15,12 @@ final class ParentLockTests: XCTestCase {
 
     private func unlockedState() -> AppFeature.State {
         var state = AppFeature.State()
-        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.settings(SettingsFeature.State()))
         state.grownupIdleSeconds = 0
         return state
     }
 
-    func testHoldOpensScanningAndSuccessPushesHub() async {
+    func testHoldOpensScanningAndSuccessOpensGrownupMode() async {
         let reason = LockIsolated<String?>(nil)
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()
@@ -37,7 +37,7 @@ final class ParentLockTests: XCTestCase {
         await store.receive(\.parentAuthResponse, .success) {
             $0.lock = nil
             $0.grownupIdleSeconds = 0
-            $0.path[id: 0] = .hub(GrownupHubFeature.State())
+            $0.path[id: 0] = .settings(SettingsFeature.State())
         }
         XCTAssertEqual(reason.value, "Open grown-up screens")
     }
@@ -95,7 +95,7 @@ final class ParentLockTests: XCTestCase {
         await store.send(.lockPrimaryTapped) {
             $0.lock = nil
             $0.grownupIdleSeconds = 0
-            $0.path[id: 0] = .hub(GrownupHubFeature.State())
+            $0.path[id: 0] = .settings(SettingsFeature.State())
         }
     }
 

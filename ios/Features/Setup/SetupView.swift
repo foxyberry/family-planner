@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import CrayonKit
 import DesignSystem
@@ -520,7 +521,7 @@ private struct AlmostDoneStep: View {
                 let origin = layout.s4Main(104, 216 + 140 * CGFloat(index))
                 SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
                            action: { store.send(.settingTapped(row.setting)) }) {
-                    picture(row.setting)
+                    picture(row.picture)
                 }
                 .frame(width: layout.length(738), height: layout.length(120))
                 .place(topLeft: origin)
@@ -533,11 +534,10 @@ private struct AlmostDoneStep: View {
         .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
     }
 
-    @ViewBuilder private func picture(_ setting: SetupFeature.Setting) -> some View {
-        switch setting {
-        case .grownupLock: LockMark(size: 56)
-        case .liveBusTimes: KitIcon(.busSingle, size: 56)
-        case .medals: KitIcon(.medalGold, size: 56)
+    @ViewBuilder private func picture(_ picture: AppSettingRow.Picture) -> some View {
+        switch picture {
+        case .lock: LockMark(size: 56)
+        case let .kit(name): KitIcon(KitSlot(iconName: name), size: 56)
         }
     }
 }

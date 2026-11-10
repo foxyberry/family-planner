@@ -2,7 +2,7 @@ import ComposableArchitecture
 import SchoolDirectory
 
 /// Data sources (spec S2): the notices the Singapore Open Data Licence asks for, for the school
-/// list (data.gov.sg) and its map positions (OneMap). Opened from Our kids.
+/// list (data.gov.sg) and its map positions (OneMap). Opened from Settings.
 @Reducer
 public struct DataSourcesFeature {
     @ObservableState

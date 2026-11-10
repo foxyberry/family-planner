@@ -103,14 +103,13 @@ public struct OurDayFeature {
                                               detail: L10n.tr("list.detail", DayText.chips(school.days),
                                                               TimeText.hours(school.start, school.end))))
             }
-            weekly += HubModel.weeklyRows(kid: kid, items: items).map {
-                ListSection.Row(target: .item($0.id), picture: $0.iconName, title: $0.title,
-                                detail: L10n.tr("list.detail", $0.when, $0.time))
+            let rows = { (rows: [ItemRow]) in
+                rows.map { ListSection.Row(target: .item($0.id), picture: $0.iconName, title: $0.title,
+                                           detail: L10n.tr("list.detail", $0.when, $0.time)) }
             }
-            let once = HubModel.onceRows(kid: kid, items: items, routines: routines, today: today, nowMinute: nowMinute,
-                                         calendar: calendar).map {
-                ListSection.Row(target: .item($0.id), picture: $0.iconName, title: $0.title, detail: $0.detail)
-            }
+            weekly += rows(ItemList.weekly(kid: kid, items: items))
+            let once = rows(ItemList.once(kid: kid, items: items, routines: routines, today: today,
+                                          nowMinute: nowMinute, calendar: calendar))
             return [ListSection(title: L10n.tr("list.every_week"), rows: weekly),
                     ListSection(title: L10n.tr("list.once"), rows: once)].filter { !$0.rows.isEmpty }
         }

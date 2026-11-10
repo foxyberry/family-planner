@@ -18,18 +18,24 @@ public struct SchoolCalendar: Equatable, Sendable {
 
     public var terms: [Term]
     public var closed: Set<Day>
+    /// The MOE calendar (Settings reads "MOE 2026 · Term 4 ends 20 Nov"); false for a school's own.
+    public var isMoe: Bool
 
-    public init(terms: [Term] = [], closed: Set<Day> = []) {
+    public init(terms: [Term] = [], closed: Set<Day> = [], isMoe: Bool = false) {
         self.terms = terms
         self.closed = closed
+        self.isMoe = isMoe
+    }
+
+    /// The term `day` is in, or the next one when `day` is in a break.
+    public func term(from day: Day) -> Term? {
+        terms.filter { $0.end >= day }.min { $0.start < $1.start }
     }
 
     public static let none = SchoolCalendar()
 
     /// The last day of the term `day` is in, or of the next term when `day` is in a break.
-    public func termEnd(from day: Day) -> Day? {
-        terms.filter { $0.end >= day }.min { $0.start < $1.start }?.end
-    }
+    public func termEnd(from day: Day) -> Day? { term(from: day)?.end }
 
     /// The days the kid's day is a day off: the school's closed days and the public holidays.
     public func daysOff(publicHolidays: Set<Day>) -> Set<Day> { closed.union(publicHolidays) }

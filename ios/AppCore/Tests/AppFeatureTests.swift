@@ -52,7 +52,7 @@ final class AppFeatureTests: XCTestCase {
         var state = AppFeature.State()
         state.path.append(.ourDay(OurDayFeature.State(kid: SeedData.kidA.id, today: Day(year: 2026, month: 11, day: 10),
                                                       calendar: Calendar(identifier: .gregorian))))
-        state.path.append(.hub(GrownupHubFeature.State(kid: SeedData.kidA.id)))
+        state.path.append(.settings(SettingsFeature.State(kid: SeedData.kidA.id)))
         state.grownupIdleSeconds = 0
         let store = TestStore(initialState: state) {
             AppFeature()
@@ -60,7 +60,7 @@ final class AppFeatureTests: XCTestCase {
             $0.date.now = self.fixedDate
         }
         store.exhaustivity = .off
-        await store.send(\.path[id: 1].hub.backTapped)
+        await store.send(\.path[id: 1].settings.backTapped)
         XCTAssertEqual(store.state.path.count, 1)
         await store.send(\.path[id: 0].ourDay.delegate.finished)
         XCTAssertTrue(store.state.path.isEmpty)
@@ -69,22 +69,22 @@ final class AppFeatureTests: XCTestCase {
 
     func testGalleryButtonPushesGallery() async {
         var state = AppFeature.State()
-        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.settings(SettingsFeature.State()))
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
             $0.date.now = self.fixedDate
         }
 
-        await store.send(\.path[id: 0].hub.galleryButtonTapped) {
+        await store.send(\.path[id: 0].settings.galleryButtonTapped) {
             $0.grownupIdleSeconds = 0
             $0.path[id: 1] = .gallery(GalleryFeature.State())
         }
     }
 
-    func testGalleryBackPopsToHub() async {
+    func testGalleryBackPopsToSettings() async {
         var state = AppFeature.State()
-        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.settings(SettingsFeature.State()))
         state.path.append(.gallery(GalleryFeature.State()))
         state.grownupIdleSeconds = 5
         let store = TestStore(initialState: state) {
@@ -97,25 +97,6 @@ final class AppFeatureTests: XCTestCase {
         }
     }
 
-    func testHubAddEveryWeekPushesEditorForTheTabKid() async {
-        var hub = GrownupHubFeature.State()
-        hub.selectedKid = SeedData.kidB.id
-        var state = AppFeature.State()
-        state.path.append(.hub(hub))
-        let store = TestStore(initialState: state) {
-            AppFeature()
-        } withDependencies: {
-            $0.date.now = fixedDate
-            $0.calendar = Calendar(identifier: .gregorian)
-        }
-        store.exhaustivity = .off
-        await store.send(\.path[id: 0].hub.addWeeklyTapped)
-        guard case let .editor(editor) = store.state.path[id: 1] else { return XCTFail("no editor") }
-        XCTAssertEqual(editor.mode, .add(.kid(SeedData.kidB.id)))
-        XCTAssertEqual(editor.form.repeats, .weekly)
-    }
-
-    /// Board G1: Settings opens over Our day for the kid shown, and adding from the List opens C3.
     func testOurDayOpensSettingsAndTheEditor() async {
         var state = AppFeature.State()
         state.path.append(.ourDay(OurDayFeature.State(kid: SeedData.kidB.id, today: Day(year: 2026, month: 11, day: 10),
@@ -128,9 +109,9 @@ final class AppFeatureTests: XCTestCase {
         }
         store.exhaustivity = .off
         await store.send(\.path[id: 0].ourDay.delegate.openSettings, SeedData.kidB.id)
-        guard case let .hub(hub) = store.state.path[id: 1] else { return XCTFail("no Settings") }
+        guard case let .settings(hub) = store.state.path[id: 1] else { return XCTFail("no Settings") }
         XCTAssertEqual(hub.selectedKid, SeedData.kidB.id)
-        await store.send(\.path[id: 1].hub.backTapped)
+        await store.send(\.path[id: 1].settings.backTapped)
         await store.send(\.path[id: 0].ourDay.delegate.add, (SeedData.kidB.id, .weekly))
         guard case let .editor(editor) = store.state.path.last else { return XCTFail("no editor") }
         XCTAssertEqual(editor.mode, .add(.kid(SeedData.kidB.id)))
@@ -167,11 +148,10 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertFalse(store.state.coversGrownupScreens)
     }
 
-    func testHubMissionsRowOpensTheMissionEditor() async {
-        var hub = GrownupHubFeature.State()
-        hub.selectedKid = SeedData.kidB.id
+    func testSettingsMissionsRowOpensTheMissionEditor() async {
+        let hub = SettingsFeature.State(kid: SeedData.kidB.id)
         var state = AppFeature.State()
-        state.path.append(.hub(hub))
+        state.path.append(.settings(hub))
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
@@ -179,36 +159,16 @@ final class AppFeatureTests: XCTestCase {
             $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
-        await store.send(\.path[id: 0].hub.missionsRowTapped)
+        await store.send(\.path[id: 0].settings.missionsRowTapped)
         guard case let .missionEditor(editor) = store.state.path[id: 1] else { return XCTFail("no C5") }
         XCTAssertEqual(editor.selectedKid, SeedData.kidB.id)
         await store.send(\.path[id: 1].missionEditor.delegate.finished)
         XCTAssertEqual(store.state.path.count, 1)
     }
 
-    func testHubJustOnceItemOpensEditOnce() async {
-        let party = ScheduleItem(id: UUID(), title: "Party", iconName: "cake", audience: .both, start: 960, end: 1020,
-                                 recurrence: .once(Day(year: 2027, month: 1, day: 2)), skippedDays: [],
-                                 skipsHolidays: false, showsStar: true)
-        var hub = GrownupHubFeature.State()
-        hub.snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: [party])
+    func testEditorFinishedPopsBack() async {
         var state = AppFeature.State()
-        state.path.append(.hub(hub))
-        let store = TestStore(initialState: state) {
-            AppFeature()
-        } withDependencies: {
-            $0.date.now = fixedDate
-            $0.calendar = Calendar(identifier: .gregorian)
-        }
-        store.exhaustivity = .off
-        await store.send(\.path[id: 0].hub.onceItemTapped, party.id)
-        guard case let .editor(editor) = store.state.path[id: 1] else { return XCTFail("no editor") }
-        XCTAssertEqual(editor.mode, .editOnce(party))
-    }
-
-    func testEditorFinishedPopsBackToHub() async {
-        var state = AppFeature.State()
-        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.settings(SettingsFeature.State()))
         state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: fixedDate,
                                                           calendar: Calendar(identifier: .gregorian))))
         let store = TestStore(initialState: state) {
@@ -219,6 +179,21 @@ final class AppFeatureTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(\.path[id: 1].editor.delegate.finished)
         XCTAssertEqual(store.state.path.count, 1)
+    }
+
+    /// Settings turning the lock off or on changes the app's gate at once (not after a relaunch).
+    func testSettingsLockChangeReachesTheGate() async {
+        var state = AppFeature.State()
+        state.path.append(.settings(SettingsFeature.State(kid: SeedData.kidA.id)))
+        let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+            $0.date.now = self.fixedDate
+        }
+        store.exhaustivity = .off
+        XCTAssertTrue(store.state.grownupLock)
+        await store.send(\.path[id: 0].settings.delegate.grownupLockChanged, false)
+        XCTAssertFalse(store.state.grownupLock)
+        await store.send(\.path[id: 0].settings.delegate.grownupLockChanged, true)
+        XCTAssertTrue(store.state.grownupLock)
     }
 
     func testDidFinishLaunchingHasNoSideEffects() async {

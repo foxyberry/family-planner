@@ -2,7 +2,7 @@ import Foundation
 import Strings
 
 /// The day templates and morning missions a kid gets from first-run setup (S1–S4), shaped like the
-/// seed (spec "Seed data in M2"): grown-ups change them later in Our kids (C5, C6).
+/// seed (spec "Seed data in M2"): grown-ups change them later in grown-up mode (Our day, C5).
 public enum StarterDays {
     /// Wake-up when school does not start earlier, dinner, and bedtime on school days.
     static let wake = 390

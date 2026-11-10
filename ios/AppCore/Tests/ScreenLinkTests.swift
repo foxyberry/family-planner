@@ -69,7 +69,7 @@ final class ScreenLinkTests: XCTestCase {
     func testLinkOverGrownupScreensLocksThem() async {
         let asked = LockIsolated(0)
         var state = AppFeature.State()
-        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.settings(SettingsFeature.State()))
         state.grownupIdleSeconds = 0
         let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
             $0.parentAuth.authenticate = { _ in asked.withValue { $0 += 1 }; return .cancelled }
@@ -93,7 +93,7 @@ final class ScreenLinkTests: XCTestCase {
         await store.send(.linkOpened(.grownup(.e6)))
         await store.receive(\.parentAuthResponse)
         await store.send(.path(.element(id: 0, action: .ourDay(.loaded(snapshot())))))
-        guard case let .hub(hub) = store.state.path.last else { return XCTFail("\(store.state.path)") }
+        guard case let .settings(hub) = store.state.path.last else { return XCTFail("\(store.state.path)") }
         XCTAssertEqual(hub.selectedKid, SeedData.kids[1].id)
     }
 }
