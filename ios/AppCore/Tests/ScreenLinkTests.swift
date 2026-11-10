@@ -69,6 +69,25 @@ final class ScreenLinkTests: XCTestCase {
         XCTAssertFalse(store.state.opensGrownupOnHomeLoad)
     }
 
+    /// A relock (another link, idle, the app leaving) drops a grown-up open still waiting for the home.
+    func testARelockDropsTheWaitingOpen() async {
+        var state = AppFeature.State()
+        state.grownupLock = false
+        state.hasFamily = true
+        state.home.today = Day(year: 2027, month: 1, day: 15)
+        let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+            $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(.linkOpened(.grownup(.c6)))
+        XCTAssertTrue(store.state.opensGrownupOnHomeLoad)
+        await store.send(.linkOpened(.home))
+        XCTAssertFalse(store.state.opensGrownupOnHomeLoad)
+        await store.send(.home(.loaded(snapshot(), family: FamilyCalendar())))
+        XCTAssertTrue(store.state.path.isEmpty, "no grown-up screen without a new gate")
+    }
+
     /// After the unlock Our day opens, and once it has loaded the link's board follows.
     func testGrownupLinkOpensItsBoardAfterTheUnlock() async {
         let store = TestStore(initialState: homeWithFamily()) { AppFeature() } withDependencies: {

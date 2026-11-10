@@ -208,7 +208,7 @@ public struct AppFeature {
 
             case let .linkOpened(link):
                 // A link leaves open grown-up screens locked again; a grown-up board asks again.
-                if state.hasGrownupScreens { relock(&state) }
+                if state.hasGrownupScreens || state.opensGrownupOnHomeLoad { relock(&state) }
                 switch link {
                 case .home:
                     state.path.removeAll()
@@ -295,6 +295,7 @@ public struct AppFeature {
             case .parentAuthResponse(.cancelled):
                 state.lock = nil
                 state.pendingBoard = nil
+                state.opensGrownupOnHomeLoad = false
                 return .none
 
             case .parentAuthResponse(.notAvailable):
@@ -321,6 +322,7 @@ public struct AppFeature {
             case .lockCancelTapped:
                 state.lock = nil
                 state.pendingBoard = nil
+                state.opensGrownupOnHomeLoad = false
                 return .none
 
             case .grownupTouched:
@@ -464,6 +466,8 @@ public struct AppFeature {
         state.relockCaption = nil
         state.lock = nil
         state.pendingBoard = nil
+        // A grown-up open still waiting for the home never survives a relock (it passed the old gate).
+        state.opensGrownupOnHomeLoad = false
     }
 }
 
