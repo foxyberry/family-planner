@@ -213,6 +213,9 @@ public struct AppFeature {
                 return .send(.home(.tick(now)))
 
             case let .linkOpened(link):
+                // A link at launch can come before `.checkFamily`: read the lock setting now, so a
+                // lock that is off is not taken for the default (on).
+                state.grownupLock = appSettings.load().grownupLock
                 // A link leaves open grown-up screens locked again; a grown-up board asks again.
                 if state.hasGrownupScreens || state.opensGrownupOnHomeLoad { relock(&state) }
                 switch link {
@@ -241,7 +244,7 @@ public struct AppFeature {
                 }
                 return .none
 
-            case let .path(.element(id: _, action: .ourDay(.loaded(snapshot)))),
+            case let .path(.element(id: _, action: .ourDay(.loaded(snapshot, _)))),
                  let .path(.element(id: _, action: .settings(.loaded(snapshot, _)))):
                 // A grown-up debug link opens its board over Our day once the family is known.
                 guard let board = state.pendingBoard, let kids = snapshot?.kids, let first = kids.first else { return .none }

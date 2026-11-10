@@ -330,7 +330,7 @@ public struct ItemForm: Equatable, Sendable {
         guard !onDays.isEmpty else { return [home] }
         var events: [FromChoice] = []
         if case let .kid(kid) = audience, onDays.isSubset(of: Weekday.schoolDays),
-           let school = routines.filter({ $0.kid == kid && $0.dayType == .weekday && $0.from <= today })
+           let school = routines.filter({ $0.kid == kid && $0.onlyOn == nil && $0.dayType == .weekday && $0.from <= today })
                .max(by: { $0.from < $1.from })?.blocks.first(where: { $0.kind == .school }),
            school.end <= start || after == .school {
             events.append(FromChoice(event: .school, title: school.title, picture: school.iconName, end: school.end))

@@ -50,6 +50,7 @@ public struct ComponentGallery: View {
                         DayChip("T", isOn: $tuesday)
                         DateChip(weekday: "Mon", day: 9, isOn: true) {}
                         DateChip(weekday: "Tue", day: 10, isOn: false) {}
+                        DateChip(weekday: "Wed", day: 11, isOn: false, isToday: true, compact: true) {}
                     }
                     HStack(spacing: Spacing.m) {
                         CrayonField("Activity name", text: $name).frame(width: 480)
@@ -133,6 +134,9 @@ public struct ComponentGallery: View {
                     KidNowNext(now: "teddy", next: "actPlay")
                     ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",
                                 isDestructive: false, onCancel: {}, onConfirm: {})
+                    FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Next Mon"), (2, "Date")],
+                                 selection: .constant(0), dateChoice: 2, dateLabel: "17 Nov", date: .constant(Date(timeIntervalSince1970: 1_800_000_000)),
+                                 caption: nil, save: "Save", cancel: "Cancel", onSave: {}, onCancel: {})
                 }
                 section("0b · Marker glyphs") {
                     HStack(spacing: Spacing.m) {
@@ -168,6 +172,14 @@ public struct ComponentGallery: View {
                         PickRow("No end", isPicked: true) {}
                     }
                     .frame(height: 520)
+                }
+                section("G1 · Day button, picker, save changes") {
+                    DayButton(today: "Today", date: "Tue 10 Nov") {}.frame(width: 382)
+                    DayPickerCard(month: "November", weeks: Self.sampleWeeks, earlier: "Earlier", later: "Later",
+                                  today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {})
+                    SaveChangesCard(title: "Save the changes?", line: "Dinner 6:30 pm %@ 7:30 pm, this day",
+                                    save: "Save", discard: "Don't save", cancel: "Cancel",
+                                    onSave: {}, onDiscard: {}, onCancel: {})
                 }
                 section("C3g · Going") {
                     ChoiceCircles([.init(id: "none", picture: nil, caption: "None", isPicked: false),
@@ -277,6 +289,17 @@ private struct RigPlayground: View {
                 RiggedKitIcon(slot, size: 104, playID: plays[slot, default: 0])
                     .onTapGesture { plays[slot, default: 0] += 1 }
             }
+        }
+    }
+}
+
+extension ComponentGallery {
+    /// Two weeks from Mon 9 Nov, today Tue 10, Sat 14 picked.
+    public static let sampleWeeks: [[DayPickerCard.Chip]] = (0..<2).map { week in
+        (0..<7).map { day in
+            let index = 7 * week + day
+            return DayPickerCard.Chip(index: index, weekday: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][day],
+                                      day: 9 + index, isPicked: index == 5, isToday: index == 1)
         }
     }
 }

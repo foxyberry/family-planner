@@ -378,6 +378,36 @@ final class ComponentSnapshotTests: XCTestCase {
         .frame(height: 480), width: 720, named: "from")
     }
 
+    /// Board G5: the From when card with Date picked (its field) and the caption.
+    func testFromWhenCard() {
+        snap(FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Next Mon"), (2, "Date")],
+                          selection: .constant(2), dateChoice: 2, dateLabel: "17 Nov",
+                          date: .constant(Date(timeIntervalSince1970: 1_800_000_000)),
+                          caption: "17 Nov was changed and no longer fits. It'll be removed.",
+                          save: "Save", cancel: "Cancel", onSave: {}, onCancel: {}), width: 620)
+    }
+
+    /// Board G1: the day button on today and on another day.
+    func testDayButton() {
+        snap(VStack(spacing: Spacing.m) {
+            DayButton(today: "Today", date: "Tue 10 Nov") {}
+            DayButton(today: nil, date: "Sat 14 Nov") {}
+        }, width: 420)
+    }
+
+    /// Board G1c: two weeks, today underlined, the picked day in sky.
+    func testDayPickerCard() {
+        snap(DayPickerCard(month: "November", weeks: ComponentGallery.sampleWeeks, earlier: "Earlier", later: "Later",
+                           today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {}), width: 660)
+    }
+
+    /// Board G1d: the change in one line with a drawn arrow, then Save · Don't save · Cancel.
+    func testSaveChangesCard() {
+        snap(SaveChangesCard(title: "Save the changes?", line: "Dinner 6:30 pm %@ 7:30 pm, this day",
+                             save: "Save", discard: "Don't save", cancel: "Cancel",
+                             onSave: {}, onDiscard: {}, onCancel: {}), width: 620)
+    }
+
     func testLockOverlayStates() {
         let states: [(String, LockOverlay.State)] = [
             ("scanning", .scanning), ("notRecognised", .notRecognised),
@@ -631,6 +661,15 @@ final class ComponentSnapshotTests: XCTestCase {
                 InkButton("Add to the clock") {}.frame(width: 382)
             }
         }, width: 900, dark: true)
+    }
+
+    /// Board G1c: the picker's 62 × 84 chips, today underlined, the picked day in sky.
+    func testCompactDateChips() {
+        snap(HStack(spacing: Spacing.xs) {
+            DateChip(weekday: "Mon", day: 9, isOn: false, isToday: true, compact: true) {}
+            DateChip(weekday: "Sat", day: 14, isOn: true, compact: true) {}
+            DateChip(weekday: "Sun", day: 15, isOn: false, compact: true) {}
+        })
     }
 
     func testKidFullScreen() {

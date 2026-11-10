@@ -31,4 +31,10 @@ final class DayTextTests: XCTestCase {
         XCTAssertEqual(DayText.sentence([.monday, .wednesday, .friday]), "Monday, Wednesday and Friday")
         XCTAssertEqual(DayText.sentence(Weekday.schoolDays), "school day")
     }
+
+    func testMondayOfWeek() {
+        let sunday = Day(year: 2026, month: 11, day: 15)
+        XCTAssertEqual(sunday.mondayOfWeek(calendar: F.calendar), Day(year: 2026, month: 11, day: 9))
+        XCTAssertEqual(Day(year: 2026, month: 11, day: 9).mondayOfWeek(calendar: F.calendar), Day(year: 2026, month: 11, day: 9))
+    }
 }

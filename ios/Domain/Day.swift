@@ -38,6 +38,11 @@ public struct Day: Hashable, Comparable, Codable, Sendable {
         Weekday(rawValue: calendar.component(.weekday, from: date(calendar: calendar)))!
     }
 
+    /// The Monday of this day's week (board G1c's first chip).
+    public func mondayOfWeek(calendar: Calendar) -> Day {
+        adding(days: -weekday(calendar).mondayFirstIndex, calendar: calendar)
+    }
+
     public func adding(days: Int, calendar: Calendar) -> Day {
         Day(calendar.date(byAdding: .day, value: days, to: date(calendar: calendar))!, calendar: calendar)
     }

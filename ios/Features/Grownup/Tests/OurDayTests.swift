@@ -20,6 +20,8 @@ final class OurDayTests: XCTestCase {
             $0.date.now = self.tuesday.date(minute: 600, calendar: F.calendar)
             $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: []) }
             $0.scheduleStore.saveRoutine = { routine in saved.withValue { $0.append(routine) } }
+            $0.holidays.holidays = { _ in [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
         }
         store.exhaustivity = .off
         return store
@@ -96,23 +98,88 @@ final class OurDayTests: XCTestCase {
         await store.receive(\.delegate.finished)
     }
 
-    func testSwitchingDayTypeWithoutChangesLoadsItsTemplate() async {
+    /// Board G1c: the day button opens two weeks from the day's Monday; a Sunday shows the Sun template.
+    func testPickingADayLoadsItsTemplate() async {
         let store = await loaded()
-        await store.send(.dayTypeTapped(.sunday))
-        XCTAssertTrue(store.state.showsHolidayNote)
+        XCTAssertEqual(store.state.dayButtonToday, "Today")
+        XCTAssertEqual(store.state.dayButtonDate, "Tue 10 Nov")
+        await store.send(.dayButtonTapped)
+        XCTAssertEqual(store.state.pickerDays.first, Day(year: 2026, month: 11, day: 9))
+        XCTAssertEqual(store.state.pickerDays.count, 14)
+        XCTAssertEqual(store.state.pickerMonth, "November")
+        await store.send(.pickerPageTapped(1))
+        XCTAssertEqual(store.state.pickerDays.first, Day(year: 2026, month: 11, day: 23))
+        await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 15)))
+        XCTAssertNil(store.state.pickerStart)
+        XCTAssertNil(store.state.dayButtonToday)
+        XCTAssertEqual(store.state.dayButtonDate, "Sun 15 Nov")
+        XCTAssertEqual(store.state.dayType, .sunday)
         XCTAssertEqual(store.state.edit.blocks.first?.end, 450, "the weekend shape wakes at 7:30 am")
+        await store.send(.dayButtonTapped)
+        await store.send(.pickerTodayTapped)
+        XCTAssertEqual(store.state.day, tuesday)
     }
 
-    func testSaveStartsTomorrow() async {
+    /// Spec "Edit scope": a drag saves for this day only unless All days is picked.
+    func testSaveThisDayKeepsOtherDays() async {
         let saved = LockIsolated<[Routine]>([])
         let store = await loaded(saved: saved)
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
         await store.send(.knobReleased(knob(store, at: 1170)))
+        XCTAssertEqual(store.state.saveScope, .thisDay)
         await store.send(.saveTapped)
         await store.receive(\.saved)
         XCTAssertFalse(store.state.canUndo, "saved: nothing to undo, and the clock stays (board G1)")
-        XCTAssertEqual(saved.value.first?.from, Day(year: 2026, month: 11, day: 11))
+        XCTAssertEqual(saved.value.first?.onlyOn, tuesday)
         XCTAssertEqual(saved.value.first?.blocks.first { $0.title == "Dinner" }?.end, 1170)
+        // The next Tuesday still has the usual template.
+        await store.send(.dayButtonTapped)
+        await store.send(.pickerPageTapped(1))
+        await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 24)))
+        XCTAssertEqual(store.state.edit.blocks.first { $0.title == "Dinner" }?.end, 1155)
+    }
+
+    func testSaveAllDaysFromTheDay() async {
+        let saved = LockIsolated<[Routine]>([])
+        let store = await loaded(saved: saved)
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .today, "All days asks from when first (board G5)")
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Next Wed", "Date"])
+        await store.send(.fromWhenPicked(.next))
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertNil(store.state.fromWhen)
+        XCTAssertNil(saved.value.first?.onlyOn)
+        XCTAssertEqual(saved.value.first?.from, Day(year: 2026, month: 11, day: 11))
+        XCTAssertEqual(saved.value.first?.dayType, .weekday)
+    }
+
+    /// Spec "G1 as built": the card is never empty: the slice now on today, else the day's first.
+    func testOpensWithASlicePicked() async {
+        let store = await loaded()
+        XCTAssertEqual(store.state.selectedBlock?.title, "School", "10:00 am on a school day")
+        await store.send(.dayButtonTapped)
+        await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 11)))
+        XCTAssertEqual(store.state.selected, 0, "another day opens on its first slice")
+    }
+
+    /// Board G1d: "Save the changes?" names the change; Save saves, then goes on.
+    func testUnsavedCardSavesThenSwitchesDay() async {
+        let saved = LockIsolated<[Routine]>([])
+        let store = await loaded(saved: saved)
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.dayButtonTapped)
+        await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 11)))
+        XCTAssertTrue(store.state.isConfirmingLeave)
+        XCTAssertEqual(store.state.unsavedLine, "Dinner 6:30 pm %@ 7:30 pm, this day")
+        await store.send(.unsavedSaveTapped)
+        await store.receive(\.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.count, 1)
+        XCTAssertEqual(store.state.day, Day(year: 2026, month: 11, day: 11))
+        XCTAssertFalse(store.state.edit.isChanged)
     }
 
     /// A picture sets the new slice's kind: the sleep pictures make sleep, so a deleted Sleep can come back.
@@ -149,6 +216,8 @@ final class OurDayTests: XCTestCase {
             $0.calendar = F.calendar
             $0.date.now = self.tuesday.date(minute: 600, calendar: F.calendar)
             $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: [swim]) }
+            $0.holidays.holidays = { _ in [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
         }
         store.exhaustivity = .off
         await store.send(.task)

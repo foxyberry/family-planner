@@ -356,17 +356,26 @@ public struct RoutineBlock: Hashable, Codable, Sendable {
 }
 
 /// One kid's day template for one day type, used from `from` until a newer template of the same type starts.
+/// With `onlyOn` it is that one day's own template (G1 "This day"): it wins over the day type's
+/// template on that date and nowhere else.
 public struct Routine: Hashable, Codable, Sendable {
     public var kid: Kid.ID
     public var dayType: DayType
     public var from: Day
     public var blocks: [RoutineBlock]
+    public var onlyOn: Day?
 
-    public init(kid: Kid.ID, dayType: DayType, from: Day, blocks: [RoutineBlock]) {
+    public init(kid: Kid.ID, dayType: DayType, from: Day, blocks: [RoutineBlock], onlyOn: Day? = nil) {
         self.kid = kid
         self.dayType = dayType
         self.from = from
         self.blocks = blocks
+        self.onlyOn = onlyOn
+    }
+
+    /// One day's own template (spec "Edit scope", This day).
+    public static func day(_ day: Day, kid: Kid.ID, dayType: DayType, blocks: [RoutineBlock]) -> Routine {
+        Routine(kid: kid, dayType: dayType, from: day, blocks: blocks, onlyOn: day)
     }
 }
 

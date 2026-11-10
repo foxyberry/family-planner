@@ -134,6 +134,17 @@ public struct TemplateEdit: Equatable, Sendable {
         blocks = next
     }
 
+    /// The blocks as they were at the last save (or when the edit began).
+    public var savedBlocks: [RoutineBlock] { history.first ?? blocks }
+
+    /// The first slice that differs from the saved blocks (board G1d names it), skipping free time.
+    public var firstChange: RoutineBlock? {
+        let saved = savedBlocks
+        return blocks.enumerated().first { index, block in
+            block.kind != .free && (index >= saved.count || saved[index] != block)
+        }?.element
+    }
+
     /// After a save the edit starts again from the saved blocks: nothing to undo or redo.
     public mutating func markSaved() {
         history.removeAll()
