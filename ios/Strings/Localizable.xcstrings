@@ -1706,6 +1706,17 @@
         }
       }
     },
+    "home.grownup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grown-up mode"
+          }
+        }
+      }
+    },
     "home.hub.free" : {
       "extractionState" : "manual",
       "localizations" : {

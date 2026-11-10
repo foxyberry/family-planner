@@ -42,6 +42,18 @@ final class ParentLockTests: XCTestCase {
         XCTAssertEqual(reason.value, "Open grown-up screens")
     }
 
+    /// Board G0: the pencil asks for Face ID like the 2 s hold.
+    func testPencilAsksForTheUnlock() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.parentAuth.authenticate = { _ in .cancelled }
+        }
+        await store.send(.home(.pencilTapped)) { $0.lock = .scanning }
+        await store.receive(\.parentAuthResponse, .cancelled) { $0.lock = nil }
+        XCTAssertTrue(store.state.path.isEmpty)
+    }
+
     func testNotRecognisedShowsTryAgain() async {
         let attempts = LockIsolated(0)
         let store = TestStore(initialState: AppFeature.State()) {

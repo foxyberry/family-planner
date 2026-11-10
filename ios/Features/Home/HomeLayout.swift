@@ -19,6 +19,8 @@ public struct HomeLayout: Equatable, Sendable {
     // Clock and sky switch
     public var clockCentre: CGPoint { CGPoint(x: sizing.left(448), y: sizing.y(528)) }
     public var skySwitch: CGRect { sizing.left(40, 36, 160, 96) }
+    /// Board G0: the pencil `RoundButton` 80 at (1212, 44), the sky switch's mirror on the right.
+    public var pencil: CGRect { CGRect(x: sizing.right(1212), y: sizing.y(44), width: 80 * s, height: 80 * s) }
 
     // Panel (928 s … W − 64 s)
     public var panelLeft: CGFloat { sizing.left(928) }

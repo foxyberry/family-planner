@@ -573,6 +573,15 @@ const ITEMS = {
     Ln('M72 54H168A66 66 0 0 1 168 186H72A66 66 0 0 1 72 54Z', 5, '#F4EFFF'),
   ],
   // Developer tools: a friendly ladybug for the debug bubble. The white plate keeps it readable on a dark or orange circle.
+  // Grown-up mode way in (G0): a yellow pencil with wood tip, lead, ferrule and pink eraser (user, 2026-11-09)
+  pencil: [
+    S('M34.0 206.0L48.1 149.4L90.6 191.9Z', '#F2D3A6', 45),
+    B('M34.0 206.0L39.7 183.4L56.6 200.3Z'),
+    S('M48.1 149.4L125.9 71.6L168.4 114.1L90.6 191.9Z', K.yellow, 45),
+    S('M125.9 71.6L141.5 56.1L183.9 98.5L168.4 114.1Z', '#B9B4C4', 45),
+    S('M141.5 56.1L164.1 33.5L175.4 33.5L206.5 64.6L206.5 75.9L183.9 98.5Z', '#F7A1B5', 45),
+  ],
+  // Developer tools: a friendly ladybug for the debug bubble. The white plate keeps it readable on a dark or orange circle.
   debugLadybug: [
     S(circ(120, 124, 108), K.white, 0),
     Ln('M106 54Q100 30 84 32q-9 2-4 11', 5), Ln('M134 54Q140 30 156 32q9 2 4 11', 5),

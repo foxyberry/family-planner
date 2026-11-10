@@ -27,6 +27,8 @@ public enum KitSlot: String, CaseIterable, Sendable {
     case energyLots, energyGood, energyTired, energyNone
     // Sky switch (day, mid-animation, night)
     case skyDay, skyDusk, skyNight
+    // Grown-up mode way in (G0)
+    case pencil
     // Developer tools (debug builds)
     case debugLadybug
 }
