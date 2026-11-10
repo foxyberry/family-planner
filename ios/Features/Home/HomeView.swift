@@ -32,6 +32,12 @@ public struct HomeView: View {
                 }
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
+                // Board G0: the way into grown-up mode, the same by day and night.
+                RoundButton(picture: .pencil, accessibilityLabel: L10n.tr("home.grownup")) {
+                    store.send(.pencilTapped)
+                }
+                .size(layout.pencil.width)
+                .place(topLeft: layout.pencil.origin)
             }
             .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
         }

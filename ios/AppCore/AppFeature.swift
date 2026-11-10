@@ -267,7 +267,7 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
-            case .home(.clockHoldCompleted):
+            case .home(.clockHoldCompleted), .home(.pencilTapped):
                 return unlock(&state)
 
             case .parentAuthResponse(.success):

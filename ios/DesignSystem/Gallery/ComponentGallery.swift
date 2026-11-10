@@ -31,6 +31,8 @@ public struct ComponentGallery: View {
                         RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
                         RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
                         RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(48)
+                        // G0: the pencil way in.
+                        RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {}
                         // G1 Undo (on) and Redo (off, at 45 %).
                         RoundButton(glyph: .undo, accessibilityLabel: "Undo") {}.size(72)
                         RoundButton(glyph: .redo, accessibilityLabel: "Redo") {}.size(72).opacity(0.45)

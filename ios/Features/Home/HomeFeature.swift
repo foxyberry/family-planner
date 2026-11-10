@@ -234,6 +234,8 @@ public struct HomeFeature {
         case loaded(ScheduleSnapshot?, family: FamilyCalendar)
         /// The clock was held for 2 seconds; the app opens the grown-up lock.
         case clockHoldCompleted
+        /// Board G0: the pencil; the app opens the grown-up lock.
+        case pencilTapped
         /// The kid tapped the day/night switch (board 0g).
         case skySwitchTapped
         case skyAnimationEnded
@@ -344,7 +346,7 @@ public struct HomeFeature {
                 }
                 return state.wantsLive ? .send(.refresh) : .none
 
-            case .clockHoldCompleted:
+            case .clockHoldCompleted, .pencilTapped:
                 return .none
 
             case .skySwitchTapped:
