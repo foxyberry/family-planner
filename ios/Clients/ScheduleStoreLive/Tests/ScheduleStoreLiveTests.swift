@@ -91,6 +91,18 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(Set(snapshot.items), Set(SeedData.items(today: monday, calendar: calendar)))
     }
 
+    /// G1 "This day" and "All days" on the same date are two records: neither replaces the other.
+    func testADaysOwnTemplateKeepsItsOwnRecord() async throws {
+        let kid = SeedData.kidA.id, day = Day(year: 2026, month: 11, day: 10)
+        let block = RoutineBlock(title: "Play", iconName: "actPlay", kind: .play, start: 0, end: 1440)
+        let all = Routine(kid: kid, dayType: .weekday, from: day, blocks: [block])
+        let own = Routine.day(day, kid: kid, dayType: .weekday, blocks: [block])
+        try await store().saveRoutine(all)
+        try await store().saveRoutine(own)
+        let routines = try await store().load().routines.filter { $0.from == day }
+        XCTAssertEqual(Set(routines.map(\.onlyOn)), [nil, day])
+    }
+
     func testSaveThenLoadInNewStoreKeepsItem() async throws {
         let swim = item("Pottery")
         try await seeded().save(swim)

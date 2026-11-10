@@ -6,7 +6,8 @@
 #   3. make lint: when a Bazel file changed (BUILD, .bzl, MODULE.bazel)
 #   4. check-kid-screens.sh, check-dependencies.sh and check-crayon-canvas.sh: when Swift under
 #      ios/ changed (kid screens never scroll; outside data only through dependencies; every
-#      Canvas says how crayon wobble bleeds); check-strings.sh when Swift under
+#      Canvas says how crayon wobble bleeds; no debug code outside DebugTools: check-debug-boundary.sh);
+#      check-strings.sh when Swift under
 #      ios/ or the String Catalog changed (copy only through L10n.tr); check-skills.sh when the
 #      agent harness changed (CLAUDE.md, .claude/)
 #   5. guard tests (scripts/tests/*-test.sh): when a guard script or hook changed
@@ -66,6 +67,7 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   "$ROOT/scripts/check-kid-screens.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-dependencies.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-crayon-canvas.sh" </dev/null || status=1
+  bash "$ROOT/scripts/check-debug-boundary.sh" </dev/null || status=1
 fi
 
 if printf '%s' "$changed" | grep -Eq '^ios/.*\.(swift|xcstrings)$'; then

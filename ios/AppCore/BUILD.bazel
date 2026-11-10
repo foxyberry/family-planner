@@ -7,6 +7,7 @@ fp_swift_library(
     visibility = ["//ios:__subpackages__"],
     deps = [
         "//ios/Clients/AppSettings",
+        "//ios/Clients/DeviceLook",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/DebugTools",

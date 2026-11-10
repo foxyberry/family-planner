@@ -152,6 +152,13 @@ public struct NoSchoolPlan: Hashable, Codable, Sendable {
         self.end = end.flatMap { $0 > start ? $0 : nil }
         self.trip = trip
     }
+
+    /// Stored plans go through the same rule: an end not after the start is no end.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(start: try c.decode(Int.self, forKey: .start), end: try c.decodeIfPresent(Int.self, forKey: .end),
+                  trip: try c.decodeIfPresent(Trip.self, forKey: .trip))
+    }
 }
 
 /// How an every-week item's run ends (spec "Repeats, dates and changes", Runs). `term` is worked out

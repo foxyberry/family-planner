@@ -52,7 +52,7 @@ public struct AppView: View {
         #endif
         // One colour scheme for the window, set here because a pushed screen cannot override the home
         // underneath: grown-up screens follow the iPad's dark mode through the colour tokens.
-        .preferredColorScheme(colorScheme)
+        .preferredColorScheme(store.colorScheme)
         .environment(\.crayonOutline, CrayonColor.outline)
         .environment(\.rigScale, Self.rigScale)
         // Spec "Sizing formulas": one Sizing for the window, read once here.
@@ -61,13 +61,6 @@ public struct AppView: View {
         // the home disappear, which would cancel its task and stop the idle relock.
         .task { store.send(.checkFamily) }
         .task { await store.send(.task).finish() }
-    }
-
-    private var colorScheme: ColorScheme? {
-        #if DEBUG
-        if let dark = DebugModel.installed?.forcedDark, store.colorScheme == nil { return dark ? .dark : .light }
-        #endif
-        return store.colorScheme
     }
 
     /// The debug menu's "Rig scale" in debug builds; the kit data's scale otherwise.
@@ -102,8 +95,6 @@ public struct AppView: View {
                 BusSettingsView(store: store)
             case let .dataSources(store):
                 DataSourcesView(store: store)
-            case let .gallery(store):
-                ComponentGallery(onBack: { store.send(.backTapped) })
             }
         }
         // Any touch on a grown-up screen keeps it open for another 2 minutes.

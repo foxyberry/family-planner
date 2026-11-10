@@ -66,7 +66,6 @@ public struct SettingsFeature {
         case missionsRowTapped
         case busesRowTapped
         case backTapped
-        case galleryButtonTapped
         /// "Data sources": the open-data notices the school list's licences ask for.
         case dataSourcesTapped
         case delegate(Delegate)
@@ -149,7 +148,7 @@ public struct SettingsFeature {
                 }
                 return .none
 
-            case .missionsRowTapped, .busesRowTapped, .backTapped, .galleryButtonTapped, .dataSourcesTapped, .delegate:
+            case .missionsRowTapped, .busesRowTapped, .backTapped, .dataSourcesTapped, .delegate:
                 return .none
             }
         }

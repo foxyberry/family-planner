@@ -56,6 +56,9 @@ final class EventFieldsTests: XCTestCase {
         let holiday = F.slots(on: F.monday, items: [swim], holidays: [F.monday]).first { $0.title == "Swimming" }
         XCTAssertEqual(holiday.map { [$0.start, $0.end] }, [930, 1050])
         XCTAssertNil(NoSchoolPlan(start: 930, end: 900).end, "an end before the start is no end")
+        let stored = try? JSONDecoder().decode(NoSchoolPlan.self, from: Data(#"{"start":930,"end":900}"#.utf8))
+        XCTAssertNil(stored?.end, "a stored plan goes through the same rule")
+        XCTAssertEqual(stored?.start, 930)
     }
 
     func testChainsFollowTheItemBefore() {

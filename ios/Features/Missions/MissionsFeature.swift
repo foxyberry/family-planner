@@ -63,6 +63,8 @@ public struct MissionsFeature {
         public var isReady: Bool
         /// The medal on the ring after sliding (board A3); nil before, or for "Ready!" with no medal.
         public var medal: MedalKind? = nil
+        /// The chosen kid's row sits on its band (a crayon on-state: its words stay ink at night).
+        public var isChosen = false
         public var id: Kid.ID { kid.id }
         public var progress: Double { isReady ? 1 : total == 0 ? 0 : Double(done) / Double(total) }
     }
@@ -147,7 +149,8 @@ public struct MissionsFeature {
             kids.map { kid in
                 let list = list(of: kid.id), day = day(of: kid.id)
                 return KidRow(kid: kid, done: list.filter { day.done.contains($0.id) }.count, total: list.count,
-                              isReady: day.ready, medal: day.ready ? Self.medalKind(day.medal) : nil)
+                              isReady: day.ready, medal: day.ready ? Self.medalKind(day.medal) : nil,
+                              isChosen: kid.id == chosen)
             }
         }
 

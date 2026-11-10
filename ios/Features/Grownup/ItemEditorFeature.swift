@@ -35,12 +35,6 @@ public struct ItemEditorFeature {
         public var was: ItemForm
     }
 
-    #if DEBUG
-    /// Debug links `familyplanner://f1`…`f5` (boards F1–F5): C3 with a card open, since a check on
-    /// the iPad cannot scroll or tap. F1 and F4 follow School, so they show "Starts" and No school days.
-    public enum CheckBoard: String, CaseIterable, Sendable { case f1, f2, f3, f4, f5 }
-    #endif
-
     /// One tab under "For": a kid, or both kids.
     public struct AudienceTab: Equatable, Sendable {
         public var audience: Audience
@@ -137,23 +131,6 @@ public struct ItemEditorFeature {
         /// The From, Bring, Ends or No school days card is open.
         public var card: Card?
 
-        #if DEBUG
-        public mutating func open(_ board: CheckBoard) {
-            if board == .f1 || board == .f4 {
-                form.after = .school
-                form.afterGap = 15
-                form.trip = nil
-            }
-            if board == .f4 { form.setNoSchool(atSetTime: true) }
-            switch board {
-            case .f1: card = Card(kind: .from, was: form)
-            case .f2: card = Card(kind: .bring, was: form)
-            case .f3: card = Card(kind: .runsEnd, was: form)
-            case .f4: card = Card(kind: .noSchool, was: form)
-            case .f5: isEditingMissions = true
-            }
-        }
-        #endif
         /// The Bring card shows the whole kit ("More").
         public var isPickingMoreBring = false
         /// The Missions sub-page is open in the form card, and the mission being edited on it.
@@ -215,7 +192,7 @@ public struct ItemEditorFeature {
         /// How the kid goes on a day without School: None, Walk, Bus, Car or Taxi.
         public var noSchoolGoing: [ChoiceCircles.Choice] {
             // Board F4: Walk, Bus or Car (a day without School starts from Home, so never None).
-            goingChoices.filter { ["walk", "bus", "car"].contains($0.id) }.map { choice in // copy-ok: Way ids
+            goingChoices.filter { choice in [Domain.Way.walk, .bus, .car].contains { $0.rawValue == choice.id } }.map { choice in
                 var copy = choice
                 copy.isPicked = choice.id == form.noSchoolWay?.rawValue
                 return copy
@@ -250,14 +227,8 @@ public struct ItemEditorFeature {
         }
         static let bringMoreID = "more" // copy-ok: choice id
 
-        /// "More" (spec "Event form rows"): object pictures only, never the debug, UI, rig, passenger,
-        /// medal, feeling or face pictures.
-        public static let bringAll: [KitSlot] = KitSlot.allCases.filter { slot in
-            let raw = slot.rawValue
-            let notThings: Set<KitSlot> = [.debugLadybug, .pencil, .skyDay, .skyDusk, .skyNight, .medalGold, .medalSilver,
-                                           .medalBronze, .crown, .star, .kidGirl, .kidBoy, .wolfie, .home]
-            return !notThings.contains(slot) && !raw.contains("Pax") && !raw.hasPrefix("feel") && !raw.hasPrefix("energy") // copy-ok: KitSlot name parts
-        }
+        /// "More" (spec "Event form rows"): object pictures only (`KitSlot.isThing`).
+        public static let bringAll: [KitSlot] = KitSlot.allCases.filter(\.isThing)
         public var bringPicked: Set<KitSlot> { Set(form.bring.compactMap { KitSlot(rawValue: $0.picture) }) }
 
         /// "Missions · Swimming", the sub-page's header.
@@ -281,6 +252,20 @@ public struct ItemEditorFeature {
         public var runsEndText: String { form.runsEndText(calendar: calendar) }
         public var runsStart: Date { form.date.date(calendar: calendar) }
         public var runsUntil: Date { max(form.untilDate, form.date).date(calendar: calendar) }
+
+        /// Board F3's rows as shown: the label, the term's date under "End of this term", and the pick.
+        public struct RunsEndRow: Equatable, Sendable {
+            public var kind: ItemForm.RunsEndKind
+            public var title: String
+            public var caption: String?
+            public var isPicked: Bool
+        }
+        public var runsEndRows: [RunsEndRow] {
+            runsEndTabs.map { kind, title in
+                RunsEndRow(kind: kind, title: title, caption: kind == .term ? termCaption : nil,
+                           isPicked: form.runsEnd == kind)
+            }
+        }
 
         /// The Ends card's rows (board F3): "End of this term" only when the kid's school has terms.
         public var runsEndTabs: [(ItemForm.RunsEndKind, String)] {
@@ -552,7 +537,6 @@ public struct ItemEditorFeature {
         case fromPicked(String)
         case bringRowTapped
         case bringToggled(KitSlot)
-        case bringMoreTapped
         /// A circle on the Bring row: a thing toggles, "More" opens every picture.
         case bringCircleTapped(String)
         /// Done on a form card keeps its changes; Cancel or a tap outside puts the form back.
@@ -844,10 +828,6 @@ public struct ItemEditorFeature {
 
             case let .bringToggled(slot):
                 state.form.toggleBring(slot.rawValue, id: uuid())
-                return .none
-
-            case .bringMoreTapped:
-                state.isPickingMoreBring.toggle()
                 return .none
 
             case let .bringCircleTapped(id):

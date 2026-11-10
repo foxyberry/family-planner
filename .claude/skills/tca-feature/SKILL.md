@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   status: experimental
 ---
 
@@ -82,4 +82,5 @@ reference time zone, the time machine and tests can replace any of it in one pla
 - A grown-up form card sized by its rows: `.frame(maxWidth: .infinity)` does not cap a wider child, so one wide row (date chips, steppers) widens the card past 64…882. Pin the form to the card's inner width with `.frame(width:)` and check the widest row on the grid.
 - Row labels in body type ("Arrive by") wrap in the 104–232 label column. Use caption labels on one line, as C2 and S2 do.
 - `TestStore` with `exhaustivity = .off`: each `send` skips the received actions not yet asserted, so `receive` an effect's actions before the next `send`.
+- A debug switch or fixture inside a feature (`#if DEBUG` state, a debug-only action, a board setup in a reducer): it ships in the feature's shape and drifts from the real flow. Give the value as a dependency that `DebugModel.install` swaps (as the time machine swaps `\.date`), keep fixtures in DebugTools, and reach the screen through the app's normal actions. `check-debug-boundary.sh` blocks the rest.
 - Fixed test dates on a public holiday: 9 Nov 2026 (Deepavali observed) is a Sunday-template day in the app. Check the holiday list before a weekday fixture becomes a "school day" check, on the iPad too.

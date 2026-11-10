@@ -67,36 +67,6 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertNil(store.state.grownupIdleSeconds)
     }
 
-    func testGalleryButtonPushesGallery() async {
-        var state = AppFeature.State()
-        state.path.append(.settings(SettingsFeature.State()))
-        let store = TestStore(initialState: state) {
-            AppFeature()
-        } withDependencies: {
-            $0.date.now = self.fixedDate
-        }
-
-        await store.send(\.path[id: 0].settings.galleryButtonTapped) {
-            $0.grownupIdleSeconds = 0
-            $0.path[id: 1] = .gallery(GalleryFeature.State())
-        }
-    }
-
-    func testGalleryBackPopsToSettings() async {
-        var state = AppFeature.State()
-        state.path.append(.settings(SettingsFeature.State()))
-        state.path.append(.gallery(GalleryFeature.State()))
-        state.grownupIdleSeconds = 5
-        let store = TestStore(initialState: state) {
-            AppFeature()
-        }
-
-        await store.send(\.path[id: 1].gallery.backTapped) {
-            $0.grownupIdleSeconds = 0
-            $0.path.pop(from: 1)
-        }
-    }
-
     func testOurDayOpensSettingsAndTheEditor() async {
         var state = AppFeature.State()
         state.path.append(.ourDay(OurDayFeature.State(kid: SeedData.kidB.id, today: Day(year: 2026, month: 11, day: 10),
