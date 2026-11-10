@@ -119,6 +119,26 @@ public enum Recurrence: Hashable, Codable, Sendable {
     case weekly(Set<Weekday>, from: Day, until: Day?)
 }
 
+/// One day of an every-week item changed on its own ("This day", spec "Repeats, dates and changes"):
+/// only the fields given override the series on that date. A skipped day is in `skippedDays`.
+public struct DayChange: Hashable, Codable, Sendable {
+    public var day: Day
+    public var start: Int?
+    public var end: Int?
+    public var title: String?
+    public var iconName: String?
+
+    public init(day: Day, start: Int? = nil, end: Int? = nil, title: String? = nil, iconName: String? = nil) {
+        self.day = day
+        self.start = start
+        self.end = end
+        self.title = title
+        self.iconName = iconName
+    }
+
+    public var isEmpty: Bool { start == nil && end == nil && title == nil && iconName == nil }
+}
+
 /// How an every-week item's run ends (spec "Repeats, dates and changes", Runs). `term` is worked out
 /// from the kid's school calendar each time the days are (so a calendar update moves it); `date` and
 /// `count` are kept in the recurrence's `until`.
@@ -212,12 +232,16 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var missionsAfter: [ItemMission]
     /// How the run ends (Runs); nil for items saved before Runs, whose `until` decides.
     public var runsEnd: RunsEnd?
+    /// Days changed on their own ("This day"), one per date.
+    public var dayChanges: [DayChange]
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
                 recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
                 trip: Trip? = nil, after: EventRef? = nil, bring: [ItemMission] = [],
-                missionsBefore: [ItemMission] = [], missionsAfter: [ItemMission] = [], runsEnd: RunsEnd? = nil) {
+                missionsBefore: [ItemMission] = [], missionsAfter: [ItemMission] = [], runsEnd: RunsEnd? = nil,
+                dayChanges: [DayChange] = []) {
         self.runsEnd = runsEnd
+        self.dayChanges = dayChanges
         self.trip = after == nil ? trip : nil
         self.after = after
         self.bring = Array(bring.prefix(ItemMission.most))
@@ -237,11 +261,25 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
 
     public var isWeekly: Bool { if case .weekly = recurrence { true } else { false } }
 
+    /// The weekdays of an every-week item (none for a just-once item).
+    public var weeklyDays: Set<Weekday> { if case let .weekly(days, _, _) = recurrence { days } else { [] } }
+
     public var kind: SlotKind { isWeekly ? .afterSchool : .event }
+
+    /// The item as it is on `day`: a day changed on its own has its own times, name or picture.
+    public func on(_ day: Day) -> ScheduleItem {
+        guard let change = dayChanges.first(where: { $0.day == day }) else { return self }
+        var copy = self
+        copy.start = change.start ?? start
+        copy.end = change.end ?? end
+        copy.title = change.title ?? title
+        copy.iconName = change.iconName ?? iconName
+        return copy
+    }
 
     private enum CodingKeys: String, CodingKey {
         case id, title, iconName, audience, start, end, recurrence, skippedDays, skipsHolidays, showsStar, trip, after,
-             bring, missionsBefore, missionsAfter, runsEnd
+             bring, missionsBefore, missionsAfter, runsEnd, dayChanges
     }
 
     /// Items stored before Bring and the item missions existed load with none.
@@ -260,7 +298,8 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
                   bring: try c.decodeIfPresent([ItemMission].self, forKey: .bring) ?? [],
                   missionsBefore: try c.decodeIfPresent([ItemMission].self, forKey: .missionsBefore) ?? [],
                   missionsAfter: try c.decodeIfPresent([ItemMission].self, forKey: .missionsAfter) ?? [],
-                  runsEnd: try c.decodeIfPresent(RunsEnd.self, forKey: .runsEnd))
+                  runsEnd: try c.decodeIfPresent(RunsEnd.self, forKey: .runsEnd),
+                  dayChanges: try c.decodeIfPresent([DayChange].self, forKey: .dayChanges) ?? [])
     }
 }
 

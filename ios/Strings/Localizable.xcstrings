@@ -1002,17 +1002,6 @@
         }
       }
     },
-    "editor.removed_hint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Removed by mistake? Add it back from Our kids."
-          }
-        }
-      }
-    },
     "editor.repeat.once" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1178,24 +1167,24 @@
         }
       }
     },
-    "editor.skip.just" : {
+    "editor.scope.all_days" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skip just %@"
+            "value" : "All days"
           }
         }
       }
     },
-    "editor.skip.undo" : {
+    "editor.scope.this_day" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skipped %@ · Undo"
+            "value" : "This day"
           }
         }
       }
@@ -1222,6 +1211,39 @@
         }
       }
     },
+    "editor.this_day.bring_back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring back this day"
+          }
+        }
+      }
+    },
+    "editor.this_day.only" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ only"
+          }
+        }
+      }
+    },
+    "editor.this_day.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip this day"
+          }
+        }
+      }
+    },
     "editor.title.add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1240,17 +1262,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Edit %@"
-          }
-        }
-      }
-    },
-    "editor.weekly.changes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changes start from the next one."
           }
         }
       }
@@ -1372,6 +1383,94 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "after %@"
+          }
+        }
+      }
+    },
+    "from_when.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "from_when.date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date"
+          }
+        }
+      }
+    },
+    "from_when.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next %@"
+          }
+        }
+      }
+    },
+    "from_when.removed.many" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ were changed and no longer fit. They’ll be removed."
+          }
+        }
+      }
+    },
+    "from_when.removed.one" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ was changed and no longer fits. It’ll be removed."
+          }
+        }
+      }
+    },
+    "from_when.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "from_when.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change from when?"
+          }
+        }
+      }
+    },
+    "from_when.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
           }
         }
       }

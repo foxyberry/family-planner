@@ -53,56 +53,6 @@ final class SeriesEditsTests: XCTestCase {
         XCTAssertTrue(DayPlanner.occurs(ended, on: F.monday, kid: F.kidA.id, holidays: [], calendar: F.calendar))
         XCTAssertFalse(DayPlanner.occurs(ended, on: F.wednesday, kid: F.kidA.id, holidays: [], calendar: F.calendar))
     }
-
-    func testApplyingEditSplitsWhenRunningToday() {
-        let swim = F.weekly(start: 930, end: 990)
-        var edit = swim
-        edit.start = 960
-        edit.end = 1020
-        let result = SeriesEdits.applying(edit: edit, to: swim, today: F.monday, nowMinute: 945, newID: UUID(), holidays: [],
-                                          calendar: F.calendar)
-        XCTAssertEqual(result.count, 2)
-        XCTAssertEqual(result[0].id, swim.id)
-        XCTAssertEqual(result[0].start, 930, "today keeps the old times")
-        XCTAssertEqual(result[0].recurrence, .weekly([.monday, .wednesday], from: Day(year: 2026, month: 11, day: 1),
-                                                     until: F.monday))
-        XCTAssertNotEqual(result[1].id, swim.id)
-        XCTAssertEqual(result[1].start, 960)
-        XCTAssertEqual(result[1].recurrence, .weekly([.monday, .wednesday], from: F.tuesday, until: nil))
-    }
-
-    func testApplyingEditSplitsWhenAlreadyFinishedToday() {
-        let swim = F.weekly(start: 930, end: 990)
-        var edit = swim
-        edit.title = "Swim club"
-        let result = SeriesEdits.applying(edit: edit, to: swim, today: F.monday, nowMinute: 1200, newID: UUID(), holidays: [],
-                                          calendar: F.calendar)
-        XCTAssertEqual(result.count, 2)
-        XCTAssertEqual(result[0].title, "Swimming")
-    }
-
-    func testApplyingEditMovesFutureSkipsToNewSeries() {
-        var swim = F.weekly()
-        let nextWeek = Day(year: 2026, month: 11, day: 16)
-        let lastWeek = Day(year: 2026, month: 11, day: 2)
-        swim.skippedDays = [lastWeek, nextWeek]
-        let result = SeriesEdits.applying(edit: swim, to: swim, today: F.monday, nowMinute: 945, newID: UUID(), holidays: [],
-                                          calendar: F.calendar)
-        XCTAssertEqual(result[0].skippedDays, [lastWeek])
-        XCTAssertEqual(result[1].skippedDays, [nextWeek])
-    }
-
-    func testApplyingEditInPlaceWhenNotStarted() {
-        let swim = F.weekly(start: 930, end: 990)
-        var edit = swim
-        edit.start = 960
-        let notToday = SeriesEdits.applying(edit: edit, to: swim, today: F.tuesday, nowMinute: 945, newID: UUID(), holidays: [],
-                                            calendar: F.calendar)
-        XCTAssertEqual(notToday, [edit])
-        let beforeStart = SeriesEdits.applying(edit: edit, to: swim, today: F.monday, nowMinute: 900, newID: UUID(), holidays: [],
-                                               calendar: F.calendar)
-        XCTAssertEqual(beforeStart, [edit])
-    }
 }
 
 final class FormattingTests: XCTestCase {

@@ -100,7 +100,7 @@ public enum DayText {
     }
 
     /// "A", "A and B", "A, B and C".
-    private static func list(_ names: [String]) -> String {
+    public static func list(_ names: [String]) -> String {
         guard let last = names.last else { return "" }
         guard names.count > 1 else { return last }
         return L10n.tr("list.and", names.dropLast().joined(separator: ", "), last)
