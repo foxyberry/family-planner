@@ -21,6 +21,12 @@ public struct ItemEditorFeature {
         case leave, removeOnce, removeSeries
     }
 
+    /// The every-week item's edit tabs (boards G2, G3): this day only, or the series.
+    public enum Scope: Hashable, Sendable { case thisDay, allDays }
+
+    /// Board G5 "Change from when?": the day the changed series starts.
+    public enum FromWhen: Hashable, Sendable { case today, next, date }
+
     /// The centred cards of the event rows (spec "Event form rows for 6b"); a tap outside cancels.
     public enum Card: Equatable, Sendable {
         case from
@@ -114,8 +120,13 @@ public struct ItemEditorFeature {
         public var isSaving = false
         /// The every-week item as saved right now (skips are saved at once, board E5).
         public var weeklyItem: ScheduleItem?
-        /// The date "Skip just …" skipped, while it can still be undone.
+        /// The date "Skip this day" skipped, while it can still be brought back.
         public var skippedDay: Day?
+        /// Board G3 / G2 tabs; an every-week item opens on This day.
+        public var editScope: Scope = .thisDay
+        /// Board G5: the "Change from when?" card is open, with its choice and date.
+        public var fromWhen: FromWhen?
+        public var fromWhenDate: Day
         /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
         public var draftID: ScheduleItem.ID?
         /// The From or Bring card is open.
@@ -222,6 +233,7 @@ public struct ItemEditorFeature {
             }
             form = initial
             original = initial
+            fromWhenDate = Day(now, calendar: calendar)
             if case let .editWeekly(item) = mode { weeklyItem = item }
         }
 
@@ -323,7 +335,7 @@ public struct ItemEditorFeature {
             case .removeOnce:
                 return L10n.tr("editor.confirm.remove_once.message", DayText.long(original.date, calendar: calendar))
             case .removeSeries:
-                let from = DayText.short(skipCandidate ?? today, calendar: calendar)
+                let from = DayText.short(thisDay ?? today, calendar: calendar)
                 return L10n.tr("editor.confirm.remove_series.message", clockOwner, from)
             default:
                 return nil
@@ -340,7 +352,7 @@ public struct ItemEditorFeature {
             }
         }
 
-        /// The next date of the series that has not ended yet (board E5 "Skip just …").
+        /// The next date of the series that has not ended yet.
         public var skipCandidate: Day? {
             weeklyItem.flatMap {
                 SeriesEdits.nextOccurrence(of: $0, from: today, nowMinute: nowMinute, holidays: holidays,
@@ -348,13 +360,74 @@ public struct ItemEditorFeature {
             }
         }
 
-        public var skipRowTitle: String? {
-            if let skippedDay { return L10n.tr("editor.skip.undo", DayText.short(skippedDay, calendar: calendar)) }
-            return skipCandidate.map { L10n.tr("editor.skip.just", DayText.short($0, calendar: calendar)) }
+        /// Board G3: the day "This day" changes: the next one, or the one just skipped.
+        public var thisDay: Day? { skippedDay ?? skipCandidate }
+
+        /// The side column's tabs show for an every-week item that still has a day ahead.
+        public var showsScopeTabs: Bool { isEditingWeekly && thisDay != nil }
+        public var isThisDay: Bool { showsScopeTabs && editScope == .thisDay }
+
+        /// "Mon 9 Nov only" (board G3).
+        public var thisDayTitle: String? {
+            thisDay.map { L10n.tr("editor.this_day.only", DayText.short($0, calendar: calendar)) }
         }
 
-        /// The skip row undoes the skip it just saved.
-        public var skipRowIsUndo: Bool { skippedDay != nil }
+        /// "Skip this day", or "Bring back this day" once skipped.
+        public var skipTitle: String {
+            skippedDay == nil ? L10n.tr("editor.this_day.skip") : L10n.tr("editor.this_day.bring_back")
+        }
+
+        /// Board G5's tabs: "Today", "Next Mon" (the next day of the changed series), "Date".
+        public var fromWhenTabs: [(FromWhen, String)] {
+            [(.today, L10n.tr("from_when.today")),
+             (.next, L10n.tr("from_when.next", nextDay.map { DayText.shortName($0.weekday(calendar)) } ?? "")),
+             (.date, L10n.tr("from_when.date"))]
+        }
+
+        /// The first day after today on one of the changed series' weekdays.
+        var nextDay: Day? {
+            (1...7).map { today.adding(days: $0, calendar: calendar) }.first { form.days.contains($0.weekday(calendar)) }
+        }
+
+        /// Where the series splits for the card's choice.
+        public var splitDay: Day {
+            switch fromWhen {
+            case .next?: nextDay ?? today
+            case .date?: max(fromWhenDate, today)
+            case .today?, nil: today
+            }
+        }
+
+        public var fromWhenDateLabel: String { DayText.dayMonth(max(fromWhenDate, today), calendar: calendar) }
+        public var fromWhenDateValue: Date { max(fromWhenDate, today).date(calendar: calendar) }
+
+        /// The changed series as it would be saved (the card lists the days it drops).
+        func split(newID: UUID) -> SeriesEdits.Split? {
+            guard let weekly = weeklyItem else { return nil }
+            return SeriesEdits.splitting(weekly, with: seriesEdit, from: splitDay, newID: newID, calendar: calendar)
+        }
+
+        /// Board G5's caption: "17 Nov and 24 Nov were changed and no longer fit. They'll be removed."
+        public var fromWhenCaption: String? {
+            guard let removed = split(newID: UUID())?.removed, !removed.isEmpty else { return nil }
+            let list = DayText.list(removed.map { DayText.dayMonth($0, calendar: calendar) })
+            return removed.count == 1 ? L10n.tr("from_when.removed.one", list) : L10n.tr("from_when.removed.many", list)
+        }
+
+        /// The form as the series' new version: its start and end from Runs when they changed.
+        var seriesEdit: ScheduleItem {
+            var item = form.item(id: weeklyItem?.id ?? UUID(), today: today)
+            if let weekly = weeklyItem, case let .weekly(_, from, until) = weekly.recurrence,
+               case let .weekly(days, _, _) = item.recurrence {
+                let start = form.date == original.date ? from : form.date
+                let end = form.runsEnd == original.runsEnd && form.untilDate == original.untilDate
+                    && form.times == original.times ? until : form.until
+                item.recurrence = .weekly(days, from: start, until: end)
+                item.skippedDays = weekly.skippedDays
+                item.dayChanges = weekly.dayChanges
+            }
+            return item
+        }
     }
 
     public enum Action: BindableAction, Equatable {
@@ -416,6 +489,13 @@ public struct ItemEditorFeature {
         case runsUntilPicked(Date)
         case runsTimesStepped(Int)
         case runsEndDoneTapped
+        /// Boards G2 / G3: the This day / All days tabs.
+        case scopeTapped(Scope)
+        /// Board G5: the choice, the date, Save and Cancel.
+        case fromWhenPicked(FromWhen)
+        case fromWhenDatePicked(Date)
+        case fromWhenSaveTapped
+        case fromWhenCancelTapped
         case delegate(Delegate)
 
         @CasePathable
@@ -508,33 +588,46 @@ public struct ItemEditorFeature {
 
             case .saveTapped:
                 guard state.canSave else { return .none }
+                if state.showsScopeTabs, let weekly = state.weeklyItem {
+                    guard state.editScope == .thisDay, let day = state.thisDay else {
+                        // All days asks from when first (board G5).
+                        state.fromWhen = .today
+                        state.fromWhenDate = state.today
+                        return .none
+                    }
+                    state.isSaving = true
+                    state.saveError = nil
+                    let edit = state.form.item(id: weekly.id, today: state.today)
+                    return saveAll([SeriesEdits.changing(weekly, on: day, to: edit)])
+                }
                 state.isSaving = true
                 state.saveError = nil
                 let id = state.editingItem?.id ?? uuid()
-                var item = state.form.item(id: id, today: state.today)
-                var items = [item]
-                if let weekly = state.weeklyItem, case let .weekly(_, from, until) = weekly.recurrence,
-                   case let .weekly(days, _, _) = item.recurrence {
-                    // Changes start from the next time; a run that already started today keeps its times.
-                    // Runs: a changed start or end is the series' own.
-                    let start = state.form.date == state.original.date ? from : state.form.date
-                    let end = state.form.runsEnd == state.original.runsEnd && state.form.untilDate == state.original.untilDate
-                        && state.form.times == state.original.times ? until : state.form.until
-                    item.recurrence = .weekly(days, from: start, until: end)
-                    item.skippedDays = weekly.skippedDays
-                    items = SeriesEdits.applying(edit: item, to: weekly, today: state.today, nowMinute: state.nowMinute,
-                                                 newID: uuid(), holidays: state.holidays, calendar: state.calendar)
-                }
-                return .run { [scheduleStore, items] send in
-                    do {
-                        if items.count == 1 { try await scheduleStore.save(items[0]) } else {
-                            try await scheduleStore.saveAll(items)
-                        }
-                        await send(.saved(true))
-                    } catch {
-                        await send(.saved(false))
-                    }
-                }
+                return saveAll(state.isEditingWeekly ? [state.seriesEdit] : [state.form.item(id: id, today: state.today)])
+
+            case let .fromWhenPicked(choice):
+                state.fromWhen = choice
+                return .none
+
+            case let .fromWhenDatePicked(date):
+                state.fromWhen = .date
+                state.fromWhenDate = max(Day(date, calendar: state.calendar), state.today)
+                return .none
+
+            case .fromWhenCancelTapped:
+                state.fromWhen = nil
+                return .none
+
+            case .fromWhenSaveTapped:
+                guard let split = state.split(newID: uuid()), !state.isSaving else { return .none }
+                state.fromWhen = nil
+                state.isSaving = true
+                state.saveError = nil
+                return saveAll(split.items)
+
+            case let .scopeTapped(scope):
+                state.editScope = scope
+                return .none
 
             case let .goingTapped(way):
                 state.form.setGoing(way)
@@ -557,7 +650,7 @@ public struct ItemEditorFeature {
                     state.isSaving = true
                     return save(SeriesEdits.unskipping(weekly, day: day), skipped: nil)
                 }
-                guard let day = state.skipCandidate else { return .none }
+                guard let day = state.thisDay else { return .none }
                 state.isSaving = true
                 return save(SeriesEdits.skipping(weekly, day: day), skipped: day)
 
@@ -615,7 +708,7 @@ public struct ItemEditorFeature {
                     }
                 case .removeSeries:
                     guard let weekly = state.weeklyItem else { return .none }
-                    let ended = SeriesEdits.ending(weekly, before: state.skipCandidate ?? state.today,
+                    let ended = SeriesEdits.ending(weekly, before: state.thisDay ?? state.today,
                                                    calendar: state.calendar)
                     return .run { [scheduleStore] send in
                         do {
@@ -757,6 +850,18 @@ public struct ItemEditorFeature {
 
             case .delegate:
                 return .none
+            }
+        }
+    }
+
+    /// Saves the items (one, or a split series) and leaves on success.
+    private func saveAll(_ items: [ScheduleItem]) -> Effect<Action> {
+        .run { [scheduleStore] send in
+            do {
+                if items.count == 1 { try await scheduleStore.save(items[0]) } else { try await scheduleStore.saveAll(items) }
+                await send(.saved(true))
+            } catch {
+                await send(.saved(false))
             }
         }
     }

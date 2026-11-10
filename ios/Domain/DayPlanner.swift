@@ -77,6 +77,7 @@ public enum DayPlanner {
                                        trip: block.trip)))
         }
         let occurring = items.filter { occurs($0, on: day, kid: kid.id, holidays: holidays, calendar: calendar) }
+            .map { $0.on(day) }
         for (item, start) in placed(occurring, schoolEnd: routine?.blocks.first { $0.kind == .school }?.end) {
             let source: Slot.Source = item.isWeekly ? .weekly(item.id) : .once(item.id)
             candidates.append((item.isWeekly ? 1 : 2,

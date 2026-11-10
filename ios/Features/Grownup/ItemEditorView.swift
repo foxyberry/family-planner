@@ -69,6 +69,11 @@ public struct ItemEditorView: View {
                                      onSave: { store.send(.missionSaveTapped) })
                 }
             }
+            if store.fromWhen != nil {
+                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
+                    .onTapGesture { store.send(.fromWhenCancelTapped) }
+                fromWhenCard
+            }
             if let title = store.confirmTitle {
                 CrayonColor.marker.opacity(0.3).ignoresSafeArea()
                 ConfirmCard(title: title, message: store.confirmMessage,
@@ -113,7 +118,10 @@ public struct ItemEditorView: View {
                                itemSize: CGSize(width: 220, height: 72), spacing: Spacing.sm)
                 }
             }
-            if store.form.repeats == .weekly { weeklyRows } else { onceRows }
+            // Board G3: This day keeps the item's own rows only (no Days, Runs or event rows).
+            if store.isThisDay {
+                EmptyView()
+            } else if store.form.repeats == .weekly { weeklyRows } else { onceRows }
             if case .editOnce = store.mode {
                 Button { store.send(.removeTapped) } label: {
                     Text(store.removeTitle).crayonType(.head).foregroundStyle(CrayonColor.lateText)
@@ -461,26 +469,64 @@ public struct ItemEditorView: View {
 
     private var weeklySide: some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
-            Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
-            Text(L10n.tr("editor.weekly.changes")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-            if let title = store.skipRowTitle {
+            if store.showsScopeTabs {
+                // Boards G2 / G3: This day / All days at the top of the side column.
+                CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
+                           items: [(ItemEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
+                                   (.allDays, L10n.tr("editor.scope.all_days"), nil)],
+                           itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
+            }
+            if store.isThisDay {
+                Text(store.thisDayTitle ?? "").crayonType(.head).foregroundStyle(CrayonColor.ink)
                 Button { store.send(.skipRowTapped) } label: {
-                    Text(title).crayonType(.body)
-                        .foregroundStyle(store.skipRowIsUndo ? CrayonColor.link : CrayonColor.ink)
-                        .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
+                    Text(store.skipTitle).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                        .frame(maxWidth: .infinity, minHeight: 88)
+                        .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: 1901)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                Button { store.send(.removeSeriesTapped) } label: {
+                    Text(L10n.tr("editor.remove_series")).crayonType(.head).foregroundStyle(CrayonColor.lateText)
+                        .frame(maxWidth: .infinity, minHeight: 88)
+                        .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: 1903)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
-            Button { store.send(.removeSeriesTapped) } label: {
-                Text(L10n.tr("editor.remove_series")).crayonType(.head).foregroundStyle(CrayonColor.lateText)
-                    .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            Text(L10n.tr("editor.removed_hint")).crayonType(.caption)
-                .foregroundStyle(CrayonColor.softText)
         }
+    }
+
+    /// Board G5 "Change from when?": a small card over the form (560 wide).
+    private var fromWhenCard: some View {
+        PaperCard(seed: 51) {
+            VStack(alignment: .leading, spacing: Spacing.m) {
+                Text(L10n.tr("from_when.title")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                HStack(spacing: Spacing.sm) {
+                    CrayonTabs(selection: Binding(get: { store.fromWhen ?? .today }, set: { store.send(.fromWhenPicked($0)) }),
+                               items: store.fromWhenTabs.map { ($0.0, $0.1, nil) },
+                               itemSize: CGSize(width: 150, height: 64), spacing: Spacing.sm)
+                }
+                if store.fromWhen == .date {
+                    DateField(label: store.fromWhenDateLabel,
+                              date: Binding(get: { store.fromWhenDateValue }, set: { store.send(.fromWhenDatePicked($0)) }))
+                }
+                if let caption = store.fromWhenCaption {
+                    Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                HStack(spacing: Spacing.l) {
+                    InkButton(L10n.tr("from_when.save")) { store.send(.fromWhenSaveTapped) }
+                        .frame(width: 220)
+                    Button { store.send(.fromWhenCancelTapped) } label: {
+                        Text(L10n.tr("from_when.cancel")).crayonType(.head).foregroundStyle(CrayonColor.softText)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .frame(width: 560)
     }
 
     // MARK: Side column (preview)

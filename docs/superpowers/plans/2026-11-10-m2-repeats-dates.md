@@ -39,12 +39,16 @@ Grown-up mode (G1, the C6 slice card tabs, G4 School) is 6d.
 
 ## PR 3: This day / All days (G3, G5)
 
-- `EventException { item, originalDate, cancelled?, start?, end? }` stored next to the item; only
-  changed fields override the series.
-- E5 side column: tabs "This day" / "All days". This day hides Days / Runs / holidays, reads
-  "{Day d Mon} only" and "Skip this day"; All days reads "Every {days}" and "Remove every week".
-- Save on All days opens G5 "Change from when?" (Today / Next {weekday} / Date): the series splits
-  there; exceptions whose day no longer fits are listed in the card and removed.
+- `ScheduleItem.dayChanges` (`DayChange { day, start?, end?, title?, iconName? }`): a day changed on its
+  own; only the fields given override the series (`ScheduleItem.on(day)`, used by `DayPlanner`).
+  A skipped day stays in `skippedDays`.
+- E5 side column: tabs "This day" (default) / "All days". This day hides Days, Runs, holidays and the
+  event rows, reads "{Day d Mon} only" and "Skip this day" / "Bring back this day"; its Save keeps the
+  change to that day (`SeriesEdits.changing`). All days reads "Every {days}" and "Remove every week".
+- Save on All days opens G5 "Change from when?" (Today / Next {weekday} / Date): `SeriesEdits.splitting`
+  ends the old part the day before and starts a new one; a day on or before the start changes the series
+  in place. Changed and skipped days that no longer fit are listed in the card and dropped.
+- The old automatic split ("today keeps the old times") and the E5 captions are gone.
 
 ## PR 4: linked time and no-school days
 
