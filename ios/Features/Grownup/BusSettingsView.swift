@@ -17,10 +17,14 @@ public struct BusSettingsView: View {
             GrownupHeader(title: store.title, onBack: { store.send(.doneTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
-                // Board C2: the card runs 176–968; exactly its inner width, so a long row of buses
-                // can never widen it.
-                PaperCard(seed: 51) { plan.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading) }
-                    .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
+                // Board C2: the card runs 176–968 at least, exactly its inner width, so a long row of
+                // buses can never widen it. A stop with many buses makes it taller and the screen
+                // scrolls (iPad review: a fixed height squeezed the rows on top of each other).
+                PaperCard(seed: 51) {
+                    plan.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                        .frame(minHeight: layout.form.height - 2 * layout.formInset, alignment: .top)
+                }
+                .frame(width: layout.form.width, alignment: .top)
                 side.frame(width: layout.side.width, alignment: .topLeading)
             }
         } primaryAction: { layout in

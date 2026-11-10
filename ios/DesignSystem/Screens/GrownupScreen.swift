@@ -7,16 +7,32 @@ import SwiftUI
 /// Everything sits on `GrownupLayout`'s lines: the header at 48 and 64 … 1312, the content from
 /// 176 between 64 and 1312 (the form card 64–882, the side column 930–1312), and the primary
 /// action in the side column's foot (930, 872, 382 × 96).
+/// A row for `GrownupScreen` to bring into view (spec "Add-screen feedback": Save scrolls to the
+/// first problem); `request` changes for every new ask, so the same row can be asked for twice.
+public struct GrownupScrollTarget: Equatable, Sendable {
+    public var id: String
+    public var request: Int
+
+    public init(id: String, request: Int) {
+        self.id = id
+        self.request = request
+    }
+}
+
 public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
     private let header: Header
     private let content: (GrownupLayout) -> Content
     private let primaryAction: (GrownupLayout) -> Action
+    private let scrollTarget: GrownupScrollTarget?
 
-    public init(@ViewBuilder header: () -> Header, @ViewBuilder content: @escaping (GrownupLayout) -> Content,
+    /// `scrollTarget`: a row (marked with `.id`) to scroll to the middle of the screen.
+    public init(scrollTarget: GrownupScrollTarget? = nil, @ViewBuilder header: () -> Header,
+                @ViewBuilder content: @escaping (GrownupLayout) -> Content,
                 @ViewBuilder primaryAction: @escaping (GrownupLayout) -> Action) {
         self.header = header()
         self.content = content
         self.primaryAction = primaryAction
+        self.scrollTarget = scrollTarget
     }
 
     /// For content that does not need the lines.
@@ -35,20 +51,26 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
                 .padding(.top, layout.back.minY)
                 .padding(.leading, layout.back.minX)
                 .padding(.trailing, sizing.width - layout.right)
-            ScrollView {
-                content(layout)
-                    // Cards inset their rows 40 (x 104) and rows put their controls on 232.
-                    .environment(\.cardInset, layout.formInset)
-                    .environment(\.formLabelWidth, layout.labelWidth)
-                    // Exactly 64 … 1312 wide, so a long line can never push the card off 64.
-                    .frame(width: layout.side.maxX - layout.form.minX, alignment: .topLeading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, layout.form.minX)
-                    .padding(.top, layout.contentTop - layout.back.maxY)
-                    // The last rows can scroll clear of the action button (from 872).
-                    .padding(.bottom, sizing.height - layout.action.minY)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    content(layout)
+                        // Cards inset their rows 40 (x 104) and rows put their controls on 232.
+                        .environment(\.cardInset, layout.formInset)
+                        .environment(\.formLabelWidth, layout.labelWidth)
+                        // Exactly 64 … 1312 wide, so a long line can never push the card off 64.
+                        .frame(width: layout.side.maxX - layout.form.minX, alignment: .topLeading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, layout.form.minX)
+                        .padding(.top, layout.contentTop - layout.back.maxY)
+                        // The last rows can scroll clear of the action button (from 872).
+                        .padding(.bottom, sizing.height - layout.action.minY)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .onChange(of: scrollTarget) { _, target in
+                    guard let target else { return }
+                    withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(target.id, anchor: .center) }
+                }
             }
-            .scrollDismissesKeyboard(.interactively)
         }
         // The action button sits in the side column's foot (930, 872, 382 × 96), so the form card
         // runs down beside it as on the boards; with the keyboard open it rides above the keyboard.

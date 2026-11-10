@@ -10,6 +10,7 @@ public struct RoundButton: View {
     private let label: String
     private let action: () -> Void
     private var size: CGFloat = 80
+    private var look: KidLook = .day
 
     public init(systemImage: String, accessibilityLabel: String, action: @escaping () -> Void) {
         content = .symbol(systemImage)
@@ -44,6 +45,14 @@ public struct RoundButton: View {
         return copy
     }
 
+    /// Spec "Night mapping": at night a white round is a night control (`nightControl` fill, chalk
+    /// outline); the kid homes' pencil uses it.
+    public func look(_ look: KidLook) -> RoundButton {
+        var copy = self
+        copy.look = look
+        return copy
+    }
+
     public var body: some View {
         Button(action: action) {
             Group {
@@ -54,9 +63,11 @@ public struct RoundButton: View {
                 case let .picture(slot): KitIcon(slot, size: size * 0.7)
                 }
             }
-            .foregroundStyle(CrayonColor.ink)
+            .foregroundStyle(look == .day ? CrayonColor.ink : CrayonColor.nightText)
             .frame(width: size, height: size)
-            .partBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.roundButton)
+            .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
+                            seed: CrayonStyle.Seed.roundButton,
+                            markerColor: look == .day ? .init(white: 0.12) : CrayonColor.chalk)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

@@ -395,4 +395,14 @@ final class ItemFormTests: XCTestCase {
         form.setNoSchool(atSetTime: false)
         XCTAssertNil(form.item(id: UUID(), today: F.monday).noSchool)
     }
+
+    /// Spec "Add-screen feedback": the preview line gains "· bring {first thing}".
+    func testThePreviewLineNamesTheFirstThingToBring() {
+        var form = form()
+        XCTAssertNil(form.leaveLine)
+        form.toggleBring("towel", id: UUID())
+        XCTAssertEqual(form.leaveLine, "Bring Towel.")
+        form.setGoing(.car)
+        XCTAssertEqual(form.leaveLine, "Leave 3:20 pm by car · bring Towel.")
+    }
 }

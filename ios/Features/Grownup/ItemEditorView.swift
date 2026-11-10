@@ -17,7 +17,7 @@ public struct ItemEditorView: View {
 
     public var body: some View {
         ZStack {
-            GrownupScreen {
+            GrownupScreen(scrollTarget: store.scrollTarget) {
                 header
             } content: { layout in
                 HStack(alignment: .top, spacing: layout.gap) {
@@ -38,7 +38,6 @@ public struct ItemEditorView: View {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     InkButton(store.primaryTitle) { store.send(.saveTapped) }
                         .frame(width: layout.side.width)
-                        .opacity(store.canSave ? 1 : 0.4)
                         .disabled(!store.canSave)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
@@ -136,19 +135,21 @@ public struct ItemEditorView: View {
     private func row(_ label: String, problem row: FormRow? = nil, @ViewBuilder control: () -> some View)
         -> some View {
         let shown = row.flatMap { store.state.problem(for: $0) }
-        // Labels from 104, controls on 232 (GrownupLayout, boards C3 / C4 / E5). A problem caption
-        // hangs under its control without moving the rows below off their lines.
-        return HStack(alignment: .center, spacing: 0) {
-            FormLabel(label)
-            control()
-                .overlay(alignment: .bottomLeading) {
-                    if let shown {
-                        Text(shown.message).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
-                            .fixedSize()
-                            .alignmentGuide(.bottom) { $0[.top] - 2 }
-                    }
+        // Labels from 104, controls on 232 (GrownupLayout, boards C3 / C4 / E5). A problem (spec
+        // "Add-screen feedback") turns the field's outline `lateText` and its caption sits right under
+        // the field, taking its own line.
+        return HStack(alignment: .controlMiddle, spacing: 0) {
+            FormLabel(label).alignmentGuide(.controlMiddle) { $0[VerticalAlignment.center] }
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                control().fieldProblem(shown != nil)
+                    .alignmentGuide(.controlMiddle) { $0[VerticalAlignment.center] }
+                if let shown {
+                    Text(shown.message).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+            }
         }
+        .id(row?.rawValue)
     }
 
     private var audienceTabs: some View {
@@ -245,6 +246,8 @@ public struct ItemEditorView: View {
                         .frame(width: 240)
                 }
             }
+            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
+            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
         .frame(width: 720)
     }
@@ -356,6 +359,8 @@ public struct ItemEditorView: View {
                     }
                 }
             }
+            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
+            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
         .frame(width: 720)
     }
@@ -379,6 +384,8 @@ public struct ItemEditorView: View {
                         .frame(width: 240)
                 }
             }
+            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
+            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
         .frame(width: 720)
     }
@@ -402,6 +409,8 @@ public struct ItemEditorView: View {
                         .frame(width: 240)
                 }
             }
+            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
+            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
         .frame(width: 720)
     }
@@ -579,7 +588,7 @@ public struct ItemEditorView: View {
             Text(preview.heading).crayonType(.head).foregroundStyle(CrayonColor.ink)
             // Boards C3/C4: rows 72 tall on an 80 pitch; C4's "Just this day" note comes after them.
             ForEach(Array(preview.rows.enumerated()), id: \.offset) { _, row in
-                PreviewRow(time: row.time, isNew: row.isNew) { previewLabel(row.slot, bold: row.isNew) }
+                PreviewRow(time: row.time, isNew: row.isNew) { previewLabel(row) }
             }
             if let note = preview.note {
                 Text(note)
@@ -597,10 +606,20 @@ public struct ItemEditorView: View {
         }
     }
 
-    private func previewLabel(_ slot: Slot, bold: Bool) -> some View {
+    private func previewLabel(_ row: FormPreview.Row) -> some View {
         HStack(spacing: Spacing.sm) {
-            KitIcon(KitSlot(iconName: slot.iconName), size: 48)
-            Text(slot.title).crayonType(bold ? .head : .body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+            KitIcon(KitSlot(iconName: row.slot.iconName), size: 48)
+            Text(row.title).crayonType(row.isNew ? .head : .body)
+                .foregroundStyle(row.isUnnamed ? CrayonColor.softText : CrayonColor.ink).lineLimit(1)
         }
     }
+}
+
+extension VerticalAlignment {
+    /// A form row's label sits on its control's middle, whatever hangs under the control.
+    private enum ControlMiddle: AlignmentID {
+        static func defaultValue(in context: ViewDimensions) -> CGFloat { context[VerticalAlignment.center] }
+    }
+
+    static let controlMiddle = VerticalAlignment(ControlMiddle.self)
 }

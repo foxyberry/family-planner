@@ -14,6 +14,10 @@ public struct FormPreview: Equatable, Sendable {
             self.isNew = isNew
         }
 
+        /// The new item before it has a name reads "New" (soft).
+        public var isUnnamed: Bool { isNew && slot.title.isEmpty }
+        public var title: String { isUnnamed ? L10n.tr("preview.new") : slot.title }
+
         /// "3:30 pm"
         public var time: String { TimeText.withPeriod(slot.start) }
     }

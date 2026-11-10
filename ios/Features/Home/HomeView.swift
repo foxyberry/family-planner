@@ -37,6 +37,7 @@ public struct HomeView: View {
                     store.send(.pencilTapped)
                 }
                 .size(layout.pencil.width)
+                .look(store.look)
                 .place(topLeft: layout.pencil.origin)
             }
             .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
