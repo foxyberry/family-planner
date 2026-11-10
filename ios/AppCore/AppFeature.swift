@@ -417,6 +417,14 @@ public struct AppFeature {
                                                               now: date.now, calendar: calendar)))
         case .c5:
             state.path.append(.missionEditor(MissionEditorFeature.State(kid: first.id)))
+        case .f1, .f2, .f3, .f4, .f5:
+            #if DEBUG
+            var editor = ItemEditorFeature.State(mode: .add(.kid(first.id)), repeats: .weekly, now: date.now, calendar: calendar)
+            if let check = ItemEditorFeature.CheckBoard(rawValue: board.rawValue) { editor.open(check) }
+            state.path.append(.editor(editor))
+            #else
+            break
+            #endif
         }
     }
 

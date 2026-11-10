@@ -45,9 +45,7 @@ public struct ItemEditorView: View {
                 }
             }
             if let card = store.card {
-                CrayonColor.marker.opacity(0.3).ignoresSafeArea()
-                    .onTapGesture { store.send(.cardClosed) }
-                switch card {
+                switch card.kind {
                 case .from: fromCard
                 case .bring: bringCard
                 case .runsEnd: runsEndCard
@@ -209,47 +207,48 @@ public struct ItemEditorView: View {
         eventRows
     }
 
-    /// Board G2 Runs' end: End of term (with its date), a date, a number of times, or no end.
+    /// A form row's card (boards F1–F4): Done keeps the changes, Cancel or a tap outside puts them back.
+    private func formCard(_ title: String, width: CGFloat, height: CGFloat = 420,
+                          @ViewBuilder content: () -> some View) -> some View {
+        FormCard(title: title, size: CGSize(width: width, height: height), done: L10n.tr("c5.done"),
+                 cancel: L10n.tr("card.cancel"), onDone: { store.send(.cardDoneTapped) },
+                 onCancel: { store.send(.cardClosed) }, content: content)
+    }
+
+    /// Board F3 Ends: End of this term (with its date), on a date, after a number of times, or no end.
     private var runsEndCard: some View {
-        PaperCard(seed: 49) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                Text(L10n.tr("runs.card.title")).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                CrayonTabs(selection: Binding(get: { store.form.runsEnd }, set: { store.send(.runsEndKindPicked($0)) }),
-                           items: store.runsEndTabs.map { ($0.0, $0.1, nil) },
-                           itemSize: CGSize(width: 150, height: 72), spacing: Spacing.sm)
-                Group {
-                    switch store.form.runsEnd {
-                    case .term:
-                        Text(store.termCaption ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
-                    case .date:
-                        DateField(label: store.runsEndText,
-                                  date: Binding(get: { store.runsUntil }, set: { store.send(.runsUntilPicked($0)) }))
-                    case .count:
-                        HStack(spacing: Spacing.m) {
-                            RoundButton(glyph: .minus, accessibilityLabel: L10n.tr("runs.tab.count")) {
-                                store.send(.runsTimesStepped(-1))
-                            }
-                            Text(L10n.tr("runs.count.value", store.form.times)).crayonType(.body, bold: true)
-                                .foregroundStyle(CrayonColor.ink).frame(width: 140)
-                            RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("runs.tab.count")) {
-                                store.send(.runsTimesStepped(1))
-                            }
-                        }
-                    case .none:
-                        EmptyView()
+        formCard(L10n.tr("runs.card.title"), width: 560) {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(store.runsEndTabs, id: \.0) { kind, title in
+                    PickRow(title, caption: kind == .term ? store.termCaption : nil, isPicked: store.form.runsEnd == kind) {
+                        store.send(.runsEndKindPicked(kind))
                     }
-                }
-                .frame(minHeight: 80, alignment: .leading)
-                HStack {
-                    Spacer()
-                    InkButton(L10n.tr("c5.done")) { store.send(.runsEndDoneTapped) }
-                        .frame(width: 240)
+                    if store.form.runsEnd == kind { runsEndDetail(kind).padding(.leading, 56) }
                 }
             }
-            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
-            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
-        .frame(width: 720)
+    }
+
+    /// The picked end's own control: the date, or − {n} times +.
+    @ViewBuilder private func runsEndDetail(_ kind: ItemForm.RunsEndKind) -> some View {
+        switch kind {
+        case .date:
+            DateField(label: store.runsEndText,
+                      date: Binding(get: { store.runsUntil }, set: { store.send(.runsUntilPicked($0)) }))
+                .padding(.vertical, Spacing.xs)
+        case .count:
+            HStack(spacing: Spacing.m) {
+                RoundButton(glyph: .minus, accessibilityLabel: L10n.tr("runs.pick.count")) { store.send(.runsTimesStepped(-1)) }
+                    .size(64)
+                Text(L10n.tr("runs.count.value", store.form.times)).crayonType(.body, bold: true)
+                    .foregroundStyle(CrayonColor.ink).frame(width: 140)
+                RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("runs.pick.count")) { store.send(.runsTimesStepped(1)) }
+                    .size(64)
+            }
+            .padding(.vertical, Spacing.xs)
+        case .term, .none:
+            EmptyView()
+        }
     }
 
     @ViewBuilder private var onceRows: some View {
@@ -341,78 +340,71 @@ public struct ItemEditorView: View {
 
     // MARK: From and Bring cards (centred, a tap outside cancels)
 
+    /// Board F1 From: Home or an event to follow; after an event, "Starts − {n} min after +".
     private var fromCard: some View {
-        PaperCard(seed: 45) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                Text(L10n.tr("editor.row.from")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+        formCard(L10n.tr("editor.row.from"), width: 640) {
+            VStack(alignment: .leading, spacing: Spacing.s) {
                 ChoiceCircles(store.fromCircles) { store.send(.fromPicked($0)) }
                 if store.form.after != nil {
-                    // "School end + 15 min" (spec "Repeats, dates and changes", Linked time).
                     HStack(spacing: Spacing.m) {
+                        Text(L10n.tr("from.starts")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
+                            .frame(width: 140, alignment: .leading)
                         RoundButton(glyph: .minus, accessibilityLabel: store.gapText) { store.send(.fromGapStepped(-1)) }
+                            .size(64)
                         Text(store.gapText).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
-                            .frame(width: 180)
-                        RoundButton(glyph: .plus, accessibilityLabel: store.gapText) { store.send(.fromGapStepped(1)) }
-                        Spacer()
-                        InkButton(L10n.tr("c5.done")) { store.send(.cardClosed) }
                             .frame(width: 200)
+                        RoundButton(glyph: .plus, accessibilityLabel: store.gapText) { store.send(.fromGapStepped(1)) }
+                            .size(64)
                     }
                 }
             }
-            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
-            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
-        .frame(width: 720)
     }
 
-    /// No school days (an item after School): Skip, or at a set time from Home with its own Going.
+    /// Board F4 No school days (an item after School): Skip, or at a set time from Home with its own
+    /// end and Going.
     private var noSchoolCard: some View {
-        PaperCard(seed: 53) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                Text(L10n.tr("no_school.card.title")).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                CrayonTabs(selection: Binding(get: { store.form.noSchoolStart != nil }, set: { store.send(.noSchoolSetTime($0)) }),
-                           items: [(false, L10n.tr("no_school.tab.skip"), nil), (true, L10n.tr("no_school.tab.at"), nil)],
-                           itemSize: CGSize(width: 220, height: 72), spacing: Spacing.sm)
-                if store.form.noSchoolStart != nil {
-                    TimeField(label: store.noSchoolTimeLabel,
-                              time: Binding(get: { store.noSchoolTime }, set: { store.send(.noSchoolStartPicked($0)) }))
-                    ChoiceCircles(store.noSchoolGoing) { id in store.send(.noSchoolGoingTapped(Domain.Way(rawValue: id))) }
+        formCard(L10n.tr("no_school.card.title"), width: 640, height: 560) {
+            VStack(alignment: .leading, spacing: 0) {
+                PickRow(L10n.tr("no_school.pick.skip"), isPicked: store.form.noSchoolStart == nil) {
+                    store.send(.noSchoolSetTime(false))
                 }
-                HStack {
-                    Spacer()
-                    InkButton(L10n.tr("c5.done")) { store.send(.noSchoolDoneTapped) }
-                        .frame(width: 240)
+                PickRow(L10n.tr("no_school.pick.at"), isPicked: store.form.noSchoolStart != nil) {
+                    store.send(.noSchoolSetTime(true))
+                }
+                if store.form.noSchoolStart != nil {
+                    VStack(alignment: .leading, spacing: Spacing.s) {
+                        HStack(spacing: Spacing.m) {
+                            TimeField(label: store.noSchoolTimeLabel,
+                                      time: Binding(get: { store.noSchoolTime }, set: { store.send(.noSchoolStartPicked($0)) }),
+                                      width: 210)
+                            MarkerIcon(.arrowRight, size: 32, color: CrayonColor.ink)
+                            TimeField(label: store.noSchoolEndLabel,
+                                      time: Binding(get: { store.noSchoolEndTime }, set: { store.send(.noSchoolEndPicked($0)) }),
+                                      width: 210)
+                        }
+                        ChoiceCircles(store.noSchoolGoing) { id in store.send(.noSchoolGoingTapped(Domain.Way(rawValue: id))) }
+                    }
+                    .padding(.leading, 56)
+                    .padding(.top, Spacing.xs)
                 }
             }
-            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
-            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
-        .frame(width: 720)
     }
 
+    /// Board F2 Bring: up to four things in one row and "More", which opens every object picture.
     private var bringCard: some View {
-        PaperCard(seed: 47) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                Text(L10n.tr("editor.row.bring")).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                ScrollView {
-                    IconPicker(picked: store.bringPicked, slots: store.bringSlots) { store.send(.bringToggled($0)) }
-                }
-                .frame(maxHeight: store.isPickingMoreBring ? 440 : 104)
-                HStack(spacing: Spacing.m) {
-                    Button { store.send(.bringMoreTapped) } label: {
-                        Text(L10n.tr("picker.more")).crayonType(.body).foregroundStyle(CrayonColor.link)
+        formCard(L10n.tr("editor.row.bring"), width: 640) {
+            VStack(alignment: .leading, spacing: Spacing.s) {
+                ChoiceCircles(store.bringRow) { store.send(.bringCircleTapped($0)) }
+                if store.isPickingMoreBring {
+                    ScrollView {
+                        IconPicker(picked: store.bringPicked, slots: store.bringSlots, columns: 5) { store.send(.bringToggled($0)) }
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(L10n.tr("picker.more.label"))
-                    Spacer()
-                    InkButton(L10n.tr("c5.done")) { store.send(.bringDoneTapped) }
-                        .frame(width: 240)
+                    .frame(maxHeight: 320)
                 }
             }
-            // Interim until the card boards (iPad review): 720 wide and at least 420 tall.
-            .frame(maxWidth: .infinity, minHeight: 420 - 2 * Spacing.l, alignment: .topLeading)
         }
-        .frame(width: 720)
     }
 
     // MARK: Missions sub-page (in the form card)
@@ -434,23 +426,27 @@ public struct ItemEditorView: View {
     private func missionsSection(_ section: ItemForm.MissionSection, title: String) -> some View {
         let missions = store.form.missions(section)
         return VStack(alignment: .leading, spacing: 0) {
-            Text(title).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
+            // Board F5: "Before" and "After" are heads over C5 rows (88) and "+ Add".
+            Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 .padding(.top, Spacing.s)
             ForEach(Array(missions.enumerated()), id: \.element.id) { index, mission in
                 missionRow(mission, index: index, section: section)
             }
             if store.state.canAddMission(section) {
-                Button { store.send(.missionAddTapped(section)) } label: {
-                    HStack(spacing: Spacing.s) {
-                        MarkerIcon(.plus, size: 28, color: CrayonColor.link)
-                            .frame(width: 56, height: 56)
-                            .crayonBackground(.circle, fill: nil, seed: 1801)
-                        Text(L10n.tr("missions.add")).crayonType(.body).foregroundStyle(CrayonColor.link)
+                HStack(spacing: Spacing.m) {
+                    RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("missions.add")) {
+                        store.send(.missionAddTapped(section))
                     }
-                    .frame(height: 72)
-                    .contentShape(Rectangle())
+                    .size(56)
+                    Button { store.send(.missionAddTapped(section)) } label: {
+                        Text(L10n.tr("missions.add")).crayonType(.body).foregroundStyle(CrayonColor.link)
+                            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHidden(true)
                 }
-                .buttonStyle(.plain)
+                .frame(height: 88)
             }
         }
     }

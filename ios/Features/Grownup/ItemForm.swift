@@ -59,6 +59,8 @@ public struct ItemForm: Equatable, Sendable {
     public var afterGap = 0
     /// No school days (an item after School): nil skips the day; a time keeps it, from Home.
     public var noSchoolStart: Int?
+    /// Its own end (board F4); nil keeps the item's length.
+    public var noSchoolEnd: Int?
     public var noSchoolWay: Domain.Way?
 
     /// The end choices in the Runs card.
@@ -108,6 +110,7 @@ public struct ItemForm: Equatable, Sendable {
         after = item.after
         afterGap = item.afterGap
         noSchoolStart = item.noSchool?.start
+        noSchoolEnd = item.noSchool?.end
         noSchoolWay = item.noSchool?.trip?.way
         if case let .weekly(_, _, until) = item.recurrence {
             switch item.runsEnd {
@@ -130,6 +133,11 @@ public struct ItemForm: Equatable, Sendable {
     }
 
     /// "actSwim" → "Swim", "busDouble" → "Bus double".
+    /// A thing to bring, named the way people say it ("Shoes", spec "Form cards, built rules").
+    static func bringLabel(for picture: String) -> String {
+        picture == "shoe" ? L10n.tr("bring.shoes") : label(for: picture) // copy-ok: KitSlot name
+    }
+
     static func label(for iconName: String) -> String {
         var raw = Substring(iconName)
         if raw.hasPrefix("act"), raw.dropFirst(3).first?.isUppercase == true { raw = raw.dropFirst(3) }
@@ -208,12 +216,14 @@ public struct ItemForm: Equatable, Sendable {
     /// No school days: Skip, or at a set time (the item's own start by default).
     public mutating func setNoSchool(atSetTime: Bool) {
         noSchoolStart = atSetTime ? (noSchoolStart ?? start) : nil
-        if !atSetTime { noSchoolWay = nil }
+        // A day without School starts from Home, so it needs a trip (board F4 picks Walk).
+        noSchoolWay = atSetTime ? (noSchoolWay ?? .walk) : nil
+        if !atSetTime { noSchoolEnd = nil }
     }
 
     var noSchool: NoSchoolPlan? {
         guard after == .school, let noSchoolStart else { return nil }
-        return NoSchoolPlan(start: noSchoolStart,
+        return NoSchoolPlan(start: noSchoolStart, end: noSchoolEnd,
                             trip: noSchoolWay.map { Trip(way: $0, leaveBefore: trip?.leaveBefore ?? Self.defaultLeave) })
     }
 
@@ -232,7 +242,7 @@ public struct ItemForm: Equatable, Sendable {
         if let index = bring.firstIndex(where: { $0.picture == picture }) {
             bring.remove(at: index)
         } else if bring.count < ItemMission.most {
-            bring.append(ItemMission(id: id, name: Self.label(for: picture), picture: picture))
+            bring.append(ItemMission(id: id, name: Self.bringLabel(for: picture), picture: picture))
         }
     }
 

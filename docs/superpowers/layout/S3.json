@@ -1,5 +1,5 @@
 {
- "version": "26",
+ "version": "27",
  "board": "S3",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -568,13 +568,14 @@
    "kind": "text",
    "x": 930,
    "y": 635,
-   "w": 326,
-   "h": 67,
+   "w": 315,
+   "h": 36,
    "region": "side",
    "anchor": "right",
    "align": "start",
-   "baseline": 694,
-   "font": 24
+   "baseline": 663,
+   "font": 24,
+   "text": "Change it later in Settings."
   },
   {
    "id": "main.label.walk",

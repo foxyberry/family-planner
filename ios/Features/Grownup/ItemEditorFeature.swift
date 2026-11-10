@@ -27,16 +27,19 @@ public struct ItemEditorFeature {
     /// Board G5 "Change from when?": the day the changed series starts.
     public enum FromWhen: Hashable, Sendable { case today, next, date }
 
-    /// The centred cards of the event rows (spec "Event form rows for 6b"); a tap outside cancels.
-    public enum Card: Equatable, Sendable {
-        case from
-        /// Bring, with the list as it was when the card opened (a tap outside puts it back).
-        case bring(was: [ItemMission])
-        /// Runs' end (board G2), with the form as it was (a tap outside puts it back).
-        case runsEnd(was: ItemForm)
-        /// No school days (an item after School), with the form as it was.
-        case noSchool(was: ItemForm)
+    /// A form row's card (boards F1–F4), with the form as it was when it opened: Done keeps the
+    /// changes, Cancel or a tap outside puts the form back.
+    public struct Card: Equatable, Sendable {
+        public enum Kind: Equatable, Sendable { case from, bring, runsEnd, noSchool }
+        public var kind: Kind
+        public var was: ItemForm
     }
+
+    #if DEBUG
+    /// Debug links `familyplanner://f1`…`f5` (boards F1–F5): C3 with a card open, since a check on
+    /// the iPad cannot scroll or tap. F1 and F4 follow School, so they show "Starts" and No school days.
+    public enum CheckBoard: String, CaseIterable, Sendable { case f1, f2, f3, f4, f5 }
+    #endif
 
     /// One tab under "For": a kid, or both kids.
     public struct AudienceTab: Equatable, Sendable {
@@ -131,8 +134,26 @@ public struct ItemEditorFeature {
         public var fromWhenDate: Day
         /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
         public var draftID: ScheduleItem.ID?
-        /// The From or Bring card is open.
+        /// The From, Bring, Ends or No school days card is open.
         public var card: Card?
+
+        #if DEBUG
+        public mutating func open(_ board: CheckBoard) {
+            if board == .f1 || board == .f4 {
+                form.after = .school
+                form.afterGap = 15
+                form.trip = nil
+            }
+            if board == .f4 { form.setNoSchool(atSetTime: true) }
+            switch board {
+            case .f1: card = Card(kind: .from, was: form)
+            case .f2: card = Card(kind: .bring, was: form)
+            case .f3: card = Card(kind: .runsEnd, was: form)
+            case .f4: card = Card(kind: .noSchool, was: form)
+            case .f5: isEditingMissions = true
+            }
+        }
+        #endif
         /// The Bring card shows the whole kit ("More").
         public var isPickingMoreBring = false
         /// The Missions sub-page is open in the form card, and the mission being edited on it.
@@ -193,18 +214,41 @@ public struct ItemEditorFeature {
 
         /// How the kid goes on a day without School: None, Walk, Bus, Car or Taxi.
         public var noSchoolGoing: [ChoiceCircles.Choice] {
-            goingChoices.map { choice in
+            // Board F4: Walk, Bus or Car (a day without School starts from Home, so never None).
+            goingChoices.filter { ["walk", "bus", "car"].contains($0.id) }.map { choice in // copy-ok: Way ids
                 var copy = choice
-                copy.isPicked = choice.id == (form.noSchoolWay?.rawValue ?? "none")
+                copy.isPicked = choice.id == form.noSchoolWay?.rawValue
                 return copy
             }
         }
+        /// The set time's end: its own, or the item's length after the start (board F4).
+        public var noSchoolEndMinute: Int {
+            form.noSchoolEnd ?? (form.noSchoolStart ?? form.start) + max(form.end - form.start, 0)
+        }
+        public var noSchoolEndTime: Date { today.date(minute: min(noSchoolEndMinute, 1439), calendar: calendar) }
+        public var noSchoolEndLabel: String { TimeText.withPeriod(noSchoolEndMinute) }
         /// A linked item's start is not typed: "after School".
         public var linkedStartText: String? { afterTitle.map { L10n.tr("from.start", $0) } }
 
         /// The Bring card's pictures: the kit's bring group, or every picture after "More".
         public var bringSlots: [KitSlot] { isPickingMoreBring ? Self.bringAll : Self.bringGroup }
-        public static let bringGroup: [KitSlot] = [.backpack, .lunchBox, .waterBottle]
+        public static let bringGroup: [KitSlot] = [.backpack, .lunchBox, .waterBottle, .shoe]
+
+        /// Board F2: one row of up to four things (the kit's bring group, with things picked under
+        /// "More" taking the place of unpicked ones), then "More".
+        public var bringRow: [ChoiceCircles.Choice] {
+            let picked = form.bring.compactMap { KitSlot(rawValue: $0.picture) }
+            var row = Self.bringGroup + picked.filter { !Self.bringGroup.contains($0) }
+            while row.count > ItemMission.most, let index = row.lastIndex(where: { !picked.contains($0) }) {
+                row.remove(at: index)
+            }
+            return row.map { slot in
+                ChoiceCircles.Choice(id: slot.rawValue, picture: slot, caption: ItemForm.bringLabel(for: slot.rawValue),
+                                     isPicked: picked.contains(slot))
+            } + [ChoiceCircles.Choice(id: Self.bringMoreID, picture: nil, caption: "", isPicked: isPickingMoreBring,
+                                      word: L10n.tr("picker.more"))]
+        }
+        static let bringMoreID = "more" // copy-ok: choice id
 
         /// "More" (spec "Event form rows"): object pictures only, never the debug, UI, rig, passenger,
         /// medal, feeling or face pictures.
@@ -238,16 +282,16 @@ public struct ItemEditorFeature {
         public var runsStart: Date { form.date.date(calendar: calendar) }
         public var runsUntil: Date { max(form.untilDate, form.date).date(calendar: calendar) }
 
-        /// The Runs card's tabs: "End of term" only when the kid's school has terms.
+        /// The Ends card's rows (board F3): "End of this term" only when the kid's school has terms.
         public var runsEndTabs: [(ItemForm.RunsEndKind, String)] {
-            (termEnd == nil ? [] : [(ItemForm.RunsEndKind.term, L10n.tr("runs.tab.term"))])
-                + [(.date, L10n.tr("runs.tab.date")), (.count, L10n.tr("runs.tab.count")), (.none, L10n.tr("runs.tab.none"))]
+            (termEnd == nil ? [] : [(ItemForm.RunsEndKind.term, L10n.tr("runs.pick.term"))])
+                + [(.date, L10n.tr("runs.pick.date")), (.count, L10n.tr("runs.pick.count")), (.none, L10n.tr("runs.pick.none"))]
         }
 
         /// "Term 4 ends 20 Nov" under the End of term tab.
         public var termCaption: String? {
             guard let termEnd else { return nil }
-            return L10n.tr("runs.term.caption", DayText.dayMonth(termEnd, calendar: calendar))
+            return DayText.short(termEnd, calendar: calendar)
         }
 
         public var missionRemoveTitle: String? {
@@ -509,8 +553,10 @@ public struct ItemEditorFeature {
         case bringRowTapped
         case bringToggled(KitSlot)
         case bringMoreTapped
-        case bringDoneTapped
-        /// A tap outside a card: From closes, Bring puts the list back.
+        /// A circle on the Bring row: a thing toggles, "More" opens every picture.
+        case bringCircleTapped(String)
+        /// Done on a form card keeps its changes; Cancel or a tap outside puts the form back.
+        case cardDoneTapped
         case cardClosed
         case medalToggled
         case missionsRowTapped
@@ -531,15 +577,14 @@ public struct ItemEditorFeature {
         case runsEndKindPicked(ItemForm.RunsEndKind)
         case runsUntilPicked(Date)
         case runsTimesStepped(Int)
-        case runsEndDoneTapped
         /// From card: the minutes after the event.
         case fromGapStepped(Int)
-        /// No school days card: Skip or a set time, the time, how the kid goes, Done.
+        /// No school days card: Skip or a set time, its start and end, how the kid goes.
         case noSchoolRowTapped
         case noSchoolSetTime(Bool)
         case noSchoolStartPicked(Date)
+        case noSchoolEndPicked(Date)
         case noSchoolGoingTapped(Domain.Way?)
-        case noSchoolDoneTapped
         /// Boards G2 / G3: the This day / All days tabs.
         case scopeTapped(Scope)
         /// Board G5: the choice, the date, Save and Cancel.
@@ -783,19 +828,17 @@ public struct ItemEditorFeature {
                 return .send(.delegate(.finished))
 
             case .fromRowTapped:
-                state.card = .from
+                state.card = Card(kind: .from, was: state.form)
                 return .none
 
             case let .fromPicked(id):
                 if let choice = state.fromChoices.first(where: { State.choiceID($0.event) == id }) {
                     state.form.setFrom(choice)
                 }
-                // Home closes the card; after an event it stays open for the minutes after.
-                if state.form.after == nil { state.card = nil }
                 return .none
 
             case .bringRowTapped:
-                state.card = .bring(was: state.form.bring)
+                state.card = Card(kind: .bring, was: state.form)
                 state.isPickingMoreBring = false
                 return .none
 
@@ -807,14 +850,20 @@ public struct ItemEditorFeature {
                 state.isPickingMoreBring.toggle()
                 return .none
 
-            case .bringDoneTapped:
+            case let .bringCircleTapped(id):
+                if id == State.bringMoreID {
+                    state.isPickingMoreBring.toggle()
+                } else if let slot = KitSlot(rawValue: id) {
+                    state.form.toggleBring(slot.rawValue, id: uuid())
+                }
+                return .none
+
+            case .cardDoneTapped:
                 state.card = nil
                 return .none
 
             case .cardClosed:
-                if case let .bring(was) = state.card { state.form.bring = was }
-                if case let .runsEnd(was) = state.card { state.form = was }
-                if case let .noSchool(was) = state.card { state.form = was }
+                if let was = state.card?.was { state.form = was }
                 state.card = nil
                 return .none
 
@@ -885,7 +934,7 @@ public struct ItemEditorFeature {
                 return .none
 
             case .runsEndTapped:
-                state.card = .runsEnd(was: state.form)
+                state.card = Card(kind: .runsEnd, was: state.form)
                 return .none
 
             case let .runsEndKindPicked(kind):
@@ -903,16 +952,12 @@ public struct ItemEditorFeature {
                 state.form.stepTimes(step)
                 return .none
 
-            case .runsEndDoneTapped, .noSchoolDoneTapped:
-                state.card = nil
-                return .none
-
             case let .fromGapStepped(step):
                 state.form.stepGap(step)
                 return .none
 
             case .noSchoolRowTapped:
-                state.card = .noSchool(was: state.form)
+                state.card = Card(kind: .noSchool, was: state.form)
                 return .none
 
             case let .noSchoolSetTime(atSetTime):
@@ -920,7 +965,17 @@ public struct ItemEditorFeature {
                 return .none
 
             case let .noSchoolStartPicked(time):
-                state.form.noSchoolStart = Day.minute(of: time, calendar: state.calendar)
+                let start = Day.minute(of: time, calendar: state.calendar)
+                // The end moves with the start, keeping the length.
+                if let end = state.form.noSchoolEnd, let old = state.form.noSchoolStart {
+                    state.form.noSchoolEnd = min(end + start - old, 1440)
+                }
+                state.form.noSchoolStart = start
+                return .none
+
+            case let .noSchoolEndPicked(time):
+                let end = Day.minute(of: time, calendar: state.calendar)
+                state.form.noSchoolEnd = end > (state.form.noSchoolStart ?? state.form.start) ? end : nil
                 return .none
 
             case let .noSchoolGoingTapped(way):
