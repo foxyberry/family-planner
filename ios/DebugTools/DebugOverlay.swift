@@ -90,17 +90,18 @@ struct DebugBubble: View {
     static let space = "debug-bubble"
 }
 
-/// The board's lines over the screen (spec "Sizing formulas", docs/superpowers/layout): margins
-/// 64 / 1312, the morning column 448, the home panel 928 (left-anchored or right-anchored like the
-/// screens), and the bands 48 / 128 / 176 / 516 / 536 / 872 / 968; baselines 107 / 584 / 757 dashed.
+/// The board's lines over the screen (spec "Sizing formulas", docs/superpowers/layout, v32): each
+/// family's `global.margin` / `right` (home and grown-up 40 / 1336, morning 64 / 1312), its columns
+/// (left- or right-anchored like the screens), its bands, and its baselines dashed.
 /// The board lines a screen family shares (docs/superpowers/layout/README.md).
 public enum GridLines: Sendable {
-    /// Home: 64, 448, 928, 1312; Kid A's fixed baselines 132 … 446 and Kid B's lowest name line 584
+    /// Home: 40, 448, 928, 1336; Kid A's fixed baselines 132 … 446 and Kid B's lowest name line 584
     /// (Kid B moves with Kid A's block, layout v8).
     case home
     /// Morning: 64, 172, 448, 1312; the header, strip and bottom bands, baselines 107 / 584 / 757.
     case morning
-    /// Grown-up screens: 64, 104, 232, 280, 882, 930, 1312; header, content and action bands.
+    /// Grown-up screens: 40, 80, 208, 256, 840, 864, 1336; the header 44–124, content from 148 and
+    /// the action band 872–968, baseline 103.
     case grownup
 }
 
@@ -139,9 +140,9 @@ struct LayoutGridOverlay: View {
 
     private var verticals: [CGFloat] {
         switch lines {
-        case .home: [sizing.left(64), sizing.left(448), sizing.left(928), sizing.right(1312)]
+        case .home: [sizing.left(40), sizing.left(448), sizing.left(928), sizing.right(1336)]
         case .morning: [sizing.left(64), sizing.left(172), sizing.left(448), sizing.right(1312)]
-        case .grownup: [64, 104, 232, 280, 882].map(sizing.left) + [sizing.right(930), sizing.right(1312)]
+        case .grownup: [40, 80, 208, 256, 840].map(sizing.left) + [sizing.right(864), sizing.right(1336)]
         }
     }
 
@@ -149,7 +150,7 @@ struct LayoutGridOverlay: View {
         switch lines {
         case .home: [96, 872, 968].map(sizing.y)
         case .morning: [48, 128, 176, 516, 536, 872, 968].map(sizing.y)
-        case .grownup: [48, 128, 176, 872, 968].map(sizing.y)
+        case .grownup: [44, 124, 148, 872, 968].map(sizing.y)
         }
     }
 
@@ -157,7 +158,7 @@ struct LayoutGridOverlay: View {
         switch lines {
         case .home: [132, 187, 301, 402, 446, 584].map(sizing.y)
         case .morning: [107, 584, 757].map(sizing.y)
-        case .grownup: [107].map(sizing.y)
+        case .grownup: [103].map(sizing.y)
         }
     }
 }

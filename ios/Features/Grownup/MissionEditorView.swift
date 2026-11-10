@@ -17,14 +17,19 @@ public struct MissionEditorView: View {
 
     public var body: some View {
         ZStack {
-            GrownupScreen {
+            // Spec "Scrolling": the card stays put and its rows scroll inside it.
+            GrownupScreen(scrolls: false) {
                 header
             } content: { layout in
                 HStack(alignment: .top, spacing: layout.gap) {
-                    // Board C5: the card runs 176–968 whatever the list's length.
-                    PaperCard(seed: 41) { list.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading) }
-                        .frame(width: layout.form.width, height: layout.form.height)
-                    side.frame(width: layout.side.width, alignment: .topLeading)
+                    // Board C5: the card runs 148–968 whatever the list's length.
+                    PaperCard(seed: 41) {
+                        ScrollColumn { list.frame(maxWidth: .infinity, alignment: .topLeading) }
+                    }
+                    .frame(width: layout.form.width, height: layout.form.height)
+                    ScrollColumn { side }
+                        .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                               alignment: .topLeading)
                 }
             } primaryAction: { layout in
                 VStack(alignment: .trailing, spacing: Spacing.xs) {

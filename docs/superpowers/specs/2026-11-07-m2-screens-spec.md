@@ -104,6 +104,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-10: the midnight moon (40) sits centred above the top "12" (x 428, y 48) and the noon sun (44) centred below the bottom "12" (x 426, y 964), not beside them (user). Layout v30.
 - 2026-11-10: scrolling: the G1 clock and header never scroll; the right column is its own scroll view (day button pinned top, Save pinned bottom); main card and side column scroll separately on every grown-up screen (user).
 - 2026-11-10: grown-up screens use 40 side margins like home (user): header 40–1336, form card 40–840 (w 800), labels 80, controls 208, side column 864–1336 (w 472) with every side part widened to 472; the G1 clock moves 66 left so its hour labels line up with the home clock (x 30). Layout v31.
+- 2026-11-10: grown-up top lines like home (user): header row 44–124 (← on the home pencil's row), content from 148 (was 176; the 48 gap was off the spacing tokens), main card 148–968; the G1 clock moves up 23 to sit centred in 148–968. Layout v32.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -141,7 +142,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   3. **Human view**: the canvas page "Redlines" shows every screen with its lines, regions and part boxes, generated from the same JSON (do not edit by hand). Read a screen's redline before building or fixing it.
   4. **Check**: the app's layout test compares part frames with the table (shared lines ±1 pt after scaling) on 1376 × 1032, 1366 × 1024, 1180 × 820 and 1133 × 744, and a debug overlay draws the same lines on the device.
   - Any board change re-exports the JSON and the redlines together and bumps `layout vN`; the message to the main session names the version and the changed ids. A part missing from the table is a question to the design session, not a guess.
-  - Global lines (all screens): status band 0–24, header 48–128 with baseline 107, content 176–968. Side margins: **40 / 1336 on home and every grown-up screen** (since 2026-11-10, layout v31; user: use the width, no extra inset on the right), 64 / 1312 on the morning screens. Screen lines (home panel 928–1336; morning 172 / 448, baselines 584 / 757; grown-up 80 / 208 / 840 / 864) belong to their screens and are listed in each JSON.
+  - Global lines (all screens): status band 0–24, header 48–128 with baseline 107, content 176–968 (grown-up screens since v32: header 44–124, baseline 103, content 148–968). Side margins: **40 / 1336 on home and every grown-up screen** (since 2026-11-10, layout v31; user: use the width, no extra inset on the right), 64 / 1312 on the morning screens. Screen lines (home panel 928–1336; morning 172 / 448, baselines 584 / 757; grown-up 80 / 208 / 840 / 864) belong to their screens and are listed in each JSON.
 - Spacing tokens: **4 · 8 · 12 · 16 · 24 · 40 · 64** (changed 2026-11-08). 4 and 12 are for the inside of one part only (icon to label, chip padding, caption under a picture); between parts use 16 or more. No other gaps (2, 6, 10, 14, 20, 32, 48, 56 were mapped to the nearest token on every board). Line pitch inside a text block (e.g. the two-line hub, 38) is type, not spacing.
 - Type: `CrayonType` hero 144, display 96, title 48, head 36, body 30, caption 24. Nothing smaller than 24.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
@@ -162,12 +163,13 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 ### Grown-up form layout (every grown-up screen: C2–C5, C3k, E5, S1–S4, G1–G8, F1–F5; layout v31, 2026-11-10)
 - Side margins 40, like home (user, 2026-11-10: the old 64 + 18 inset wasted the right side). Header 40–1336: ← at 40, the right group ends at 1336.
-- Form card: `PaperCard`, x 40, w 800 (to 840), y 176–968. The marker stroke stays 6 inside its box.
+- Top (layout v32, user: use the top like home): header row **44–124**, so the ← (80) sits on the same row as the home pencil (1260, 44, 80); title baseline 103. Content starts at **148** (24 below the header). Bottom stays 968.
+- Form card: `PaperCard`, x 40, w 800 (to 840), y 148–968 (h 820). The marker stroke stays 6 inside its box.
 - Labels inside the card: x 80 (card + 40), caption-weight body text in `softText`, label tops align with their control tops.
 - Controls start at x 208 (label + 128). Full-width rows run 80–800 (w 720).
 - Gap 24, then the side column: x 864, w 472 (to 1336). Every side part that spans the column is 472 wide: day button, slice card, tabs row, list rows and their highlight, "Remove every week" / "Skip" buttons.
 - Main button: `InkButton`, side column, 864–1336 × 96, y 872–968.
-- G1 / G1c / G1d: the clock moves 66 left with the main column, so its hour labels start at x 30 as on the home clock (centre x 410). Undo / Redo move with it (656 / 744, y 880, 72).
+- G1 / G1c / G1d: the clock moves 66 left with the main column, so its hour labels start at x 30 as on the home clock, and sits centred in 148–968 (centre 410, 549; top 12 near y 178). Undo / Redo 656 / 744, y 880, 72 (beside Save).
 
 ### Seed data in M2
 - **First run** (user, 2026-11-09): the app starts empty on every build and runs first-run setup S1–S4, where the grown-up enters the real kids and settings. Nothing below is loaded on its own.
@@ -525,7 +527,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, l
 - Until it is built, trips come from the seed.
 
 ## S1–S4 · First-run setup (boards S1–S4 on "Building now", 2026-11-09; build step 6) [board]
-- Shown once, on an iPad with no family yet, before any kid screen. Four steps, one screen each, on the grown-up frame and lines (layout `grown`, v31: form card 40–840 from 176, labels 80, controls 208, side column 864–1336, action button 864 / 872, 472 × 96).
+- Shown once, on an iPad with no family yet, before any kid screen. Four steps, one screen each, on the grown-up frame and lines (layout `grown`, v32: form card 40–840 from 148, labels 80, controls 208, side column 864–1336, action button 864 / 872, 472 × 96).
 - Header: "←" `RoundButton` 80 goes back one step (S2–S4; S1 has none), title (title 48) at 168 (64 on S1), then on the right "Step {n} of 4" (caption) and four 28 dots, filled up to the current step.
 - No grown-up lock during setup (there is no family yet). S4 turns it on.
 - Going back keeps every value. Nothing is saved until "Start" on S4; if the app quits before that, setup starts again at S1.
@@ -938,7 +940,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 
 ## C3k · Add, keyboard open [board]
 - When a text field has focus, the iPad keyboard covers about y 612–1032 (≈ 420 pt in landscape).
-- The form card shrinks to 800 × 352 at y 176 and becomes a scroll area. It keeps the field with focus in view.
+- The form card shrinks to 800 × 352 at y 148 and becomes a scroll area. It keeps the field with focus in view.
 - Inside it, rows are tighter: label at card x 40, controls at card x 168, rows at 20 / 136 / 248 / 360.
 - Focus: the focused field gets the blue focus outline (`pickBlue`, 610 wide) and a 3 × 36 caret in `pickBlue`. Its label turns `pickBlue`.
 - Side column: the preview heading only; the rows are hidden.

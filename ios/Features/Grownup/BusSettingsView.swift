@@ -13,19 +13,22 @@ public struct BusSettingsView: View {
     }
 
     public var body: some View {
-        GrownupScreen {
+        // Spec "Scrolling": the card stays put and its rows scroll inside it; the side scrolls on its own.
+        GrownupScreen(scrolls: false) {
             GrownupHeader(title: store.title, onBack: { store.send(.doneTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
-                // Board C2: the card runs 176–968 at least, exactly its inner width, so a long row of
-                // buses can never widen it. A stop with many buses makes it taller and the screen
-                // scrolls (iPad review: a fixed height squeezed the rows on top of each other).
+                // Board C2: the card runs 148–968, exactly its inner width, so a long row of buses can
+                // never widen it; a stop with many buses scrolls its rows inside the card.
                 PaperCard(seed: 51) {
-                    plan.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
-                        .frame(minHeight: layout.form.height - 2 * layout.formInset, alignment: .top)
+                    ScrollColumn {
+                        plan.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                    }
                 }
-                .frame(width: layout.form.width, alignment: .top)
-                side.frame(width: layout.side.width, alignment: .topLeading)
+                .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
+                ScrollColumn { side }
+                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                           alignment: .topLeading)
             }
         } primaryAction: { layout in
             InkButton(L10n.tr("c2.done")) { store.send(.doneTapped) }

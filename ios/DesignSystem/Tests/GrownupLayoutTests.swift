@@ -26,8 +26,10 @@ final class GrownupLayoutTests: XCTestCase {
 
     func testThirteenInchIsTheBoard() {
         let layout = GrownupLayout(sizing: Sizing(width: 1376, height: 1032))
-        XCTAssertEqual(layout.back, CGRect(x: 40, y: 48, width: 80, height: 80))
-        XCTAssertEqual(layout.form, CGRect(x: 40, y: 176, width: 800, height: 792))
+        XCTAssertEqual(layout.back, CGRect(x: 40, y: 44, width: 80, height: 80))
+        XCTAssertEqual(layout.form, CGRect(x: 40, y: 148, width: 800, height: 820))
+        XCTAssertEqual(layout.contentTop, 148)
+        XCTAssertEqual(layout.headerBaseline, 103)
         XCTAssertEqual(layout.side.minX, 864)
         XCTAssertEqual(layout.side.width, 472)
         XCTAssertEqual(layout.action, CGRect(x: 864, y: 872, width: 472, height: 96))
