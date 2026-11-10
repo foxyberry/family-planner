@@ -181,6 +181,21 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.path.count, 1)
     }
 
+    /// Settings turning the lock off or on changes the app's gate at once (not after a relaunch).
+    func testSettingsLockChangeReachesTheGate() async {
+        var state = AppFeature.State()
+        state.path.append(.settings(SettingsFeature.State(kid: SeedData.kidA.id)))
+        let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+            $0.date.now = self.fixedDate
+        }
+        store.exhaustivity = .off
+        XCTAssertTrue(store.state.grownupLock)
+        await store.send(\.path[id: 0].settings.delegate.grownupLockChanged, false)
+        XCTAssertFalse(store.state.grownupLock)
+        await store.send(\.path[id: 0].settings.delegate.grownupLockChanged, true)
+        XCTAssertTrue(store.state.grownupLock)
+    }
+
     func testDidFinishLaunchingHasNoSideEffects() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()

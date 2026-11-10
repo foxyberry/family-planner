@@ -100,6 +100,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(saved.value.last?.medals, false)
         await store.send(.settingTapped(.grownupLock))
         XCTAssertEqual(saved.value.last?.grownupLock, false, "off at once")
+        await store.receive(\.delegate.grownupLockChanged, false)
         await store.send(.settingTapped(.grownupLock))
         await store.receive(\.lockChecked)
         XCTAssertFalse(store.state.settings.grownupLock, "no Face ID: the lock stays off")

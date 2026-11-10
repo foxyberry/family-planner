@@ -69,6 +69,13 @@ public struct SettingsFeature {
         case galleryButtonTapped
         /// "Data sources": the open-data notices the school list's licences ask for.
         case dataSourcesTapped
+        case delegate(Delegate)
+
+        @CasePathable
+        public enum Delegate: Equatable {
+            /// The grown-up lock was turned on or off: the app's gate follows it at once.
+            case grownupLockChanged(Bool)
+        }
     }
 
     @Dependency(\.calendar) var calendar
@@ -115,7 +122,7 @@ public struct SettingsFeature {
                     guard !state.settings.grownupLock else {
                         state.settings.grownupLock = false
                         appSettings.save(state.settings)
-                        return .none
+                        return .send(.delegate(.grownupLockChanged(false)))
                     }
                     state.isCheckingLock = true
                     return .run { [parentAuth] send in
@@ -134,6 +141,7 @@ public struct SettingsFeature {
                     state.settings.grownupLock = true
                     state.lockNeedsFaceID = false
                     appSettings.save(state.settings)
+                    return .send(.delegate(.grownupLockChanged(true)))
                 case .notAvailable, .notRecognised, .lockedOut:
                     state.lockNeedsFaceID = true
                 case .cancelled:
@@ -141,7 +149,7 @@ public struct SettingsFeature {
                 }
                 return .none
 
-            case .missionsRowTapped, .busesRowTapped, .backTapped, .galleryButtonTapped, .dataSourcesTapped:
+            case .missionsRowTapped, .busesRowTapped, .backTapped, .galleryButtonTapped, .dataSourcesTapped, .delegate:
                 return .none
             }
         }

@@ -314,6 +314,12 @@ public struct AppFeature {
                 state.relockCaption = nil
                 return .none
 
+            case let .path(.element(id: _, action: .settings(.delegate(.grownupLockChanged(on))))):
+                // Settings saved the lock: the Face ID gate and the app-switcher cover follow it now,
+                // not only after the next launch.
+                state.grownupLock = on
+                return .none
+
             case let .path(.element(id: id, action: .settings(.backTapped))):
                 // Settings sits over Our day (board G6): back returns to the clock.
                 state.path.pop(from: id)
