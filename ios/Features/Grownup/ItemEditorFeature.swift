@@ -35,6 +35,12 @@ public struct ItemEditorFeature {
         public var was: ItemForm
     }
 
+    #if DEBUG
+    /// Debug links `familyplanner://f1`…`f5` (boards F1–F5): C3 with a card open, since a check on
+    /// the iPad cannot scroll or tap. F1 and F4 follow School, so they show "Starts" and No school days.
+    public enum CheckBoard: String, CaseIterable, Sendable { case f1, f2, f3, f4, f5 }
+    #endif
+
     /// One tab under "For": a kid, or both kids.
     public struct AudienceTab: Equatable, Sendable {
         public var audience: Audience
@@ -130,6 +136,24 @@ public struct ItemEditorFeature {
         public var draftID: ScheduleItem.ID?
         /// The From, Bring, Ends or No school days card is open.
         public var card: Card?
+
+        #if DEBUG
+        public mutating func open(_ board: CheckBoard) {
+            if board == .f1 || board == .f4 {
+                form.after = .school
+                form.afterGap = 15
+                form.trip = nil
+            }
+            if board == .f4 { form.setNoSchool(atSetTime: true) }
+            switch board {
+            case .f1: card = Card(kind: .from, was: form)
+            case .f2: card = Card(kind: .bring, was: form)
+            case .f3: card = Card(kind: .runsEnd, was: form)
+            case .f4: card = Card(kind: .noSchool, was: form)
+            case .f5: isEditingMissions = true
+            }
+        }
+        #endif
         /// The Bring card shows the whole kit ("More").
         public var isPickingMoreBring = false
         /// The Missions sub-page is open in the form card, and the mission being edited on it.

@@ -2,9 +2,9 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// A row of 88 picture circles on a 112 pitch with a caption (up to 104 wide) under each, picked ones with a
-/// 104 pick-blue ring and a bold caption (boards C3g "Going", F1–F4). A choice without a picture shows
-/// its `word` inside (Bring's "More") or "–".
+/// A row of 88 picture circles on a 112 pitch with a caption (up to 112 wide, so "Backpack" stays one
+/// word) under each; picked ones get a 104 pick-blue ring and a bold caption (boards C3g "Going",
+/// F1–F4). A choice without a picture shows its `word` inside (Bring's "More") or "–".
 public struct ChoiceCircles: View {
     public struct Choice: Equatable, Sendable, Identifiable {
         public var id: String
@@ -32,7 +32,8 @@ public struct ChoiceCircles: View {
     }
 
     public var body: some View {
-        HStack(alignment: .top, spacing: Spacing.xs) {
+        // Each choice is 112 wide (its caption's width), so the circles sit on the 112 pitch.
+        HStack(alignment: .top, spacing: 0) {
             ForEach(choices) { choice in
                 Button { onPick(choice.id) } label: {
                     VStack(spacing: Spacing.xxs) {
@@ -54,8 +55,10 @@ public struct ChoiceCircles: View {
                         }
                         Text(choice.caption).crayonType(.caption, bold: choice.isPicked).foregroundStyle(CrayonColor.ink)
                             .multilineTextAlignment(.center)
-                            .frame(width: 104)
-                            .fixedSize(horizontal: false, vertical: true)
+                            // A one-word caption never breaks inside the word ("Backpack"); it may
+                            // run a few points past its 112.
+                            .fixedSize(horizontal: !choice.caption.contains(" "), vertical: true) // copy-ok: a space
+                            .frame(width: 112)
                     }
                 }
                 .buttonStyle(.plain)

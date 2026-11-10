@@ -377,11 +377,11 @@ public struct ItemEditorView: View {
                         HStack(spacing: Spacing.m) {
                             TimeField(label: store.noSchoolTimeLabel,
                                       time: Binding(get: { store.noSchoolTime }, set: { store.send(.noSchoolStartPicked($0)) }),
-                                      width: 170)
+                                      width: 210)
                             MarkerIcon(.arrowRight, size: 32, color: CrayonColor.ink)
                             TimeField(label: store.noSchoolEndLabel,
                                       time: Binding(get: { store.noSchoolEndTime }, set: { store.send(.noSchoolEndPicked($0)) }),
-                                      width: 170)
+                                      width: 210)
                         }
                         ChoiceCircles(store.noSchoolGoing) { id in store.send(.noSchoolGoingTapped(Domain.Way(rawValue: id))) }
                     }
