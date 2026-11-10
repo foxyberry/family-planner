@@ -2,6 +2,7 @@ import AppCore
 import ComposableArchitecture
 import Domain
 import Grownup
+import Home
 import ParentAuthClient
 import ScheduleStore
 import XCTest
@@ -41,17 +42,25 @@ final class ScreenLinkTests: XCTestCase {
         XCTAssertNil(store.state.pendingBoard)
     }
 
-    /// After the unlock the hub opens, and once it has loaded the link's board follows.
+    /// A home with the family loaded: grown-up mode opens on Our day (board G1).
+    private func homeWithFamily() -> AppFeature.State {
+        var state = AppFeature.State()
+        state.home.days = SeedData.kids.map { HomeFeature.KidDay(kid: $0, dayType: .weekday, slots: []) }
+        return state
+    }
+
+    /// After the unlock Our day opens, and once it has loaded the link's board follows.
     func testGrownupLinkOpensItsBoardAfterTheUnlock() async {
-        let store = TestStore(initialState: AppFeature.State()) { AppFeature() } withDependencies: {
+        let store = TestStore(initialState: homeWithFamily()) { AppFeature() } withDependencies: {
             $0.parentAuth.authenticate = { _ in .success }
+            $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
+            $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
         await store.send(.linkOpened(.grownup(.c2)))
         await store.receive(\.parentAuthResponse)
-        XCTAssertEqual(store.state.path.count, 1)
-        await store.send(.path(.element(id: 0, action: .hub(.loaded(snapshot())))))
-        await store.receive(\.path)
+        guard case .ourDay = store.state.path.first else { return XCTFail("\(store.state.path)") }
+        await store.send(.path(.element(id: 0, action: .ourDay(.loaded(snapshot())))))
         guard case .busSettings = store.state.path.last else { return XCTFail("\(store.state.path)") }
         XCTAssertNil(store.state.pendingBoard)
     }
@@ -75,14 +84,15 @@ final class ScreenLinkTests: XCTestCase {
     }
 
     func testSecondKidLinkPicksTheSecondTab() async {
-        let store = TestStore(initialState: AppFeature.State()) { AppFeature() } withDependencies: {
+        let store = TestStore(initialState: homeWithFamily()) { AppFeature() } withDependencies: {
             $0.parentAuth.authenticate = { _ in .success }
+            $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
+            $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
         await store.send(.linkOpened(.grownup(.e6)))
         await store.receive(\.parentAuthResponse)
-        await store.send(.path(.element(id: 0, action: .hub(.loaded(snapshot())))))
-        await store.receive(\.path)
+        await store.send(.path(.element(id: 0, action: .ourDay(.loaded(snapshot())))))
         guard case let .hub(hub) = store.state.path.last else { return XCTFail("\(store.state.path)") }
         XCTAssertEqual(hub.selectedKid, SeedData.kids[1].id)
     }

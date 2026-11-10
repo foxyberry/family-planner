@@ -26,6 +26,8 @@ public struct TemplateEdit: Equatable, Sendable {
 
     public private(set) var blocks: [RoutineBlock]
     private var history: [[RoutineBlock]] = []
+    /// Changes taken back by Undo since the last change, for Redo (spec "Grown-up mode", G1).
+    private var future: [[RoutineBlock]] = []
 
     public init(blocks: [RoutineBlock]) {
         self.blocks = blocks.sorted { $0.start < $1.start }
@@ -41,10 +43,13 @@ public struct TemplateEdit: Equatable, Sendable {
 
     /// True when there is something to undo since the last save.
     public var isChanged: Bool { !history.isEmpty }
+    public var canRedo: Bool { !future.isEmpty }
 
     /// Call once when a drag starts (or before a typed change), so undo steps back a whole change.
+    /// A new change ends what Redo could put back.
     public mutating func beginChange() {
         history.append(blocks)
+        future.removeAll()
     }
 
     public mutating func moveKnob(_ index: Int, to minute: Int) -> Move {
@@ -115,13 +120,24 @@ public struct TemplateEdit: Equatable, Sendable {
         RoutineBlock(title: L10n.tr("home.hub.free"), iconName: "", kind: .free, start: start, end: end)
     }
 
+    /// Takes back the last change (one finished drag, one typed time, one "Make this free time").
     public mutating func undo() {
-        if let last = history.popLast() { blocks = last }
+        guard let last = history.popLast() else { return }
+        future.append(blocks)
+        blocks = last
     }
 
-    /// After a save the edit starts again from the saved blocks.
+    /// Puts back the change Undo took back last.
+    public mutating func redo() {
+        guard let next = future.popLast() else { return }
+        history.append(blocks)
+        blocks = next
+    }
+
+    /// After a save the edit starts again from the saved blocks: nothing to undo or redo.
     public mutating func markSaved() {
         history.removeAll()
+        future.removeAll()
     }
 
     /// The caption under the slice card: "Shower now starts at 7:30 pm and is 30 min."

@@ -6,7 +6,7 @@ import CoreGraphics
 public enum MarkerGlyph: String, CaseIterable, Sendable {
     /// `handle` is the drag handle ≡ of reorderable rows (C5); `lock` the grown-up lock (S4, over a
     /// yellow crayon body: `LockMark`). New cases go last: the order seeds them.
-    case chevronLeft, chevronRight, arrowRight, plus, minus, handle, lock, close
+    case chevronLeft, chevronRight, arrowRight, plus, minus, handle, lock, close, undo, redo
 
     /// The strokes in the 48 box (spec paths).
     public var strokes: [[CGPoint]] {
@@ -19,10 +19,18 @@ public enum MarkerGlyph: String, CaseIterable, Sendable {
         // S1 "Remove a kid" (layout v13): two strokes corner to corner.
         case .close: [[p(14, 14), p(34, 34)], [p(34, 14), p(14, 34)]]
         case .handle: [[p(12, 15), p(36, 15)], [p(12, 24), p(36, 24)], [p(12, 33), p(36, 33)]]
+        // G1 Undo / Redo (spec "Grown-up mode"): a hook arrow, back to the left or on to the right.
+        case .undo: hook
+        case .redo: hook.map { stroke in stroke.map { p(48 - $0.x, $0.y) } }
         case .lock:
             [[p(15, 22), p(15, 15), p(18, 10), p(24, 8), p(30, 10), p(33, 15), p(33, 22)],
              [p(10, 22), p(38, 22), p(38, 42), p(10, 42), p(10, 22)], [p(24, 29), p(24, 35)]]
         }
+    }
+
+    private var hook: [[CGPoint]] {
+        [[p(10, 16), p(28, 16), p(35, 19), p(40, 25), p(40, 31), p(35, 37), p(28, 40), p(18, 40)],
+         [p(17, 9), p(10, 16), p(17, 23)]]
     }
 
     /// The strokes scaled to `size`, each segment split every 4 pt and nudged by up to 0.6 pt

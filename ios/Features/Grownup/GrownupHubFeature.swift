@@ -15,7 +15,10 @@ public struct GrownupHubFeature {
         /// Replaced by the `\.calendar` dependency on `.task`, together with `today`.
         public var calendar = Calendar(identifier: .gregorian)
 
-        public init() {}
+        /// `kid`: the tab to open on (Settings from Our day opens on the kid shown there).
+        public init(kid: Kid.ID? = nil) {
+            selectedKid = kid
+        }
 
         public var kid: Kid? { snapshot?.kids.first { $0.id == selectedKid } }
 

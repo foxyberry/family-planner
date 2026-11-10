@@ -19,30 +19,9 @@ public struct OurDayView: View {
             GrownupScreen {
                 header
             } content: { layout in
-                HStack(alignment: .top, spacing: layout.gap) {
-                    EditClock(sectors: store.sectors, knobs: store.knobs, dragging: store.dragging,
-                              dragOrigin: store.dragOrigin, hub: store.hub,
-                              onKnobDrag: { store.send(.knobDragged(index: $0, minute: $1)) },
-                              onKnobEnd: { store.send(.knobReleased($0)) },
-                              onLockedTap: { store.send(.lockedKnobTapped($0)) },
-                              onSliceTap: { store.send(.sliceTapped(start: $0)) },
-                              onPlusTap: { store.send(.plusTapped(start: $0)) },
-                              onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) })
-                        // Board C6: the clock and its hour labels fill the form box (64–882 × 176–968).
-                        .frame(width: layout.form.width, height: layout.form.height)
-                        .accessibilityHint(L10n.tr("day.hint"))
-                    sideColumn(layout)
-                        .frame(width: layout.side.width, height: layout.action.minY - Spacing.sm * layout.sizing.s
-                               - layout.side.minY, alignment: .topLeading)
-                }
+                if store.showsList { list(layout) } else { clock(layout) }
             } primaryAction: { layout in
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    InkButton(L10n.tr("day.save")) { store.send(.saveTapped) }
-                        .frame(width: layout.side.width)
-                    if let error = store.saveError {
-                        Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
-                    }
-                }
+                if !store.showsList { saveButton(layout) }
             }
             if store.isConfirmingLeave {
                 CrayonColor.marker.opacity(0.3).ignoresSafeArea()
@@ -57,20 +36,123 @@ public struct OurDayView: View {
         .task { await store.send(.task).finish() }
     }
 
+    private func clock(_ layout: GrownupLayout) -> some View {
+        HStack(alignment: .top, spacing: layout.gap) {
+            EditClock(sectors: store.sectors, knobs: store.knobs, dragging: store.dragging,
+                      dragOrigin: store.dragOrigin, hub: store.hub,
+                      onKnobDrag: { store.send(.knobDragged(index: $0, minute: $1)) },
+                      onKnobEnd: { store.send(.knobReleased($0)) },
+                      onLockedTap: { store.send(.lockedKnobTapped($0)) },
+                      onSliceTap: { store.send(.sliceTapped(start: $0)) },
+                      onPlusTap: { store.send(.plusTapped(start: $0)) },
+                      onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) })
+                // Board C6: the clock and its hour labels fill the form box (64–882 × 176–968).
+                .frame(width: layout.form.width, height: layout.form.height)
+                .overlay(alignment: .bottomTrailing) { undoRedo }
+                .accessibilityHint(L10n.tr("day.hint"))
+            sideColumn(layout)
+                .frame(width: layout.side.width, height: layout.action.minY - Spacing.sm * layout.sizing.s
+                       - layout.side.minY, alignment: .topLeading)
+        }
+    }
+
+    private func saveButton(_ layout: GrownupLayout) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            InkButton(L10n.tr("day.save")) { store.send(.saveTapped) }
+                .frame(width: layout.side.width)
+            if let error = store.saveError {
+                Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+            }
+        }
+    }
+
+    /// Board G1: Undo and Redo, 72 each, at the clock area's bottom right (722 and 810, y 880);
+    /// off at 45 % when there is nothing to take back or put back.
+    private var undoRedo: some View {
+        HStack(spacing: Spacing.s) {
+            RoundButton(glyph: .undo, accessibilityLabel: L10n.tr("day.undo")) { store.send(.undoTapped) }
+                .size(72)
+                .opacity(store.canUndo ? 1 : 0.45)
+                .disabled(!store.canUndo)
+            RoundButton(glyph: .redo, accessibilityLabel: L10n.tr("day.redo")) { store.send(.redoTapped) }
+                .size(72)
+                .opacity(store.canRedo ? 1 : 0.45)
+                .disabled(!store.canRedo)
+        }
+        .padding(.bottom, Spacing.s)
+    }
+
+    /// Board G8: Every week and Just once in one card; Add every week / Add once on the side.
+    private func list(_ layout: GrownupLayout) -> some View {
+        HStack(alignment: .top, spacing: layout.gap) {
+            PaperCard(seed: 63) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    ForEach(store.listSections, id: \.title) { section in
+                        Text(section.title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                            .padding(.top, Spacing.xs)
+                        ForEach(section.rows) { row in
+                            Button { store.send(.listRowTapped(row.target)) } label: {
+                                HStack(spacing: Spacing.m) {
+                                    KitIcon(KitSlot(iconName: row.picture), size: 56)
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Text(row.title).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                                        Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                                            .lineLimit(1)
+                                    }
+                                    Spacer(minLength: 0)
+                                    if row.target != .school {
+                                        MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                                    }
+                                }
+                                .frame(minHeight: 88)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+            .frame(width: layout.form.width, height: layout.form.height)
+            VStack(alignment: .leading, spacing: Spacing.s) {
+                addLink(L10n.tr("list.add_weekly")) { store.send(.addWeeklyTapped) }
+                addLink(L10n.tr("list.add_once")) { store.send(.addOnceTapped) }
+            }
+            .frame(width: layout.side.width, alignment: .topLeading)
+        }
+    }
+
+    private func addLink(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: Spacing.s) {
+                MarkerIcon(.plus, size: 28, color: CrayonColor.ink)
+                    .frame(width: 56, height: 56)
+                    .crayonBackground(.circle, fill: nil, seed: 1805)
+                Text(title).crayonType(.body).foregroundStyle(CrayonColor.link)
+            }
+            .frame(minHeight: 72)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     private var header: some View {
-        // Board C6: the kid tabs after the title; Undo on the right (1130–1312) instead of the caption.
+        // Board G1: the kid tabs after the title; List · Settings at the right end.
         GrownupHeader(title: L10n.tr("day.title"), onBack: { store.send(.backTapped) }) {
             CrayonTabs(selection: Binding(get: { store.kid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
         } trailing: {
-            Button { store.send(.undoTapped) } label: {
-                Text(L10n.tr("day.undo")).crayonType(.body).foregroundStyle(CrayonColor.ink)
-                    .frame(width: 182, height: 72)
-                    .crayonBackground(.capsule, fill: CrayonStyle.paper, seed: 71)
+            HStack(spacing: Spacing.sm) {
+                CrayonTabs(selection: Binding(get: { store.showsList }, set: { _ in store.send(.listTapped) }),
+                           items: [(true, L10n.tr("day.list"), nil)])
+                Button { store.send(.settingsTapped) } label: {
+                    Text(L10n.tr("day.settings")).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                        .padding(.horizontal, Spacing.m)
+                        .frame(height: 72)
+                        .partBackground(.capsule, fill: CrayonStyle.paper, seed: 73)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-            .opacity(store.edit.isChanged ? 1 : 0.4)
-            .disabled(!store.edit.isChanged)
         }
     }
 

@@ -44,6 +44,14 @@ final class ComponentSnapshotTests: XCTestCase {
         })
     }
 
+    /// Board G1: Undo on, Redo off (45 %), 72 each.
+    func testUndoRedoButtons() {
+        snap(HStack(spacing: Spacing.s) {
+            RoundButton(glyph: .undo, accessibilityLabel: "Undo") {}.size(72)
+            RoundButton(glyph: .redo, accessibilityLabel: "Redo") {}.size(72).opacity(0.45)
+        })
+    }
+
     func testCheckMarks() {
         snap(HStack(spacing: Spacing.m) {
             CheckMark(isDone: true)

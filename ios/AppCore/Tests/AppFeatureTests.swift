@@ -47,20 +47,24 @@ final class AppFeatureTests: XCTestCase {
         await task.cancel()
     }
 
-    func testHubBackGoesHome() async {
+    /// Board G1: "←" on Our day leaves grown-up mode; Settings' back returns to Our day.
+    func testOurDayBackGoesHomeAndSettingsBackReturns() async {
         var state = AppFeature.State()
-        state.path.append(.hub(GrownupHubFeature.State()))
+        state.path.append(.ourDay(OurDayFeature.State(kid: SeedData.kidA.id, today: Day(year: 2026, month: 11, day: 10),
+                                                      calendar: Calendar(identifier: .gregorian))))
+        state.path.append(.hub(GrownupHubFeature.State(kid: SeedData.kidA.id)))
         state.grownupIdleSeconds = 0
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
             $0.date.now = self.fixedDate
         }
-
-        await store.send(\.path[id: 0].hub.backTapped) {
-            $0.path = StackState()
-            $0.grownupIdleSeconds = nil
-        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 1].hub.backTapped)
+        XCTAssertEqual(store.state.path.count, 1)
+        await store.send(\.path[id: 0].ourDay.delegate.finished)
+        XCTAssertTrue(store.state.path.isEmpty)
+        XCTAssertNil(store.state.grownupIdleSeconds)
     }
 
     func testGalleryButtonPushesGallery() async {
@@ -111,12 +115,11 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertEqual(editor.form.repeats, .weekly)
     }
 
-    /// C6: the "Day" row in Our kids opens Our day for the tab's kid; finishing pops it.
-    func testHubDayRowOpensOurDay() async {
-        var hub = GrownupHubFeature.State()
-        hub.selectedKid = SeedData.kidB.id
+    /// Board G1: Settings opens over Our day for the kid shown, and adding from the List opens C3.
+    func testOurDayOpensSettingsAndTheEditor() async {
         var state = AppFeature.State()
-        state.path.append(.hub(hub))
+        state.path.append(.ourDay(OurDayFeature.State(kid: SeedData.kidB.id, today: Day(year: 2026, month: 11, day: 10),
+                                                      calendar: Calendar(identifier: .gregorian))))
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
@@ -124,11 +127,13 @@ final class AppFeatureTests: XCTestCase {
             $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
-        await store.send(\.path[id: 0].hub.dayRowTapped)
-        guard case let .ourDay(day) = store.state.path[id: 1] else { return XCTFail("no Our day") }
-        XCTAssertEqual(day.kid, SeedData.kidB.id)
-        await store.send(\.path[id: 1].ourDay.delegate.finished)
-        XCTAssertEqual(store.state.path.count, 1)
+        await store.send(\.path[id: 0].ourDay.delegate.openSettings, SeedData.kidB.id)
+        guard case let .hub(hub) = store.state.path[id: 1] else { return XCTFail("no Settings") }
+        XCTAssertEqual(hub.selectedKid, SeedData.kidB.id)
+        await store.send(\.path[id: 1].hub.backTapped)
+        await store.send(\.path[id: 0].ourDay.delegate.add, (SeedData.kidB.id, .weekly))
+        guard case let .editor(editor) = store.state.path.last else { return XCTFail("no editor") }
+        XCTAssertEqual(editor.mode, .add(.kid(SeedData.kidB.id)))
     }
 
     /// "Missions →" opens A2-MVP over home (not a grown-up screen: no relock); finishing closes it.

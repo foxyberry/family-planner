@@ -39,6 +39,16 @@ public struct HomeFeature {
 
         /// Spec "Mission windows": the day's stretches for missions.
         public var windows: [WindowSpan] { DayPlanner.missionWindows(slots: slots, night: night) }
+
+        public init(kid: Kid, dayType: DayType, slots: [Slot], night: NightSpan? = nil, tomorrow: Outing? = nil,
+                    missions: [Mission] = []) {
+            self.kid = kid
+            self.dayType = dayType
+            self.slots = slots
+            self.night = night
+            self.tomorrow = tomorrow
+            self.missions = missions
+        }
     }
 
     /// The open window of the first kid who has missions in it, and the part the label names.
