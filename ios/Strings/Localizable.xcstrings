@@ -12,6 +12,17 @@
         }
       }
     },
+    "bring.robe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Robe"
+          }
+        }
+      }
+    },
     "bring.shoes" : {
       "extractionState" : "manual",
       "localizations" : {

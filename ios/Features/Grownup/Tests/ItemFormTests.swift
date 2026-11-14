@@ -298,9 +298,18 @@ final class ItemFormTests: XCTestCase {
             form.toggleBring(picture, id: UUID(uuidString: "00000000-0000-0000-0000-00000000000\(n)")!)
         }
         XCTAssertEqual(form.bring.map(\.picture), ["backpack", "lunchBox", "waterBottle", "towel"])
-        XCTAssertEqual(form.bringText, "Backpack · Lunch box · Water bottle · Towel")
+        XCTAssertEqual(form.bringText, "Backpack · Lunch box · Water bottle · Robe")
         form.toggleBring("lunchBox", id: UUID())
         XCTAssertEqual(form.bring.map(\.picture), ["backpack", "waterBottle", "towel"])
+    }
+
+    /// Board 0d4: the bring kit is named as the thing; the towel slot's art is a hooded robe.
+    func testBringKitNames() {
+        var form = form()
+        for (n, picture) in ["swimsuit", "towel", "libraryBag", "rollerblades"].enumerated() {
+            form.toggleBring(picture, id: UUID(uuidString: "00000000-0000-0000-0000-00000000010\(n)")!)
+        }
+        XCTAssertEqual(form.bring.map(\.name), ["Swimsuit", "Robe", "Library bag", "Rollerblades"])
     }
 
     /// Board C3m: Every month from the first date, "2nd Sat" by default or "Day {d}".
@@ -399,8 +408,8 @@ final class ItemFormTests: XCTestCase {
         var form = form()
         XCTAssertNil(form.leaveLine)
         form.toggleBring("towel", id: UUID())
-        XCTAssertEqual(form.leaveLine, "Bring Towel.")
+        XCTAssertEqual(form.leaveLine, "Bring Robe.")
         form.setGoing(.car)
-        XCTAssertEqual(form.leaveLine, "Leave 3:20 pm by car · bring Towel.")
+        XCTAssertEqual(form.leaveLine, "Leave 3:20 pm by car · bring Robe.")
     }
 }
