@@ -359,6 +359,8 @@ public struct OurDayFeature {
             case openSettings(Kid.ID)
             case openItem(ScheduleItem.ID)
             case add(Kid.ID, ItemForm.Repeat)
+            /// Board G8: the School row opens G4.
+            case openSchool
         }
     }
 
@@ -589,7 +591,7 @@ public struct OurDayFeature {
 
             case let .listRowTapped(target):
                 switch target {
-                case .school: return .none
+                case .school: return .send(.delegate(.openSchool))
                 case let .item(id): return .send(.delegate(.openItem(id)))
                 }
 

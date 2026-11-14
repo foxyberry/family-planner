@@ -4214,6 +4214,17 @@
         }
       }
     },
+    "school_edit.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit School"
+          }
+        }
+      }
+    },
     "settings.about" : {
       "extractionState" : "manual",
       "localizations" : {
