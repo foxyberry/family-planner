@@ -58,6 +58,20 @@ final class ChangeSchoolTests: XCTestCase {
         XCTAssertEqual(school?.end, 810)
     }
 
+    /// Board G7: picking a school opens the "Starts on" card; its Cancel goes back to the search.
+    func testPickingOpensTheCardAndCancelClosesIt() async {
+        let store = store(savedKids: .init([]), savedRoutines: .init([]))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertFalse(store.state.isShowingStartsOn)
+        await store.send(.picked(riverside))
+        XCTAssertTrue(store.state.isShowingStartsOn)
+        XCTAssertEqual(store.state.startsOnTabs.map(\.1), ["Next term", "Date"])
+        await store.send(.cardCancelled)
+        XCTAssertFalse(store.state.isShowingStartsOn)
+        XCTAssertEqual(store.state.text, "")
+    }
+
     func testCancelTheChangeKeepsTheOldSchool() async {
         var kidA = SeedData.kidA
         kidA.pendingSchool = PendingSchool(school: School(entry: riverside), from: Day(year: 2027, month: 1, day: 4))

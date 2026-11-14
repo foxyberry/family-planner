@@ -1,5 +1,6 @@
 import CrayonKit
 import SwiftUI
+import UIKit
 
 /// A text field on paper, 80 tall; the marker line turns blue while focused (board C3k). An
 /// optional picture sits before the text (S1: the kid's face 40; S2: the school picture 48).
@@ -55,6 +56,16 @@ public struct CrayonField<Leading: View>: View {
 extension CrayonField where Leading == EmptyView {
     public init(_ placeholder: String, text: Binding<String>, isSecure: Bool = false) {
         self.init(placeholder, text: text, isSecure: isSecure) { EmptyView() }
+    }
+}
+
+public extension View {
+    /// Puts the keyboard away when `hidden` turns true (a card opens over a field, board G7).
+    func keyboardHidden(when hidden: Bool) -> some View {
+        onChange(of: hidden) { _, isHidden in
+            guard isHidden else { return }
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
     }
 }
 

@@ -5,8 +5,9 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// G7 · Change school: the school now, the new school (the S2 search), "Starts on" (Next term /
-/// Date), and while a change waits for its day, the pending line with "Cancel the change".
+/// G7 · Change school: the school now and the new school (the S2 search); picking one opens the
+/// G7 card, "Starts on" (Next term / Date) with Save / Cancel. While a change waits for its day,
+/// the pending line with "Cancel the change".
 public struct ChangeSchoolView: View {
     @Bindable var store: StoreOf<ChangeSchoolFeature>
 
@@ -23,11 +24,20 @@ public struct ChangeSchoolView: View {
                     ScrollColumn { rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading) }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
-            } primaryAction: { layout in
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    InkButton(L10n.tr("change_school.save")) { store.send(.saveTapped) }
-                        .frame(width: layout.side.width)
-                        .disabled(!store.canSave)
+            } primaryAction: { _ in
+                EmptyView()
+            }
+            if store.isShowingStartsOn {
+                // Board G7: the card over the screen; tap outside = Cancel.
+                CrayonColor.dim.ignoresSafeArea().onTapGesture { store.send(.cardCancelled) }
+                VStack(spacing: Spacing.xs) {
+                    FromWhenCard(title: store.picked?.name ?? "", tabs: store.startsOnTabs,
+                                 selection: Binding(get: { store.startsOn }, set: { store.send(.startsOnTapped($0)) }),
+                                 dateChoice: ChangeSchoolFeature.StartsOn.date, dateLabel: store.startLabel,
+                                 date: Binding(get: { store.dateValue }, set: { store.send(.datePicked($0)) }),
+                                 caption: store.startsOnCaption, save: L10n.tr("change_school.save"),
+                                 cancel: L10n.tr("from_when.cancel"), tabWidths: [184, 130],
+                                 onSave: { store.send(.saveTapped) }, onCancel: { store.send(.cardCancelled) })
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                     }
@@ -40,6 +50,7 @@ public struct ChangeSchoolView: View {
                             onCancel: { store.send(.cancelKept) }, onConfirm: { store.send(.cancelConfirmed) })
             }
         }
+        .keyboardHidden(when: store.isShowingStartsOn)
         .task { await store.send(.task).finish() }
     }
 
@@ -72,20 +83,6 @@ public struct ChangeSchoolView: View {
                         ResultListCard(rows: store.matches.map { entry in
                             .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.picked(entry)) }
                         }, visibleRows: 5, seed: 77, width: layout.controlWidth)
-                    }
-                }
-            }
-            ListRow(leading: L10n.tr("change_school.starts_on"), minHeight: 80) {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    CrayonTabs(selection: Binding(get: { store.startsOn }, set: { store.send(.startsOnTapped($0)) }),
-                               items: [(ChangeSchoolFeature.StartsOn.nextTerm, L10n.tr("change_school.next_term"), nil),
-                                       (.date, L10n.tr("change_school.date"), nil)],
-                               widths: [184, 130], spacing: Spacing.sm)
-                    if store.startsOn == .date {
-                        DateField(label: store.startLabel,
-                                  date: Binding(get: { store.dateValue }, set: { store.send(.datePicked($0)) }))
-                    } else {
-                        Text(store.startLabel).crayonType(.body).foregroundStyle(CrayonColor.softText)
                     }
                 }
             }

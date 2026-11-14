@@ -518,6 +518,17 @@
         }
       }
     },
+    "change_school.next_term.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
     "change_school.pending" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -536,17 +547,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save"
-          }
-        }
-      }
-    },
-    "change_school.starts_on" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Starts on"
           }
         }
       }
@@ -2175,17 +2175,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not set yet"
-          }
-        }
-      }
-    },
-    "hub.more.buses.value" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bus %1$@ · walk %2$lld min"
           }
         }
       }
@@ -4738,6 +4727,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To school"
+          }
+        }
+      }
+    },
+    "settings.to_school.second" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus %1$@ · leave %2$@ · 2nd %3$@"
+          }
+        }
+      }
+    },
+    "settings.to_school.value" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus %1$@ · leave %2$@"
           }
         }
       }

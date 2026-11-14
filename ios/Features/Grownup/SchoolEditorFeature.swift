@@ -80,10 +80,10 @@ public struct SchoolEditorFeature {
         public var latestDate: Date { today.date(minute: latest, calendar: calendar) }
         public var arriveByLabel: String { TimeText.withPeriod(arriveBy) }
         public var latestLabel: String { TimeText.withPeriod(latest) }
-        /// The Going row: "1, 2 · walk 10 min", or none yet.
+        /// The Going row (board G4): "Bus 12 · leave 7:05", as Settings' To school; or none yet.
         public var goingText: String {
-            busPlan.map { L10n.tr("hub.more.buses.value", $0.services.joined(separator: ", "), $0.walk) }
-                ?? L10n.tr("hub.more.buses.none")
+            guard let busPlan, let school else { return L10n.tr("hub.more.buses.none") }
+            return SettingsModel.toSchool(busPlan, school: school)
         }
         public var isChanged: Bool { school != original || medal != originalMedal }
         public var canSave: Bool {

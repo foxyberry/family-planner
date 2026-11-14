@@ -18,10 +18,12 @@ public struct SettingsRow: Equatable, Sendable {
     }
 }
 
-/// Where a Settings row goes. Rows without a screen yet (Age, Face, School, Hours, Terms) have none.
+/// Where a Settings row goes (board G6: every row with "›"). Age and Face have no screen yet.
 public enum SettingsLink: Equatable, Sendable {
     case buses
     case missions
+    /// School, Hours and Terms open G4 (spec "G4 row destinations").
+    case school
 }
 
 /// A titled block of a kid's Settings tab.
@@ -46,19 +48,20 @@ public enum SettingsModel {
         ])]
         if let school = kid.school {
             var rows = [
-                SettingsRow(key: L10n.tr("settings.school"), picture: "actSchool", value: school.name), // copy-ok: a KitSlot name
+                SettingsRow(key: L10n.tr("settings.school"), picture: "actSchool", value: school.name, // copy-ok: a KitSlot name
+                            link: .school),
                 SettingsRow(key: L10n.tr("settings.hours"),
                             value: L10n.tr("settings.hours.value",
                                            school.days == Weekday.schoolDays ? L10n.tr("settings.hours.weekdays")
                                                : DayText.chips(school.days),
-                                           TimeText.hours(school.start, school.end))),
+                                           TimeText.hours(school.start, school.end)),
+                            link: .school),
             ]
             if let terms = terms(schoolYear, today: today, dayCalendar: calendar) {
-                rows.append(SettingsRow(key: L10n.tr("settings.terms"), value: terms))
+                rows.append(SettingsRow(key: L10n.tr("settings.terms"), value: terms, link: .school))
             }
             sections.append(SettingsSection(title: L10n.tr("settings.school"), rows: rows))
-            let buses = busPlan.map { L10n.tr("hub.more.buses.value", $0.services.joined(separator: ", "), $0.walk) }
-                ?? L10n.tr("hub.more.buses.none")
+            let buses = busPlan.map { toSchool($0, school: school) } ?? L10n.tr("hub.more.buses.none")
             sections.append(SettingsSection(title: L10n.tr("settings.getting_there"), rows: [
                 SettingsRow(key: L10n.tr("settings.to_school"), picture: busPlan == nil ? nil : "busDouble", // copy-ok: a KitSlot name
                             value: buses, link: .buses),
@@ -70,6 +73,15 @@ public enum SettingsModel {
                         value: L10n.tr("settings.missions.morning", own), link: .missions),
         ]))
         return sections
+    }
+
+    /// Board G6: "Bus 12 · leave 7:05 · 2nd 34": the 1st bus, when to leave (arrive-by, or the
+    /// start, less the ride and the walk) and the 2nd choice if any.
+    public static func toSchool(_ plan: BusPlan, school: School) -> String {
+        let leave = TimeText.clock((school.arriveBy ?? school.start) - plan.ride - plan.walk)
+        let first = plan.first ?? ""
+        return plan.second.map { L10n.tr("settings.to_school.second", first, leave, $0) }
+            ?? L10n.tr("settings.to_school.value", first, leave)
     }
 
     /// "7 · Primary 1", "8", or "3 · at home".
