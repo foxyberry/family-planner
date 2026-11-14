@@ -93,10 +93,14 @@ public struct SchoolEditorView: View {
     private var rows: some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
             // Board G4: the school's name; changing the school itself is G7 (not built yet).
-            ListRow(leading: L10n.tr("settings.school"), minHeight: 80) {
-                HStack(spacing: Spacing.sm) {
-                    KitIcon(.actSchool, size: 48)
-                    Text(store.schoolName).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+            // Board G4: School › opens G7 (change school); a change waiting for its day shows under it.
+            linkRow(L10n.tr("settings.school"), action: .changeSchoolTapped) {
+                KitIcon(.actSchool, size: 48)
+                Text(store.schoolName).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+            }
+            if let pending = store.pendingLine {
+                ListRow(leading: "", minHeight: 56) {
+                    Text(pending).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
                 }
             }
             ListRow(leading: L10n.tr("editor.row.when"), minHeight: 80) {

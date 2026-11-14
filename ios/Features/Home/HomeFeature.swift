@@ -79,6 +79,8 @@ public struct HomeFeature {
         public var idleSeconds = 0
         /// The slice the 2-second hold started on (spec "No empty slice card"): grown-up mode opens with it picked.
         public var heldSlotStart: Int?
+        /// The day pending school changes were last applied (G7).
+        public var pendingSchoolsAppliedOn: Day?
         /// Board 0g2 idle wink: one more each time 20 s pass without a touch.
         public var winks = 0
         /// Spec "Picture rigs": a play id per drawn slot start; a slot plays when its id goes up.
@@ -325,6 +327,16 @@ public struct HomeFeature {
                 guard let snapshot, let today = state.today else {
                     state.days = []
                     return .none
+                }
+                // G7: a school change whose day has come becomes the kid's school, then the day reloads.
+                let due = snapshot.kids.filter { $0.applyingPendingSchool(on: today) != $0 }
+                if !due.isEmpty, state.pendingSchoolsAppliedOn != today {
+                    // Once a day, so a failed save cannot reload for ever.
+                    state.pendingSchoolsAppliedOn = today
+                    return .run { [scheduleStore] send in
+                        for kid in due { try? await scheduleStore.saveKid(kid.applyingPendingSchool(on: today)) }
+                        await send(.reload)
+                    }
                 }
                 let items = family.resolving(snapshot.items, calendar: calendar)
                 state.days = snapshot.kids.map { kid in

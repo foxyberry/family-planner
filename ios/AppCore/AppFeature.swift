@@ -28,6 +28,8 @@ public struct AppFeature {
         case schoolEditor(SchoolEditorFeature)
         /// G6f "+ Add a child".
         case addChild(AddChildFeature)
+        /// G7 · Change school, from G4's School row.
+        case changeSchool(ChangeSchoolFeature)
         case dataSources(DataSourcesFeature)
         /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
         /// grown-up rules (idle lock, app-switcher cover) skip it.
@@ -409,6 +411,21 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
+            case let .path(.element(id: _, action: .schoolEditor(.delegate(.changeSchool(kid))))):
+                state.path.append(.changeSchool(ChangeSchoolFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                                          calendar: calendar)))
+                return .none
+
+            case let .path(.element(id: id, action: .changeSchool(.delegate(.finished)))):
+                state.path.pop(from: id)
+                return reloadSchoolEditor(state)
+
+            case let .path(.element(id: id, action: .changeSchool(.delegate(.openBuses(kid))))):
+                // Spec: after Save, the new trip's screen opens (Our buses, ← back to G4).
+                state.path.pop(from: id)
+                state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
+                return .merge(reloadSchoolEditor(state), .send(.home(.reload)))
+
             case let .path(.element(id: id, action: .ourDay(.delegate(.openSchool)))):
                 guard case let .ourDay(day) = state.path[id: id] else { return .none }
                 state.path.append(.schoolEditor(SchoolEditorFeature.State(kid: day.kid, today: Day(date.now, calendar: calendar),
@@ -475,6 +492,13 @@ public struct AppFeature {
         case .c5:
             state.path.append(.missionEditor(MissionEditorFeature.State(kid: first.id)))
         }
+    }
+
+    /// G4 loads the kid again after G7 (the pending change shows under School).
+    private func reloadSchoolEditor(_ state: State) -> Effect<Action> {
+        guard let editor = state.path.ids.last(where: { if case .schoolEditor = state.path[id: $0] { true } else { false } })
+        else { return .none }
+        return .send(.path(.element(id: editor, action: .schoolEditor(.task))))
     }
 
     /// Grown-up mode opens on the day on the clock (board G1) for the first kid.
