@@ -401,11 +401,11 @@ final class ComponentSnapshotTests: XCTestCase {
                            today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {}), width: 660)
     }
 
-    /// Board G1d: the change in one line with a drawn arrow, then Save · Cancel.
-    func testSaveChangesCard() {
-        snap(SaveChangesCard(title: "Save the changes?", line: "Dinner 6:30 pm %@ 7:30 pm, this day",
-                             save: "Save", cancel: "Cancel",
-                             onSave: {}, onCancel: {}), width: 620)
+    /// Board G1d: the shared ConfirmCard with its line's arrow drawn inline.
+    func testConfirmCardGlyphLine() {
+        snap(ConfirmCard(title: "Save the changes?", message: "Dinner 6:30 pm %@ 7:30 pm, this day",
+                         messageGlyph: .arrowRight, cancel: "Cancel", confirm: "Save", isDestructive: false,
+                         onCancel: {}, onConfirm: {}), width: 620)
     }
 
     func testLockOverlayStates() {

@@ -28,9 +28,11 @@ public struct OurDayView: View {
             if store.isConfirmingLeave {
                 CrayonColor.dim.ignoresSafeArea()
                     .onTapGesture { store.send(.leaveCancelled) }
-                SaveChangesCard(title: L10n.tr("day.unsaved.title"), line: store.unsavedLine,
-                                save: L10n.tr("day.unsaved.save"), cancel: L10n.tr("day.unsaved.cancel"),
-                                onSave: { store.send(.unsavedSaveTapped) }, onCancel: { store.send(.leaveCancelled) })
+                // Board G1d: the shared ConfirmCard, its line's arrow drawn inline (design session, 2026-11-14).
+                ConfirmCard(title: L10n.tr("day.unsaved.title"), message: store.unsavedLine, messageGlyph: .arrowRight,
+                            cancel: L10n.tr("day.unsaved.cancel"), confirm: L10n.tr("day.unsaved.save"),
+                            isDestructive: false, onCancel: { store.send(.leaveCancelled) },
+                            onConfirm: { store.send(.unsavedSaveTapped) })
             }
             if store.fromWhen != nil {
                 CrayonColor.dim.ignoresSafeArea()
