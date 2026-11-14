@@ -233,3 +233,18 @@ public struct TemplateEdit: Equatable, Sendable {
         future.removeAll()
     }
 }
+
+public extension TemplateEdit {
+    /// School's slice on a school's hours (start at Arrive by, or the start), with the knob rules; a
+    /// template without a School slice stays as it is (G4 saves, G7 change school).
+    static func movingSchool(_ blocks: [RoutineBlock], to school: School) -> [RoutineBlock] {
+        var edit = TemplateEdit(blocks: blocks)
+        if let index = edit.blocks.firstIndex(where: { $0.kind == .school }) {
+            _ = edit.setStart(ofBlock: index, to: school.arriveBy ?? school.start)
+        }
+        if let index = edit.blocks.firstIndex(where: { $0.kind == .school }) {
+            _ = edit.setEnd(ofBlock: index, to: school.end)
+        }
+        return edit.blocks
+    }
+}

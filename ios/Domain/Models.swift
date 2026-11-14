@@ -57,6 +57,15 @@ public struct School: Hashable, Codable, Sendable {
 
     public var isPreschool: Bool { kind == .preschool }
 
+    /// A school picked from the bundled list (S2, G7): its own hours when known (else 7:30–3:00),
+    /// Arrive by at the start and Latest 10 minutes after, school days, MOE terms when it follows them.
+    public init(entry: SchoolEntry) {
+        let start = entry.hours?.start ?? 450
+        self.init(name: entry.name, days: Weekday.schoolDays, start: start, end: entry.hours?.end ?? 900,
+                  directoryID: entry.id, usesMoeTerms: entry.followsMoeTerms ?? false, arriveBy: start,
+                  latest: start + 10)
+    }
+
     /// The School slice moved on the clock (layout v37, All days): the slice starts at Arrive by (or
     /// the start without one) and ends at the end. Arrive by and the start move with the slice's
     /// start, Latest keeps its grace, and the end follows the slice's end. Per-weekday hours from the
@@ -91,6 +100,8 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
     /// The kid's face picture (a `KitSlot` raw value) inside their colour ring (`KidFace`).
     /// First-run setup (M4) sets it; a kid's own drawing can take the same slot later.
     public var face: String
+    /// G7 "Change school": the next school and the day it starts, until that day comes.
+    public var pendingSchool: PendingSchool?
 
     public init(id: UUID, name: String, colorIndex: Int, age: Int, schoolYear: String?, school: School?,
                 face: String = "kidGirl") {
@@ -103,7 +114,7 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
         self.face = face
     }
 
-    private enum CodingKeys: String, CodingKey { case id, name, colorIndex, age, schoolYear, school, face }
+    private enum CodingKeys: String, CodingKey { case id, name, colorIndex, age, schoolYear, school, face, pendingSchool }
 
     /// Kids stored before `face` existed get the seed's choice: Kid B's colour → boy face, else girl.
     public init(from decoder: Decoder) throws {
@@ -115,6 +126,28 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
         schoolYear = try c.decodeIfPresent(String.self, forKey: .schoolYear)
         school = try c.decodeIfPresent(School.self, forKey: .school)
         face = try c.decodeIfPresent(String.self, forKey: .face) ?? (colorIndex == 1 ? "kidBoy" : "kidGirl")
+        pendingSchool = try c.decodeIfPresent(PendingSchool.self, forKey: .pendingSchool)
+    }
+
+    /// The kid on `day`: a pending school whose start has come is the kid's school from then on.
+    public func applyingPendingSchool(on day: Day) -> Kid {
+        guard let pending = pendingSchool, pending.from <= day else { return self }
+        var kid = self
+        kid.school = pending.school
+        kid.pendingSchool = nil
+        return kid
+    }
+}
+
+/// Spec "Where the kid goes changes": the next school and the day it starts. Days before stay with
+/// the old school (the day templates are dated, so the clock follows on its own).
+public struct PendingSchool: Hashable, Codable, Sendable {
+    public var school: School
+    public var from: Day
+
+    public init(school: School, from: Day) {
+        self.school = school
+        self.from = from
     }
 }
 

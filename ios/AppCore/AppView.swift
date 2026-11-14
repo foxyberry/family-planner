@@ -97,6 +97,8 @@ public struct AppView: View {
                 SchoolEditorView(store: store)
             case let .addChild(store):
                 AddChildView(store: store)
+            case let .changeSchool(store):
+                ChangeSchoolView(store: store)
             case let .dataSources(store):
                 DataSourcesView(store: store)
             }

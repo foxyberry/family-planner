@@ -63,6 +63,11 @@ public struct SchoolEditorFeature {
 
         public var title: String { L10n.tr("school_edit.title") }
         public var schoolName: String { school?.name ?? "" }
+        /// "From 5 Jan: Example Primary School" while a G7 change waits for its day.
+        public var pendingLine: String? {
+            guard let pending = stored?.pendingSchool else { return nil }
+            return L10n.tr("change_school.pending", DayText.dayMonth(pending.from, calendar: calendar), pending.school.name)
+        }
         /// Board G4's side line: "Every school day", or the days as chips.
         public var everyTitle: String { DayText.chips(school?.days ?? []) }
         public var startDate: Date { today.date(minute: school?.start ?? 0, calendar: calendar) }
@@ -148,6 +153,8 @@ public struct SchoolEditorFeature {
         case bringMoreTapped
         case bringDoneTapped
         case bringClosed
+        /// "School ›": G7 change school.
+        case changeSchoolTapped
         /// "Going ›": Our buses for this kid (spec: the S3 trip screen, opened from here).
         case goingTapped
         case saveTapped
@@ -158,6 +165,7 @@ public struct SchoolEditorFeature {
         @CasePathable
         public enum Delegate: Equatable {
             case openBuses(Kid.ID)
+            case changeSchool(Kid.ID)
             case finished
         }
     }
@@ -275,6 +283,9 @@ public struct SchoolEditorFeature {
 
             case .goingTapped:
                 return .send(.delegate(.openBuses(state.kid)))
+
+            case .changeSchoolTapped:
+                return .send(.delegate(.changeSchool(state.kid)))
 
             case .saveTapped:
                 guard state.canSave, var kid = state.stored else { return .none }
