@@ -289,8 +289,8 @@ public struct OurDayFeature {
         case settingsTapped
         /// Board G8: a row (School or an item) and the side column's adds.
         case listRowTapped(ListSection.Target)
-        case addWeeklyTapped
-        case addOnceTapped
+        /// Board G8 (layout v36): one "Add"; the form opens on Every week and its Repeat tabs pick the kind.
+        case addTapped
         case saveTapped
         case saved(Result<Routine, SaveError>)
         case backTapped
@@ -498,11 +498,8 @@ public struct OurDayFeature {
                 case let .item(id): return .send(.delegate(.openItem(id)))
                 }
 
-            case .addWeeklyTapped:
+            case .addTapped:
                 return .send(.delegate(.add(state.kid, .weekly)))
-
-            case .addOnceTapped:
-                return .send(.delegate(.add(state.kid, .once)))
 
             case .saveTapped:
                 // Spec "Edit scope": All days asks from when first (board G5), like every repeating item.

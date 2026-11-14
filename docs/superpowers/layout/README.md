@@ -64,3 +64,5 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v34 (2026-11-14): G8 gets an "Every month" section (head 520, row 572) and "Add every month" (side 236); "Just once" moves to 688 / 740 and "Add once" to 324. Other JSON files unchanged.
 
 - v35 (2026-11-14): C2 label "Late up to" → "Late" (id main.label.late); no geometry change. Other JSON files unchanged.
+- v36 (2026-11-14): G8 right column is one "Add" (side 148); "Add every month" and "Add once" removed. Long list rows wrap to two lines (row up to 136). Other JSON files unchanged.
+- v37 (2026-11-14): G1 / G1c / G1d use the unlocked clock art (no padlock knobs; School edges drag like any other). New board G1e: tap a shared knob → "+" 56 on the boundary just inside the rim (125, 413). Other JSON files unchanged.

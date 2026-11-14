@@ -228,7 +228,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.listSections.first?.rows.map(\.title), ["Example Primary School", "Swimming"])
         await store.send(.listRowTapped(.item(swim.id)))
         await store.receive(\.delegate.openItem)
-        await store.send(.addOnceTapped)
+        await store.send(.addTapped)
         await store.receive(\.delegate.add)
         await store.send(.settingsTapped)
         await store.receive(\.delegate.openSettings)

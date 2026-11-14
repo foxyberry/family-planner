@@ -2069,24 +2069,13 @@
         }
       }
     },
-    "list.add_once" : {
+    "list.add" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add once"
-          }
-        }
-      }
-    },
-    "list.add_weekly" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add every week"
+            "value" : "Add"
           }
         }
       }
