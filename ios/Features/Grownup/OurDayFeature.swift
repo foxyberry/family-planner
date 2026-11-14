@@ -113,6 +113,9 @@ public struct OurDayFeature {
         /// Every item, for the List.
         public var items: [ScheduleItem] = []
         public var nowMinute = 0
+        /// Spec "No empty slice card": the minute of the slice the home hold began on; the first load
+        /// picks the template slice there, then it is used up.
+        public var heldMinute: Int?
 
         public var kidInfo: Kid? { kids.first { $0.id == kid } }
 
@@ -628,7 +631,8 @@ public struct OurDayFeature {
         state.edit = TemplateEdit(blocks: template?.blocks ?? [])
         state.saveScope = .thisDay
         // Spec "G1 as built": the card is never empty: the slice now on today, else the day's first.
-        let now = state.day == state.today ? state.nowMinute : nil
+        let now = state.heldMinute ?? (state.day == state.today ? state.nowMinute : nil)
+        state.heldMinute = nil
         state.selected = state.edit.blocks.firstIndex { block in now.map { block.start <= $0 && $0 < block.end } ?? false }
             ?? (state.edit.blocks.isEmpty ? nil : 0)
         state.dragging = nil

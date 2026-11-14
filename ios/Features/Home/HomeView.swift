@@ -14,6 +14,8 @@ public struct HomeView: View {
     @State private var holdProgress = 0.0
     @State private var holdStarted = 0
     @State private var holdCompleted = 0
+    /// Where the press on the clock began (view-only; the slice under it goes to the store on completion).
+    @State private var pressLocation: CGPoint?
 
     public init(store: StoreOf<HomeFeature>) {
         self.store = store
@@ -43,6 +45,7 @@ public struct HomeView: View {
             .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
         }
         .simultaneousGesture(TapGesture().onEnded { store.send(.touched) })
+        .simultaneousGesture(pressWatcher)
         .task { await store.send(.task).finish() }
         .sensoryFeedback(.impact(weight: .light), trigger: holdStarted)
         .sensoryFeedback(.success, trigger: holdCompleted)
@@ -57,6 +60,19 @@ public struct HomeView: View {
     }
 
     // MARK: Clock
+
+    /// Where a press began, in the clock's own space (its centre at R s, R s). It watches from the
+    /// whole screen: a gesture on the clock itself stopped the 2-second hold from finishing (iPad,
+    /// 2026-11-14).
+    private var pressWatcher: some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .global)
+            .onChanged { value in
+                guard pressLocation == nil else { return }
+                let centre = HomeLayout(sizing: sizing).clockCentre, r = PieClock.radius * sizing.s
+                pressLocation = CGPoint(x: value.startLocation.x - centre.x + r, y: value.startLocation.y - centre.y + r)
+            }
+            .onEnded { _ in pressLocation = nil }
+    }
 
     private var clockArea: some View {
         let slots = firstDay?.slots ?? []
@@ -76,6 +92,9 @@ public struct HomeView: View {
             .contentShape(Circle())
             .onLongPressGesture(minimumDuration: 2) {
                 holdCompleted += 1
+                store.send(.clockPressed(slotStart: pressLocation.flatMap {
+                    PieClock.slotStart(at: $0, in: HomeModel.sectors(slots, minute: store.minute), scale: sizing.s)
+                }))
                 store.send(.clockHoldCompleted)
             } onPressingChanged: { pressing in
                 if pressing {

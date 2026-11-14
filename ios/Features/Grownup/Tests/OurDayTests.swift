@@ -41,6 +41,24 @@ final class OurDayTests: XCTestCase {
         store.state.edit.knobs.firstIndex { $0.minute == minute }!
     }
 
+    /// Spec "No empty slice card": a hold on Dinner opens G1 with Dinner picked, not the slice now.
+    func testOpensOnTheHeldSlice() async {
+        var state = OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
+        state.heldMinute = 1110
+        let store = TestStore(initialState: state) { OurDayFeature() } withDependencies: {
+            $0.calendar = F.calendar
+            $0.date.now = self.tuesday.date(minute: 600, calendar: F.calendar)
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: []) }
+            $0.holidays.holidays = { _ in [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
+        }
+        store.exhaustivity = .off
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.selectedBlock?.title, "Dinner")
+        XCTAssertNil(store.state.heldMinute, "used once")
+    }
+
     func testLoadsTheKidsWeekdayTemplate() async {
         let store = await loaded()
         XCTAssertEqual(store.state.edit.knobs.map(\.minute), [390, 450, 900, 960, 1020, 1110, 1155, 1200])

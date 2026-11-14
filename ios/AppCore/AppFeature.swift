@@ -463,8 +463,10 @@ public struct AppFeature {
             state.path.append(.settings(SettingsFeature.State()))
             return
         }
-        state.path.append(.ourDay(OurDayFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
-                                                      calendar: calendar)))
+        var ourDay = OurDayFeature.State(kid: kid, today: Day(date.now, calendar: calendar), calendar: calendar)
+        ourDay.heldMinute = state.home.heldSlotStart
+        state.home.heldSlotStart = nil
+        state.path.append(.ourDay(ourDay))
     }
 
     /// Back to the home screen; the next grown-up screen needs Face ID again. Unsaved forms are dropped.
