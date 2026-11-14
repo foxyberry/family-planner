@@ -181,11 +181,11 @@ final class OurDayTests: XCTestCase {
         await store.send(.scopeTapped(.allDays))
         XCTAssertFalse(store.state.canSkip)
         XCTAssertTrue(store.state.routineToSave.blocks.allSatisfy { !$0.isSkipped })
-        // School can be skipped this day (a sick day).
+        // School is skipped on G4 (its card has "Edit School ›"), not here.
         await store.send(.scopeTapped(.thisDay))
         let school = try XCTUnwrap(store.state.edit.blocks.first { $0.kind == .school })
         await store.send(.sliceTapped(start: school.start))
-        XCTAssertTrue(store.state.canSkip)
+        XCTAssertFalse(store.state.canSkip)
         XCTAssertFalse(store.state.canMakeFree)
     }
 

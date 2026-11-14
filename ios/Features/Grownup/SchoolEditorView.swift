@@ -34,7 +34,20 @@ public struct SchoolEditorView: View {
                                    items: [(SchoolEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
                                            (.allDays, L10n.tr("editor.scope.all_days"), nil)],
                                    fills: true, spacing: Spacing.sm)
-                        Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                        if store.isThisDay {
+                            Text(store.thisDayTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                            if store.canSkipDay {
+                                Button { store.send(.skipDayTapped) } label: {
+                                    Text(store.skipTitle).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                                        .frame(maxWidth: .infinity, minHeight: 88)
+                                        .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: 1901)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        } else {
+                            Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

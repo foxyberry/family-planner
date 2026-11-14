@@ -45,6 +45,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 - 2026-11-09: build plan row 6c "Repeats and dates" (user decisions: two edit tabs with "from when?"; linked events skip on no-school days unless given a set time).
 - 2026-11-14: 6b without event missions before / after (user): Bring + From cover it; Missions row, F5 and the after-home window dropped.
 - 2026-11-14: G8 right column stays one "Add" (user: keep it plain). Parked ideas, not planned: "Coming up" (holidays, skipped days and one-offs in the next 2 weeks) and "Ended" (finished items with Bring back).
+- 2026-11-15: 6d gap (main session, PR #94): G4 This day still needs "Skip this day" (spec E5 School rule). It is the only way to skip School, because a tap on the School slice in G1 opens G4, not the slice card. Next G4 build step; no new board (G3 This day pattern: side column "{Day d Mon} only" + "Skip this day").
 
 ## Goal (the user's words)
 > **See today's schedule on this iPad, and do today's missions.**

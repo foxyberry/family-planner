@@ -288,9 +288,9 @@ public struct OurDayFeature {
         public var canMakeFree: Bool {
             saveScope == .allDays && (selectedBlock.map { !$0.isLocked && $0.kind != .free && !$0.isSkipped } ?? false)
         }
-        /// School can be skipped this day too (a sick day); free time cannot.
+        /// School is skipped on G4's This day (its card links there); free time cannot be skipped.
         public var canSkip: Bool {
-            saveScope == .thisDay && (selectedBlock.map { $0.kind != .free && !$0.isSkipped } ?? false)
+            saveScope == .thisDay && (selectedBlock.map { $0.kind != .free && $0.kind != .school && !$0.isSkipped } ?? false)
         }
         /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
         public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true }

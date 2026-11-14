@@ -70,6 +70,19 @@ public struct SchoolEditorFeature {
         }
         /// Board G4's side line: "Every school day", or the days as chips.
         public var everyTitle: String { DayText.chips(school?.days ?? []) }
+        /// Spec "E5 School rule": This day's side column as G3, "{Day d Mon} only" then "Skip this day".
+        public var isThisDay: Bool { editScope == .thisDay }
+        public var thisDayTitle: String { L10n.tr("editor.this_day.only", DayText.short(day, calendar: calendar)) }
+        /// The day's template (its own one when it has it).
+        var dayTemplate: Routine? {
+            DayPlanner.template(for: kid, on: day, routines: routines, holidays: [], calendar: calendar)
+        }
+        /// School is skipped on this day (a sick day); "Bring back" undoes it.
+        public var isDaySkipped: Bool { dayTemplate?.blocks.first { $0.kind == .school }?.isSkipped == true }
+        public var canSkipDay: Bool { dayTemplate?.blocks.contains { $0.kind == .school } == true }
+        public var skipTitle: String {
+            isDaySkipped ? L10n.tr("editor.this_day.bring_back") : L10n.tr("editor.this_day.skip")
+        }
         public var startDate: Date { today.date(minute: school?.start ?? 0, calendar: calendar) }
         public var endDate: Date { today.date(minute: school?.end ?? 0, calendar: calendar) }
         public var startLabel: String { TimeText.withPeriod(school?.start ?? 0) }
@@ -158,6 +171,9 @@ public struct SchoolEditorFeature {
         /// "Going ›": Our buses for this kid (spec: the S3 trip screen, opened from here).
         case goingTapped
         case saveTapped
+        /// This day: skip School on the day, or bring it back; saved at once (as G3).
+        case skipDayTapped
+        case daySkipSaved(Routine)
         case saved(Bool)
         case backTapped
         case delegate(Delegate)
@@ -283,6 +299,28 @@ public struct SchoolEditorFeature {
 
             case .goingTapped:
                 return .send(.delegate(.openBuses(state.kid)))
+
+            case .skipDayTapped:
+                guard let current = state.dayTemplate,
+                      let index = current.blocks.firstIndex(where: { $0.kind == .school }) else { return .none }
+                var blocks = current.blocks
+                blocks[index].isSkipped.toggle()
+                let routine = Routine.day(state.day, kid: state.kid,
+                                          dayType: DayPlanner.dayType(on: state.day, holidays: [], calendar: state.calendar),
+                                          blocks: blocks)
+                return .run { [scheduleStore] send in
+                    do {
+                        try await scheduleStore.saveRoutine(routine)
+                        await send(.daySkipSaved(routine))
+                    } catch {
+                        await send(.saved(false))
+                    }
+                }
+
+            case let .daySkipSaved(routine):
+                state.routines.removeAll { $0.kid == routine.kid && $0.onlyOn == routine.onlyOn }
+                state.routines.append(routine)
+                return .none
 
             case .changeSchoolTapped:
                 return .send(.delegate(.changeSchool(state.kid)))
