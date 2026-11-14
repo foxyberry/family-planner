@@ -183,6 +183,15 @@ public struct TemplateEdit: Equatable, Sendable {
         }
     }
 
+    /// Board G1f: a new slice's picture, kind or name changed while its card is open. It belongs to
+    /// the change that made the slice, so Undo takes the whole new slice back in one step.
+    public mutating func restyle(_ block: Int, title: String, iconName: String, kind: SlotKind) {
+        guard blocks.indices.contains(block), blocks[block].kind != .free else { return }
+        blocks[block].title = title
+        blocks[block].iconName = iconName
+        blocks[block].kind = kind
+    }
+
     private static func free(from start: Int, to end: Int) -> RoutineBlock {
         RoutineBlock(title: L10n.tr("home.hub.free"), iconName: "", kind: .free, start: start, end: end)
     }

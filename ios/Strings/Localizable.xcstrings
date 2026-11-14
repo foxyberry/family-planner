@@ -496,13 +496,13 @@
         }
       }
     },
-    "day.new.add" : {
+    "day.new.hub" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add to the day"
+            "value" : "New"
           }
         }
       }

@@ -213,19 +213,30 @@ public struct OurDayView: View {
 
     @ViewBuilder private var card: some View {
         if let slice = store.newSlice {
+            // Board G1f: scope tabs, five pictures and "More" (3 per row), the name, then the times.
             VStack(alignment: .leading, spacing: Spacing.s) {
-                CrayonField(L10n.tr("day.new.name"), text: Binding(get: { slice.name },
-                                                                   set: { store.newSlice?.name = $0 }))
-                // Every picture, three per row in the side card; the grid scrolls inside its 3 rows.
-                ScrollView {
-                    IconPicker(selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
-                                                  set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
-                               slots: OurDayFeature.pictures, columns: 3)
+                scopeTabs
+                PictureRow(slots: store.newSlicePictures,
+                           selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
+                                              set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
+                           all: OurDayFeature.pictures, isShowingAll: slice.isPickingMore,
+                           moreTitle: L10n.tr("picker.more"), moreLabel: L10n.tr("picker.more.label"), columns: 3) {
+                    store.send(.newSliceMoreTapped)
                 }
-                .frame(height: 3 * 88 + 2 * Spacing.s)
-                InkButton(L10n.tr("day.new.add")) { store.send(.newSliceAddTapped) }
-                    .opacity(store.canAddNewSlice ? 1 : 0.4)
-                    .disabled(!store.canAddNewSlice)
+                .zIndex(1)
+                CrayonField(L10n.tr("day.new.name"), text: Binding(get: { slice.name },
+                                                                   set: { store.send(.newSliceNameChanged($0)) }))
+                if slice.isOnClock {
+                    HStack(spacing: Spacing.xs) {
+                        TimeField(label: store.startLabel ?? "",
+                                  time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }))
+                            .frame(width: 170)
+                        MarkerIcon(.arrowRight, size: 32, color: CrayonColor.softText)
+                        TimeField(label: store.endLabel ?? "",
+                                  time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }))
+                            .frame(width: 170)
+                    }
+                }
             }
         } else if let block = store.selectedBlock {
             VStack(alignment: .leading, spacing: Spacing.s) {
@@ -234,10 +245,7 @@ public struct OurDayView: View {
                     Text(block.title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
                 // Spec "Edit scope": This day / All days under the title.
-                CrayonTabs(selection: Binding(get: { store.saveScope }, set: { store.send(.scopeTapped($0)) }),
-                           items: [(OurDayFeature.Scope.thisDay, L10n.tr("day.scope.this"), nil),
-                                   (.allDays, L10n.tr("day.scope.all"), nil)], compact: true)
-                    .fixedSize(horizontal: false, vertical: true)
+                scopeTabs
                 timeRow(L10n.tr("day.starts"), label: store.startLabel ?? "", date: store.startDate) {
                     store.send(.startPicked($0))
                 }
@@ -256,6 +264,13 @@ public struct OurDayView: View {
                 }
             }
         }
+    }
+
+    private var scopeTabs: some View {
+        CrayonTabs(selection: Binding(get: { store.saveScope }, set: { store.send(.scopeTapped($0)) }),
+                   items: [(OurDayFeature.Scope.thisDay, L10n.tr("day.scope.this"), nil),
+                           (.allDays, L10n.tr("day.scope.all"), nil)], compact: true)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private func timeRow(_ title: String, label: String, date: Date, set: @escaping (Date) -> Void) -> some View {
