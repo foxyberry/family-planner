@@ -84,6 +84,16 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(kids, [kidA, SeedData.kidB])
     }
 
+    /// G6f "Add a child": a kid not stored yet is added after the others.
+    func testSaveKidAddsANewKidLast() async throws {
+        let store = try await seeded()
+        let kidC = Kid(id: UUID(uuidString: "00000000-0000-0000-0000-0000000000C3")!, name: "Kid C", colorIndex: 2,
+                       age: 3, schoolYear: nil, school: nil)
+        try await store.saveKid(kidC)
+        let kids = try await self.store().load().kids
+        XCTAssertEqual(kids, SeedData.kids + [kidC])
+    }
+
     func testSampleFamilyLoadsTheSeed() async throws {
         let snapshot = try await seeded().load()
         XCTAssertEqual(snapshot.kids, SeedData.kids)

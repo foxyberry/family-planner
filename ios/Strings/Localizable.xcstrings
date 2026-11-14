@@ -1,6 +1,28 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "add_child.add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
+    "add_child.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a child"
+          }
+        }
+      }
+    },
     "auth.reason" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4258,6 +4280,17 @@
         }
       }
     },
+    "settings.add_child" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a child"
+          }
+        }
+      }
+    },
     "settings.age" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4265,6 +4298,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Age"
+          }
+        }
+      }
+    },
+    "settings.child.detail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld · %2$@"
+          }
+        }
+      }
+    },
+    "settings.child.home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At home"
+          }
+        }
+      }
+    },
+    "settings.children" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Children"
           }
         }
       }
