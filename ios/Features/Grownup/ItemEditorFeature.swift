@@ -133,10 +133,6 @@ public struct ItemEditorFeature {
 
         /// The Bring card shows the whole kit ("More").
         public var isPickingMoreBring = false
-        /// The Missions sub-page is open in the form card, and the mission being edited on it.
-        public var isEditingMissions = false
-        public var missionDraft: MissionEditorFeature.Draft?
-        public var missionSection: ItemForm.MissionSection = .before
 
         /// The From card's choices (Home, then events this item can follow).
         public var fromChoices: [ItemForm.FromChoice] {
@@ -231,18 +227,8 @@ public struct ItemEditorFeature {
         public static let bringAll: [KitSlot] = KitSlot.allCases.filter(\.isThing)
         public var bringPicked: Set<KitSlot> { Set(form.bring.compactMap { KitSlot(rawValue: $0.picture) }) }
 
-        /// "Missions · Swimming", the sub-page's header.
-        public var missionsTitle: String {
-            L10n.tr("item_missions.title", form.name.isEmpty ? L10n.tr("missions.title.new") : form.name)
-        }
-
         /// Going / Leave show when the item starts from Home (C3g); a linked item has no trip.
         public var showsGoing: Bool { form.after == nil }
-
-        /// "+ Add" in a Missions section, up to four.
-        public func canAddMission(_ section: ItemForm.MissionSection) -> Bool {
-            form.missions(section).count < ItemMission.most
-        }
 
         /// The last day of the term the run starts in, for the form's kid; nil without a school calendar.
         public var termEnd: Day? { family.termEnd(for: form.audience, from: form.date) }
@@ -277,11 +263,6 @@ public struct ItemEditorFeature {
         public var termCaption: String? {
             guard let termEnd else { return nil }
             return DayText.short(termEnd, calendar: calendar)
-        }
-
-        public var missionRemoveTitle: String? {
-            guard let missionDraft, missionDraft.confirmsRemove else { return nil }
-            return L10n.tr("c5.remove.title", missionDraft.name)
         }
 
         public init(mode: Mode, repeats: ItemForm.Repeat = .weekly, now: Date, calendar: Calendar) {
@@ -532,7 +513,7 @@ public struct ItemEditorFeature {
         case busesRowTapped
         case skipSaved(ScheduleItem, skipped: Day?)
         case removeSeriesTapped
-        /// Event rows (spec "Event form rows for 6b"): From, Bring, Missions, Medal.
+        /// Event rows (spec "Event form rows for 6b"): From, Bring, Medal.
         case fromRowTapped
         case fromPicked(String)
         case bringRowTapped
@@ -543,18 +524,6 @@ public struct ItemEditorFeature {
         case cardDoneTapped
         case cardClosed
         case medalToggled
-        case missionsRowTapped
-        case missionsBackTapped
-        case missionAddTapped(ItemForm.MissionSection)
-        case missionRowTapped(ItemMission.ID)
-        case missionNameChanged(String)
-        case missionPicturePicked(String)
-        case missionDraftClosed
-        case missionSaveTapped
-        case missionRemoveTapped
-        case missionRemoveConfirmed
-        case missionRemoveCancelled
-        case missionMoved(ItemMission.ID, to: Int, in: ItemForm.MissionSection)
         /// Runs (board G2): the start date, and the end card (kind, date, times, Done).
         case runsStartPicked(Date)
         case runsEndTapped
@@ -849,64 +818,6 @@ public struct ItemEditorFeature {
 
             case .medalToggled:
                 state.form.toggleMedal()
-                return .none
-
-            case .missionsRowTapped:
-                state.isEditingMissions = true
-                return .none
-
-            case .missionsBackTapped:
-                state.isEditingMissions = false
-                state.missionDraft = nil
-                return .none
-
-            case let .missionAddTapped(section):
-                guard state.canAddMission(section) else { return .none }
-                state.missionSection = section
-                state.missionDraft = MissionEditorFeature.Draft(id: uuid(), name: "", picture: KitSlot.star.rawValue,
-                                                                isNew: true)
-                return .none
-
-            case let .missionRowTapped(id):
-                let section: ItemForm.MissionSection = state.form.missionsBefore.contains { $0.id == id } ? .before : .after
-                guard let mission = state.form.missions(section).first(where: { $0.id == id }) else { return .none }
-                state.missionSection = section
-                state.missionDraft = MissionEditorFeature.Draft(id: id, name: mission.name, picture: mission.picture,
-                                                                isNew: false)
-                return .none
-
-            case let .missionNameChanged(name):
-                state.missionDraft?.name = String(name.prefix(Mission.longestName))
-                return .none
-
-            case let .missionPicturePicked(picture):
-                state.missionDraft?.picture = picture
-                return .none
-
-            case .missionDraftClosed, .missionRemoveCancelled:
-                if state.missionDraft?.confirmsRemove == true { state.missionDraft?.confirmsRemove = false } else {
-                    state.missionDraft = nil
-                }
-                return .none
-
-            case .missionSaveTapped:
-                guard let draft = state.missionDraft, draft.canSave else { return .none }
-                state.form.saveMission(ItemMission(id: draft.id, name: draft.name.trimmingCharacters(in: .whitespaces),
-                                                   picture: draft.picture), in: state.missionSection)
-                state.missionDraft = nil
-                return .none
-
-            case .missionRemoveTapped:
-                state.missionDraft?.confirmsRemove = true
-                return .none
-
-            case .missionRemoveConfirmed:
-                if let id = state.missionDraft?.id { state.form.removeMission(id) }
-                state.missionDraft = nil
-                return .none
-
-            case let .missionMoved(id, index, section):
-                state.form.moveMission(id, to: index, in: section)
                 return .none
 
             case let .runsStartPicked(date):

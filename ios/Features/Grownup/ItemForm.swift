@@ -46,10 +46,8 @@ public struct ItemForm: Equatable, Sendable {
     public var trip: Trip?
     /// "From" (spec "Event form rows"): nil is Home; an event makes the item start when it ends.
     public var after: EventRef?
-    /// "Bring" and "Missions" (before / after), up to `ItemMission.most` each.
+    /// "Bring", up to `ItemMission.most`.
     public var bring: [ItemMission] = []
-    public var missionsBefore: [ItemMission] = []
-    public var missionsAfter: [ItemMission] = []
     /// Runs (board G2): how an every-week item's run ends; `date` is its start.
     public var runsEnd: RunsEndKind = .none
     public var untilDate: Day
@@ -122,8 +120,6 @@ public struct ItemForm: Equatable, Sendable {
             if let until { untilDate = until }
         }
         bring = item.bring
-        missionsBefore = item.missionsBefore
-        missionsAfter = item.missionsAfter
     }
 
     /// Picking a picture fills an empty name with the picture's label; a typed name is never replaced.
@@ -246,42 +242,6 @@ public struct ItemForm: Equatable, Sendable {
         }
     }
 
-    /// The missions before leaving for the item, or after coming home from it.
-    public enum MissionSection: Hashable, Sendable { case before, after }
-
-    public func missions(_ section: MissionSection) -> [ItemMission] {
-        section == .before ? missionsBefore : missionsAfter
-    }
-
-    /// Adds a mission (up to four) or replaces the one with the same id.
-    public mutating func saveMission(_ mission: ItemMission, in section: MissionSection) {
-        var list = missions(section)
-        if let index = list.firstIndex(where: { $0.id == mission.id }) {
-            list[index] = mission
-        } else if list.count < ItemMission.most {
-            list.append(mission)
-        }
-        setMissions(list, section)
-    }
-
-    public mutating func removeMission(_ id: ItemMission.ID) {
-        missionsBefore.removeAll { $0.id == id }
-        missionsAfter.removeAll { $0.id == id }
-    }
-
-    /// Drag ≡: moves a mission to `index` within its section.
-    public mutating func moveMission(_ id: ItemMission.ID, to index: Int, in section: MissionSection) {
-        var list = missions(section)
-        guard let from = list.firstIndex(where: { $0.id == id }) else { return }
-        let mission = list.remove(at: from)
-        list.insert(mission, at: min(max(index, 0), list.count))
-        setMissions(list, section)
-    }
-
-    private mutating func setMissions(_ list: [ItemMission], _ section: MissionSection) {
-        if section == .before { missionsBefore = list } else { missionsAfter = list }
-    }
-
     // MARK: Runs (board G2)
 
     /// The stored `until`: the picked date; term and count ends are worked out with the calendar.
@@ -314,12 +274,6 @@ public struct ItemForm: Equatable, Sendable {
 
     /// The Bring row's words: "Swimsuit · Goggles"; nil when nothing is picked.
     public var bringText: String? { bring.isEmpty ? nil : bring.map(\.name).joined(separator: " · ") }
-
-    /// The Missions row's words: the before ones, then the after ones with "(after)".
-    public var missionsText: String? {
-        let words = missionsBefore.map(\.name) + missionsAfter.map { L10n.tr("missions.row.after", $0.name) }
-        return words.isEmpty ? nil : words.joined(separator: " · ")
-    }
 
     /// The From card's choices: Home, then the kid's events that end at or before this item's start
     /// on every one of its days (School first, then by end time); five at most.
@@ -465,13 +419,13 @@ public struct ItemForm: Equatable, Sendable {
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .weekly(days, from: max(date, today), until: until), skippedDays: [],
                                 skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
-                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter,
+                                bring: bring,
                                 runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool)
         case .once:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .once(date), skippedDays: [], skipsHolidays: false,
                                 showsStar: showsStar, trip: trip, after: after,
-                                bring: bring, missionsBefore: missionsBefore, missionsAfter: missionsAfter,
+                                bring: bring,
                                 afterGap: after == nil ? 0 : afterGap)
         }
     }

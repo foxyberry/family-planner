@@ -342,15 +342,15 @@ final class MissionsTests: XCTestCase {
         XCTAssertFalse(store.state.circles.contains { if case .more = $0 { true } else { false } })
     }
 
-    /// Spec "Mission windows": after school, Kid A's list is swimming's "before" missions and its
-    /// Bring checks; the slide belongs to swimming.
-    func testAfterSchoolTheListIsTheNextOutingsMissionsAndBring() async {
+    /// Spec "Mission windows": after school, Kid A's list is swimming's Bring checks; the slide
+    /// belongs to swimming.
+    func testAfterSchoolTheListIsTheNextOutingsBring() async {
         let monday = Day(year: 2026, month: 11, day: 16)
         let items = SeedData.items(today: tuesday, calendar: calendar).map { item -> ScheduleItem in
             guard item.title == "Swimming" else { return item }
             var swimming = item
-            swimming.missionsBefore = [ItemMission(id: id("401"), name: "Goggles", picture: "goggles")]
-            swimming.bring = [ItemMission(id: id("402"), name: "Towel", picture: "towel")]
+            swimming.bring = [ItemMission(id: id("401"), name: "Goggles", picture: "goggles"),
+                              ItemMission(id: id("402"), name: "Towel", picture: "towel")]
             return swimming
         }
         let store = store(on: monday, minute: 905, items: items)

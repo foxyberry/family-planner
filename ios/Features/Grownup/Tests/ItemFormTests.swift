@@ -303,28 +303,6 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.bring.map(\.picture), ["backpack", "waterBottle", "towel"])
     }
 
-    func testMissionsBeforeAndAfterAreListedForTheRow() {
-        var form = form()
-        XCTAssertNil(form.missionsText)
-        let goggles = ItemMission(id: UUID(), name: "Goggles", picture: "goggles")
-        let hang = ItemMission(id: UUID(), name: "Hang swimsuit", picture: "towel")
-        form.saveMission(hang, in: .after)
-        form.saveMission(goggles, in: .before)
-        XCTAssertEqual(form.missionsText, "Goggles · Hang swimsuit (after)")
-        var renamed = goggles
-        renamed.name = "Pack goggles"
-        form.saveMission(renamed, in: .before)
-        XCTAssertEqual(form.missionsBefore.map(\.name), ["Pack goggles"])
-        let shoes = ItemMission(id: UUID(), name: "Shoes on", picture: "shoe")
-        form.saveMission(shoes, in: .before)
-        form.moveMission(shoes.id, to: 0, in: .before)
-        XCTAssertEqual(form.missionsBefore.map(\.name), ["Shoes on", "Pack goggles"])
-        form.removeMission(hang.id)
-        XCTAssertEqual(form.missionsAfter, [])
-        let saved = form.item(id: UUID(), today: F.monday)
-        XCTAssertEqual(ItemForm(item: saved).missionsBefore, form.missionsBefore)
-    }
-
     // MARK: Runs (board G2)
 
     func testRunsEndsAreStoredAndShown() {

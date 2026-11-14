@@ -31,19 +31,29 @@ final class MissionWindowsTests: XCTestCase {
         XCTAssertEqual(morning?.outing?.slot.kind, .school)
     }
 
-    func testAfterSchoolRunsFromHomeToDinnerAndCoversTheLinkedChain() {
+    func testEventsLinkedAfterSchoolJoinTheMorningAndOpenNothingAfterHome() {
+        // Spec 2026-11-14: a linked event's Bring is checked before the first leave of its chain; there
+        // is no "after coming home" window. Swimming follows art with a 15 min gap.
         var slots = schoolDay()
         slots.removeAll { $0.kind == .free }
         slots.append(slot(.event, 810, 855, source: .weekly(art), after: .school))
-        slots.append(slot(.free, 855, 1080))
+        slots.append(slot(.event, 870, 930, source: .weekly(swim), after: .item(art)))
+        slots.append(slot(.free, 930, 1080))
         let spans = DayPlanner.missionWindows(slots: slots.sorted { $0.start < $1.start }, night: night)
-        let after = spans.first { $0.parts.first == .after(.school) }
-        XCTAssertEqual(after?.start, 875, "art ends at 855, then 20 min home")
-        XCTAssertEqual(after?.end, 1080)
-        XCTAssertEqual(after?.parts, [.after(.school), .after(.item(art))])
+        XCTAssertEqual(spans.first?.parts, [.morning, .before(.school)])
+        XCTAssertEqual(spans.first?.linked, [.item(art), .item(swim)])
+        XCTAssertEqual(spans.map(\.parts), [[.morning, .before(.school)], [.evening]])
     }
 
-    func testASecondOutingMakesTheAfterSchoolStretchEndAtItsLeave() {
+    func testALinkedEventIsLeftOutWhenTheEventBeforeItIsNotOnTheDay() {
+        // No school slot: the planner never places art, so nothing links to the morning.
+        let slots = [slot(.sleep, 0, 450), slot(.play, 450, 1080), slot(.dinner, 1080, 1110),
+                     slot(.evening, 1110, 1200), slot(.sleep, 1200, 1440)]
+        let spans = DayPlanner.missionWindows(slots: slots, night: NightSpan(start: 1110, wake: 450))
+        XCTAssertEqual(spans.first?.linked, [])
+    }
+
+    func testASecondOutingHasABeforeStretchFromHomeToItsLeave() {
         let swimming = slot(.event, 960, 1020, source: .weekly(swim),
                             trip: Trip(way: .walk, leaveBefore: 10, homeAfter: 15))
         var slots = schoolDay()
@@ -52,11 +62,9 @@ final class MissionWindowsTests: XCTestCase {
         let spans = DayPlanner.missionWindows(slots: slots.sorted { $0.start < $1.start }, night: night)
         let between = spans.first { $0.start == 830 }
         XCTAssertEqual(between?.end, 950)
-        XCTAssertEqual(between?.parts, [.after(.school), .before(.item(swim))])
+        XCTAssertEqual(between?.parts, [.before(.item(swim))])
         XCTAssertEqual(between?.outing?.slot.source, .weekly(swim))
-        let afterSwim = spans.first { $0.parts == [.after(.item(swim))] }
-        XCTAssertEqual(afterSwim?.start, 1035)
-        XCTAssertEqual(afterSwim?.end, 1080)
+        XCTAssertNil(spans.first { $0.start == 1035 }, "no window after coming home from swimming")
     }
 
     func testADayWithoutAnOutingKeepsTheMorningUntilNoon() {
@@ -73,10 +81,9 @@ final class MissionWindowsTests: XCTestCase {
         let slots = [slot(.sleep, 0, 450), slot(.play, 450, 840), outing, slot(.play, 960, 1080),
                      slot(.dinner, 1080, 1110), slot(.evening, 1110, 1200), slot(.sleep, 1200, 1440)]
         let spans = DayPlanner.missionWindows(slots: slots, night: NightSpan(start: 1110, wake: 450))
-        XCTAssertEqual(spans.map(\.parts), [[.morning], [.before(.item(party))], [.after(.item(party))], [.evening]])
+        XCTAssertEqual(spans.map(\.parts), [[.morning], [.before(.item(party))], [.evening]])
         XCTAssertEqual(spans[1].start, 720)
         XCTAssertEqual(spans[1].end, 825)
-        XCTAssertEqual(spans[2].start, 960)
     }
 
     func testEveningRunsFromDinnerToBed() {
@@ -91,7 +98,7 @@ final class MissionWindowsTests: XCTestCase {
         XCTAssertEqual(DayPlanner.window(at: 400, in: spans)?.parts.first, .morning)
         XCTAssertNil(DayPlanner.window(at: 425, in: spans), "the kid has left")
         XCTAssertNil(DayPlanner.window(at: 380, in: spans), "still asleep")
-        XCTAssertEqual(DayPlanner.window(at: 900, in: spans)?.parts.first, .after(.school))
+        XCTAssertNil(DayPlanner.window(at: 900, in: spans), "home from school: no window until dinner")
     }
 
     func testNoWakeMeansNoWindows() {

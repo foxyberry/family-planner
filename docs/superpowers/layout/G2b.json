@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "33",
  "board": "G2b",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -356,47 +356,10 @@
    "align": "inside"
   },
   {
-   "id": "main.label.missions",
-   "kind": "label",
-   "x": 80,
-   "y": 636,
-   "w": 120,
-   "h": 80,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "text": "Missions"
-  },
-  {
-   "id": "main.row.missions.text",
-   "kind": "text",
-   "x": 208,
-   "y": 653,
-   "w": 323,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 676,
-   "font": 30,
-   "text": "Hang swimsuit (after)"
-  },
-  {
-   "id": "main.row.missions.picture",
-   "kind": "picture",
-   "x": 790,
-   "y": 662,
-   "w": 28,
-   "h": 28,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "main.label.medal",
    "kind": "label",
    "x": 80,
-   "y": 732,
+   "y": 636,
    "w": 120,
    "h": 80,
    "region": "main",

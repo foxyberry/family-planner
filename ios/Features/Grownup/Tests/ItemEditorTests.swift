@@ -377,31 +377,6 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.form.bring.map(\.picture), ["backpack", "waterBottle"])
     }
 
-    func testMissionsPageAddsEditsAndRemovesBeforeAndAfterMissions() async {
-        let store = store(mode: .add(kidA))
-        await store.send(.task)
-        await store.receive(\.loaded)
-        await store.send(.missionsRowTapped)
-        XCTAssertTrue(store.state.isEditingMissions)
-        XCTAssertEqual(store.state.missionsTitle, "Missions · new item")
-        await store.send(.missionAddTapped(.after))
-        await store.send(.missionNameChanged("Hang swimsuit"))
-        await store.send(.missionPicturePicked("shirt"))
-        await store.send(.missionSaveTapped)
-        await store.send(.missionAddTapped(.before))
-        await store.send(.missionNameChanged("Goggles"))
-        await store.send(.missionSaveTapped)
-        XCTAssertEqual(store.state.form.missionsText, "Goggles · Hang swimsuit (after)")
-        let goggles = store.state.form.missionsBefore[0].id
-        await store.send(.missionRowTapped(goggles))
-        await store.send(.missionRemoveTapped)
-        XCTAssertEqual(store.state.missionRemoveTitle, "Remove Goggles?")
-        await store.send(.missionRemoveConfirmed)
-        XCTAssertEqual(store.state.form.missionsBefore, [])
-        await store.send(.missionsBackTapped)
-        XCTAssertFalse(store.state.isEditingMissions)
-    }
-
     func testMedalSwitchNeedsATrip() async {
         let store = store(mode: .add(kidA))
         await store.send(.task)

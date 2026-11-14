@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "33",
  "board": "G4",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -523,7 +523,7 @@
    "align": "inside"
   },
   {
-   "id": "main.label.missions",
+   "id": "main.label.medal",
    "kind": "label",
    "x": 80,
    "y": 752,
@@ -532,44 +532,18 @@
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "text": "Missions"
+   "text": "Medal"
   },
   {
-   "id": "main.row.missions.text",
-   "kind": "text",
-   "x": 208,
-   "y": 769,
-   "w": 290,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 792,
-   "font": 30,
-   "text": "Pack bag · Shoes on"
-  },
-  {
-   "id": "main.row.missions.picture",
+   "id": "main.row.medal.picture",
    "kind": "picture",
-   "x": 790,
+   "x": 264,
    "y": 778,
    "w": 28,
    "h": 28,
    "region": "main",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "main.label.medal",
-   "kind": "label",
-   "x": 80,
-   "y": 864,
-   "w": 120,
-   "h": 80,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "text": "Medal"
   },
   {
    "id": "action.primary",
@@ -582,17 +556,6 @@
    "anchor": "right",
    "align": "fill",
    "text": "Save changes"
-  },
-  {
-   "id": "main.row.medal.picture",
-   "kind": "picture",
-   "x": 264,
-   "y": 890,
-   "w": 28,
-   "h": 28,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
   }
  ]
 }
