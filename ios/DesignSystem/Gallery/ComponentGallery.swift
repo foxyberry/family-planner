@@ -178,9 +178,9 @@ public struct ComponentGallery: View {
                     DayButton(today: "Today", date: "Tue 10 Nov") {}.frame(width: 472)
                     DayPickerCard(month: "November", weeks: Self.sampleWeeks, earlier: "Earlier", later: "Later",
                                   today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {})
-                    SaveChangesCard(title: "Save the changes?", line: "Dinner 6:30 pm %@ 7:30 pm, this day",
-                                    save: "Save", cancel: "Cancel",
-                                    onSave: {}, onCancel: {})
+                    ConfirmCard(title: "Save the changes?", message: "Dinner 6:30 pm %@ 7:30 pm, this day",
+                                messageGlyph: .arrowRight, cancel: "Cancel", confirm: "Save", isDestructive: false,
+                                onCancel: {}, onConfirm: {})
                 }
                 section("C3g · Going") {
                     ChoiceCircles([.init(id: "none", picture: nil, caption: "None", isPicked: false),

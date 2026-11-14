@@ -53,7 +53,6 @@ public enum CrayonStyle {
         static let formCard: UInt32 = 2701
         static let dayButton: UInt32 = 2801
         static let dayPicker: UInt32 = 2901
-        static let saveChanges: UInt32 = 3101
     }
 }
 
