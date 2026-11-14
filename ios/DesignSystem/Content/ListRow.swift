@@ -70,7 +70,9 @@ public struct PreviewRow<Content: View>: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            Text(time).crayonType(.caption, bold: isNew).lineLimit(1).frame(width: 112, alignment: .leading)
+            // Boards C3/C4: the time column is 112 (888 … 1000); the new row's bold time shrinks to fit.
+            Text(time).crayonType(.caption, bold: isNew).lineLimit(1).minimumScaleFactor(0.8)
+                .frame(width: 112, alignment: .leading)
             content.frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(CrayonColor.ink)
