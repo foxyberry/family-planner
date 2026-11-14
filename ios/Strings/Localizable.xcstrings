@@ -4071,28 +4071,6 @@
         }
       }
     },
-    "s4.live_bus" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live bus times"
-          }
-        }
-      }
-    },
-    "s4.live_bus.caption" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Off: the morning shows the timetable"
-          }
-        }
-      }
-    },
     "s4.lock" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -95,7 +95,7 @@ final class SettingsTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         await store.send(.tabTapped(.family))
-        XCTAssertEqual(store.state.settingRows.map(\.isOn), [true, true, true])
+        XCTAssertEqual(store.state.settingRows.map(\.isOn), [true, true])
         await store.send(.settingTapped(.medals))
         XCTAssertEqual(saved.value.last?.medals, false)
         await store.send(.settingTapped(.grownupLock))

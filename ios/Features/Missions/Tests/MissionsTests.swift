@@ -202,20 +202,6 @@ final class MissionsTests: XCTestCase {
         await store.send(.backTapped)
     }
 
-    /// S4 "Live bus times" off: no LTA call even with a bus plan; the timetable look stays.
-    func testLiveTimesOffNeverCallsLTA() async {
-        let called = LockIsolated(false)
-        let store = store(on: tuesday, minute: 412, arrivals: [BusArrival(service: "1", minutes: 28, type: .double)])
-        store.dependencies.appSettings.load = { AppSettings(liveBusTimes: false) }
-        store.dependencies.bus.arrivals = { _ in called.setValue(true); return [] }
-        await store.send(.task)
-        await store.receive(\.loaded)
-        XCTAssertFalse(called.value)
-        XCTAssertNil(store.state.live)
-        XCTAssertNil(store.state.header?.status)
-        await store.send(.backTapped)
-    }
-
     /// Board A2t-w: on the weekend the greeting names the day.
     func testWeekendGreetingNamesTheDay() async {
         let saturday = Day(year: 2026, month: 11, day: 14)

@@ -323,7 +323,7 @@ final class SetupTests: XCTestCase {
             $0.scheduleStore.replaceFamily = { _ in }
         }
         store.exhaustivity = .off
-        XCTAssertEqual(store.state.settingRows.map(\.isOn), [true, true, true], "every switch starts on")
+        XCTAssertEqual(store.state.settingRows.map(\.isOn), [true, true], "every switch starts on")
         await store.send(.settingTapped(.grownupLock))
         XCTAssertFalse(store.state.settings.grownupLock)
         XCTAssertEqual(store.state.settingRows[0].caption, "Off: anyone who holds the clock for 2 s can change the plan.")
@@ -346,7 +346,7 @@ final class SetupTests: XCTestCase {
         await store.send(.settingTapped(.medals))
         await store.send(.nextTapped)
         await store.receive(\.saved)
-        XCTAssertEqual(savedSettings.value, [AppSettings(grownupLock: true, liveBusTimes: true, medals: false)])
+        XCTAssertEqual(savedSettings.value, [AppSettings(grownupLock: true, medals: false)])
     }
 
     func testStartSavesTheWholeFamilyOnce() async {
