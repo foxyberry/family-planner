@@ -91,13 +91,19 @@ public struct PreviewRow<Content: View>: View {
 /// it starts on 232 (`formLabelWidth`); outside a grown-up form it is 120 wide plus a 24 gap.
 public struct FormLabel: View {
     private let text: String
+    private let isActive: Bool
 
-    public init(_ text: String) {
+    /// `isActive`: the row's field has focus (board C3k); the label turns `pickBlue`.
+    public init(_ text: String, isActive: Bool = false) {
         self.text = text
+        self.isActive = isActive
     }
 
     public var body: some View {
-        FormLabelColumn { Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText) }
+        FormLabelColumn {
+            Text(text).crayonType(.caption, bold: true)
+                .foregroundStyle(isActive ? CrayonColor.pickBlue : CrayonColor.softText)
+        }
     }
 }
 

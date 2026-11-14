@@ -20,7 +20,7 @@ public struct TimeField: View {
     }
 
     public var body: some View {
-        FieldButton(label, isPlaceholder: isPlaceholder, width: width) { isPicking = true }
+        FieldButton(label, isPlaceholder: isPlaceholder, width: width, isActive: isPicking) { isPicking = true }
         .popover(isPresented: $isPicking) {
             DatePicker(L10n.tr("time.field"), selection: $time, displayedComponents: .hourAndMinute)
                 .datePickerStyle(.wheel)

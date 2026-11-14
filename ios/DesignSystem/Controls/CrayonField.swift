@@ -24,14 +24,18 @@ public struct CrayonField<Leading: View>: View {
         HStack(spacing: Spacing.sm) {
             leading
             field.focused($isFocused)
+                // Board C3k: Return puts the keyboard away; it never submits the form.
+                .submitLabel(.done)
+                .onSubmit { isFocused = false }
         }
+        .preference(key: FieldFocusKey.self, value: isFocused)
         .crayonType(.body)
         .padding(.horizontal, Spacing.m)
         .frame(minHeight: 80)
         .background(
             CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                           marker: isFocused || hasProblem ? .standard : .thin,
-                          markerColor: isFocused ? CrayonColor.link : hasProblem ? CrayonColor.lateText : CrayonColor.marker,
+                          markerColor: isFocused ? CrayonColor.pickBlue : hasProblem ? CrayonColor.lateText : CrayonColor.marker,
                           seed: CrayonStyle.Seed.field)
                 .padding(CrayonStyle.artInset)
         )
@@ -52,6 +56,12 @@ extension CrayonField where Leading == EmptyView {
     public init(_ placeholder: String, text: Binding<String>, isSecure: Bool = false) {
         self.init(placeholder, text: text, isSecure: isSecure) { EmptyView() }
     }
+}
+
+/// Board C3k: true while a `CrayonField` inside has focus, so its row label can turn `pickBlue`.
+public struct FieldFocusKey: PreferenceKey {
+    public static let defaultValue = false
+    public static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
 }
 
 /// Form problems (spec "Add-screen feedback"): a field with a problem has a `lateText` outline.

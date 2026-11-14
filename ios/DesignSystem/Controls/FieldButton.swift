@@ -7,14 +7,19 @@ public struct FieldButton: View {
     private let label: String
     private let isPlaceholder: Bool
     private let width: CGFloat?
+    private let isActive: Bool
     private let action: () -> Void
     @Environment(\.fieldHasProblem) private var hasProblem
 
     /// `isPlaceholder`: an example value in `softText`. `width`: fixed; otherwise at least 200.
-    public init(_ label: String, isPlaceholder: Bool = false, width: CGFloat? = nil, action: @escaping () -> Void) {
+    /// `isActive`: the value is being changed (its picker is open); the outline turns `pickBlue`
+    /// (layout v43, "the field being changed is pickBlue").
+    public init(_ label: String, isPlaceholder: Bool = false, width: CGFloat? = nil, isActive: Bool = false,
+                action: @escaping () -> Void) {
         self.label = label
         self.isPlaceholder = isPlaceholder
         self.width = width
+        self.isActive = isActive
         self.action = action
     }
 
@@ -27,7 +32,7 @@ public struct FieldButton: View {
                 .padding(.horizontal, Spacing.m)
                 .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
                 .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,
-                                markerColor: hasProblem ? CrayonColor.lateText : CrayonColor.outline)
+                                markerColor: isActive ? CrayonColor.pickBlue : hasProblem ? CrayonColor.lateText : CrayonColor.outline)
         }
         .buttonStyle(.plain)
     }
@@ -48,7 +53,7 @@ public struct DateField: View {
     }
 
     public var body: some View {
-        FieldButton(label, width: width) { isPicking = true }
+        FieldButton(label, width: width, isActive: isPicking) { isPicking = true }
             .popover(isPresented: $isPicking) {
                 DatePicker(label, selection: $date, displayedComponents: .date)
                     .datePickerStyle(.graphical)

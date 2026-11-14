@@ -11,6 +11,8 @@ import SwiftUI
 public struct ItemEditorView: View {
     @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<ItemEditorFeature>
+    /// Board C3k: the Name label turns `pickBlue` while its field has focus.
+    @State private var isNameFocused = false
 
     public init(store: StoreOf<ItemEditorFeature>) {
         self.store = store
@@ -35,7 +37,8 @@ public struct ItemEditorView: View {
                     ScrollColumn {
                         Group {
                             if store.isEditingWeekly { weeklySide } else if let preview = store.preview {
-                                sideColumn(preview)
+                                // Board C3k: while the keyboard is open only the preview heading stays.
+                                sideColumn(preview, headingOnly: layout.keyboardTop != nil)
                             }
                         }
                     }
@@ -111,8 +114,11 @@ public struct ItemEditorView: View {
             }
             .zIndex(1)
             // Board C3: the name field fills the control column (232 … 842).
-            row(L10n.tr("editor.row.name"), problem: .name) {
+            row(L10n.tr("editor.row.name"), problem: .name, isActive: isNameFocused) {
                 CrayonField(L10n.tr("editor.row.name"), text: $store.form.name).frame(maxWidth: .infinity)
+                    .onPreferenceChange(FieldFocusKey.self) { focused in
+                        Task { @MainActor in isNameFocused = focused }
+                    }
             }
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
@@ -146,14 +152,14 @@ public struct ItemEditorView: View {
         }
     }
 
-    private func row(_ label: String, problem row: FormRow? = nil, @ViewBuilder control: () -> some View)
-        -> some View {
+    private func row(_ label: String, problem row: FormRow? = nil, isActive: Bool = false,
+                     @ViewBuilder control: () -> some View) -> some View {
         let shown = row.flatMap { store.state.problem(for: $0) }
         // Labels from 104, controls on 232 (GrownupLayout, boards C3 / C4 / E5). A problem (spec
         // "Add-screen feedback") turns the field's outline `lateText` and its caption sits right under
         // the field, taking its own line.
         return HStack(alignment: .controlMiddle, spacing: 0) {
-            FormLabel(label).alignmentGuide(.controlMiddle) { $0[VerticalAlignment.center] }
+            FormLabel(label, isActive: isActive).alignmentGuide(.controlMiddle) { $0[VerticalAlignment.center] }
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 control().fieldProblem(shown != nil)
                     .alignmentGuide(.controlMiddle) { $0[VerticalAlignment.center] }
@@ -531,9 +537,15 @@ public struct ItemEditorView: View {
 
     // MARK: Side column (preview)
 
-    private func sideColumn(_ preview: FormPreview) -> some View {
+    private func sideColumn(_ preview: FormPreview, headingOnly: Bool) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(preview.heading).crayonType(.head).foregroundStyle(CrayonColor.ink)
+            if !headingOnly { previewBody(preview) }
+        }
+    }
+
+    @ViewBuilder private func previewBody(_ preview: FormPreview) -> some View {
+        Group {
             // Boards C3/C4: rows 72 tall on an 80 pitch; C4's "Just this day" note comes after them.
             ForEach(Array(preview.rows.enumerated()), id: \.offset) { _, row in
                 PreviewRow(time: row.time, isNew: row.isNew) { previewLabel(row) }
