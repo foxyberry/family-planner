@@ -1,5 +1,5 @@
 {
- "version": "37",
+ "version": "38",
  "board": "G1",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -359,14 +359,15 @@
    "id": "side.line.8",
    "kind": "text",
    "x": 888,
-   "y": 625,
-   "w": 409,
-   "h": 67,
+   "y": 624,
+   "w": 296,
+   "h": 45,
    "region": "side",
    "anchor": "right",
    "align": "inside",
-   "baseline": 684,
-   "font": 24
+   "baseline": 659,
+   "font": 30,
+   "text": "Make this free time"
   },
   {
    "id": "main.picture.6",
@@ -378,20 +379,6 @@
    "region": "main",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "side.line.9",
-   "kind": "text",
-   "x": 888,
-   "y": 702,
-   "w": 296,
-   "h": 45,
-   "region": "side",
-   "anchor": "right",
-   "align": "inside",
-   "baseline": 737,
-   "font": 30,
-   "text": "Make this free time"
   },
   {
    "id": "main.picture.7",

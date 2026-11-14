@@ -55,7 +55,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.hub.above, "Dinner ends")
         XCTAssertEqual(store.state.hub.below, "Shower starts")
         XCTAssertEqual(store.state.dragOrigin, 1155)
-        XCTAssertEqual(store.state.message, "Shower now starts at 7:30 pm and is 30 min.")
+        XCTAssertNil(store.state.message, "layout v38: no neighbour-effect line")
         XCTAssertEqual(store.state.haptics.steps, 1, "one 5-minute step, not on the hour")
         await store.send(.knobReleased(index))
         XCTAssertNil(store.state.dragging)

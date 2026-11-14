@@ -111,50 +111,6 @@
         }
       }
     },
-    "c2.side.arrive" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrive by and latest are in School; they set the medals."
-          }
-        }
-      }
-    },
-    "c2.side.map" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On the morning map"
-          }
-        }
-      }
-    },
-    "c2.side.map.bus" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ is “my bus”: bold, it sets Leave in and the medal."
-          }
-        }
-      }
-    },
-    "c2.side.map.none" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pick your bus: it sets Leave in and the medal."
-          }
-        }
-      }
-    },
     "c2.side.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -287,28 +243,6 @@
         }
       }
     },
-    "c5.caption" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Same order as %@’s morning screen"
-          }
-        }
-      }
-    },
-    "c5.cards_note" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Picture cards. A grown-up taps them for now."
-          }
-        }
-      }
-    },
     "c5.done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -316,17 +250,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Done"
-          }
-        }
-      }
-    },
-    "c5.footer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drag %@ to reorder. Tap a row to change it."
           }
         }
       }
@@ -492,17 +415,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Today"
-          }
-        }
-      }
-    },
-    "day.effect" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ now starts at %2$@ and is %3$@."
           }
         }
       }
@@ -3664,17 +3576,6 @@
         }
       }
     },
-    "s2.medals.later" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later: just “Ready!”. No medal, no sad face."
-          }
-        }
-      }
-    },
     "s2.medals.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4005,28 +3906,6 @@
         }
       }
     },
-    "s3.buses.caption" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buses that stop there. Pick the ones to school."
-          }
-        }
-      }
-    },
-    "s3.footnote" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live bus times are built into the app. If they are off, the morning shows the timetable instead."
-          }
-        }
-      }
-    },
     "s3.ride.caption" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4034,50 +3913,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "stop to school"
-          }
-        }
-      }
-    },
-    "s3.side.later" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Change it later in Settings."
-          }
-        }
-      }
-    },
-    "s3.side.leave_in" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Leave in” = the bus at the stop – the walk."
-          }
-        }
-      }
-    },
-    "s3.side.times" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrive by and latest come from the school step; they set the medals."
-          }
-        }
-      }
-    },
-    "s3.side.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On school mornings"
           }
         }
       }
@@ -4203,17 +4038,6 @@
         }
       }
     },
-    "s4.side.later" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Change any of this later in Settings."
-          }
-        }
-      }
-    },
     "s4.side.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4221,17 +4045,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You're set up"
-          }
-        }
-      }
-    },
-    "s4.skip" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More switches join this list as features arrive. Change any of them later in Settings."
           }
         }
       }

@@ -40,10 +40,6 @@ public struct BusSettingsFeature {
         public var rideCaption: String {
             services.first.map { L10n.tr("c2.ride.on", $0) } ?? L10n.tr("s3.ride.caption")
         }
-        /// "On the morning map": the first picked bus is "my bus" (the 2nd choice comes later).
-        public var mapCaption: String {
-            services.first.map { L10n.tr("c2.side.map.bus", $0) } ?? L10n.tr("c2.side.map.none")
-        }
 
         public var plan: BusPlan? {
             guard search.stop.count == 5, !services.isEmpty else { return nil }

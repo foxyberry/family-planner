@@ -69,8 +69,6 @@ public struct MissionEditorView: View {
 
     private var list: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(store.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                .padding(.bottom, Spacing.s)
             // Layout v21: no divider lines inside cards; the rows are separated by space only.
             ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, mission in
                 row(mission, index: index)
@@ -91,8 +89,6 @@ public struct MissionEditorView: View {
                 Text(L10n.tr("c5.most")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: 72)
             }
-            GlyphText(L10n.tr("c5.footer"), glyph: .handle, color: CrayonColor.softText)
-                .padding(.top, Spacing.s)
         }
     }
 
@@ -125,13 +121,6 @@ public struct MissionEditorView: View {
         .accessibilityAction(named: L10n.tr("c5.move_down")) { store.send(.moved(mission.id, to: index + 1)) }
     }
 
-    private var side: some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
-            if store.showsCardsNote {
-                Text(store.kids.first { $0.id == store.selectedKid }?.name ?? "").crayonType(.head)
-                    .foregroundStyle(CrayonColor.ink)
-                Text(L10n.tr("c5.cards_note")).crayonType(.body).foregroundStyle(CrayonColor.ink)
-            }
-        }
-    }
+    /// Board C5's side column: empty since layout v38 (plain screens); "Ready by" comes with N2.
+    private var side: some View { EmptyView() }
 }

@@ -120,17 +120,8 @@ public struct SetupView: View {
                 }
             }
         case .gettingThere:
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                Text(L10n.tr("s3.side.title")).crayonType(.head)
-                if store.goingKid?.going.way == .bus {
-                    Text(L10n.tr("s3.side.leave_in")).crayonType(.body)
-                }
-                if let times = store.goingTimesCaption {
-                    Text(times).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                }
-                Text(L10n.tr("s3.side.later")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-            }
-            .foregroundStyle(CrayonColor.ink)
+            // Layout v38 (plain screens): the "On school mornings" block is gone; Home comes later.
+            EmptyView()
         case .almostDone:
             SummarySide(store: store, layout: layout)
         }
@@ -407,7 +398,6 @@ private struct MedalSide: View {
             medal(.medalGold, L10n.tr("s2.medal.gold"), captions.gold)
             medal(.medalSilver, L10n.tr("s2.medal.silver"), captions.silver)
             medal(.medalBronze, L10n.tr("s2.medal.bronze"), captions.bronze)
-            Text(L10n.tr("s2.medals.later")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
         }
         .foregroundStyle(CrayonColor.ink)
     }
@@ -469,7 +459,6 @@ private struct GoingStep: View {
                                         }
                                     }
                                 }
-                                Text(L10n.tr("s3.buses.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                             }
                         }
                     }
@@ -477,8 +466,6 @@ private struct GoingStep: View {
                             value: going.walk) { store.send(.walkChanged($0)) }
                     stepper(L10n.tr("c2.ride"), text: store.rideText, caption: L10n.tr("s3.ride.caption"),
                             value: going.ride) { store.send(.rideChanged($0)) }
-                    Text(L10n.tr("s3.footnote")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                        .fixedSize(horizontal: false, vertical: true)
                 } else {
                     stepper(L10n.tr("going.leave"), text: store.leaveText, caption: store.leaveCaption ?? "",
                             step: 5, value: going.leaveBefore) { store.send(.leaveChanged($0)) }
@@ -532,10 +519,6 @@ private struct AlmostDoneStep: View {
                 .frame(width: layout.length(738), height: layout.length(120))
                 .place(topLeft: origin)
             }
-            let caption = layout.s4Main(80, 653)
-            Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                .frame(width: layout.length(738), alignment: .leading)
-                .place(left: caption.x, baseline: caption.y)
         }
         .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
@@ -571,10 +554,6 @@ private struct SummarySide: View {
                 Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
                     .place(left: detailLine.x, baseline: detailLine.y)
             }
-            let caption = layout.s4Side(864, layout.s4SummaryTop(rows.count) + 28)
-            Text(L10n.tr("s4.side.later")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                .frame(width: layout.grown.side.width, alignment: .leading)
-                .place(left: caption.x, baseline: caption.y)
         }
         .foregroundStyle(CrayonColor.ink)
         .frame(width: layout.grown.side.width, height: layout.length(872 - 148), alignment: .topLeading)
