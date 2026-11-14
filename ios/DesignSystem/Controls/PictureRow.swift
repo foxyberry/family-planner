@@ -31,8 +31,11 @@ public struct PictureRow: View {
 
     public var body: some View {
         if let columns {
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(88), spacing: Spacing.s), count: columns),
-                      alignment: .leading, spacing: Spacing.s) { items }
+            // Layout v43: the rows spread edge to edge (the first slot on the left edge, the last on the right).
+            LazyVGrid(columns: (0..<columns).map { column in
+                GridItem(.flexible(minimum: 88), spacing: Spacing.s,
+                         alignment: column == 0 ? .leading : column == columns - 1 ? .trailing : .center)
+            }, alignment: .leading, spacing: Spacing.s) { items }
         } else {
             HStack(spacing: Spacing.s) { items }
         }

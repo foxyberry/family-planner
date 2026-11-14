@@ -121,6 +121,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-14: Live bus times switch removed (user): no row on S4 or in Settings; live arrivals always on, the timetable look is the automatic fallback. New board G6f (Settings, Family tab). Confirm and form cards (G1d, G5, G7, F1–F4) hug their content, centred on the screen. Layout v44 (S4, G6f).
 - 2026-11-14: Repeat labels shortened to Once · Weekly · Monthly (3 × 180, gap 12) on C3, C3g, C4, C3m, E5 / G2 (user). G8 section heads keep "Every week / Every month / Just once". Layout v45.
 - 2026-11-14: new board G2m (edit an every-month item): Days row = rule tabs 2 × 299, side "Every 2nd Sat" / "Remove every month". Layout v46 (G2m).
+- 2026-11-14: new board C3x ("Leave without adding?" ConfirmCard at ←); G4 row destinations reuse S2 / S3 / F2 / G7 (no new screens); night C3 gets the Once · Weekly · Monthly tabs. Layout v47 (C3x).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -755,7 +756,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - **G8 · List**: the kid's repeating and one-off items in one card, sections "Every week" (School, activities), "Every month" and "Just once" (a section with nothing in it is not shown); rows: picture 56, title (body) over "{days} · {time}" (caption), "›" → G2/G4/C4. Right column: one "Add" (plus 56 + link) → the add form, Repeat on Every week (user, 2026-11-14: the form already picks Just once / Every week / Every month). **Long rows**: the title and the caption each wrap to at most two lines (the row grows from 88 to 136, picture and "›" stay centred); past two lines the text ends in "…". No sideways scrolling. The list card scrolls up and down on its own (scroll rule). Day-template slots are not listed (they are the day).
 - **G2 · Edit an item, All days** (E5): For, What, Name, When, **Days**, **Runs** ("{start}" → "End of term"), Skip school holidays; scrolling on (**G2b**): From, No school days, Bring, Medal (switch), one line each. Side column: tabs "This day" / "All days", "Every {days}" (head), "Remove every week". "Save changes" → G5.
 - **G3 · This day**: Days, Runs and holidays hidden; side column "{Day d Mon} only" and "Skip this day". This day keeps any change on the form for that day only, name and picture included (built, 6c). "Next {weekday}" in G5 is the first day after today that is one of the new series' weekdays (built).
-- **G4 · Edit School**: School (name ›), When, Days, Arrive by + latest, **Terms**, Going, Bring, Medal (on). Side column: tabs, "Every school day". Changing the school itself is G7.
+- **G4 · Edit School**: School (name ›), When, Days, Arrive by + latest, **Terms**, Going, Bring, Medal (on). Side column: tabs, "Every school day". Changing the school itself is G7. **Where each row goes** (2026-11-14, user: no new screens): School › → G7; When, Days, Arrive by edit on the G4 form itself (time fields, day chips, the S2 Arrive by / latest pair, as on S2); Terms › → the S2 term rows (MOE calendar switch and the term list) shown in the G4 form card; Going › → the S3 screen for this school's trip (stop, buses, walk, ride), opened from Settings with "←" back to G4; Bring › → F2.
 - **G5 · From when?**: the small card on Save in All days ("Today" / "Next {weekday}" / "Date", one caption when changed days no longer fit, Save / Cancel).
 - **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face/colour), School (School, Hours, Terms), Getting there (To school, Home), Routines (Missions). **Family tab** (board G6f, 2026-11-14): "This iPad" — Grown-up lock and Medals switches (the S4 rows; Live bus times was dropped, user); "Children" — one row per kid (face 48, name bold, "{age} · {place}", "›" → that kid's tab), then "+ Add a child" (→ the S1 kid card for one new kid, up to 4). Foot as on the kid tabs: "School lists · {d Mon}" and "Data sources".
 - **G7 · Change school**: "Starts on" card ("Next term" / "Date"); then S3 for the new trip; pending row and cancel as in "Where the kid goes changes".
@@ -917,7 +918,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 ### Transitions
 - Repeat → "Just once" switches the same screen to the C4 layout. Values kept: For, What, Name, When.
 - "Add to the clock" → save, pop back to the screen that opened it (C1 or home). The new item appears there and on the clock.
-- "←" with changes → confirm (`PickerPopover`-style small card pointing at "←"):
+- "←" with changes → the shared `ConfirmCard` pointing at "←" (board C3x, 2026-11-14): title "Leave without adding?" (C3 / C4) or "Leave without saving?" (E5 / G2–G4); buttons main first, "Leave" (`lateText`) · "Keep editing". Was:
   - title "Leave without adding?"
   - buttons "Keep editing" / "Leave"
 - "←" without changes → back at once.

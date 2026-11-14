@@ -393,7 +393,10 @@ public struct ItemEditorFeature {
         public var confirmAcceptTitle: String {
             confirm == .leave ? L10n.tr("editor.confirm.leave.accept") : L10n.tr("editor.confirm.remove.accept")
         }
-        public var confirmIsDestructive: Bool { confirm != .leave }
+        /// Board C3x: "Leave" is lateText too, since it drops the changes.
+        public var confirmIsDestructive: Bool { true }
+        /// Board C3x: the leave card points at "←" (40, 140), 560 wide; the others sit centred.
+        public var confirmPointsAtBack: Bool { confirm == .leave }
 
         public var confirmMessage: String? {
             switch confirm {

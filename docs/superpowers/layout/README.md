@@ -75,3 +75,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v44 (2026-11-14): S4 loses the Live bus times row (Medals moves up to 328). New board G6f (Settings, Family tab): "This iPad" (lock, medals switches, rows 88 at 224 / 320), "Children" (rows 72 at 484 / 564, "+ Add a child" at 644). Confirm and form cards (G1d, G5, G7, F1–F4) hug their content, centred vertically.
 - v45 (2026-11-14): Repeat tabs read "Once · Weekly · Monthly", 3 × 180, gap 12 (C3, C3g, C4, C3m).
 - v46 (2026-11-14): new board G2m (edit an every-month item, All days): Days row holds "2nd Sat" / "Day 14" (2 × 299 at 208, 608); side "Every 2nd Sat", "Remove every month".
+- v47 (2026-11-14): new board C3x: "←" with changes → ConfirmCard "Leave without adding?" at (40, 140, 560 wide), buttons "Leave" · "Keep editing". Night C3 Repeat tabs → Once · Weekly · Monthly.

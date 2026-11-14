@@ -419,17 +419,6 @@
         }
       }
     },
-    "day.ends" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ends"
-          }
-        }
-      }
-    },
     "day.hint" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -613,17 +602,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
-          }
-        }
-      }
-    },
-    "day.starts" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Starts"
           }
         }
       }

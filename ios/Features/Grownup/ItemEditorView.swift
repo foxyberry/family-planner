@@ -9,6 +9,7 @@ import SwiftUI
 
 /// Add to the day / edit an item (boards C3, C4, C3k, E5).
 public struct ItemEditorView: View {
+    @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<ItemEditorFeature>
 
     public init(store: StoreOf<ItemEditorFeature>) {
@@ -65,11 +66,25 @@ public struct ItemEditorView: View {
                 fromWhenCard
             }
             if let title = store.confirmTitle {
-                CrayonColor.dim.ignoresSafeArea()
-                ConfirmCard(title: title, message: store.confirmMessage,
-                            cancel: store.confirmCancelTitle, confirm: store.confirmAcceptTitle,
-                            isDestructive: store.confirmIsDestructive,
-                            onCancel: { store.send(.confirmCancelled) }, onConfirm: { store.send(.confirmAccepted) })
+                let card = ConfirmCard(title: title, message: store.confirmMessage,
+                                       cancel: store.confirmCancelTitle, confirm: store.confirmAcceptTitle,
+                                       isDestructive: store.confirmIsDestructive,
+                                       width: store.confirmPointsAtBack ? 560 : 520,
+                                       onCancel: { store.send(.confirmCancelled) },
+                                       onConfirm: { store.send(.confirmAccepted) })
+                if store.confirmPointsAtBack {
+                    // Board C3x: the dim starts under the header, so "←" stays in sight above it.
+                    CrayonColor.dim.ignoresSafeArea(edges: .bottom)
+                        .padding(.top, sizing.y(124))
+                        .onTapGesture { store.send(.confirmCancelled) }
+                    card.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(.leading, sizing.left(40))
+                        .padding(.top, sizing.y(140))
+                        .ignoresSafeArea(.container, edges: .top)
+                } else {
+                    CrayonColor.dim.ignoresSafeArea()
+                    card
+                }
             }
         }
         .task { await store.send(.task).finish() }
