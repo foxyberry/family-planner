@@ -192,6 +192,15 @@ public struct TemplateEdit: Equatable, Sendable {
         blocks[block].kind = kind
     }
 
+    /// Board G1g: "Skip this day" / "Bring back" on a slice of this day's template. One change for
+    /// Undo; free time and School (`isLocked`) are never skipped here.
+    public mutating func setSkipped(_ block: Int, _ skipped: Bool) {
+        guard blocks.indices.contains(block), blocks[block].kind != .free, !blocks[block].isLocked,
+              blocks[block].isSkipped != skipped else { return }
+        beginChange()
+        blocks[block].isSkipped = skipped
+    }
+
     private static func free(from start: Int, to end: Int) -> RoutineBlock {
         RoutineBlock(title: L10n.tr("home.hub.free"), iconName: "", kind: .free, start: start, end: end)
     }

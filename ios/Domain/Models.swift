@@ -443,16 +443,32 @@ public struct RoutineBlock: Hashable, Codable, Sendable {
     public var isLocked: Bool
     /// An outing has a trip (the school block, by bus in the seed).
     public var trip: Trip?
+    /// Board G1g: skipped on this day's own template. It stays on the editor clock, faded, and is
+    /// free time everywhere else (home, the hub, missions).
+    public var isSkipped: Bool
 
     public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, isLocked: Bool = false,
-                trip: Trip? = nil) {
+                trip: Trip? = nil, isSkipped: Bool = false) {
         self.trip = trip
+        self.isSkipped = isSkipped
         self.title = title
         self.iconName = iconName
         self.kind = kind
         self.start = start
         self.end = end
         self.isLocked = isLocked
+    }
+
+    private enum CodingKeys: String, CodingKey { case title, iconName, kind, start, end, isLocked, trip, isSkipped }
+
+    /// Templates saved before G1g have no `isSkipped`.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(title: try c.decode(String.self, forKey: .title), iconName: try c.decode(String.self, forKey: .iconName),
+                  kind: try c.decode(SlotKind.self, forKey: .kind), start: try c.decode(Int.self, forKey: .start),
+                  end: try c.decode(Int.self, forKey: .end), isLocked: try c.decode(Bool.self, forKey: .isLocked),
+                  trip: try c.decodeIfPresent(Trip.self, forKey: .trip),
+                  isSkipped: try c.decodeIfPresent(Bool.self, forKey: .isSkipped) ?? false)
     }
 }
 

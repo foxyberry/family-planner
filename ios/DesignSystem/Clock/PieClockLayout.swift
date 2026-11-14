@@ -13,9 +13,12 @@ public struct ClockSector: Hashable, Sendable {
     public var showsStar: Bool
     /// 0 day template, 1 every week, 2 just once: which one to keep when short slots collide.
     public var priority: Int
+    /// Board G1g: a slice skipped this day stays on the editor clock, faded (crayon 30 %, picture 35 %).
+    public var isFaded: Bool
 
     public init(start: Int, end: Int, style: ClockSlotStyle, iconName: String?, isCurrent: Bool, showsStar: Bool,
-                priority: Int) {
+                priority: Int, isFaded: Bool = false) {
+        self.isFaded = isFaded
         self.start = start
         self.end = end
         self.style = style

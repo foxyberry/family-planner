@@ -229,6 +229,24 @@ public struct OurDayView: View {
                                                                    set: { store.send(.newSliceNameChanged($0)) }))
                 if slice.isOnClock { timesRow }
             }
+        } else if let block = store.selectedBlock, store.isSelectedSkipped {
+            // Board G1g: the picture faded, the name, the times (soft) and "Bring back"; no scope tabs.
+            VStack(alignment: .leading, spacing: Spacing.s) {
+                HStack(spacing: Spacing.s) {
+                    KitIcon(KitSlot(iconName: block.iconName), size: 64).opacity(0.35)
+                    Text(block.title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                }
+                // "5:00 pm → 6:30 pm" (soft); the arrow is a part, the font has none.
+                HStack(spacing: Spacing.xs) {
+                    Text(store.startLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+                    MarkerIcon(.arrowRight, size: 28, color: CrayonColor.softText)
+                    Text(store.endLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+                }
+                Button { store.send(.bringBackTapped) } label: {
+                    Text(L10n.tr("day.bring_back")).crayonType(.body).bold().foregroundStyle(CrayonColor.link)
+                }
+                .buttonStyle(.plain)
+            }
         } else if let block = store.selectedBlock {
             VStack(alignment: .leading, spacing: Spacing.s) {
                 HStack(spacing: Spacing.s) {
@@ -245,6 +263,12 @@ public struct OurDayView: View {
                 if store.canEditSchool {
                     Button { store.send(.editSchoolTapped) } label: {
                         GlyphText(L10n.tr("day.edit_school"), glyph: .chevronRight, type: .body, color: CrayonColor.link)
+                    }
+                    .buttonStyle(.plain)
+                }
+                if store.canSkip {
+                    Button { store.send(.skipTapped) } label: {
+                        Text(L10n.tr("day.skip_this_day")).crayonType(.body).bold().foregroundStyle(CrayonColor.lateText)
                     }
                     .buttonStyle(.plain)
                 }

@@ -104,6 +104,7 @@ public struct EditClock: View {
                                       endDegrees: PieClockLayout.degrees(minute: sector.end)),
                               fill: sector.style.fill, marker: MarkerStyle(width: 2.5, roughness: 1.2, bowing: 1.4),
                               markerColor: CrayonColor.pictureOutline, seed: UInt32(3001 + sector.start))
+                    .opacity(sector.isFaded ? 0.3 : 1)
                     .allowsHitTesting(false)
             }
             ForEach(sectors.filter(\.isCurrent), id: \.self) { sector in
@@ -183,6 +184,7 @@ public struct EditClock: View {
                       let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: r,
                                                            hub: Self.hubRadius) {
                 KitIcon(slot, size: picture.size)
+                    .opacity(sector.isFaded ? 0.35 : 1)
                     .position(point(radius: picture.distance, minute: middle))
                     .allowsHitTesting(false)
             }

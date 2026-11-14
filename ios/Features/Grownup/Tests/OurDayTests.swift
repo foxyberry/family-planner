@@ -152,6 +152,35 @@ final class OurDayTests: XCTestCase {
         XCTAssertFalse(store.state.edit.isChanged)
     }
 
+    /// Board G1g: a slice skipped this day stays faded with "Skipped / this day"; Bring back undoes it;
+    /// This day saves the skip, All days never does.
+    func testSkipThisDayAndBringBack() async throws {
+        let saved = LockIsolated<[Routine]>([])
+        let store = await loaded(saved: saved)
+        let play = try XCTUnwrap(store.state.edit.blocks.first { $0.title == "Play" })
+        await store.send(.sliceTapped(start: play.start))
+        XCTAssertTrue(store.state.canSkip)
+        await store.send(.skipTapped)
+        XCTAssertTrue(store.state.isSelectedSkipped)
+        XCTAssertFalse(store.state.canSkip)
+        XCTAssertFalse(store.state.canMakeFree, "a skipped slice offers only Bring back")
+        XCTAssertEqual(store.state.hub.above, "Play")
+        XCTAssertEqual(store.state.hub.time, "Skipped")
+        XCTAssertEqual(store.state.hub.below, "this day")
+        XCTAssertEqual(store.state.sectors.first { $0.start == play.start }?.isFaded, true)
+        await store.send(.bringBackTapped)
+        XCTAssertFalse(store.state.isSelectedSkipped)
+        await store.send(.skipTapped)
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.last?.onlyOn, tuesday)
+        XCTAssertEqual(saved.value.last?.blocks.first { $0.start == play.start }?.isSkipped, true)
+        // All days never offers a skip and never saves one.
+        await store.send(.scopeTapped(.allDays))
+        XCTAssertFalse(store.state.canSkip)
+        XCTAssertTrue(store.state.routineToSave.blocks.allSatisfy { !$0.isSkipped })
+    }
+
     func testLeavingWithChangesAsksFirst() async {
         let store = await loaded()
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
