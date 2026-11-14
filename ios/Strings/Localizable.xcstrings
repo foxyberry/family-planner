@@ -672,17 +672,6 @@
         }
       }
     },
-    "day.unsaved.discard" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Don't save"
-          }
-        }
-      }
-    },
     "day.unsaved.line" : {
       "extractionState" : "manual",
       "localizations" : {

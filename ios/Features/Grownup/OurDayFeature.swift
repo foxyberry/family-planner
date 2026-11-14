@@ -93,7 +93,7 @@ public struct OurDayFeature {
         public var isConfirmingLeave = false
         /// The G1d card's Save: leave once the save has gone through.
         public var leavesAfterSave = false
-        /// Where to go after Save or "Don't save" in the G1d card: another kid or day, or back.
+        /// Where to go after Save in the G1d card: another kid or day, or back.
         public var pendingSwitch: Switch?
         public var saveError: String?
         /// The app's calendar, for the time fields' dates (views never read `Calendar.current`).
@@ -321,9 +321,8 @@ public struct OurDayFeature {
         case saveTapped
         case saved(Result<Routine, SaveError>)
         case backTapped
-        /// Board G1d: Save, "Don't save" or Cancel.
+        /// Board G1d: Save or Cancel.
         case unsavedSaveTapped
-        case leaveConfirmed
         case leaveCancelled
         case delegate(Delegate)
 
@@ -585,12 +584,6 @@ public struct OurDayFeature {
                 state.isConfirmingLeave = false
                 state.leavesAfterSave = true
                 return .send(.saveTapped)
-
-            case .leaveConfirmed:
-                state.isConfirmingLeave = false
-                let next = state.pendingSwitch
-                state.pendingSwitch = nil
-                return go(next, &state)
 
             case .leaveCancelled:
                 state.isConfirmingLeave = false

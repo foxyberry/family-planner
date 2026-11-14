@@ -129,7 +129,11 @@ final class OurDayTests: XCTestCase {
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
         await store.send(.backTapped)
         XCTAssertTrue(store.state.isConfirmingLeave)
-        await store.send(.leaveConfirmed)
+        // G1d has Save and Cancel only: to drop the change, Cancel, Undo, then leave.
+        await store.send(.leaveCancelled)
+        await store.send(.undoTapped)
+        await store.send(.backTapped)
+        XCTAssertFalse(store.state.isConfirmingLeave)
         await store.receive(\.delegate.finished)
     }
 
@@ -276,7 +280,8 @@ final class OurDayTests: XCTestCase {
         await store.send(.listTapped)
         XCTAssertTrue(store.state.isConfirmingLeave)
         XCTAssertFalse(store.state.showsList)
-        await store.send(.leaveConfirmed)
-        XCTAssertTrue(store.state.showsList)
+        await store.send(.unsavedSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertTrue(store.state.showsList, "Save goes on to the List")
     }
 }

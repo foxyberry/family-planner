@@ -101,27 +101,23 @@ public struct DayPickerCard: View {
 }
 
 /// Board G1d: "Save the changes?", the change in one line (its "→" drawn with a glyph), then Save
-/// (ink) · "Don't save" (lateText) · Cancel.
+/// (ink) · Cancel. No "Don't save" (user, 2026-11-14): discarding is Undo back to the last save.
 public struct SaveChangesCard: View {
     private let title: String
     private let line: String?
     private let save: String
-    private let discard: String
     private let cancel: String
     private let onSave: () -> Void
-    private let onDiscard: () -> Void
     private let onCancel: () -> Void
 
     /// `line` holds one `%@` where the arrow goes.
-    public init(title: String, line: String?, save: String, discard: String, cancel: String,
-                onSave: @escaping () -> Void, onDiscard: @escaping () -> Void, onCancel: @escaping () -> Void) {
+    public init(title: String, line: String?, save: String, cancel: String,
+                onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
         self.title = title
         self.line = line
         self.save = save
-        self.discard = discard
         self.cancel = cancel
         self.onSave = onSave
-        self.onDiscard = onDiscard
         self.onCancel = onCancel
     }
 
@@ -132,13 +128,9 @@ public struct SaveChangesCard: View {
                 if let line {
                     GlyphText(line, glyph: .arrowRight, type: .body, color: CrayonColor.softText)
                 }
-                // Board G1d: Save 170 wide, the two words 24 apart on one line each.
+                // Board G1d: Save 170 wide, then Cancel 24 after it.
                 HStack(spacing: Spacing.m) {
                     InkButton(save, height: 80, action: onSave).frame(width: 170)
-                    Button(action: onDiscard) {
-                        Text(discard).crayonType(.body, bold: true).foregroundStyle(CrayonColor.lateText).fixedSize()
-                    }
-                    .buttonStyle(.plain)
                     Button(action: onCancel) {
                         Text(cancel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText).fixedSize()
                     }
