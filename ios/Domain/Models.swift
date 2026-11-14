@@ -37,6 +37,8 @@ public struct School: Hashable, Codable, Sendable {
     public var kind: SchoolKind?
     /// Hours per weekday when they differ (from the school website); nil means `start`–`end` every day.
     public var dayHours: [SchoolDayHours]?
+    /// School's own Bring (board G4, F2): checked in the window before leaving for school.
+    public var bring: [ItemMission]?
 
     public init(name: String, days: Set<Weekday>, start: Int, end: Int, directoryID: String? = nil,
                 usesMoeTerms: Bool? = nil, arriveBy: Int? = nil, latest: Int? = nil, kind: SchoolKind? = nil,

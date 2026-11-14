@@ -28,8 +28,15 @@ public struct SchoolEditorView: View {
                 }
                 .frame(width: layout.form.width, height: layout.form.height)
                 ScrollColumn {
-                    Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .leading, spacing: Spacing.s) {
+                        // Boards G2 / G4: This day / All days fill the side column (layout v42).
+                        CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
+                                   items: [(SchoolEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
+                                           (.allDays, L10n.tr("editor.scope.all_days"), nil)],
+                                   fills: true, spacing: Spacing.sm)
+                        Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
                        alignment: .topLeading)
@@ -44,7 +51,43 @@ public struct SchoolEditorView: View {
                 }
             }
         }
+        .overlay {
+            if store.isBringOpen { bringCard }
+        }
         .task { await store.send(.task).finish() }
+    }
+
+    /// Board F2 over G4: School's things to bring, up to four; "More" shows the whole kit.
+    private var bringCard: some View {
+        FormCard(title: L10n.tr("editor.row.bring"), size: CGSize(width: 640, height: 420), done: L10n.tr("c5.done"),
+                 cancel: L10n.tr("card.cancel"), onDone: { store.send(.bringDoneTapped) },
+                 onCancel: { store.send(.bringClosed) }) {
+            VStack(alignment: .leading, spacing: Spacing.s) {
+                ScrollView {
+                    IconPicker(picked: store.bringPicked, slots: store.bringSlots, columns: 5) { store.send(.bringToggled($0)) }
+                }
+                .frame(maxHeight: 320)
+                Button { store.send(.bringMoreTapped) } label: {
+                    Text(L10n.tr("picker.more")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func linkRow(_ label: String, action: SchoolEditorFeature.Action, @ViewBuilder value: () -> some View)
+        -> some View {
+        Button { store.send(action) } label: {
+            ListRow(leading: label, minHeight: 80) {
+                HStack {
+                    value()
+                    Spacer(minLength: 0)
+                    MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var rows: some View {
@@ -88,18 +131,33 @@ public struct SchoolEditorView: View {
                         .frame(width: 176)
                 }
             }
-            Button { store.send(.goingTapped) } label: {
-                ListRow(leading: L10n.tr("going.label"), minHeight: 80) {
-                    HStack {
-                        KitIcon(.busDouble, size: 48)
-                        Text(store.goingText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
-                        Spacer(minLength: 0)
-                        MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+            // Board G4 Terms: the term text, and the S2 MOE switch for a school that can follow it.
+            ListRow(leading: L10n.tr("settings.terms"), minHeight: 80) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(store.termsText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(2)
+                    if store.showsMoeCheck {
+                        Button { store.send(.moeTermsToggled) } label: {
+                            HStack(spacing: Spacing.s) {
+                                CheckMark(isDone: store.usesMoeTerms, size: 40)
+                                Text(L10n.tr("s2.terms.moe")).crayonType(.caption).foregroundStyle(CrayonColor.ink)
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            linkRow(L10n.tr("going.label"), action: .goingTapped) {
+                KitIcon(.busDouble, size: 48)
+                Text(store.goingText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+            }
+            linkRow(L10n.tr("editor.row.bring"), action: .bringRowTapped) {
+                if let picture = store.bringFirstPicture, let text = store.bringText {
+                    KitIcon(KitSlot(iconName: picture), size: 48)
+                    Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                } else {
+                    Text(L10n.tr("editor.row.nothing")).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                }
+            }
             ListRow(leading: L10n.tr("editor.row.medal"), minHeight: 80) {
                 Button { store.send(.medalToggled) } label: { CrayonSwitch(isOn: store.medal) }
                     .buttonStyle(.plain)

@@ -124,7 +124,8 @@ public struct HomeFeature {
         var openWindow: OpenWindow? {
             for day in days {
                 guard let span = DayPlanner.window(at: minute, in: day.windows) else { continue }
-                let list = DayPlanner.missions(in: span, routine: day.missions, items: items, weekday: weekday ?? .monday)
+                let list = DayPlanner.missions(in: span, routine: day.missions, items: items, weekday: weekday ?? .monday,
+                                               schoolBring: day.kid.school?.bring ?? [])
                 if let part = list.first?.window { return OpenWindow(day: day, part: part) }
             }
             return nil

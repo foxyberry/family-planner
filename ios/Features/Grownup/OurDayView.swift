@@ -242,6 +242,12 @@ public struct OurDayView: View {
                     Text(message).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                if store.canEditSchool {
+                    Button { store.send(.editSchoolTapped) } label: {
+                        GlyphText(L10n.tr("day.edit_school"), glyph: .chevronRight, type: .body, color: CrayonColor.link)
+                    }
+                    .buttonStyle(.plain)
+                }
                 if store.canMakeFree {
                     Button { store.send(.makeFreeTapped) } label: {
                         Text(L10n.tr("day.make_free")).crayonType(.body).bold().foregroundStyle(CrayonColor.lateText)

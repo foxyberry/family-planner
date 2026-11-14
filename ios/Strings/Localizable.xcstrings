@@ -430,6 +430,17 @@
         }
       }
     },
+    "day.edit_school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit School %@"
+          }
+        }
+      }
+    },
     "day.hint" : {
       "extractionState" : "manual",
       "localizations" : {

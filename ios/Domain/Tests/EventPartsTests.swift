@@ -87,4 +87,13 @@ final class EventPartsTests: XCTestCase {
         let span = WindowSpan(start: 900, end: 950, parts: [.before(.item(swim))])
         XCTAssertEqual(DayPlanner.missions(in: span, routine: [], items: [item(swim)], weekday: .monday), [])
     }
+
+    /// Board G4: School's own Bring is checked before leaving for school, before linked events' Bring.
+    func testSchoolsBringComesFirstBeforeSchool() {
+        let swimming = item(swim, bring: [thing(2, "Swimsuit", "swimsuit")], after: .school)
+        let span = WindowSpan(start: 390, end: 425, parts: [.before(.school)], linked: [.item(swim)])
+        let list = DayPlanner.missions(in: span, routine: [], items: [swimming], weekday: .monday,
+                                       schoolBring: [thing(1, "Library bag", "libraryBag")])
+        XCTAssertEqual(list.map(\.name), ["Library bag", "Swimsuit"])
+    }
 }

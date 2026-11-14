@@ -107,10 +107,10 @@ public extension DayPlanner {
     /// (C5 order), then the outing's Bring checks and those of the events linked after it (swimming
     /// after school is checked before school). A Bring check whose picture is already there (the
     /// routine's "Pack bag" and Bring's bag) shows once. An outing with nothing to bring adds nothing,
-    /// so a stretch of only that opens no window. School's own Bring comes with its event screen (6d);
+    /// so a stretch of only that opens no window. School's own Bring (board G4) comes in `schoolBring`;
     /// the evening routine comes later.
     static func missions(in span: WindowSpan, routine: [Mission], items: [ScheduleItem],
-                         weekday: Weekday) -> [WindowMission] {
+                         weekday: Weekday, schoolBring: [ItemMission] = []) -> [WindowMission] {
         var result: [WindowMission] = []
         var pictures: Set<String> = []
         func add(_ window: MissionWindow, _ id: UUID, _ name: String, _ picture: String, once: Bool = true) {
@@ -128,7 +128,9 @@ public extension DayPlanner {
                     add(part, mission.id, mission.name, mission.picture, once: false)
                 }
             case let .before(event):
-                for thing in ([event] + span.linked).compactMap(item).flatMap(\.bring) {
+                // School's own Bring (board G4) first when the outing is School.
+                let own = event == .school ? schoolBring : []
+                for thing in own + ([event] + span.linked).compactMap(item).flatMap(\.bring) {
                     add(part, thing.id, thing.name, thing.picture)
                 }
             case .evening:

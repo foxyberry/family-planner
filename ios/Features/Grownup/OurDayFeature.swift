@@ -273,6 +273,8 @@ public struct OurDayFeature {
         public var startLabel: String? { selectedBlock.map { TimeText.withPeriod($0.start) } }
         public var endLabel: String? { selectedBlock.map { TimeText.withPeriod($0.end) } }
         public var canMakeFree: Bool { selectedBlock.map { !$0.isLocked && $0.kind != .free } ?? false }
+        /// School's slice card links to G4 (spec "School edits on G4").
+        public var canEditSchool: Bool { selectedBlock?.kind == .school && kidInfo?.school != nil }
 
         /// Board G1e: the "+" on the tapped knob and its VoiceOver label "Add between Dinner and Shower".
         public var addBetweenButton: EditClock.AddBetween? {
@@ -326,6 +328,8 @@ public struct OurDayFeature {
         /// Board G1e: a tap on a knob shows its "+"; the "+" adds a slice between.
         case knobTapped(Int)
         case addBetweenTapped
+        /// "Edit School ›" on School's slice card opens G4 for the day on the clock.
+        case editSchoolTapped
         case sliceTapped(start: Int)
         case plusTapped(start: Int)
         case startPicked(Date)
@@ -484,6 +488,9 @@ public struct OurDayFeature {
                 feel(state.edit.moveKnob(index, to: before + delta), from: before, &state)
                 state.edit.closeShortGaps(favoring: moved(byKnob: index, state.edit))
                 return .none
+
+            case .editSchoolTapped:
+                return .send(.delegate(.openSchool))
 
             case let .knobTapped(index):
                 guard state.edit.knobs.indices.contains(index) else { return .none }
