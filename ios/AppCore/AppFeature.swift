@@ -24,6 +24,8 @@ public struct AppFeature {
         case ourDay(OurDayFeature)
         case missionEditor(MissionEditorFeature)
         case busSettings(BusSettingsFeature)
+        /// G4 · Edit School, from the List's School row.
+        case schoolEditor(SchoolEditorFeature)
         case dataSources(DataSourcesFeature)
         /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
         /// grown-up rules (idle lock, app-switcher cover) skip it.
@@ -383,8 +385,19 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
-            case let .path(.element(id: _, action: .editor(.delegate(.openBuses(kid))))):
+            case let .path(.element(id: _, action: .editor(.delegate(.openBuses(kid))))),
+                 let .path(.element(id: _, action: .schoolEditor(.delegate(.openBuses(kid))))):
                 state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
+                return .none
+
+            case let .path(.element(id: id, action: .schoolEditor(.delegate(.finished)))):
+                state.path.pop(from: id)
+                return .none
+
+            case let .path(.element(id: id, action: .ourDay(.delegate(.openSchool)))):
+                guard case let .ourDay(day) = state.path[id: id] else { return .none }
+                state.path.append(.schoolEditor(SchoolEditorFeature.State(kid: day.kid, today: Day(date.now, calendar: calendar),
+                                                                          calendar: calendar)))
                 return .none
 
             case let .path(.element(id: id, action: .editor(.delegate(.finished)))):
