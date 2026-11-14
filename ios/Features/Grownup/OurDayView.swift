@@ -29,9 +29,8 @@ public struct OurDayView: View {
                 CrayonColor.dim.ignoresSafeArea()
                     .onTapGesture { store.send(.leaveCancelled) }
                 SaveChangesCard(title: L10n.tr("day.unsaved.title"), line: store.unsavedLine,
-                                save: L10n.tr("day.unsaved.save"), discard: L10n.tr("day.unsaved.discard"),
-                                cancel: L10n.tr("day.unsaved.cancel"), onSave: { store.send(.unsavedSaveTapped) },
-                                onDiscard: { store.send(.leaveConfirmed) }, onCancel: { store.send(.leaveCancelled) })
+                                save: L10n.tr("day.unsaved.save"), cancel: L10n.tr("day.unsaved.cancel"),
+                                onSave: { store.send(.unsavedSaveTapped) }, onCancel: { store.send(.leaveCancelled) })
             }
             if store.fromWhen != nil {
                 CrayonColor.dim.ignoresSafeArea()
