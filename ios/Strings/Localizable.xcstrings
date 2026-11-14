@@ -969,17 +969,6 @@
         }
       }
     },
-    "editor.every_month" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ every month"
-          }
-        }
-      }
-    },
     "editor.primary.add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1024,13 +1013,24 @@
         }
       }
     },
+    "editor.remove_series.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove every month"
+          }
+        }
+      }
+    },
     "editor.repeat.monthly" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every month"
+            "value" : "Monthly"
           }
         }
       }
@@ -1041,7 +1041,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Just once"
+            "value" : "Once"
           }
         }
       }
@@ -1052,7 +1052,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every week"
+            "value" : "Weekly"
           }
         }
       }
@@ -2905,6 +2905,17 @@
         }
       }
     },
+    "monthly.every" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every %@"
+          }
+        }
+      }
+    },
     "monthly.nth.1" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3011,6 +3022,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skip"
+          }
+        }
+      }
+    },
+    "ordinal.nd" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldnd"
+          }
+        }
+      }
+    },
+    "ordinal.rd" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldrd"
+          }
+        }
+      }
+    },
+    "ordinal.st" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldst"
+          }
+        }
+      }
+    },
+    "ordinal.th" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldth"
           }
         }
       }

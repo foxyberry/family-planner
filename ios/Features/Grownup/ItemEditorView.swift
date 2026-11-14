@@ -102,12 +102,12 @@ public struct ItemEditorView: View {
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
                 row(L10n.tr("editor.row.repeat")) {
-                    // Board C3m (layout v39): three tabs sized to their labels (180 · 200 · 220), 4 apart.
+                    // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12.
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
                                items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
                                        (.weekly, L10n.tr("editor.repeat.weekly"), nil),
                                        (.monthly, L10n.tr("editor.repeat.monthly"), nil)],
-                               widths: [180, 200, 220], spacing: Spacing.xxs)
+                               widths: [180, 180, 180], spacing: Spacing.sm)
                 }
             }
             // Board G3: This day keeps the item's own rows only (no Days, Runs or event rows).
@@ -116,7 +116,8 @@ public struct ItemEditorView: View {
             } else {
                 switch store.form.repeats {
                 case .weekly: weeklyRows
-                case .monthly: monthlyRows
+                // Board G2m: editing an every-month series uses the series rows, no date strip.
+                case .monthly: if store.isEditingWeekly { weeklyRows } else { monthlyRows }
                 case .once: onceRows
                 }
             }
@@ -183,10 +184,15 @@ public struct ItemEditorView: View {
 
     @ViewBuilder private var weeklyRows: some View {
         row(L10n.tr("editor.row.days"), problem: .days) {
-            HStack(spacing: Spacing.sm) {
-                ForEach(Weekday.allCases.sorted(), id: \.self) { day in
-                    DayChip(DayText.initial(day), isOn: Binding(get: { store.form.days.contains(day) },
-                                                                set: { _ in store.send(.dayToggled(day)) }))
+            if store.form.repeats == .monthly {
+                // Board G2m: the Days row holds the rule tabs, made from the series' start.
+                monthlyRuleTabs
+            } else {
+                HStack(spacing: Spacing.sm) {
+                    ForEach(Weekday.allCases.sorted(), id: \.self) { day in
+                        DayChip(DayText.initial(day), isOn: Binding(get: { store.form.days.contains(day) },
+                                                                    set: { _ in store.send(.dayToggled(day)) }))
+                    }
                 }
             }
         }
@@ -265,18 +271,21 @@ public struct ItemEditorView: View {
     /// then Skip school holidays.
     @ViewBuilder private var monthlyRows: some View {
         dateStrip
-        row("") {
-            CrayonTabs(selection: Binding(get: { store.form.monthlyByDate },
-                                          set: { store.send(.monthlyRuleTapped(byDate: $0)) }),
-                       items: store.monthlyChoices.map { ($0.byDate, $0.title, nil) },
-                       widths: [299, 299], spacing: Spacing.sm)
-        }
+        row("") { monthlyRuleTabs }
         if store.showsSkipHolidays {
             row("") {
                 checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
             }
         }
         eventRows
+    }
+
+    /// "2nd Sat" · "Day 14", filling the controls column (layout v42: 2 × 299 on the board).
+    private var monthlyRuleTabs: some View {
+        CrayonTabs(selection: Binding(get: { store.form.monthlyByDate },
+                                      set: { store.send(.monthlyRuleTapped(byDate: $0)) }),
+                   items: store.monthlyChoices.map { ($0.byDate, $0.title, nil) },
+                   fills: true, spacing: Spacing.sm)
     }
 
     /// Board C4 (layout v6): ‹ (64) in the label column, five date chips (96) 12 apart, then ›.
@@ -470,7 +479,7 @@ public struct ItemEditorView: View {
                 CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
                            items: [(ItemEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
                                    (.allDays, L10n.tr("editor.scope.all_days"), nil)],
-                           widths: [230, 230], spacing: Spacing.sm)
+                           fills: true, spacing: Spacing.sm)
             }
             if store.isThisDay {
                 Text(store.thisDayTitle ?? "").crayonType(.head).foregroundStyle(CrayonColor.ink)
@@ -484,7 +493,7 @@ public struct ItemEditorView: View {
             } else {
                 Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 Button { store.send(.removeSeriesTapped) } label: {
-                    Text(L10n.tr("editor.remove_series")).crayonType(.head).foregroundStyle(CrayonColor.lateText)
+                    Text(store.removeSeriesTitle).crayonType(.head).foregroundStyle(CrayonColor.lateText)
                         .frame(maxWidth: .infinity, minHeight: 88)
                         .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: 1903)
                         .contentShape(Rectangle())

@@ -498,4 +498,24 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.cardDoneTapped)
         XCTAssertEqual(store.state.form.bringText, "Backpack · Teddy")
     }
+
+    /// Board G2m: an every-month series edits with its rule in the Days row, "Every 2nd Sat" and
+    /// "Remove every month"; the rule follows Runs' start.
+    func testEditingAnEveryMonthItem() async {
+        let library = ScheduleItem(id: UUID(), title: "Library visit", iconName: "actStory", audience: kidA,
+                                   start: 600, end: 660,
+                                   recurrence: .monthly(.nthWeekday(2, .saturday), from: Day(year: 2026, month: 11, day: 14),
+                                                        until: nil),
+                                   skippedDays: [], skipsHolidays: false, showsStar: false)
+        let store = store(mode: .editWeekly(library), items: [library])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.everyTitle, "Every 2nd Sat")
+        XCTAssertEqual(store.state.removeSeriesTitle, "Remove every month")
+        XCTAssertEqual(store.state.monthlyChoices.map(\.title), ["2nd Sat", "Day 14"])
+        await store.send(.monthlyRuleTapped(byDate: true))
+        XCTAssertEqual(store.state.everyTitle, "Every 14th")
+        await store.send(.runsStartPicked(Day(year: 2026, month: 12, day: 12).date(calendar: F.calendar)))
+        XCTAssertEqual(store.state.form.monthlyRule, .dayOfMonth(12))
+    }
 }

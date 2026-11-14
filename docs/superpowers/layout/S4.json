@@ -1,5 +1,5 @@
 {
- "version": "38",
+ "version": "44",
  "board": "S4",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -286,14 +286,14 @@
    "kind": "text",
    "x": 160,
    "y": 350,
-   "w": 210,
+   "w": 106,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 385,
    "font": 30,
-   "text": "Live bus times"
+   "text": "Medals"
   },
   {
    "id": "main.picture.3",
@@ -347,7 +347,7 @@
    "kind": "text",
    "x": 160,
    "y": 388,
-   "w": 433,
+   "w": 492,
    "h": 36,
    "region": "main",
    "anchor": "left",
@@ -366,55 +366,6 @@
    "anchor": "right",
    "align": "inside",
    "baseline": 434,
-   "font": 24
-  },
-  {
-   "id": "main.text.5",
-   "kind": "text",
-   "x": 160,
-   "y": 490,
-   "w": 106,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 525,
-   "font": 30,
-   "text": "Medals"
-  },
-  {
-   "id": "main.picture.5",
-   "kind": "picture",
-   "x": 80,
-   "y": 500,
-   "w": 56,
-   "h": 56,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
-   "id": "main.picture.6",
-   "kind": "picture",
-   "x": 760,
-   "y": 514,
-   "w": 28,
-   "h": 28,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
-   "id": "main.text.6",
-   "kind": "text",
-   "x": 160,
-   "y": 528,
-   "w": 492,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 556,
    "font": 24
   },
   {

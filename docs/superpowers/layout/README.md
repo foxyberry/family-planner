@@ -72,3 +72,6 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v41 (2026-11-14): G1f picture grid is 4 × 2 (88, gap 16; 7 pictures + More). Other JSON files unchanged.
 - v42 (2026-11-14): fill rule: This day / All days tabs fill the side column (2 × 230, gap 12) on G2, G2b, G3, G4, G5 (and F1–F4, night G2) and the G1 slice card (2 × 206) on G1, G1c, G1d, G1e, G1f (and night G1); C3m "2nd Sat" / "Day 14" fill the controls column (2 × 299). Tab art is a 9-slice (40 pt ends).
 - v43 (2026-11-14): G1 slice card: one times row (176 × 80, arrow 40, 176 × 80, gap 16) replaces the Starts / Ends rows; G1f grid spreads edge to edge (space-between); the card hugs its content (9-slice art). G1, G1c, G1d, G1e, G1f.
+- v44 (2026-11-14): S4 loses the Live bus times row (Medals moves up to 328). New board G6f (Settings, Family tab): "This iPad" (lock, medals switches, rows 88 at 224 / 320), "Children" (rows 72 at 484 / 564, "+ Add a child" at 644). Confirm and form cards (G1d, G5, G7, F1–F4) hug their content, centred vertically.
+- v45 (2026-11-14): Repeat tabs read "Once · Weekly · Monthly", 3 × 180, gap 12 (C3, C3g, C4, C3m).
+- v46 (2026-11-14): new board G2m (edit an every-month item, All days): Days row holds "2nd Sat" / "Day 14" (2 × 299 at 208, 608); side "Every 2nd Sat", "Remove every month".
