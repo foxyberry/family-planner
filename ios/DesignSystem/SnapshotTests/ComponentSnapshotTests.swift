@@ -588,6 +588,12 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(WayStrip(live: live).frame(width: 1248, height: 340), width: 1300)
     }
 
+    /// Spec "A2 strip": a changing 2nd choice's bubble, "or 3" › "4" over "wait 3 min" (made-up numbers).
+    func testLiveBusBubbleChange() {
+        snap(LiveBusBubble(service: "3", minutes: "12 min", kind: .change("or 3", then: "4", fit: "wait 3 min")),
+             width: 240)
+    }
+
     /// Board C3g: the Going row with Car picked.
     func testChoiceCircles() {
         snap(ChoiceCircles([.init(id: "none", picture: nil, caption: "None", isPicked: false),

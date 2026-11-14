@@ -78,6 +78,28 @@
         }
       }
     },
+    "c2.change_link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2nd choice changes buses…"
+          }
+        }
+      }
+    },
+    "c2.change_link.set" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2nd choice · %@"
+          }
+        }
+      }
+    },
     "c2.done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -305,6 +327,127 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "to the stop"
+          }
+        }
+      }
+    },
+    "c2c.change_at" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change at"
+          }
+        }
+      }
+    },
+    "c2c.first_bus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First bus"
+          }
+        }
+      }
+    },
+    "c2c.from" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From"
+          }
+        }
+      }
+    },
+    "c2c.our_stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· our stop"
+          }
+        }
+      }
+    },
+    "c2c.ride1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ride 1"
+          }
+        }
+      }
+    },
+    "c2c.ride2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ride 2"
+          }
+        }
+      }
+    },
+    "c2c.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "c2c.then" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Then"
+          }
+        }
+      }
+    },
+    "c2c.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2nd choice · change buses"
+          }
+        }
+      }
+    },
+    "c2c.walk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walk"
+          }
+        }
+      }
+    },
+    "c2c.walk.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "between stops"
           }
         }
       }
@@ -2465,6 +2608,39 @@
         }
       }
     },
+    "missions.change.miss" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "will miss"
+          }
+        }
+      }
+    },
+    "missions.change.tight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tight"
+          }
+        }
+      }
+    },
+    "missions.change.wait" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wait %d min"
+          }
+        }
+      }
+    },
     "missions.done.all_done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2714,6 +2890,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "or · 2nd"
+          }
+        }
+      }
+    },
+    "missions.second_change" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or %@"
           }
         }
       }
