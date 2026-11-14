@@ -70,6 +70,9 @@ public struct SettingsView: View {
                                         MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
                                     }
                                 }
+                                // The whole row opens it, the gap before › too (a plain button only
+                                // hits its drawn parts).
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         } else {

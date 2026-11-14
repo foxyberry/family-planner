@@ -24,10 +24,10 @@ public struct ItemEditorView: View {
             } content: { layout in
                 HStack(alignment: .top, spacing: layout.gap) {
                     // Exactly the card's inner width, so no row can widen the card past 64 … 882.
-                    PaperCard(seed: 31) {
+                    PaperCard(seed: 31, trailingInset: layout.editorTrailingInset) {
                         ScrollColumn(scrollTarget: store.scrollTarget) {
                             Group { if store.isEditingMissions { missionsPage } else { form } }
-                                .frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                                .frame(width: layout.editorRowsWidth, alignment: .leading)
                         }
                     }
                     .frame(width: layout.form.width, height: layout.form.height)
