@@ -487,7 +487,7 @@ const ITEMS = {
     S('M134 40L146 46L150 102H140Z', K.white, 0, 3.5),
     Ln('M118 43Q112 30 122 22', 6, RED),
     S('M36 102H204L192 208Q190 216 182 216H58Q50 216 48 208Z', NAVY, 50),
-    S(circ(100, 150, 6), K.white, 0, 2.5), S(circ(140, 150, 6), K.white, 0, 2.5), Ln('M111 172Q120 181 129 172', 4, '#FFFFFF'),
+    S(circ(100, 150, 7), K.white, 0, 2.5), S(circ(140, 150, 7), K.white, 0, 2.5), Ln('M110 172Q120 182 130 172', 8), Ln('M110 172Q120 182 130 172', 3.5, '#FFFFFF'),
   ],
   // School and play
   homework: [
