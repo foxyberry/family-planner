@@ -13,10 +13,12 @@ public struct DataSourcesView: View {
     }
 
     public var body: some View {
-        GrownupScreen {
+        // Spec "Scrolling": the card stays put and its rows scroll inside it.
+        GrownupScreen(scrolls: false) {
             GrownupHeader(title: L10n.tr("sources.title"), onBack: { store.send(.backTapped) })
         } content: { layout in
             PaperCard(seed: 41) {
+                ScrollColumn {
                 VStack(alignment: .leading, spacing: Spacing.m) {
                     Text(L10n.tr("sources.intro")).crayonType(.body).foregroundStyle(CrayonColor.ink)
                     ForEach(store.sources) { source in
@@ -34,8 +36,9 @@ public struct DataSourcesView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                }
             }
-            .frame(width: layout.form.width)
+            .frame(width: layout.form.width, height: layout.form.height)
         } primaryAction: { _ in
             EmptyView()
         }

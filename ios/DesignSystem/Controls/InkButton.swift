@@ -1,7 +1,8 @@
 import CrayonKit
 import SwiftUI
 
-/// The one primary action on a screen: black marker fill, white text, 96 tall. At night (spec
+/// The one primary action on a screen: black marker fill, white text, 96 tall, corner 26 at every
+/// width (board art `rr(6, 6, w − 12, h − 12, 26)`). At night (spec
 /// "Night mapping") it is a night control: the same shape with a `nightControl` fill, a chalk
 /// marker outline and `nightText` label and arrow.
 public struct InkButton: View {
@@ -45,10 +46,10 @@ public struct InkButton: View {
 
         func body(content: Content) -> some View {
             if !isNight {
-                content.partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.ink,
+                content.partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.ink,
                                        seed: CrayonStyle.Seed.inkButton)
             } else {
-                content.partBackground(.roundedRect(cornerRadius: 24), fill: .paper(CrayonColor.nightControl),
+                content.partBackground(.roundedRect(cornerRadius: 26), fill: .paper(CrayonColor.nightControl),
                                        seed: CrayonStyle.Seed.inkButton, markerColor: CrayonColor.chalk)
             }
         }

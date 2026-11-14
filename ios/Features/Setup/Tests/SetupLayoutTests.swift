@@ -19,9 +19,9 @@ final class SetupLayoutTests: XCTestCase {
             XCTAssertEqual(layout.kidCard(1).minY, layout.kidCard(0).maxY + layout.cardGap, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.kidCard(0).height, layout.cardHeight, accuracy: 0.01, "\(w)")
             // S4 rows start on the label line and keep their pitch.
-            XCTAssertEqual(layout.grown.form.minX + layout.s4Main(80, 216).x, layout.grown.labelLeft,
+            XCTAssertEqual(layout.grown.form.minX + layout.s4Main(80, 188).x, layout.grown.labelLeft,
                            accuracy: 0.01, "\(w)")
-            XCTAssertEqual(layout.s4Main(80, 356).y - layout.s4Main(80, 216).y, layout.length(140),
+            XCTAssertEqual(layout.s4Main(80, 328).y - layout.s4Main(80, 188).y, layout.length(140),
                            accuracy: 0.01, "\(w)")
             // The cards never reach the side column.
             XCTAssertLessThanOrEqual(layout.grown.form.maxX, layout.grown.side.minX, "\(w)")
@@ -30,10 +30,10 @@ final class SetupLayoutTests: XCTestCase {
 
     func testThirteenInchIsTheBoard() {
         let layout = SetupLayout(sizing: Sizing(width: 1376, height: 1032))
-        XCTAssertEqual(layout.kidCard(0), CGRect(x: 40, y: 176, width: 800, height: 304))
-        XCTAssertEqual(layout.kidCard(1).minY, 500, "layout v18: cards 304 tall, 20 apart")
-        XCTAssertEqual(layout.s4Main(80, 216), CGPoint(x: 40, y: 40), "board S4: the first row at (80, 216)")
-        XCTAssertEqual(layout.s4Side(936, 303), CGPoint(x: 72, y: 127))
+        XCTAssertEqual(layout.kidCard(0), CGRect(x: 40, y: 148, width: 800, height: 304))
+        XCTAssertEqual(layout.kidCard(1).minY, 472, "layout v18: cards 304 tall, 20 apart")
+        XCTAssertEqual(layout.s4Main(80, 188), CGPoint(x: 40, y: 40), "board S4: the first row at (80, 188)")
+        XCTAssertEqual(layout.s4Side(936, 275), CGPoint(x: 72, y: 127))
         XCTAssertEqual(layout.schoolFieldWidth, 610)
     }
 }

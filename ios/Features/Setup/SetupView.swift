@@ -19,12 +19,16 @@ public struct SetupView: View {
 
     public var body: some View {
         let layout = SetupLayout(sizing: sizing)
-        GrownupScreen {
+        // Spec "Scrolling": the main column and the side column scroll on their own; the header stays.
+        GrownupScreen(scrolls: false) {
             header(layout)
         } content: { grown in
             HStack(alignment: .top, spacing: grown.gap) {
-                main(layout).frame(width: grown.form.width, alignment: .topLeading)
-                side(layout).frame(width: grown.side.width, alignment: .topLeading)
+                ScrollColumn { main(layout).frame(width: grown.form.width, alignment: .topLeading) }
+                    .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
+                ScrollColumn { side(layout).frame(width: grown.side.width, alignment: .topLeading) }
+                    .frame(width: grown.side.width, height: grown.action.minY - grown.side.minY - Spacing.s,
+                           alignment: .topLeading)
             }
         } primaryAction: { grown in
             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -261,7 +265,7 @@ private struct SchoolStep: View {
             rows.frame(width: layout.grown.form.width - 2 * layout.grown.formInset, alignment: .leading)
         }
         // Boards S2/S3: the card fills the main region down to 968, whatever its rows.
-        .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
+        .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
 
     /// Board S2 (layout v11): Goes to 208, School 304, Days 448, Hours 544, Arrive by 680, MOE 792.
@@ -512,13 +516,13 @@ private struct AlmostDoneStep: View {
     var body: some View {
         PaperCard(seed: 91) { rows }
             .environment(\.cardInset, 0)
-            .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
+            .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
 
     private var rows: some View {
         ZStack(alignment: .topLeading) {
             ForEach(Array(store.settingRows.enumerated()), id: \.element.setting) { index, row in
-                let origin = layout.s4Main(80, 216 + 140 * CGFloat(index))
+                let origin = layout.s4Main(80, 188 + 140 * CGFloat(index))
                 SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
                            action: { store.send(.settingTapped(row.setting)) }) {
                     picture(row.picture)
@@ -526,12 +530,12 @@ private struct AlmostDoneStep: View {
                 .frame(width: layout.length(738), height: layout.length(120))
                 .place(topLeft: origin)
             }
-            let caption = layout.s4Main(80, 681)
+            let caption = layout.s4Main(80, 653)
             Text(L10n.tr("s4.skip")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 .frame(width: layout.length(738), alignment: .leading)
                 .place(left: caption.x, baseline: caption.y)
         }
-        .frame(width: layout.grown.form.width, height: layout.length(968 - 176), alignment: .topLeading)
+        .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
 
     @ViewBuilder private func picture(_ picture: AppSettingRow.Picture) -> some View {
@@ -551,9 +555,9 @@ private struct SummarySide: View {
     var body: some View {
         let rows = summaryRows
         ZStack(alignment: .topLeading) {
-            let title = layout.s4Side(864, 212)
+            let title = layout.s4Side(864, 184)
             Text(L10n.tr("s4.side.title")).crayonType(.head).place(left: title.x, baseline: title.y)
-            let kidsLine = layout.s4Side(864, 263)
+            let kidsLine = layout.s4Side(864, 235)
             HStack(spacing: Spacing.sm) { kids }.place(left: kidsLine.x, baseline: kidsLine.y)
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                 let top = layout.s4SummaryTop(index)
@@ -571,7 +575,7 @@ private struct SummarySide: View {
                 .place(left: caption.x, baseline: caption.y)
         }
         .foregroundStyle(CrayonColor.ink)
-        .frame(width: layout.grown.side.width, height: layout.length(872 - 176), alignment: .topLeading)
+        .frame(width: layout.grown.side.width, height: layout.length(872 - 148), alignment: .topLeading)
     }
 
     private var summaryRows: [(slot: KitSlot, title: String, detail: String)] {
