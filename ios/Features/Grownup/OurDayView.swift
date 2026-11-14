@@ -56,10 +56,11 @@ public struct OurDayView: View {
                       dragOrigin: store.dragOrigin, hub: store.hub,
                       onKnobDrag: { store.send(.knobDragged(index: $0, minute: $1)) },
                       onKnobEnd: { store.send(.knobReleased($0)) },
-                      onLockedTap: { store.send(.lockedKnobTapped($0)) },
+                      onKnobTap: { store.send(.knobTapped($0)) },
                       onSliceTap: { store.send(.sliceTapped(start: $0)) },
                       onPlusTap: { store.send(.plusTapped(start: $0)) },
-                      onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) })
+                      onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) },
+                      addBetween: store.addBetweenButton, onAddBetween: { store.send(.addBetweenTapped) })
                 // Board G1 (layout v32): the clock centred at (410, 549), 30 left of and 9 above the
                 // form box's middle (440, 558), so its hour labels start at x 30 as on the home clock.
                 .offset(x: -30 * layout.sizing.s, y: -9 * layout.sizing.s)

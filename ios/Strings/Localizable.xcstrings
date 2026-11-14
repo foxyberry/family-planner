@@ -463,6 +463,28 @@
         }
       }
     },
+    "day.add_between" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add between %1$@ and %2$@"
+          }
+        }
+      }
+    },
+    "day.add_between.no_room" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No room for 30 minutes here."
+          }
+        }
+      }
+    },
     "day.button.today" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -547,17 +569,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "List"
-          }
-        }
-      }
-    },
-    "day.locked" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "School hours are set in School."
           }
         }
       }

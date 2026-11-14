@@ -489,14 +489,14 @@ final class ComponentSnapshotTests: XCTestCase {
     func testEditClock() {
         snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: nil, dragOrigin: nil,
                        hub: .init(title: "Dinner"), onKnobDrag: { _, _ in }, onKnobEnd: { _ in },
-                       onLockedTap: { _ in }, onSliceTap: { _ in }, onPlusTap: { _ in }, onKnobAdjust: { _, _ in })
+                       onKnobTap: { _ in }, onSliceTap: { _ in }, onPlusTap: { _ in }, onKnobAdjust: { _, _ in })
             .padding(80))
     }
 
     func testEditClockDragging() {
         snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: 5, dragOrigin: 1140,
                        hub: .init(above: "Dinner ends", time: "7:15 pm", below: "Shower starts"),
-                       onKnobDrag: { _, _ in }, onKnobEnd: { _ in }, onLockedTap: { _ in }, onSliceTap: { _ in },
+                       onKnobDrag: { _, _ in }, onKnobEnd: { _ in }, onKnobTap: { _ in }, onSliceTap: { _ in },
                        onPlusTap: { _ in }, onKnobAdjust: { _, _ in })
             .padding(80))
     }

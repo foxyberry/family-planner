@@ -55,6 +55,21 @@ public struct School: Hashable, Codable, Sendable {
 
     public var isPreschool: Bool { kind == .preschool }
 
+    /// The School slice moved on the clock (layout v37, All days): the slice starts at Arrive by (or
+    /// the start without one) and ends at the end. Arrive by and the start move with the slice's
+    /// start, Latest keeps its grace, and the end follows the slice's end. Per-weekday hours from the
+    /// school website no longer apply once the grown-up set their own.
+    public func moved(sliceStart: Int, sliceEnd: Int) -> School {
+        var school = self
+        let shift = sliceStart - (arriveBy ?? start)
+        school.start = start + shift
+        school.arriveBy = arriveBy.map { $0 + shift }
+        school.latest = latest.map { $0 + shift }
+        school.end = sliceEnd
+        if shift != 0 || sliceEnd != end { school.dayHours = nil }
+        return school
+    }
+
     /// Latest − Arrive by (0–30): how late still earns Bronze. nil when either time was not entered.
     public var lateGrace: Int? {
         guard let arriveBy, let latest else { return nil }
@@ -338,7 +353,7 @@ public struct RoutineBlock: Hashable, Codable, Sendable {
     public var kind: SlotKind
     public var start: Int
     public var end: Int
-    /// A locked edge (school) cannot be dragged in the day editor.
+    /// School: it cannot be made free time in the day editor (its edges move since layout v37).
     public var isLocked: Bool
     /// An outing has a trip (the school block, by bus in the seed).
     public var trip: Trip?

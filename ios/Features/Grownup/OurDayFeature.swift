@@ -43,11 +43,14 @@ public struct OurDayFeature {
         public var block: Int
         public var name: String
         public var iconName: String?
+        /// Board G1e: the slice was put between two others; closing the card without adding takes it back.
+        public var isBetween: Bool
 
-        public init(block: Int, name: String = "", iconName: String? = nil) {
+        public init(block: Int, name: String = "", iconName: String? = nil, isBetween: Bool = false) {
             self.block = block
             self.name = name
             self.iconName = iconName
+            self.isBetween = isBetween
         }
     }
 
@@ -83,6 +86,8 @@ public struct OurDayFeature {
         public var dragOrigin: Int?
         public var message: String?
         public var newSlice: NewSlice?
+        /// Board G1e: the knob whose "+" is showing after a tap on it.
+        public var addBetween: Int?
         public var haptics = Haptics()
         /// Board G1d: "Save the changes?" before leaving with unsaved drags.
         public var isConfirmingLeave = false
@@ -225,7 +230,7 @@ public struct OurDayFeature {
 
         public var knobs: [EditClock.Knob] {
             edit.knobs.map { knob in
-                EditClock.Knob(minute: knob.minute, isLocked: knob.isLocked,
+                EditClock.Knob(minute: knob.minute, isLocked: false,
                                label: L10n.tr("day.knob.label", edit.blocks[knob.before].title,
                                               TimeText.withPeriod(knob.minute)))
             }
@@ -246,6 +251,26 @@ public struct OurDayFeature {
         public var startLabel: String? { selectedBlock.map { TimeText.withPeriod($0.start) } }
         public var endLabel: String? { selectedBlock.map { TimeText.withPeriod($0.end) } }
         public var canMakeFree: Bool { selectedBlock.map { !$0.isLocked && $0.kind != .free } ?? false }
+
+        /// Board G1e: the "+" on the tapped knob and its VoiceOver label "Add between Dinner and Shower".
+        public var addBetweenButton: EditClock.AddBetween? {
+            guard let index = addBetween, edit.knobs.indices.contains(index) else { return nil }
+            let knob = edit.knobs[index]
+            return EditClock.AddBetween(knob: index, minute: knob.minute,
+                                        label: L10n.tr("day.add_between", edit.blocks[knob.before].title,
+                                                       edit.blocks[knob.after].title))
+        }
+
+        /// What an All days save does to the school record (layout v37): the School slice's new times
+        /// become School's hours. nil when School did not move or this is a This day save.
+        public var schoolToSave: Kid? {
+            guard saveScope == .allDays, var kid = kidInfo, let school = kid.school,
+                  let block = edit.blocks.first(where: { $0.kind == .school }),
+                  let was = edit.savedBlocks.first(where: { $0.kind == .school }),
+                  block.start != was.start || block.end != was.end else { return nil }
+            kid.school = school.moved(sliceStart: block.start, sliceEnd: block.end)
+            return kid
+        }
         public var canAddNewSlice: Bool {
             guard let newSlice else { return false }
             return !newSlice.name.trimmingCharacters(in: .whitespaces).isEmpty && newSlice.iconName != nil
@@ -274,7 +299,9 @@ public struct OurDayFeature {
         case knobDragged(index: Int, minute: Int)
         case knobReleased(Int)
         case knobAdjusted(index: Int, by: Int)
-        case lockedKnobTapped(Int)
+        /// Board G1e: a tap on a knob shows its "+"; the "+" adds a slice between.
+        case knobTapped(Int)
+        case addBetweenTapped
         case sliceTapped(start: Int)
         case plusTapped(start: Int)
         case startPicked(Date)
@@ -404,6 +431,7 @@ public struct OurDayFeature {
             case let .knobDragged(index, minute):
                 guard state.edit.knobs.indices.contains(index) else { return .none }
                 if state.dragging != index {
+                    state.addBetween = nil
                     state.dragging = index
                     state.dragOrigin = state.edit.knobs[index].minute
                     state.edit.beginChange()
@@ -417,7 +445,10 @@ public struct OurDayFeature {
             case let .knobReleased(index):
                 state.dragging = nil
                 state.dragOrigin = nil
-                state.selected = state.edit.knobs.indices.contains(index) ? state.edit.knobs[index].before : state.selected
+                state.addBetween = nil
+                guard state.edit.knobs.indices.contains(index) else { return .none }
+                state.selected = state.edit.closeShortGaps(favoring: moved(byKnob: index, state.edit))
+                    ?? state.edit.knobs[index].before
                 return .none
 
             case let .knobAdjusted(index, delta):
@@ -426,19 +457,37 @@ public struct OurDayFeature {
                 let before = state.edit.knobs[index].minute
                 feel(state.edit.moveKnob(index, to: before + delta), from: before, &state)
                 state.message = state.edit.effect(ofKnob: index)
+                state.edit.closeShortGaps(favoring: moved(byKnob: index, state.edit))
                 return .none
 
-            case .lockedKnobTapped:
-                state.message = L10n.tr("day.locked")
+            case let .knobTapped(index):
+                guard state.edit.knobs.indices.contains(index) else { return .none }
+                state.addBetween = state.addBetween == index ? nil : index
+                return .none
+
+            case .addBetweenTapped:
+                guard let index = state.addBetween else { return .none }
+                state.addBetween = nil
+                dropBetween(&state)
+                guard let slot = state.edit.insertBetween(knob: index) else {
+                    state.message = L10n.tr("day.add_between.no_room")
+                    return .none
+                }
+                state.selected = slot
+                state.newSlice = NewSlice(block: slot, isBetween: true)
                 return .none
 
             case let .sliceTapped(start):
+                state.addBetween = nil
+                dropBetween(&state)
                 state.selected = state.edit.blocks.firstIndex { $0.start == start }
                 state.newSlice = nil
                 state.message = nil
                 return .none
 
             case let .plusTapped(start):
+                state.addBetween = nil
+                dropBetween(&state)
                 guard let block = state.edit.blocks.firstIndex(where: { $0.start == start && $0.kind == .free })
                 else { return .none }
                 state.selected = block
@@ -566,10 +615,14 @@ public struct OurDayFeature {
     /// Writes `routineToSave`; the G5 card closes.
     private func save(_ state: inout State) -> Effect<Action> {
         let routine = state.routineToSave
+        let kid = state.schoolToSave
+        if let kid { state.kids = state.kids.map { $0.id == kid.id ? kid : $0 } }
         state.fromWhen = nil
         return .run { [scheduleStore] send in
             do {
                 try await scheduleStore.saveRoutine(routine)
+                // Layout v37: School's hours follow the slice (Arrive by, Latest's grace, the end).
+                if let kid { try await scheduleStore.saveKid(kid) }
                 await send(.saved(.success(routine)))
             } catch {
                 await send(.saved(.failure(SaveError())))
@@ -591,6 +644,20 @@ public struct OurDayFeature {
         state.dragOrigin = nil
         state.newSlice = nil
         state.message = nil
+    }
+
+    /// The slice a knob move grew or shrank on purpose: the side that is not free time, so free time
+    /// left under 15 minutes joins it ("No forced gaps").
+    private func moved(byKnob index: Int, _ edit: TemplateEdit) -> Int {
+        let knob = edit.knobs[index]
+        return edit.blocks[knob.before].kind == .free ? knob.after : knob.before
+    }
+
+    /// Board G1e: a slice put between and left without a name is taken back.
+    private func dropBetween(_ state: inout State) {
+        guard state.newSlice?.isBetween == true else { return }
+        state.newSlice = nil
+        state.edit.dropLastChange()
     }
 
     /// Unsaved changes ask "Save the changes?" first (board G1d).
@@ -634,8 +701,6 @@ public struct OurDayFeature {
             state.haptics.bumps += 1
         case .stopped:
             state.haptics.bumps += 1
-        case .locked:
-            state.message = L10n.tr("day.locked")
         default:
             break
         }
