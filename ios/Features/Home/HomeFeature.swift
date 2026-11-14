@@ -77,6 +77,8 @@ public struct HomeFeature {
         public var isSkyAnimating = false
         /// Seconds since the last touch, counted in the root's 1-second ticks (never from the date).
         public var idleSeconds = 0
+        /// The slice the 2-second hold started on (spec "No empty slice card"): grown-up mode opens with it picked.
+        public var heldSlotStart: Int?
         /// Board 0g2 idle wink: one more each time 20 s pass without a touch.
         public var winks = 0
         /// Spec "Picture rigs": a play id per drawn slot start; a slot plays when its id goes up.
@@ -231,6 +233,8 @@ public struct HomeFeature {
         case reload
         /// The family and its year (each kid's school calendar and the public holidays).
         case loaded(ScheduleSnapshot?, family: FamilyCalendar)
+        /// A press on the clock began on the slice starting at this minute (nil: off the slices).
+        case clockPressed(slotStart: Int?)
         /// The clock was held for 2 seconds; the app opens the grown-up lock.
         case clockHoldCompleted
         /// Board G0: the pencil; the app opens the grown-up lock.
@@ -345,7 +349,15 @@ public struct HomeFeature {
                 }
                 return state.wantsLive ? .send(.refresh) : .none
 
-            case .clockHoldCompleted, .pencilTapped:
+            case let .clockPressed(start):
+                state.heldSlotStart = start
+                return .none
+
+            case .pencilTapped:
+                state.heldSlotStart = nil
+                return .none
+
+            case .clockHoldCompleted:
                 return .none
 
             case .skySwitchTapped:
