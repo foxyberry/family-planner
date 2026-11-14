@@ -268,10 +268,11 @@ public struct OurDayView: View {
         }
     }
 
+    /// Layout v42 fill rule: alone on their row, the two tabs share the slice card's width (2 × 206, gap 12).
     private var scopeTabs: some View {
         CrayonTabs(selection: Binding(get: { store.saveScope }, set: { store.send(.scopeTapped($0)) }),
                    items: [(OurDayFeature.Scope.thisDay, L10n.tr("day.scope.this"), nil),
-                           (.allDays, L10n.tr("day.scope.all"), nil)], compact: true)
+                           (.allDays, L10n.tr("day.scope.all"), nil)], widths: [206, 206], spacing: Spacing.sm)
             .fixedSize(horizontal: false, vertical: true)
     }
 
