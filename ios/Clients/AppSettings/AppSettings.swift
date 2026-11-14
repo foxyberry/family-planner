@@ -1,17 +1,16 @@
 import ComposableArchitecture
 
-/// The feature switches of S4 "Almost done" (and C9 "This iPad" later), all on by default.
+/// The feature switches of S4 "Almost done" and Settings' Family tab, all on by default. Live bus
+/// times have no switch since layout v44: they are always on, and the timetable look is the fallback.
+/// A stored `liveBusTimes` from before is ignored when it loads.
 public struct AppSettings: Equatable, Codable, Sendable {
     /// Face ID before grown-up screens. Per iPad: off leaves the 2 s hold as the only gate.
     public var grownupLock: Bool
-    /// Live bus times from LTA. Family setting: off means the app never calls LTA.
-    public var liveBusTimes: Bool
     /// Gold, silver and bronze for leaving on time. Family setting: off means no medal anywhere.
     public var medals: Bool
 
-    public init(grownupLock: Bool = true, liveBusTimes: Bool = true, medals: Bool = true) {
+    public init(grownupLock: Bool = true, medals: Bool = true) {
         self.grownupLock = grownupLock
-        self.liveBusTimes = liveBusTimes
         self.medals = medals
     }
 

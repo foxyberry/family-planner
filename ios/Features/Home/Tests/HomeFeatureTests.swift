@@ -59,20 +59,6 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.status?.text, "On time")
     }
 
-    /// S4 "Live bus times" off: home never calls LTA and shows no live status.
-    func testLiveTimesOffNeverCallsLTA() async {
-        var snapshot = snapshot()
-        snapshot.busPlans = [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])]
-        let called = LockIsolated(false)
-        let store = store(on: tuesday, minute: 412, snapshot: snapshot)
-        store.dependencies.appSettings.load = { AppSettings(liveBusTimes: false) }
-        store.dependencies.bus.arrivals = { _ in called.setValue(true); return [] }
-        await store.send(.task)
-        await store.receive(\.loaded)
-        XCTAssertFalse(called.value)
-        XCTAssertNil(store.state.status)
-    }
-
     func testLoadsTwoKidsLayout() async {
         let store = store(on: wednesday, minute: 945)
         await store.send(.task)

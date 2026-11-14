@@ -127,7 +127,6 @@ public struct SettingsFeature {
                     return .run { [parentAuth] send in
                         await send(.lockChecked(parentAuth.authenticate(L10n.tr("auth.reason"))))
                     }
-                case .liveBusTimes: state.settings.liveBusTimes.toggle()
                 case .medals: state.settings.medals.toggle()
                 }
                 appSettings.save(state.settings)
