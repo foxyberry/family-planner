@@ -17,22 +17,29 @@ public struct ItemEditorView: View {
 
     public var body: some View {
         ZStack {
-            GrownupScreen(scrollTarget: store.scrollTarget) {
+            // Spec "Scrolling on G1 / G2": the form card stays put and its rows scroll inside it; the
+            // side column scrolls on its own.
+            GrownupScreen(scrolls: false) {
                 header
             } content: { layout in
                 HStack(alignment: .top, spacing: layout.gap) {
                     // Exactly the card's inner width, so no row can widen the card past 64 … 882.
                     PaperCard(seed: 31) {
-                        Group { if store.isEditingMissions { missionsPage } else { form } }
-                            .frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
-                    }
-                    .frame(width: layout.form.width)
-                    Group {
-                        if store.isEditingWeekly { weeklySide } else if let preview = store.preview {
-                            sideColumn(preview)
+                        ScrollColumn(scrollTarget: store.scrollTarget) {
+                            Group { if store.isEditingMissions { missionsPage } else { form } }
+                                .frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
                         }
                     }
-                    .frame(width: layout.side.width, alignment: .topLeading)
+                    .frame(width: layout.form.width, height: layout.form.height)
+                    ScrollColumn {
+                        Group {
+                            if store.isEditingWeekly { weeklySide } else if let preview = store.preview {
+                                sideColumn(preview)
+                            }
+                        }
+                    }
+                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                           alignment: .topLeading)
                 }
             } primaryAction: { layout in
                 VStack(alignment: .leading, spacing: Spacing.xs) {

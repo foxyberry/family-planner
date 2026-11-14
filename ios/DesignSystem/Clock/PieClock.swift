@@ -148,12 +148,12 @@ public struct PieClock: View {
                 .position(point(radius: 412 * k, degrees: Double(hour) * 15))
         }
         .overlay {
-            // Boards A1/E3: the moon (40) beside the top 12, the sun (44) beside the bottom 12 (layout
-            // clock.slotPicture.1 and .9).
+            // Layout v30: the moon (40) centred above the top 12 at (428, 48), the sun (44) centred
+            // below the bottom 12 at (426, 964); the disc's centre is (448, 528).
             KitIcon(.actSleep, size: 40 * k).blink(look == .night ? motion.winks : nil, reduceMotion: reduceMotion)
-                .position(x: r + 50 * k, y: r - 422 * k)
+                .position(x: r, y: r - 460 * k)
             KitIcon(.sun, size: 44 * k).blink(look == .day ? motion.winks : nil, reduceMotion: reduceMotion)
-                .position(x: r + 52 * k, y: r + 420 * k)
+                .position(x: r, y: r + 458 * k)
         }
         .allowsHitTesting(false)
     }

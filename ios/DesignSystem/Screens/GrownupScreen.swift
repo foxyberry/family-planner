@@ -24,15 +24,19 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
     private let content: (GrownupLayout) -> Content
     private let primaryAction: (GrownupLayout) -> Action
     private let scrollTarget: GrownupScrollTarget?
+    private let scrolls: Bool
 
     /// `scrollTarget`: a row (marked with `.id`) to scroll to the middle of the screen.
-    public init(scrollTarget: GrownupScrollTarget? = nil, @ViewBuilder header: () -> Header,
+    /// `scrolls: false` (spec "Scrolling on G1 / G1c / G1d"): the content stays put in the content
+    /// box (176 … 968) and its main card and side column scroll on their own (`ScrollColumn`).
+    public init(scrollTarget: GrownupScrollTarget? = nil, scrolls: Bool = true, @ViewBuilder header: () -> Header,
                 @ViewBuilder content: @escaping (GrownupLayout) -> Content,
                 @ViewBuilder primaryAction: @escaping (GrownupLayout) -> Action) {
         self.header = header()
         self.content = content
         self.primaryAction = primaryAction
         self.scrollTarget = scrollTarget
+        self.scrolls = scrolls
     }
 
     /// For content that does not need the lines.
@@ -51,25 +55,23 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
                 .padding(.top, layout.back.minY)
                 .padding(.leading, layout.back.minX)
                 .padding(.trailing, sizing.width - layout.right)
-            ScrollViewReader { proxy in
-                ScrollView {
-                    content(layout)
-                        // Cards inset their rows 40 (x 104) and rows put their controls on 232.
-                        .environment(\.cardInset, layout.formInset)
-                        .environment(\.formLabelWidth, layout.labelWidth)
-                        // Exactly 64 … 1312 wide, so a long line can never push the card off 64.
-                        .frame(width: layout.side.maxX - layout.form.minX, alignment: .topLeading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, layout.form.minX)
-                        .padding(.top, layout.contentTop - layout.back.maxY)
-                        // The last rows can scroll clear of the action button (from 872).
-                        .padding(.bottom, sizing.height - layout.action.minY)
+            if scrolls {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        placed(layout)
+                            // The last rows can scroll clear of the action button (from 872).
+                            .padding(.bottom, sizing.height - layout.action.minY)
+                    }
+                    .scrollDismissesKeyboard(.interactively)
+                    .onChange(of: scrollTarget) { _, target in
+                        guard let target else { return }
+                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(target.id, anchor: .center) }
+                    }
                 }
-                .scrollDismissesKeyboard(.interactively)
-                .onChange(of: scrollTarget) { _, target in
-                    guard let target else { return }
-                    withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(target.id, anchor: .center) }
-                }
+            } else {
+                placed(layout)
+                    .frame(height: layout.form.maxY - layout.back.maxY, alignment: .top)
+                Spacer(minLength: 0)
             }
         }
         // The action button sits in the side column's foot (930, 872, 382 × 96), so the form card
@@ -90,6 +92,45 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
         .foregroundStyle(CrayonColor.ink)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func placed(_ layout: GrownupLayout) -> some View {
+        content(layout)
+            // Cards inset their rows 40 (x 104) and rows put their controls on 232.
+            .environment(\.cardInset, layout.formInset)
+            .environment(\.formLabelWidth, layout.labelWidth)
+            // Exactly 64 … 1312 wide, so a long line can never push the card off 64.
+            .frame(width: layout.side.maxX - layout.form.minX, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, layout.form.minX)
+            .padding(.top, layout.contentTop - layout.back.maxY)
+    }
+}
+
+/// One scrolling region of a grown-up screen (spec "Scrolling on G1 / G1c / G1d"): a main card's
+/// rows or a side column scroll inside their own frame, never with the rest of the screen. Content
+/// that fits shows no bounce and no bar. `scrollTarget` scrolls a row marked with `.id` to the middle.
+public struct ScrollColumn<Content: View>: View {
+    private let scrollTarget: GrownupScrollTarget?
+    private let content: Content
+
+    public init(scrollTarget: GrownupScrollTarget? = nil, @ViewBuilder content: () -> Content) {
+        self.scrollTarget = scrollTarget
+        self.content = content()
+    }
+
+    public var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical) {
+                content.frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+            .scrollBounceBehavior(.basedOnSize, axes: .vertical)
+            .scrollDismissesKeyboard(.interactively)
+            .onChange(of: scrollTarget) { _, target in
+                guard let target else { return }
+                withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(target.id, anchor: .center) }
+            }
+        }
     }
 }
 

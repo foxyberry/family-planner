@@ -16,17 +16,17 @@ public struct SettingsView: View {
     }
 
     public var body: some View {
-        GrownupScreen {
+        // Spec "Scrolling on G1 / G6": the card stays put and only its rows scroll.
+        GrownupScreen(scrolls: false) {
             header
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
                 // Board G6: labels on 104, values on 280, "›" at 814; rows 60 tall.
                 PaperCard(seed: 21) {
-                    ScrollView(.vertical) {
+                    ScrollColumn {
                         Group { if store.tab == .family { familyCard } else { kidCard } }
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .scrollIndicators(.hidden)
                 }
                 .environment(\.formLabelWidth, layout.valueLeft - layout.labelLeft)
                 .frame(width: layout.form.width, height: layout.form.height)

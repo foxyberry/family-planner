@@ -20,7 +20,8 @@ final class HomeLayoutTests: XCTestCase {
             // Look ①: the Kid A picture starts on 928 too; the button ends on the panel's right line.
             XCTAssertEqual(layout.kidAPicture.minX, layout.panelLeft, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.button.maxX, layout.panelRight, accuracy: 0.01, "\(w)")
-            XCTAssertEqual(layout.panelRight, w - 64 * sizing.s, accuracy: 0.01, "\(w)")
+            // Layout v29: the right margin is 40, the sky switch's on the left.
+            XCTAssertEqual(layout.panelRight, w - 40 * sizing.s, accuracy: 0.01, "\(w)")
             // Each row's text starts 16 right of its picture (look ①).
             for row in [layout.nextRow, layout.leaveNextRow] {
                 XCTAssertEqual(row.textLeft, row.picture.maxX + 16 * sizing.s, accuracy: 0.01, "\(w)")
@@ -66,6 +67,7 @@ final class HomeLayoutTests: XCTestCase {
         XCTAssertEqual(layout.leaveNextRow.labelBaseline ?? 0, 456, accuracy: 1)
         XCTAssertEqual(layout.leaveNextRow.titleBaseline, 497)
         XCTAssertEqual(layout.leaveNextRow.atBaseline, 535, accuracy: 1)
-        XCTAssertEqual(layout.button, CGRect(x: 928, y: 872, width: 384, height: 96))
+        XCTAssertEqual(layout.button, CGRect(x: 928, y: 872, width: 408, height: 96), "layout v29")
+        XCTAssertEqual(layout.pencil, CGRect(x: 1260, y: 44, width: 80, height: 80))
     }
 }
