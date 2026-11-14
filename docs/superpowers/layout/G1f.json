@@ -1,5 +1,5 @@
 {
- "version": "40",
+ "version": "43",
  "board": "G1f",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -213,7 +213,7 @@
    "kind": "button",
    "x": 888,
    "y": 268,
-   "w": 180,
+   "w": 206,
    "h": 72,
    "region": "side",
    "anchor": "right",
@@ -223,9 +223,9 @@
   {
    "id": "side.button.2",
    "kind": "button",
-   "x": 1080,
+   "x": 1106,
    "y": 268,
-   "w": 180,
+   "w": 206,
    "h": 72,
    "region": "side",
    "anchor": "right",
@@ -268,7 +268,7 @@
   {
    "id": "side.picture.4",
    "kind": "picture",
-   "x": 1004,
+   "x": 1012,
    "y": 368,
    "w": 64,
    "h": 64,
@@ -279,7 +279,18 @@
   {
    "id": "side.picture.5",
    "kind": "picture",
-   "x": 1108,
+   "x": 1124,
+   "y": 368,
+   "w": 64,
+   "h": 64,
+   "region": "side",
+   "anchor": "right",
+   "align": "inside"
+  },
+  {
+   "id": "side.picture.6",
+   "kind": "picture",
+   "x": 1236,
    "y": 368,
    "w": 64,
    "h": 64,
@@ -299,7 +310,7 @@
    "align": "inside"
   },
   {
-   "id": "side.picture.6",
+   "id": "side.picture.7",
    "kind": "picture",
    "x": 900,
    "y": 472,
@@ -310,9 +321,20 @@
    "align": "inside"
   },
   {
-   "id": "side.picture.7",
+   "id": "side.picture.8",
    "kind": "picture",
-   "x": 1004,
+   "x": 1012,
+   "y": 472,
+   "w": 64,
+   "h": 64,
+   "region": "side",
+   "anchor": "right",
+   "align": "inside"
+  },
+  {
+   "id": "side.picture.9",
+   "kind": "picture",
+   "x": 1124,
    "y": 472,
    "w": 64,
    "h": 64,
@@ -323,7 +345,7 @@
   {
    "id": "side.line.3",
    "kind": "text",
-   "x": 1109,
+   "x": 1237,
    "y": 485,
    "w": 62,
    "h": 36,
@@ -384,7 +406,7 @@
   {
    "id": "side.line.5",
    "kind": "text",
-   "x": 912,
+   "x": 915,
    "y": 669,
    "w": 122,
    "h": 45,
@@ -397,7 +419,7 @@
   {
    "id": "side.line.6",
    "kind": "text",
-   "x": 1152,
+   "x": 1161,
    "y": 669,
    "w": 126,
    "h": 45,
@@ -408,9 +430,9 @@
    "font": 30
   },
   {
-   "id": "side.picture.8",
+   "id": "side.picture.10",
    "kind": "picture",
-   "x": 1074,
+   "x": 1080,
    "y": 672,
    "w": 40,
    "h": 40,

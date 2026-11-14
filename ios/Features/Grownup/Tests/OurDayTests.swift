@@ -132,7 +132,7 @@ final class OurDayTests: XCTestCase {
         let free = try XCTUnwrap(store.state.selectedBlock)
         await store.send(.plusTapped(start: free.start))
         XCTAssertNotNil(store.state.newSlice)
-        XCTAssertEqual(store.state.newSlicePictures.count, 5)
+        XCTAssertEqual(store.state.newSlicePictures.count, 7)
         // Board G1f: the picture puts the slice on the clock at once, named after it.
         await store.send(.newSlicePicturePicked("actPiano"))
         XCTAssertEqual(store.state.edit.blocks.first { $0.start == free.start }?.title, "Piano")

@@ -215,14 +215,14 @@ public struct OurDayView: View {
 
     @ViewBuilder private var card: some View {
         if let slice = store.newSlice {
-            // Board G1f: scope tabs, five pictures and "More" (3 per row), the name, then the times.
+            // Board G1f (layout v41): scope tabs, seven pictures and "More" (4 per row), the name, the times.
             VStack(alignment: .leading, spacing: Spacing.s) {
                 scopeTabs
                 PictureRow(slots: store.newSlicePictures,
                            selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
                            all: OurDayFeature.pictures, isShowingAll: slice.isPickingMore,
-                           moreTitle: L10n.tr("picker.more"), moreLabel: L10n.tr("picker.more.label"), columns: 3) {
+                           moreTitle: L10n.tr("picker.more"), moreLabel: L10n.tr("picker.more.label"), columns: 4) {
                     store.send(.newSliceMoreTapped)
                 }
                 .zIndex(1)

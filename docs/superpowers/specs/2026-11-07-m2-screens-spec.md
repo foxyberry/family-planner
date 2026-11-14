@@ -115,6 +115,9 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-14: plain-screens pass (user): explanatory sentences removed from C2, C2c, C3g, C5, S2, S2s, S3, S4 and the G1 slice card (values, pictures and short labels stay); C5 "Ready by" reads "{time} today". Superseded boards C1, E6 (→ G6), C6 (→ G1) and E5 (→ G2) moved to Archive. No geometry change.
 - 2026-11-14: new board C3m (add, every month); Repeat is three tabs (180 / 200 / 220, gap 4) on C3, C3g and C4 too. Layout v39 (C3, C3g, C4, C3m).
 - 2026-11-14: new board G1f (new-slice card after "+"). Layout v40 (G1f).
+- 2026-11-14: G1f picture grid 4 per row (7 pictures + More), not 3 (user). Layout v41 (G1f).
+- 2026-11-14: fill rule (user): equal choice groups alone on a row fill it — scope tabs 2 × 230 in the side column, 2 × 206 in the G1 slice card, C3m pattern tabs 2 × 299. Layout v42.
+- 2026-11-14: G1 slice card pass (user): times on one row (176 + arrow + 176) on G1 and G1f, picture grid edge to edge, card height hugs its content. Layout v43 (G1, G1c, G1d, G1e, G1f).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -179,6 +182,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Controls start at x 208 (label + 128). Full-width rows run 80–800 (w 720).
 - Gap 24, then the side column: x 864, w 472 (to 1336). Every side part that spans the column is 472 wide: day button, slice card, tabs row, list rows and their highlight, "Remove every week" / "Skip" buttons.
 - Main button: `InkButton`, side column, 864–1336 × 96, y 872–968.
+- **Fill rule** (user, 2026-11-14): a group of equal choices that sits **alone on its row** fills that row, split equally (gap 12): the scope tabs This day / All days fill the side column (2 × 230) and the G1 slice card (2 × 206); C3m's "2nd Sat" / "Day 14" fill the controls column (2 × 299). Choices that share a row with a label keep label-sized widths on the controls line (For, Repeat, Goes to). Wide parts that stand alone fill too: main and secondary buttons (472), text fields (to 818 or the card inside), picture grids pick the count that fills (4 × 88 in a 424 card). Tabs wider than their art keep their crayon ends: the art is used as a 9-slice (40 pt ends, the middle stretches). **Inside the G1 slice card** (inside 424, 2026-11-14): one times row "[start] → [end]" with two time fields 176 × 80 and the arrow 40 (gap 16), the same on G1 and G1f (no Starts / Ends labels; the field being changed is `pickBlue`); the picture grid spreads to both edges (4 × 88, columns space-between); Name 424. **The card hugs its content** (24 inside, gap 16): no empty band under the last row; its paper art is a 9-slice.
 - G1 / G1c / G1d: the clock moves 66 left with the main column, so its hour labels start at x 30 as on the home clock, and sits centred in 148–968 (centre 410, 549; top 12 near y 178). Undo / Redo 656 / 744, y 880, 72 (beside Save).
 
 ### Seed data in M2
@@ -1092,7 +1096,7 @@ Every-week and just-once items are not edited here. They sit on top of the templ
 - **Free time**:
   - "Make this free time" turns the slice into blank paper with a "+" in the middle.
   - **Tapping "+"** opens a new slice in the card for the **first hour** of that free span (all of it when it is an hour or less). The rest stays free; a leftover shorter than 15 minutes joins the new slice instead. The time is prefilled; you pick a picture and a name (user review PR #24, 2026-11-09).
-  - The new-slice card shows the day pictures in a grid, **3 per row** (slots 88, gap 16). **Board G1f** (2026-11-14): the right-column card 472 × 572 holds, top to bottom with gap 16: This day / All days tabs (the scope rule), the picture grid (two rows; the last slot is "More" for the whole kit; the picked one has the ring), a Name field 424 × 72 (filled with the picture's name, editable, max 14), and the times "{start} → {end}" (two time fields 170 × 80). The hub reads "New" / "{start}" / "until {end}". The slice shows on the clock as soon as a picture is picked; Undo takes it back. Every day picture can be picked, sleep included, and **the picture sets the slice kind** (sleep picture = a sleep slot, and so on).
+  - The new-slice card shows the day pictures in a grid, **4 per row** (slots 88, gap 16; 400 wide fills the 424 card inside; changed from 3 per row 2026-11-14, user). **Board G1f** (2026-11-14): the right-column card 472 × 572 holds, top to bottom with gap 16: This day / All days tabs (the scope rule), the picture grid (4 × 2; the last slot is "More" for the whole kit; the picked one has the ring), a Name field 424 × 72 (filled with the picture's name, editable, max 14), and the times "{start} → {end}" (two time fields 170 × 80). The hub reads "New" / "{start}" / "until {end}". The slice shows on the clock as soon as a picture is picked; Undo takes it back. Every day picture can be picked, sleep included, and **the picture sets the slice kind** (sleep picture = a sleep slot, and so on).
   - Making a slice free joins it with free time on either side, so the number of slices on a template is not fixed.
   - Free time on the real clock shows as "Free time" in the hub (A1 day rule).
 - **Undo** steps back one change at a time (drag, typed time, make free, add), back to the last save.
