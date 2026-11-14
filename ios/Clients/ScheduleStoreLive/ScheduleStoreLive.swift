@@ -203,7 +203,8 @@ private struct Records {
 
     /// Deletes the record with `key` and every record of `group` dated before `oldest`.
     private func prune(_ group: String, replacing key: String, oldest: Day, date: (Data) -> Day?) throws {
-        for record in try fetch(group) where record.key == key || (date(record.payload).map { $0 < oldest } ?? false) {
+        // A record that no longer decodes (an "after" window from before 2026-11-14) is dropped too.
+        for record in try fetch(group) where record.key == key || (date(record.payload).map { $0 < oldest } ?? true) {
             context.delete(record)
         }
     }
@@ -222,7 +223,6 @@ private struct Records {
         switch window {
         case .morning: "morning"
         case let .before(event): "before-" + eventKey(event)
-        case let .after(event): "after-" + eventKey(event)
         case .evening: "evening"
         }
     }

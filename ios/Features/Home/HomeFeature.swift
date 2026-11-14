@@ -131,14 +131,13 @@ public struct HomeFeature {
         /// Home offers the missions button while a kid's open window has missions.
         public var showsMissions: Bool { openWindow != nil }
 
-        /// The button's label (spec "Home button label per window"): "Missions", "Before Swimming",
-        /// "After School"; a name too long for one line falls back to "Missions".
+        /// The button's label (spec "Home button label per window"): "Missions", "Before Swimming"; a
+        /// name too long for one line falls back to "Missions".
         public var missionsTitle: String {
             guard let open = openWindow else { return L10n.tr("home.missions") }
             let label: String
             switch open.part {
             case let .before(event): label = L10n.tr("home.missions.before", title(of: event, in: open.day))
-            case let .after(event): label = L10n.tr("home.missions.after", title(of: event, in: open.day))
             case .morning, .evening: return L10n.tr("home.missions")
             }
             return label.count <= Self.longestMissionsTitle ? label : L10n.tr("home.missions")

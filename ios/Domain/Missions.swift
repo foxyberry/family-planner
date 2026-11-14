@@ -69,12 +69,11 @@ public enum EventRef: Hashable, Codable, Sendable {
     }
 }
 
-/// When missions show (spec "Mission windows"): the morning routine, before or after an outing, and
-/// the evening routine.
+/// When missions show (spec "Mission windows"): the morning routine, before an outing (its Bring
+/// checks), and the evening routine. The "after coming home" window was dropped on 2026-11-14.
 public enum MissionWindow: Hashable, Codable, Sendable {
     case morning
     case before(EventRef)
-    case after(EventRef)
     case evening
 }
 

@@ -1,20 +1,22 @@
 import Foundation
 
 /// One stretch of a kid's day when missions show (spec "Events: one shape", Mission windows), with the
-/// windows whose missions it lists in order: the morning routine then the first outing's "before"
-/// missions; the "after" missions of the events that just ended then the next outing's "before" ones.
+/// windows whose missions it lists in order: the morning routine, then the next outing's Bring checks.
 public struct WindowSpan: Equatable, Sendable {
     public var start: Int
     public var end: Int
     public var parts: [MissionWindow]
     /// The outing this stretch leads to (its leave ends the stretch), if any.
     public var outing: Outing?
+    /// The events linked after that outing ("After {event}"): their Bring is checked before its leave.
+    public var linked: [EventRef]
 
-    public init(start: Int, end: Int, parts: [MissionWindow], outing: Outing? = nil) {
+    public init(start: Int, end: Int, parts: [MissionWindow], outing: Outing? = nil, linked: [EventRef] = []) {
         self.start = start
         self.end = end
         self.parts = parts
         self.outing = outing
+        self.linked = linked
     }
 
     public func contains(_ minute: Int) -> Bool { start <= minute && minute < end }
@@ -36,10 +38,12 @@ public extension DayPlanner {
 
         var spans: [WindowSpan] = []
         func add(_ start: Int, _ end: Int, _ parts: [MissionWindow], _ outing: Outing? = nil) {
-            if start < end, !parts.isEmpty { spans.append(WindowSpan(start: start, end: end, parts: parts, outing: outing)) }
+            guard start < end, !parts.isEmpty else { return }
+            let linked = outing.map { Self.chain(from: $0.slot, in: sorted).dropFirst().compactMap(EventRef.init) } ?? []
+            spans.append(WindowSpan(start: start, end: end, parts: parts, outing: outing, linked: Array(linked)))
         }
 
-        // Morning: wake → the first leave, or noon. A leave before noon brings its "before" missions in.
+        // Morning: wake → the first leave, or noon. A leave before noon brings its Bring checks in.
         let noon = min(Self.morningEnd, evening)
         if let first = outings.first, first.leave <= Self.morningEnd {
             add(wake, first.leave, [.morning] + before(first), first)
@@ -48,18 +52,14 @@ public extension DayPlanner {
             // The first outing leaves after noon: its "before" stretch runs from noon to its leave.
             if let first = outings.first { add(noon, first.leave, before(first), first) }
         }
-        // After each outing: home → the next leave (bringing in that outing's "before" missions) or
-        // dinner. An outing that leaves after dinner has no stretch of its own.
+        // After each outing: home → the next leave, with that outing's Bring checks. An outing that
+        // leaves after dinner has no stretch of its own.
         for (index, outing) in outings.enumerated() {
-            let next = outings.indices.contains(index + 1) ? outings[index + 1] : nil
+            guard outings.indices.contains(index + 1) else { break }
+            let next = outings[index + 1]
             let chain = Self.chain(from: outing.slot, in: sorted)
             let home = (chain.last?.end ?? outing.slot.end) + outing.trip.homeAfter
-            let afterParts = chain.compactMap(EventRef.init).map(MissionWindow.after)
-            if let next, next.leave < evening {
-                add(home, next.leave, afterParts + before(next), next)
-            } else {
-                add(home, evening, afterParts)
-            }
+            if next.leave < evening { add(home, next.leave, before(next), next) }
         }
         if let dinner { add(dinner, bed, [.evening]) }
         return spans
@@ -74,11 +74,12 @@ public extension DayPlanner {
         EventRef(outing.slot).map { [.before($0)] } ?? []
     }
 
-    /// The outing's slot and the linked slots that follow it ("After {event}"), in order.
+    /// The outing's slot and the linked slots that follow it ("After {event}", gap included), in order.
+    /// The planner leaves a linked item out when its event is not on the day, so its Bring goes too.
     private static func chain(from slot: Slot, in slots: [Slot]) -> [Slot] {
         var chain = [slot]
-        while let last = chain.last, let event = EventRef(last),
-              let next = slots.first(where: { $0.after == event && $0.start == last.end }) {
+        while chain.count <= slots.count, let last = chain.last, let event = EventRef(last),
+              let next = slots.first(where: { $0.after == event && $0.start >= last.end }) {
             chain.append(next)
         }
         return chain
@@ -103,10 +104,11 @@ public struct WindowMission: Identifiable, Hashable, Sendable {
 
 public extension DayPlanner {
     /// The kid's missions in a stretch, part by part: the morning routine's missions for the weekday
-    /// (C5 order), an outing's "before" missions then its Bring checks, the "after" missions of the
-    /// events that just ended. An item's mission or Bring check whose picture is already there (the
-    /// routine's "Pack bag" and Bring's bag) shows once. School's own missions come with its event
-    /// screen (6d); the evening routine comes later.
+    /// (C5 order), then the outing's Bring checks and those of the events linked after it (swimming
+    /// after school is checked before school). A Bring check whose picture is already there (the
+    /// routine's "Pack bag" and Bring's bag) shows once. An outing with nothing to bring adds nothing,
+    /// so a stretch of only that opens no window. School's own Bring comes with its event screen (6d);
+    /// the evening routine comes later.
     static func missions(in span: WindowSpan, routine: [Mission], items: [ScheduleItem],
                          weekday: Weekday) -> [WindowMission] {
         var result: [WindowMission] = []
@@ -126,10 +128,9 @@ public extension DayPlanner {
                     add(part, mission.id, mission.name, mission.picture, once: false)
                 }
             case let .before(event):
-                guard let item = item(event) else { continue }
-                for thing in item.missionsBefore + item.bring { add(part, thing.id, thing.name, thing.picture) }
-            case let .after(event):
-                for thing in item(event)?.missionsAfter ?? [] { add(part, thing.id, thing.name, thing.picture) }
+                for thing in ([event] + span.linked).compactMap(item).flatMap(\.bring) {
+                    add(part, thing.id, thing.name, thing.picture)
+                }
             case .evening:
                 continue
             }

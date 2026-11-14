@@ -1178,17 +1178,6 @@
         }
       }
     },
-    "editor.row.missions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Missions"
-          }
-        }
-      }
-    },
     "editor.row.name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1849,17 +1838,6 @@
         }
       }
     },
-    "home.missions.after" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "After %@"
-          }
-        }
-      }
-    },
     "home.missions.before" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2032,17 +2010,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bus %1$@ · walk %2$lld min"
-          }
-        }
-      }
-    },
-    "item_missions.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Missions · %@"
           }
         }
       }
@@ -2311,17 +2278,6 @@
         }
       }
     },
-    "missions.add" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add"
-          }
-        }
-      }
-    },
     "missions.back" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2586,39 +2542,6 @@
         }
       }
     },
-    "missions.row.after" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ (after)"
-          }
-        }
-      }
-    },
-    "missions.section.after" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "After"
-          }
-        }
-      }
-    },
-    "missions.section.before" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Before"
-          }
-        }
-      }
-    },
     "missions.slide" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2681,17 +2604,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Good morning!"
-          }
-        }
-      }
-    },
-    "missions.title.new" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "new item"
           }
         }
       }

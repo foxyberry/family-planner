@@ -249,9 +249,6 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var after: EventRef?
     /// Things to take (spec "Event form rows", Bring): checked before leaving, up to `ItemMission.most`.
     public var bring: [ItemMission]
-    /// Missions in the window before leaving for this item, and after coming home from it.
-    public var missionsBefore: [ItemMission]
-    public var missionsAfter: [ItemMission]
     /// How the run ends (Runs); nil for items saved before Runs, whose `until` decides.
     public var runsEnd: RunsEnd?
     /// Days changed on their own ("This day"), one per date.
@@ -263,8 +260,7 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
                 recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
-                trip: Trip? = nil, after: EventRef? = nil, bring: [ItemMission] = [],
-                missionsBefore: [ItemMission] = [], missionsAfter: [ItemMission] = [], runsEnd: RunsEnd? = nil,
+                trip: Trip? = nil, after: EventRef? = nil, bring: [ItemMission] = [], runsEnd: RunsEnd? = nil,
                 dayChanges: [DayChange] = [], afterGap: Int = 0, noSchool: NoSchoolPlan? = nil) {
         self.runsEnd = runsEnd
         self.dayChanges = dayChanges
@@ -273,8 +269,6 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
         self.trip = after == nil ? trip : nil
         self.after = after
         self.bring = Array(bring.prefix(ItemMission.most))
-        self.missionsBefore = Array(missionsBefore.prefix(ItemMission.most))
-        self.missionsAfter = Array(missionsAfter.prefix(ItemMission.most))
         self.id = id
         self.title = title
         self.iconName = iconName
@@ -307,10 +301,11 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id, title, iconName, audience, start, end, recurrence, skippedDays, skipsHolidays, showsStar, trip, after,
-             bring, missionsBefore, missionsAfter, runsEnd, dayChanges, afterGap, noSchool
+             bring, runsEnd, dayChanges, afterGap, noSchool
     }
 
-    /// Items stored before Bring and the item missions existed load with none.
+    /// Items stored before Bring existed load with none. The dropped event missions (2026-11-14,
+    /// keys `missionsBefore` / `missionsAfter`) are ignored when an old item loads.
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.init(id: try c.decode(UUID.self, forKey: .id), title: try c.decode(String.self, forKey: .title),
@@ -324,8 +319,6 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
                   trip: try c.decodeIfPresent(Trip.self, forKey: .trip),
                   after: try c.decodeIfPresent(EventRef.self, forKey: .after),
                   bring: try c.decodeIfPresent([ItemMission].self, forKey: .bring) ?? [],
-                  missionsBefore: try c.decodeIfPresent([ItemMission].self, forKey: .missionsBefore) ?? [],
-                  missionsAfter: try c.decodeIfPresent([ItemMission].self, forKey: .missionsAfter) ?? [],
                   runsEnd: try c.decodeIfPresent(RunsEnd.self, forKey: .runsEnd),
                   dayChanges: try c.decodeIfPresent([DayChange].self, forKey: .dayChanges) ?? [],
                   afterGap: try c.decodeIfPresent(Int.self, forKey: .afterGap) ?? 0,

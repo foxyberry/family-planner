@@ -26,7 +26,7 @@ public struct ItemEditorView: View {
                     // Exactly the card's inner width, so no row can widen the card past 64 … 882.
                     PaperCard(seed: 31, trailingInset: layout.editorTrailingInset) {
                         ScrollColumn(scrollTarget: store.scrollTarget) {
-                            Group { if store.isEditingMissions { missionsPage } else { form } }
+                            form
                                 .frame(width: layout.editorRowsWidth, alignment: .leading)
                         }
                     }
@@ -57,21 +57,6 @@ public struct ItemEditorView: View {
                 case .bring: bringCard
                 case .runsEnd: runsEndCard
                 case .noSchool: noSchoolCard
-                }
-            }
-            if let draft = store.missionDraft {
-                CrayonColor.dim.ignoresSafeArea()
-                    .onTapGesture { store.send(.missionDraftClosed) }
-                if let title = store.missionRemoveTitle {
-                    ConfirmCard(title: title, message: nil, cancel: L10n.tr("c5.remove.keep"),
-                                confirm: L10n.tr("c5.remove"), isDestructive: true,
-                                onCancel: { store.send(.missionRemoveCancelled) },
-                                onConfirm: { store.send(.missionRemoveConfirmed) })
-                } else {
-                    MissionDraftCard(draft: draft, onName: { store.send(.missionNameChanged($0)) },
-                                     onPicture: { store.send(.missionPicturePicked($0)) },
-                                     onRemove: { store.send(.missionRemoveTapped) },
-                                     onSave: { store.send(.missionSaveTapped) })
                 }
             }
             if store.fromWhen != nil {
@@ -285,7 +270,7 @@ public struct ItemEditorView: View {
     }
 
     /// Spec "Event form rows for 6b" (board G2b): From, then Going / Leave when From is Home (C3g),
-    /// then Bring, Missions and Medal; one line each on a 96 pitch, "›" at 814.
+    /// then Bring and Medal; one line each on a 96 pitch, "›" at 790.
     @ViewBuilder private var eventRows: some View {
         linkRow(L10n.tr("editor.row.from"), action: .fromRowTapped) {
             Text(store.fromText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
@@ -302,13 +287,6 @@ public struct ItemEditorView: View {
                     KitIcon(KitSlot(iconName: first.picture), size: 48)
                     Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
-            } else {
-                nothing
-            }
-        }
-        linkRow(L10n.tr("editor.row.missions"), action: .missionsRowTapped) {
-            if let text = store.form.missionsText {
-                Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
             } else {
                 nothing
             }
@@ -412,74 +390,6 @@ public struct ItemEditorView: View {
                 }
             }
         }
-    }
-
-    // MARK: Missions sub-page (in the form card)
-
-    private var missionsPage: some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
-            HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("grownup.back")) {
-                    store.send(.missionsBackTapped)
-                }
-                .size(64)
-                Text(store.missionsTitle).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
-            }
-            missionsSection(.before, title: L10n.tr("missions.section.before"))
-            missionsSection(.after, title: L10n.tr("missions.section.after"))
-        }
-    }
-
-    private func missionsSection(_ section: ItemForm.MissionSection, title: String) -> some View {
-        let missions = store.form.missions(section)
-        return VStack(alignment: .leading, spacing: 0) {
-            // Board F5: "Before" and "After" are heads over C5 rows (88) and "+ Add".
-            Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                .padding(.top, Spacing.s)
-            ForEach(Array(missions.enumerated()), id: \.element.id) { index, mission in
-                missionRow(mission, index: index, section: section)
-            }
-            if store.state.canAddMission(section) {
-                HStack(spacing: Spacing.m) {
-                    RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("missions.add")) {
-                        store.send(.missionAddTapped(section))
-                    }
-                    .size(56)
-                    Button { store.send(.missionAddTapped(section)) } label: {
-                        Text(L10n.tr("missions.add")).crayonType(.body).foregroundStyle(CrayonColor.link)
-                            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHidden(true)
-                }
-                .frame(height: 88)
-            }
-        }
-    }
-
-    /// Board C5's row: ≡, the picture, the name, "›"; drag ≡ to reorder within the section.
-    private func missionRow(_ mission: ItemMission, index: Int, section: ItemForm.MissionSection) -> some View {
-        Button { store.send(.missionRowTapped(mission.id)) } label: {
-            HStack(spacing: Spacing.m) {
-                MarkerIcon(.handle, size: 32, color: CrayonColor.softText)
-                KitIcon(KitSlot(iconName: mission.picture), size: 48)
-                Text(mission.name).crayonType(.body).foregroundStyle(CrayonColor.ink)
-                Spacer()
-                MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
-            }
-            .frame(height: 88)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .draggable(mission.id.uuidString)
-        .dropDestination(for: String.self) { ids, _ in
-            guard let id = ids.first.flatMap(UUID.init(uuidString:)) else { return false }
-            store.send(.missionMoved(id, to: index, in: section))
-            return true
-        }
-        .accessibilityAction(named: L10n.tr("c5.move_up")) { store.send(.missionMoved(mission.id, to: index - 1, in: section)) }
-        .accessibilityAction(named: L10n.tr("c5.move_down")) { store.send(.missionMoved(mission.id, to: index + 1, in: section)) }
     }
 
     /// Board C3g: how the kid goes, and when they leave (Walk, Car, Taxi) or "Uses Our buses ›".
