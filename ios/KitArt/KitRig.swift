@@ -31,6 +31,9 @@ public struct KitRig: Equatable, Sendable {
         case flicker
         case twinkle
         case hop(units: Double)
+        /// Move by (dx, dy) and back, `times` times, after `delay` ms (the star's quick shoot forward;
+        /// its trail follows with a smaller move and a short delay).
+        case dash(dx: Double, dy: Double, times: Int, delay: Double)
     }
 
     /// Empty for the default rig: the whole picture is one part.
@@ -100,6 +103,7 @@ public struct KitRigs: Sendable {
         case "flicker": .flicker
         case "twinkle": .twinkle
         case "hop": .hop(units: raw.px ?? 14)
+        case "dash": .dash(dx: raw.dx ?? 0, dy: raw.dy ?? 0, times: raw.times ?? 1, delay: raw.delay ?? 0)
         default: throw UnknownMove(type: raw.type)
         }
     }
@@ -129,5 +133,7 @@ public struct KitRigs: Sendable {
         var px: Double?
         var times: Int?
         var delay: Double?
+        var dx: Double?
+        var dy: Double?
     }
 }

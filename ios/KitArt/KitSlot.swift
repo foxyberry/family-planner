@@ -3,6 +3,8 @@
 public enum KitSlot: String, CaseIterable, Sendable {
     // Morning
     case sun, toilet, toothbrush, washFace, hairBrush, shirt, actBreakfast, backpack, lunchBox, waterBottle, shoe
+    // Things to bring (board 0d4, the bring kit batch)
+    case swimsuit, goggles, towel, rollerblades, helmet, libraryBag
     // School and play
     case actSchool, wolfie, homework, actPlay, blocks, playground, snack, actDinner, tv
     // After-school activities

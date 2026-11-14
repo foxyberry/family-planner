@@ -9,7 +9,7 @@ final class KitRigTests: XCTestCase {
     private let rigs = KitRigs.shared
 
     func testBundledRigsDecode() {
-        XCTAssertEqual(rigs.riggedSlots.count, 34)
+        XCTAssertEqual(rigs.riggedSlots.count, 35)
         XCTAssertEqual(rigs.scale, 1.5)
         let bus = rigs.rig(for: .busSingle)
         XCTAssertEqual(bus?.runs.map(\.part), ["body", "back wheel", "front wheel"])
@@ -36,7 +36,7 @@ final class KitRigTests: XCTestCase {
     func testEveryMoveIsAtRestAtTheStartAndTheEnd() {
         let moves: [KitRig.Move] = [.rock(degrees: 8, times: 2), .bob(units: 6, times: 2), .slide(units: 5, times: 1),
                                     .rise(units: 10), .fall(units: 10), .press(units: 6, delay: 90), .blink,
-                                    .flicker, .twinkle, .hop(units: 14)]
+                                    .flicker, .twinkle, .hop(units: 14), .dash(dx: 14, dy: -11, times: 2, delay: 80)]
         for move in moves {
             for time in [0, RigMotion.duration] {
                 let pose = RigMotion.pose([move], at: time, scale: 1.5)

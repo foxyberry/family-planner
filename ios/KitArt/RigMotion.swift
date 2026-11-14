@@ -18,7 +18,7 @@ public enum RigMotion {
     public static let duration: Double = 1.2
 
     /// The pose of a part with `moves` at `time` seconds into the play. `scale` multiplies the
-    /// rock, bob, slide, rise, fall, press and hop amounts; spin, blink, flicker and twinkle ignore it.
+    /// rock, bob, slide, rise, fall, press, dash and hop amounts; spin, blink, flicker and twinkle ignore it.
     /// Every move is back at rest at 0 and at `duration`.
     public static func pose(_ moves: [KitRig.Move], at time: Double, scale: Double) -> RigPose {
         let t = min(max(time, 0), duration)
@@ -49,6 +49,14 @@ public enum RigMotion {
                 pose.opacity *= 1 - 0.4 * pow(sin(3 * .pi * p), 2)
             case .twinkle:
                 pose.scale *= 1 + 0.2 * sin(.pi * p)
+            case let .dash(dx, dy, times, delay):
+                let start = min(delay / 1000, duration * 0.5)
+                if t >= start {
+                    let q = (t - start) / (duration - start)
+                    let out = abs(sin(.pi * Double(times) * q))
+                    pose.offset.width += dx * scale * out
+                    pose.offset.height += dy * scale * out
+                }
             case let .hop(units):
                 if p <= 0.8 {
                     pose.offset.height -= units * scale * sin(.pi * p / 0.8)
