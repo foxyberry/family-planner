@@ -24,6 +24,8 @@ final class SchoolEditorTests: XCTestCase {
             $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: SeedData.routines, items: []) }
             $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.scheduleStore.saveRoutine = { routine in savedRoutines.withValue { $0.append(routine) } }
+            $0.schoolDirectory.calendar = { _, _ in .none }
+            $0.uuid = .incrementing
         }
         store.exhaustivity = .off
         return store
@@ -66,5 +68,40 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertFalse(store.state.medal)
         await store.send(.goingTapped)
         await store.receive(\.delegate.openBuses)
+    }
+
+    /// Board G4 Bring (F2): up to four things, named as the thing; Cancel puts them back.
+    func testBringPicksAndCancels() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.bringRowTapped)
+        await store.send(.bringToggled(.libraryBag))
+        await store.send(.bringToggled(.waterBottle))
+        XCTAssertEqual(store.state.bringText, "Library bag · Water bottle")
+        await store.send(.bringDoneTapped)
+        await store.send(.bringRowTapped)
+        await store.send(.bringToggled(.waterBottle))
+        await store.send(.bringClosed)
+        XCTAssertEqual(store.state.bringText, "Library bag · Water bottle", "Cancel puts the list back")
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(kids.value.last?.school?.bring?.map(\.picture), ["libraryBag", "waterBottle"])
+    }
+
+    /// Spec "Edit scope": This day keeps the school record and saves only the day's own template.
+    func testThisDayMovesOnlyThatDay() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.thisDay))
+        await store.send(.endPicked(tuesday.date(minute: 780, calendar: F.calendar)))
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertTrue(kids.value.isEmpty, "the school record stays")
+        XCTAssertEqual(routines.value.last?.onlyOn, tuesday)
+        XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.end, 780)
     }
 }

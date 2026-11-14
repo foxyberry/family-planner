@@ -123,7 +123,8 @@ public struct MissionsFeature {
         public func list(of kid: Kid.ID) -> [WindowMission] {
             guard let span = spans[kid] else { return [] }
             return DayPlanner.missions(in: span, routine: missions.filter { $0.kid == kid }, items: items,
-                                       weekday: weekday ?? .monday)
+                                       weekday: weekday ?? .monday,
+                                       schoolBring: kids.first { $0.id == kid }?.school?.bring ?? [])
         }
 
         /// The event of the outing the kid's window leads to, which the slide belongs to (nil: the

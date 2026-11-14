@@ -397,7 +397,7 @@ public struct AppFeature {
             case let .path(.element(id: id, action: .ourDay(.delegate(.openSchool)))):
                 guard case let .ourDay(day) = state.path[id: id] else { return .none }
                 state.path.append(.schoolEditor(SchoolEditorFeature.State(kid: day.kid, today: Day(date.now, calendar: calendar),
-                                                                          calendar: calendar)))
+                                                                          day: day.day, calendar: calendar)))
                 return .none
 
             case let .path(.element(id: id, action: .editor(.delegate(.finished)))):
