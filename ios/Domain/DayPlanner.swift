@@ -1,4 +1,5 @@
 import Foundation
+import Strings
 
 /// Board A1n: the kid screens look like night from the first evening-routine slot of the day's
 /// template until the kid wakes up (the end of the sleep slot that starts at midnight).
@@ -72,9 +73,12 @@ public enum DayPlanner {
         let routine = template(for: kid.id, on: day, routines: routines, holidays: holidays, calendar: calendar)
         var candidates: [(priority: Int, slot: Slot)] = []
         for block in routine?.blocks ?? [] {
-            candidates.append((0, Slot(title: block.title, iconName: block.iconName, kind: block.kind,
-                                       start: block.start, end: block.end, source: .routine, showsStar: false,
-                                       trip: block.trip)))
+            // Board G1g: a slice skipped this day is free time on every kid screen.
+            candidates.append((0, block.isSkipped
+                ? Slot(title: L10n.tr("home.hub.free"), iconName: "", kind: .free, start: block.start, end: block.end,
+                       source: .routine, showsStar: false)
+                : Slot(title: block.title, iconName: block.iconName, kind: block.kind, start: block.start,
+                       end: block.end, source: .routine, showsStar: false, trip: block.trip)))
         }
         let occurring = items.filter { occurs($0, on: day, kid: kid.id, holidays: holidays, calendar: calendar) }
             .map { $0.on(day) }

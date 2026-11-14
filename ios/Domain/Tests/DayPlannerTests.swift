@@ -22,6 +22,19 @@ final class DayPlannerTests: XCTestCase {
         XCTAssertFalse(slots.contains { $0.title == "School" })
     }
 
+    /// Board G1g: a slice skipped on this day's own template is free time on the kid screens, and a
+    /// template saved before the flag existed still decodes.
+    func testSkippedBlockIsFreeTime() throws {
+        let block = RoutineBlock(title: "Play", iconName: "actPlay", kind: .play, start: 900, end: 990, isSkipped: true)
+        let own = Routine.day(F.monday, kid: SeedData.kidA.id, dayType: .weekday, blocks: [block])
+        let slots = DayPlanner.slots(on: F.monday, kid: SeedData.kidA, routines: [own], items: [], holidays: [],
+                                     calendar: F.calendar)
+        XCTAssertEqual(slots.first?.kind, .free)
+        let old = #"{"title":"Play","iconName":"actPlay","kind":"play","start":900,"end":990,"isLocked":false}"#
+        let decoded = try JSONDecoder().decode(RoutineBlock.self, from: Data(old.utf8))
+        XCTAssertFalse(decoded.isSkipped)
+    }
+
     func testSaturdayAndSundayTypes() {
         XCTAssertEqual(dayType(F.saturday), .saturday)
         XCTAssertEqual(dayType(F.sunday), .sunday)

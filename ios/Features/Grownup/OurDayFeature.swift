@@ -206,7 +206,13 @@ public struct OurDayFeature {
             case .thisDay:
                 Routine.day(day, kid: kid, dayType: dayType, blocks: edit.blocks)
             case .allDays:
-                Routine(kid: kid, dayType: dayType, from: allDaysFrom, blocks: edit.blocks)
+                // A skip is always this day (board G1g): every day's template has none.
+                Routine(kid: kid, dayType: dayType, from: allDaysFrom,
+                        blocks: edit.blocks.map { block in
+                            var block = block
+                            block.isSkipped = false
+                            return block
+                        })
             }
         }
 
@@ -240,7 +246,7 @@ public struct OurDayFeature {
                 ClockSector(start: block.start, end: block.end,
                             style: ClockSlotStyle(rawValue: block.kind.rawValue) ?? .play,
                             iconName: block.kind == .free || block.iconName.isEmpty ? nil : block.iconName,
-                            isCurrent: index == selected, showsStar: false, priority: 0)
+                            isCurrent: index == selected, showsStar: false, priority: 0, isFaded: block.isSkipped)
             }
         }
 
@@ -266,13 +272,25 @@ public struct OurDayFeature {
                 return EditClock.Hub(above: L10n.tr("day.new.hub"), time: TimeText.withPeriod(block.start),
                                      below: L10n.tr("home.hub.until", TimeText.withPeriod(block.end)))
             }
+            // Board G1g: "Play" / "Skipped" / "this day".
+            if let block = selectedBlock, block.isSkipped {
+                return EditClock.Hub(above: block.title, time: L10n.tr("day.skipped.hub"),
+                                     below: L10n.tr("day.skipped.this_day"))
+            }
             return EditClock.Hub(title: selected.map { edit.blocks[$0].title })
         }
 
         public var selectedBlock: RoutineBlock? { selected.map { edit.blocks[$0] } }
         public var startLabel: String? { selectedBlock.map { TimeText.withPeriod($0.start) } }
         public var endLabel: String? { selectedBlock.map { TimeText.withPeriod($0.end) } }
-        public var canMakeFree: Bool { selectedBlock.map { !$0.isLocked && $0.kind != .free } ?? false }
+        /// A skipped slice offers only "Bring back" (board G1g).
+        public var canMakeFree: Bool { selectedBlock.map { !$0.isLocked && $0.kind != .free && !$0.isSkipped } ?? false }
+        /// Board G1g: "Skip this day" on This day only (a skip is always this day).
+        public var canSkip: Bool {
+            saveScope == .thisDay && (selectedBlock.map { !$0.isLocked && $0.kind != .free && !$0.isSkipped } ?? false)
+        }
+        /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
+        public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true }
         /// School's slice card links to G4 (spec "School edits on G4").
         public var canEditSchool: Bool { selectedBlock?.kind == .school && kidInfo?.school != nil }
 
@@ -335,6 +353,9 @@ public struct OurDayFeature {
         case startPicked(Date)
         case endPicked(Date)
         case makeFreeTapped
+        /// Board G1g: skip the selected slice on this day, or bring it back.
+        case skipTapped
+        case bringBackTapped
         /// Board G1f: a picture puts the slice on the clock (named after it); the name and times edit it.
         case newSlicePicturePicked(String)
         case newSliceNameChanged(String)
@@ -538,6 +559,16 @@ public struct OurDayFeature {
                 let before = state.edit.blocks[block].end
                 feel(state.edit.setEnd(ofBlock: block, to: Day.minute(of: date, calendar: calendar)),
                      from: before, &state)
+                return .none
+
+            case .skipTapped:
+                guard let block = state.selected, state.canSkip else { return .none }
+                state.edit.setSkipped(block, true)
+                return .none
+
+            case .bringBackTapped:
+                guard let block = state.selected else { return .none }
+                state.edit.setSkipped(block, false)
                 return .none
 
             case .makeFreeTapped:
