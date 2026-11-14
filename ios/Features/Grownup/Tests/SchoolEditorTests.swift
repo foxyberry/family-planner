@@ -104,4 +104,25 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(routines.value.last?.onlyOn, tuesday)
         XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.end, 780)
     }
+
+    /// Spec "E5 School rule": This day shows "{Day d Mon} only" and skips School on that day (a sick
+    /// day), saved at once; "Bring back" undoes it.
+    func testThisDaySkipsSchoolAndBringsItBack() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.thisDay))
+        XCTAssertEqual(store.state.thisDayTitle, "Tue 10 Nov only")
+        XCTAssertEqual(store.state.skipTitle, "Skip this day")
+        await store.send(.skipDayTapped)
+        await store.receive(\.daySkipSaved)
+        XCTAssertEqual(routines.value.last?.onlyOn, tuesday)
+        XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.isSkipped, true)
+        XCTAssertTrue(store.state.isDaySkipped)
+        await store.send(.skipDayTapped)
+        await store.receive(\.daySkipSaved)
+        XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.isSkipped, false)
+        XCTAssertTrue(kids.value.isEmpty, "the school record stays")
+    }
 }
