@@ -26,6 +26,8 @@ public struct AppFeature {
         case busSettings(BusSettingsFeature)
         /// G4 · Edit School, from the List's School row.
         case schoolEditor(SchoolEditorFeature)
+        /// G6f "+ Add a child".
+        case addChild(AddChildFeature)
         case dataSources(DataSourcesFeature)
         /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
         /// grown-up rules (idle lock, app-switcher cover) skip it.
@@ -355,6 +357,19 @@ public struct AppFeature {
                 state.grownupIdleSeconds = 0
                 state.relockCaption = nil
                 return .none
+
+            case .path(.element(id: _, action: .settings(.delegate(.addChild)))):
+                let taken = state.home.days.map(\.kid.colorIndex)
+                state.path.append(.addChild(AddChildFeature.State(today: Day(date.now, calendar: calendar),
+                                                                  takenColours: taken)))
+                return .none
+
+            case let .path(.element(id: id, action: .addChild(.delegate(.finished)))):
+                state.path.pop(from: id)
+                // Settings and home load the new kid again.
+                guard let settings = state.path.ids.last(where: { if case .settings = state.path[id: $0] { true } else { false } })
+                else { return .send(.home(.reload)) }
+                return .merge(.send(.path(.element(id: settings, action: .settings(.task)))), .send(.home(.reload)))
 
             case let .path(.element(id: _, action: .settings(.delegate(.grownupLockChanged(on))))):
                 // Settings saved the lock: the Face ID gate and the app-switcher cover follow it now,

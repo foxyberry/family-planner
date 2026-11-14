@@ -52,6 +52,15 @@ public struct SettingsFeature {
                                           schoolYear: schools[kid.id] ?? .none, today: today, calendar: calendar)
         }
 
+        /// Board G6f "Children": one row per kid, "{age} · {place}".
+        public var childRows: [(kid: Kid, detail: String)] {
+            (snapshot?.kids ?? []).map { kid in
+                (kid, L10n.tr("settings.child.detail", kid.age, kid.school?.name ?? L10n.tr("settings.child.home")))
+            }
+        }
+        /// "+ Add a child", up to four kids.
+        public var canAddChild: Bool { (snapshot?.kids.count ?? 0) < AddChildFeature.most }
+
         /// The Family tab's switches (the same rows as S4).
         public var settingRows: [AppSettingRow] { settings.rows(lockNeedsFaceID: lockNeedsFaceID) }
     }
@@ -65,6 +74,9 @@ public struct SettingsFeature {
         /// Navigation the app's stack handles.
         case missionsRowTapped
         case busesRowTapped
+        /// Board G6f: a Children row opens that kid's tab; "+ Add a child" opens the kid card.
+        case childTapped(Kid.ID)
+        case addChildTapped
         case backTapped
         /// "Data sources": the open-data notices the school list's licences ask for.
         case dataSourcesTapped
@@ -74,6 +86,7 @@ public struct SettingsFeature {
         public enum Delegate: Equatable {
             /// The grown-up lock was turned on or off: the app's gate follows it at once.
             case grownupLockChanged(Bool)
+            case addChild
         }
     }
 
@@ -146,6 +159,12 @@ public struct SettingsFeature {
                     break
                 }
                 return .none
+
+            case let .childTapped(kid):
+                return .send(.tabTapped(.kid(kid)))
+
+            case .addChildTapped:
+                return .send(.delegate(.addChild))
 
             case .missionsRowTapped, .busesRowTapped, .backTapped, .dataSourcesTapped, .delegate:
                 return .none

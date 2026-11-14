@@ -84,8 +84,44 @@ public struct SettingsView: View {
         }
     }
 
-    /// The Family tab: this iPad's switches (the same rows as S4).
+    /// Board G6f: "This iPad" (the S4 switches), then "Children" and "+ Add a child".
     private var familyCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.s) {
+            switches
+            Text(L10n.tr("settings.children")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                .padding(.top, Spacing.m)
+            ForEach(store.childRows, id: \.kid.id) { row in
+                Button { store.send(.childTapped(row.kid.id)) } label: {
+                    HStack(spacing: Spacing.s) {
+                        KidFace(KidFace.Badge(face: row.kid.face, colorIndex: row.kid.colorIndex), name: row.kid.name,
+                                size: KidFace.medium)
+                        Text(row.kid.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
+                        Text(row.detail).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
+                        Spacer(minLength: 0)
+                        MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                    }
+                    .frame(minHeight: 72)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            if store.canAddChild {
+                Button { store.send(.addChildTapped) } label: {
+                    HStack(spacing: Spacing.s) {
+                        MarkerIcon(.plus, size: 28, color: CrayonColor.ink)
+                            .frame(width: 56, height: 56)
+                            .crayonBackground(.circle, fill: nil, seed: 1806)
+                        Text(L10n.tr("settings.add_child")).crayonType(.body).foregroundStyle(CrayonColor.link)
+                    }
+                    .frame(minHeight: 72)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var switches: some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             Text(L10n.tr("settings.this_ipad")).crayonType(.head).foregroundStyle(CrayonColor.ink)
             ForEach(store.settingRows, id: \.setting) { row in

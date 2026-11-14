@@ -95,6 +95,8 @@ public struct AppView: View {
                 BusSettingsView(store: store)
             case let .schoolEditor(store):
                 SchoolEditorView(store: store)
+            case let .addChild(store):
+                AddChildView(store: store)
             case let .dataSources(store):
                 DataSourcesView(store: store)
             }

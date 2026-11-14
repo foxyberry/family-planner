@@ -115,10 +115,15 @@ private struct Records {
                          missions: try values("mission"), busPlans: try values("busPlan"))
     }
 
-    /// Replaces the kid's record in place (keeping its order); a kid not stored yet is not added.
+    /// Replaces the kid's record in place (keeping its order); a new kid (G6f "Add a child") goes
+    /// after the others.
     func put(_ kid: Kid) throws {
-        guard let old = try fetch("kid").first(where: { $0.key == "kid:\(kid.id)" }) else { return }
-        old.payload = try encoder.encode(kid)
+        let kids = try fetch("kid")
+        if let old = kids.first(where: { $0.key == "kid:\(kid.id)" }) {
+            old.payload = try encoder.encode(kid)
+        } else {
+            try insert("kid:\(kid.id)", group: "kid", order: (kids.map(\.order).max() ?? -1) + 1, kid)
+        }
         try context.save()
     }
 
