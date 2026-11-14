@@ -117,6 +117,7 @@ final class KitArtTests: XCTestCase {
     /// Bring's "More" lists objects only: no activity, vehicle, reward, feeling or UI picture.
     func testThingsAreObjectsOnly() {
         XCTAssertTrue([KitSlot.backpack, .lunchBox, .waterBottle, .shoe, .teddy].allSatisfy(\.isThing))
+        XCTAssertTrue([KitSlot.swimsuit, .goggles, .towel, .rollerblades, .helmet, .libraryBag].allSatisfy(\.isThing))
         XCTAssertFalse([KitSlot.actSwim, .busDouble, .medalGold, .feelHappy, .skyDay, .pencil, .debugLadybug, .wolfie,
                         .home, .kidGirl].contains(where: \.isThing))
     }

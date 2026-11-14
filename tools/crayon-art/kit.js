@@ -432,6 +432,57 @@ const ITEMS = {
     S(rr(80, 70, 80, 146, 26), K.sky, 40),
     Ln('M84 124Q120 114 156 124', 4),
   ],
+  // More things to bring (swim day, skating, cycling, library day). Objects, so no faces, except the bag (like backpack).
+  swimsuit: [
+    // unisex swim shorts: a waistband with a drawstring bow, two short legs, a white side stripe on each leg
+    S(rr(40, 56, 160, 30, 12), K.mint, 30),
+    S('M42 86H198L208 192Q208 202 198 202H136Q128 202 127 194L120 142L113 194Q112 202 104 202H42Q32 202 32 192Z', K.blue, -45),
+    Ln('M54 100L46 186M186 100L194 186', 6, '#FFFFFF'),
+    Ln('M120 70C108 58 96 66 104 74C110 80 118 74 120 70C122 74 130 80 136 74C144 66 132 58 120 70Z', 3.5), Ln('M112 76L104 102M128 76L136 102', 3.5),
+  ],
+  goggles: [
+    // strap ends run out from each lens and stop at the lens edge, so nothing sits under a lens
+    S('M42 106C30 102 18 104 10 110V136C18 130 30 128 42 132Z', K.orange, 30), S('M198 106C210 102 222 104 230 110V136C222 130 210 128 198 132Z', K.orange, -30),
+    S(ell(80, 120, 39, 40), K.orange, 40), S(ell(160, 120, 39, 40), K.orange, -40),
+    Ln('M116 114Q120 108 124 114', 6),
+    S(ell(80, 120, 26, 27), K.sky, 60), S(ell(160, 120, 26, 27), K.sky, 60),
+    S(ell(70, 108, 9, 5.5, -35), K.white, 0, 3), S(ell(150, 108, 9, 5.5, -35), K.white, 0, 3),
+  ],
+  towel: [
+    // soft rolled towel from the front: the roll in three parts that meet edge to edge (end, yellow stripe, body
+    // that stops at the round end), a spiral on the round end, a short fringe on the flat end
+    S('M50 80H66V188H50Q30 188 30 168V100Q30 80 50 80Z', K.sky, -40),
+    S('M66 80H92V188H66Z', K.yellow, 40),
+    S('M92 80H168A54 54 0 0 0 168 188H92Z', K.sky, -40),
+    S(circ(168, 134, 54), K.sky, 40),
+    Ln('M168 134a7 7 0 1 0 14 0a14 14 0 1 0 -28 0a21 21 0 1 0 42 0a28 28 0 1 0 -56 0a35 35 0 1 0 70 0', 4.5),
+    Ln('M30 104h-14M30 124h-14M30 144h-14M30 164h-14', 4),
+  ],
+  rollerblades: [
+    // one inline skate, toe to the right: cuff, boot, laces, steel frame, a row of four wheels
+    S('M62 34H122Q128 34 128 40L129 64H60Z', K.yellow, 40),
+    S('M60 64H129L130 100C150 112 176 118 198 124C212 128 218 140 216 158H54C54 128 56 96 60 64Z', K.purple, -45),
+    Ln('M136 106l10 12M154 113l9 12M172 119l8 11', 4),
+    S(rr(50, 158, 168, 18, 8), '#C9CED6', 80),
+    ...wheel(70, 194), ...wheel(110, 194), ...wheel(150, 194), ...wheel(190, 194),
+  ],
+  helmet: [
+    // kids' bike helmet from the front: dome with three vents, a rim, the strap down to a buckle
+    S('M36 146C36 88 74 52 120 52C166 52 204 88 204 146Z', K.green, -45),
+    S(ell(120, 90, 10, 24), K.white, 0, 3.5), S(ell(82, 106, 9, 22, 30), K.white, 0, 3.5), S(ell(158, 106, 9, 22, -30), K.white, 0, 3.5),
+    S(rr(28, 146, 184, 22, 10), K.yellow, 30),
+    Ln('M58 168L106 206M182 168L134 206', 5),
+    S(rr(104, 198, 32, 18, 5), K.orange, 0, 3.5),
+  ],
+  libraryBag: [
+    // tote bag with a book peeking out between the handles; the book stops at the bag's top edge
+    Ln('M50 102C46 52 90 52 88 102', 6), Ln('M152 102C150 52 194 52 190 102', 6),
+    S('M96 102L92 52Q91 46 97 45L134 40L140 102Z', K.blue, -40),
+    S('M134 40L146 46L150 102H140Z', K.white, 0, 3.5),
+    Ln('M118 43Q112 30 122 22', 6, RED),
+    S('M36 102H204L192 208Q190 216 182 216H58Q50 216 48 208Z', K.yellow, 50),
+    ...eye(100, 150, 13), ...eye(140, 150, 13), smile(120, 172, 18),
+  ],
   // School and play
   homework: [
     S('M54 34H158L190 66V210H54Z', K.white, 0),
@@ -572,7 +623,6 @@ const ITEMS = {
     Ln('M134 114q6 6 12 0', 3.5), Ln('M136 134q8 7 16 0', 3.5),
     Ln('M72 54H168A66 66 0 0 1 168 186H72A66 66 0 0 1 72 54Z', 5, '#F4EFFF'),
   ],
-  // Developer tools: a friendly ladybug for the debug bubble. The white plate keeps it readable on a dark or orange circle.
   // Grown-up mode way in (G0): a yellow pencil with wood tip, lead, ferrule and pink eraser (user, 2026-11-09)
   pencil: [
     S('M34.0 206.0L48.1 149.4L90.6 191.9Z', '#F2D3A6', 45),
@@ -722,7 +772,8 @@ const RIGS = {
   "press": "move down 'px' and back once, after 'delay' ms (keys)",
   "blink": "eye dot squashes to 10% height and back once",
   "flicker": "flame grows 15% taller then 10% shorter from its base",
-  "twinkle": "turn 20 deg and grow 15% evenly, then back"
+  "twinkle": "turn 20 deg and grow 15% evenly, then back",
+  "dash": "move by [dx, dy] and back, 'times' times, after 'delay' ms (a quick shoot forward; trail parts use a smaller move and a short delay so they follow)"
  },
  "default": {
   "parts": [
@@ -1371,6 +1422,53 @@ const RIGS = {
       130
      ],
      "moves": [
+      {
+       "type": "twinkle"
+      }
+     ]
+    }
+   ]
+  },
+  "star": {
+   "parts": [
+    {
+     "name": "trail",
+     "layers": [
+      0
+     ],
+     "origin": [
+      70,
+      160
+     ],
+     "moves": [
+      {
+       "type": "dash",
+       "dx": 8,
+       "dy": -6,
+       "times": 2,
+       "delay": 80
+      }
+     ]
+    },
+    {
+     "name": "star",
+     "layers": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "origin": [
+      150,
+      96
+     ],
+     "moves": [
+      {
+       "type": "dash",
+       "dx": 14,
+       "dy": -11,
+       "times": 2
+      },
       {
        "type": "twinkle"
       }

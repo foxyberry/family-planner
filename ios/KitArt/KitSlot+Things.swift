@@ -5,6 +5,7 @@ public extension KitSlot {
     var isThing: Bool {
         switch self {
         case .toothbrush, .hairBrush, .shirt, .backpack, .lunchBox, .waterBottle, .shoe, .homework, .blocks,
+             .swimsuit, .goggles, .towel, .rollerblades, .helmet, .libraryBag,
              .snack, .pyjamas, .teddy, .milk, .babyBottle, .cake:
             true
         case .sun, .toilet, .washFace, .actBreakfast, .actSchool, .wolfie, .actPlay, .playground, .actDinner, .tv,

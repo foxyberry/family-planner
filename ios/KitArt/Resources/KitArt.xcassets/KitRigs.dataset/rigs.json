@@ -706,6 +706,52 @@
     }
    }
   },
+  "star": {
+   "runs": [
+    {
+     "image": "rig-star-0",
+     "part": "trail"
+    },
+    {
+     "image": "rig-star-1",
+     "part": "star"
+    }
+   ],
+   "parts": {
+    "trail": {
+     "origin": [
+      70,
+      160
+     ],
+     "moves": [
+      {
+       "type": "dash",
+       "dx": 8,
+       "dy": -6,
+       "times": 2,
+       "delay": 80
+      }
+     ]
+    },
+    "star": {
+     "origin": [
+      150,
+      96
+     ],
+     "moves": [
+      {
+       "type": "dash",
+       "dx": 14,
+       "dy": -11,
+       "times": 2
+      },
+      {
+       "type": "twinkle"
+      }
+     ]
+    }
+   }
+  },
   "sun": {
    "runs": [
     {

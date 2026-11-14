@@ -224,7 +224,10 @@ public struct ItemEditorFeature {
         static let bringMoreID = "more" // copy-ok: choice id
 
         /// "More" (spec "Event form rows"): object pictures only (`KitSlot.isThing`).
-        public static let bringAll: [KitSlot] = KitSlot.allCases.filter(\.isThing)
+        /// The bring kit (board 0d4) first, then every other thing.
+        public static let bringKit: [KitSlot] = [.backpack, .lunchBox, .waterBottle, .swimsuit, .goggles, .towel,
+                                                 .rollerblades, .helmet, .libraryBag]
+        public static let bringAll: [KitSlot] = bringKit + KitSlot.allCases.filter { $0.isThing && !bringKit.contains($0) }
         public var bringPicked: Set<KitSlot> { Set(form.bring.compactMap { KitSlot(rawValue: $0.picture) }) }
 
         /// Going / Leave show when the item starts from Home (C3g); a linked item has no trip.
