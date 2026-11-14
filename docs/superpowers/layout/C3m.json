@@ -1,5 +1,5 @@
 {
- "version": "39",
+ "version": "42",
  "board": "C3m",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -683,7 +683,7 @@
    "kind": "button",
    "x": 208,
    "y": 824,
-   "w": 180,
+   "w": 299,
    "h": 72,
    "region": "main",
    "anchor": "left",
@@ -692,9 +692,9 @@
   {
    "id": "main.button.7",
    "kind": "button",
-   "x": 400,
+   "x": 519,
    "y": 824,
-   "w": 180,
+   "w": 299,
    "h": 72,
    "region": "main",
    "anchor": "left",

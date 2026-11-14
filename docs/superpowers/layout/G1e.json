@@ -1,5 +1,5 @@
 {
- "version": "38",
+ "version": "43",
  "board": "G1e",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -249,7 +249,7 @@
    "kind": "button",
    "x": 888,
    "y": 348,
-   "w": 180,
+   "w": 206,
    "h": 72,
    "region": "side",
    "anchor": "right",
@@ -259,9 +259,9 @@
   {
    "id": "side.button.2",
    "kind": "button",
-   "x": 1080,
+   "x": 1106,
    "y": 348,
-   "w": 180,
+   "w": 206,
    "h": 72,
    "region": "side",
    "anchor": "right",
@@ -283,7 +283,7 @@
   {
    "id": "side.line.4",
    "kind": "text",
-   "x": 1026,
+   "x": 913,
    "y": 453,
    "w": 126,
    "h": 45,
@@ -292,6 +292,30 @@
    "align": "inside",
    "baseline": 476,
    "font": 30
+  },
+  {
+   "id": "side.line.5",
+   "kind": "text",
+   "x": 1163,
+   "y": 453,
+   "w": 123,
+   "h": 45,
+   "region": "side",
+   "anchor": "right",
+   "align": "inside",
+   "baseline": 476,
+   "font": 30
+  },
+  {
+   "id": "side.picture.3",
+   "kind": "picture",
+   "x": 1080,
+   "y": 456,
+   "w": 40,
+   "h": 40,
+   "region": "side",
+   "anchor": "right",
+   "align": "inside"
   },
   {
    "id": "main.picture.3",
@@ -303,20 +327,6 @@
    "region": "main",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "side.line.5",
-   "kind": "text",
-   "x": 888,
-   "y": 457,
-   "w": 77,
-   "h": 36,
-   "region": "side",
-   "anchor": "right",
-   "align": "inside",
-   "baseline": 485,
-   "font": 24,
-   "text": "Starts"
   },
   {
    "id": "main.picture.4",
@@ -332,29 +342,16 @@
   {
    "id": "side.line.6",
    "kind": "text",
-   "x": 1028,
-   "y": 549,
-   "w": 123,
+   "x": 888,
+   "y": 528,
+   "w": 296,
    "h": 45,
    "region": "side",
    "anchor": "right",
    "align": "inside",
-   "baseline": 572,
-   "font": 30
-  },
-  {
-   "id": "side.line.7",
-   "kind": "text",
-   "x": 888,
-   "y": 553,
-   "w": 56,
-   "h": 36,
-   "region": "side",
-   "anchor": "right",
-   "align": "inside",
-   "baseline": 581,
-   "font": 24,
-   "text": "Ends"
+   "baseline": 563,
+   "font": 30,
+   "text": "Make this free time"
   },
   {
    "id": "main.picture.5",
@@ -366,20 +363,6 @@
    "region": "main",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "side.line.8",
-   "kind": "text",
-   "x": 888,
-   "y": 624,
-   "w": 296,
-   "h": 45,
-   "region": "side",
-   "anchor": "right",
-   "align": "inside",
-   "baseline": 659,
-   "font": 30,
-   "text": "Make this free time"
   },
   {
    "id": "main.picture.6",

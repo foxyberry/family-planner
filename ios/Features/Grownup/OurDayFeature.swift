@@ -39,8 +39,8 @@ public struct OurDayFeature {
         }
     }
 
-    /// Board G1f: the five pictures a new slice offers before "More".
-    public static let suggested: [KitSlot] = [.actPlay, .snack, .actStory, .homework, .tv]
+    /// Board G1f (layout v41): the seven pictures a new slice offers before "More".
+    public static let suggested: [KitSlot] = [.actPlay, .snack, .actStory, .homework, .tv, .actArt, .actMusic]
     /// Slice names keep the C5 limit (14 characters).
     static let longestName = 14
 
@@ -293,11 +293,11 @@ public struct OurDayFeature {
             kid.school = school.moved(sliceStart: block.start, sliceEnd: block.end)
             return kid
         }
-        /// Board G1f: five day pictures and "More" (two rows of three), the picked one first.
+        /// Board G1f (layout v41): seven day pictures and "More" (two rows of four), the picked one first.
         public var newSlicePictures: [KitSlot] {
             let picked = newSlice?.iconName.flatMap(KitSlot.init(rawValue:))
             let rest = OurDayFeature.suggested.filter { $0 != picked }
-            return Array(([picked].compactMap { $0 } + rest).prefix(5))
+            return Array(([picked].compactMap { $0 } + rest).prefix(7))
         }
     }
 

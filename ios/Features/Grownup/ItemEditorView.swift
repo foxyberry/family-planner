@@ -260,7 +260,8 @@ public struct ItemEditorView: View {
         eventRows
     }
 
-    /// Board C3m: the date strip picks the first date, then "{nth} {weekday}" · "Day {d}" (180 each),
+    /// Board C3m: the date strip picks the first date, then "{nth} {weekday}" · "Day {d}" (layout v42:
+    /// they fill the controls column, 2 × 299),
     /// then Skip school holidays.
     @ViewBuilder private var monthlyRows: some View {
         dateStrip
@@ -268,7 +269,7 @@ public struct ItemEditorView: View {
             CrayonTabs(selection: Binding(get: { store.form.monthlyByDate },
                                           set: { store.send(.monthlyRuleTapped(byDate: $0)) }),
                        items: store.monthlyChoices.map { ($0.byDate, $0.title, nil) },
-                       itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
+                       widths: [299, 299], spacing: Spacing.sm)
         }
         if store.showsSkipHolidays {
             row("") {
@@ -465,10 +466,11 @@ public struct ItemEditorView: View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             if store.showsScopeTabs {
                 // Boards G2 / G3: This day / All days at the top of the side column.
+                // Layout v42 fill rule: the two tabs share the side column (2 × 230, gap 12).
                 CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
                            items: [(ItemEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
                                    (.allDays, L10n.tr("editor.scope.all_days"), nil)],
-                           itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
+                           widths: [230, 230], spacing: Spacing.sm)
             }
             if store.isThisDay {
                 Text(store.thisDayTitle ?? "").crayonType(.head).foregroundStyle(CrayonColor.ink)

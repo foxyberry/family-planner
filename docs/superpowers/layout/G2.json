@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "42",
  "board": "G2",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -128,7 +128,7 @@
    "kind": "button",
    "x": 864,
    "y": 148,
-   "w": 180,
+   "w": 230,
    "h": 72,
    "region": "side",
    "anchor": "right",
@@ -138,13 +138,13 @@
   {
    "id": "side.button.2",
    "kind": "button",
-   "x": 1056,
+   "x": 1106,
    "y": 148,
-   "w": 180,
+   "w": 230,
    "h": 72,
    "region": "side",
    "anchor": "right",
-   "align": "inside",
+   "align": "end",
    "text": "All days"
   },
   {

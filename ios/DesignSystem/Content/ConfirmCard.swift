@@ -38,9 +38,21 @@ public struct ConfirmCard: View {
                     Text(message).crayonType(.body).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                // The main choice first (design session, 2026-11-14): an InkButton, or the lateText
+                // button when it destroys something; the other choice after it as plain text.
                 HStack(spacing: Spacing.m) {
-                    CardButton(cancel, action: onCancel)
-                    CardButton(confirm, isDestructive: isDestructive, action: onConfirm)
+                    if isDestructive {
+                        CardButton(confirm, isDestructive: true, action: onConfirm)
+                    } else {
+                        InkButton(confirm, height: 72, action: onConfirm).frame(width: 240)
+                    }
+                    Button(action: onCancel) {
+                        Text(cancel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
+                            .lineLimit(1).fixedSize()
+                            .frame(minHeight: 72)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
