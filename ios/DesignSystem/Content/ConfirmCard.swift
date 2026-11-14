@@ -10,6 +10,7 @@ public struct ConfirmCard: View {
     private let title: String
     private let message: String?
     private let messageGlyph: MarkerGlyph?
+    private let width: CGFloat
     private let cancel: String
     private let confirm: String
     private let isDestructive: Bool
@@ -17,7 +18,9 @@ public struct ConfirmCard: View {
     private let onConfirm: () -> Void
 
     public init(title: String, message: String?, messageGlyph: MarkerGlyph? = nil, cancel: String, confirm: String,
-                isDestructive: Bool, onCancel: @escaping () -> Void, onConfirm: @escaping () -> Void) {
+                isDestructive: Bool, width: CGFloat = 520, onCancel: @escaping () -> Void,
+                onConfirm: @escaping () -> Void) {
+        self.width = width
         self.title = title
         self.message = message
         self.messageGlyph = messageGlyph
@@ -55,8 +58,10 @@ public struct ConfirmCard: View {
                     .buttonStyle(.plain)
                 }
             }
+            // The paper is the card's full width (board C3x: 560); only its height hugs the content.
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: 520)
+        .frame(width: width)
     }
 }
 

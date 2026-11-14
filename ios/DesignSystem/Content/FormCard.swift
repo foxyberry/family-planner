@@ -30,10 +30,12 @@ public struct FormCard<Content: View>: View {
             CrayonColor.dim.ignoresSafeArea()
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onCancel)
-            VStack(alignment: .leading, spacing: Spacing.s) {
-                Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                content
-                Spacer(minLength: 0)
+            // Layout v43: the card hugs its content, centred; the buttons sit 8 under it.
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                VStack(alignment: .leading, spacing: Spacing.s) {
+                    Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                    content
+                }
                 HStack(spacing: Spacing.l) {
                     InkButton(done, height: 80, action: onDone).frame(width: 200)
                     Button(action: onCancel) {
@@ -48,7 +50,6 @@ public struct FormCard<Content: View>: View {
             .padding(.top, 36)
             .padding(.bottom, Spacing.m)
             .frame(width: size.width, alignment: .topLeading)
-            .frame(minHeight: size.height, alignment: .topLeading)
             .fixedSize(horizontal: false, vertical: true)
             .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.formCard)
         }

@@ -208,7 +208,6 @@ public struct OurDayView: View {
                 PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
                     .environment(\.cardInset, Spacing.m)
                     .frame(width: layout.side.width)
-                    .frame(minHeight: 440 * layout.sizing.s, alignment: .top)
             }
         }
     }
@@ -228,17 +227,7 @@ public struct OurDayView: View {
                 .zIndex(1)
                 CrayonField(L10n.tr("day.new.name"), text: Binding(get: { slice.name },
                                                                    set: { store.send(.newSliceNameChanged($0)) }))
-                if slice.isOnClock {
-                    HStack(spacing: Spacing.xs) {
-                        TimeField(label: store.startLabel ?? "",
-                                  time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }))
-                            .frame(width: 170)
-                        MarkerIcon(.arrowRight, size: 32, color: CrayonColor.softText)
-                        TimeField(label: store.endLabel ?? "",
-                                  time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }))
-                            .frame(width: 170)
-                    }
-                }
+                if slice.isOnClock { timesRow }
             }
         } else if let block = store.selectedBlock {
             VStack(alignment: .leading, spacing: Spacing.s) {
@@ -248,12 +237,7 @@ public struct OurDayView: View {
                 }
                 // Spec "Edit scope": This day / All days under the title.
                 scopeTabs
-                timeRow(L10n.tr("day.starts"), label: store.startLabel ?? "", date: store.startDate) {
-                    store.send(.startPicked($0))
-                }
-                timeRow(L10n.tr("day.ends"), label: store.endLabel ?? "", date: store.endDate) {
-                    store.send(.endPicked($0))
-                }
+                timesRow
                 if let message = store.message {
                     Text(message).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -276,10 +260,16 @@ public struct OurDayView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func timeRow(_ title: String, label: String, date: Date, set: @escaping (Date) -> Void) -> some View {
+    /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16.
+    private var timesRow: some View {
         HStack(spacing: Spacing.s) {
-            Text(title).crayonType(.caption).foregroundStyle(CrayonColor.softText).frame(width: 80, alignment: .leading)
-            TimeField(label: label, time: Binding(get: { date }, set: set)).frame(width: 170)
+            TimeField(label: store.startLabel ?? "",
+                      time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }))
+                .frame(width: 176)
+            MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
+            TimeField(label: store.endLabel ?? "",
+                      time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }))
+                .frame(width: 176)
         }
     }
 }

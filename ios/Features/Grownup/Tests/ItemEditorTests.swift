@@ -238,7 +238,9 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.binding(.set(\.form.name, "Big party")))
         await store.send(.backTapped)
         XCTAssertEqual([store.state.confirmCancelTitle, store.state.confirmAcceptTitle], ["Keep editing", "Leave"])
-        XCTAssertFalse(store.state.confirmIsDestructive)
+        // Board C3x: "Leave" is the main, lateText choice, and the card points at "←".
+        XCTAssertTrue(store.state.confirmIsDestructive)
+        XCTAssertTrue(store.state.confirmPointsAtBack)
         await store.send(.confirmCancelled)
         await store.send(.removeTapped)
         XCTAssertEqual([store.state.confirmCancelTitle, store.state.confirmAcceptTitle], ["Keep", "Remove"])
