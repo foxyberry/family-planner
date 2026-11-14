@@ -112,7 +112,8 @@ public struct OurDayView: View {
         .padding(.bottom, Spacing.s)
     }
 
-    /// Board G8: Every week and Just once in one card; Add every week / Add once on the side.
+    /// Board G8 (layout v36): the sections in one card; one "Add" on the side. A long title or caption
+    /// wraps to two lines (the row grows from 88 to 136, picture and › stay centred), then ends in "…".
     private func list(_ layout: GrownupLayout) -> some View {
         HStack(alignment: .top, spacing: layout.gap) {
             // Board G8: the card stays put; its rows scroll under its top edge.
@@ -127,9 +128,12 @@ public struct OurDayView: View {
                                     HStack(spacing: Spacing.m) {
                                         KitIcon(KitSlot(iconName: row.picture), size: 56)
                                         VStack(alignment: .leading, spacing: 0) {
-                                            Text(row.title).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                                            Text(row.title).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                                                .lineLimit(2).truncationMode(.tail)
+                                                .fixedSize(horizontal: false, vertical: true)
                                             Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                                                .lineLimit(1)
+                                                .lineLimit(2).truncationMode(.tail)
+                                                .fixedSize(horizontal: false, vertical: true)
                                         }
                                         Spacer(minLength: 0)
                                         if row.target != .school {
@@ -148,10 +152,7 @@ public struct OurDayView: View {
             }
             .frame(width: layout.form.width, height: layout.form.height)
             ScrollColumn {
-                VStack(alignment: .leading, spacing: Spacing.s) {
-                    addLink(L10n.tr("list.add_weekly")) { store.send(.addWeeklyTapped) }
-                    addLink(L10n.tr("list.add_once")) { store.send(.addOnceTapped) }
-                }
+                addLink(L10n.tr("list.add")) { store.send(.addTapped) }
             }
             .frame(width: layout.side.width, height: layout.form.height, alignment: .topLeading)
         }

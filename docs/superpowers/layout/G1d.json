@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "37",
  "board": "G1d",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -385,7 +385,7 @@
   {
    "id": "main.text.3",
    "kind": "text",
-   "x": 492,
+   "x": 496,
    "y": 618,
    "w": 84,
    "h": 54,
@@ -399,21 +399,7 @@
   {
    "id": "main.text.4",
    "kind": "text",
-   "x": 645,
-   "y": 623,
-   "w": 157,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 658,
-   "font": 30,
-   "text": "Don't save"
-  },
-  {
-   "id": "main.text.5",
-   "kind": "text",
-   "x": 826,
+   "x": 652,
    "y": 623,
    "w": 102,
    "h": 45,
