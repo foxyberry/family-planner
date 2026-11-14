@@ -1,5 +1,5 @@
 {
- "version": "30",
+ "version": "31",
  "board": "G3",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -10,23 +10,23 @@
    0,
    24
   ],
-  "margin": 64,
-  "right": 1312,
+  "margin": 40,
+  "right": 1336,
   "gutter": 24,
-  "column": 82,
+  "column": 88,
   "columnLefts": [
-   64,
-   170,
-   276,
-   382,
+   40,
+   152,
+   264,
+   376,
    488,
-   594,
-   700,
-   806,
-   912,
-   1018,
-   1124,
-   1230
+   600,
+   712,
+   824,
+   936,
+   1048,
+   1160,
+   1272
   ],
   "headerTop": 48,
   "headerBottom": 128,
@@ -35,34 +35,36 @@
   "contentBottom": 968
  },
  "lines": {
-  "formLeft": 64,
-  "formRight": 882,
-  "labelLeft": 104,
-  "controlLeft": 232,
-  "sideLeft": 930,
-  "right": 1312,
+  "margin": 40,
+  "formLeft": 40,
+  "formRight": 840,
+  "labelLeft": 80,
+  "controlLeft": 208,
+  "sideLeft": 864,
+  "sideWidth": 472,
+  "right": 1336,
   "formTop": 176,
   "formBottom": 968
  },
  "regions": {
   "header": {
-   "left": 64,
-   "right": 1312,
+   "left": 40,
+   "right": 1336,
    "anchor": "stretch"
   },
   "main": {
-   "left": 64,
-   "right": 882,
+   "left": 40,
+   "right": 840,
    "anchor": "left"
   },
   "side": {
-   "left": 930,
-   "right": 1312,
+   "left": 864,
+   "right": 1336,
    "anchor": "right"
   },
   "action": {
-   "left": 930,
-   "right": 1312,
+   "left": 864,
+   "right": 1336,
    "anchor": "right"
   }
  },
@@ -71,9 +73,9 @@
    "id": "main.card",
    "kind": "card",
    "part": "PaperCard",
-   "x": 64,
+   "x": 40,
    "y": 176,
-   "w": 818,
+   "w": 800,
    "h": 792,
    "region": "main",
    "anchor": "left",
@@ -82,7 +84,7 @@
   {
    "id": "header.back",
    "kind": "back",
-   "x": 64,
+   "x": 40,
    "y": 48,
    "w": 80,
    "h": 80,
@@ -94,7 +96,7 @@
   {
    "id": "header.title",
    "kind": "title",
-   "x": 168,
+   "x": 144,
    "y": 51,
    "w": 357,
    "h": 72,
@@ -108,7 +110,7 @@
   {
    "id": "header.note",
    "kind": "text",
-   "x": 1128,
+   "x": 1152,
    "y": 69,
    "w": 184,
    "h": 36,
@@ -122,7 +124,7 @@
   {
    "id": "side.button.1",
    "kind": "button",
-   "x": 930,
+   "x": 864,
    "y": 176,
    "w": 180,
    "h": 72,
@@ -134,7 +136,7 @@
   {
    "id": "side.button.2",
    "kind": "button",
-   "x": 1122,
+   "x": 1056,
    "y": 176,
    "w": 180,
    "h": 72,
@@ -146,7 +148,7 @@
   {
    "id": "main.label.for",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 200,
    "w": 120,
    "h": 72,
@@ -158,7 +160,7 @@
   {
    "id": "main.row.for.tab.1",
    "kind": "tab",
-   "x": 232,
+   "x": 208,
    "y": 200,
    "w": 180,
    "h": 72,
@@ -169,7 +171,7 @@
   {
    "id": "main.row.for.tab.2",
    "kind": "tab",
-   "x": 424,
+   "x": 400,
    "y": 200,
    "w": 180,
    "h": 72,
@@ -180,7 +182,7 @@
   {
    "id": "main.row.for.tab.3",
    "kind": "tab",
-   "x": 616,
+   "x": 592,
    "y": 200,
    "w": 180,
    "h": 72,
@@ -192,7 +194,7 @@
   {
    "id": "side.line",
    "kind": "text",
-   "x": 930,
+   "x": 864,
    "y": 266,
    "w": 276,
    "h": 54,
@@ -205,7 +207,7 @@
   {
    "id": "main.label.what",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 296,
    "w": 120,
    "h": 88,
@@ -217,7 +219,7 @@
   {
    "id": "main.row.what.choice.1",
    "kind": "choice",
-   "x": 232,
+   "x": 208,
    "y": 296,
    "w": 88,
    "h": 88,
@@ -229,7 +231,7 @@
   {
    "id": "main.row.what.choice.2",
    "kind": "choice",
-   "x": 336,
+   "x": 312,
    "y": 296,
    "w": 88,
    "h": 88,
@@ -241,7 +243,7 @@
   {
    "id": "main.row.what.choice.3",
    "kind": "choice",
-   "x": 440,
+   "x": 416,
    "y": 296,
    "w": 88,
    "h": 88,
@@ -253,7 +255,7 @@
   {
    "id": "main.row.what.choice.4",
    "kind": "choice",
-   "x": 544,
+   "x": 520,
    "y": 296,
    "w": 88,
    "h": 88,
@@ -265,7 +267,7 @@
   {
    "id": "main.row.what.choice.5",
    "kind": "choice",
-   "x": 648,
+   "x": 624,
    "y": 296,
    "w": 88,
    "h": 88,
@@ -277,7 +279,7 @@
   {
    "id": "main.row.what.choice.6",
    "kind": "choice",
-   "x": 752,
+   "x": 728,
    "y": 296,
    "w": 88,
    "h": 88,
@@ -289,9 +291,9 @@
   {
    "id": "side.button.3",
    "kind": "button",
-   "x": 930,
+   "x": 864,
    "y": 331,
-   "w": 382,
+   "w": 472,
    "h": 88,
    "region": "side",
    "anchor": "right",
@@ -301,7 +303,7 @@
   {
    "id": "main.label.name",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 412,
    "w": 120,
    "h": 80,
@@ -313,7 +315,7 @@
   {
    "id": "main.row.name.field",
    "kind": "field",
-   "x": 232,
+   "x": 208,
    "y": 412,
    "w": 610,
    "h": 80,
@@ -325,7 +327,7 @@
   {
    "id": "main.label.when",
    "kind": "label",
-   "x": 104,
+   "x": 80,
    "y": 524,
    "w": 120,
    "h": 80,
@@ -337,7 +339,7 @@
   {
    "id": "main.row.when.field.1",
    "kind": "field",
-   "x": 232,
+   "x": 208,
    "y": 524,
    "w": 200,
    "h": 80,
@@ -348,7 +350,7 @@
   {
    "id": "main.row.when.field.2",
    "kind": "field",
-   "x": 504,
+   "x": 480,
    "y": 524,
    "w": 200,
    "h": 80,
@@ -359,7 +361,7 @@
   {
    "id": "main.row.when.text",
    "kind": "text",
-   "x": 720,
+   "x": 696,
    "y": 545,
    "w": 70,
    "h": 36,
@@ -372,7 +374,7 @@
   {
    "id": "main.row.when.picture",
    "kind": "picture",
-   "x": 448,
+   "x": 424,
    "y": 547,
    "w": 40,
    "h": 40,
@@ -383,9 +385,9 @@
   {
    "id": "action.primary",
    "kind": "primary",
-   "x": 930,
+   "x": 864,
    "y": 872,
-   "w": 382,
+   "w": 472,
    "h": 96,
    "region": "action",
    "anchor": "right",

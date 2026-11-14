@@ -1,7 +1,7 @@
 {
- "version": "30",
+ "version": "31",
  "board": "C6",
- "family": "grown",
+ "family": "grown64",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
  "global": {
   "width": 1376,
@@ -35,6 +35,7 @@
   "contentBottom": 968
  },
  "lines": {
+  "note": "superseded board (C1 -> G6, C6 -> G1), kept on the old 64 grid",
   "formLeft": 64,
   "formRight": 882,
   "labelLeft": 104,

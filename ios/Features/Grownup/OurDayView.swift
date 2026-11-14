@@ -60,9 +60,12 @@ public struct OurDayView: View {
                       onSliceTap: { store.send(.sliceTapped(start: $0)) },
                       onPlusTap: { store.send(.plusTapped(start: $0)) },
                       onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) })
-                // Board C6: the clock and its hour labels fill the form box (64–882 × 176–968).
+                // Board G1 (layout v31): the clock centred at (410, 570), 30 left of the form box's
+                // middle, so its hour labels start at x 30 as on the home clock.
+                .offset(x: -30 * layout.sizing.s, y: -2 * layout.sizing.s)
                 .frame(width: layout.form.width, height: layout.form.height)
-                .overlay(alignment: .bottomTrailing) { undoRedo }
+                // Undo / Redo at 656 and 744 (y 880), 24 in from the form box's right edge.
+                .overlay(alignment: .bottomTrailing) { undoRedo.padding(.trailing, 24 * layout.sizing.s) }
                 .accessibilityHint(L10n.tr("day.hint"))
             sideColumn(layout)
                 .frame(width: layout.side.width, height: layout.action.minY - Spacing.sm * layout.sizing.s

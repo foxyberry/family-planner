@@ -1,5 +1,5 @@
 {
- "version": "30",
+ "version": "31",
  "board": "G6",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -10,23 +10,23 @@
    0,
    24
   ],
-  "margin": 64,
-  "right": 1312,
+  "margin": 40,
+  "right": 1336,
   "gutter": 24,
-  "column": 82,
+  "column": 88,
   "columnLefts": [
-   64,
-   170,
-   276,
-   382,
+   40,
+   152,
+   264,
+   376,
    488,
-   594,
-   700,
-   806,
-   912,
-   1018,
-   1124,
-   1230
+   600,
+   712,
+   824,
+   936,
+   1048,
+   1160,
+   1272
   ],
   "headerTop": 48,
   "headerBottom": 128,
@@ -35,42 +35,56 @@
   "contentBottom": 968
  },
  "lines": {
-  "formLeft": 64,
-  "formRight": 882,
-  "labelLeft": 104,
-  "controlLeft": 232,
-  "sideLeft": 930,
-  "right": 1312,
+  "margin": 40,
+  "formLeft": 40,
+  "formRight": 840,
+  "labelLeft": 80,
+  "controlLeft": 208,
+  "sideLeft": 864,
+  "sideWidth": 472,
+  "right": 1336,
   "formTop": 176,
   "formBottom": 968
  },
  "regions": {
   "header": {
-   "left": 64,
-   "right": 1312,
+   "left": 40,
+   "right": 1336,
    "anchor": "stretch"
   },
   "main": {
-   "left": 64,
-   "right": 882,
+   "left": 40,
+   "right": 840,
    "anchor": "left"
   },
   "side": {
-   "left": 930,
-   "right": 1312,
+   "left": 864,
+   "right": 1336,
    "anchor": "right"
   },
   "action": {
-   "left": 930,
-   "right": 1312,
+   "left": 864,
+   "right": 1336,
    "anchor": "right"
   }
  },
  "elements": [
   {
+   "id": "main.card",
+   "kind": "card",
+   "part": "PaperCard",
+   "x": 40,
+   "y": 176,
+   "w": 800,
+   "h": 792,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
    "id": "header.note.1",
    "kind": "text",
-   "x": 168,
+   "x": 144,
    "y": 51,
    "w": 198,
    "h": 72,
@@ -84,7 +98,7 @@
   {
    "id": "header.note.2",
    "kind": "text",
-   "x": 415,
+   "x": 391,
    "y": 65,
    "w": 151,
    "h": 45,
@@ -97,7 +111,7 @@
   {
    "id": "header.note.3",
    "kind": "text",
-   "x": 630,
+   "x": 606,
    "y": 65,
    "w": 136,
    "h": 45,
@@ -110,7 +124,7 @@
   {
    "id": "header.note.4",
    "kind": "text",
-   "x": 828,
+   "x": 804,
    "y": 65,
    "w": 96,
    "h": 45,
@@ -124,7 +138,7 @@
   {
    "id": "header.picture.1",
    "kind": "picture",
-   "x": 84,
+   "x": 60,
    "y": 68,
    "w": 40,
    "h": 40,
@@ -135,7 +149,7 @@
   {
    "id": "header.picture.2",
    "kind": "picture",
-   "x": 415,
+   "x": 391,
    "y": 68,
    "w": 40,
    "h": 40,
@@ -146,7 +160,7 @@
   {
    "id": "header.picture.3",
    "kind": "picture",
-   "x": 630,
+   "x": 606,
    "y": 68,
    "w": 40,
    "h": 40,
@@ -157,7 +171,7 @@
   {
    "id": "header.note.5",
    "kind": "text",
-   "x": 1128,
+   "x": 1152,
    "y": 69,
    "w": 184,
    "h": 36,
@@ -171,7 +185,7 @@
   {
    "id": "header.picture.4",
    "kind": "picture",
-   "x": 418,
+   "x": 394,
    "y": 71,
    "w": 34,
    "h": 34,
@@ -182,7 +196,7 @@
   {
    "id": "header.picture.5",
    "kind": "picture",
-   "x": 633,
+   "x": 609,
    "y": 71,
    "w": 34,
    "h": 34,
@@ -193,7 +207,7 @@
   {
    "id": "main.text.1",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 198,
    "w": 112,
    "h": 54,
@@ -207,7 +221,7 @@
   {
    "id": "main.text.2",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 259,
    "w": 187,
    "h": 45,
@@ -220,7 +234,7 @@
   {
    "id": "main.text.3",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 263,
    "w": 46,
    "h": 36,
@@ -234,7 +248,7 @@
   {
    "id": "main.picture.1",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 268,
    "w": 28,
    "h": 28,
@@ -245,7 +259,7 @@
   {
    "id": "main.text.4",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 319,
    "w": 116,
    "h": 45,
@@ -259,7 +273,7 @@
   {
    "id": "main.picture.2",
    "kind": "picture",
-   "x": 280,
+   "x": 256,
    "y": 322,
    "w": 40,
    "h": 40,
@@ -270,7 +284,7 @@
   {
    "id": "main.text.5",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 323,
    "w": 145,
    "h": 36,
@@ -284,7 +298,7 @@
   {
    "id": "main.picture.3",
    "kind": "picture",
-   "x": 283,
+   "x": 259,
    "y": 325,
    "w": 34,
    "h": 34,
@@ -295,7 +309,7 @@
   {
    "id": "main.picture.4",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 328,
    "w": 28,
    "h": 28,
@@ -306,7 +320,7 @@
   {
    "id": "main.text.6",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 386,
    "w": 119,
    "h": 54,
@@ -320,7 +334,7 @@
   {
    "id": "main.text.7",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 447,
    "w": 351,
    "h": 45,
@@ -334,7 +348,7 @@
   {
    "id": "main.picture.5",
    "kind": "picture",
-   "x": 280,
+   "x": 256,
    "y": 450,
    "w": 40,
    "h": 40,
@@ -345,7 +359,7 @@
   {
    "id": "main.text.8",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 451,
    "w": 80,
    "h": 36,
@@ -359,7 +373,7 @@
   {
    "id": "main.picture.6",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 456,
    "w": 28,
    "h": 28,
@@ -370,7 +384,7 @@
   {
    "id": "main.text.9",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 507,
    "w": 420,
    "h": 45,
@@ -383,7 +397,7 @@
   {
    "id": "main.text.10",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 511,
    "w": 71,
    "h": 36,
@@ -397,7 +411,7 @@
   {
    "id": "main.picture.7",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 516,
    "w": 28,
    "h": 28,
@@ -408,7 +422,7 @@
   {
    "id": "main.text.11",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 567,
    "w": 480,
    "h": 45,
@@ -421,7 +435,7 @@
   {
    "id": "main.text.12",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 571,
    "w": 73,
    "h": 36,
@@ -435,7 +449,7 @@
   {
    "id": "main.picture.8",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 576,
    "w": 28,
    "h": 28,
@@ -446,7 +460,7 @@
   {
    "id": "main.text.13",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 634,
    "w": 243,
    "h": 54,
@@ -460,7 +474,7 @@
   {
    "id": "main.text.14",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 695,
    "w": 460,
    "h": 45,
@@ -473,7 +487,7 @@
   {
    "id": "main.picture.9",
    "kind": "picture",
-   "x": 280,
+   "x": 256,
    "y": 698,
    "w": 40,
    "h": 40,
@@ -484,7 +498,7 @@
   {
    "id": "main.text.15",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 699,
    "w": 110,
    "h": 36,
@@ -498,7 +512,7 @@
   {
    "id": "main.picture.10",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 704,
    "w": 28,
    "h": 28,
@@ -509,7 +523,7 @@
   {
    "id": "main.text.16",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 755,
    "w": 303,
    "h": 45,
@@ -522,7 +536,7 @@
   {
    "id": "main.text.17",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 759,
    "w": 69,
    "h": 36,
@@ -536,7 +550,7 @@
   {
    "id": "main.picture.11",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 764,
    "w": 28,
    "h": 28,
@@ -547,7 +561,7 @@
   {
    "id": "main.text.18",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 822,
    "w": 154,
    "h": 54,
@@ -561,7 +575,7 @@
   {
    "id": "main.text.19",
    "kind": "text",
-   "x": 280,
+   "x": 256,
    "y": 883,
    "w": 369,
    "h": 45,
@@ -574,7 +588,7 @@
   {
    "id": "main.picture.12",
    "kind": "picture",
-   "x": 280,
+   "x": 256,
    "y": 886,
    "w": 40,
    "h": 40,
@@ -585,7 +599,7 @@
   {
    "id": "main.text.20",
    "kind": "text",
-   "x": 104,
+   "x": 80,
    "y": 887,
    "w": 100,
    "h": 36,
@@ -599,7 +613,7 @@
   {
    "id": "main.picture.13",
    "kind": "picture",
-   "x": 814,
+   "x": 772,
    "y": 892,
    "w": 28,
    "h": 28,
@@ -610,7 +624,7 @@
   {
    "id": "action.text.1",
    "kind": "text",
-   "x": 930,
+   "x": 864,
    "y": 897,
    "w": 219,
    "h": 36,
@@ -623,7 +637,7 @@
   {
    "id": "action.text.2",
    "kind": "text",
-   "x": 930,
+   "x": 864,
    "y": 932,
    "w": 163,
    "h": 36,

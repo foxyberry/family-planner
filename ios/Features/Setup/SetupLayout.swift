@@ -2,9 +2,9 @@ import CoreGraphics
 import DesignSystem
 
 /// Boards S1–S4 (layout v10) on the grown-up lines (`GrownupLayout`) through "Sizing formulas":
-/// the header ends on 1312 like every grown-up header; S1 kid cards are 296 tall and 32 apart from
-/// 176; S4 rows are 120 tall on a 140 pitch from 216. Inside a card, rows start on 104 (labels)
-/// and 232 (controls).
+/// the header ends on 1336 like every grown-up header (layout v31); S1 kid cards are 304 tall and 20
+/// apart from 176; S4 rows are 120 tall on a 140 pitch from 216. Inside a card, rows start on 80
+/// (labels) and 208 (controls).
 public struct SetupLayout: Equatable, Sendable {
     public let grown: GrownupLayout
 
@@ -15,9 +15,9 @@ public struct SetupLayout: Equatable, Sendable {
     private var sizing: Sizing { grown.sizing }
     private var s: CGFloat { sizing.s }
 
-    /// S1: one card per kid, 64–882.
+    /// S1: one card per kid, 40–840.
     public func kidCard(_ index: Int) -> CGRect {
-        sizing.left(64, 176 + (304 + 20) * CGFloat(index), 818, 304)
+        sizing.left(40, 176 + (304 + 20) * CGFloat(index), 800, 304)
     }
 
     /// Layout v18: S1 cards 304 tall, 20 apart.
@@ -34,9 +34,10 @@ public struct SetupLayout: Equatable, Sendable {
     public func kidTab(faceOnly: Bool) -> CGSize { CGSize(width: (faceOnly ? 88 : 200) * s, height: 72 * s) }
     public var kidTabGap: CGFloat { 12 * s }
 
-    /// S4 board values inside a column: the main column's origin is (64, 176), the side's (930, 176).
-    public func s4Main(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 64) * s, y: (y - 176) * s) }
-    public func s4Side(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 930) * s, y: (y - 176) * s) }
+    /// S4 board values inside a column: the main column's origin is (40, 176), the side's (864, 176)
+    /// (layout v31).
+    public func s4Main(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 40) * s, y: (y - 176) * s) }
+    public func s4Side(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 864) * s, y: (y - 176) * s) }
     public func length(_ value: CGFloat) -> CGFloat { value * s }
     /// S4 side summary rows (school, way): text box tops 303 and 396, a 93 pitch.
     public func s4SummaryTop(_ index: Int) -> CGFloat { 303 + 93 * CGFloat(index) }

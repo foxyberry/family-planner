@@ -1,5 +1,5 @@
 {
- "version": "30",
+ "version": "31",
  "board": "A2",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -321,45 +321,45 @@
    "id": "strip.mover.1",
    "kind": "mover",
    "x": 90,
-   "y": 312,
-   "w": 123,
-   "h": 123,
+   "y": 310,
+   "w": 124,
+   "h": 124,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
     "x": 26,
-    "y": 136
+    "y": 134
    }
   },
   {
    "id": "strip.mover.2",
    "kind": "mover",
    "x": 383,
-   "y": 312,
-   "w": 123,
-   "h": 123,
+   "y": 310,
+   "w": 124,
+   "h": 124,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
     "x": 319,
-    "y": 136
+    "y": 134
    }
   },
   {
    "id": "strip.mover.3",
    "kind": "mover",
    "x": 650,
-   "y": 312,
-   "w": 123,
-   "h": 123,
+   "y": 310,
+   "w": 124,
+   "h": 124,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
     "x": 586,
-    "y": 136
+    "y": 134
    }
   },
   {
@@ -696,9 +696,9 @@
    "id": "bottom.knob",
    "kind": "mover",
    "x": 473,
-   "y": 887,
-   "w": 61,
-   "h": 61,
+   "y": 885,
+   "w": 62,
+   "h": 62,
    "region": "bottom",
    "anchor": "stretch",
    "align": "inside"
