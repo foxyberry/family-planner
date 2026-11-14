@@ -256,7 +256,7 @@ public struct MissionsFeature {
             var arrivals = live.shown
             if let chosen = live.chosen, !arrivals.contains(chosen) { arrivals.append(chosen) }
             let mineX = live.chosen.map { WayStrip.liveX(minutes: $0.minutes) }
-            let buses = arrivals.enumerated().map { index, arrival in
+            var buses = arrivals.enumerated().map { index, arrival in
                 let isMine = arrival == live.chosen, isTooSoon = arrival == live.tooSoon
                 let x = WayStrip.liveX(minutes: arrival.minutes)
                 let clear = mineX.map { abs($0 - x) >= 220 } ?? true
@@ -266,12 +266,24 @@ public struct MissionsFeature {
                                         isMine: isMine, isTooSoon: isTooSoon && !isMine,
                                         showsBubble: isMine || (isTooSoon && clear))
             }
+            // Spec "A2 strip": the 2nd choice's next catchable bus, faded, with "or · 2nd"; its bubble is
+            // left out when it would overlap a bubble already shown (the too-soon one goes first).
+            if let second = live.second {
+                let x = WayStrip.liveX(minutes: second.minutes)
+                let clear = buses.filter(\.showsBubble).allSatisfy { abs($0.x - x) >= 220 }
+                buses.append(WayStrip.LiveBus(id: "second", x: x, picture: Self.busPicture(second.type),
+                                              service: second.service,
+                                              minutes: TimeLeft.presentation(minutes: second.minutes).text,
+                                              isMine: false, isTooSoon: false, showsBubble: clear, isSecond: true))
+            }
             return WayStrip.Live(buses: buses, destination: KitSlot(iconName: outing.slot.iconName),
                                  destinationLabel: outing.slot.title, ourStopLabel: L10n.tr("missions.our_stop"),
                                  owner: KidFace.Badge(face: owner.face, colorIndex: owner.colorIndex),
                                  ownerName: owner.name, myBus: L10n.tr("missions.my_bus"),
                                  tooSoon: L10n.tr("missions.too_soon"),
-                                 myService: live.chosen?.service ?? busPlans[owner.id]?.services.first ?? "")
+                                 myService: live.chosen?.service ?? busPlans[owner.id]?.first ?? "",
+                                 secondCaption: L10n.tr("missions.second"),
+                                 secondLegend: busPlans[owner.id]?.second.map { L10n.tr("missions.second_legend", $0) })
         }
 
         /// "Live bus map. Bus 1 in 28 minutes, your bus. Leave in 18 minutes, on time."

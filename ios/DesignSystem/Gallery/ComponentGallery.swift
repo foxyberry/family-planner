@@ -40,6 +40,8 @@ public struct ComponentGallery: View {
                         RoundButton(glyph: .redo, accessibilityLabel: "Redo") {}.size(72).opacity(0.45)
                         PillToggle("12", isOn: true) {}
                         PillToggle("34", isOn: false) {}
+                        PillToggle("12", isOn: true, tag: "1st") {}
+                        PillToggle("34", isOn: false, tag: "2nd") {}
                         CrayonSwitch(isOn: true)
                         CrayonSwitch(isOn: false)
                         CheckMark(isDone: true)

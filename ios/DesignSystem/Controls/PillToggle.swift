@@ -10,25 +10,40 @@ public struct PillToggle: View {
 
     private let title: String
     private let isOn: Bool
+    private let tag: String?
     private let action: () -> Void
 
-    public init(_ title: String, isOn: Bool, action: @escaping () -> Void) {
+    /// `tag`: C2's "1st" / "2nd" after the number (spec "C2 rows"). A tagged pill that is off is the
+    /// 2nd choice: the off look at 70 % with its tag.
+    public init(_ title: String, isOn: Bool, tag: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.isOn = isOn
+        self.tag = tag
         self.action = action
     }
 
     public var body: some View {
         Button(action: action) {
-            Text(title)
-                .crayonType(.head, bold: isOn)
-                .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
-                .lineLimit(1)
-                .frame(width: Self.size.width, height: Self.size.height)
-                .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
-                                  seed: CrayonStyle.Seed.tabs + 50)
+            HStack(spacing: Spacing.xs) {
+                Text(title)
+                    .crayonType(.head, bold: isOn)
+                    .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
+                    .lineLimit(1)
+                if let tag {
+                    Text(tag)
+                        .crayonType(.caption, bold: true)
+                        .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
+                        .padding(.horizontal, Spacing.xs)
+                        .partBackground(.roundedRect(cornerRadius: 10), fill: CrayonStyle.paper,
+                                        seed: CrayonStyle.Seed.tabs + 51)
+                }
+            }
+            .frame(width: Self.size.width, height: Self.size.height)
+            .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
+                            seed: CrayonStyle.Seed.tabs + 50)
+            .opacity(!isOn && tag != nil ? 0.7 : 1)
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
+        .accessibilityAddTraits(isOn || tag != nil ? .isSelected : [])
     }
 }

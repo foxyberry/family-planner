@@ -459,12 +459,9 @@ public struct SetupFeature {
                 }
 
             case let .serviceTapped(service):
+                // Spec "1st and 2nd choice": S3 sets the 1st only; the 2nd comes later in C2.
                 updateGoing(&state) { going in
-                    if let index = going.services.firstIndex(of: service) {
-                        going.services.remove(at: index)
-                    } else {
-                        going.services.append(service)
-                    }
+                    going.services = going.services.first == service ? [] : [service]
                 }
                 return .none
 

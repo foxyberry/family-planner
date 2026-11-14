@@ -55,7 +55,8 @@ public struct BusSettingsView: View {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         LazyVGrid(columns: PillToggle.columns, alignment: .leading, spacing: Spacing.sm) {
                             ForEach(store.search.servicesAtStop, id: \.self) { service in
-                                PillToggle(service, isOn: store.services.contains(service)) {
+                                PillToggle(service, isOn: store.services.first == service,
+                                           tag: store.state.tag(for: service)) {
                                     store.send(.serviceTapped(service))
                                 }
                             }
@@ -67,6 +68,10 @@ public struct BusSettingsView: View {
                     value: store.walk) { store.send(.walkChanged($0)) }
             stepper(L10n.tr("c2.ride"), text: store.rideText, caption: store.rideCaption, step: 1,
                     value: store.ride) { store.send(.rideChanged($0)) }
+            if store.second != nil {
+                stepper(L10n.tr("c2.ride_second"), text: store.secondRideText, caption: store.secondRideCaption, step: 1,
+                        value: store.secondRide) { store.send(.secondRideChanged($0)) }
+            }
             stepper(L10n.tr("c2.grace"), text: store.graceText, caption: L10n.tr("c2.grace.caption"), step: 5,
                     value: store.lateGrace) { store.send(.graceChanged($0)) }
         }

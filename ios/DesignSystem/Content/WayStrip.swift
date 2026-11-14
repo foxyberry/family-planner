@@ -21,9 +21,12 @@ public struct WayStrip: View {
         public var isMine: Bool
         public var isTooSoon: Bool
         public var showsBubble: Bool
+        /// The 2nd choice's bus (spec "A2 strip"): faded like "too soon", its bubble reads "or · 2nd".
+        public var isSecond: Bool
 
         public init(id: String, x: CGFloat, picture: KitSlot, service: String, minutes: String, isMine: Bool,
-                    isTooSoon: Bool, showsBubble: Bool) {
+                    isTooSoon: Bool, showsBubble: Bool, isSecond: Bool = false) {
+            self.isSecond = isSecond
             self.id = id
             self.x = x
             self.picture = picture
@@ -47,10 +50,16 @@ public struct WayStrip: View {
         public var tooSoon: String
         /// The kid's 1st-choice bus number for the legend plate, also when no bus can be caught.
         public var myService: String
+        /// The 2nd-choice bubble's caption ("or · 2nd") and the legend's faded line ("34 2nd").
+        public var secondCaption: String
+        public var secondLegend: String?
 
         public init(buses: [LiveBus], destination: KitSlot, destinationLabel: String, ourStopLabel: String,
-                    owner: KidFace.Badge, ownerName: String, myBus: String, tooSoon: String, myService: String = "") {
+                    owner: KidFace.Badge, ownerName: String, myBus: String, tooSoon: String, myService: String = "",
+                    secondCaption: String = "", secondLegend: String? = nil) {
             self.myService = myService
+            self.secondCaption = secondCaption
+            self.secondLegend = secondLegend
             self.buses = buses
             self.destination = destination
             self.destinationLabel = destinationLabel
@@ -170,7 +179,7 @@ public struct WayStrip: View {
                 pictures(g, destination: live.destination)
                 ForEach(live.buses) { bus in
                     mover(g, bus.picture, x: bus.x)
-                        .opacity(bus.isTooSoon ? 0.5 : 1)
+                        .opacity(bus.isTooSoon || bus.isSecond ? 0.5 : 1)
                         .animation(.linear(duration: 1), value: bus.x)
                 }
             case .homeAllDay:
@@ -298,9 +307,15 @@ public struct WayStrip: View {
             label(live.destinationLabel, x: Self.destinationX, kx: kx, k: k)
             // Legend at (946, 16): the white plate with the kid's 1st-choice bus number means "my bus"
             // (an empty plate read as broken on the iPad, 2026-11-09).
-            HStack(spacing: Spacing.xs) {
-                NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true, small: true)
-                Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                HStack(spacing: Spacing.xs) {
+                    NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true, small: true)
+                    Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
+                }
+                if let second = live.secondLegend {
+                    Text(second).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
+                        .fixedSize().opacity(0.5)
+                }
             }
             .offset(x: 946 * kx, y: 16 * k)
             ForEach(live.buses.filter(\.showsBubble)) { bus in
@@ -309,7 +324,7 @@ public struct WayStrip: View {
                     .overlay(alignment: .bottom) {
                         LiveBusBubble(service: bus.service, minutes: bus.minutes,
                                       kind: bus.isMine ? .mine(face: live.owner, name: live.ownerName, myBus: live.myBus)
-                                          : .tooSoon(live.tooSoon))
+                                          : .tooSoon(bus.isSecond ? live.secondCaption : live.tooSoon))
                     }
                     .offset(x: x * kx, y: (Self.moverBottom - 120 - 8) * k)
                     .animation(.linear(duration: 1), value: bus.x)

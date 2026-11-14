@@ -4,7 +4,7 @@ import XCTest
 /// Spec "A2 live look" maths. Made-up stop and bus numbers only (privacy rule).
 final class LiveBusTests: XCTestCase {
     private let plan = BusPlan(kid: UUID(uuidString: "5EED0000-0000-4000-8000-0000000000A1")!, stop: "00000",
-                               services: ["1", "2"], walk: 10, ride: 10, lateGrace: 15)
+                               services: ["1"], walk: 10, ride: 10, lateGrace: 15)
     private let start = 450 // 7:30 am
 
     private func bus(_ service: String, _ minutes: Int) -> BusArrival {
@@ -12,14 +12,38 @@ final class LiveBusTests: XCTestCase {
     }
 
     func testChosenIsTheFirstBusTheKidCanWalkTo() {
-        // 6:52 am: bus 1 in 4 min (too soon), bus 2 in 28 min (there 7:30), bus 9 is not ours.
-        let live = LiveMorning(arrivals: [bus("9", 2), bus("1", 4), bus("2", 28), bus("1", 40)], plan: plan,
+        // 6:52 am: bus 1 in 4 min (too soon), again in 28 min (there 7:30), bus 9 is not ours.
+        let live = LiveMorning(arrivals: [bus("9", 2), bus("1", 4), bus("1", 28), bus("1", 40)], plan: plan,
                                minute: 412, start: start)
         XCTAssertEqual(live.shown.map(\.minutes), [4, 28])
-        XCTAssertEqual(live.chosen, bus("2", 28))
+        XCTAssertEqual(live.chosen, bus("1", 28))
         XCTAssertEqual(live.tooSoon, bus("1", 4))
         XCTAssertEqual(live.leaveIn, 18)
         XCTAssertEqual(live.status, .onTime)
+    }
+
+    /// Spec "1st and 2nd choice": the 2nd is shown faded and never switched to; Leave in comes from
+    /// the 1st only.
+    func testTheSecondChoiceIsShownButNeverChosen() {
+        var both = plan
+        both.services = ["1", "2"]
+        // Bus 2 in 12 min would be sooner, but the kid's bus is 1 (in 30).
+        let live = LiveMorning(arrivals: [bus("2", 5), bus("2", 12), bus("1", 30)], plan: both, minute: 400, start: start)
+        XCTAssertEqual(live.chosen, bus("1", 30))
+        XCTAssertEqual(live.leaveIn, 20)
+        XCTAssertEqual(live.second, bus("2", 12), "the 2nd's first bus the kid can walk to")
+        XCTAssertEqual(both.first, "1")
+        XCTAssertEqual(both.second, "2")
+    }
+
+    /// C2 pills: 1st, then 2nd, a third replaces the 2nd, clearing the 1st hands over to the 2nd.
+    func testPillsPickTheFirstAndSecond() {
+        var list = BusPlan.toggling("12", in: [])
+        list = BusPlan.toggling("34", in: list)
+        XCTAssertEqual(list, ["12", "34"])
+        XCTAssertEqual(BusPlan.toggling("56", in: list), ["12", "56"])
+        XCTAssertEqual(BusPlan.toggling("12", in: list), ["34"])
+        XCTAssertEqual(BusPlan.toggling("34", in: list), ["12"])
     }
 
     func testLeaveNowAtZero() {
@@ -44,7 +68,7 @@ final class LiveBusTests: XCTestCase {
     func testMedalsFromTheTimeOnly() throws {
         // Buses at 7:06, 7:13, 7:21 (minute 412 + 14/21/29); ride 10: by 7:30 the 7:13 one (leave 7:03),
         // by 7:45 the 7:21 one (leave 7:11).
-        let targets = try XCTUnwrap(LiveMorning.leaveTargets(arrivals: [bus("1", 14), bus("2", 21), bus("1", 29)],
+        let targets = try XCTUnwrap(LiveMorning.leaveTargets(arrivals: [bus("1", 14), bus("1", 21), bus("1", 29)],
                                                              plan: plan, minute: 412, start: start))
         XCTAssertEqual(targets.ideal, 423)
         XCTAssertEqual(targets.latest, 431)
