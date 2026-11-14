@@ -29,14 +29,19 @@ public struct BusPlan: Hashable, Codable, Sendable {
     /// The event this route is for (spec "Events: one shape": a route per event); School by default.
     public var event: EventRef
     public var stop: String
+    /// The kid's buses in order (spec "1st and 2nd choice"): the 1st is "my bus", an optional 2nd is
+    /// shown faded and never switched to. "Leave in", the status and the medal use the 1st only.
     public var services: [String]
     public var walk: Int
     public var ride: Int
     public var lateGrace: Int
+    /// "Ride 2nd": the 2nd bus's own ride time (often the long way); the 1st's ride when not set.
+    public var secondRide: Int?
 
     public init(kid: Kid.ID, event: EventRef = .school, stop: String, services: [String],
                 walk: Int = BusPlan.defaultWalk, ride: Int = BusPlan.defaultRide,
-                lateGrace: Int = BusPlan.defaultLateGrace) {
+                lateGrace: Int = BusPlan.defaultLateGrace, secondRide: Int? = nil) {
+        self.secondRide = secondRide
         self.kid = kid
         self.event = event
         self.stop = stop
@@ -56,7 +61,27 @@ extension BusPlan {
                   stop: try values.decode(String.self, forKey: .stop),
                   services: try values.decode([String].self, forKey: .services),
                   walk: try values.decode(Int.self, forKey: .walk), ride: try values.decode(Int.self, forKey: .ride),
-                  lateGrace: try values.decode(Int.self, forKey: .lateGrace))
+                  lateGrace: try values.decode(Int.self, forKey: .lateGrace),
+                  secondRide: try values.decodeIfPresent(Int.self, forKey: .secondRide))
+    }
+
+    /// The 1st-choice bus ("my bus").
+    public var first: String? { services.first }
+    /// The 2nd choice, if any.
+    public var second: String? { services.count > 1 ? services[1] : nil }
+
+    /// C2's Buses pills (spec "C2 rows"): the first tap makes a bus the 1st, the next the 2nd (a
+    /// third replaces the 2nd); a tap on a picked bus clears it, and a cleared 1st hands over to the 2nd.
+    public static func toggling(_ service: String, in services: [String]) -> [String] {
+        var list = Array(services.prefix(2))
+        if let index = list.firstIndex(of: service) {
+            list.remove(at: index)
+        } else if list.count < 2 {
+            list.append(service)
+        } else {
+            list[1] = service
+        }
+        return list
     }
 
     /// The plan with the kid's school late grace, which wins over the plan's own (spec "Latest lives
@@ -90,6 +115,8 @@ public struct LiveMorning: Equatable, Sendable {
     public let chosen: BusArrival?
     /// An earlier arrival that cannot be caught, drawn faded with "too soon".
     public let tooSoon: BusArrival?
+    /// The 2nd choice's next bus the kid can still walk to, drawn faded with "or · 2nd".
+    public let second: BusArrival?
     /// Minutes until the kid should leave home for the chosen bus.
     public let leaveIn: Int?
     public let status: Status?
@@ -97,7 +124,8 @@ public struct LiveMorning: Equatable, Sendable {
     /// - Parameters: `arrivals` all live arrivals at the stop; `minute` now (minutes after
     ///   midnight); `start` the outing's start (arrive-by).
     public init(arrivals: [BusArrival], plan: BusPlan, minute: Int, start: Int) {
-        let mine = arrivals.filter { plan.services.contains($0.service) }.sorted { $0.minutes < $1.minutes }
+        let mine = arrivals.filter { $0.service == plan.first }.sorted { $0.minutes < $1.minutes }
+        second = arrivals.filter { $0.service == plan.second && $0.minutes >= plan.walk }.min { $0.minutes < $1.minutes }
         shown = Array(mine.prefix(2))
         let chosen = mine.first { $0.minutes >= plan.walk }
         self.chosen = chosen
@@ -125,7 +153,7 @@ public struct LiveMorning: Equatable, Sendable {
     /// (L1) and by the start + late grace (L2), from the arrivals at the moment of the slide.
     public static func leaveTargets(arrivals: [BusArrival], plan: BusPlan, minute: Int,
                                     start: Int) -> (ideal: Int, latest: Int)? {
-        let mine = arrivals.filter { plan.services.contains($0.service) }
+        let mine = arrivals.filter { $0.service == plan.first }
         func lastLeave(by deadline: Int) -> Int? {
             mine.filter { minute + $0.minutes + plan.ride <= deadline }
                 .map { minute + $0.minutes - plan.walk }

@@ -21,6 +21,8 @@ public struct BusSettingsFeature {
         public var walk = BusPlan.defaultWalk
         public var ride = BusPlan.defaultRide
         public var lateGrace = BusPlan.defaultLateGrace
+        /// "Ride 2nd" (spec "C2 rows"), shown while a 2nd bus is picked.
+        public var secondRide = BusPlan.defaultRide
         /// The kid as stored: "Late" is their school's Latest − Arrive by when the school has both
         /// (spec "Latest lives on the school record"), else the plan's own value.
         public var storedKid: Kid?
@@ -33,6 +35,19 @@ public struct BusSettingsFeature {
         public var walkText: String { L10n.tr("c2.minutes", walk) }
         public var rideText: String { L10n.tr("c2.minutes", ride) }
         public var graceText: String { L10n.tr("c2.minutes", lateGrace) }
+        public var secondRideText: String { L10n.tr("c2.minutes", secondRide) }
+        /// The 2nd bus, when one is picked: the "Ride 2nd" row shows.
+        public var second: String? { services.count > 1 ? services[1] : nil }
+        /// "on 34 · the long way".
+        public var secondRideCaption: String { second.map { L10n.tr("c2.ride_second.on", $0) } ?? "" }
+        /// A pill's tag: "1st", "2nd" or none.
+        public func tag(for service: String) -> String? {
+            switch services.firstIndex(of: service) {
+            case 0?: L10n.tr("c2.tag.first")
+            case 1?: L10n.tr("c2.tag.second")
+            default: nil
+            }
+        }
 
         /// Board C2's side column and stepper captions.
         public var sideTitle: String { L10n.tr("c2.side.title", kidName) }
@@ -43,7 +58,8 @@ public struct BusSettingsFeature {
 
         public var plan: BusPlan? {
             guard search.stop.count == 5, !services.isEmpty else { return nil }
-            return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace)
+            return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace,
+                           secondRide: second == nil ? nil : secondRide)
         }
     }
 
@@ -54,6 +70,7 @@ public struct BusSettingsFeature {
         case serviceTapped(String)
         case walkChanged(Int)
         case rideChanged(Int)
+        case secondRideChanged(Int)
         case graceChanged(Int)
         case doneTapped
         case delegate(Delegate)
@@ -83,9 +100,11 @@ public struct BusSettingsFeature {
                 state.storedKid = kid
                 if let plan = snapshot?.busPlans.route(kid: state.kid) {
                     state.search = StopSearchFeature.State(stop: plan.stop)
-                    state.services = plan.services
+                    // Older plans could hold more buses; the 1st and 2nd are the first two.
+                    state.services = Array(plan.services.prefix(2))
                     state.walk = plan.walk
                     state.ride = plan.ride
+                    state.secondRide = plan.secondRide ?? plan.ride
                     state.lateGrace = plan.lateGrace
                 }
                 if let grace = kid?.school?.lateGrace { state.lateGrace = grace }
@@ -95,11 +114,9 @@ public struct BusSettingsFeature {
                 return .none
 
             case let .serviceTapped(service):
-                if let index = state.services.firstIndex(of: service) {
-                    state.services.remove(at: index)
-                } else {
-                    state.services.append(service)
-                }
+                let hadSecond = state.second != nil
+                state.services = BusPlan.toggling(service, in: state.services)
+                if !hadSecond, state.second != nil { state.secondRide = state.ride }
                 return save(state)
 
             case let .walkChanged(value):
@@ -108,6 +125,10 @@ public struct BusSettingsFeature {
 
             case let .rideChanged(value):
                 state.ride = min(max(value, 0), 90)
+                return save(state)
+
+            case let .secondRideChanged(value):
+                state.secondRide = min(max(value, 0), 90)
                 return save(state)
 
             case let .graceChanged(value):

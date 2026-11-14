@@ -144,6 +144,28 @@
         }
       }
     },
+    "c2.ride_second" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ride 2nd"
+          }
+        }
+      }
+    },
+    "c2.ride_second.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on %@ · the long way"
+          }
+        }
+      }
+    },
     "c2.side.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -228,6 +250,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No stop with this code"
+          }
+        }
+      }
+    },
+    "c2.tag.first" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1st"
+          }
+        }
+      }
+    },
+    "c2.tag.second" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2nd"
           }
         }
       }
@@ -2670,6 +2714,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ready, %@!"
+          }
+        }
+      }
+    },
+    "missions.second" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or · 2nd"
+          }
+        }
+      }
+    },
+    "missions.second_legend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 2nd"
           }
         }
       }

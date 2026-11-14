@@ -60,6 +60,25 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1"], walk: 8)])
     }
 
+    /// Spec "C2 rows": the second pick is the 2nd choice with "Ride 2nd" (starting from Ride).
+    func testASecondBusGetsItsOwnRide() async {
+        let saved = LockIsolated<[BusPlan]>([])
+        let store = store(saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.search(.textChanged("00000")))
+        await store.send(.serviceTapped("1"))
+        XCTAssertNil(store.state.second)
+        await store.send(.serviceTapped("2"))
+        XCTAssertEqual(store.state.tag(for: "1"), "1st")
+        XCTAssertEqual(store.state.tag(for: "2"), "2nd")
+        XCTAssertEqual(store.state.secondRideCaption, "on 2 · the long way")
+        await store.send(.secondRideChanged(18))
+        await store.finish(timeout: .seconds(1))
+        XCTAssertEqual(saved.value.last?.services, ["1", "2"])
+        XCTAssertEqual(saved.value.last?.secondRide, 18)
+    }
+
     /// Families know the stop's name (user, 2026-11-09): typing a name lists stops; picking one
     /// fills the code and its buses.
     func testStopByName() async {
