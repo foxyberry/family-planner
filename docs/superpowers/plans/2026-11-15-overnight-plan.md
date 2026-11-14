@@ -45,3 +45,19 @@ For each one, list the differences, fix them in small PRs, and send copy or desi
 - **WDA:** start it only while checking, and stop it after.
 - **Design questions:** go to the design session. Where the spec leaves a gap, build the simplest reading and note it in the PR.
 - **Art:** picture-only changes come in batches ("art final"). Pull `kit.js` and run `make art` only then.
+
+## Results (2026-11-15, night run)
+
+| # | Result |
+|---|---|
+| A1 | Merged, PR #86. |
+| A2 | Merged, PR #87. The foot's "School lists · {date}" is still to do. |
+| A3 | Merged, PR #88. Phase B reworked it into the search plus the G7 card (PR #92). Changing to "at home" or a preschool is not built. |
+| A4 | Merged, PR #89. |
+| A5 | Merged, PR #90. "Skip this day" sits above "Make this free time" on This day; the design session is asked to confirm. |
+| A6 | Already built (the "Before {item}" button, Leave in, A2 for that outing). Nothing new. |
+| A7 | Merged, PR #91: tags, Ride 2nd, the faded 2nd on A2. C2c (a 2nd that changes buses) is not built. |
+| A8 | Already built: bold caption labels on every form, MOE holidays. Nothing new. |
+| B | PR #92: G6 "›" rows and the To school line, G4 Going, the G7 card, the G1g hub colour. Checked G1, G8, C3 and C3k against their boards; open questions went to the design session (G4 one-line rows, the Terms list, G6 Home / evening missions). |
+
+Still to check on the iPad in a daytime session: the kid screens (A1, A1b, E1, E3, A2, A3), C2 with a working stop lookup (it failed at night), S1–S4, and the snapshots (`make snapshots`).
