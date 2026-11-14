@@ -132,11 +132,21 @@ final class OurDayTests: XCTestCase {
         let free = try XCTUnwrap(store.state.selectedBlock)
         await store.send(.plusTapped(start: free.start))
         XCTAssertNotNil(store.state.newSlice)
-        await store.send(.binding(.set(\.newSlice, .init(block: store.state.newSlice!.block, name: "Piano",
-                                                          iconName: "actPiano"))))
-        await store.send(.newSliceAddTapped)
+        XCTAssertEqual(store.state.newSlicePictures.count, 5)
+        // Board G1f: the picture puts the slice on the clock at once, named after it.
+        await store.send(.newSlicePicturePicked("actPiano"))
         XCTAssertEqual(store.state.edit.blocks.first { $0.start == free.start }?.title, "Piano")
+        XCTAssertEqual(store.state.hub.above, "New")
+        XCTAssertEqual(store.state.newSlicePictures.first, .actPiano, "the picked picture comes first")
+        // A typed name sticks; another picture keeps it.
+        await store.send(.newSliceNameChanged("Piano with Mum and Dad"))
+        await store.send(.newSlicePicturePicked("actMusic"))
+        let piano = store.state.edit.blocks.first { $0.start == free.start }
+        XCTAssertEqual(piano?.title, "Piano with Mum", "14 characters at most")
+        XCTAssertEqual(piano?.iconName, "actMusic")
+        // Undo takes the new slice back in one step, card and all.
         await store.send(.undoTapped)
+        XCTAssertNil(store.state.newSlice)
         await store.send(.undoTapped)
         XCTAssertEqual(store.state.edit.blocks.first { $0.start == play.start }?.title, "Play")
         XCTAssertFalse(store.state.edit.isChanged)

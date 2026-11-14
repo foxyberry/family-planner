@@ -14,9 +14,12 @@ public struct PictureRow: View {
     private let moreTitle: String
     private let moreLabel: String
     private let onMore: () -> Void
+    /// Board G1f: in a narrow card the slots wrap, this many per row (88, gap 16); nil keeps one row.
+    private let columns: Int?
 
     public init(slots: [KitSlot], selection: Binding<KitSlot?>, all: [KitSlot], isShowingAll: Bool,
-                moreTitle: String, moreLabel: String, onMore: @escaping () -> Void) {
+                moreTitle: String, moreLabel: String, columns: Int? = nil, onMore: @escaping () -> Void) {
+        self.columns = columns
         self.slots = slots
         _selection = selection
         self.all = all
@@ -27,7 +30,15 @@ public struct PictureRow: View {
     }
 
     public var body: some View {
-        HStack(spacing: Spacing.s) {
+        if let columns {
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(88), spacing: Spacing.s), count: columns),
+                      alignment: .leading, spacing: Spacing.s) { items }
+        } else {
+            HStack(spacing: Spacing.s) { items }
+        }
+    }
+
+    @ViewBuilder private var items: some View {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
                 let isOn = slot == selection
                 Button { selection = slot } label: {
@@ -69,6 +80,5 @@ public struct PictureRow: View {
                         .offset(y: 88 + Spacing.sm)
                 }
             }
-        }
     }
 }

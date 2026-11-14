@@ -39,12 +39,23 @@ public struct OurDayFeature {
         }
     }
 
+    /// Board G1f: the five pictures a new slice offers before "More".
+    public static let suggested: [KitSlot] = [.actPlay, .snack, .actStory, .homework, .tv]
+    /// Slice names keep the C5 limit (14 characters).
+    static let longestName = 14
+
     public struct NewSlice: Equatable, Sendable {
         public var block: Int
         public var name: String
         public var iconName: String?
         /// Board G1e: the slice was put between two others; closing the card without adding takes it back.
         public var isBetween: Bool
+        /// Board G1f: a picture was picked, so the slice is on the clock (Undo takes it back).
+        public var isOnClock = false
+        /// The grown-up typed a name; a later picture no longer renames the slice.
+        public var nameIsTyped = false
+        /// "More" shows every day picture.
+        public var isPickingMore = false
 
         public init(block: Int, name: String = "", iconName: String? = nil, isBetween: Bool = false) {
             self.block = block
@@ -247,6 +258,12 @@ public struct OurDayFeature {
                                      time: TimeText.withPeriod(knob.minute),
                                      below: L10n.tr("day.knob.starts", edit.blocks[knob.after].title))
             }
+            // Board G1f: a new slice on the clock reads "New" / "7:30 pm" / "until 8:00 pm".
+            if let slice = newSlice, slice.isOnClock, edit.blocks.indices.contains(slice.block) {
+                let block = edit.blocks[slice.block]
+                return EditClock.Hub(above: L10n.tr("day.new.hub"), time: TimeText.withPeriod(block.start),
+                                     below: L10n.tr("home.hub.until", TimeText.withPeriod(block.end)))
+            }
             return EditClock.Hub(title: selected.map { edit.blocks[$0].title })
         }
 
@@ -274,9 +291,11 @@ public struct OurDayFeature {
             kid.school = school.moved(sliceStart: block.start, sliceEnd: block.end)
             return kid
         }
-        public var canAddNewSlice: Bool {
-            guard let newSlice else { return false }
-            return !newSlice.name.trimmingCharacters(in: .whitespaces).isEmpty && newSlice.iconName != nil
+        /// Board G1f: five day pictures and "More" (two rows of three), the picked one first.
+        public var newSlicePictures: [KitSlot] {
+            let picked = newSlice?.iconName.flatMap(KitSlot.init(rawValue:))
+            let rest = OurDayFeature.suggested.filter { $0 != picked }
+            return Array(([picked].compactMap { $0 } + rest).prefix(5))
         }
     }
 
@@ -310,8 +329,10 @@ public struct OurDayFeature {
         case startPicked(Date)
         case endPicked(Date)
         case makeFreeTapped
+        /// Board G1f: a picture puts the slice on the clock (named after it); the name and times edit it.
         case newSlicePicturePicked(String)
-        case newSliceAddTapped
+        case newSliceNameChanged(String)
+        case newSliceMoreTapped
         case undoTapped
         case redoTapped
         /// Board G1 header: List (a toggle) and Settings.
@@ -515,17 +536,40 @@ public struct OurDayFeature {
                 return .none
 
             case let .newSlicePicturePicked(name):
-                state.newSlice?.iconName = name
+                guard var slice = state.newSlice else { return .none }
+                let title = slice.nameIsTyped ? slice.name : String(ItemForm.label(for: name).prefix(Self.longestName))
+                if slice.isOnClock {
+                    state.edit.restyle(slice.block, title: title, iconName: name, kind: Self.kind(forPicture: name))
+                } else {
+                    state.edit.fill(slice.block, title: title, iconName: name, kind: Self.kind(forPicture: name))
+                    slice.isOnClock = true
+                }
+                slice.iconName = name
+                slice.name = title
+                slice.isPickingMore = false
+                state.newSlice = slice
+                state.selected = slice.block
                 return .none
 
-            case .newSliceAddTapped:
-                guard state.canAddNewSlice, let slice = state.newSlice, let icon = slice.iconName else { return .none }
-                state.edit.fill(slice.block, title: slice.name.trimmingCharacters(in: .whitespaces), iconName: icon,
-                                kind: Self.kind(forPicture: icon))
-                state.newSlice = nil
+            case let .newSliceNameChanged(text):
+                guard var slice = state.newSlice else { return .none }
+                slice.name = String(text.prefix(Self.longestName))
+                slice.nameIsTyped = true
+                if slice.isOnClock, let icon = slice.iconName {
+                    let trimmed = slice.name.trimmingCharacters(in: .whitespaces)
+                    state.edit.restyle(slice.block, title: trimmed.isEmpty ? ItemForm.label(for: icon) : trimmed,
+                                       iconName: icon, kind: Self.kind(forPicture: icon))
+                }
+                state.newSlice = slice
+                return .none
+
+            case .newSliceMoreTapped:
+                state.newSlice?.isPickingMore.toggle()
                 return .none
 
             case .undoTapped:
+                // Board G1f: Undo takes a new slice back, card and all.
+                if state.newSlice?.isOnClock == true { state.newSlice = nil }
                 state.edit.undo()
                 state.message = nil
                 return .none
@@ -566,6 +610,7 @@ public struct OurDayFeature {
                 }
                 state.routines.append(routine)
                 state.edit.markSaved()
+                state.newSlice = nil
                 state.saveError = nil
                 // Grown-up mode stays on the clock after a save (board G1), unless G1d's Save asked to leave.
                 guard state.leavesAfterSave else { return .none }
@@ -648,9 +693,12 @@ public struct OurDayFeature {
         return edit.blocks[knob.before].kind == .free ? knob.after : knob.before
     }
 
-    /// Board G1e: a slice put between and left without a name is taken back.
+    /// Board G1e: a slice put between and closed before a picture was picked is taken back.
     private func dropBetween(_ state: inout State) {
-        guard state.newSlice?.isBetween == true else { return }
+        guard state.newSlice?.isBetween == true, state.newSlice?.isOnClock == false else {
+            if state.newSlice?.isOnClock == true { state.newSlice = nil }
+            return
+        }
         state.newSlice = nil
         state.edit.dropLastChange()
     }
