@@ -60,6 +60,7 @@ public struct SettingsView: View {
         case .buses: .busesRowTapped
         case .missions: .missionsRowTapped
         case .school: .schoolRowTapped
+        case .changeSchool: .changeSchoolRowTapped
         }
     }
 

@@ -256,4 +256,60 @@ public extension TemplateEdit {
         }
         return edit.blocks
     }
+
+    /// Spec "Where the kid goes changes": the weekday template for the kid's new place. A school or
+    /// preschool moves the School slice to its hours (and names it "School" or "Preschool"); a kid
+    /// with no School slice yet gets one over those hours, cutting into what was there. At home
+    /// (`nil`) turns the School slice into free time.
+    static func placingSchool(_ blocks: [RoutineBlock], school: School?) -> [RoutineBlock] {
+        guard let school else {
+            let rest = blocks.map { block -> RoutineBlock in
+                guard block.kind == .school else { return block }
+                return free(from: block.start, to: block.end)
+            }
+            return mergingFree(rest)
+        }
+        let title = school.isPreschool ? L10n.tr("starter.preschool") : L10n.tr("starter.school")
+        let icon = school.isPreschool ? "playground" : "actSchool"
+        if blocks.contains(where: { $0.kind == .school }) {
+            return movingSchool(blocks, to: school).map { block in
+                guard block.kind == .school else { return block }
+                var named = block
+                named.title = title
+                named.iconName = icon
+                return named
+            }
+        }
+        let start = school.arriveBy ?? school.start, end = school.end
+        guard start < end else { return blocks }
+        var kept: [RoutineBlock] = []
+        for block in blocks {
+            if block.end <= start || block.start >= end { kept.append(block); continue }
+            if block.start < start {
+                var head = block
+                head.end = start
+                if head.end - head.start >= shortest || head.kind == .free { kept.append(head) }
+            }
+            if block.end > end {
+                var tail = block
+                tail.start = end
+                if tail.end - tail.start >= shortest || tail.kind == .free { kept.append(tail) }
+            }
+        }
+        kept.append(RoutineBlock(title: title, iconName: icon, kind: .school, start: start, end: end, isLocked: true))
+        return TemplateEdit(blocks: kept).blocks
+    }
+
+    /// Free slices that touch become one.
+    private static func mergingFree(_ blocks: [RoutineBlock]) -> [RoutineBlock] {
+        var out: [RoutineBlock] = []
+        for block in blocks.sorted(by: { $0.start < $1.start }) {
+            if block.kind == .free, let last = out.last, last.kind == .free, last.end == block.start {
+                out[out.count - 1].end = block.end
+            } else {
+                out.append(block)
+            }
+        }
+        return out
+    }
 }

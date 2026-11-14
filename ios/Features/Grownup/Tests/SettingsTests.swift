@@ -93,12 +93,15 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(rows.first { $0.key == "To school" }?.value, "Bus 12 · leave 7:05 · 2nd 34")
     }
 
-    func testAKidAtHomeHasAboutAndRoutines() async {
+    func testAKidAtHomeHasASchoolRowToAddAPlace() async {
         let store = store()
         await store.send(.task)
         await store.receive(\.loaded)
         await store.send(.tabTapped(.kid(SeedData.kidB.id)))
-        XCTAssertEqual(store.state.sections.map(\.title), ["About", "Routines"])
+        // Spec "Where the kid goes changes": adding a place later starts from the School row (G7).
+        XCTAssertEqual(store.state.sections.map(\.title), ["About", "School", "Routines"])
+        XCTAssertEqual(store.state.sections[1].rows.map(\.value), ["At home"])
+        XCTAssertEqual(store.state.sections[1].rows.first?.link, .changeSchool)
         XCTAssertEqual(store.state.tabs.map(\.0), [.kid(SeedData.kidA.id), .kid(SeedData.kidB.id), .family])
     }
 

@@ -639,17 +639,6 @@
         }
       }
     },
-    "change_school.new" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New"
-          }
-        }
-      }
-    },
     "change_school.next_term" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4826,6 +4815,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "morning %lld"
+          }
+        }
+      }
+    },
+    "settings.pending.from" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From %@"
           }
         }
       }

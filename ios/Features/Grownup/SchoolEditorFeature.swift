@@ -66,7 +66,8 @@ public struct SchoolEditorFeature {
         /// "From 5 Jan: Example Primary School" while a G7 change waits for its day.
         public var pendingLine: String? {
             guard let pending = stored?.pendingSchool else { return nil }
-            return L10n.tr("change_school.pending", DayText.dayMonth(pending.from, calendar: calendar), pending.school.name)
+            return L10n.tr("change_school.pending", DayText.dayMonth(pending.from, calendar: calendar),
+                         pending.school?.name ?? L10n.tr("settings.child.home"))
         }
         /// Board G4's side line: "Every school day", or the days as chips.
         public var everyTitle: String { DayText.chips(school?.days ?? []) }

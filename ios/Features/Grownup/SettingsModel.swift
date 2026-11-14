@@ -24,6 +24,8 @@ public enum SettingsLink: Equatable, Sendable {
     case missions
     /// School, Hours and Terms open G4 (spec "G4 row destinations").
     case school
+    /// A kid with no school yet (at home): G7 to pick a place (spec "adding a place later").
+    case changeSchool
 }
 
 /// A titled block of a kid's Settings tab.
@@ -66,6 +68,14 @@ public enum SettingsModel {
                 SettingsRow(key: L10n.tr("settings.to_school"), picture: busPlan == nil ? nil : "busDouble", // copy-ok: a KitSlot name
                             value: buses, link: .buses),
             ]))
+        } else {
+            // A kid at home: the School row opens G7 to add a place; a waiting change shows below it.
+            var rows = [SettingsRow(key: L10n.tr("settings.school"), value: L10n.tr("settings.child.home"), link: .changeSchool)]
+            if let pending = kid.pendingSchool {
+                rows.append(SettingsRow(key: L10n.tr("settings.pending.from", DayText.dayMonth(pending.from, calendar: calendar)),
+                                        value: pending.school?.name ?? L10n.tr("settings.child.home"), link: .changeSchool))
+            }
+            sections.append(SettingsSection(title: L10n.tr("settings.school"), rows: rows))
         }
         let own = missions.filter { $0.kid == kid.id }.count
         sections.append(SettingsSection(title: L10n.tr("settings.routines"), rows: [
