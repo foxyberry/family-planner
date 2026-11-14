@@ -38,6 +38,19 @@ public struct WayStrip: View {
         }
     }
 
+    /// A changing 2nd choice's bubble (spec "A2 strip"): "or 34" › "33" over how the change goes.
+    public struct Change: Equatable, Sendable {
+        public var caption: String
+        public var then: String
+        public var fit: String?
+
+        public init(caption: String, then: String, fit: String?) {
+            self.caption = caption
+            self.then = then
+            self.fit = fit
+        }
+    }
+
     /// Everything the live look draws.
     public struct Live: Equatable, Sendable {
         public var buses: [LiveBus]
@@ -53,10 +66,13 @@ public struct WayStrip: View {
         /// The 2nd-choice bubble's caption ("or · 2nd") and the legend's faded line ("34 2nd").
         public var secondCaption: String
         public var secondLegend: String?
+        /// Set when the 2nd choice changes buses: its bubble shows the change instead of `secondCaption`.
+        public var secondChange: Change?
 
         public init(buses: [LiveBus], destination: KitSlot, destinationLabel: String, ourStopLabel: String,
                     owner: KidFace.Badge, ownerName: String, myBus: String, tooSoon: String, myService: String = "",
-                    secondCaption: String = "", secondLegend: String? = nil) {
+                    secondCaption: String = "", secondLegend: String? = nil, secondChange: Change? = nil) {
+            self.secondChange = secondChange
             self.myService = myService
             self.secondCaption = secondCaption
             self.secondLegend = secondLegend
@@ -324,7 +340,9 @@ public struct WayStrip: View {
                     .overlay(alignment: .bottom) {
                         LiveBusBubble(service: bus.service, minutes: bus.minutes,
                                       kind: bus.isMine ? .mine(face: live.owner, name: live.ownerName, myBus: live.myBus)
-                                          : .tooSoon(bus.isSecond ? live.secondCaption : live.tooSoon))
+                                          : bus.isSecond ? live.secondChange.map { .change($0.caption, then: $0.then, fit: $0.fit) }
+                                              ?? .tooSoon(live.secondCaption)
+                                          : .tooSoon(live.tooSoon))
                     }
                     .offset(x: x * kx, y: (Self.moverBottom - 120 - 8) * k)
                     .animation(.linear(duration: 1), value: bus.x)

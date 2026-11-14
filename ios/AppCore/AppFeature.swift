@@ -24,6 +24,8 @@ public struct AppFeature {
         case ourDay(OurDayFeature)
         case missionEditor(MissionEditorFeature)
         case busSettings(BusSettingsFeature)
+        /// C2c · 2nd choice · change buses, from C2's link.
+        case changeBuses(ChangeBusesFeature)
         /// G4 · Edit School, from the List's School row.
         case schoolEditor(SchoolEditorFeature)
         /// G6f "+ Add a child".
@@ -407,6 +409,17 @@ public struct AppFeature {
             case let .path(.element(id: id, action: .busSettings(.delegate(.finished)))):
                 state.path.pop(from: id)
                 return .none
+
+            case let .path(.element(id: _, action: .busSettings(.delegate(.openChange(kid))))):
+                state.path.append(.changeBuses(ChangeBusesFeature.State(kid: kid)))
+                return .none
+
+            case let .path(.element(id: id, action: .changeBuses(.delegate(.finished)))):
+                state.path.pop(from: id)
+                // C2 shows the saved 2nd choice.
+                guard let c2 = state.path.ids.last(where: { if case .busSettings = state.path[id: $0] { true } else { false } })
+                else { return .none }
+                return .send(.path(.element(id: c2, action: .busSettings(.task))))
 
             case let .path(.element(id: _, action: .editor(.delegate(.openBuses(kid))))),
                  let .path(.element(id: _, action: .schoolEditor(.delegate(.openBuses(kid))))):

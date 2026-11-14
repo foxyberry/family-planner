@@ -37,6 +37,41 @@ final class LiveBusTests: XCTestCase {
     }
 
     /// C2 pills: 1st, then 2nd, a third replaces the 2nd, clearing the 1st hands over to the 2nd.
+    /// Spec "C2c": a changing 2nd replaces a direct 2nd; A2 shows its first bus faded and how the
+    /// change goes from the live arrivals at the change stop.
+    func testAChangingSecondChoiceShowsHowTheChangeGoes() {
+        let change = BusChange(firstBus: "3", stop: "00001", thenBus: "4", ride1: 8, walk: 2, ride2: 6)
+        var both = plan
+        both.services = ["1", "2"]
+        both.secondRide = 18
+        let changing = both.changing(change)
+        XCTAssertEqual(changing.services, ["1"])
+        XCTAssertNil(changing.secondRide)
+        XCTAssertEqual(changing.secondStart, "3")
+        XCTAssertEqual(both.changing(nil), both, "removing a change keeps a direct 2nd")
+
+        // Bus 3 boards in 12 min, reaches the change stop and walks: there in 22. Bus 4 in 25: wait 3.
+        let live = LiveMorning(arrivals: [bus("1", 30), bus("3", 12)], plan: changing, minute: 412, start: start,
+                               changeArrivals: [bus("4", 15), bus("4", 25)])
+        XCTAssertEqual(live.second, bus("3", 12))
+        XCTAssertEqual(live.secondFit, .wait(3))
+        XCTAssertEqual(live.chosen, bus("1", 30), "the 1st stays my bus")
+        XCTAssertEqual(change.fit(boardsIn: 12, arrivals: [bus("4", 23)]), .tight)
+        XCTAssertEqual(change.fit(boardsIn: 12, arrivals: [bus("4", 15)]), .willMiss)
+        XCTAssertNil(LiveMorning(arrivals: [bus("3", 12)], plan: changing, minute: 412, start: start).secondFit)
+    }
+
+    /// Plans saved before C2c have no change.
+    func testOlderPlansDecodeWithoutAChange() throws {
+        let data = try JSONEncoder().encode(plan)
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        json.removeValue(forKey: "change")
+        let decoded = try JSONDecoder().decode(BusPlan.self, from: JSONSerialization.data(withJSONObject: json))
+        XCTAssertNil(decoded.change)
+        let withChange = plan.changing(BusChange(firstBus: "3", stop: "00001", thenBus: "4"))
+        XCTAssertEqual(try JSONDecoder().decode(BusPlan.self, from: JSONEncoder().encode(withChange)), withChange)
+    }
+
     func testPillsPickTheFirstAndSecond() {
         var list = BusPlan.toggling("12", in: [])
         list = BusPlan.toggling("34", in: list)

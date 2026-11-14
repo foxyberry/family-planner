@@ -60,6 +60,24 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1"], walk: 8)])
     }
 
+    /// Spec "C2c": one 2nd choice per kid; the link shows a changing 2nd, and a direct 2nd replaces it.
+    func testADirectSecondReplacesAChangingOne() async {
+        let change = BusChange(firstBus: "2", stop: "00001", thenBus: "4")
+        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"], change: change)])
+        let store = store(saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.changeLink.first, "2nd choice · 2")
+        XCTAssertEqual(store.state.changeLink.then, "4")
+        await store.send(.changeLinkTapped)
+        await store.receive(\.delegate.openChange)
+        await store.send(.serviceTapped("2"))
+        await store.finish(timeout: .seconds(1))
+        XCTAssertNil(saved.value.last?.change)
+        XCTAssertEqual(saved.value.last?.services, ["1", "2"])
+        XCTAssertEqual(store.state.changeLink.first, "2nd choice changes buses…")
+    }
+
     /// Spec "C2 rows": the second pick is the 2nd choice with "Ride 2nd" (starting from Ride).
     func testASecondBusGetsItsOwnRide() async {
         let saved = LockIsolated<[BusPlan]>([])
@@ -109,7 +127,7 @@ final class BusSettingsTests: XCTestCase {
     /// buses; only picking a stop (or a full 5-digit code) changes them.
     func testTheBusesStayUntilANewStopIsPicked() async {
         let kid = self.kid
-        let saved = LockIsolated([BusPlan(kid: kid, stop: "00000", services: ["1"])])
+        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)

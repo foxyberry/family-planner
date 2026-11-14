@@ -23,6 +23,8 @@ public struct BusSettingsFeature {
         public var lateGrace = BusPlan.defaultLateGrace
         /// "Ride 2nd" (spec "C2 rows"), shown while a 2nd bus is picked.
         public var secondRide = BusPlan.defaultRide
+        /// A 2nd choice that changes buses (C2c); a direct 2nd replaces it.
+        public var change: BusChange?
         /// The kid as stored: "Late" is their school's Latest − Arrive by when the school has both
         /// (spec "Latest lives on the school record"), else the plan's own value.
         public var storedKid: Kid?
@@ -59,7 +61,15 @@ public struct BusSettingsFeature {
         public var plan: BusPlan? {
             guard search.stop.count == 5, !services.isEmpty else { return nil }
             return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace,
-                           secondRide: second == nil ? nil : secondRide)
+                           secondRide: second == nil ? nil : secondRide, change: second == nil ? change : nil)
+        }
+
+        /// The link under the rows (spec "C2 rows"): "2nd choice changes buses…", or the picked
+        /// change as "2nd choice · 34" › "33". Shown once the kid has a 1st bus at a known stop.
+        public var showsChangeLink: Bool { plan != nil }
+        public var changeLink: (first: String, then: String?) {
+            guard let change else { return (L10n.tr("c2.change_link"), nil) }
+            return (L10n.tr("c2.change_link.set", change.firstBus), change.thenBus)
         }
     }
 
@@ -72,12 +82,14 @@ public struct BusSettingsFeature {
         case rideChanged(Int)
         case secondRideChanged(Int)
         case graceChanged(Int)
+        case changeLinkTapped
         case doneTapped
         case delegate(Delegate)
 
         @CasePathable
         public enum Delegate: Equatable {
             case finished
+            case openChange(Kid.ID)
         }
     }
 
@@ -106,6 +118,7 @@ public struct BusSettingsFeature {
                     state.ride = plan.ride
                     state.secondRide = plan.secondRide ?? plan.ride
                     state.lateGrace = plan.lateGrace
+                    state.change = plan.change
                 }
                 if let grace = kid?.school?.lateGrace { state.lateGrace = grace }
                 return .send(.search(.lookUp))
@@ -117,6 +130,8 @@ public struct BusSettingsFeature {
                 let hadSecond = state.second != nil
                 state.services = BusPlan.toggling(service, in: state.services)
                 if !hadSecond, state.second != nil { state.secondRide = state.ride }
+                // One 2nd choice per kid: a direct 2nd replaces a changing one.
+                if state.second != nil { state.change = nil }
                 return save(state)
 
             case let .walkChanged(value):
@@ -137,6 +152,9 @@ public struct BusSettingsFeature {
                 kid.school?.latest = arriveBy + state.lateGrace
                 state.storedKid = kid
                 return .merge(save(state), .run { [scheduleStore, kid] _ in try? await scheduleStore.saveKid(kid) })
+
+            case .changeLinkTapped:
+                return .send(.delegate(.openChange(state.kid)))
 
             case .doneTapped:
                 return .send(.delegate(.finished))

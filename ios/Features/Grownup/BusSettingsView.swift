@@ -74,7 +74,26 @@ public struct BusSettingsView: View {
             }
             stepper(L10n.tr("c2.grace"), text: store.graceText, caption: L10n.tr("c2.grace.caption"), step: 5,
                     value: store.lateGrace) { store.send(.graceChanged($0)) }
+            if store.showsChangeLink { changeLink }
         }
+    }
+
+    /// Board C2 (y 900): "+ 2nd choice changes buses…" → C2c; a picked change reads "2nd choice · 34 › 33".
+    private var changeLink: some View {
+        let link = store.changeLink
+        return ListRow(leading: "", minHeight: 72) { Button { store.send(.changeLinkTapped) } label: {
+            HStack(spacing: Spacing.s) {
+                if link.then == nil { MarkerIcon(.plus, size: 28, color: CrayonColor.ink) }
+                Text(link.first).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
+                if let then = link.then {
+                    MarkerIcon(.arrowRight, size: 28, color: CrayonColor.link)
+                    Text(then).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
+                }
+            }
+            .frame(minHeight: 72)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain) }
     }
 
     /// Board C2's side column (layout v38, plain screens): whose route it is, nothing more.

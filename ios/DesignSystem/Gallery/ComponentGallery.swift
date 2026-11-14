@@ -163,6 +163,7 @@ public struct ComponentGallery: View {
                                       kind: .mine(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A",
                                                   myBus: "my bus"))
                         LiveBusBubble(service: "1", minutes: "4 min", kind: .tooSoon("too soon"))
+                        LiveBusBubble(service: "3", minutes: "12 min", kind: .change("or 3", then: "4", fit: "wait 3 min"))
                     }
                 }
                 section("F1–F4 · Form cards") {

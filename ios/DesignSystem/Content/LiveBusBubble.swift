@@ -9,6 +9,8 @@ public struct LiveBusBubble: View {
     public enum Kind: Equatable, Sendable {
         case mine(face: KidFace.Badge, name: String, myBus: String)
         case tooSoon(String)
+        /// A changing 2nd choice (spec "A2 strip"): "or 34" › "33", then how the change goes.
+        case change(String, then: String, fit: String?)
     }
 
     private let service: String
@@ -37,6 +39,16 @@ public struct LiveBusBubble: View {
                 }
             case let .tooSoon(text):
                 Text(text).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText).fixedSize()
+            case let .change(text, then, fit):
+                HStack(spacing: Spacing.xxs) {
+                    Text(text).crayonType(.caption).fixedSize()
+                    MarkerIcon(.arrowRight, size: 20, color: CrayonColor.pictureSoftText)
+                    Text(then).crayonType(.caption).fixedSize()
+                }
+                .foregroundStyle(CrayonColor.pictureSoftText)
+                if let fit {
+                    Text(fit).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureSoftText).fixedSize()
+                }
             }
         }
         .padding(.horizontal, Spacing.s)
