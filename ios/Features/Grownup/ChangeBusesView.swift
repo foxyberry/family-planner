@@ -7,12 +7,34 @@ import SwiftUI
 /// C2c · 2nd choice · change buses (board C2c): From, First bus, Change at, Then, Ride 1, Walk, Ride 2.
 public struct ChangeBusesView: View {
     @Bindable var store: StoreOf<ChangeBusesFeature>
+    @Environment(\.sizing) private var sizing
 
     public init(store: StoreOf<ChangeBusesFeature>) {
         self.store = store
     }
 
     public var body: some View {
+        ZStack {
+            screen
+            if store.isConfirmingLeave {
+                // Board C3x: the dim starts under the header, and the card points at "←".
+                CrayonColor.dim.ignoresSafeArea(edges: .bottom)
+                    .padding(.top, sizing.y(124))
+                    .onTapGesture { store.send(.leaveCancelled) }
+                ConfirmCard(title: L10n.tr("editor.confirm.leave.title"), message: nil,
+                            cancel: L10n.tr("editor.confirm.leave.cancel"), confirm: L10n.tr("editor.confirm.leave.accept"),
+                            isDestructive: true, width: 560,
+                            onCancel: { store.send(.leaveCancelled) }, onConfirm: { store.send(.leaveConfirmed) })
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.leading, sizing.left(40))
+                    .padding(.top, sizing.y(140))
+                    .ignoresSafeArea(.container, edges: .top)
+            }
+        }
+        .task { await store.send(.task).finish() }
+    }
+
+    private var screen: some View {
         GrownupScreen(scrolls: false) {
             GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
         } content: { layout in
@@ -31,7 +53,6 @@ public struct ChangeBusesView: View {
                 .frame(width: layout.side.width)
         }
         .resultVeil(isOpen: store.search.isListOpen) { store.send(.search(.listClosed)) }
-        .task { await store.send(.task).finish() }
     }
 
     private func rows(_ layout: GrownupLayout) -> some View {

@@ -24,6 +24,8 @@ public struct ChangeBusesFeature {
         public var ride1 = BusPlan.defaultRide
         public var walk = 2
         public var ride2 = BusPlan.defaultRide
+        /// "Leave without saving?" (the C3x rule) after ← with unsaved changes.
+        public var isConfirmingLeave = false
 
         public init(kid: Kid.ID) {
             self.kid = kid
@@ -47,6 +49,13 @@ public struct ChangeBusesFeature {
             return BusChange(firstBus: firstBus, stop: search.stop, thenBus: thenBus, ride1: ride1, walk: walk, ride2: ride2)
         }
 
+        /// Something differs from the stored 2nd choice: ← asks first.
+        public var hasChanges: Bool {
+            guard let plan else { return false }
+            if change != plan.change { return true }
+            return plan.change == nil && (firstBus != nil || thenBus != nil || search.stop.count == 5)
+        }
+
         /// Save keeps a whole route, or removes the stored one when both buses were cleared.
         public var canSave: Bool {
             guard plan != nil else { return false }
@@ -66,6 +75,8 @@ public struct ChangeBusesFeature {
         case ride2Changed(Int)
         case saveTapped
         case backTapped
+        case leaveConfirmed
+        case leaveCancelled
         case delegate(Delegate)
 
         @CasePathable
@@ -139,6 +150,16 @@ public struct ChangeBusesFeature {
                 }
 
             case .backTapped:
+                guard state.hasChanges else { return .send(.delegate(.finished)) }
+                state.isConfirmingLeave = true
+                return .none
+
+            case .leaveCancelled:
+                state.isConfirmingLeave = false
+                return .none
+
+            case .leaveConfirmed:
+                state.isConfirmingLeave = false
                 return .send(.delegate(.finished))
 
             case .delegate:

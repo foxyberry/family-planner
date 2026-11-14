@@ -79,13 +79,21 @@ final class ChangeBusesTests: XCTestCase {
         XCTAssertNil(saved.value.first?.change)
     }
 
-    func testBackLeavesWithoutSaving() async {
+    func testBackAsksBeforeDroppingChanges() async {
         let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
+        await store.send(.backTapped)
+        await store.receive(\.delegate.finished)
+        // With a change made, ← asks first (the C3x rule).
         await store.send(.firstBusTapped("3"))
         await store.send(.backTapped)
+        XCTAssertTrue(store.state.isConfirmingLeave)
+        await store.send(.leaveCancelled)
+        XCTAssertFalse(store.state.isConfirmingLeave)
+        await store.send(.backTapped)
+        await store.send(.leaveConfirmed)
         await store.receive(\.delegate.finished)
         XCTAssertNil(saved.value.first?.change)
     }
