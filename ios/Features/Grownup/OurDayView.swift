@@ -272,7 +272,7 @@ public struct OurDayView: View {
     private var scopeTabs: some View {
         CrayonTabs(selection: Binding(get: { store.saveScope }, set: { store.send(.scopeTapped($0)) }),
                    items: [(OurDayFeature.Scope.thisDay, L10n.tr("day.scope.this"), nil),
-                           (.allDays, L10n.tr("day.scope.all"), nil)], widths: [206, 206], spacing: Spacing.sm)
+                           (.allDays, L10n.tr("day.scope.all"), nil)], fills: true, spacing: Spacing.sm)
             .fixedSize(horizontal: false, vertical: true)
     }
 

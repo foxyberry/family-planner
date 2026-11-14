@@ -73,6 +73,25 @@ public enum DayText {
     /// "9 Nov"
     public static func dayMonth(_ day: Day, calendar: Calendar) -> String { "\(day.day) \(monthName(day.month))" }
 
+    /// Board G2m: "2nd Sat" or "14th", for "Every 2nd Sat" / "Every 14th".
+    public static func monthlyEvery(_ rule: MonthlyRule) -> String {
+        switch rule {
+        case .nthWeekday: L10n.tr("monthly.every", monthly(rule))
+        case let .dayOfMonth(date): L10n.tr("monthly.every", ordinal(date))
+        }
+    }
+
+    /// "1st", "2nd", "3rd", "4th" … "11th", "12th", "13th", "21st", "22nd", "31st".
+    public static func ordinal(_ number: Int) -> String {
+        let teen = (11...13).contains(number % 100)
+        switch number % 10 {
+        case 1 where !teen: return L10n.tr("ordinal.st", number)
+        case 2 where !teen: return L10n.tr("ordinal.nd", number)
+        case 3 where !teen: return L10n.tr("ordinal.rd", number)
+        default: return L10n.tr("ordinal.th", number)
+        }
+    }
+
     /// Board C3m: "2nd Sat" or "Day 14".
     public static func monthly(_ rule: MonthlyRule) -> String {
         switch rule {

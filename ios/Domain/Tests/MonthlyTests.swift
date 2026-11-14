@@ -23,6 +23,11 @@ final class MonthlyTests: XCTestCase {
         XCTAssertEqual(MonthlyRule.nthWeekday(of: saturday, calendar: calendar), .nthWeekday(2, .saturday))
         XCTAssertEqual(DayText.monthly(.nthWeekday(2, .saturday)), "2nd Sat")
         XCTAssertEqual(DayText.monthly(.dayOfMonth(14)), "Day 14")
+        // Board G2m's heading.
+        XCTAssertEqual(DayText.monthlyEvery(.nthWeekday(2, .saturday)), "Every 2nd Sat")
+        XCTAssertEqual(DayText.monthlyEvery(.dayOfMonth(14)), "Every 14th")
+        XCTAssertEqual([1, 2, 3, 11, 12, 13, 21, 22, 23, 31].map(DayText.ordinal),
+                       ["1st", "2nd", "3rd", "11th", "12th", "13th", "21st", "22nd", "23rd", "31st"])
     }
 
     func testTheSecondSaturdayOfEveryMonth() {

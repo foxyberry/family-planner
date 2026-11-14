@@ -353,10 +353,14 @@ public struct ItemEditorFeature {
         public var canPageEarlier: Bool { datePage > 0 }
 
         /// The every-week side column's title (board E5): "Every Mon and Wed".
-        /// "Every Mon and Wed", or for every month "2nd Sat every month" (not on a board yet).
+        /// "Every Mon and Wed", or for every month "Every 2nd Sat" / "Every 14th" (board G2m).
         public var everyTitle: String {
-            form.repeats == .monthly ? L10n.tr("editor.every_month", DayText.monthly(form.monthlyRule))
-                : DayText.every(form.days)
+            form.repeats == .monthly ? DayText.monthlyEvery(form.monthlyRule) : DayText.every(form.days)
+        }
+
+        /// Board G2m: "Remove every month" for an every-month series.
+        public var removeSeriesTitle: String {
+            form.repeats == .monthly ? L10n.tr("editor.remove_series.monthly") : L10n.tr("editor.remove_series")
         }
 
         /// The add and just-once side column; the every-week side column has none.
@@ -838,6 +842,8 @@ public struct ItemEditorFeature {
 
             case let .runsStartPicked(date):
                 state.form.date = Day(date, calendar: state.calendar)
+                // Board G2m: an every-month rule is made from the series' start.
+                if state.form.repeats == .monthly { state.form.refreshMonthly(calendar: state.calendar) }
                 return .none
 
             case .runsEndTapped:

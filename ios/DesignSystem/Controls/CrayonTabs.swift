@@ -12,17 +12,20 @@ public struct CrayonTabs<ID: Hashable>: View {
     private let faceOnly: Bool
     private let marked: Set<ID>
     private let widths: [CGFloat]?
+    private let fills: Bool
 
     /// `compact`: 16 inside each tab instead of 24, so three short tabs fit the 382 side column (C6).
     /// `itemSize`: every tab the same size, `spacing` apart (S2 "Goes to" 180 × 72 gap 12; the MOE
     /// question's pills 140 × 64).
-    /// `widths`: each tab its own width, 72 tall (board C3m Repeat: 180 · 200 · 220, gap 4).
+    /// `widths`: each tab its own width, 72 tall. `fills` (layout v42 fill rule): equal tabs alone on
+    /// a row share its width, `spacing` apart, on every iPad size.
     /// `faceOnly`: the kid's face without the name (S2/S3 with 3–4 kids, 88 × 72); VoiceOver still
     /// reads the name. `marked`: tabs that show a small hurry dot on the face (S3: route not finished).
     public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)], compact: Bool = false,
-                itemSize: CGSize? = nil, widths: [CGFloat]? = nil, spacing: CGFloat = Spacing.s,
+                itemSize: CGSize? = nil, widths: [CGFloat]? = nil, fills: Bool = false, spacing: CGFloat = Spacing.s,
                 faceOnly: Bool = false, marked: Set<ID> = []) {
         self.widths = widths
+        self.fills = fills
         self.faceOnly = faceOnly
         self.marked = marked
         _selection = selection
@@ -54,8 +57,9 @@ public struct CrayonTabs<ID: Hashable>: View {
                         }
                     }
                     .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
-                    .padding(.horizontal, itemSize == nil && widths == nil ? inset : 0)
+                    .padding(.horizontal, itemSize == nil && widths == nil && !fills ? inset : 0)
                     .frame(width: widths.flatMap { $0.indices.contains(index) ? $0[index] : nil } ?? itemSize?.width)
+                    .frame(maxWidth: fills ? .infinity : nil)
                     .frame(minHeight: itemSize?.height ?? 72)
                     .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
