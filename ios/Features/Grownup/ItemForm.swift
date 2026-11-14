@@ -152,7 +152,11 @@ public struct ItemForm: Equatable, Sendable {
     /// "actSwim" → "Swim", "busDouble" → "Bus double".
     /// A thing to bring, named the way people say it ("Shoes", spec "Form cards, built rules").
     static func bringLabel(for picture: String) -> String {
-        picture == "shoe" ? L10n.tr("bring.shoes") : label(for: picture) // copy-ok: KitSlot name
+        switch picture {
+        case "shoe": L10n.tr("bring.shoes") // copy-ok: KitSlot name
+        case "towel": L10n.tr("bring.robe") // copy-ok: KitSlot name (the art is a hooded robe, board 0d4)
+        default: label(for: picture)
+        }
     }
 
     static func label(for iconName: String) -> String {

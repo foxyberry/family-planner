@@ -434,11 +434,14 @@ const ITEMS = {
   ],
   // More things to bring (swim day, skating, cycling, library day). Objects, so no faces, except the bag (like backpack).
   swimsuit: [
-    // unisex swim shorts: a waistband with a drawstring bow, two short legs, a white side stripe on each leg
-    S(rr(40, 56, 160, 30, 12), K.mint, 30),
-    S('M42 86H198L208 192Q208 202 198 202H136Q128 202 127 194L120 142L113 194Q112 202 104 202H42Q32 202 32 192Z', K.blue, -45),
-    Ln('M54 100L46 186M186 100L194 186', 6, '#FFFFFF'),
-    Ln('M120 70C108 58 96 66 104 74C110 80 118 74 120 70C122 74 130 80 136 74C144 66 132 58 120 70Z', 3.5), Ln('M112 76L104 102M128 76L136 102', 3.5),
+    // unisex two-piece swim set, both pieces blue: a slim short-sleeve rash-guard top with a white chest stripe above,
+    // swim shorts with a mint waistband, a drawstring bow and white side stripes below, a small gap between the two
+    S('M100 24Q120 38 140 24L166 32L186 56L172 70L163 62V118H77V62L68 70L54 56L74 32Z', K.blue, -45),
+    Ln('M80 86H160', 6, '#FFFFFF'),
+    S(rr(75, 124, 90, 22, 10), K.mint, 30),
+    S('M76 146H164L169 206Q169 214 161 214H128Q122 214 121 208L120 178L119 208Q118 214 112 214H79Q71 214 71 206Z', K.blue, -45),
+    Ln('M81 152L77 204M159 152L163 204', 5, '#FFFFFF'),
+    Ln('M120 135C111 126 102 132 108 138C113 142 118 138 120 135C122 138 127 142 132 138C138 132 129 126 120 135Z', 3), Ln('M114 140L108 158M126 140L132 158', 3),
   ],
   goggles: [
     // strap ends run out from each lens and stop at the lens edge, so nothing sits under a lens
@@ -449,39 +452,42 @@ const ITEMS = {
     S(ell(70, 108, 9, 5.5, -35), K.white, 0, 3), S(ell(150, 108, 9, 5.5, -35), K.white, 0, 3),
   ],
   towel: [
-    // soft rolled towel from the front: the roll in three parts that meet edge to edge (end, yellow stripe, body
-    // that stops at the round end), a spiral on the round end, a short fringe on the flat end
-    S('M50 80H66V188H50Q30 188 30 168V100Q30 80 50 80Z', K.sky, -40),
-    S('M66 80H92V188H66Z', K.yellow, 40),
-    S('M92 80H168A54 54 0 0 0 168 188H92Z', K.sky, -40),
-    S(circ(168, 134, 54), K.sky, 40),
-    Ln('M168 134a7 7 0 1 0 14 0a14 14 0 1 0 -28 0a21 21 0 1 0 42 0a28 28 0 1 0 -56 0a35 35 0 1 0 70 0', 4.5),
-    Ln('M30 104h-14M30 124h-14M30 144h-14M30 164h-14', 4),
+    // kids' hooded towel robe from the front, slim with a slight taper to the hem: ear bumps, a hood with the face
+    // opening, short sleeves, a yellow tie belt, a pocket and a hem line. Upper robe, belt and lower robe meet edge
+    // to edge, so no fill sits under another.
+    S(circ(100, 38, 10), K.sky, 40), S(circ(140, 38, 10), K.sky, -40),
+    S('M92 86C84 50 100 32 120 32C140 32 156 50 148 86Z', K.sky, -40),
+    S(ell(120, 66, 17, 16), K.white, 0, 4),
+    S('M92 86H148L160 92L178 112L166 124L156 116V140H84V116L74 124L62 112L80 92Z', K.sky, -45),
+    S('M84 140H156L155 156H85Z', K.yellow, 30),
+    S('M85 156H155L152 206Q152 214 144 214H96Q88 214 88 206Z', K.sky, -45),
+    Ln('M120 86V140M120 156V212', 4), Ln('M126 156L121 182M132 156L137 180', 4),
+    Ln('M130 172V190Q130 196 136 196H144Q150 196 150 190V172', 4), Ln('M90 200H150', 4),
   ],
   rollerblades: [
     // one inline skate, toe to the right: cuff, boot, laces, steel frame, a row of four wheels
     S('M62 34H122Q128 34 128 40L129 64H60Z', K.yellow, 40),
-    S('M60 64H129L130 100C150 112 176 118 198 124C212 128 218 140 216 158H54C54 128 56 96 60 64Z', K.purple, -45),
+    S('M60 64H129L130 100C150 112 176 118 198 124C212 128 218 140 216 158H54C54 128 56 96 60 64Z', '#F4EBD6', -45),
     Ln('M136 106l10 12M154 113l9 12M172 119l8 11', 4),
     S(rr(50, 158, 168, 18, 8), '#C9CED6', 80),
     ...wheel(70, 194), ...wheel(110, 194), ...wheel(150, 194), ...wheel(190, 194),
   ],
   helmet: [
     // kids' bike helmet from the front: dome with three vents, a rim, the strap down to a buckle
-    S('M36 146C36 88 74 52 120 52C166 52 204 88 204 146Z', K.green, -45),
+    S('M36 146C36 88 74 52 120 52C166 52 204 88 204 146Z', RED, -45),
     S(ell(120, 90, 10, 24), K.white, 0, 3.5), S(ell(82, 106, 9, 22, 30), K.white, 0, 3.5), S(ell(158, 106, 9, 22, -30), K.white, 0, 3.5),
     S(rr(28, 146, 184, 22, 10), K.yellow, 30),
     Ln('M58 168L106 206M182 168L134 206', 5),
-    S(rr(104, 198, 32, 18, 5), K.orange, 0, 3.5),
+    S(rr(104, 198, 32, 18, 5), '#C9CED6', 0, 3.5),
   ],
   libraryBag: [
     // tote bag with a book peeking out between the handles; the book stops at the bag's top edge
     Ln('M50 102C46 52 90 52 88 102', 6), Ln('M152 102C150 52 194 52 190 102', 6),
-    S('M96 102L92 52Q91 46 97 45L134 40L140 102Z', K.blue, -40),
+    S('M96 102L92 52Q91 46 97 45L134 40L140 102Z', K.yellow, -40),
     S('M134 40L146 46L150 102H140Z', K.white, 0, 3.5),
     Ln('M118 43Q112 30 122 22', 6, RED),
-    S('M36 102H204L192 208Q190 216 182 216H58Q50 216 48 208Z', K.yellow, 50),
-    ...eye(100, 150, 13), ...eye(140, 150, 13), smile(120, 172, 18),
+    S('M36 102H204L192 208Q190 216 182 216H58Q50 216 48 208Z', NAVY, 50),
+    S(circ(100, 150, 6), K.white, 0, 2.5), S(circ(140, 150, 6), K.white, 0, 2.5), Ln('M111 172Q120 181 129 172', 4, '#FFFFFF'),
   ],
   // School and play
   homework: [
