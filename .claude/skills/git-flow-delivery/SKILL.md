@@ -2,7 +2,7 @@
 name: git-flow-delivery
 description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, push only after explicit user approval, PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
 metadata:
-  version: 0.6.0
+  version: 0.6.1
   status: experimental
 ---
 
@@ -84,7 +84,8 @@ A checkout another session also works in keeps its branch: start there in a work
 ## CI loop
 
 - `gh pr checks <n> --watch`; on failure `gh run view <run-id> --log-failed`.
-- iOS CI runs only when iOS/Bazel files change; the Guards workflow runs on every PR.
+- CI runs only the Linux checks (Guards, Secret scan). There is no macOS CI (cost): run `make test`
+  locally and show its output in the PR before merging.
 - Fix on the same branch, re-run the local check that covers the failure, ask before pushing again.
 - Never merge with red CI.
 
