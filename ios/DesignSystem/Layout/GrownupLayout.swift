@@ -30,6 +30,8 @@ public struct GrownupLayout: Equatable, Sendable {
     /// Form controls start on 208 (C3, C4, E5); a label column is 208 − 80 wide.
     public var controlLeft: CGFloat { sizing.left(208) }
     public var labelWidth: CGFloat { controlLeft - labelLeft }
+    /// The control column of a form row: 208 to 40 inside the card's right edge (592).
+    public var controlWidth: CGFloat { form.width - formInset - (controlLeft - form.minX) }
     /// The editor boards (C3, C4, E5, G2–G4) run their rows to 818: six "What" circles end on 816,
     /// the name field on 818. Their card keeps 40 on the left and only 22 on the right.
     public var editorTrailingInset: CGFloat { 22 * s }

@@ -2,7 +2,7 @@ import CrayonKit
 import SwiftUI
 
 /// Spec C2 "Result list card" (layout v14), shared by the stop and school searches: an opaque white
-/// card 610 wide (the control column 232–842), 12 padding top and bottom, rows 72 tall with the
+/// card as wide as the control column (610 by default; 592 on the v31 grown-up form, 208–800), 12 padding top and bottom, rows 72 tall with the
 /// name (body bold, link, one line) over its caption, 2 apart with no line (layout v21). Past
 /// `visibleRows` the rows scroll inside the card.
 ///
@@ -42,11 +42,13 @@ public struct ResultListCard: View {
     private let rows: [Row]
     private let visibleRows: Int
     private let seed: UInt32
+    private let width: CGFloat
 
-    public init(rows: [Row], visibleRows: Int, seed: UInt32) {
+    public init(rows: [Row], visibleRows: Int, seed: UInt32, width: CGFloat = ResultListCard.width) {
         self.rows = rows
         self.visibleRows = max(visibleRows, 1)
         self.seed = seed
+        self.width = width
     }
 
     /// The card's height for `count` rows when `visible` fit.
@@ -65,7 +67,7 @@ public struct ResultListCard: View {
             }
         }
         .padding(.vertical, Self.padding)
-        .frame(width: Self.width, height: height, alignment: .top)
+        .frame(width: width, height: height, alignment: .top)
         .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                           seed: CrayonStyle.Seed.card + seed)
         .contentShape(Rectangle())
@@ -95,7 +97,7 @@ public struct ResultListCard: View {
             }
         }
         .padding(.horizontal, Spacing.m)
-        .frame(width: Self.width, height: Self.rowHeight, alignment: .leading)
+        .frame(width: width, height: Self.rowHeight, alignment: .leading)
         .contentShape(Rectangle())
     }
 }
@@ -111,9 +113,10 @@ private struct ResultVeilHoles: PreferenceKey {
 }
 
 extension View {
-    /// Keeps this view clear of the screen's result-list veil.
+    /// Keeps this view clear of the screen's result-list veil. It adds to the holes inside it: a plain
+    /// `anchorPreference` would replace them, which veiled the open card under a marked field.
     public func resultVeilHole() -> some View {
-        anchorPreference(key: ResultVeilHoles.self, value: .bounds) { [$0] }
+        transformAnchorPreference(key: ResultVeilHoles.self, value: .bounds) { $0.append($1) }
     }
 
     /// Spec "Result list card": while a list is open, paper at 72 % veils the screen except the

@@ -40,5 +40,6 @@ final class GrownupLayoutTests: XCTestCase {
         // Editor boards (C3, C4, E5, G2–G4): rows run 80 … 818, 22 inside the card's right edge.
         XCTAssertEqual(layout.editorTrailingInset, 22)
         XCTAssertEqual(layout.editorRowsWidth, 738)
+        XCTAssertEqual(layout.controlWidth, 592)
     }
 }

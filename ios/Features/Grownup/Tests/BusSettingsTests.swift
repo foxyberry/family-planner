@@ -19,6 +19,7 @@ final class BusSettingsTests: XCTestCase {
             calendar.timeZone = TimeZone(identifier: "Asia/Singapore")!
             $0.calendar = calendar
             $0.date.now = Date(timeIntervalSince1970: 1_793_000_000)
+            $0.continuousClock = ImmediateClock()
             $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: [], items: [], busPlans: saved.value) }
             $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.scheduleStore.saveBusPlan = { plan in saved.withValue { $0.removeAll { $0.kid == plan.kid }; $0.append(plan) } }
@@ -75,7 +76,7 @@ final class BusSettingsTests: XCTestCase {
         await store.send(.search(.listClosed))
         XCTAssertFalse(store.state.search.isListOpen)
         XCTAssertEqual(store.state.search.text, "exam")
-        await store.send(.search(.textChanged("exam")))
+        await store.send(.search(.textChanged("examp")))
         await store.receive(\.search.stopsFound, timeout: .seconds(2))
         await store.send(.search(.stopPicked(store.state.search.matches[0])))
         XCTAssertEqual(store.state.search.stop, "00000")
@@ -85,7 +86,33 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
     }
 
-    /// "Late up to" is the school's Latest − Arrive by (spec "Latest lives on the school record").
+    /// User review 2026-11-14: focusing the field or typing does not touch the picked stop or its
+    /// buses; only picking a stop (or a full 5-digit code) changes them.
+    func testTheBusesStayUntilANewStopIsPicked() async {
+        let kid = self.kid
+        let saved = LockIsolated([BusPlan(kid: kid, stop: "00000", services: ["1"])])
+        let store = store(saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.search.stopLooked)
+        XCTAssertEqual(store.state.search.text, "Example Stop")
+        // A tap on the field sends the same text: nothing changes, no search starts.
+        await store.send(.search(.textChanged("Example Stop")))
+        XCTAssertEqual(store.state.search.matches, [])
+        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+        // Typing a new name searches, but the stop and its buses stay until a pick.
+        await store.send(.search(.textChanged("exam")))
+        await store.receive(\.search.stopsFound)
+        XCTAssertEqual(store.state.search.stop, "00000")
+        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+        XCTAssertNotNil(store.state.plan)
+        // Part of a code keeps them too.
+        await store.send(.search(.textChanged("123")))
+        XCTAssertEqual(store.state.search.stop, "00000")
+        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+    }
+
+    /// "Late" is the school's Latest − Arrive by (spec "Latest lives on the school record").
     func testLateUpToEditsTheSchoolsLatest() async {
         var kidA = SeedData.kidA
         kidA.school?.arriveBy = 450

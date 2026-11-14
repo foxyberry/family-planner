@@ -343,7 +343,8 @@ private struct SchoolStep: View {
             }
             .frame(width: layout.schoolFieldWidth)
             .overlay(alignment: .topLeading) {
-                if school.isListOpen { matches(school).resultVeilHole().offset(y: 80 + Spacing.l) }
+                // Padding, not offset, so the veil's hole lands on the card itself.
+                if school.isListOpen { matches(school).resultVeilHole().padding(.top, 80 + Spacing.l) }
             }
             HStack(spacing: Spacing.xs) {
                 if school.picked != nil { CheckMark(isDone: true, size: 32) }
@@ -364,7 +365,7 @@ private struct SchoolStep: View {
         ResultListCard(rows: school.matches.map { entry in
             .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.schoolPicked(entry)) }
         } + [.init(id: "not-listed", glyph: .plus, title: L10n.tr("s2.school.not_listed")) { store.send(.notInListTapped) }],
-        visibleRows: 6, seed: 75)
+        visibleRows: 6, seed: 75, width: layout.grown.controlWidth)
     }
 
     @ViewBuilder private func termsRow(_ row: SchoolForm.TermsRow) -> some View {
@@ -449,7 +450,8 @@ private struct GoingStep: View {
                 }
                 if going.way == .bus {
                     row(L10n.tr("c2.stop")) {
-                        StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch), visibleRows: 6)
+                        StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch), visibleRows: 6,
+                                        listWidth: GrownupLayout(sizing: sizing).controlWidth)
                     }
                     .zIndex(1)
                     row(L10n.tr("s3.buses")) {

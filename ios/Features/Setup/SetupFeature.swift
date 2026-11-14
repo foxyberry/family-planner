@@ -567,7 +567,7 @@ extension KidEntry {
                    face: face ?? "")
     }
 
-    /// By bus with a known stop: the C2 plan. Its "Late up to" mirrors the school record's grace.
+    /// By bus with a known stop: the C2 plan. Its "Late" mirrors the school record's grace.
     var busPlan: BusPlan? {
         guard going.way == .bus, going.search.stop.count == 5 else { return nil }
         return BusPlan(kid: id, stop: going.search.stop, services: going.services, walk: going.walk, ride: going.ride,

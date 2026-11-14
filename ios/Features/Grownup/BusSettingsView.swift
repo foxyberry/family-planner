@@ -22,7 +22,7 @@ public struct BusSettingsView: View {
                 // never widen it; a stop with many buses scrolls its rows inside the card.
                 PaperCard(seed: 51) {
                     ScrollColumn {
-                        plan.frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                        plan(layout).frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
@@ -40,10 +40,11 @@ public struct BusSettingsView: View {
 
     /// Board C2's rows: Stop (80 field and its caption), Buses (pills 180 × 72), then the steppers
     /// on a 104 pitch.
-    private var plan: some View {
+    private func plan(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
             ListRow(leading: L10n.tr("c2.stop"), labelHeight: 80) {
-                StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 8)
+                StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 8,
+                                listWidth: layout.controlWidth)
             }
             .zIndex(1)
             ListRow(leading: L10n.tr("c2.buses"), labelHeight: PillToggle.size.height) {

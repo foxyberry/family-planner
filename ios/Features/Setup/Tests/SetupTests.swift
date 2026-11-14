@@ -38,6 +38,7 @@ final class SetupTests: XCTestCase {
         } withDependencies: { [school, international, now, calendar] in
             $0.calendar = calendar
             $0.date.now = now
+            $0.continuousClock = ImmediateClock()
             $0.uuid = .incrementing
             $0.schoolDirectory.schools = { [school, international] }
             $0.scheduleStore.replaceFamily = { family in saved.withValue { $0.append(family) } }
@@ -290,6 +291,7 @@ final class SetupTests: XCTestCase {
         let asking = TestStore(initialState: state) { SetupFeature() } withDependencies: { [calendar, now] in
             $0.calendar = calendar
             $0.date.now = now
+            $0.continuousClock = ImmediateClock()
             $0.uuid = .incrementing
             $0.scheduleStore.replaceFamily = { family in saved.withValue { $0.append(family) } }
         }
@@ -314,6 +316,7 @@ final class SetupTests: XCTestCase {
         let store = TestStore(initialState: state) { SetupFeature() } withDependencies: { [calendar, now] in
             $0.calendar = calendar
             $0.date.now = now
+            $0.continuousClock = ImmediateClock()
             $0.uuid = .incrementing
             $0.parentAuth.authenticate = { _ in outcome.value }
             $0.appSettings.save = { settings in savedSettings.withValue { $0.append(settings) } }

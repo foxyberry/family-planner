@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "34",
  "board": "G8",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -71,18 +71,6 @@
   }
  },
  "elements": [
-  {
-   "id": "main.card",
-   "kind": "card",
-   "part": "PaperCard",
-   "x": 40,
-   "y": 148,
-   "w": 800,
-   "h": 820,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
   {
    "id": "header.back",
    "kind": "back",
@@ -223,14 +211,14 @@
    "kind": "text",
    "x": 936,
    "y": 241,
-   "w": 137,
+   "w": 253,
    "h": 45,
    "region": "side",
    "anchor": "right",
    "align": "inside",
    "baseline": 276,
    "font": 30,
-   "text": "Add once"
+   "text": "Add every month"
   },
   {
    "id": "main.picture.1",
@@ -280,6 +268,31 @@
    "baseline": 357,
    "font": 30,
    "text": "Swimming"
+  },
+  {
+   "id": "side.picture.3",
+   "kind": "picture",
+   "x": 864,
+   "y": 324,
+   "w": 56,
+   "h": 56,
+   "region": "side",
+   "anchor": "right",
+   "align": "start"
+  },
+  {
+   "id": "side.line.3",
+   "kind": "text",
+   "x": 936,
+   "y": 329,
+   "w": 137,
+   "h": 45,
+   "region": "side",
+   "anchor": "right",
+   "align": "inside",
+   "baseline": 364,
+   "font": 30,
+   "text": "Add once"
   },
   {
    "id": "main.picture.3",
@@ -370,28 +383,28 @@
    "kind": "text",
    "x": 80,
    "y": 514,
-   "w": 171,
+   "w": 228,
    "h": 54,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 556,
    "font": 36,
-   "text": "Just once"
+   "text": "Every month"
   },
   {
    "id": "main.text.9",
    "kind": "text",
    "x": 152,
    "y": 578,
-   "w": 130,
+   "w": 174,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 613,
    "font": 30,
-   "text": "Birthday"
+   "text": "Library visit"
   },
   {
    "id": "main.picture.7",
@@ -420,12 +433,75 @@
    "kind": "text",
    "x": 152,
    "y": 616,
-   "w": 323,
+   "w": 292,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 644,
+   "font": 24
+  },
+  {
+   "id": "main.text.11",
+   "kind": "text",
+   "x": 80,
+   "y": 682,
+   "w": 171,
+   "h": 54,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 724,
+   "font": 36,
+   "text": "Just once"
+  },
+  {
+   "id": "main.text.12",
+   "kind": "text",
+   "x": 152,
+   "y": 746,
+   "w": 130,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 781,
+   "font": 30,
+   "text": "Birthday"
+  },
+  {
+   "id": "main.picture.9",
+   "kind": "picture",
+   "x": 80,
+   "y": 756,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.picture.10",
+   "kind": "picture",
+   "x": 772,
+   "y": 770,
+   "w": 28,
+   "h": 28,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.text.13",
+   "kind": "text",
+   "x": 152,
+   "y": 784,
+   "w": 323,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 812,
    "font": 24
   }
  ]
