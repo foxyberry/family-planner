@@ -125,6 +125,8 @@ final class OurDayTests: XCTestCase {
         let store = await loaded()
         let play = store.state.edit.blocks.first { $0.title == "Play" }!
         await store.send(.sliceTapped(start: play.start))
+        XCTAssertFalse(store.state.canMakeFree, "This day offers Skip this day instead")
+        await store.send(.scopeTapped(.allDays))
         XCTAssertTrue(store.state.canMakeFree)
         await store.send(.makeFreeTapped)
         XCTAssertEqual(store.state.selectedBlock?.kind, .free)
@@ -179,6 +181,12 @@ final class OurDayTests: XCTestCase {
         await store.send(.scopeTapped(.allDays))
         XCTAssertFalse(store.state.canSkip)
         XCTAssertTrue(store.state.routineToSave.blocks.allSatisfy { !$0.isSkipped })
+        // School can be skipped this day (a sick day).
+        await store.send(.scopeTapped(.thisDay))
+        let school = try XCTUnwrap(store.state.edit.blocks.first { $0.kind == .school })
+        await store.send(.sliceTapped(start: school.start))
+        XCTAssertTrue(store.state.canSkip)
+        XCTAssertFalse(store.state.canMakeFree)
     }
 
     func testLeavingWithChangesAsksFirst() async {

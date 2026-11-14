@@ -193,9 +193,9 @@ public struct TemplateEdit: Equatable, Sendable {
     }
 
     /// Board G1g: "Skip this day" / "Bring back" on a slice of this day's template. One change for
-    /// Undo; free time and School (`isLocked`) are never skipped here.
+    /// Undo. Free time is never skipped; School can be (a sick day).
     public mutating func setSkipped(_ block: Int, _ skipped: Bool) {
-        guard blocks.indices.contains(block), blocks[block].kind != .free, !blocks[block].isLocked,
+        guard blocks.indices.contains(block), blocks[block].kind != .free,
               blocks[block].isSkipped != skipped else { return }
         beginChange()
         blocks[block].isSkipped = skipped

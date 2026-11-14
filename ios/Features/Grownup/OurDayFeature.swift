@@ -275,7 +275,7 @@ public struct OurDayFeature {
             // Board G1g: "Play" / "Skipped" / "this day".
             if let block = selectedBlock, block.isSkipped {
                 return EditClock.Hub(above: block.title, time: L10n.tr("day.skipped.hub"),
-                                     below: L10n.tr("day.skipped.this_day"), timeIsInk: true)
+                                     below: L10n.tr("day.skipped.this_day"), timeIsMuted: true)
             }
             return EditClock.Hub(title: selected.map { edit.blocks[$0].title })
         }
@@ -283,11 +283,14 @@ public struct OurDayFeature {
         public var selectedBlock: RoutineBlock? { selected.map { edit.blocks[$0] } }
         public var startLabel: String? { selectedBlock.map { TimeText.withPeriod($0.start) } }
         public var endLabel: String? { selectedBlock.map { TimeText.withPeriod($0.end) } }
-        /// A skipped slice offers only "Bring back" (board G1g).
-        public var canMakeFree: Bool { selectedBlock.map { !$0.isLocked && $0.kind != .free && !$0.isSkipped } ?? false }
-        /// Board G1g: "Skip this day" on This day only (a skip is always this day).
+        /// One link per slice card (spec, 2026-11-15): "Make this free time" on All days, "Skip this
+        /// day" in its place on This day; a skipped slice offers only "Bring back" (board G1g).
+        public var canMakeFree: Bool {
+            saveScope == .allDays && (selectedBlock.map { !$0.isLocked && $0.kind != .free && !$0.isSkipped } ?? false)
+        }
+        /// School can be skipped this day too (a sick day); free time cannot.
         public var canSkip: Bool {
-            saveScope == .thisDay && (selectedBlock.map { !$0.isLocked && $0.kind != .free && !$0.isSkipped } ?? false)
+            saveScope == .thisDay && (selectedBlock.map { $0.kind != .free && !$0.isSkipped } ?? false)
         }
         /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
         public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true }

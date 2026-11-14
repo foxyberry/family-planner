@@ -82,7 +82,9 @@ public enum DayPlanner {
         }
         let occurring = items.filter { occurs($0, on: day, kid: kid.id, holidays: holidays, calendar: calendar) }
             .map { $0.on(day) }
-        for (item, start) in placed(occurring, schoolEnd: routine?.blocks.first { $0.kind == .school }?.end) {
+        // A School skipped this day is no anchor: items after it follow their "No school days" rule.
+        let schoolEnd = routine?.blocks.first { $0.kind == .school && !$0.isSkipped }?.end
+        for (item, start) in placed(occurring, schoolEnd: schoolEnd) {
             // Every month draws like every week (spec "Every month"): below just-once items.
             let source: Slot.Source = item.isRepeating ? .weekly(item.id) : .once(item.id)
             candidates.append((item.isRepeating ? 1 : 2,
