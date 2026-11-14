@@ -125,6 +125,8 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-14: clock-drawing tools rebuilt (home clock and G1 editor clock, now driven by a config file); new boards A1b (home before an outing, "Before Birthday →") and G1g (slice skipped this day, "Bring back"). Layout v48.
 - 2026-11-14: bring kit batch drawn (swimsuit = unisex two-piece, all blue (rash-guard top + swim shorts, slim), goggles, towel = kids' hooded robe, slim (label "Robe"), rollerblades, helmet, libraryBag; kit.js lines 435–491, board 0d4; no pink; libraryBag has backpack's face, the rest none; tap rig = default hop).
 - 2026-11-15: swim shorts narrowed to the top's width (top body 86, shorts 88–98); robe body slimmed from 96 to 72 wide with shorter sleeves (kit.js swimsuit / towel, board 0d4).
+- 2026-11-15: board G4 follows the build (main session asked): When and Arrive by are inline time fields, no ›; Terms › opens the S2 term rows in the G4 card (no new board); G6 "Home" row is backlog 6b (way back), "evening" missions are the evening-and-screens item; both rows hidden until built. Layout v49.
+- 2026-11-15: G1 slice card link (main session asked, PR #90): This day shows "Skip this day" in place of "Make this free time" (one link per card); School can be skipped this day; G1g hub text is `softText`.
 - 2026-11-15: Bring picker clash fixed (main session asked): the first row stays the F2 row of 4 with Shoes; the batch of six leads the More list, as built in PR #83.
 - 2026-11-15: bring colours: helmet red (grey buckle), rollerblades ivory boot (yellow cuff kept), libraryBag navy with white face (white eyes r7 and a white smile, both ink-ringed) and a yellow book.
 
@@ -524,7 +526,7 @@ Research: reports/calendar-event-features.md (Apple, Google, Outlook, RFC 5545 /
   - Until the date: the School section shows one extra row "From {d Mon}" → "{new place}" with "›". It opens the same "Starts on" card with the picked place, plus **"Pick another school"** (back to the search; the date stays) and **"Cancel the change"** (`lateText`; user, 2026-11-09: the plan can change or fall through). Cancel asks once ("Stay at {old place}?" Stay / Keep the change), then removes the split and the new trip; the old place simply carries on. Nothing else on screen.
   - After the date has passed there is nothing pending to cancel: going back (or to a third place) is just another change with its own "Starts on". Days already lived keep the place they had.
 - **Exceptions when the series changes**: an exception is kept when its original date is still a day of the new series; otherwise it is removed, and the save card lists them first ("2 changed days no longer fit", one caption line each, "They will be removed." in `lateText`) with Save / Cancel.
-- **Board G1g** (2026-11-14): a slice skipped this day stays on the clock at 30 % (crayon faded, picture 35 %), selected; the hub reads "{name} / Skipped / this day"; the card shows the picture (faded), name, "{start} → {end}" (soft) and the link "Bring back". No scope tabs (a skip is always this day).
+- **Board G1g** (2026-11-14): a slice skipped this day stays on the clock at 30 % (crayon faded, picture 35 %), selected; the hub reads "{name} / Skipped / this day" (all three `softText`, "Skipped" title 48 bold; not `pickBlue`, which is kept for a drag in progress); the card shows the picture (faded), name, "{start} → {end}" (soft) and the link "Bring back". No scope tabs (a skip is always this day).
 - **Skipped today** (replaces the "Changed today" list and Undo, user comment 2026-11-09): a skipped slice stays on the clock, faded; tapping it opens the card with **"Bring back"** where "Skip today" was. There is no change list and no undo stack: Bring back and Cancel are the only undo.
 - **Notes** row: free text, grown-up screens only.
 - **Not in this app**: attendees and invitations, attachments, busy/free, privacy flags, URL field, per-event time zone (the family zone is N4). Live-traffic leave times stay later (the fixed `leaveBefore` covers it); export to Apple Calendar is later and writes plain times (EventKit keeps one rule, no skipped or added dates, no links).
@@ -1080,7 +1082,7 @@ Every-week and just-once items are not edited here. They sit on top of the templ
     - picture 64 + name (head)
     - "Starts" `TimeField` 170
     - "Ends" `TimeField` 170. The field being dragged is outlined in `pickBlue`.
-    - "Make this free time" (body bold, `lateText`)
+    - One link (body bold, `lateText`): on **All days** "Make this free time"; on **This day** "Skip this day" in its place (a skipped slice can come back with "Bring back", so a one-day change is a skip, not free time). School can be skipped this day (a sick day, as in the E5 School rule); free time cannot. A skipped slice shows only "Bring back" (G1g).
   - Hint caption: "Drag a dot to move a time. Tap a slice to edit it." (The "+" explains itself on the clock.)
   - "Changes start tomorrow." (caption)
   - `InkButton` "Save the day".
