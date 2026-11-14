@@ -146,7 +146,9 @@ public struct OurDayFeature {
             weekly += rows(ItemList.weekly(kid: kid, items: items))
             let once = rows(ItemList.once(kid: kid, items: items, routines: routines, today: today,
                                           nowMinute: nowMinute, calendar: calendar))
+            let monthly = rows(ItemList.monthly(kid: kid, items: items))
             return [ListSection(title: L10n.tr("list.every_week"), rows: weekly),
+                    ListSection(title: L10n.tr("list.every_month"), rows: monthly),
                     ListSection(title: L10n.tr("list.once"), rows: once)].filter { !$0.rows.isEmpty }
         }
 

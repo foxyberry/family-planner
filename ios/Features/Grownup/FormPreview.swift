@@ -42,7 +42,8 @@ public struct FormPreview: Equatable, Sendable {
 }
 
 extension ItemForm {
-    /// The day the preview shows: the date just once, or the first picked weekday from today on.
+    /// The day the preview shows: the date just once or every month (its first date), or the first
+    /// picked weekday from today on.
     public func previewDay(today: Day, calendar: Calendar) -> Day {
         guard repeats == .weekly, let first = days.sorted().first else { return date }
         return (0..<7).lazy.map { today.adding(days: $0, calendar: calendar) }

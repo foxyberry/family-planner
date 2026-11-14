@@ -30,7 +30,7 @@ public enum FormRow: String, Equatable, Sendable { case name, when, days }
 
 /// The add/edit form's values and its rules (boards C3, C4, E5). Pure, so every rule is tested.
 public struct ItemForm: Equatable, Sendable {
-    public enum Repeat: Hashable, Sendable { case once, weekly }
+    public enum Repeat: Hashable, Sendable { case once, weekly, monthly }
 
     public var audience: Audience
     public var iconName: String?
@@ -52,6 +52,10 @@ public struct ItemForm: Equatable, Sendable {
     public var runsEnd: RunsEndKind = .none
     public var untilDate: Day
     public var times = 10
+    /// Board C3m: "Day {d}" instead of "{nth} {weekday}" (the default), and the rule they make from
+    /// `date` (kept in step by `refreshMonthly`).
+    public var monthlyByDate = false
+    public var monthlyRule: MonthlyRule = .dayOfMonth(1)
 
     /// "School end + 15 min" (0–60, step 5) for an item that follows an event.
     public var afterGap = 0
@@ -104,13 +108,19 @@ public struct ItemForm: Equatable, Sendable {
             self.init(audience: item.audience, iconName: item.iconName, name: item.title, start: item.start,
                       end: item.end, repeats: .weekly, days: days, date: from, skipsHolidays: item.skipsHolidays,
                       showsStar: true, trip: item.trip)
+        case let .monthly(rule, from, _):
+            self.init(audience: item.audience, iconName: item.iconName, name: item.title, start: item.start,
+                      end: item.end, repeats: .monthly, days: [], date: from, skipsHolidays: item.skipsHolidays,
+                      showsStar: true, trip: item.trip)
+            monthlyRule = rule
+            if case .dayOfMonth = rule { monthlyByDate = true }
         }
         after = item.after
         afterGap = item.afterGap
         noSchoolStart = item.noSchool?.start
         noSchoolEnd = item.noSchool?.end
         noSchoolWay = item.noSchool?.trip?.way
-        if case let .weekly(_, _, until) = item.recurrence {
+        if let (_, until) = item.recurrence.range {
             switch item.runsEnd {
             case .term?: runsEnd = .term
             case let .count(n)?: runsEnd = .count; times = n
@@ -120,6 +130,17 @@ public struct ItemForm: Equatable, Sendable {
             if let until { untilDate = until }
         }
         bring = item.bring
+    }
+
+    /// Board C3m: the rule the first date gives ("2nd Sat" from Sat 14 Nov, or "Day 14").
+    public mutating func refreshMonthly(calendar: Calendar) {
+        monthlyRule = monthlyByDate ? .dayOfMonth(date.day) : MonthlyRule.nthWeekday(of: date, calendar: calendar)
+    }
+
+    /// The two rule tabs under the date strip: "{nth} {weekday}" then "Day {d}".
+    public func monthlyChoices(calendar: Calendar) -> [(byDate: Bool, title: String)] {
+        [(false, DayText.monthly(MonthlyRule.nthWeekday(of: date, calendar: calendar))),
+         (true, DayText.monthly(.dayOfMonth(date.day)))]
     }
 
     /// Picking a picture fills an empty name with the picture's label; a typed name is never replaced.
@@ -292,7 +313,7 @@ public struct ItemForm: Equatable, Sendable {
         let ends = Self.placedEnds(items, schoolEnd: events.first?.end)
         for item in items where item.id != editing && Self.shares(item.audience, with: audience) {
             guard let itemEnd = ends[item.id], itemEnd <= start || after == .item(item.id),
-                  covers(item, onDays: onDays, today: today) else { continue }
+                  covers(item, onDays: onDays, today: today, calendar: calendar) else { continue }
             events.append(FromChoice(event: .item(item.id), title: item.title, picture: item.iconName, end: itemEnd))
         }
         let school = events.filter { $0.event == .school }
@@ -301,7 +322,7 @@ public struct ItemForm: Equatable, Sendable {
     }
 
     /// Whether `item` happens on every one of this form's days.
-    private func covers(_ item: ScheduleItem, onDays: Set<Weekday>, today: Day) -> Bool {
+    private func covers(_ item: ScheduleItem, onDays: Set<Weekday>, today: Day, calendar: Calendar) -> Bool {
         switch (repeats, item.recurrence) {
         case let (.weekly, .weekly(itemDays, _, until)):
             return onDays.isSubset(of: itemDays) && (until.map { $0 >= today } ?? true)
@@ -309,7 +330,15 @@ public struct ItemForm: Equatable, Sendable {
             return onDays.isSubset(of: itemDays) && from <= date && (until.map { $0 >= date } ?? true)
         case let (.once, .once(day)):
             return day == date
-        case (.weekly, .once):
+        case let (.monthly, .monthly(rule, _, until)):
+            return rule == monthlyRule && (until.map { $0 >= date } ?? true)
+        case (.once, .monthly):
+            // A one-off can follow an every-month item that is on its own date.
+            guard let range = item.recurrence.range else { return false }
+            return item.recurrence.pattern(on: date, calendar: calendar) && range.from <= date
+                && (range.until.map { date <= $0 } ?? true)
+        case (.weekly, .once), (.weekly, .monthly), (.monthly, .weekly), (.monthly, .once):
+            // A month's day is not every week, and a week is not every month.
             return false
         }
     }
@@ -384,7 +413,7 @@ public struct ItemForm: Equatable, Sendable {
                   sharesDay(with: other, kid: kid, from: from, holidays: family.daysOff(kid), calendar: calendar)
             else { continue }
             let myPriority = repeats == .once ? 2 : 1
-            let otherPriority = other.isWeekly ? 1 : 2
+            let otherPriority = other.isRepeating ? 1 : 2
             let mineWins = myPriority > otherPriority || (myPriority == otherPriority && start >= other.start)
             return mineWins
                 ? L10n.tr("form.overlap.mine", other.title, TimeText.range(other.start, other.end))
@@ -396,8 +425,13 @@ public struct ItemForm: Equatable, Sendable {
     private func sharesDay(with other: ScheduleItem, kid: Kid.ID, from: Day, holidays: Set<Day>,
                            calendar: Calendar) -> Bool {
         switch (repeats, other.recurrence) {
-        case (.once, _):
+        case (.once, _), (.monthly, _):
+            // Every month is checked on its first date, as a one-off is.
             return DayPlanner.occurs(other, on: date, kid: kid, holidays: holidays, calendar: calendar)
+        case let (.weekly, .monthly(rule, _, until)):
+            guard until.map({ $0 >= from }) ?? true else { return false }
+            if case let .nthWeekday(_, weekday) = rule { return days.contains(weekday) }
+            return !days.isEmpty
         case let (.weekly, .weekly(otherDays, _, until)):
             return !days.isDisjoint(with: otherDays) && (until.map { $0 >= from } ?? true)
         case let (.weekly, .once(day)):
@@ -407,6 +441,10 @@ public struct ItemForm: Equatable, Sendable {
 
     /// "On the clock every Monday and Wednesday from 9 Nov." (every-week items only).
     public func summaryCaption(today: Day, calendar: Calendar) -> String? {
+        if repeats == .monthly {
+            // Board C3m: "On the clock the 2nd Sat of every month from 14 Nov."
+            return L10n.tr("form.summary.monthly", DayText.monthly(monthlyRule), DayText.dayMonth(date, calendar: calendar))
+        }
         guard repeats == .weekly, !days.isEmpty else { return nil }
         return L10n.tr("form.summary", DayText.sentence(days), DayText.dayMonth(today, calendar: calendar))
     }
@@ -419,6 +457,13 @@ public struct ItemForm: Equatable, Sendable {
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .weekly(days, from: max(date, today), until: until), skippedDays: [],
                                 skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
+                                bring: bring,
+                                runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool)
+        case .monthly:
+            // Board C3m: the picked date is the first one.
+            return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
+                                end: end, recurrence: .monthly(monthlyRule, from: max(date, today), until: until),
+                                skippedDays: [], skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
                                 bring: bring,
                                 runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool)
         case .once:

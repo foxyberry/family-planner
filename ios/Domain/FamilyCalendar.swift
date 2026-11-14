@@ -39,13 +39,13 @@ public struct FamilyCalendar: Equatable, Sendable {
     /// times" on the nth day it happens (days off skipped when the item skips school holidays).
     public func resolving(_ items: [ScheduleItem], calendar: Calendar) -> [ScheduleItem] {
         items.map { item in
-            guard case let .weekly(days, from, _) = item.recurrence else { return item }
+            guard let from = item.recurrence.range?.from else { return item }
             var copy = item
             switch item.runsEnd {
             case .term?:
-                copy.recurrence = .weekly(days, from: from, until: termEnd(for: item.audience, from: from))
+                copy.recurrence = item.recurrence.with(from: from, until: termEnd(for: item.audience, from: from))
             case let .count(times)?:
-                copy.recurrence = .weekly(days, from: from, until: nthDay(of: copy, times: times, calendar: calendar))
+                copy.recurrence = item.recurrence.with(from: from, until: nthDay(of: copy, times: times, calendar: calendar))
             case .date?, .none?, nil:
                 break
             }
@@ -53,11 +53,11 @@ public struct FamilyCalendar: Equatable, Sendable {
         }
     }
 
-    /// The day an open-ended weekly item happens for the `times`th time (two years at most).
+    /// The day an open-ended repeating item happens for the `times`th time (two years at most).
     private func nthDay(of item: ScheduleItem, times: Int, calendar: Calendar) -> Day? {
-        guard case let .weekly(days, from, _) = item.recurrence, times > 0 else { return nil }
+        guard let from = item.recurrence.range?.from, times > 0 else { return nil }
         var open = item
-        open.recurrence = .weekly(days, from: from, until: nil)
+        open.recurrence = item.recurrence.with(from: from, until: nil)
         let off = daysOff(for: item.audience)
         var count = 0
         for offset in 0..<730 {

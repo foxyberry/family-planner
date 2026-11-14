@@ -274,7 +274,8 @@ public struct AppFeature {
             case let .path(.element(id: id, action: .ourDay(.delegate(.openItem(itemID))))):
                 guard case let .ourDay(day) = state.path[id: id],
                       let item = day.items.first(where: { $0.id == itemID }) else { return .none }
-                let mode: ItemEditorFeature.Mode = item.isWeekly ? .editWeekly(item) : .editOnce(item)
+                // Every week and every month edit as a series (This day / All days).
+                let mode: ItemEditorFeature.Mode = item.isRepeating ? .editWeekly(item) : .editOnce(item)
                 state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar)))
                 return .none
 

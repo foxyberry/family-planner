@@ -60,12 +60,9 @@ public enum DayPlanner {
         if item.skippedDays.contains(day) { return false }
         // An item after School follows School's days: its "No school days" decides a day off.
         if item.skipsHolidays && item.after != .school && holidays.contains(day) { return false }
-        switch item.recurrence {
-        case let .once(date):
-            return date == day
-        case let .weekly(days, from, until):
-            return days.contains(day.weekday(calendar)) && day >= from && (until.map { day <= $0 } ?? true)
-        }
+        guard item.recurrence.pattern(on: day, calendar: calendar) else { return false }
+        guard let range = item.recurrence.range else { return true }
+        return day >= range.from && (range.until.map { day <= $0 } ?? true)
     }
 
     /// The day's slots, sorted, never overlapping. When two things share time the higher priority wins
@@ -82,11 +79,12 @@ public enum DayPlanner {
         let occurring = items.filter { occurs($0, on: day, kid: kid.id, holidays: holidays, calendar: calendar) }
             .map { $0.on(day) }
         for (item, start) in placed(occurring, schoolEnd: routine?.blocks.first { $0.kind == .school }?.end) {
-            let source: Slot.Source = item.isWeekly ? .weekly(item.id) : .once(item.id)
-            candidates.append((item.isWeekly ? 1 : 2,
+            // Every month draws like every week (spec "Every month"): below just-once items.
+            let source: Slot.Source = item.isRepeating ? .weekly(item.id) : .once(item.id)
+            candidates.append((item.isRepeating ? 1 : 2,
                                Slot(title: item.title, iconName: item.iconName, kind: item.kind, start: start,
                                     end: start + item.end - item.start, source: source,
-                                    showsStar: item.showsStar && !item.isWeekly, trip: item.trip,
+                                    showsStar: item.showsStar && !item.isRepeating, trip: item.trip,
                                     after: item.after)))
         }
         candidates.sort { ($0.priority, $0.slot.start) > ($1.priority, $1.slot.start) }

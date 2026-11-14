@@ -969,6 +969,17 @@
         }
       }
     },
+    "editor.every_month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ every month"
+          }
+        }
+      }
+    },
     "editor.primary.add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1009,6 +1020,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove every week"
+          }
+        }
+      }
+    },
+    "editor.repeat.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every month"
           }
         }
       }
@@ -1350,6 +1372,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On the clock every %1$@ from %2$@."
+          }
+        }
+      }
+    },
+    "form.summary.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On the clock the %1$@ of every month from %2$@."
           }
         }
       }
@@ -2010,6 +2043,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "list.every_month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every month"
           }
         }
       }
@@ -2846,6 +2890,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sep"
+          }
+        }
+      }
+    },
+    "monthly.day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day %lld"
+          }
+        }
+      }
+    },
+    "monthly.nth.1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1st %@"
+          }
+        }
+      }
+    },
+    "monthly.nth.2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2nd %@"
+          }
+        }
+      }
+    },
+    "monthly.nth.3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3rd %@"
+          }
+        }
+      }
+    },
+    "monthly.nth.4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4th %@"
+          }
+        }
+      }
+    },
+    "monthly.nth.5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5th %@"
           }
         }
       }

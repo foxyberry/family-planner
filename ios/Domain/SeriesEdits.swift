@@ -28,9 +28,9 @@ public enum SeriesEdits {
 
     /// Ends the series the day before `day`; earlier days stay as they were.
     public static func ending(_ item: ScheduleItem, before day: Day, calendar: Calendar) -> ScheduleItem {
-        guard case let .weekly(days, from, _) = item.recurrence else { return item }
+        guard let from = item.recurrence.range?.from else { return item }
         var copy = item
-        copy.recurrence = .weekly(days, from: from, until: day.adding(days: -1, calendar: calendar))
+        copy.recurrence = item.recurrence.with(from: from, until: day.adding(days: -1, calendar: calendar))
         return copy
     }
 
@@ -47,11 +47,10 @@ public enum SeriesEdits {
     /// are still days of the new part, and are dropped (listed in `removed`) otherwise.
     public static func splitting(_ original: ScheduleItem, with edit: ScheduleItem, from day: Day, newID: UUID,
                                  calendar: Calendar) -> Split {
-        guard case let .weekly(_, oldFrom, _) = original.recurrence,
-              case let .weekly(newDays, editFrom, newUntil) = edit.recurrence
+        guard let oldFrom = original.recurrence.range?.from, let (editFrom, newUntil) = edit.recurrence.range
         else { return Split(items: [edit], removed: []) }
         func fits(_ date: Day) -> Bool {
-            newDays.contains(date.weekday(calendar)) && (newUntil.map { date <= $0 } ?? true)
+            edit.recurrence.pattern(on: date, calendar: calendar) && (newUntil.map { date <= $0 } ?? true)
         }
         let later = { (date: Day) in date >= day }
         let changed = Set(original.skippedDays.filter(later) + original.dayChanges.map(\.day).filter(later))
@@ -62,16 +61,16 @@ public enum SeriesEdits {
         next.dayChanges = original.dayChanges.filter { later($0.day) && fits($0.day) }
         guard day > oldFrom else {
             next.id = original.id
-            next.recurrence = .weekly(newDays, from: max(editFrom, oldFrom), until: newUntil)
+            next.recurrence = edit.recurrence.with(from: max(editFrom, oldFrom), until: newUntil)
             return Split(items: [next], removed: removed)
         }
         var old = original
-        old.recurrence = .weekly(original.weeklyDays, from: oldFrom, until: day.adding(days: -1, calendar: calendar))
+        old.recurrence = original.recurrence.with(from: oldFrom, until: day.adding(days: -1, calendar: calendar))
         old.runsEnd = .date
         old.skippedDays = original.skippedDays.filter { $0 < day }
         old.dayChanges = original.dayChanges.filter { $0.day < day }
         next.id = newID
-        next.recurrence = .weekly(newDays, from: max(day, editFrom), until: newUntil)
+        next.recurrence = edit.recurrence.with(from: max(day, editFrom), until: newUntil)
         return Split(items: [old, next], removed: removed)
     }
 

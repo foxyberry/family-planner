@@ -72,6 +72,21 @@ public enum DayText {
 
     /// "9 Nov"
     public static func dayMonth(_ day: Day, calendar: Calendar) -> String { "\(day.day) \(monthName(day.month))" }
+
+    /// Board C3m: "2nd Sat" or "Day 14".
+    public static func monthly(_ rule: MonthlyRule) -> String {
+        switch rule {
+        case let .nthWeekday(nth, weekday):
+            switch nth {
+            case ...1: L10n.tr("monthly.nth.1", shortName(weekday))
+            case 2: L10n.tr("monthly.nth.2", shortName(weekday))
+            case 3: L10n.tr("monthly.nth.3", shortName(weekday))
+            case 4: L10n.tr("monthly.nth.4", shortName(weekday))
+            default: L10n.tr("monthly.nth.5", shortName(weekday))
+            }
+        case let .dayOfMonth(date): L10n.tr("monthly.day", date)
+        }
+    }
     /// "Sat 14 Nov"
     public static func short(_ day: Day, calendar: Calendar) -> String {
         "\(shortName(day.weekday(calendar))) \(dayMonth(day, calendar: calendar))"
