@@ -11,10 +11,13 @@ public struct StopSearchField: View {
     let store: StoreOf<StopSearchFeature>
     /// Rows that fit above the form card's bottom (layout v14: S3 6, C2 8); more scroll.
     let visibleRows: Int
+    /// The control column's width, so the card ends inside the form card (`GrownupLayout.controlWidth`).
+    let listWidth: CGFloat
 
-    public init(store: StoreOf<StopSearchFeature>, visibleRows: Int) {
+    public init(store: StoreOf<StopSearchFeature>, visibleRows: Int, listWidth: CGFloat) {
         self.store = store
         self.visibleRows = visibleRows
+        self.listWidth = listWidth
     }
 
     public var body: some View {
@@ -23,10 +26,11 @@ public struct StopSearchField: View {
                         text: Binding(get: { store.text }, set: { store.send(.textChanged($0)) }))
                 .frame(width: 400)
                 .overlay(alignment: .topLeading) {
-                    if store.isListOpen { matches.resultVeilHole().offset(y: 80 + Spacing.l) }
+                    // Placed with padding, not offset, so the veil's hole lands on the card itself.
+                    if store.isListOpen { matches.resultVeilHole().padding(.top, 80 + Spacing.l) }
                 }
             HStack(spacing: Spacing.xs) {
-                if store.pickedStop != nil { CheckMark(isDone: true, size: 32) }
+                if store.showsPickedCheck { CheckMark(isDone: true, size: 32) }
                 Text(store.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
         }
@@ -39,6 +43,6 @@ public struct StopSearchField: View {
             .init(id: stop.code, title: stop.name, caption: L10n.tr("c2.stop.match", stop.road, stop.code)) {
                 store.send(.stopPicked(stop))
             }
-        }, visibleRows: visibleRows, seed: 55)
+        }, visibleRows: visibleRows, seed: 55, width: listWidth)
     }
 }

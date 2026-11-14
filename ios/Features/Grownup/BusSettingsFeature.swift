@@ -21,7 +21,7 @@ public struct BusSettingsFeature {
         public var walk = BusPlan.defaultWalk
         public var ride = BusPlan.defaultRide
         public var lateGrace = BusPlan.defaultLateGrace
-        /// The kid as stored: "Late up to" is their school's Latest − Arrive by when the school has both
+        /// The kid as stored: "Late" is their school's Latest − Arrive by when the school has both
         /// (spec "Latest lives on the school record"), else the plan's own value.
         public var storedKid: Kid?
 

@@ -30,10 +30,13 @@ public struct StopSearchFeature {
         /// The result list is open while there are matches (layout v14 veils the screen meanwhile).
         public var isListOpen: Bool { !matches.isEmpty }
 
+        /// The check before the caption: only while the caption names the picked stop.
+        public var showsPickedCheck: Bool { pickedStop != nil && matches.isEmpty }
+
         /// The name under the field, or a hint while it is not 5 digits or unknown.
         public var caption: String {
-            if let pickedStop { return L10n.tr("c2.stop.match", pickedStop.road, pickedStop.code) }
             if !matches.isEmpty { return L10n.tr("c2.stop.pick") }
+            if let pickedStop { return L10n.tr("c2.stop.match", pickedStop.road, pickedStop.code) }
             if text.filter(\.isLetter).count >= 2 { return L10n.tr("c2.stop.none_found") }
             return stop.count == 5 ? L10n.tr("c2.stop.unknown") : L10n.tr("c2.stop.hint")
         }
@@ -51,6 +54,10 @@ public struct StopSearchFeature {
     }
 
     @Dependency(\.bus) var bus
+    @Dependency(\.continuousClock) var clock
+
+    /// How long typing pauses before the name search runs.
+    static let searchPause: Duration = .seconds(1)
 
     public init() {}
 
@@ -60,20 +67,26 @@ public struct StopSearchFeature {
         Reduce { state, action in
             switch action {
             case let .textChanged(text):
+                // A tap on the field (or the keyboard settling) sends the same text: nothing to do.
+                guard text != state.text else { return .none }
                 state.text = text
-                state.pickedStop = nil
-                state.servicesAtStop = []
-                // Two or more letters: a name to look for; otherwise the digits of the code.
+                // The picked stop and its buses stay until a new stop is picked (user review
+                // 2026-11-14): typing only searches.
                 if text.filter(\.isLetter).count >= 2 {
-                    state.stop = ""
-                    return .run { [bus] send in
-                        try await Task.sleep(for: .milliseconds(300))
+                    // Searches once typing pauses for a second.
+                    return .run { [bus, clock] send in
+                        try await clock.sleep(for: Self.searchPause)
                         await send(.stopsFound((try? await bus.searchStops(text)) ?? []))
                     }
                     .cancellable(id: SearchID.stops, cancelInFlight: true)
                 }
                 state.matches = []
-                state.stop = String(text.filter(\.isNumber).prefix(5))
+                let digits = String(text.filter(\.isNumber).prefix(5))
+                // A full code is a pick; part of one leaves the stop as it is.
+                guard digits.count == 5, digits != state.stop else { return .cancel(id: SearchID.stops) }
+                state.stop = digits
+                state.pickedStop = nil
+                state.servicesAtStop = []
                 return .merge(.cancel(id: SearchID.stops), lookUp(state))
 
             case let .stopsFound(stops):
@@ -82,6 +95,7 @@ public struct StopSearchFeature {
 
             case let .stopPicked(stop):
                 state.stop = stop.code
+                state.servicesAtStop = []
                 // Board C2 (v9): the field shows the stop's name, the caption its road and code.
                 state.text = stop.name
                 state.pickedStop = stop
