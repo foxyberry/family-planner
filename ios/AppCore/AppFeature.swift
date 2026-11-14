@@ -393,6 +393,12 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
+            case let .path(.element(id: id, action: .settings(.schoolRowTapped))):
+                guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
+                state.path.append(.schoolEditor(SchoolEditorFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                                          calendar: calendar)))
+                return .none
+
             case let .path(.element(id: id, action: .settings(.busesRowTapped))):
                 guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
                 state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
@@ -409,7 +415,7 @@ public struct AppFeature {
 
             case let .path(.element(id: id, action: .schoolEditor(.delegate(.finished)))):
                 state.path.pop(from: id)
-                return .none
+                return reloadSettings(state)
 
             case let .path(.element(id: _, action: .schoolEditor(.delegate(.changeSchool(kid))))):
                 state.path.append(.changeSchool(ChangeSchoolFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
@@ -495,6 +501,13 @@ public struct AppFeature {
     }
 
     /// G4 loads the kid again after G7 (the pending change shows under School).
+    /// Settings shows School's rows: reload it after G4 (or the bus screen) changed them.
+    private func reloadSettings(_ state: State) -> Effect<Action> {
+        guard let settings = state.path.ids.last(where: { if case .settings = state.path[id: $0] { true } else { false } })
+        else { return .none }
+        return .send(.path(.element(id: settings, action: .settings(.task))))
+    }
+
     private func reloadSchoolEditor(_ state: State) -> Effect<Action> {
         guard let editor = state.path.ids.last(where: { if case .schoolEditor = state.path[id: $0] { true } else { false } })
         else { return .none }

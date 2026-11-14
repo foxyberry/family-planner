@@ -78,6 +78,19 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(rows.first { $0.key == "Terms" }?.value, "MOE 2026 · Term 4 ends 20 Nov")
         XCTAssertEqual(rows.first { $0.key == "To school" }?.link, .buses)
         XCTAssertEqual(rows.first { $0.key == "Missions" }?.link, .missions)
+        // Board G6: School, Hours and Terms open G4.
+        XCTAssertEqual(rows.filter { $0.link == .school }.map(\.key), ["School", "Hours", "Terms"])
+    }
+
+    /// Board G6: "Bus 12 · leave 7:05 · 2nd 34" (arrive by 7:25, ride 10, walk 10).
+    func testToSchoolNamesTheBusTheLeaveTimeAndThe2nd() {
+        var kid = SeedData.kidA
+        kid.school?.arriveBy = 445
+        let plan = BusPlan(kid: kid.id, stop: "00000", services: ["12", "34"], walk: 10, ride: 10)
+        let rows = SettingsModel.sections(kid: kid, missions: [], busPlan: plan, schoolYear: .none,
+                                          today: Day(year: 2026, month: 11, day: 10), calendar: Fixture.calendar)
+            .flatMap(\.rows)
+        XCTAssertEqual(rows.first { $0.key == "To school" }?.value, "Bus 12 · leave 7:05 · 2nd 34")
     }
 
     func testAKidAtHomeHasAboutAndRoutines() async {

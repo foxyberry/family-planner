@@ -21,6 +21,8 @@ public struct ChangeSchoolFeature {
         public var routines: [Routine] = []
         public var directory: [SchoolEntry] = []
         public var schoolYear: SchoolCalendar = .none
+        /// The picked school's own year (board G7: Next term is the new school's next term).
+        public var pickedYear: SchoolCalendar?
         public var text = ""
         public var matches: [SchoolEntry] = []
         public var picked: SchoolEntry?
@@ -47,7 +49,7 @@ public struct ChangeSchoolFeature {
         }
         /// The first day of the next term (the kid's school year), if it is known.
         public var nextTermStart: Day? {
-            schoolYear.terms.filter { $0.start > today }.map(\.start).min()
+            (pickedYear ?? schoolYear).terms.filter { $0.start > today }.map(\.start).min()
         }
         /// The day the new school starts.
         public var startDay: Day {
@@ -57,6 +59,17 @@ public struct ChangeSchoolFeature {
             }
         }
         public var startLabel: String { DayText.dayMonth(startDay, calendar: calendar) }
+        /// Board G7: the "Starts on" card opens once a school is picked.
+        public var isShowingStartsOn: Bool { picked != nil }
+        public var startsOnTabs: [(StartsOn, String)] {
+            [(.nextTerm, L10n.tr("change_school.next_term")), (.date, L10n.tr("change_school.date"))]
+        }
+        /// Board G7: "Mon 4 Jan · Term 1" under Next term; nothing under Date (the date field says it).
+        public var startsOnCaption: String? {
+            guard startsOn == .nextTerm, let start = nextTermStart else { return nil }
+            let term = (pickedYear ?? schoolYear).terms.first { $0.start == start }?.name ?? ""
+            return L10n.tr("change_school.next_term.caption", DayText.short(start, calendar: calendar), term)
+        }
         public var dateValue: Date { max(date, today).date(calendar: calendar) }
         public var canSave: Bool { picked != nil && stored != nil }
         public var cancelTitle: String { L10n.tr("change_school.cancel.title", stored?.school?.name ?? "") }
@@ -96,6 +109,9 @@ public struct ChangeSchoolFeature {
         case textChanged(String)
         case picked(SchoolEntry)
         case startsOnTapped(StartsOn)
+        /// The G7 card's Cancel: no school picked, back to the search.
+        case cardCancelled
+        case pickedYearLoaded(SchoolCalendar)
         case datePicked(Date)
         case saveTapped
         case saved(Bool)
@@ -140,6 +156,9 @@ public struct ChangeSchoolFeature {
                 return .none
 
             case let .textChanged(text):
+                // The field sends its text again when it loses focus (the G7 card hides the keyboard):
+                // the same text keeps the pick.
+                guard text != state.text else { return .none }
                 state.text = text
                 state.picked = nil
                 state.matches = SchoolSearch.matches(text, in: state.directory)
@@ -147,7 +166,23 @@ public struct ChangeSchoolFeature {
 
             case let .picked(entry):
                 state.picked = entry
+                state.pickedYear = nil
                 state.text = entry.name
+                state.matches = []
+                let age = state.stored?.age ?? 7
+                return .run { [schoolDirectory] send in
+                    await send(.pickedYearLoaded(await schoolDirectory.calendar(School(entry: entry), age)))
+                }
+
+            case let .pickedYearLoaded(year):
+                state.pickedYear = year
+                state.startsOn = state.nextTermStart == nil ? .date : .nextTerm
+                return .none
+
+            case .cardCancelled:
+                state.picked = nil
+                state.pickedYear = nil
+                state.text = ""
                 state.matches = []
                 return .none
 

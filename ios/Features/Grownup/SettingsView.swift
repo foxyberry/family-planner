@@ -55,6 +55,14 @@ public struct SettingsView: View {
         }
     }
 
+    private static func action(for link: SettingsLink) -> SettingsFeature.Action {
+        switch link {
+        case .buses: .busesRowTapped
+        case .missions: .missionsRowTapped
+        case .school: .schoolRowTapped
+        }
+    }
+
     private var kidCard: some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
             ForEach(store.sections, id: \.title) { section in
@@ -62,7 +70,7 @@ public struct SettingsView: View {
                     Text(section.title).crayonType(.head).foregroundStyle(CrayonColor.ink)
                     ForEach(Array(section.rows.enumerated()), id: \.offset) { _, row in
                         if let link = row.link {
-                            Button { store.send(link == .buses ? .busesRowTapped : .missionsRowTapped) } label: {
+                            Button { store.send(Self.action(for: link)) } label: {
                                 ListRow(leading: row.key, minHeight: 60) {
                                     HStack {
                                         value(row)

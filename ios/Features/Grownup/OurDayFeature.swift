@@ -275,7 +275,7 @@ public struct OurDayFeature {
             // Board G1g: "Play" / "Skipped" / "this day".
             if let block = selectedBlock, block.isSkipped {
                 return EditClock.Hub(above: block.title, time: L10n.tr("day.skipped.hub"),
-                                     below: L10n.tr("day.skipped.this_day"))
+                                     below: L10n.tr("day.skipped.this_day"), timeIsInk: true)
             }
             return EditClock.Hub(title: selected.map { edit.blocks[$0].title })
         }

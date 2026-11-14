@@ -15,10 +15,13 @@ public struct FromWhenCard<Choice: Hashable>: View {
     private let cancel: String
     private let onSave: () -> Void
     private let onCancel: () -> Void
+    private let tabWidths: [CGFloat]?
 
+    /// `tabWidths`: per-tab widths for longer labels (G7 "Next term"); 150 each otherwise.
     public init(title: String, tabs: [(Choice, String)], selection: Binding<Choice>, dateChoice: Choice,
                 dateLabel: String, date: Binding<Date>, caption: String?, save: String, cancel: String,
-                onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
+                tabWidths: [CGFloat]? = nil, onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
+        self.tabWidths = tabWidths
         self.title = title
         self.tabs = tabs
         _selection = selection
@@ -36,8 +39,13 @@ public struct FromWhenCard<Choice: Hashable>: View {
         PaperCard(seed: 51) {
             VStack(alignment: .leading, spacing: Spacing.m) {
                 Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                CrayonTabs(selection: $selection, items: tabs.map { ($0.0, $0.1, nil) },
-                           itemSize: CGSize(width: 150, height: 64), spacing: Spacing.sm)
+                if let tabWidths {
+                    CrayonTabs(selection: $selection, items: tabs.map { ($0.0, $0.1, nil) }, widths: tabWidths,
+                               spacing: Spacing.sm)
+                } else {
+                    CrayonTabs(selection: $selection, items: tabs.map { ($0.0, $0.1, nil) },
+                               itemSize: CGSize(width: 150, height: 64), spacing: Spacing.sm)
+                }
                 if selection == dateChoice {
                     DateField(label: dateLabel, date: $date)
                 }

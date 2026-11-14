@@ -26,8 +26,12 @@ public struct EditClock: View {
         public var time: String?
         public var below: String?
         public var title: String?
+        /// Board G1g: "Skipped" is a word, not a time: ink, not `pickBlue`.
+        public var timeIsInk: Bool
 
-        public init(above: String? = nil, time: String? = nil, below: String? = nil, title: String? = nil) {
+        public init(above: String? = nil, time: String? = nil, below: String? = nil, title: String? = nil,
+                    timeIsInk: Bool = false) {
+            self.timeIsInk = timeIsInk
             self.above = above
             self.time = time
             self.below = below
@@ -208,7 +212,8 @@ public struct EditClock: View {
             if let time = hub.time {
                 // At its own size, centred: shrinking to fit kept a full-width box and leaned the
                 // time left of the hub's middle (iPad review, 2026-11-10). "12:30 pm" fits the hub.
-                Text(time).crayonType(.title).foregroundStyle(CrayonColor.pickBlue).fixedSize()
+                Text(time).crayonType(.title).foregroundStyle(hub.timeIsInk ? CrayonColor.pictureInk : CrayonColor.pickBlue)
+                    .fixedSize()
             }
             if let below = hub.below {
                 Text(below).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText)

@@ -74,6 +74,8 @@ public struct SettingsFeature {
         /// Navigation the app's stack handles.
         case missionsRowTapped
         case busesRowTapped
+        /// School, Hours and Terms open G4.
+        case schoolRowTapped
         /// Board G6f: a Children row opens that kid's tab; "+ Add a child" opens the kid card.
         case childTapped(Kid.ID)
         case addChildTapped
@@ -166,7 +168,7 @@ public struct SettingsFeature {
             case .addChildTapped:
                 return .send(.delegate(.addChild))
 
-            case .missionsRowTapped, .busesRowTapped, .backTapped, .dataSourcesTapped, .delegate:
+            case .missionsRowTapped, .busesRowTapped, .schoolRowTapped, .backTapped, .dataSourcesTapped, .delegate:
                 return .none
             }
         }
