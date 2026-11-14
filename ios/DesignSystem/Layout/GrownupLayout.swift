@@ -7,9 +7,20 @@ import CoreGraphics
 /// (right-anchored, 472 wide) and the action button (864, 872, 472 × 96) ending on 968.
 public struct GrownupLayout: Equatable, Sendable {
     public let sizing: Sizing
+    /// The keyboard's top edge on screen while it is open (board C3k), else nil.
+    public let keyboardTop: CGFloat?
 
-    public init(sizing: Sizing) {
+    public init(sizing: Sizing, keyboardTop: CGFloat? = nil) {
         self.sizing = sizing
+        self.keyboardTop = keyboardTop
+    }
+
+    /// Board C3k: with the keyboard open the form card and the action button end 28 above it; the
+    /// header and the side column's top stay where they are.
+    private var bottom: CGFloat {
+        let board = sizing.y(968)
+        guard let keyboardTop else { return board }
+        return min(board, keyboardTop - 28 * s)
     }
 
     private var s: CGFloat { sizing.s }
@@ -23,7 +34,9 @@ public struct GrownupLayout: Equatable, Sendable {
     public var right: CGFloat { sizing.right(1336) }
 
     // Form card (40–840 × 148–968) and its inner columns.
-    public var form: CGRect { CGRect(x: sizing.left(40), y: sizing.y(148), width: (840 - 40) * s, height: (968 - 148) * s) }
+    public var form: CGRect {
+        CGRect(x: sizing.left(40), y: sizing.y(148), width: (840 - 40) * s, height: max(bottom - sizing.y(148), 96 * s))
+    }
     /// Rows start 40 inside the card (x 80) and end 40 before its right edge (800).
     public var formInset: CGFloat { 40 * s }
     public var labelLeft: CGFloat { sizing.left(80) }
@@ -43,11 +56,15 @@ public struct GrownupLayout: Equatable, Sendable {
     public var side: CGRect {
         CGRect(x: sizing.right(864), y: sizing.y(148), width: (1336 - 864) * s, height: (968 - 148) * s)
     }
-    public var action: CGRect { sizing.right(864, 872, 472, 96) }
+    public var action: CGRect {
+        let board = sizing.right(864, 872, 472, 96)
+        return CGRect(x: board.minX, y: max(bottom, sizing.y(148) + board.height) - board.height,
+                      width: board.width, height: board.height)
+    }
     /// Between the card and the side column (24 on the 13", wider on smaller iPads).
     public var gap: CGFloat { side.minX - form.maxX }
 
     /// Content top 148 and the bottom 968, as distances the frame pads by.
     public var contentTop: CGFloat { sizing.y(148) }
-    public var bottomInset: CGFloat { sizing.height - sizing.y(968) }
+    public var bottomInset: CGFloat { sizing.height - bottom }
 }

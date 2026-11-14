@@ -48,7 +48,20 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
     @Environment(\.sizing) private var sizing
 
     public var body: some View {
-        let layout = GrownupLayout(sizing: sizing)
+        // Board C3k: the reader keeps out of the keyboard, so its bottom is the keyboard's top; the
+        // screen itself ignores the keyboard, so the header never moves. Only the form card and the
+        // action button follow the keyboard, through the layout.
+        GeometryReader { proxy in
+            let bottom = proxy.frame(in: .global).maxY
+            screen(GrownupLayout(sizing: sizing, keyboardTop: sizing.height - bottom > 100 ? bottom : nil))
+                .ignoresSafeArea(.keyboard)
+        }
+        .background(CrayonColor.paper.ignoresSafeArea())
+        .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func screen(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             header
                 .frame(maxWidth: .infinity, minHeight: layout.back.height, alignment: .leading)

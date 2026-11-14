@@ -42,4 +42,14 @@ final class GrownupLayoutTests: XCTestCase {
         XCTAssertEqual(layout.editorRowsWidth, 738)
         XCTAssertEqual(layout.controlWidth, 592)
     }
+
+    /// Board C3k: with the keyboard open (top at 612) the form card and the button end 28 above it;
+    /// the header, the card's top and the side column's top stay.
+    func testTheKeyboardShrinksTheCardAndLiftsTheButton() {
+        let open = GrownupLayout(sizing: Sizing(width: 1376, height: 1032), keyboardTop: 612)
+        XCTAssertEqual(open.back, CGRect(x: 40, y: 44, width: 80, height: 80))
+        XCTAssertEqual(open.form, CGRect(x: 40, y: 148, width: 800, height: 436))
+        XCTAssertEqual(open.action, CGRect(x: 864, y: 488, width: 472, height: 96))
+        XCTAssertEqual(open.side.minY, 148)
+    }
 }
