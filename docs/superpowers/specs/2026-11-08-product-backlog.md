@@ -43,6 +43,8 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 - 2026-11-09: N13 CI read access to the private data repo (later).
 - 2026-11-09: build plan row 6d "Grown-up mode" (C6 absorbed, C1 → Settings, List kept).
 - 2026-11-09: build plan row 6c "Repeats and dates" (user decisions: two edit tabs with "from when?"; linked events skip on no-school days unless given a set time).
+- 2026-11-14: 6b without event missions before / after (user): Bring + From cover it; Missions row, F5 and the after-home window dropped.
+- 2026-11-14: G8 right column stays one "Add" (user: keep it plain). Parked ideas, not planned: "Coming up" (holidays, skipped days and one-offs in the next 2 weeks) and "Ended" (finished items with Bring back).
 
 ## Goal (the user's words)
 > **See today's schedule on this iPad, and do today's missions.**
@@ -85,7 +87,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 | 3 | Picture rigs playback + debug "Rig scale" slider (default 1.5 from rigs.json) | built (PR #13 open; with the app icon and school-roof flags) |
 | 4 | C6 Our day | built (PR #14 open, with board 00 principles) |
 | 5 | **Morning** (one step): Kid A checklist, Kid B cards, "All done!", C5 editor; the way strip with its timetable look (car, taxi, walk, no live times) and its live look (bus service module for LTA arrivals, key and stop stored on the iPad); C2 bus settings; "Leave in" + "On time" on A2 and A1; slide to go and medals; the "Going" row on C3/C4/E5 | built in full (feature/m2-morning-live, not pushed; installed on the iPad, waiting for the user's check) |
-| 6b | **Events, one shape** (user, 2026-11-09; spec "Events: one shape for every item"): From / linked events, trip way back, bus route per event (1st and 2nd choice), Bring, missions before/after, medal switch, mission windows, slide and done per outing | design: sketches SK1–SK4 in review; model first, then form rows, then windows |
+| 6b | **Events, one shape** (user, 2026-11-09; spec "Events: one shape for every item"): From / linked events, trip way back, bus route per event (1st and 2nd choice), Bring (a linked event's Bring is checked before the chain's first leave), ~~missions before/after~~ (dropped 2026-11-14), medal switch, mission windows, slide and done per outing | design: sketches SK1–SK4 in review; model first, then form rows, then windows |
 | 6c | **Repeats and dates** (user, 2026-11-09; spec "Repeats, dates and changes", sketches SK10–SK11): Runs start/end (end of term, date, count, none), skip school holidays from the term data, linked time worked out per day, No school days (skip / set time), Today vs Every week with "from when?", exception rule; then monthly, yearly, multi-day and extra one-off sessions in the same plan |
 | 6d | **Grown-up mode** (user, 2026-11-09; spec "Grown-up mode", boards G0–G8): pencil way in, the day on the clock (absorbs C6), List, edit screens with This day / All days (E5, School G4), "from when?", Settings (replaces C1), change school |
 | 6 | After the morning, proposed order: E1 one child, first-run setup (S1–S4), school shuttle, bus crowding, "time to leave" nudge, reference time zone, the rest of the delight pack, taxi ETA, portrait and windows | later |

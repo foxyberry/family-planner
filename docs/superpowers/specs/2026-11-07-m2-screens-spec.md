@@ -126,7 +126,7 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-14: bring kit batch drawn (swimsuit = unisex two-piece, all blue (rash-guard top + swim shorts, slim), goggles, towel = kids' hooded robe, slim (label "Robe"), rollerblades, helmet, libraryBag; kit.js lines 435–491, board 0d4; no pink; libraryBag has backpack's face, the rest none; tap rig = default hop).
 - 2026-11-15: swim shorts narrowed to the top's width (top body 86, shorts 88–98); robe body slimmed from 96 to 72 wide with shorter sleeves (kit.js swimsuit / towel, board 0d4).
 - 2026-11-15: Bring picker clash fixed (main session asked): the first row stays the F2 row of 4 with Shoes; the batch of six leads the More list, as built in PR #83.
-- 2026-11-15: bring colours: helmet red (grey buckle), rollerblades ivory boot (yellow cuff kept), libraryBag navy with white face and a yellow book.
+- 2026-11-15: bring colours: helmet red (grey buckle), rollerblades ivory boot (yellow cuff kept), libraryBag navy with white face (white eyes r7 and a white smile, both ink-ringed) and a yellow book.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
