@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "38",
  "board": "S4",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -369,19 +369,6 @@
    "font": 24
   },
   {
-   "id": "side.line.7",
-   "kind": "text",
-   "x": 864,
-   "y": 462,
-   "w": 418,
-   "h": 36,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 490,
-   "font": 24
-  },
-  {
    "id": "main.text.5",
    "kind": "text",
    "x": 160,
@@ -428,19 +415,6 @@
    "anchor": "left",
    "align": "inside",
    "baseline": 556,
-   "font": 24
-  },
-  {
-   "id": "main.text.7",
-   "kind": "text",
-   "x": 80,
-   "y": 625,
-   "w": 704,
-   "h": 67,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 684,
    "font": 24
   },
   {

@@ -34,12 +34,9 @@ final class MissionEditorTests: XCTestCase {
         let store = await loaded()
         XCTAssertEqual(store.state.rows.map(\.name),
                        ["Wake up", "Brush teeth", "Get dressed", "Breakfast", "Pack bag", "Shoes on"])
-        XCTAssertEqual(store.state.caption, "Same order as Kid A’s morning screen")
         XCTAssertEqual(store.state.addTitle, "Add a mission (6 of 8)")
-        XCTAssertFalse(store.state.showsCardsNote)
         await store.send(.kidTabTapped(kidB))
         XCTAssertEqual(store.state.rows.map(\.name), ["Wake up", "Milk", "Shoes"])
-        XCTAssertTrue(store.state.showsCardsNote)
     }
 
     /// A new mission starts as a star with no name; Save stays off until it has one. At 8 the add

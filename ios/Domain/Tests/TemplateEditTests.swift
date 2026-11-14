@@ -26,7 +26,6 @@ final class TemplateEditTests: XCTestCase {
         XCTAssertEqual(edit.moveKnob(knob(edit, at: 1155), to: 1168), .moved(1170))
         XCTAssertEqual(edit.blocks.first { $0.title == "Dinner" }?.end, 1170)
         XCTAssertEqual(edit.blocks.first { $0.title == "Shower" }?.start, 1170)
-        XCTAssertEqual(edit.effect(ofKnob: knob(edit, at: 1170)), "Shower now starts at 7:30 pm and is 30 min.")
     }
 
     /// Board G1d names the first changed slice; nothing is named before a change or after a save.

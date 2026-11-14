@@ -439,7 +439,6 @@ public struct OurDayFeature {
                 let before = state.edit.knobs[index].minute
                 let move = state.edit.moveKnob(index, to: minute)
                 feel(move, from: before, &state)
-                state.message = state.edit.effect(ofKnob: index)
                 return .none
 
             case let .knobReleased(index):
@@ -456,7 +455,6 @@ public struct OurDayFeature {
                 state.edit.beginChange()
                 let before = state.edit.knobs[index].minute
                 feel(state.edit.moveKnob(index, to: before + delta), from: before, &state)
-                state.message = state.edit.effect(ofKnob: index)
                 state.edit.closeShortGaps(favoring: moved(byKnob: index, state.edit))
                 return .none
 

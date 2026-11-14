@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "38",
  "board": "S2s",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -364,6 +364,18 @@
    "align": "start"
   },
   {
+   "id": "main.card",
+   "kind": "card",
+   "x": 208,
+   "y": 396,
+   "w": 610,
+   "h": 312,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Matching schools"
+  },
+  {
    "id": "side.line.5",
    "kind": "text",
    "x": 944,
@@ -375,20 +387,6 @@
    "align": "inside",
    "baseline": 460,
    "font": 24
-  },
-  {
-   "id": "main.text.2",
-   "kind": "text",
-   "x": 228,
-   "y": 406,
-   "w": 309,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 441,
-   "font": 30,
-   "text": "Sunny Park Primary"
   },
   {
    "id": "main.label.days",
@@ -501,34 +499,6 @@
    "text": "S"
   },
   {
-   "id": "main.row.days.text.8",
-   "kind": "text",
-   "x": 228,
-   "y": 443,
-   "w": 306,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 471,
-   "font": 24,
-   "text": "MOE primary · Woodlands"
-  },
-  {
-   "id": "main.row.days.text.9",
-   "kind": "text",
-   "x": 228,
-   "y": 478,
-   "w": 286,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 513,
-   "font": 30,
-   "text": "Sunny Hill Primary"
-  },
-  {
    "id": "side.line.6",
    "kind": "text",
    "x": 944,
@@ -552,20 +522,6 @@
    "region": "side",
    "anchor": "right",
    "align": "start"
-  },
-  {
-   "id": "main.text.3",
-   "kind": "text",
-   "x": 228,
-   "y": 515,
-   "w": 252,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 543,
-   "font": 24,
-   "text": "MOE primary · Bedok"
   },
   {
    "id": "main.label.hours",
@@ -630,47 +586,7 @@
    "align": "inside"
   },
   {
-   "id": "main.row.hours.text.3",
-   "kind": "text",
-   "x": 228,
-   "y": 550,
-   "w": 480,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 585,
-   "font": 30,
-   "text": "Sunny Bay International School"
-  },
-  {
-   "id": "side.line.8",
-   "kind": "text",
-   "x": 864,
-   "y": 564,
-   "w": 440,
-   "h": 67,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 623,
-   "font": 24
-  },
-  {
-   "id": "main.row.hours.text.4",
-   "kind": "text",
-   "x": 228,
-   "y": 587,
-   "w": 406,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 615,
-   "font": 24
-  },
-  {
-   "id": "main.text.4",
+   "id": "main.text.2",
    "kind": "text",
    "x": 208,
    "y": 601,
@@ -681,31 +597,6 @@
    "align": "inside",
    "baseline": 629,
    "font": 24
-  },
-  {
-   "id": "main.text.5",
-   "kind": "text",
-   "x": 272,
-   "y": 637,
-   "w": 450,
-   "h": 45,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 672,
-   "font": 30,
-   "text": "Not in the list? Type the name"
-  },
-  {
-   "id": "main.picture.1",
-   "kind": "picture",
-   "x": 228,
-   "y": 644,
-   "w": 32,
-   "h": 32,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
   },
   {
    "id": "main.label.arrive-by",
@@ -760,7 +651,7 @@
    "text": "latest"
   },
   {
-   "id": "main.picture.2",
+   "id": "main.picture",
    "kind": "picture",
    "x": 208,
    "y": 768,
@@ -771,7 +662,7 @@
    "align": "inside"
   },
   {
-   "id": "main.text.6",
+   "id": "main.text.3",
    "kind": "text",
    "x": 268,
    "y": 769,

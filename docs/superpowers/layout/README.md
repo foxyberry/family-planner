@@ -66,3 +66,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v35 (2026-11-14): C2 label "Late up to" → "Late" (id main.label.late); no geometry change. Other JSON files unchanged.
 - v36 (2026-11-14): G8 right column is one "Add" (side 148); "Add every month" and "Add once" removed. Long list rows wrap to two lines (row up to 136). Other JSON files unchanged.
 - v37 (2026-11-14): G1 / G1c / G1d use the unlocked clock art (no padlock knobs; School edges drag like any other). New board G1e: tap a shared knob → "+" 56 on the boundary just inside the rim (125, 413). Other JSON files unchanged.
+- v38 (2026-11-14): plain-screens pass: explanatory captions removed from C2, C2c, C3g, C5, S2, S2s, S3, S4 and the G1 slice card (G1, G1c, G1d, G1e); their text elements are gone from the JSON. No geometry change for the remaining parts. C1, E6, C6 and E5 are archived on the canvas (superseded by G6, G1, G2); their JSON stays for reference.

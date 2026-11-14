@@ -165,12 +165,6 @@ extension SetupFeature.State {
         return L10n.tr("going.leave.before", TimeText.withPeriod(max(arrive - kid.going.leaveBefore, 0)))
     }
 
-    /// Board S3: where arrive-by and latest come from (they are set on S2).
-    public var goingTimesCaption: String? {
-        guard goingKid?.school.arriveBy != nil else { return nil }
-        return L10n.tr("s3.side.times")
-    }
-
     // MARK: S4
 
     /// The side summary's school and way, from the first kid with a school.

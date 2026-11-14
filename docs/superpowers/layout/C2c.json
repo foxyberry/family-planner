@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "38",
  "board": "C2c",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -123,20 +123,6 @@
    "text": "Grown-ups only"
   },
   {
-   "id": "side.line.1",
-   "kind": "text",
-   "x": 864,
-   "y": 142,
-   "w": 370,
-   "h": 54,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 184,
-   "font": 36,
-   "text": "On the morning map"
-  },
-  {
    "id": "main.label.from",
    "kind": "label",
    "x": 80,
@@ -175,19 +161,6 @@
    "baseline": 225,
    "font": 24,
    "text": "· our stop"
-  },
-  {
-   "id": "side.line.2",
-   "kind": "text",
-   "x": 864,
-   "y": 204,
-   "w": 455,
-   "h": 84,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 278,
-   "font": 30
   },
   {
    "id": "main.label.first-bus",
@@ -235,19 +208,6 @@
    "align": "inside"
   },
   {
-   "id": "side.line.3",
-   "kind": "text",
-   "x": 864,
-   "y": 298,
-   "w": 435,
-   "h": 130,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 420,
-   "font": 24
-  },
-  {
    "id": "main.label.change-at",
    "kind": "label",
    "x": 80,
@@ -260,38 +220,23 @@
    "text": "Change at"
   },
   {
-   "id": "main.row.change-at.text",
-   "kind": "text",
-   "x": 232,
-   "y": 389,
-   "w": 211,
-   "h": 45,
+   "id": "main.row.change-at.card",
+   "kind": "card",
+   "x": 208,
+   "y": 372,
+   "w": 400,
+   "h": 80,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 412,
-   "font": 30,
    "text": "Sunny Ave Int"
   },
   {
-   "id": "side.line.4",
-   "kind": "text",
-   "x": 864,
-   "y": 439,
-   "w": 459,
-   "h": 98,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 529,
-   "font": 24
-  },
-  {
-   "id": "main.text.1",
+   "id": "main.text",
    "kind": "text",
    "x": 208,
    "y": 457,
-   "w": 553,
+   "w": 255,
    "h": 36,
    "region": "main",
    "anchor": "left",
@@ -343,19 +288,6 @@
    "region": "main",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "main.text.2",
-   "kind": "text",
-   "x": 208,
-   "y": 593,
-   "w": 419,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 621,
-   "font": 24
   },
   {
    "id": "main.label.ride-1",

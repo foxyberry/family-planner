@@ -60,7 +60,6 @@ public struct BusSettingsView: View {
                                 }
                             }
                         }
-                        Text(L10n.tr("s3.buses.caption")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     }
                 }
             }
@@ -73,14 +72,10 @@ public struct BusSettingsView: View {
         }
     }
 
-    /// Board C2's side column: whose route it is, how "Leave in" works, then the morning map.
+    /// Board C2's side column (layout v38, plain screens): whose route it is, nothing more.
     private var side: some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             Text(store.sideTitle).crayonType(.head)
-            Text(L10n.tr("s3.side.leave_in")).crayonType(.body)
-            Text(L10n.tr("c2.side.arrive")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-            Text(L10n.tr("c2.side.map")).crayonType(.head).padding(.top, Spacing.m)
-            Text(store.mapCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
         }
         .foregroundStyle(CrayonColor.ink)
         .fixedSize(horizontal: false, vertical: true)

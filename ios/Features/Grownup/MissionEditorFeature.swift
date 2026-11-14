@@ -57,12 +57,6 @@ public struct MissionEditorFeature {
         /// "+ Add a mission (6 of 8)".
         public var addTitle: String { L10n.tr("c5.add", rows.count, Mission.most) }
 
-        /// "Same order as Kid A's morning screen".
-        public var caption: String { L10n.tr("c5.caption", kid?.name ?? "") }
-
-        /// Picture cards for a kid at home (board C5, Kid B tab).
-        public var showsCardsNote: Bool { kid?.school == nil }
-
         /// The caption under a mission's name in the list: its days when it is not on every day
         /// ("Thu", "Mon · Wed").
         public func daysCaption(_ mission: Mission) -> String? {

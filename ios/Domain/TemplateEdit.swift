@@ -223,10 +223,4 @@ public struct TemplateEdit: Equatable, Sendable {
         history.removeAll()
         future.removeAll()
     }
-
-    /// The caption under the slice card: "Shower now starts at 7:30 pm and is 30 min."
-    public func effect(ofKnob index: Int) -> String {
-        let next = blocks[knobs[index].after]
-        return L10n.tr("day.effect", next.title, TimeText.withPeriod(next.start), TimeText.duration(next.end - next.start))
-    }
 }

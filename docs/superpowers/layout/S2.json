@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "38",
  "board": "S2",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -594,19 +594,6 @@
    "region": "main",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "side.line.8",
-   "kind": "text",
-   "x": 864,
-   "y": 564,
-   "w": 440,
-   "h": 67,
-   "region": "side",
-   "anchor": "right",
-   "align": "start",
-   "baseline": 623,
-   "font": 24
   },
   {
    "id": "main.text.2",
