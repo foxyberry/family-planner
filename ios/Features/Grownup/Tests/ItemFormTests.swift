@@ -303,6 +303,26 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.bring.map(\.picture), ["backpack", "waterBottle", "towel"])
     }
 
+    /// Board C3m: Every month from the first date, "2nd Sat" by default or "Day {d}".
+    func testEveryMonthMakesAMonthlyItem() {
+        var form = form()
+        form.repeats = .monthly
+        form.date = Day(year: 2026, month: 11, day: 14)
+        form.refreshMonthly(calendar: F.calendar)
+        XCTAssertEqual(form.monthlyChoices(calendar: F.calendar).map(\.title), ["2nd Sat", "Day 14"])
+        XCTAssertEqual(form.summaryCaption(today: F.monday, calendar: F.calendar),
+                       "On the clock the 2nd Sat of every month from 14 Nov.")
+        let item = form.item(id: UUID(), today: F.monday)
+        XCTAssertEqual(item.recurrence, .monthly(.nthWeekday(2, .saturday), from: Day(year: 2026, month: 11, day: 14),
+                                                 until: nil))
+        form.monthlyByDate = true
+        form.refreshMonthly(calendar: F.calendar)
+        XCTAssertEqual(form.item(id: UUID(), today: F.monday).recurrence,
+                       .monthly(.dayOfMonth(14), from: Day(year: 2026, month: 11, day: 14), until: nil))
+        // Opening it again keeps the rule.
+        XCTAssertEqual(ItemForm(item: form.item(id: UUID(), today: F.monday)).monthlyByDate, true)
+    }
+
     // MARK: Runs (board G2)
 
     func testRunsEndsAreStoredAndShown() {

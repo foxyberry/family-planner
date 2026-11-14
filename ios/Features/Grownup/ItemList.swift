@@ -38,6 +38,21 @@ public enum ItemList {
         }
     }
 
+    /// Every-month items for `kid` that are still running, by start time: "2nd Sat · 9:00 – 10:00 am"
+    /// (board G8, layout v34).
+    public static func monthly(kid: Kid, items: [ScheduleItem]) -> [ItemRow] {
+        items.compactMap { item -> (ScheduleItem, MonthlyRule)? in
+            guard item.audience.includes(kid.id), case let .monthly(rule, _, until) = item.recurrence, until == nil
+            else { return nil }
+            return (item, rule)
+        }
+        .sorted { ($0.0.start, $0.0.title) < ($1.0.start, $1.0.title) }
+        .map { item, rule in
+            ItemRow(id: item.id, iconName: item.iconName, title: item.title, when: DayText.monthly(rule),
+                    time: TimeText.range(item.start, item.end))
+        }
+    }
+
     /// Upcoming just-once items for `kid`, nearest first, at most five. An item stays listed until the
     /// kid's next wake-up after its day.
     public static func once(kid: Kid, items: [ScheduleItem], routines: [Routine], today: Day, nowMinute: Int,

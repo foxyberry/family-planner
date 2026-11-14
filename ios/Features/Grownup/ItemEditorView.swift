@@ -102,16 +102,24 @@ public struct ItemEditorView: View {
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
                 row(L10n.tr("editor.row.repeat")) {
+                    // Board C3m (layout v39): three tabs sized to their labels (180 · 200 · 220), 4 apart.
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
                                items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
-                                       (.weekly, L10n.tr("editor.repeat.weekly"), nil)],
-                               itemSize: CGSize(width: 220, height: 72), spacing: Spacing.sm)
+                                       (.weekly, L10n.tr("editor.repeat.weekly"), nil),
+                                       (.monthly, L10n.tr("editor.repeat.monthly"), nil)],
+                               widths: [180, 200, 220], spacing: Spacing.xxs)
                 }
             }
             // Board G3: This day keeps the item's own rows only (no Days, Runs or event rows).
             if store.isThisDay {
                 EmptyView()
-            } else if store.form.repeats == .weekly { weeklyRows } else { onceRows }
+            } else {
+                switch store.form.repeats {
+                case .weekly: weeklyRows
+                case .monthly: monthlyRows
+                case .once: onceRows
+                }
+            }
             if case .editOnce = store.mode {
                 Button { store.send(.removeTapped) } label: {
                     Text(store.removeTitle).crayonType(.head).foregroundStyle(CrayonColor.lateText)
@@ -244,8 +252,34 @@ public struct ItemEditorView: View {
     }
 
     @ViewBuilder private var onceRows: some View {
-        // Board C4 (layout v6): ‹ (64) in the label column at 104, five date chips (96) 12 apart
-        // from 232 to 760, › (64) at 772; both centred on the chip row.
+        dateStrip
+        row("") {
+            // Board C4 (v20): the check, then the star it adds to the clock (40), then the words.
+            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar, picture: .star) { store.form.showsStar.toggle() }
+        }
+        eventRows
+    }
+
+    /// Board C3m: the date strip picks the first date, then "{nth} {weekday}" · "Day {d}" (180 each),
+    /// then Skip school holidays.
+    @ViewBuilder private var monthlyRows: some View {
+        dateStrip
+        row("") {
+            CrayonTabs(selection: Binding(get: { store.form.monthlyByDate },
+                                          set: { store.send(.monthlyRuleTapped(byDate: $0)) }),
+                       items: store.monthlyChoices.map { ($0.byDate, $0.title, nil) },
+                       itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
+        }
+        if store.showsSkipHolidays {
+            row("") {
+                checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
+            }
+        }
+        eventRows
+    }
+
+    /// Board C4 (layout v6): ‹ (64) in the label column, five date chips (96) 12 apart, then ›.
+    private var dateStrip: some View {
         HStack(spacing: 0) {
             FormLabelColumn {
                 RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("editor.dates.earlier")) { store.send(.datePageTapped(-1)) }
@@ -262,11 +296,6 @@ public struct ItemEditorView: View {
                     .size(64)
             }
         }
-        row("") {
-            // Board C4 (v20): the check, then the star it adds to the clock (40), then the words.
-            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar, picture: .star) { store.form.showsStar.toggle() }
-        }
-        eventRows
     }
 
     /// Spec "Event form rows for 6b" (board G2b): From, then Going / Leave when From is Home (C3g),

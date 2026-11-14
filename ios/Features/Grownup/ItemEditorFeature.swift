@@ -230,6 +230,9 @@ public struct ItemEditorFeature {
         /// Going / Leave show when the item starts from Home (C3g); a linked item has no trip.
         public var showsGoing: Bool { form.after == nil }
 
+        /// Board C3m: the rule tabs under the date strip.
+        public var monthlyChoices: [(byDate: Bool, title: String)] { form.monthlyChoices(calendar: calendar) }
+
         /// The last day of the term the run starts in, for the form's kid; nil without a school calendar.
         public var termEnd: Day? { family.termEnd(for: form.audience, from: form.date) }
 
@@ -275,6 +278,7 @@ public struct ItemEditorFeature {
             case let .add(audience):
                 var form = ItemForm.defaults(audience: audience, now: now, calendar: calendar)
                 form.repeats = repeats
+                form.refreshMonthly(calendar: calendar)
                 initial = form
             case let .editOnce(item), let .editWeekly(item):
                 initial = ItemForm(item: item)
@@ -349,7 +353,11 @@ public struct ItemEditorFeature {
         public var canPageEarlier: Bool { datePage > 0 }
 
         /// The every-week side column's title (board E5): "Every Mon and Wed".
-        public var everyTitle: String { DayText.every(form.days) }
+        /// "Every Mon and Wed", or for every month "2nd Sat every month" (not on a board yet).
+        public var everyTitle: String {
+            form.repeats == .monthly ? L10n.tr("editor.every_month", DayText.monthly(form.monthlyRule))
+                : DayText.every(form.days)
+        }
 
         /// The add and just-once side column; the every-week side column has none.
         public var preview: FormPreview? {
@@ -470,12 +478,11 @@ public struct ItemEditorFeature {
         /// The form as the series' new version: its start and end from Runs when they changed.
         var seriesEdit: ScheduleItem {
             var item = form.item(id: weeklyItem?.id ?? UUID(), today: today)
-            if let weekly = weeklyItem, case let .weekly(_, from, until) = weekly.recurrence,
-               case let .weekly(days, _, _) = item.recurrence {
+            if let weekly = weeklyItem, let (from, until) = weekly.recurrence.range, item.recurrence.range != nil {
                 let start = form.date == original.date ? from : form.date
                 let end = form.runsEnd == original.runsEnd && form.untilDate == original.untilDate
                     && form.times == original.times ? until : form.until
-                item.recurrence = .weekly(days, from: start, until: end)
+                item.recurrence = item.recurrence.with(from: start, until: end)
                 item.skippedDays = weekly.skippedDays
                 item.dayChanges = weekly.dayChanges
             }
@@ -496,6 +503,8 @@ public struct ItemEditorFeature {
         case dayToggled(Weekday)
         case repeatChanged(ItemForm.Repeat)
         case dateTapped(Day)
+        /// Board C3m: "{nth} {weekday}" (false) or "Day {d}" (true).
+        case monthlyRuleTapped(byDate: Bool)
         case datePageTapped(Int)
         case saveTapped
         case saved(Bool)
@@ -625,10 +634,17 @@ public struct ItemEditorFeature {
                 // An every-week item cannot turn into a one-off here (board E5).
                 if state.isEditingWeekly { return .none }
                 state.form.repeats = repeats
+                state.form.refreshMonthly(calendar: state.calendar)
                 return .none
 
             case let .dateTapped(day):
                 state.form.date = day
+                state.form.refreshMonthly(calendar: state.calendar)
+                return .none
+
+            case let .monthlyRuleTapped(byDate):
+                state.form.monthlyByDate = byDate
+                state.form.refreshMonthly(calendar: state.calendar)
                 return .none
 
             case let .datePageTapped(step):

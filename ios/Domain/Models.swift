@@ -132,6 +132,54 @@ public enum Recurrence: Hashable, Codable, Sendable {
     case once(Day)
     /// Every week on `days`, from `from` up to and including `until`.
     case weekly(Set<Weekday>, from: Day, until: Day?)
+    /// Every month (board C3m, layout v39), from `from` up to and including `until`.
+    case monthly(MonthlyRule, from: Day, until: Day?)
+
+    /// A repeating item's first and last day; nil for a just-once item.
+    public var range: (from: Day, until: Day?)? {
+        switch self {
+        case .once: nil
+        case let .weekly(_, from, until), let .monthly(_, from, until): (from, until)
+        }
+    }
+
+    /// The same repeat over another run (a split, an end). A just-once item stays as it is.
+    public func with(from: Day, until: Day?) -> Recurrence {
+        switch self {
+        case .once: self
+        case let .weekly(days, _, _): .weekly(days, from: from, until: until)
+        case let .monthly(rule, _, _): .monthly(rule, from: from, until: until)
+        }
+    }
+
+    /// Whether `day` is one of the repeat's days, leaving its run aside.
+    public func pattern(on day: Day, calendar: Calendar) -> Bool {
+        switch self {
+        case let .once(date): date == day
+        case let .weekly(days, _, _): days.contains(day.weekday(calendar))
+        case let .monthly(rule, _, _): rule.matches(day, calendar: calendar)
+        }
+    }
+}
+
+/// Which day of each month an every-month item falls on: "2nd Sat" or "Day 14". A month without that
+/// day (no 5th Saturday, no 31st) is skipped.
+public enum MonthlyRule: Hashable, Codable, Sendable {
+    /// The `nth` (1–5) `weekday` of the month.
+    case nthWeekday(Int, Weekday)
+    case dayOfMonth(Int)
+
+    /// The two choices a first date gives: its weekday's place in the month, and its date.
+    public static func nthWeekday(of day: Day, calendar: Calendar) -> MonthlyRule {
+        .nthWeekday((day.day - 1) / 7 + 1, day.weekday(calendar))
+    }
+
+    public func matches(_ day: Day, calendar: Calendar) -> Bool {
+        switch self {
+        case let .nthWeekday(nth, weekday): day.weekday(calendar) == weekday && (day.day - 1) / 7 + 1 == nth
+        case let .dayOfMonth(date): day.day == date
+        }
+    }
 }
 
 /// One day of an every-week item changed on its own ("This day", spec "Repeats, dates and changes"):
@@ -297,11 +345,14 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     }
 
     public var isWeekly: Bool { if case .weekly = recurrence { true } else { false } }
+    public var isMonthly: Bool { if case .monthly = recurrence { true } else { false } }
+    /// Every week or every month: edits with This day / All days, drawn below just-once items.
+    public var isRepeating: Bool { recurrence.range != nil }
 
     /// The weekdays of an every-week item (none for a just-once item).
     public var weeklyDays: Set<Weekday> { if case let .weekly(days, _, _) = recurrence { days } else { [] } }
 
-    public var kind: SlotKind { isWeekly ? .afterSchool : .event }
+    public var kind: SlotKind { isRepeating ? .afterSchool : .event }
 
     /// The item as it is on `day`: a day changed on its own has its own times, name or picture.
     public func on(_ day: Day) -> ScheduleItem {
