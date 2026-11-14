@@ -3,22 +3,24 @@ import Strings
 
 /// Editing one day template on the C6 clock (spec "C6 · Our day", Drag rules). Every boundary between
 /// two slices is a knob; moving it moves the end of one slice and the start of the next together.
-/// Times snap to 5 minutes, no slice is shorter than 15 minutes, knobs never cross, and the edges of
-/// a locked slice (school) do not move. The two sleep halves meet at midnight, which has no knob.
+/// Times snap to 5 minutes, no slice is shorter than 15 minutes and knobs never cross. School's edges
+/// move like any other (layout v37). There are no forced gaps: slices may touch exactly, and free
+/// time shorter than 15 minutes never stays (it joins the slice beside it). The two sleep halves
+/// meet at midnight, which has no knob.
 public struct TemplateEdit: Equatable, Sendable {
     public struct Knob: Equatable, Sendable {
         public var minute: Int
         /// The slice that ends at this knob and the one that starts there.
         public var before: Int
         public var after: Int
-        public var isLocked: Bool
     }
 
-    /// What a move did: moved to the snapped minute, stopped at a limit (bump haptic), or refused.
+    /// What a move did: moved to the snapped minute, stopped at a limit (bump haptic), or had no knob
+    /// to move (the day's first start or last end).
     public enum Move: Equatable, Sendable {
         case moved(Int)
         case stopped(Int)
-        case locked
+        case noKnob
     }
 
     public static let snap = 5
@@ -29,15 +31,18 @@ public struct TemplateEdit: Equatable, Sendable {
     /// Changes taken back by Undo since the last change, for Redo (spec "Grown-up mode", G1).
     private var future: [[RoutineBlock]] = []
 
+    /// A new slice put between two slices (board G1e) is this long.
+    public static let between = 30
+
     public init(blocks: [RoutineBlock]) {
         self.blocks = blocks.sorted { $0.start < $1.start }
+        closeShortGaps()
     }
 
     public var knobs: [Knob] {
         blocks.indices.dropLast().compactMap { i in
             guard blocks[i].end == blocks[i + 1].start else { return nil }
-            return Knob(minute: blocks[i].end, before: i, after: i + 1,
-                        isLocked: blocks[i].isLocked || blocks[i + 1].isLocked)
+            return Knob(minute: blocks[i].end, before: i, after: i + 1)
         }
     }
 
@@ -52,12 +57,13 @@ public struct TemplateEdit: Equatable, Sendable {
         future.removeAll()
     }
 
+    /// Moves a knob while dragging. Free time beside it may shrink to nothing here; `closeShortGaps`
+    /// (on release, after a typed time) folds what is left under 15 minutes into the moved slice.
     public mutating func moveKnob(_ index: Int, to minute: Int) -> Move {
         let knob = knobs[index]
-        guard !knob.isLocked else { return .locked }
         let snapped = Int((Double(minute) / Double(Self.snap)).rounded()) * Self.snap
-        let lowest = blocks[knob.before].start + Self.shortest
-        let highest = blocks[knob.after].end - Self.shortest
+        let lowest = blocks[knob.before].start + (blocks[knob.before].kind == .free ? 0 : Self.shortest)
+        let highest = blocks[knob.after].end - (blocks[knob.after].kind == .free ? 0 : Self.shortest)
         let clamped = min(max(snapped, lowest), highest)
         blocks[knob.before].end = clamped
         blocks[knob.after].start = clamped
@@ -66,23 +72,84 @@ public struct TemplateEdit: Equatable, Sendable {
 
     /// A typed start time: moves the knob before the slice, with the same rules.
     public mutating func setStart(ofBlock block: Int, to minute: Int) -> Move {
-        guard let index = knobs.firstIndex(where: { $0.after == block }) else { return .locked }
-        if knobs[index].isLocked { return .locked }
+        guard let index = knobs.firstIndex(where: { $0.after == block }) else { return .noKnob }
         beginChange()
-        return moveKnob(index, to: minute)
+        let move = moveKnob(index, to: minute)
+        closeShortGaps(favoring: block)
+        return move
     }
 
     /// A typed end time: moves the knob after the slice, with the same rules.
     public mutating func setEnd(ofBlock block: Int, to minute: Int) -> Move {
-        guard let index = knobs.firstIndex(where: { $0.before == block }) else { return .locked }
-        if knobs[index].isLocked { return .locked }
+        guard let index = knobs.firstIndex(where: { $0.before == block }) else { return .noKnob }
         beginChange()
-        return moveKnob(index, to: minute)
+        let move = moveKnob(index, to: minute)
+        closeShortGaps(favoring: block)
+        return move
+    }
+
+    /// Spec "No forced gaps": free time under 15 minutes never stays. A free slice that short joins
+    /// the slice that was just moved (`favoring`, when it is beside it), else the slice before it;
+    /// a bare gap between two slices is closed the same way. Returns the favoured slice's new index.
+    @discardableResult
+    public mutating func closeShortGaps(favoring favored: Int? = nil) -> Int? {
+        var keep = favored
+        var index = 0
+        while index < blocks.count {
+            let block = blocks[index]
+            let short = block.kind == .free && block.end - block.start < Self.shortest && blocks.count > 1
+            guard short else {
+                // A bare gap under 15 minutes after this slice: the slice runs on to the next one.
+                if index + 1 < blocks.count, blocks[index + 1].start > block.end,
+                   blocks[index + 1].start - block.end < Self.shortest {
+                    blocks[index].end = blocks[index + 1].start
+                }
+                index += 1
+                continue
+            }
+            let hasBefore = index > 0 && blocks[index - 1].end == block.start
+            let hasAfter = index + 1 < blocks.count && blocks[index + 1].start == block.end
+            let toAfter = hasAfter && (keep == index + 1 || !hasBefore)
+            if toAfter {
+                blocks[index + 1].start = block.start
+            } else if hasBefore {
+                blocks[index - 1].end = block.end
+            } else {
+                index += 1
+                continue
+            }
+            blocks.remove(at: index)
+            if let k = keep, k > index { keep = k - 1 }
+        }
+        return keep
+    }
+
+    /// Board G1e: a new 30-minute slice at a shared knob, as free time for the new-slice card to fill.
+    /// It starts at the knob and is taken from the slice after it; when that one is shorter than 45
+    /// minutes it ends at the knob and is taken from the slice before it. Nil when neither has room.
+    public mutating func insertBetween(knob index: Int) -> Int? {
+        guard knobs.indices.contains(index) else { return nil }
+        let knob = knobs[index]
+        let room = Self.between + Self.shortest
+        let after = blocks[knob.after], before = blocks[knob.before]
+        if after.end - after.start >= room {
+            beginChange()
+            blocks[knob.after].start = knob.minute + Self.between
+            blocks.insert(Self.free(from: knob.minute, to: knob.minute + Self.between), at: knob.after)
+            return knob.after
+        }
+        if before.end - before.start >= room {
+            beginChange()
+            blocks[knob.before].end = knob.minute - Self.between
+            blocks.insert(Self.free(from: knob.minute - Self.between, to: knob.minute), at: knob.after)
+            return knob.after
+        }
+        return nil
     }
 
     /// "Make this free time": blank paper over the same span, joined with free time right before or
-    /// after it, so the day can lose slices as well as gain them. A locked slice stays. Returns the
-    /// free slice's index.
+    /// after it, so the day can lose slices as well as gain them. School (`isLocked`) cannot be made
+    /// free. Returns the free slice's index.
     @discardableResult
     public mutating func makeFree(_ block: Int) -> Int {
         guard !blocks[block].isLocked, blocks[block].kind != .free else { return block }
@@ -124,6 +191,12 @@ public struct TemplateEdit: Equatable, Sendable {
     public mutating func undo() {
         guard let last = history.popLast() else { return }
         future.append(blocks)
+        blocks = last
+    }
+
+    /// Drops the last change without a Redo step (a G1e slice closed without being added).
+    public mutating func dropLastChange() {
+        guard let last = history.popLast() else { return }
         blocks = last
     }
 

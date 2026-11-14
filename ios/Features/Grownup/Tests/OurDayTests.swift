@@ -5,13 +5,14 @@ import Grownup
 import ScheduleStore
 import XCTest
 
-/// C6 · Our day: dragging, limits, locked school edges, free time, undo, leaving and saving.
+/// C6 · Our day: dragging, limits, School's edges, add between, free time, undo, leaving and saving.
 @MainActor
 final class OurDayTests: XCTestCase {
     private typealias F = Fixture
     private let tuesday = Day(year: 2026, month: 11, day: 10)
 
-    private func store(saved: LockIsolated<[Routine]> = .init([])) -> TestStoreOf<OurDayFeature> {
+    private func store(saved: LockIsolated<[Routine]> = .init([]),
+                       savedKids: LockIsolated<[Kid]> = .init([])) -> TestStoreOf<OurDayFeature> {
         let store = TestStore(initialState: OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday,
                                                                 calendar: F.calendar)) {
             OurDayFeature()
@@ -20,6 +21,7 @@ final class OurDayTests: XCTestCase {
             $0.date.now = self.tuesday.date(minute: 600, calendar: F.calendar)
             $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: []) }
             $0.scheduleStore.saveRoutine = { routine in saved.withValue { $0.append(routine) } }
+            $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.holidays.holidays = { _ in [] }
             $0.schoolDirectory.calendar = { _, _ in .none }
         }
@@ -27,8 +29,9 @@ final class OurDayTests: XCTestCase {
         return store
     }
 
-    private func loaded(saved: LockIsolated<[Routine]> = .init([])) async -> TestStoreOf<OurDayFeature> {
-        let store = store(saved: saved)
+    private func loaded(saved: LockIsolated<[Routine]> = .init([]),
+                        savedKids: LockIsolated<[Kid]> = .init([])) async -> TestStoreOf<OurDayFeature> {
+        let store = store(saved: saved, savedKids: savedKids)
         await store.send(.task)
         await store.receive(\.loaded)
         return store
@@ -59,13 +62,45 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.selectedBlock?.title, "Dinner")
     }
 
-    func testLimitsBumpAndLockedEdgesExplain() async {
+    func testLimitsBump() async {
         let store = await loaded()
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1250))
         XCTAssertEqual(store.state.edit.blocks.first { $0.title == "Shower" }?.start, 1185)
         XCTAssertGreaterThan(store.state.haptics.bumps, 0)
-        await store.send(.lockedKnobTapped(knob(store, at: 450)))
-        XCTAssertEqual(store.state.message, "School hours are set in School.")
+    }
+
+    /// Layout v37: School's start moves; an All days save moves School's hours with it.
+    func testMovingSchoolForAllDaysMovesItsHours() async {
+        let savedKids = LockIsolated<[Kid]>([])
+        let store = await loaded(savedKids: savedKids)
+        await store.send(.knobDragged(index: knob(store, at: 450), minute: 480))
+        await store.send(.knobReleased(knob(store, at: 480)))
+        XCTAssertEqual(store.state.edit.blocks.first { $0.kind == .school }?.start, 480)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.saveTapped)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(savedKids.value.last?.school?.start, 480)
+        XCTAssertEqual(savedKids.value.last?.school?.end, 900)
+    }
+
+    /// Board G1e: a tap on a knob shows "+"; it puts a 30-minute slice there for the new-slice card,
+    /// and closing the card without adding takes it back.
+    func testAddBetweenOpensANewSliceAndCancelTakesItBack() async {
+        let store = await loaded()
+        let before = store.state.edit.blocks
+        await store.send(.knobTapped(knob(store, at: 1155)))
+        XCTAssertEqual(store.state.addBetweenButton?.label, "Add between Dinner and Shower")
+        await store.send(.addBetweenTapped)
+        XCTAssertNil(store.state.addBetweenButton)
+        // Shower (45 min) gives its first 30 minutes.
+        XCTAssertEqual(store.state.selectedBlock?.start, 1155)
+        XCTAssertEqual(store.state.selectedBlock?.end, 1185)
+        XCTAssertEqual(store.state.newSlice?.isBetween, true)
+        await store.send(.sliceTapped(start: 0))
+        XCTAssertEqual(store.state.edit.blocks, before)
+        XCTAssertFalse(store.state.canUndo)
+        XCTAssertFalse(store.state.canRedo, "nothing to redo after a slice that was never added")
     }
 
     func testFreeTimeThenFillThenUndo() async throws {
