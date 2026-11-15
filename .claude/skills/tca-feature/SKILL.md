@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.4.0
+  version: 0.5.0
   status: experimental
 ---
 
@@ -73,6 +73,8 @@ reference time zone, the time machine and tests can replace any of it in one pla
 | `view reads @Dependency in …` | move the value into State (a view gets the default, not the store's value) |
 | `kid screen scrolls` | cap the list with `Capped` |
 | `hard-coded copy in …` / `key not in the catalog` / `unused catalog key` | add the key to the catalog and use `L10n.tr`; remove keys nothing uses; a non-copy literal (bundle name) ends with `// copy-ok: <reason>` |
+| `passes n argument(s) but its value has m placeholder(s)` | one key has two meanings: give the new screen its own key |
+| `raw text input in …` | use `CrayonField`; a raw `TextField` prompt follows the window's dark scheme |
 
 ## Common mistakes
 - Passing `Date()` or `Calendar.current` into a Live value from `bootstrap`: it then ignores the time machine and the reference time zone.
@@ -84,3 +86,6 @@ reference time zone, the time machine and tests can replace any of it in one pla
 - `TestStore` with `exhaustivity = .off`: each `send` skips the received actions not yet asserted, so `receive` an effect's actions before the next `send`.
 - A debug switch or fixture inside a feature (`#if DEBUG` state, a debug-only action, a board setup in a reducer): it ships in the feature's shape and drifts from the real flow. Give the value as a dependency that `DebugModel.install` swaps (as the time machine swaps `\.date`), keep fixtures in DebugTools, and reach the screen through the app's normal actions. `check-debug-boundary.sh` blocks the rest.
 - Fixed test dates on a public holiday: 9 Nov 2026 (Deepavali observed) is a Sunday-template day in the app. Check the holiday list before a weekday fixture becomes a "school day" check, on the iPad too.
+- A reducer that resets state on `textChanged`: a `TextField` sends its text again when it loses focus (a card hiding the keyboard), so ignore an unchanged text. Check field-plus-card flows on the iPad.
+- A second gesture on a view that has `onLongPressGesture` (a `DragGesture(minimumDistance: 0)` to learn where the press began) takes the touch from the long press. Read the press location from a parent container in `.global` space. Check the clock hold on the iPad after any gesture change.
+- `self.property` inside `LockIsolated(...)` in a test: the `Sendable` autoclosure captures `self` and the test does not build. Use statics (`SeedData.kidA.id`) or a local `let`.
