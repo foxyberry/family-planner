@@ -164,7 +164,7 @@ public struct SchoolEditorView: View {
                 }
             }
             linkRow(L10n.tr("going.label"), action: .goingTapped) {
-                KitIcon(.busDouble, size: 48)
+                if let picture = store.goingPicture { KitIcon(KitSlot(iconName: picture), size: 48) }
                 Text(store.goingText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
             }
             linkRow(L10n.tr("editor.row.bring"), action: .bringRowTapped) {

@@ -61,6 +61,7 @@ final class SettingsTests: XCTestCase {
             $0.appSettings.load = { .defaults }
             $0.appSettings.save = { settings in saved.withValue { $0.append(settings) } }
             $0.parentAuth.authenticate = { _ in auth }
+            $0.parentAuth.biometry = { .faceID }
         }
         store.exhaustivity = .off
         return store
@@ -92,6 +93,23 @@ final class SettingsTests: XCTestCase {
                                           today: Day(year: 2026, month: 11, day: 10), calendar: Fixture.calendar)
             .flatMap(\.rows)
         XCTAssertEqual(rows.first { $0.key == "To school" }?.value, "Bus 12 · leave 7:05 · 2nd 34")
+    }
+
+    /// An iPad with Touch ID names it on the lock row.
+    func testTouchIDIsNamedOnTheLockRow() async {
+        let store = store()
+        store.dependencies.parentAuth.biometry = { .touchID }
+        await store.send(.task)
+        XCTAssertEqual(store.state.settingRows.first?.caption, "Touch ID before grown-up screens")
+    }
+
+    /// G6 "To school" for a kid who walks: the way and when to leave, not "Not set yet".
+    func testToSchoolNamesAWalk() {
+        let school = School(name: "Example Primary School", days: Weekday.schoolDays, start: 450, end: 810)
+        let line = SettingsModel.going(trip: Trip(way: .walk, leaveBefore: 10), plan: nil, school: school)
+        XCTAssertEqual(line.text, "Walk · leave 7:20")
+        XCTAssertEqual(line.picture, "shoe")
+        XCTAssertEqual(SettingsModel.going(trip: nil, plan: nil, school: school).text, "Not set yet")
     }
 
     /// Board G6 foot: "School lists · 9 Nov" over Data sources.

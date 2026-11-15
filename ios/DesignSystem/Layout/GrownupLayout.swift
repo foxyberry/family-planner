@@ -34,8 +34,11 @@ public struct GrownupLayout: Equatable, Sendable {
     public var right: CGFloat { sizing.right(1336) }
 
     // Form card (40–840 × 148–968) and its inner columns.
+    /// On an iPad wider than the board at its scale (the 11": height sets the scale) the spare width
+    /// goes to the card, so it ends 24 × s before the side column as on the 13" (user, 2026-11-15).
     public var form: CGRect {
-        CGRect(x: sizing.left(40), y: sizing.y(148), width: (840 - 40) * s, height: max(bottom - sizing.y(148), 96 * s))
+        CGRect(x: sizing.left(40), y: sizing.y(148), width: max((840 - 40) * s, sizing.right(864) - 24 * s - sizing.left(40)),
+               height: max(bottom - sizing.y(148), 96 * s))
     }
     /// Rows start 40 inside the card (x 80) and end 40 before its right edge (800).
     public var formInset: CGFloat { 40 * s }
@@ -61,7 +64,7 @@ public struct GrownupLayout: Equatable, Sendable {
         return CGRect(x: board.minX, y: max(bottom, sizing.y(148) + board.height) - board.height,
                       width: board.width, height: board.height)
     }
-    /// Between the card and the side column (24 on the 13", wider on smaller iPads).
+    /// Between the card and the side column (24 × s on every iPad).
     public var gap: CGFloat { side.minX - form.maxX }
 
     /// Content top 148 and the bottom 968, as distances the frame pads by.

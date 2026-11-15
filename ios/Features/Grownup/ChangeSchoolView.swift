@@ -66,7 +66,8 @@ public struct ChangeSchoolView: View {
                 CrayonTabs(selection: Binding(get: { Optional(store.place) },
                                               set: { if let place = $0 { store.send(.placeTapped(place)) } }),
                            items: store.placeTabs.map { (Optional($0.0), $0.1, nil) },
-                           itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
+                           itemSize: CGSize(width: min(180, (layout.controlWidth - 2 * Spacing.sm) / 3), height: 72),
+                           spacing: Spacing.sm)
             }
             switch store.place {
             case .school: schoolSearch(layout)

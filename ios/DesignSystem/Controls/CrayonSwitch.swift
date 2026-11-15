@@ -66,7 +66,8 @@ public struct SettingRow<Picture: View>: View {
                     Text(title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).lineLimit(1)
                     Text(caption).crayonType(.caption)
                         .foregroundStyle(captionIsWarning ? CrayonColor.hurry : CrayonColor.softText)
-                        .lineLimit(2)
+                        // Three lines on a smaller iPad ("Off: anyone who holds the clock…").
+                        .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // The words take all the width the switch leaves (a spacer beside them took half of it

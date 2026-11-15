@@ -9,6 +9,7 @@ import SwiftUI
 /// G1 · The day on the clock (boards G1, G1c, G1d): drag the times of a kid's day on a real date.
 public struct OurDayView: View {
     @Bindable var store: StoreOf<OurDayFeature>
+    @Environment(\.sizing) private var sizing
 
     public init(store: StoreOf<OurDayFeature>) {
         self.store = store
@@ -103,11 +104,11 @@ public struct OurDayView: View {
     private var undoRedo: some View {
         HStack(spacing: Spacing.s) {
             RoundButton(glyph: .undo, accessibilityLabel: L10n.tr("day.undo")) { store.send(.undoTapped) }
-                .size(72)
+                .size(72 * sizing.s)
                 .opacity(store.canUndo ? 1 : 0.45)
                 .disabled(!store.canUndo)
             RoundButton(glyph: .redo, accessibilityLabel: L10n.tr("day.redo")) { store.send(.redoTapped) }
-                .size(72)
+                .size(72 * sizing.s)
                 .opacity(store.canRedo ? 1 : 0.45)
                 .disabled(!store.canRedo)
         }
@@ -290,16 +291,23 @@ public struct OurDayView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
+    /// 176 on the board; on a smaller iPad the two fields share the slice card's inner width (the
+    /// side column less the card's 16 insets, the 40 arrow and two 16 gaps).
+    private var timeFieldWidth: CGFloat { min(176, (472 * sizing.s - 2 * Spacing.m - timeArrow - 2 * timeGap) / 2) }
+    /// The arrow and gaps tighten below the 13" so "12:30 pm" keeps its field.
+    private var timeArrow: CGFloat { sizing.s < 0.95 ? 24 : 40 }
+    private var timeGap: CGFloat { sizing.s < 0.95 ? Spacing.xs : Spacing.s }
+
     /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16.
     private var timesRow: some View {
-        HStack(spacing: Spacing.s) {
+        HStack(spacing: timeGap) {
             TimeField(label: store.startLabel ?? "",
-                      time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }))
-                .frame(width: 176)
-            MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
+                      time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
+                      width: timeFieldWidth)
+            MarkerIcon(.arrowRight, size: timeArrow, color: CrayonColor.softText)
             TimeField(label: store.endLabel ?? "",
-                      time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }))
-                .frame(width: 176)
+                      time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
+                      width: timeFieldWidth)
         }
     }
 }

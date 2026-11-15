@@ -4533,6 +4533,17 @@
         }
       }
     },
+    "s4.lock.caption.touch_id" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch ID before grown-up screens"
+          }
+        }
+      }
+    },
     "s4.lock.needs_face_id" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4540,6 +4551,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Set up Face ID in iPad Settings first."
+          }
+        }
+      }
+    },
+    "s4.lock.needs_touch_id" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set up Touch ID in iPad Settings first."
           }
         }
       }
@@ -4947,6 +4969,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bus %1$@ · leave %2$@"
+          }
+        }
+      }
+    },
+    "settings.to_school.way" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · leave %2$@"
           }
         }
       }

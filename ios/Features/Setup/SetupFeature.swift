@@ -56,6 +56,8 @@ public struct SetupFeature {
         public var isCheckingLock = false
         /// S4: the lock could not be turned on (no Face ID, or it failed).
         public var lockNeedsFaceID = false
+        /// This iPad has Touch ID (the S4 lock row names it).
+        public var isTouchID = false
         /// S1: the kid whose × asks "Remove {name}?" (a card with something typed asks first).
         public var removeConfirm: KidEntry.ID?
 
@@ -213,6 +215,7 @@ public struct SetupFeature {
         Reduce { state, action in
             switch action {
             case .task:
+                state.isTouchID = parentAuth.biometry() == .touchID
                 guard state.directory.isEmpty else { return .none }
                 return .run { [schoolDirectory] send in await send(.directoryLoaded(await schoolDirectory.schools())) }
 

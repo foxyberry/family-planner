@@ -45,6 +45,7 @@ final class SetupTests: XCTestCase {
             $0.bus.stop = { code in code == "00000" ? BusStop(code: code, name: "Example Stop", road: "Example Rd") : nil }
             $0.bus.arrivals = { _ in [BusArrival(service: "1", minutes: 5, type: .double)] }
             $0.bus.searchStops = { _ in [] }
+            $0.parentAuth.biometry = { .faceID }
         }
         store.exhaustivity = .off
         return store
@@ -319,6 +320,7 @@ final class SetupTests: XCTestCase {
             $0.continuousClock = ImmediateClock()
             $0.uuid = .incrementing
             $0.parentAuth.authenticate = { _ in outcome.value }
+            $0.parentAuth.biometry = { .faceID }
             $0.appSettings.save = { settings in savedSettings.withValue { $0.append(settings) } }
             $0.scheduleStore.replaceFamily = { _ in }
         }

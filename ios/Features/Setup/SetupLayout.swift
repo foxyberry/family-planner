@@ -15,9 +15,10 @@ public struct SetupLayout: Equatable, Sendable {
     private var sizing: Sizing { grown.sizing }
     private var s: CGFloat { sizing.s }
 
-    /// S1: one card per kid, 40–840.
+    /// S1: one card per kid, the form card's width (40–840 on the 13").
     public func kidCard(_ index: Int) -> CGRect {
-        sizing.left(40, 148 + (304 + 20) * CGFloat(index), 800, 304)
+        let board = sizing.left(40, 148 + (304 + 20) * CGFloat(index), 800, 304)
+        return CGRect(x: board.minX, y: board.minY, width: grown.form.width, height: board.height)
     }
 
     /// Layout v18: S1 cards 304 tall, 20 apart.

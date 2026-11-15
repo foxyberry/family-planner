@@ -43,7 +43,7 @@ public struct SettingsSection: Equatable, Sendable {
 public enum SettingsModel {
     /// About, then School and Getting there for a kid with a school, then Routines.
     public static func sections(kid: Kid, missions: [Mission], busPlan: BusPlan?, schoolYear: SchoolCalendar,
-                                today: Day, calendar: Calendar) -> [SettingsSection] {
+                                today: Day, calendar: Calendar, routines: [Routine] = []) -> [SettingsSection] {
         var sections = [SettingsSection(title: L10n.tr("settings.about"), rows: [
             SettingsRow(key: L10n.tr("settings.age"), value: age(kid)),
             SettingsRow(key: L10n.tr("settings.face"), picture: kid.face, value: colourName(kid.colorIndex)),
@@ -63,10 +63,12 @@ public enum SettingsModel {
                 rows.append(SettingsRow(key: L10n.tr("settings.terms"), value: terms, link: .school))
             }
             sections.append(SettingsSection(title: L10n.tr("settings.school"), rows: rows))
-            let buses = busPlan.map { toSchool($0, school: school) } ?? L10n.tr("hub.more.buses.none")
+            let trip = schoolTrip(kid: kid.id, routines: routines, today: today)
+            let line = going(trip: trip, plan: busPlan, school: school)
             sections.append(SettingsSection(title: L10n.tr("settings.getting_there"), rows: [
-                SettingsRow(key: L10n.tr("settings.to_school"), picture: busPlan == nil ? nil : "busDouble", // copy-ok: a KitSlot name
-                            value: buses, link: .buses),
+                // By bus the row opens Our buses; another way is edited on G4's Going row.
+                SettingsRow(key: L10n.tr("settings.to_school"), picture: line.picture, value: line.text,
+                            link: trip.map { $0.way == .bus } ?? true ? .buses : .school),
             ]))
         } else {
             // A kid at home: the School row opens G7 to add a place; a waiting change shows below it.
@@ -92,6 +94,34 @@ public enum SettingsModel {
         let first = plan.first ?? ""
         return plan.second.map { L10n.tr("settings.to_school.second", first, leave, $0) }
             ?? L10n.tr("settings.to_school.value", first, leave)
+    }
+
+    /// The way to school on the kid's weekday template (S3 or G4's Going), if one is set.
+    public static func schoolTrip(kid: Kid.ID, routines: [Routine], today: Day) -> Trip? {
+        routines.filter { $0.kid == kid && $0.dayType == .weekday }
+            .sorted { $0.from < $1.from }
+            .last { $0.from <= today }?
+            .blocks.first { $0.kind == .school }?.trip
+    }
+
+    /// G6 "To school" and G4 "Going": by bus "Bus 12 · leave 7:05" (or "Not set yet" until Our
+    /// buses has a route); walk, car or taxi "Walk · leave 7:20", from the trip's leave-before.
+    public static func going(trip: Trip?, plan: BusPlan?, school: School) -> (picture: String?, text: String) {
+        if let trip, trip.way != .bus {
+            let leave = TimeText.clock((school.arriveBy ?? school.start) - trip.leaveBefore)
+            return (trip.way.moverPicture, L10n.tr("settings.to_school.way", wayName(trip.way), leave))
+        }
+        guard let plan else { return (nil, L10n.tr("hub.more.buses.none")) }
+        return ("busDouble", toSchool(plan, school: school)) // copy-ok: a KitSlot name
+    }
+
+    static func wayName(_ way: Way) -> String {
+        switch way {
+        case .walk: L10n.tr("going.walk")
+        case .bus: L10n.tr("going.bus")
+        case .car: L10n.tr("going.car")
+        case .taxi, .shuttle: L10n.tr("going.taxi")
+        }
     }
 
     /// "7 · Primary 1", "8", or "3 · at home".

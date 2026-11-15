@@ -27,6 +27,8 @@ public struct SettingsFeature {
         /// Turning the lock on checks Face ID first (as on S4); a failed check says so.
         public var isCheckingLock = false
         public var lockNeedsFaceID = false
+        /// This iPad has Touch ID (the lock row names it).
+        public var isTouchID = false
         public var today: Day?
         /// The day the bundled school lists were made (the foot's "School lists · 9 Nov").
         public var listsUpdated: Day?
@@ -51,7 +53,8 @@ public struct SettingsFeature {
             guard let kid, let snapshot, let today else { return [] }
             return SettingsModel.sections(kid: kid, missions: snapshot.missions,
                                           busPlan: snapshot.busPlans.route(kid: kid.id),
-                                          schoolYear: schools[kid.id] ?? .none, today: today, calendar: calendar)
+                                          schoolYear: schools[kid.id] ?? .none, today: today, calendar: calendar,
+                                          routines: snapshot.routines)
         }
 
         /// Board G6f "Children": one row per kid, "{age} · {place}".
@@ -68,7 +71,7 @@ public struct SettingsFeature {
         public var canAddChild: Bool { (snapshot?.kids.count ?? 0) < AddChildFeature.most }
 
         /// The Family tab's switches (the same rows as S4).
-        public var settingRows: [AppSettingRow] { settings.rows(lockNeedsFaceID: lockNeedsFaceID) }
+        public var settingRows: [AppSettingRow] { settings.rows(lockNeedsFaceID: lockNeedsFaceID, touchID: isTouchID) }
     }
 
     public enum Action: Equatable {
@@ -114,6 +117,7 @@ public struct SettingsFeature {
         Reduce { state, action in
             switch action {
             case .task:
+                state.isTouchID = parentAuth.biometry() == .touchID
                 state.calendar = calendar
                 state.today = Day(date.now, calendar: calendar)
                 state.settings = appSettings.load()
