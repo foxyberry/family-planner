@@ -139,13 +139,13 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
     }
 }
 
-/// Spec "Where the kid goes changes": the next school and the day it starts. Days before stay with
-/// the old school (the day templates are dated, so the clock follows on its own).
+/// Spec "Where the kid goes changes": the next school (or preschool; nil = at home) and the day it
+/// starts. Days before stay with the old place (the day templates are dated, so the clock follows).
 public struct PendingSchool: Hashable, Codable, Sendable {
-    public var school: School
+    public var school: School?
     public var from: Day
 
-    public init(school: School, from: Day) {
+    public init(school: School?, from: Day) {
         self.school = school
         self.from = from
     }

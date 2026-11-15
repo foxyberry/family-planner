@@ -401,6 +401,12 @@ public struct AppFeature {
                                                                           calendar: calendar)))
                 return .none
 
+            case let .path(.element(id: id, action: .settings(.changeSchoolRowTapped))):
+                guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
+                state.path.append(.changeSchool(ChangeSchoolFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                                          calendar: calendar)))
+                return .none
+
             case let .path(.element(id: id, action: .settings(.busesRowTapped))):
                 guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
                 state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
@@ -437,13 +443,13 @@ public struct AppFeature {
 
             case let .path(.element(id: id, action: .changeSchool(.delegate(.finished)))):
                 state.path.pop(from: id)
-                return reloadSchoolEditor(state)
+                return .merge(reloadSchoolEditor(state), reloadSettings(state), .send(.home(.reload)))
 
             case let .path(.element(id: id, action: .changeSchool(.delegate(.openBuses(kid))))):
                 // Spec: after Save, the new trip's screen opens (Our buses, ← back to G4).
                 state.path.pop(from: id)
                 state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
-                return .merge(reloadSchoolEditor(state), .send(.home(.reload)))
+                return .merge(reloadSchoolEditor(state), reloadSettings(state), .send(.home(.reload)))
 
             case let .path(.element(id: id, action: .ourDay(.delegate(.openSchool)))):
                 guard case let .ourDay(day) = state.path[id: id] else { return .none }

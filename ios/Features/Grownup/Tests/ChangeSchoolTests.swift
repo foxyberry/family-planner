@@ -49,7 +49,7 @@ final class ChangeSchoolTests: XCTestCase {
         await store.receive(\.saved)
         await store.receive(\.delegate.openBuses)
         XCTAssertEqual(kids.value.last?.school?.name, SeedData.kidA.school?.name, "the old school until the day")
-        XCTAssertEqual(kids.value.last?.pendingSchool?.school.name, "Riverside Primary")
+        XCTAssertEqual(kids.value.last?.pendingSchool?.school?.name, "Riverside Primary")
         XCTAssertEqual(kids.value.last?.pendingSchool?.from, january)
         // From that day the weekday template uses the new hours (Arrive by 7:45, ends 1:30).
         let school = routines.value.last?.blocks.first { $0.kind == .school }
@@ -96,5 +96,69 @@ final class ChangeSchoolTests: XCTestCase {
         let after = kidA.applyingPendingSchool(on: day)
         XCTAssertEqual(after.school?.name, "Riverside Primary")
         XCTAssertNil(after.pendingSchool)
+    }
+
+    /// Design session 2026-11-15: G7 opens on the kid's place ("Goes to"); At home goes straight to
+    /// the "Starts on" card, and from that day the School slice is free time and the kid has no school.
+    func testAtHomeFromTodayEndsSchool() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.place, .school)
+        XCTAssertEqual(store.state.placeTabs.map(\.1), ["School", "Preschool", "At home"])
+        await store.send(.placeTapped(.home))
+        XCTAssertTrue(store.state.isShowingStartsOn)
+        XCTAssertEqual(store.state.cardTitle, "At home")
+        await store.send(.datePicked(tuesday.date(calendar: F.calendar)))
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        await store.receive(\.delegate.finished)
+        XCTAssertNil(kids.value.last?.school)
+        XCTAssertNil(kids.value.last?.pendingSchool)
+        XCTAssertFalse(routines.value.last?.blocks.contains { $0.kind == .school } ?? true)
+    }
+
+    /// A kid at home starting preschool: typed name, drop-off and pick-up, Save opens the card; a
+    /// Preschool slice goes into the template on those hours.
+    func testAKidAtHomeStartsPreschool() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = TestStore(initialState: ChangeSchoolFeature.State(kid: SeedData.kidB.id, today: tuesday,
+                                                                      calendar: F.calendar)) {
+            ChangeSchoolFeature()
+        } withDependencies: {
+            $0.calendar = F.calendar
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: []) }
+            $0.scheduleStore.saveKid = { kid in kids.withValue { $0.append(kid) } }
+            $0.scheduleStore.saveRoutine = { routine in routines.withValue { $0.append(routine) } }
+            $0.schoolDirectory.schools = { [] }
+            $0.schoolDirectory.calendar = { _, _ in .none }
+        }
+        store.exhaustivity = .off
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.place, .home)
+        XCTAssertFalse(store.state.canSave, "already at home")
+        await store.send(.placeTapped(.preschool))
+        await store.send(.preschoolNameChanged("Example Preschool"))
+        XCTAssertFalse(store.state.canContinuePreschool)
+        await store.send(.dropOffPicked(Day(year: 2026, month: 1, day: 1).date(minute: 510, calendar: F.calendar)))
+        await store.send(.pickUpPicked(Day(year: 2026, month: 1, day: 1).date(minute: 750, calendar: F.calendar)))
+        await store.send(.preschoolSaveTapped)
+        XCTAssertTrue(store.state.isShowingStartsOn)
+        XCTAssertEqual(store.state.cardTitle, "Example Preschool")
+        let start = Day(year: 2026, month: 12, day: 1)
+        await store.send(.datePicked(start.date(calendar: F.calendar)))
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        await store.receive(\.delegate.openBuses)
+        let pending = kids.value.last?.pendingSchool
+        XCTAssertEqual(pending?.from, start)
+        XCTAssertEqual(pending?.school?.kind, .preschool)
+        XCTAssertEqual(pending?.school?.start, 510)
+        let slice = routines.value.last?.blocks.first { $0.kind == .school }
+        XCTAssertEqual(slice?.title, "Preschool")
+        XCTAssertEqual(slice?.start, 510)
+        XCTAssertEqual(slice?.end, 750)
     }
 }

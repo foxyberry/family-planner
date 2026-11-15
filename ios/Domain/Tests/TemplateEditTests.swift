@@ -189,4 +189,31 @@ final class TemplateEditTests: XCTestCase {
         edit.fill(slot, title: "Piano", iconName: "actPiano", kind: .play, length: end - edit.blocks[slot].start - 10)
         XCTAssertEqual(edit.blocks[slot].end, end)
     }
+
+    /// Spec "Where the kid goes changes": at home turns School into free time; a new place without a
+    /// School slice cuts one into the day.
+    func testPlacingSchoolForAtHomeAndANewPlace() {
+        let blocks = [
+            RoutineBlock(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 0, end: 420),
+            RoutineBlock(title: "Breakfast", iconName: "actBreakfast", kind: .morning, start: 420, end: 450),
+            RoutineBlock(title: "School", iconName: "actSchool", kind: .school, start: 450, end: 810, isLocked: true),
+            RoutineBlock(title: "Free", iconName: "", kind: .free, start: 810, end: 1080),
+            RoutineBlock(title: "Dinner", iconName: "actDinner", kind: .dinner, start: 1080, end: 1440),
+        ]
+        let home = TemplateEdit.placingSchool(blocks, school: nil)
+        XCTAssertFalse(home.contains { $0.kind == .school })
+        XCTAssertEqual(home.filter { $0.kind == .free }.map { [$0.start, $0.end] }, [[450, 1080]])
+
+        let preschool = School(name: "Example Preschool", days: Weekday.schoolDays, start: 510, end: 750, kind: .preschool)
+        let placed = TemplateEdit.placingSchool(home, school: preschool)
+        let slice = placed.first { $0.kind == .school }
+        XCTAssertEqual(slice?.title, "Preschool")
+        XCTAssertEqual(slice?.iconName, "playground")
+        XCTAssertEqual([slice?.start, slice?.end], [510, 750])
+        XCTAssertEqual(placed.map(\.start), placed.map(\.start).sorted())
+        for (a, b) in zip(placed, placed.dropFirst()) { XCTAssertLessThanOrEqual(a.end, b.start) }
+
+        let moved = TemplateEdit.placingSchool(blocks, school: preschool)
+        XCTAssertEqual(moved.first { $0.kind == .school }?.title, "Preschool", "a school slice is renamed")
+    }
 }

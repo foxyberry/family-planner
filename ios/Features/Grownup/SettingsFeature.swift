@@ -76,6 +76,8 @@ public struct SettingsFeature {
         case busesRowTapped
         /// School, Hours and Terms open G4.
         case schoolRowTapped
+        /// A kid at home: the School row opens G7.
+        case changeSchoolRowTapped
         /// Board G6f: a Children row opens that kid's tab; "+ Add a child" opens the kid card.
         case childTapped(Kid.ID)
         case addChildTapped
@@ -168,7 +170,7 @@ public struct SettingsFeature {
             case .addChildTapped:
                 return .send(.delegate(.addChild))
 
-            case .missionsRowTapped, .busesRowTapped, .schoolRowTapped, .backTapped, .dataSourcesTapped, .delegate:
+            case .missionsRowTapped, .busesRowTapped, .schoolRowTapped, .changeSchoolRowTapped, .backTapped, .dataSourcesTapped, .delegate:
                 return .none
             }
         }
