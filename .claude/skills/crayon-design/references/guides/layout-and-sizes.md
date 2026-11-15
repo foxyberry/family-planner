@@ -12,7 +12,7 @@ when someone asks about orientation or multitasking. The numbers live in the spe
 - Think in the full set at once: the 13" (board), the family's 12.9", the 11" models and the
   mini. A rule is right only when it holds on all of them (`../size-check.md`).
 - Never design a separate layout per device and never branch on a device name. The same code
-  reads the window size and `safe.top` and computes `s`.
+  reads the device screen size (landscape, once at launch) and `safe.top` and computes `s`.
 
 ## Safe area and the status bar
 - Read the top inset from the system each time (`safe.top` in **Sizing formulas → Inputs**).
@@ -73,9 +73,9 @@ The spec's order ("When a row does not fit, give way in this order") maps to cod
 These are **not decided**. Don't design or build them on your own; raise the question when it
 matters (`../hig-exceptions.md`, "Open").
 - **Orientation**: the app is landscape only. Question: portrait for grown-up screens?
-- **Split View, Slide Over, Stage Manager, resizable windows**: not designed. The formulas run
-  with `s` floored (spec **Sizing formulas → Not covered yet**), so small windows may clip.
-  Question: design small windows, or lock to full screen?
+- **Split View, Slide Over, Stage Manager, resizable windows**: the layout keeps the device-screen
+  size; a smaller window crops it and the hidden part scrolls (spec **Supported screens and
+  windows**). The iPad mini is the smallest supported size. Designing small windows comes later.
 - **Reflow instead of scale** on the mini for grown-up screens (fewer columns rather than a
   smaller `s`): decide after the mini check.
 - Until decided, still write code that would survive: read the proposed size and the safe

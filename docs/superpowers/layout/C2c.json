@@ -1,5 +1,5 @@
 {
- "version": "38",
+ "version": "52",
  "board": "C2c",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -208,7 +208,7 @@
    "align": "inside"
   },
   {
-   "id": "main.label.change-at",
+   "id": "main.label.change",
    "kind": "label",
    "x": 80,
    "y": 372,
@@ -217,14 +217,14 @@
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "text": "Change at"
+   "text": "Change"
   },
   {
-   "id": "main.row.change-at.card",
-   "kind": "card",
+   "id": "main.row.change.field",
+   "kind": "field",
    "x": 208,
    "y": 372,
-   "w": 400,
+   "w": 610,
    "h": 80,
    "region": "main",
    "anchor": "left",
