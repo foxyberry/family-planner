@@ -23,7 +23,7 @@ public struct ChangeBusesView: View {
                     .onTapGesture { store.send(.leaveCancelled) }
                 ConfirmCard(title: L10n.tr("editor.confirm.leave.title"), message: nil,
                             cancel: L10n.tr("editor.confirm.leave.cancel"), confirm: L10n.tr("editor.confirm.leave.accept"),
-                            isDestructive: true, width: 560,
+                            isDestructive: true,
                             onCancel: { store.send(.leaveCancelled) }, onConfirm: { store.send(.leaveConfirmed) })
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(.leading, sizing.left(40))
