@@ -200,8 +200,8 @@ private struct FamilyStep: View {
         if store.removeConfirm == kid.id {
             ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
                         cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
+                        width: layout.confirmWidth,
                         onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
-                .frame(width: layout.confirmWidth)
         }
     }
 

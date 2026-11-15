@@ -5,3 +5,4 @@ Lessons from real work, waiting for a skill retro (`skill-retro` skill). One lin
 `guard` (a script or test can enforce it) or `drop`. This repo is public: no private names, places,
 stops or schools. The retro moves each line into its target and deletes it here.
 - 2026-11-15 · the CLAUDE.md edit landed in an unrelated PR commit · a commit chained with a blocked command never ran; the change rode along on the branch switch and git add -A swept it into the next branch's commit · run the commit alone and check git status (and the commit's --stat) before switching branches · git-flow-delivery
+- 2026-11-15 · pre-push-test failed after a new guard was wired into the pre-push hook · the test copies each guard script into a temp repo by name, and the new one was missing · when adding a guard to .githooks/pre-push, add it to the copy list in scripts/tests/pre-push-test.sh too · guard

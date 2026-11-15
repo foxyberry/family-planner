@@ -89,7 +89,8 @@ public extension Sizing {
 public enum CrayonPart {
     /// Every part draws its crayon outline this far inside its frame.
     public static let inset: CGFloat = 6
-    /// A pick ring draws this far outside the part, as an overlay.
+    /// The ring's overlay width: a pick ring draws this far outside the part, as an overlay. It
+    /// never moves layout; only a row's minimum height (`choiceRowHeight`) leaves room for it.
     public static let pickRing: CGFloat = 4
 }
 
