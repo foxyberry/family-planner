@@ -79,3 +79,5 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v48 (2026-11-14): new boards A1b (home before an outing: Kid A "Leave in" with the car, main button "Before Birthday →") and G1g (slice skipped this day: faded slice, hub "Play / Skipped / this day", card with "Bring back").
 - v49 (2026-11-15): G4 When and Arrive by are inline TimeFields (180 × 80, "→" / "latest" between; no ›), as the spec row rules and the build; Going reads "Bus 12 · leave 7:05 · 2nd 34"; Bring shows the new libraryBag art.
 - v50 (2026-11-15): G6 / G7 About label "Face"; G6, G6f, G7 and G8 re-exported from their current boards (main.card was missing: the card is now found with or without spaces in its style). G7 catches up with its current board.
+- v51 (2026-11-15): S1 second column on one label line (606) and one control line (678), ending on the right-edge line 818; swatches start at drawn 214 (frame on 208).
+- v52 (2026-11-15): C3g / C3k labels on 80 and controls on 208; C2 / C2c / S3 stop field stretches to 818.

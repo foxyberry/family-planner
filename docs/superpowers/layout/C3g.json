@@ -1,5 +1,5 @@
 {
- "version": "45",
+ "version": "52",
  "board": "C3g",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -139,7 +139,7 @@
   {
    "id": "main.label.when",
    "kind": "label",
-   "x": 56,
+   "x": 80,
    "y": 160,
    "w": 120,
    "h": 80,
@@ -151,7 +151,7 @@
   {
    "id": "main.row.when.field.1",
    "kind": "field",
-   "x": 184,
+   "x": 208,
    "y": 160,
    "w": 200,
    "h": 80,
@@ -162,7 +162,7 @@
   {
    "id": "main.row.when.field.2",
    "kind": "field",
-   "x": 456,
+   "x": 480,
    "y": 160,
    "w": 200,
    "h": 80,
@@ -173,7 +173,7 @@
   {
    "id": "main.row.when.text",
    "kind": "text",
-   "x": 672,
+   "x": 696,
    "y": 181,
    "w": 70,
    "h": 36,
@@ -186,7 +186,7 @@
   {
    "id": "main.row.when.picture",
    "kind": "picture",
-   "x": 400,
+   "x": 424,
    "y": 183,
    "w": 40,
    "h": 40,
@@ -235,7 +235,7 @@
   {
    "id": "main.label.repeat",
    "kind": "label",
-   "x": 56,
+   "x": 80,
    "y": 272,
    "w": 120,
    "h": 72,
@@ -247,7 +247,7 @@
   {
    "id": "main.row.repeat.button.1",
    "kind": "button",
-   "x": 184,
+   "x": 208,
    "y": 272,
    "w": 180,
    "h": 72,
@@ -259,7 +259,7 @@
   {
    "id": "main.row.repeat.button.2",
    "kind": "button",
-   "x": 376,
+   "x": 400,
    "y": 272,
    "w": 180,
    "h": 72,
@@ -271,7 +271,7 @@
   {
    "id": "main.row.repeat.button.3",
    "kind": "button",
-   "x": 568,
+   "x": 592,
    "y": 272,
    "w": 180,
    "h": 72,
@@ -321,7 +321,7 @@
   {
    "id": "main.chip.1",
    "kind": "chip",
-   "x": 184,
+   "x": 208,
    "y": 368,
    "w": 72,
    "h": 72,
@@ -333,7 +333,7 @@
   {
    "id": "main.chip.2",
    "kind": "chip",
-   "x": 268,
+   "x": 292,
    "y": 368,
    "w": 72,
    "h": 72,
@@ -345,7 +345,7 @@
   {
    "id": "main.chip.3",
    "kind": "chip",
-   "x": 352,
+   "x": 376,
    "y": 368,
    "w": 72,
    "h": 72,
@@ -357,7 +357,7 @@
   {
    "id": "main.chip.4",
    "kind": "chip",
-   "x": 436,
+   "x": 460,
    "y": 368,
    "w": 72,
    "h": 72,
@@ -369,7 +369,7 @@
   {
    "id": "main.chip.5",
    "kind": "chip",
-   "x": 520,
+   "x": 544,
    "y": 368,
    "w": 72,
    "h": 72,
@@ -381,7 +381,7 @@
   {
    "id": "main.chip.6",
    "kind": "chip",
-   "x": 604,
+   "x": 628,
    "y": 368,
    "w": 72,
    "h": 72,
@@ -393,7 +393,7 @@
   {
    "id": "main.chip.7",
    "kind": "chip",
-   "x": 688,
+   "x": 712,
    "y": 368,
    "w": 72,
    "h": 72,
@@ -481,7 +481,7 @@
   {
    "id": "main.picture",
    "kind": "picture",
-   "x": 184,
+   "x": 208,
    "y": 476,
    "w": 48,
    "h": 48,
@@ -492,7 +492,7 @@
   {
    "id": "main.text.1",
    "kind": "text",
-   "x": 244,
+   "x": 268,
    "y": 477,
    "w": 290,
    "h": 45,
@@ -544,7 +544,7 @@
   {
    "id": "main.label.going",
    "kind": "label",
-   "x": 56,
+   "x": 80,
    "y": 584,
    "w": 120,
    "h": 88,
@@ -556,7 +556,7 @@
   {
    "id": "main.row.going.choice.1",
    "kind": "choice",
-   "x": 184,
+   "x": 208,
    "y": 584,
    "w": 88,
    "h": 88,
@@ -568,7 +568,7 @@
   {
    "id": "main.row.going.choice.2",
    "kind": "choice",
-   "x": 296,
+   "x": 320,
    "y": 584,
    "w": 88,
    "h": 88,
@@ -580,7 +580,7 @@
   {
    "id": "main.row.going.choice.3",
    "kind": "choice",
-   "x": 408,
+   "x": 432,
    "y": 584,
    "w": 88,
    "h": 88,
@@ -592,7 +592,7 @@
   {
    "id": "main.row.going.choice.4",
    "kind": "choice",
-   "x": 520,
+   "x": 544,
    "y": 584,
    "w": 88,
    "h": 88,
@@ -604,7 +604,7 @@
   {
    "id": "main.row.going.choice.5",
    "kind": "choice",
-   "x": 632,
+   "x": 656,
    "y": 584,
    "w": 88,
    "h": 88,
@@ -654,7 +654,7 @@
   {
    "id": "main.text.2",
    "kind": "text",
-   "x": 198,
+   "x": 222,
    "y": 673,
    "w": 60,
    "h": 36,
@@ -668,7 +668,7 @@
   {
    "id": "main.text.3",
    "kind": "text",
-   "x": 309,
+   "x": 333,
    "y": 673,
    "w": 62,
    "h": 36,
@@ -682,7 +682,7 @@
   {
    "id": "main.text.4",
    "kind": "text",
-   "x": 431,
+   "x": 455,
    "y": 673,
    "w": 41,
    "h": 36,
@@ -696,7 +696,7 @@
   {
    "id": "main.text.5",
    "kind": "text",
-   "x": 541,
+   "x": 565,
    "y": 673,
    "w": 46,
    "h": 36,
@@ -710,7 +710,7 @@
   {
    "id": "main.text.6",
    "kind": "text",
-   "x": 652,
+   "x": 676,
    "y": 673,
    "w": 48,
    "h": 36,
@@ -737,7 +737,7 @@
   {
    "id": "main.label.leave",
    "kind": "label",
-   "x": 56,
+   "x": 80,
    "y": 728,
    "w": 120,
    "h": 72,
@@ -749,7 +749,7 @@
   {
    "id": "main.row.leave.chip.1",
    "kind": "chip",
-   "x": 184,
+   "x": 208,
    "y": 728,
    "w": 72,
    "h": 72,
@@ -760,7 +760,7 @@
   {
    "id": "main.row.leave.chip.2",
    "kind": "chip",
-   "x": 400,
+   "x": 424,
    "y": 728,
    "w": 72,
    "h": 72,
@@ -771,7 +771,7 @@
   {
    "id": "main.row.leave.text.1",
    "kind": "text",
-   "x": 278,
+   "x": 302,
    "y": 741,
    "w": 99,
    "h": 45,
@@ -784,7 +784,7 @@
   {
    "id": "main.row.leave.text.2",
    "kind": "text",
-   "x": 488,
+   "x": 512,
    "y": 741,
    "w": 242,
    "h": 45,

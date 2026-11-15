@@ -1,5 +1,5 @@
 {
- "version": "38",
+ "version": "52",
  "board": "S3",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -361,11 +361,11 @@
    "text": "Stop"
   },
   {
-   "id": "main.row.stop.card",
-   "kind": "card",
+   "id": "main.row.stop.field",
+   "kind": "field",
    "x": 208,
    "y": 332,
-   "w": 400,
+   "w": 610,
    "h": 80,
    "region": "main",
    "anchor": "left",

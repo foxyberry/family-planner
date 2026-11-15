@@ -58,6 +58,7 @@ All Python scripts take `--work DIR` or `$DESIGN_WORK`; output paths are relativ
 | `shots.sh` | `bash $B/shots.sh GrownupG4 GrownupG1` | render + PNG `preview/g-<Board>.png`; `SCALE=1` for small |
 | `sheet.sh` | `bash $B/sheet.sh review GrownupG4 GrownupG1` | contact sheet `preview/review.png`, 3 per row (run shots.sh first) |
 | `layout-export.py` | `python3 $B/layout-export.py docs/superpowers/layout 50 G4,G1` | layout JSON per board (uses `extract.js` in headless Chrome) |
+| `relations.py` | `python3 $B/relations.py S1,C3` | relations check on the grown-up boards (see below); exits 1 on any delta over 1 pt |
 | `redlines.py` | `python3 $B/redlines.py docs/superpowers/layout G4` | `canvas/project/RL-<Board>.dc.html` |
 | `handover-pngs.py` | `python3 $B/handover-pngs.py out/boards G4-edit-school` | `<name>@2x.png` for the `handover` names in `boards.json` |
 | `card-art.js` | `node $B/card-art.js $DESIGN_WORK/deps out 800x600 472x320` | crayon paper card `card-WxH.svg` |
@@ -68,6 +69,30 @@ All Python scripts take `--work DIR` or `$DESIGN_WORK`; output paths are relativ
 `boards.json` is the registry: short id → `[board name, family]`, plus the handover PNG names.
 Add a row when you add a screen board, or export and redlines skip it. Families
 (`home`, `morning`, `grown`, `grown64`) choose the regions and lines in `layout-export.py`.
+
+## Relations check
+
+`relations.py` measures the boards themselves (the layout JSON drops field boxes): it renders each grown-up board
+(`grown` / `grown64` in `boards.json`, plus C3k and the F1–F4 ConfirmCard boards listed in the script as `EXTRA`),
+loads it in headless Chrome with `relations.js` and records every part box, its kind (from the classes above, or the
+art's blob id for inline art) and the ink box of its art. Then, per row band at 13", it enforces the spec's "Layout model" and "Grown-up form layout" rules:
+
+1. **line**: each row's first control has its frame on the line (208, 80 for full-width rows, 864 side, 40 header,
+   a small card's content edge). Frames sit on lines; every part draws its outline 6 inside; touch area beyond the
+   frame is invisible; pick rings are an outward overlay. The S1 swatch is drawn as its 56 circle, so its frame is
+   that box + 6. Named exceptions are listed, not failed: F4's indented sub-options, and pictures centred in a
+   caption column (F1 / F2 / F4). `--line drawn` checks drawn outlines instead.
+2. **col2**: a second column has one label line and one control line per card, its controls end on 818, and its
+   label line = control line − (longest second-column label + 16); up to 4 short is accepted as rounding.
+3. **height**: one height per row for controls of the same kind; other kinds are centred on the row; header tabs
+   are 72.
+4. **right**: stretching controls (fields, search, value areas, side rows, the main button) end on frame 818
+   (1336 in the side column, the content edge in small cards). Choices next to a label may end short.
+5. **label**: every label's glyph is centred on its control's drawn box.
+
+`--cached` reuses `preview/rel-<Board>.json`; `--quiet` prints only flagged rows; `--sizes` prints, instead of the
+checks, every distinct part / picture size per kind with counts and boards (heights only for fields, tabs, rows and
+cards, plus their recurring widths), near-duplicates, and one-off sizes. Text is masked with the private-terms file.
 
 ## Clock configs
 
