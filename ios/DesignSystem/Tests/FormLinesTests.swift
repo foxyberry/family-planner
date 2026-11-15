@@ -40,6 +40,7 @@ final class FormLinesTests: XCTestCase {
             let lines = s1(sizing)
             let second = try XCTUnwrap(lines.second, name)
             XCTAssertEqual(second.controlWidth, 2 * sizing.pickedFace + Spacing.sm, name)
+            XCTAssertFalse(second.dropsUnder, "\(name): S1's second column stands beside the first down to the mini")
             if second.dropsUnder {
                 XCTAssertEqual(second.controlX, lines.controlX, "\(name): dropped controls sit on the control line")
                 XCTAssertEqual(lines.firstControlWidth, lines.width - lines.controlX, name)

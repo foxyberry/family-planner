@@ -163,7 +163,7 @@ private struct FamilyStep: View {
                     // Rows grow with their content: a dropped second column makes the card taller.
                     .frame(width: layout.grown.form.width, alignment: .topLeading)
                     .frame(minHeight: layout.cardHeight, alignment: .topLeading)
-                    .cardCorner(size: sizing.roundButton(48)) { removeButton(kid) } popover: { removeConfirm(kid, index: index) }
+                    .cardCorner(size: Sizing.cornerControl) { removeButton(kid) } popover: { removeConfirm(kid, index: index) }
                     .zIndex(store.removeConfirm == kid.id ? 1 : 0)
             }
             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -191,7 +191,8 @@ private struct FamilyStep: View {
                                                                        : L10n.tr("s1.remove.label", name)) {
                 store.send(.removeKidTapped(kid.id))
             }
-            .size(48)
+            .size(Sizing.cornerControl)
+            .touch(Sizing.cornerControlTouch)
         }
     }
 

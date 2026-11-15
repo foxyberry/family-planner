@@ -11,6 +11,7 @@ public struct RoundButton: View {
     private let action: () -> Void
     private var size: CGFloat = 80
     private var floor: CGFloat?
+    private var touch: CGFloat?
     private var look: KidLook = .day
     @Environment(\.sizing) private var sizing
     @Environment(\.isKidScreen) private var isKidScreen
@@ -61,6 +62,14 @@ public struct RoundButton: View {
         return copy
     }
 
+    /// A touch area larger than the circle (S1's × : 48 drawn, touch 64). It reaches outside the
+    /// frame, so the frame stays on its line (spec "Layout model": touch outside, invisible).
+    public func touch(_ touch: CGFloat) -> RoundButton {
+        var copy = self
+        copy.touch = touch
+        return copy
+    }
+
     /// Spec "Night mapping": at night a white round is a night control (`nightControl` fill, chalk
     /// outline); the kid homes' pencil uses it.
     public func look(_ look: KidLook) -> RoundButton {
@@ -85,6 +94,7 @@ public struct RoundButton: View {
             .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
                             seed: CrayonStyle.Seed.roundButton,
                             markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)
+            .contentShape(Rectangle().inset(by: -max(0, ((touch ?? drawn) - drawn) / 2)))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
