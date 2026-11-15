@@ -56,6 +56,9 @@ blocks test_blocks_copy_in_domain ios/Domain/Formatting.swift 'if days == Weekda
 blocks test_blocks_copy_ok_without_reason ios/Features/Home/HomeView.swift 'Text("Hello there") // copy-ok:' 'hard-coded copy'
 blocks test_blocks_key_missing_from_catalog ios/Features/Home/HomeView.swift 'Text(L10n.tr("home.missing"))' 'home.missing'
 
+blocks test_blocks_raw_text_field ios/Features/Grownup/EditorView.swift '    TextField(L10n.tr("home.next"), text: $name)' 'raw text input'
+blocks test_blocks_raw_text_editor ios/Features/Grownup/NotesView.swift '    TextEditor(text: $notes)' 'raw text input'
+allows test_allows_text_field_in_design_system ios/DesignSystem/Content/CrayonField.swift '    TextField(prompt, text: $text)'
 allows test_allows_catalog_key ios/Features/Home/HomeView.swift 'Text(L10n.tr("home.next"))'
 allows test_allows_identifiers ios/Features/Home/HomeView.swift 'Image(systemName: "chevron.left"); KitIcon(.actPlay); let id = "actPlay"'
 allows test_allows_all_capitals ios/Features/Home/HomeView.swift 'let tag = "NOW"'
@@ -94,8 +97,28 @@ test_allows_tree_without_catalog() {
   assert test_allows_tree_without_catalog $?
 }
 
+# (e) one key, two meanings: a call's argument count must match the value's placeholders.
+test_placeholder_counts() {
+  new_tree
+  write_catalog "$(entry home.next 'Next %@'), $(entry home.at 'At %1$@ on %2$@'), $(entry home.left 'Left 0:%02lld')"
+  printf '%s\n' 'Text(L10n.tr("home.next"))' > "$TREE/ios/Features/Home/NextList.swift"
+  printf '%s\n' 'Text(L10n.tr("home.at", "a"))' 'Text(L10n.tr("home.left", 5))' > "$TREE/ios/Features/Home/At.swift"
+  run_check
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *'L10n.tr("home.next") passes 0 argument(s) but its value has 1'* ]] \
+    && [[ "$ERR" == *'L10n.tr("home.at") passes 1 argument(s) but its value has 2'* ]] && [[ "$ERR" != *"home.left"* ]]
+  assert test_blocks_wrong_argument_count $?
+
+  printf '%s\n' 'GlyphText(L10n.tr("home.next"), glyph: .chevronRight)' > "$TREE/ios/Features/Home/NextList.swift"
+  printf '%s\n' 'Text(L10n.tr("home.at", f(a, b),' '                 "c, d"))' 'Text(L10n.tr("home.left", 5))' \
+    > "$TREE/ios/Features/Home/At.swift"
+  run_check
+  [ "$CODE" -eq 0 ]
+  assert test_allows_matching_counts_glyph_and_nested_calls $?
+}
+
 test_blocks_unused_catalog_key
 test_blocks_key_without_english_value
+test_placeholder_counts
 test_allows_tree_without_catalog
 
 echo "check-strings: $PASS passed, $FAIL failed"

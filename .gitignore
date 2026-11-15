@@ -13,6 +13,11 @@ xcuserdata/
 # Private, never published (this is a public repo)
 ios/KitArt/Private/
 docs/private/
+# The design session's specs folder also holds the private design doc: only the named copies are
+# tracked (copy them by name, never with a wildcard). Add a new tracked copy here by name.
+docs/superpowers/specs/*
+!docs/superpowers/specs/2026-11-07-m2-screens-spec.md
+!docs/superpowers/specs/2026-11-08-product-backlog.md
 .private-terms
 LocalConfig.*
 *.local.json
