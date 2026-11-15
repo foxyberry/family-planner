@@ -37,19 +37,29 @@ public struct ResultListCard: View {
 
     public static let width: CGFloat = 610
     public static let rowHeight: CGFloat = 72
+    /// S2s with the keyboard up (design session 2026-11-15): one line, "{name} · {caption}".
+    public static let compactRowHeight: CGFloat = 48
     private static let padding: CGFloat = 12
 
     private let rows: [Row]
     private let visibleRows: Int
     private let seed: UInt32
     private let width: CGFloat
+    /// Keyboard up: one-line rows in a card exactly `fitHeight` tall, down to the keyboard, so a cut
+    /// row at the foot shows there is more to scroll.
+    private let fitHeight: CGFloat?
 
-    public init(rows: [Row], visibleRows: Int, seed: UInt32, width: CGFloat = ResultListCard.width) {
+    public init(rows: [Row], visibleRows: Int, seed: UInt32, width: CGFloat = ResultListCard.width,
+                fitHeight: CGFloat? = nil) {
         self.rows = rows
         self.visibleRows = max(visibleRows, 1)
         self.seed = seed
         self.width = width
+        self.fitHeight = fitHeight
     }
+
+    private var isCompact: Bool { fitHeight != nil }
+    private var rowHeight: CGFloat { isCompact ? Self.compactRowHeight : Self.rowHeight }
 
     /// The card's height for `count` rows when `visible` fit.
     public static func height(rows count: Int, visible: Int) -> CGFloat {
@@ -58,9 +68,11 @@ public struct ResultListCard: View {
     }
 
     public var body: some View {
-        let height = Self.height(rows: rows.count, visible: visibleRows)
+        let full = isCompact ? CGFloat(rows.count) * (rowHeight + 2) - 2 + 2 * Self.padding
+            : Self.height(rows: rows.count, visible: visibleRows)
+        let height = fitHeight.map { min($0, full) } ?? full
         Group {
-            if rows.count > visibleRows {
+            if height < full {
                 ScrollView(.vertical) { list }.scrollIndicators(.visible)
             } else {
                 list
@@ -87,17 +99,29 @@ public struct ResultListCard: View {
     private func label(_ row: Row) -> some View {
         HStack(spacing: Spacing.sm) {
             if let glyph = row.glyph { MarkerIcon(glyph, size: 32, color: CrayonColor.link) }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(row.title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
-                    .lineLimit(1).truncationMode(.tail)
-                if let caption = row.caption {
-                    Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+            if isCompact {
+                // One line: the name, then " · {caption}" in soft text.
+                HStack(spacing: 0) {
+                    Text(row.title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
+                        .lineLimit(1).layoutPriority(1)
+                    if let caption = row.caption {
+                        Text(" · " + caption).crayonType(.caption).foregroundStyle(CrayonColor.softText) // copy-ok: a separator
+                            .lineLimit(1).truncationMode(.tail)
+                    }
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(row.title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
                         .lineLimit(1).truncationMode(.tail)
+                    if let caption = row.caption {
+                        Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                            .lineLimit(1).truncationMode(.tail)
+                    }
                 }
             }
         }
         .padding(.horizontal, Spacing.m)
-        .frame(width: width, height: Self.rowHeight, alignment: .leading)
+        .frame(width: width, height: rowHeight, alignment: .leading)
         .contentShape(Rectangle())
     }
 }

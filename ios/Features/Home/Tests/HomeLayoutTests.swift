@@ -68,6 +68,6 @@ final class HomeLayoutTests: XCTestCase {
         XCTAssertEqual(layout.leaveNextRow.titleBaseline, 497)
         XCTAssertEqual(layout.leaveNextRow.atBaseline, 535, accuracy: 1)
         XCTAssertEqual(layout.button, CGRect(x: 928, y: 872, width: 408, height: 96), "layout v29")
-        XCTAssertEqual(layout.pencil, CGRect(x: 1260, y: 44, width: 80, height: 80))
+        XCTAssertEqual(layout.pencil, CGRect(x: 1240, y: 36, width: 96, height: 96), "as tall as the sky switch")
     }
 }
