@@ -46,16 +46,14 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
     }
 
     @Environment(\.sizing) private var sizing
+    @Environment(\.keyboardTop) private var keyboardTop
 
     public var body: some View {
-        // Board C3k: the reader keeps out of the keyboard, so its bottom is the keyboard's top; the
-        // screen itself ignores the keyboard, so the header never moves. Only the form card and the
-        // action button follow the keyboard, through the layout.
-        GeometryReader { proxy in
-            let bottom = proxy.frame(in: .global).maxY
-            screen(GrownupLayout(sizing: sizing, keyboardTop: sizing.height - bottom > 100 ? bottom : nil))
-                .ignoresSafeArea(.keyboard)
-        }
+        // Board C3k and spec "Keyboard": the screen ignores the keyboard, so the header never moves;
+        // only the form card and the action button follow it, through the layout, from the one
+        // keyboard client's decision (`keyboardTop`, docked and > 100 pt).
+        screen(GrownupLayout(sizing: sizing, keyboardTop: keyboardTop))
+            .ignoresSafeArea(.keyboard)
         .background(CrayonColor.paper.ignoresSafeArea())
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)

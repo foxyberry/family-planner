@@ -2,6 +2,7 @@ import AppCore
 import ComposableArchitecture
 import Domain
 import Grownup
+import KeyboardClient
 import ScheduleStore
 import ParentAuthClient
 import SwiftUI
@@ -11,6 +12,29 @@ import XCTest
 final class AppFeatureTests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)   // 08:00 UTC
     private let minuteOfFixedDate = 480
+
+    /// Spec "Keyboard": the one keyboard client's changes reach the app state (every screen reads
+    /// `keyboardTop` from there); a floating keyboard arrives as no keyboard.
+    func testKeyboardChangesReachTheState() async {
+        let (changes, continuation) = AsyncStream.makeStream(of: KeyboardChange.self)
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.continuousClock = TestClock()
+            $0.date.now = fixedDate
+            $0.keyboard.changes = { changes }
+        }
+        store.exhaustivity = .off
+        let task = await store.send(.task)
+        continuation.yield(KeyboardChange(top: 398, duration: 0.3))
+        await store.receive(\.keyboardChanged) {
+            $0.keyboardTop = 398
+            $0.keyboardDuration = 0.3
+        }
+        continuation.yield(KeyboardChange(top: nil, duration: 0.25))
+        await store.receive(\.keyboardChanged) { $0.keyboardTop = nil }
+        await task.cancel()
+    }
 
     func testClockTicksEverySecondUntilCancelled() async {
         let clock = TestClock()

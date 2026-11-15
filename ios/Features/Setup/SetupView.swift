@@ -12,8 +12,11 @@ import SwiftUI
 public struct SetupView: View {
     @Bindable var store: StoreOf<SetupFeature>
     @Environment(\.sizing) private var sizing
-    /// Focusing S2's school field asks the main column to bring it to the top (S2s, 2026-11-15).
+    /// S2's school field asks the main column to bring it to the top once the keyboard is up
+    /// (spec "Keyboard": the keyboard client decides, not focus or timing).
     @State private var searchFocus = 0
+    @State private var fieldIsFocused = false
+    @Environment(\.keyboardTop) private var keyboardTop
 
     public init(store: StoreOf<SetupFeature>) {
         self.store = store
@@ -32,12 +35,10 @@ public struct SetupView: View {
                         .frame(width: grown.form.width, alignment: .topLeading)
                 }
                 .onPreferenceChange(FieldFocusKey.self) { focused in
-                    guard focused else { return }
-                    // After the keyboard has risen, so the column is already its short height.
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(350))
-                        if store.step == .school { searchFocus += 1 }
-                    }
+                    Task { @MainActor in fieldIsFocused = focused }
+                }
+                .onChange(of: keyboardTop) { _, top in
+                    if top != nil, fieldIsFocused, store.step == .school { searchFocus += 1 }
                 }
                     .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
                 ScrollColumn { side(layout, keyboardIsOpen: grown.keyboardTop != nil)
