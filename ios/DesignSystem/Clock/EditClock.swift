@@ -94,13 +94,17 @@ public struct EditClock: View {
         self.onKnobAdjust = onKnobAdjust
     }
 
-    private let r = EditClock.radius
+    @Environment(\.sizing) private var sizing
+    /// Board lengths on this screen (R 340, hub 130 on the 13"; the screen's scale elsewhere).
+    private var k: CGFloat { sizing.s }
+    private var r: CGFloat { EditClock.radius * k }
+    private var hubR: CGFloat { EditClock.hubRadius * k }
 
     public var body: some View {
         ZStack {
             Circle().fill(CrayonColor.clockFace).frame(width: 2 * r, height: 2 * r)
                 .onTapGesture(coordinateSpace: .local) { location in
-                    guard let slice = PieClockLayout.sector(at: location, in: sectors, radius: r, hub: Self.hubRadius)
+                    guard let slice = PieClockLayout.sector(at: location, in: sectors, radius: r, hub: hubR)
                     else { return }
                     slice.style == .free ? onPlusTap(slice.start) : onSliceTap(slice.start)
                 }
@@ -131,8 +135,8 @@ public struct EditClock: View {
             if let addBetween {
                 // Board G1e: a RoundButton 56 on the knob's boundary line, its centre 64 in from the rim.
                 RoundButton(glyph: .plus, accessibilityLabel: addBetween.label, action: onAddBetween)
-                    .size(56)
-                    .position(point(radius: r - 64, minute: Double(addBetween.minute)))
+                    .size(56 * k)
+                    .position(point(radius: r - 64 * k, minute: Double(addBetween.minute)))
             }
         }
         .frame(width: 2 * r, height: 2 * r)
@@ -158,8 +162,8 @@ public struct EditClock: View {
             Canvas { context, _ in  // bleed-ok: straight ticks well inside the dial frame
                 var path = Path()
                 for hour in 0..<24 {
-                    path.move(to: point(radius: r + 4, minute: Double(hour * 60)))
-                    path.addLine(to: point(radius: r + 16, minute: Double(hour * 60)))
+                    path.move(to: point(radius: r + 4 * k, minute: Double(hour * 60)))
+                    path.addLine(to: point(radius: r + 16 * k, minute: Double(hour * 60)))
                 }
                 context.stroke(path, with: .color(CrayonColor.marker), style: StrokeStyle(lineWidth: 3, lineCap: .round))
             }
@@ -169,7 +173,7 @@ public struct EditClock: View {
                     .font(Font(FontRegistrar.font(size: major ? CrayonType.body.size : CrayonType.caption.size,
                                                   weight: .semibold)))
                     .foregroundStyle(major ? CrayonColor.ink : CrayonColor.softText)
-                    .position(point(radius: r + 40, minute: Double(hour * 60)))
+                    .position(point(radius: r + 40 * k, minute: Double(hour * 60)))
             }
         }
         .frame(width: 2 * r, height: 2 * r)
@@ -180,17 +184,18 @@ public struct EditClock: View {
         ForEach(sectors, id: \.self) { sector in
             let middle = Double(sector.start + sector.end) / 2
             if sector.style == .free {
-                PlusGlyph(size: 56) // board C6: a 56 ring
-                    .position(point(radius: (Self.hubRadius + r) / 2, minute: middle))
+                PlusGlyph(size: 56 * k) // board C6: a 56 ring
+                    .position(point(radius: (hubR + r) / 2, minute: middle))
                     .onTapGesture { onPlusTap(sector.start) }
                     .accessibilityElement()
                     .accessibilityAddTraits(.isButton)
             } else if let name = sector.iconName, let slot = KitSlot(rawValue: name),
-                      let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: r,
-                                                           hub: Self.hubRadius) {
-                KitIcon(slot, size: picture.size)
+                      let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: EditClock.radius,
+                                                           hub: EditClock.hubRadius) {
+                // Board units, then the screen's scale (as on the home clock).
+                KitIcon(slot, size: picture.size * k)
                     .opacity(sector.isFaded ? 0.35 : 1)
-                    .position(point(radius: picture.distance, minute: middle))
+                    .position(point(radius: picture.distance * k, minute: middle))
                     .allowsHitTesting(false)
             }
         }
@@ -198,7 +203,7 @@ public struct EditClock: View {
 
     private func originLine(_ minute: Int) -> some View {
         Path { path in
-            path.move(to: point(radius: Self.hubRadius, minute: Double(minute)))
+            path.move(to: point(radius: hubR, minute: Double(minute)))
             path.addLine(to: point(radius: r, minute: Double(minute)))
         }
         .stroke(CrayonColor.pictureMarker, style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [8, 8]))
@@ -225,8 +230,8 @@ public struct EditClock: View {
             }
         }
         .multilineTextAlignment(.center)
-        .frame(width: 2 * Self.hubRadius - Spacing.m)
-        .frame(width: 2 * Self.hubRadius, height: 2 * Self.hubRadius)
+        .frame(width: 2 * hubR - Spacing.m)
+        .frame(width: 2 * hubR, height: 2 * hubR)
         .background(CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline, seed: 3003))
         .allowsHitTesting(false)
     }

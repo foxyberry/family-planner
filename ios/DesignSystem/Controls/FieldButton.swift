@@ -29,6 +29,8 @@ public struct FieldButton: View {
                 .crayonType(.body)
                 .foregroundStyle(isPlaceholder ? CrayonColor.softText : CrayonColor.ink)
                 .lineLimit(1)
+                // A narrow field on a smaller iPad shrinks its time a little rather than cut it.
+                .minimumScaleFactor(0.75)
                 .padding(.horizontal, Spacing.m)
                 .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
                 .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,

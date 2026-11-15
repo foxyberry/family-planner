@@ -192,13 +192,16 @@ private struct FamilyStep: View {
                             text: Binding(get: { kid.name }, set: { store.send(.nameChanged(kid.id, $0)) })) {
                     KidFace(badge, name: kid.shownName(index: index), size: KidFace.medium)
                 }
-                .frame(width: 352)
+                // Board 352 wide; on a smaller iPad it gives way so "Age" keeps one line.
+                .frame(minWidth: 200, maxWidth: 352 * layout.grown.sizing.s)
                 Spacer(minLength: Spacing.s)
                 Text(L10n.tr("s1.age")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
+                    .fixedSize()
                     .padding(.trailing, Spacing.s)
                 CrayonField(L10n.tr("s1.age.placeholder"),
                             text: Binding(get: { kid.ageText }, set: { store.send(.ageChanged(kid.id, $0)) }))
                     .keyboardType(.numberPad)
+                    // Not scaled: "Age" must fit inside the field.
                     .frame(width: 112)
             }
             HStack(spacing: 0) {
@@ -206,7 +209,8 @@ private struct FamilyStep: View {
                 HStack(spacing: Spacing.xs) {
                     ForEach(0..<KidEntry.colours, id: \.self) { colour in
                         ColourSwatch(colorIndex: colour, isPicked: kid.colorIndex == colour,
-                                     accessibilityLabel: SetupFeature.State.colourName(colour)) {
+                                     accessibilityLabel: SetupFeature.State.colourName(colour),
+                                     size: 56 * layout.grown.sizing.s) {
                             store.send(.colourTapped(kid.id, colour))
                         }
                     }
@@ -215,7 +219,9 @@ private struct FamilyStep: View {
                 // Board S1: "Face" on 576, the faces on 648 and 724.
                 .frame(width: 344 * layout.grown.sizing.s, alignment: .leading)
                 Text(L10n.tr("s1.face")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
-                    .frame(width: 72 * layout.grown.sizing.s, alignment: .leading)
+                    .fixedSize()
+                    .padding(.trailing, Spacing.xs)
+                    .frame(minWidth: 72 * layout.grown.sizing.s, alignment: .leading)
                 HStack(spacing: Spacing.sm) {
                     face(.kidGirl, label: L10n.tr("s1.face.girl"), kid: kid)
                     face(.kidBoy, label: L10n.tr("s1.face.boy"), kid: kid)
@@ -223,18 +229,21 @@ private struct FamilyStep: View {
             }
         }
         .padding(.top, layout.cardTopInset - layout.grown.formInset)
+        // Board S1: labels on 80, controls on 208, on the screen's scale.
+        .environment(\.formLabelWidth, layout.grown.labelWidth)
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 
     private func face(_ slot: KitSlot, label: String, kid: KidEntry) -> some View {
         Button { store.send(.faceTapped(kid.id, slot.rawValue)) } label: {
             // Board S1: each face on a white disc with an ink circle; the pick adds the blue ring.
-            KitIcon(slot, size: 56)
-                .frame(width: 64, height: 64)
+            KitIcon(slot, size: 56 * layout.grown.sizing.s)
+                .frame(width: 64 * layout.grown.sizing.s, height: 64 * layout.grown.sizing.s)
                 .background { CrayonSurface(.circle, fill: CrayonStyle.paper, marker: .thin, seed: 1650) }
                 .overlay {
                     if kid.face == slot.rawValue {
-                        Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 72, height: 72)
+                        Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
+                            .frame(width: 72 * layout.grown.sizing.s, height: 72 * layout.grown.sizing.s)
                     }
                 }
         }
