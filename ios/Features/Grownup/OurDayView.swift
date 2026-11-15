@@ -291,29 +291,41 @@ public struct OurDayView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Spec "Part floors" (worked example): the start → end pair in the slice card's inner width;
-    /// 176 on the 13", the gaps tighten on the 11", and on the mini the pair stacks.
-    private var timePair: Sizing.TimePair { sizing.timePair(inner: 472 * sizing.s - 2 * sliceCardInset) }
     /// Small cards: 24 × s inside, at least 16.
     private var sliceCardInset: CGFloat { sizing.smallCardInset }
 
     /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16.
-    @ViewBuilder private var timesRow: some View {
-        let pair = timePair
-        let start = TimeField(label: store.startLabel ?? "",
-                              time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
-                              width: pair.field)
-        let end = HStack(spacing: pair.gap) {
-            MarkerIcon(.arrowRight, size: pair.joiner, color: CrayonColor.softText)
-            TimeField(label: store.endLabel ?? "",
-                      time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
-                      width: pair.field)
+    /// Spec "Part floors" give-way (worked example): fields max(176 s, 142); the row tries the
+    /// scaled gaps and joiner, then their floors (12, 24), then stacks ("→ end" on a second line).
+    /// `ViewThatFits` measures the card's real width, so no width is worked out by hand.
+    private var timesRow: some View {
+        ViewThatFits(in: .horizontal) {
+            timesLine(gap: sizing.pairGap, joiner: sizing.joiner)
+            timesLine(gap: 12, joiner: 24)
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                startField
+                HStack(spacing: 12) { arrow(24); endField }
+            }
         }
-        if pair.stacked {
-            // Give-way step 5: start on the first line, "→ end" on the second.
-            VStack(alignment: .leading, spacing: Spacing.sm) { start; end }
-        } else {
-            HStack(spacing: pair.gap) { start; end }
-        }
+    }
+
+    private func timesLine(gap: CGFloat, joiner: CGFloat) -> some View {
+        HStack(spacing: gap) { startField; arrow(joiner); endField }.fixedSize()
+    }
+
+    private func arrow(_ size: CGFloat) -> some View {
+        MarkerIcon(.arrowRight, size: size, color: CrayonColor.softText)
+    }
+
+    private var startField: some View {
+        TimeField(label: store.startLabel ?? "",
+                  time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
+                  width: sizing.timeFieldWidth)
+    }
+
+    private var endField: some View {
+        TimeField(label: store.endLabel ?? "",
+                  time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
+                  width: sizing.timeFieldWidth)
     }
 }
