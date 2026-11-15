@@ -28,6 +28,8 @@ The iPads and their scale are in `scripts/scale.py` (it prints s for each). Read
    - A2 bubbles.
 5. **Clock hub text in a smaller hub** (G1 drag readout, G1g, hour labels).
 6. **The keyboard covering a focused field** (G4, C3, S2s / G7 search with its list).
+   Also with a floating keyboard and a hardware keyboard: every screen keeps its normal look (spec
+   **Keyboard**).
 7. **Bottom stacks** (G1 hint + "Changes start tomorrow." + Save) and the G1f new-slice card.
 8. **Cards that hug their content and ConfirmCards** (C3x, G1d, Starts on, the Bring picker
    with More).
