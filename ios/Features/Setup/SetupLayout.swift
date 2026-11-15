@@ -28,6 +28,9 @@ public struct SetupLayout: Equatable, Sendable {
     public var cardTopInset: CGFloat { 48 * s }
     public var cardRowGap: CGFloat { 40 * s }
 
+    /// S1 "Remove {name}?" card under the ×.
+    public var confirmWidth: CGFloat { 360 }
+
     /// S2 and S3: the school field 610 wide, the stop field 400.
     public var schoolFieldWidth: CGFloat { 610 * s }
 

@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.5.0
+  version: 0.6.0
   status: experimental
 ---
 
@@ -72,6 +72,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
 | `global read in …` | read it in the reducer from a dependency; store the result in State |
 | `view reads @Dependency in …` | move the value into State (a view gets the default, not the store's value) |
 | `kid screen scrolls` | cap the list with `Capped` |
+| `layout literal in a screen` / `pending count too high` | put the row on `FormRow` / `FormLines`, use a `Sizing` token or part variant, place corner controls with `cardCorner`; lower `scripts/layout-literals-pending.txt` when a count drops |
 | `hard-coded copy in …` / `key not in the catalog` / `unused catalog key` | add the key to the catalog and use `L10n.tr`; remove keys nothing uses; a non-copy literal (bundle name) ends with `// copy-ok: <reason>` |
 | `passes n argument(s) but its value has m placeholder(s)` | one key has two meanings: give the new screen its own key |
 | `raw text input in …` | use `CrayonField`; a raw `TextField` prompt follows the window's dark scheme |
