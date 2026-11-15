@@ -159,9 +159,11 @@ private struct FamilyStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: layout.cardGap) {
             ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
-                PaperCard(seed: 61 + UInt32(index)) { card(kid, index: index) }
-                    .frame(width: layout.grown.form.width, height: layout.cardHeight, alignment: .topLeading)
-                    .overlay(alignment: .topTrailing) { removeButton(kid, index: index) }
+                PaperCard(seed: 61 + UInt32(index), trailingInset: layout.grown.editorTrailingInset) { card(kid, index: index) }
+                    // Rows grow with their content: a dropped second column makes the card taller.
+                    .frame(width: layout.grown.form.width, alignment: .topLeading)
+                    .frame(minHeight: layout.cardHeight, alignment: .topLeading)
+                    .cardCorner(size: sizing.roundButton(48)) { removeButton(kid) } popover: { removeConfirm(kid, index: index) }
                     .zIndex(store.removeConfirm == kid.id ? 1 : 0)
             }
             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -180,9 +182,9 @@ private struct FamilyStep: View {
         }
     }
 
-    /// Layout v13 "Remove a kid": a round × (48, touch 64) centred 12 in from the card's top-right
-    /// corner, over its edge; "Remove {name}?" points down from it when the card has something typed.
-    @ViewBuilder private func removeButton(_ kid: KidEntry, index: Int) -> some View {
+    /// Spec S1 "Remove a kid" (board v51): a round × (48, touch 64) on the card's top-right corner
+    /// (`cardCorner`); "Remove {name}?" hangs under it when the card has something typed.
+    @ViewBuilder private func removeButton(_ kid: KidEntry) -> some View {
         if store.canRemoveKids {
             let name = kid.trimmedName
             RoundButton(glyph: .close, accessibilityLabel: name.isEmpty ? L10n.tr("s1.remove.label.empty")
@@ -190,45 +192,45 @@ private struct FamilyStep: View {
                 store.send(.removeKidTapped(kid.id))
             }
             .size(48)
-            .frame(width: 64, height: 64)
-            .contentShape(Rectangle())
-            .offset(x: 20, y: -20)
-            .overlay(alignment: .topTrailing) {
-                if store.removeConfirm == kid.id {
-                    ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
-                                cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
-                                onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
-                        .frame(width: 360)
-                        .offset(x: 20, y: 48)
-                }
-            }
         }
+    }
+
+    @ViewBuilder private func removeConfirm(_ kid: KidEntry, index: Int) -> some View {
+        if store.removeConfirm == kid.id {
+            ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
+                        cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
+                        onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
+                .frame(width: layout.confirmWidth)
+        }
+    }
+
+    private var sizing: Sizing { layout.grown.sizing }
+
+    /// Board S1 v51: Name and Colour on the label and control lines; Age and Face on a second
+    /// column ending on the right edge, under the first column when it does not fit.
+    private var lines: FormLines {
+        layout.grown.formLines(labels: [L10n.tr("s1.name"), L10n.tr("s1.colour")],
+                               secondLabels: [L10n.tr("s1.age"), L10n.tr("s1.face")],
+                               secondControlWidth: 2 * sizing.pickedFace + Spacing.sm,
+                               firstControlMinimum: CGFloat(KidEntry.colours) * ColourSwatch.frame(sizing)
+                                   + CGFloat(KidEntry.colours - 1) * Spacing.sm)
     }
 
     private func card(_ kid: KidEntry, index: Int) -> some View {
         let badge = KidFace.Badge(face: kid.face ?? "", colorIndex: kid.colorIndex)
         return VStack(alignment: .leading, spacing: layout.cardRowGap) {
-            HStack(spacing: 0) {
-                FormLabel(L10n.tr("s1.name"))
+            FormRow(L10n.tr("s1.name"), kind: .field, second: L10n.tr("s1.age")) {
                 CrayonField(L10n.tr("s1.name.placeholder"),
                             text: Binding(get: { kid.name }, set: { store.send(.nameChanged(kid.id, $0)) })) {
                     KidFace(badge, name: kid.shownName(index: index), size: KidFace.medium)
                 }
-                // Board 352 wide; on a smaller iPad it gives way so "Age" keeps one line.
-                .frame(minWidth: 200, maxWidth: 352 * layout.grown.sizing.s)
-                Spacer(minLength: Spacing.s)
-                Text(L10n.tr("s1.age")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
-                    .fixedSize()
-                    .padding(.trailing, Spacing.s)
+            } secondControl: {
                 CrayonField(L10n.tr("s1.age.placeholder"),
                             text: Binding(get: { kid.ageText }, set: { store.send(.ageChanged(kid.id, $0)) }))
                     .keyboardType(.numberPad)
-                    // Not scaled: "Age" must fit inside the field.
-                    .frame(width: 112)
             }
-            HStack(spacing: 0) {
-                FormLabel(L10n.tr("s1.colour"))
-                HStack(spacing: Spacing.xs) {
+            FormRow(L10n.tr("s1.colour"), kind: .choice, second: L10n.tr("s1.face")) {
+                HStack(spacing: Spacing.sm) {
                     ForEach(0..<KidEntry.colours, id: \.self) { colour in
                         ColourSwatch(colorIndex: colour, isPicked: kid.colorIndex == colour,
                                      accessibilityLabel: SetupFeature.State.colourName(colour)) {
@@ -236,15 +238,7 @@ private struct FamilyStep: View {
                         }
                     }
                 }
-                .padding(.leading, -Spacing.xs)
-                // Board S1: "Face" on 576, the faces on 648 and 724.
-                // Board 344 wide; the four swatches at their floor keep their room on the mini.
-                .frame(minWidth: 344 * layout.grown.sizing.s, alignment: .leading)
-                .fixedSize()
-                Text(L10n.tr("s1.face")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
-                    .fixedSize()
-                    .padding(.trailing, Spacing.xs)
-                    .frame(minWidth: 72 * layout.grown.sizing.s, alignment: .leading)
+            } secondControl: {
                 HStack(spacing: Spacing.sm) {
                     face(.kidGirl, label: L10n.tr("s1.face.girl"), kid: kid)
                     face(.kidBoy, label: L10n.tr("s1.face.boy"), kid: kid)
@@ -252,9 +246,7 @@ private struct FamilyStep: View {
             }
         }
         .padding(.top, layout.cardTopInset - layout.grown.formInset)
-        // Board S1: labels on 80, controls on 208, on the screen's scale; wider for "Colour" on the mini.
-        .formLabels([L10n.tr("s1.name"), L10n.tr("s1.colour")])
-        .environment(\.formLabelWidth, layout.grown.labelWidth)
+        .formLines(lines)
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 
@@ -268,7 +260,7 @@ private struct FamilyStep: View {
                 .overlay {
                     if kid.face == slot.rawValue {
                         Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
-                            .frame(width: layout.grown.sizing.pickedFace + 8, height: layout.grown.sizing.pickedFace + 8)
+                            .frame(width: layout.grown.sizing.choiceRowHeight, height: layout.grown.sizing.choiceRowHeight)
                     }
                 }
         }
