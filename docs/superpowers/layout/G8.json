@@ -1,5 +1,5 @@
 {
- "version": "36",
+ "version": "50",
  "board": "G8",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -71,6 +71,18 @@
   }
  },
  "elements": [
+  {
+   "id": "main.card",
+   "kind": "card",
+   "part": "PaperCard",
+   "x": 40,
+   "y": 148,
+   "w": 800,
+   "h": 820,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
   {
    "id": "header.back",
    "kind": "back",
