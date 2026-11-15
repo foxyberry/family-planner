@@ -99,11 +99,11 @@ public extension Sizing {
     }
 
     /// A card's label column (spec "Label column"): its board column × s, or wider for its longest
-    /// label (caption 24 bold) + 16. On the 13" the board column stays as drawn.
+    /// label (caption 24 bold) + 12, the floor of the label → control gap ("Arrive by" 125.5, so the
+    /// 13" keeps 128).
     func labelColumn(base: CGFloat, labels: [String]) -> CGFloat {
-        guard s < 1 else { return base }
         let widest = labels.map { CrayonType.captionBoldWidth($0) }.max() ?? 0
-        return max(base, ceil(widest) + 16)
+        return max(base, ceil(widest) + 12)
     }
 }
 

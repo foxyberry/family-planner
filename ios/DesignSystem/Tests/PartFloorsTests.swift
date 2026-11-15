@@ -83,12 +83,12 @@ final class PartFloorsTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(small.field, 142)
     }
 
-    /// The label column fits the card's longest label on smaller iPads (caption 24 bold + 16).
+    /// The label column fits the card's longest label on smaller iPads (caption 24 bold + 12).
     func testTheLabelColumnFitsItsLongestLabel() {
         let base = 128 * eleven.s
         let column = eleven.labelColumn(base: base, labels: ["Days", "Arrive by"])
         XCTAssertGreaterThan(column, base)
-        XCTAssertEqual(column, CrayonType.captionBoldWidth("Arrive by") + 16, accuracy: 0.5)
+        XCTAssertEqual(column, CrayonType.captionBoldWidth("Arrive by") + 12, accuracy: 0.5)
         XCTAssertEqual(eleven.labelColumn(base: base, labels: ["Days"]), base, "short labels keep the scaled column")
     }
 }
