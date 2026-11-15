@@ -14,7 +14,7 @@ IPADS = [  # name, W, H, safe.top (landscape, full screen)
     ("13in", 1376, 1032, 24),
     ("12.9in", 1366, 1024, 32),
     ("Pro 11in", 1210, 834, 24),
-    ("11in", 1180, 820, 32),  # safe.top measured on iOS 27 (window controls)
+    ("11in", 1180, 820, 24),
     ("mini", 1133, 744, 24),
 ]
 OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv}
