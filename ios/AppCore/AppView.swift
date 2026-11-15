@@ -58,8 +58,8 @@ public struct AppView: View {
         // Spec "Keyboard": the keyboard client's one decision reaches every screen.
         .environment(\.keyboardTop, store.keyboardTop)
         .animation(.easeOut(duration: store.keyboardDuration), value: store.keyboardTop)
-        // Spec "Sizing formulas": one Sizing for the window, read once here.
-        .readsSizing()
+        // Spec "Supported screens and windows": one Sizing from the device screen, read once.
+        .readsSizing(screen: store.screen)
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
         // the home disappear, which would cancel its task and stop the idle relock.
         .task { store.send(.checkFamily) }

@@ -89,7 +89,8 @@ public extension Sizing {
 public enum CrayonPart {
     /// Every part draws its crayon outline this far inside its frame.
     public static let inset: CGFloat = 6
-    /// A pick ring draws this far outside the part, as an overlay.
+    /// The ring's overlay width: a pick ring draws this far outside the part, as an overlay. It
+    /// never moves layout; only a row's minimum height (`choiceRowHeight`) leaves room for it.
     public static let pickRing: CGFloat = 4
 }
 
@@ -196,5 +197,15 @@ public extension View {
                 .alignmentGuide(.trailing) { $0[.trailing] - size / 2 - CrayonPart.inset }
                 .alignmentGuide(.top) { $0[.top] + size / 2 - 2 * CrayonPart.inset }
         }
+    }
+}
+
+public extension EdgeInsets {
+    /// How far `cardCorner(size:)` and its touch area reach past the card's top and right edges,
+    /// plus one inset for crayon wobble, for a scroll column's `bleed`: a scroll view neither draws
+    /// nor takes touches outside its frame.
+    static func cardCorner(touch: CGFloat) -> EdgeInsets {
+        EdgeInsets(top: touch / 2 - CrayonPart.inset, leading: 0, bottom: 0,
+                   trailing: touch / 2 + 2 * CrayonPart.inset)
     }
 }

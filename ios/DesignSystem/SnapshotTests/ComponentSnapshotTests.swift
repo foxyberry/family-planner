@@ -357,6 +357,49 @@ final class ComponentSnapshotTests: XCTestCase {
                          cancel: "Keep", confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {}))
     }
 
+    /// Spec "Layout model" on board S1 v51: `FormRow` lines (second column on 606 / 678 … 818 on the
+    /// 13") and `cardCorner`'s × with its confirm card hanging under it, on the 13" and the mini.
+    func testFormRowsAndCardCorner() {
+        for (name, sizing) in [("13", Sizing(width: 1376, height: 1032)), ("mini", Sizing(width: 1133, height: 744))] {
+            let layout = GrownupLayout(sizing: sizing)
+            let lines = layout.formLines(labels: ["Name", "Colour"], secondLabels: ["Age", "Face"],
+                                         secondControlWidth: 2 * sizing.pickedFace + Spacing.sm,
+                                         firstControlMinimum: 4 * ColourSwatch.frame(sizing) + 3 * Spacing.sm)
+            let card = PaperCard(seed: 61, trailingInset: layout.editorTrailingInset) {
+                VStack(alignment: .leading, spacing: 40 * sizing.s) {
+                    FormRow("Name", kind: .field, second: "Age") {
+                        CrayonField("Name", text: .constant("Kid A"))
+                    } secondControl: {
+                        CrayonField("Age", text: .constant("7"))
+                    }
+                    FormRow("Colour", kind: .choice, second: "Face") {
+                        HStack(spacing: Spacing.sm) {
+                            ForEach(0..<4, id: \.self) { ColourSwatch(colorIndex: $0, isPicked: $0 == 0, accessibilityLabel: "") {} }
+                        }
+                    } secondControl: {
+                        HStack(spacing: Spacing.sm) {
+                            KitIcon(.kidGirl, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
+                            KitIcon(.kidBoy, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
+                        }
+                    }
+                }
+                .formLines(lines)
+            }
+            .frame(width: layout.form.width, alignment: .topLeading)
+            .cardCorner(size: Sizing.cornerControl) {
+                RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(Sizing.cornerControl)
+            } popover: {
+                ConfirmCard(title: "Remove Kid A?", message: nil, cancel: "Keep", confirm: "Remove",
+                            isDestructive: true, width: 360, onCancel: {}, onConfirm: {})
+            }
+            .padding(.top, Spacing.l)
+            .padding(.trailing, Spacing.l)
+            .padding(.bottom, 240)
+            .environment(\.sizing, sizing)
+            snap(card, named: name)
+        }
+    }
+
     /// Boards F1 and F3: a form card (title, choices, Done and Cancel) over the dim layer.
     func testFormCard() {
         snap(FormCard(title: "Ends", size: CGSize(width: 560, height: 420), done: "Done", cancel: "Cancel",

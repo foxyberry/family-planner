@@ -30,7 +30,7 @@ public struct SetupView: View {
         } content: { grown in
             HStack(alignment: .top, spacing: grown.gap) {
                 ScrollColumn(scrollTarget: searchFocus == 0 ? nil : GrownupScrollTarget(id: SchoolStep.fieldID, request: searchFocus),
-                             anchor: .top) {
+                             anchor: .top, bleed: .cardCorner(touch: Sizing.cornerControlTouch)) {
                     main(layout, listHeight: grown.searchListHeight, keyboardIsUp: grown.keyboardTop != nil)
                         .frame(width: grown.form.width, alignment: .topLeading)
                 }
@@ -41,6 +41,8 @@ public struct SetupView: View {
                     if top != nil, fieldIsFocused, store.step == .school { searchFocus += 1 }
                 }
                     .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
+                    // Above the side column, so the corner ×'s touch area past the card still answers.
+                    .zIndex(1)
                 ScrollColumn { side(layout, keyboardIsOpen: grown.keyboardTop != nil)
                     .frame(width: grown.side.width, alignment: .topLeading) }
                     .frame(width: grown.side.width, height: grown.action.minY - grown.side.minY - Spacing.s,
@@ -200,8 +202,8 @@ private struct FamilyStep: View {
         if store.removeConfirm == kid.id {
             ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
                         cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
+                        width: layout.confirmWidth,
                         onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
-                .frame(width: layout.confirmWidth)
         }
     }
 

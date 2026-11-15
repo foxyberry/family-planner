@@ -6,6 +6,24 @@ import XCTest
 /// status bar band left empty.
 @MainActor
 final class SizingTests: XCTestCase {
+    /// Spec "Supported screens and windows": the screen sets the sizing, never the window.
+    func testSizingComesFromTheScreenNotTheWindow() {
+        let mini = Sizing.forScreen(Sizing.miniScreen, window: CGSize(width: 700, height: 744), safeTop: 24)
+        XCTAssertEqual(mini, Sizing(width: 1133, height: 744, safeTop: 24))
+        XCTAssertEqual(Sizing.forScreen(nil, window: CGSize(width: 1180, height: 820), safeTop: 24),
+                       Sizing(width: 1180, height: 820, safeTop: 24), "before the screen is known the window stands in")
+        XCTAssertEqual(Sizing.forScreen(nil, window: .zero, safeTop: 24), .thirteenInch)
+    }
+
+    func testOnlyASmallerWindowCrops() {
+        let screen = CGSize(width: 1180, height: 820)
+        XCTAssertFalse(Sizing.crops(window: screen, screen: screen))
+        XCTAssertTrue(Sizing.crops(window: CGSize(width: 780, height: 820), screen: screen), "Split View")
+        XCTAssertTrue(Sizing.crops(window: CGSize(width: 1180, height: 700), screen: screen))
+        XCTAssertFalse(Sizing.crops(window: CGSize(width: 780, height: 820), screen: nil))
+        XCTAssertFalse(Sizing.crops(window: .zero, screen: screen))
+    }
+
     private let thirteen = Sizing(width: 1376, height: 1032)
     private let family = Sizing(width: 1366, height: 1024)
     private let air = Sizing(width: 1180, height: 820)

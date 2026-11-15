@@ -26,6 +26,19 @@ open class AppDelegateBase: NSObject, UIApplicationDelegate {
     ) -> Bool {
         FontRegistrar.registerAll()
         store.send(.appDelegate(.didFinishLaunching))
+        // Spec "Supported screens and windows": ask for the mini screen as the smallest window
+        // (Stage Manager honours it; full screen and Split View ignore it).
+        sceneObserver = NotificationCenter.default.addObserver(
+            forName: UIScene.willConnectNotification, object: nil, queue: .main
+        ) { _ in
+            MainActor.assumeIsolated {
+                for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+                    scene.sizeRestrictions?.minimumSize = Sizing.miniScreen
+                }
+            }
+        }
         return true
     }
+
+    private var sceneObserver: NSObjectProtocol?
 }
