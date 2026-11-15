@@ -139,6 +139,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-15: one spec (user): the design session edits this repo file, the layout JSON and the crayon-design skill directly on its own branch; the separate design copy is retired.
 - 2026-11-15: Part floors rulings for the build (main session asked): label column `max(128 s, longest + 12)`; FieldButton width `max(200 s, text + padding)`; pictures keep board ratios; search list ends at the column foot over the keyboard; G6 About label "Face".
 - 2026-11-15: contrast rule (user: no new tokens): body / caption 4.5 : 1, title and up 3 : 1, UI parts 3 : 1; the G1 drag readout in `pickBlue` (title 48) passes at 3.4 : 1.
+- 2026-11-15: Keyboard rule (user): keyboard looks apply only when the keyboard covers the screen bottom (> 100 pt); floating, split and hardware keyboards count as none; one injected keyboard dependency decides it for every screen.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -181,6 +182,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Type: `CrayonType` hero 144, display 96, title 48, head 36, body 30, caption 24. Nothing smaller than 24.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
 - **Status bar** (user decision, 2026-11-08): the iPad status bar shows on **every** screen, kid and grown-up. Its band, y 0–24, holds nothing; only full-bleed backgrounds (paper, night sky) run under it. Status bar text is dark on day screens and light on night screens (A1n, B2n).
+- **Keyboard** (user, 2026-11-15): "keyboard up" means the on-screen keyboard covers the bottom of the screen by more than 100 pt. Only then do the keyboard looks apply (C3k card and button above the keyboard, side column heading only, one-line search rows). A floating or split keyboard, or a hardware keyboard with only its shortcut bar, counts as no keyboard: every screen keeps its normal look. Built as one injected keyboard dependency that reports the covered height; screens never read keyboard notifications or focus to decide this themselves.
 - **Sizing formulas: landscape, full screen, every iPad** (2026-11-08, user: "the design language is fixed to the 13 inch"; research report "아이패드 화면 크기 대응 레이아웃"). The boards stay drawn at 1376 × 1032; these formulas turn a board value into a value on any landscape iPad, from the mini (1133 × 744) to the 13" (1376 × 1032). At 13" every formula gives the board value back.
   - **Inputs**: W = window width, H = window height, `safe.top` = the top safe-area inset as the system reports it (24 on the 13"; 32 on the 12.9" under iPadOS 26, measured on the family's iPad 2026-11-09). Never hard-code it. H_safe = H − safe.top. Lay the screen out in full-screen space; the band 0 … `safe.top` holds nothing but full-bleed backgrounds.
   - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (the family's, 1366 × 1024, safe top 32): 0.984 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714. The reference height is 1008 (the 13" safe area), not 1032: this is the fix for the overflow bug. Never `scaleEffect` the whole screen (blurry text, wrong hit areas); multiply each value by s instead.
@@ -1036,7 +1038,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - Validation and errors as C3, without the day rule. A start time already past today: "That time has passed" (blocking).
 
 ## C3k · Add, keyboard open [board]
-- When a text field has focus, the iPad keyboard covers about y 612–1032 (≈ 420 pt in landscape).
+- With the keyboard up (see **Keyboard** in Shared rules), the iPad keyboard covers about y 612–1032 (≈ 420 pt in landscape).
 - The form card shrinks to 800 × 352 at y 148 and becomes a scroll area. It keeps the field with focus in view. **The header never moves** (main session's iPad check, 2026-11-14): the screen itself does not shift up for the keyboard; only the form card's scroll area shrinks and scrolls the focused field into view (16 above the keyboard top). The side column keeps its place; only the main button moves up as below.
 - Inside it, rows are tighter: label at card x 40, controls at card x 168, rows at 20 / 136 / 248 / 360.
 - Focus: the focused field gets the blue focus outline (`pickBlue`, 610 wide) and a 3 × 36 caret in `pickBlue`. Its label turns `pickBlue`.
