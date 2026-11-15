@@ -184,7 +184,7 @@ private struct FamilyStep: View {
         }
     }
 
-    /// Spec S1 "Remove a kid" (board v51): a round × (48, touch 64) on the card's top-right corner
+    /// Spec S1 "Remove a kid" (board v54): a round × (48, touch 64) on the card's drawn top-right corner
     /// (`cardCorner`); "Remove {name}?" hangs under it when the card has something typed.
     @ViewBuilder private func removeButton(_ kid: KidEntry) -> some View {
         if store.canRemoveKids {
