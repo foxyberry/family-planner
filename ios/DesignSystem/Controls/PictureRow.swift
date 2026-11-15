@@ -18,7 +18,7 @@ public struct PictureRow: View {
     private let columns: Int?
     /// Board sizes on the screen's scale (88 circles on the 13"; six still fit the 11" row).
     @Environment(\.sizing) private var sizing
-    private var d: CGFloat { 88 * sizing.s }
+    private var d: CGFloat { sizing.pictureCircle(88) }
 
     public init(slots: [KitSlot], selection: Binding<KitSlot?>, all: [KitSlot], isShowingAll: Bool,
                 moreTitle: String, moreLabel: String, columns: Int? = nil, onMore: @escaping () -> Void) {
@@ -50,7 +50,7 @@ public struct PictureRow: View {
                 Button { selection = slot } label: {
                     // Boards C3/C4: 88 paper circles with an ink outline; the picked one gets a 104
                     // blue ring around it.
-                    KitIcon(slot, size: 64 * sizing.s)
+                    KitIcon(slot, size: d * 64 / 88)
                         .frame(width: d, height: d)
                         .background(
                             CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
@@ -61,7 +61,7 @@ public struct PictureRow: View {
                             if isOn {
                                 CrayonSurface(.circle, fill: nil, markerColor: CrayonColor.link,
                                               seed: CrayonStyle.Seed.iconPicker + 500 + UInt32(index))
-                                    .frame(width: 104 * sizing.s, height: 104 * sizing.s)
+                                    .frame(width: d * 104 / 88, height: d * 104 / 88)
                             }
                         }
                 }

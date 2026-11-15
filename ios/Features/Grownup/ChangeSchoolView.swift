@@ -27,6 +27,7 @@ public struct ChangeSchoolView: View {
                     ScrollColumn(scrollTarget: searchFocus == 0 ? nil : GrownupScrollTarget(id: Self.searchID, request: searchFocus),
                                  anchor: .top) {
                         rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
+                            .formLabels([L10n.tr("s2.goes"), L10n.tr("s2.preschool")])
                     }
                     .onPreferenceChange(FieldFocusKey.self) { focused in
                         guard focused else { return }
@@ -79,7 +80,7 @@ public struct ChangeSchoolView: View {
                 CrayonTabs(selection: Binding(get: { Optional(store.place) },
                                               set: { if let place = $0 { store.send(.placeTapped(place)) } }),
                            items: store.placeTabs.map { (Optional($0.0), $0.1, nil) },
-                           itemSize: CGSize(width: min(180, (layout.controlWidth - 2 * Spacing.sm) / 3), height: 72),
+                           itemSize: CGSize(width: layout.sizing.goesToTabWidth, height: 72),
                            spacing: Spacing.sm)
             }
             switch store.place {
@@ -110,7 +111,8 @@ public struct ChangeSchoolView: View {
                     .frame(width: 400)
                 if !store.matches.isEmpty {
                     ResultListCard(rows: store.matches.map { entry in
-                        .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.picked(entry)) }
+                        .init(id: entry.id, title: entry.name,
+                              caption: entry.resultCaption(oneLine: layout.searchListHeight != nil)) { store.send(.picked(entry)) }
                     }, visibleRows: 5, seed: 77, width: layout.controlWidth, fitHeight: layout.searchListHeight)
                 }
             }

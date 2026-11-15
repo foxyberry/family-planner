@@ -42,6 +42,7 @@ public struct ChangeBusesView: View {
                 PaperCard(seed: 52) {
                     ScrollColumn {
                         rows(layout).frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                            .formLabels([L10n.tr("c2c.change_at")])
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)

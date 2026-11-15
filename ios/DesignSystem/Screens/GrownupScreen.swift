@@ -156,8 +156,8 @@ public extension GrownupLayout {
     /// top inset) down to the column's foot above the keyboard; nil without the keyboard.
     var searchListHeight: CGFloat? {
         guard keyboardTop != nil else { return nil }
-        let listTop = contentTop + formInset + 80 + Spacing.xs
-        return max(ResultListCard.compactRowHeight + 24, form.maxY - listTop)
+        let listTop = contentTop + formInset + sizing.fluid(80, 64) + Spacing.xs
+        return max(ResultListCard.compactRowHeight + 2 * Spacing.xs, form.maxY - listTop)
     }
 
 }

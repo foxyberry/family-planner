@@ -4,6 +4,7 @@ import SwiftUI
 /// A date button (weekday over day number), 96 × 104; sky blue when on. `compact` is G1c's 74 × 84
 /// chip; `isToday` underlines the number.
 public struct DateChip: View {
+    @Environment(\.sizing) private var sizing
     private let weekday: String
     private let day: Int
     private let isOn: Bool
@@ -28,7 +29,8 @@ public struct DateChip: View {
                 Text("\(day)").crayonType(.head).underline(isToday)
             }
             .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
-            .frame(width: compact ? 74 : 96, height: compact ? 84 : 104)
+            // Spec "Part floors": 96 × 104, never under 72 wide (height in proportion).
+            .frame(width: compact ? 74 : sizing.dateChip.width, height: compact ? 84 : sizing.dateChip.height)
             .partBackground(.roundedRect(cornerRadius: compact ? 14 : 24), fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                               seed: CrayonStyle.Seed.dateChip)
         }

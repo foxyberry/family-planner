@@ -6,6 +6,7 @@ import SwiftUI
 /// word) under each; picked ones get a 104 pick-blue ring and a bold caption (boards C3g "Going",
 /// F1–F4). A choice without a picture shows its `word` inside (Bring's "More") or "–".
 public struct ChoiceCircles: View {
+    @Environment(\.sizing) private var sizing
     public struct Choice: Equatable, Sendable, Identifiable {
         public var id: String
         public var picture: KitSlot?
@@ -31,6 +32,9 @@ public struct ChoiceCircles: View {
         self.onPick = onPick
     }
 
+    /// Spec "Part floors": the 88 circle × s, never under 72; ring and pitch keep their board ratio.
+    private var k: CGFloat { sizing.pictureCircle(88) / 88 }
+
     public var body: some View {
         // Each choice is 112 wide (its caption's width), so the circles sit on the 112 pitch.
         HStack(alignment: .top, spacing: 0) {
@@ -39,19 +43,19 @@ public struct ChoiceCircles: View {
                     VStack(spacing: Spacing.xxs) {
                         ZStack {
                             if let picture = choice.picture {
-                                KitIcon(picture, size: 64)
+                                KitIcon(picture, size: 64 * k)
                             } else if let word = choice.word {
                                 Text(word).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
                             } else {
                                 Text(verbatim: "–").crayonType(.title).foregroundStyle(CrayonColor.pictureSoftText)
                             }
                         }
-                        .frame(width: 88, height: 88)
+                        .frame(width: 88 * k, height: 88 * k)
                         .partBackground(.circle, fill: CrayonStyle.pictureGround, seed: CrayonStyle.Seed.iconPicker,
                                         markerColor: CrayonColor.pictureOutline)
                         .overlay {
                             if choice.isPicked {
-                                Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 104, height: 104)
+                                Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 104 * k, height: 104 * k)
                             }
                         }
                         Text(choice.caption).crayonType(.caption, bold: choice.isPicked).foregroundStyle(CrayonColor.ink)
@@ -59,7 +63,7 @@ public struct ChoiceCircles: View {
                             // A one-word caption never breaks inside the word ("Backpack"); it may
                             // run a few points past its 112.
                             .fixedSize(horizontal: !choice.caption.contains(" "), vertical: true) // copy-ok: a space
-                            .frame(width: 112)
+                            .frame(width: 112 * k)
                     }
                 }
                 .buttonStyle(.plain)

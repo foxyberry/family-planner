@@ -228,8 +228,7 @@ private struct FamilyStep: View {
                 HStack(spacing: Spacing.xs) {
                     ForEach(0..<KidEntry.colours, id: \.self) { colour in
                         ColourSwatch(colorIndex: colour, isPicked: kid.colorIndex == colour,
-                                     accessibilityLabel: SetupFeature.State.colourName(colour),
-                                     size: 56 * layout.grown.sizing.s) {
+                                     accessibilityLabel: SetupFeature.State.colourName(colour)) {
                             store.send(.colourTapped(kid.id, colour))
                         }
                     }
@@ -256,13 +255,14 @@ private struct FamilyStep: View {
     private func face(_ slot: KitSlot, label: String, kid: KidEntry) -> some View {
         Button { store.send(.faceTapped(kid.id, slot.rawValue)) } label: {
             // Board S1: each face on a white disc with an ink circle; the pick adds the blue ring.
-            KitIcon(slot, size: 56 * layout.grown.sizing.s)
-                .frame(width: 64 * layout.grown.sizing.s, height: 64 * layout.grown.sizing.s)
+            // Spec "Part floors": 64 × s, never under 56; the picture keeps its 56 : 64.
+            KitIcon(slot, size: layout.grown.sizing.pickedFace * 56 / 64)
+                .frame(width: layout.grown.sizing.pickedFace, height: layout.grown.sizing.pickedFace)
                 .background { CrayonSurface(.circle, fill: CrayonStyle.paper, marker: .thin, seed: 1650) }
                 .overlay {
                     if kid.face == slot.rawValue {
                         Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
-                            .frame(width: 72 * layout.grown.sizing.s, height: 72 * layout.grown.sizing.s)
+                            .frame(width: layout.grown.sizing.pickedFace + 8, height: layout.grown.sizing.pickedFace + 8)
                     }
                 }
         }
@@ -287,6 +287,8 @@ private struct SchoolStep: View {
         // Exactly the card's inner width, so no row can widen the card.
         PaperCard(seed: 71) {
             rows.frame(width: layout.grown.form.width - 2 * layout.grown.formInset, alignment: .leading)
+                // Spec "Label column": the column fits this card's longest label.
+                .formLabels([L10n.tr("s2.goes"), L10n.tr("s2.preschool"), L10n.tr("s2.arrive_by")])
         }
         // Boards S2/S3: the card fills the main region down to 968, whatever its rows.
         .frame(width: layout.grown.form.width).frame(minHeight: layout.length(968 - 148), alignment: .topLeading)
@@ -301,7 +303,7 @@ private struct SchoolStep: View {
                     CrayonTabs(selection: Binding(get: { kid.goesTo }, set: { if let place = $0 { store.send(.goesToTapped(place)) } }),
                                items: SetupFeature.State.places.map { (Optional($0.0), $0.1, nil) },
                                // 180 on the board; three always fit the control column.
-                               itemSize: CGSize(width: min(180, (layout.grown.controlWidth - 2 * Spacing.sm) / 3), height: 72),
+                               itemSize: CGSize(width: layout.grown.sizing.goesToTabWidth, height: 72),
                                spacing: Spacing.sm)
                 }
                 if let line = store.atHomeLine {
@@ -396,7 +398,9 @@ private struct SchoolStep: View {
     /// result card (layout v14: 6 rows fit, more scroll).
     private func matches(_ school: SchoolForm) -> some View {
         ResultListCard(rows: school.matches.map { entry in
-            .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.schoolPicked(entry)) }
+            .init(id: entry.id, title: entry.name, caption: entry.resultCaption(oneLine: listHeight != nil)) {
+                store.send(.schoolPicked(entry))
+            }
         } + [.init(id: "not-listed", glyph: .plus, title: L10n.tr("s2.school.not_listed")) { store.send(.notInListTapped) }],
         visibleRows: 6, seed: 75, width: layout.grown.controlWidth, fitHeight: listHeight)
     }
@@ -639,8 +643,8 @@ private struct SetupRow<Control: View>: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
+            // Spec "Part floors": one line, never shrunk; the card's column fits its longest label.
             Text(label).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText).lineLimit(1)
-                .minimumScaleFactor(0.7)
                 .frame(width: labelWidth ?? 128, height: height, alignment: .leading)
             control.frame(minHeight: height, alignment: .leading)
         }

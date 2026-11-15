@@ -8,13 +8,11 @@ public struct ColourSwatch: View {
     private let isPicked: Bool
     private let accessibilityLabel: String
     private let action: () -> Void
-    /// The circle's diameter (56 on the board; the screen's scale on a smaller iPad). The touch area
-    /// is 16 wider, the pick ring 10.
-    private let size: CGFloat
+    @Environment(\.sizing) private var sizing
+    /// Spec "Part floors": 56 × s, never under 48.
+    private var size: CGFloat { sizing.swatch }
 
-    public init(colorIndex: Int, isPicked: Bool, accessibilityLabel: String, size: CGFloat = 56,
-                action: @escaping () -> Void) {
-        self.size = size
+    public init(colorIndex: Int, isPicked: Bool, accessibilityLabel: String, action: @escaping () -> Void) {
         self.colorIndex = colorIndex
         self.isPicked = isPicked
         self.accessibilityLabel = accessibilityLabel

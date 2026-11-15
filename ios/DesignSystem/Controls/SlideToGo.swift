@@ -20,7 +20,9 @@ public struct SlideToGo: View {
     /// for the next kid). Drags in between live in `model`.
     private let state: SlideToGoModel.Phase
     @State private var model: SlideToGoModel
-    private let handleSize: CGFloat = 80
+    @Environment(\.sizing) private var sizing
+    /// Spec "Part floors": the thumb 80 × s and the track 96 × s, never under the kid floor 72.
+    private var handleSize: CGFloat { sizing.kidTarget(80) }
 
     /// `onUndo`: dragging the knob back past the middle from done (spec "After the slide").
     /// `knob`: the way picture (bus, car, shoe) or the star sticker for a kid with no outing.
@@ -55,7 +57,7 @@ public struct SlideToGo: View {
             .padding(.leading, Spacing.m)
             .padding(.trailing, isDone ? 110 : Spacing.l)
             .padding(.vertical, Spacing.xs)
-            .frame(minHeight: 96)
+            .frame(minHeight: sizing.kidTarget(96))
             .background {
                 CrayonSurface(.capsule, fill: isDone ? CrayonStyle.doneGreen : CrayonStyle.yellowSlider,
                               seed: CrayonStyle.Seed.slider)

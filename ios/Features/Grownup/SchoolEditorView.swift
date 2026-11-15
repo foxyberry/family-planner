@@ -24,6 +24,7 @@ public struct SchoolEditorView: View {
                 PaperCard(seed: 33, trailingInset: layout.editorTrailingInset) {
                     ScrollColumn {
                         rows.frame(width: layout.editorRowsWidth, alignment: .leading)
+                            .formLabels([L10n.tr("s2.arrive_by")])
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height)

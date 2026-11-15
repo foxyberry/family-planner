@@ -104,11 +104,11 @@ public struct OurDayView: View {
     private var undoRedo: some View {
         HStack(spacing: Spacing.s) {
             RoundButton(glyph: .undo, accessibilityLabel: L10n.tr("day.undo")) { store.send(.undoTapped) }
-                .size(72 * sizing.s)
+                .size(72)
                 .opacity(store.canUndo ? 1 : 0.45)
                 .disabled(!store.canUndo)
             RoundButton(glyph: .redo, accessibilityLabel: L10n.tr("day.redo")) { store.send(.redoTapped) }
-                .size(72 * sizing.s)
+                .size(72)
                 .opacity(store.canRedo ? 1 : 0.45)
                 .disabled(!store.canRedo)
         }
@@ -207,7 +207,7 @@ public struct OurDayView: View {
             // The day button stays at the top and Save at the foot; only the card scrolls between them.
             ScrollColumn {
                 PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
-                    .environment(\.cardInset, Spacing.m)
+                    .environment(\.cardInset, sliceCardInset)
                     .frame(width: layout.side.width)
             }
         }
@@ -291,23 +291,29 @@ public struct OurDayView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// 176 on the board; on a smaller iPad the two fields share the slice card's inner width (the
-    /// side column less the card's 16 insets, the 40 arrow and two 16 gaps).
-    private var timeFieldWidth: CGFloat { min(176, (472 * sizing.s - 2 * Spacing.m - timeArrow - 2 * timeGap) / 2) }
-    /// The arrow and gaps tighten below the 13" so "12:30 pm" keeps its field.
-    private var timeArrow: CGFloat { sizing.s < 0.95 ? 24 : 40 }
-    private var timeGap: CGFloat { sizing.s < 0.95 ? Spacing.xs : Spacing.s }
+    /// Spec "Part floors" (worked example): the start → end pair in the slice card's inner width;
+    /// 176 on the 13", the gaps tighten on the 11", and on the mini the pair stacks.
+    private var timePair: Sizing.TimePair { sizing.timePair(inner: 472 * sizing.s - 2 * sliceCardInset) }
+    /// Small cards: 24 × s inside, at least 16.
+    private var sliceCardInset: CGFloat { sizing.smallCardInset }
 
     /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16.
-    private var timesRow: some View {
-        HStack(spacing: timeGap) {
-            TimeField(label: store.startLabel ?? "",
-                      time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
-                      width: timeFieldWidth)
-            MarkerIcon(.arrowRight, size: timeArrow, color: CrayonColor.softText)
+    @ViewBuilder private var timesRow: some View {
+        let pair = timePair
+        let start = TimeField(label: store.startLabel ?? "",
+                              time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
+                              width: pair.field)
+        let end = HStack(spacing: pair.gap) {
+            MarkerIcon(.arrowRight, size: pair.joiner, color: CrayonColor.softText)
             TimeField(label: store.endLabel ?? "",
                       time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
-                      width: timeFieldWidth)
+                      width: pair.field)
+        }
+        if pair.stacked {
+            // Give-way step 5: start on the first line, "→ end" on the second.
+            VStack(alignment: .leading, spacing: Spacing.sm) { start; end }
+        } else {
+            HStack(spacing: pair.gap) { start; end }
         }
     }
 }

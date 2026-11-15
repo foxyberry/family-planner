@@ -12,6 +12,7 @@ public struct InkButton: View {
     private let height: CGFloat
     private let action: () -> Void
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.sizing) private var sizing
 
     /// `arrow`: a marker arrow 32 after the label, gap 12 ("Missions →"). `height`: 80 on form cards.
     public init(_ title: String, arrow: Bool = false, look: KidLook = .day, height: CGFloat = 96,
@@ -35,7 +36,8 @@ public struct InkButton: View {
             }
                 .foregroundStyle(label)
                 .padding(.horizontal, Spacing.l)
-                .frame(maxWidth: .infinity, minHeight: height)
+                // Spec "Part floors": the main 96 never under 72, the form 80 never under 64.
+                .frame(maxWidth: .infinity, minHeight: sizing.inkButtonHeight(height))
                 .modifier(Surface(isNight: isNight))
         }
         .buttonStyle(.plain)

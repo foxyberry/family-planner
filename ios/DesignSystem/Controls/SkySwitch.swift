@@ -14,6 +14,8 @@ public struct SkySwitch: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// On the screen's scale, like the pencil across from it (160 × 96 on the 13").
     @Environment(\.sizing) private var sizing
+    /// Spec "Part floors": 96 × s tall, never under 72.
+    private var width: CGFloat { sizing.kidCornerControl * Self.size.width / Self.size.height }
     @State private var showsDusk = false
 
     public init(look: KidLook, isAnimating: Bool, label: String, action: @escaping () -> Void) {
@@ -25,8 +27,8 @@ public struct SkySwitch: View {
 
     public var body: some View {
         Button(action: action) {
-            KitIcon(showsDusk ? .skyDusk : (look == .day ? .skyDay : .skyNight), size: Self.size.width * sizing.s)
-                .frame(width: Self.size.width * sizing.s, height: Self.size.height * sizing.s)
+            KitIcon(showsDusk ? .skyDusk : (look == .day ? .skyDay : .skyNight), size: width)
+                .frame(width: width, height: width * Self.size.height / Self.size.width)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

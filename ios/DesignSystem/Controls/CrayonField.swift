@@ -5,6 +5,7 @@ import UIKit
 /// A text field on paper, 80 tall; the marker line turns blue while focused (board C3k). An
 /// optional picture sits before the text (S1: the kid's face 40; S2: the school picture 48).
 public struct CrayonField<Leading: View>: View {
+    @Environment(\.sizing) private var sizing
     private let placeholder: String
     private let isSecure: Bool
     private let leading: Leading
@@ -32,7 +33,8 @@ public struct CrayonField<Leading: View>: View {
         .preference(key: FieldFocusKey.self, value: isFocused)
         .crayonType(.body)
         .padding(.horizontal, Spacing.m)
-        .frame(minHeight: 80)
+        // Spec "Part floors": 80 × s, never under 64; the 16 padding stays.
+        .frame(minHeight: sizing.fieldHeight)
         .background(
             CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                           marker: isFocused || hasProblem ? .standard : .thin,

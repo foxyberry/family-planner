@@ -126,8 +126,8 @@ public struct MissionCircle: View {
         self.isCurrent = isCurrent
     }
 
-    /// 112 × s, never under the 64 kid tap target.
-    private var circle: CGFloat { max(64, Self.size * sizing.s) }
+    /// Spec "Part floors": 112 × s, never under 88.
+    private var circle: CGFloat { sizing.missionCircle }
 
     public var body: some View {
         VStack(spacing: Spacing.xs) {

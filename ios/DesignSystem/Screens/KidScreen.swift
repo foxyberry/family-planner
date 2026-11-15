@@ -66,6 +66,8 @@ struct FullScreenFrame: ViewModifier {
             .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
             .clipped()
             .ignoresSafeArea()
+            // Spec "Part floors": controls on kid screens take the kid touch floor (72).
+            .environment(\.isKidScreen, true)
     }
 }
 

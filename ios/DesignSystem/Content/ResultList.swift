@@ -58,8 +58,11 @@ public struct ResultListCard: View {
         self.fitHeight = fitHeight
     }
 
+    @Environment(\.sizing) private var sizing
     private var isCompact: Bool { fitHeight != nil }
-    private var rowHeight: CGFloat { isCompact ? Self.compactRowHeight : Self.rowHeight }
+    /// Spec "Part floors": one-line rows 48 fixed; two-line rows 72 fixed.
+    private var rowHeight: CGFloat { isCompact ? Sizing.oneLineRow : Sizing.twoLineRow }
+    private var padding: CGFloat { isCompact ? Spacing.xs : Self.padding }
 
     /// The card's height for `count` rows when `visible` fit.
     public static func height(rows count: Int, visible: Int) -> CGFloat {
@@ -68,9 +71,10 @@ public struct ResultListCard: View {
     }
 
     public var body: some View {
-        let full = isCompact ? CGFloat(rows.count) * (rowHeight + 2) - 2 + 2 * Self.padding
-            : Self.height(rows: rows.count, visible: visibleRows)
-        let height = fitHeight.map { min($0, full) } ?? full
+        // Every row's height; the card shows `visibleRows` (or `fitHeight`) of it and scrolls the rest.
+        let full = isCompact ? CGFloat(rows.count) * (rowHeight + 2) - 2 + 2 * padding
+            : Self.height(rows: rows.count, visible: rows.count)
+        let height = fitHeight.map { min($0, full) } ?? Self.height(rows: rows.count, visible: visibleRows)
         Group {
             if height < full {
                 ScrollView(.vertical) { list }.scrollIndicators(.visible)
@@ -78,7 +82,7 @@ public struct ResultListCard: View {
                 list
             }
         }
-        .padding(.vertical, Self.padding)
+        .padding(.vertical, padding)
         .frame(width: width, height: height, alignment: .top)
         .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                           seed: CrayonStyle.Seed.card + seed)
