@@ -23,6 +23,7 @@ public struct BusSettingsView: View {
                 PaperCard(seed: 51) {
                     ScrollColumn {
                         plan(layout).frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                            .formLabels([L10n.tr("c2.ride_second"), L10n.tr("c2.grace")])
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
@@ -53,7 +54,7 @@ public struct BusSettingsView: View {
                         .frame(height: PillToggle.size.height)
                 } else {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
-                        LazyVGrid(columns: PillToggle.columns, alignment: .leading, spacing: Spacing.sm) {
+                        PillToggleGrid(controlWidth: layout.controlWidth) {
                             ForEach(store.search.servicesAtStop, id: \.self) { service in
                                 PillToggle(service, isOn: store.services.first == service,
                                            tag: store.state.tag(for: service)) {

@@ -10,7 +10,16 @@ public struct RoundButton: View {
     private let label: String
     private let action: () -> Void
     private var size: CGFloat = 80
+    private var floor: CGFloat?
     private var look: KidLook = .day
+    @Environment(\.sizing) private var sizing
+    @Environment(\.isKidScreen) private var isKidScreen
+    /// Spec "Part floors": the board diameter × s, never under 56 (72 on kid screens), or under
+    /// `floor` when one is set (the clock "+": 48).
+    private var drawn: CGFloat {
+        if let floor { return max(size * sizing.s, floor) }
+        return isKidScreen ? sizing.kidTarget(size) : sizing.roundButton(size)
+    }
 
     public init(systemImage: String, accessibilityLabel: String, action: @escaping () -> Void) {
         content = .symbol(systemImage)
@@ -45,6 +54,13 @@ public struct RoundButton: View {
         return copy
     }
 
+    /// The smallest this button may be drawn on a smaller iPad, when its part has its own floor.
+    public func floor(_ floor: CGFloat) -> RoundButton {
+        var copy = self
+        copy.floor = floor
+        return copy
+    }
+
     /// Spec "Night mapping": at night a white round is a night control (`nightControl` fill, chalk
     /// outline); the kid homes' pencil uses it.
     public func look(_ look: KidLook) -> RoundButton {
@@ -59,12 +75,13 @@ public struct RoundButton: View {
                 switch content {
                 case let .symbol(name): Image(systemName: name).font(CrayonType.head.font.weight(.bold))
                 case let .text(text): Text(text).crayonType(.head)
-                case let .glyph(glyph): MarkerIcon(glyph, size: size / 2)
-                case let .picture(slot): KitIcon(slot, size: size * 0.7)
+                case let .glyph(glyph): MarkerIcon(glyph, size: drawn / 2)
+                // A picture follows its circle by the board's ratio (G0: the pencil, 56 in 80).
+                case let .picture(slot): KitIcon(slot, size: drawn * 0.7)
                 }
             }
             .foregroundStyle(look == .day ? CrayonColor.ink : CrayonColor.nightText)
-            .frame(width: size, height: size)
+            .frame(width: drawn, height: drawn)
             .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
                             seed: CrayonStyle.Seed.roundButton,
                             markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)

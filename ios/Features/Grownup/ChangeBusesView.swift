@@ -42,6 +42,7 @@ public struct ChangeBusesView: View {
                 PaperCard(seed: 52) {
                     ScrollColumn {
                         rows(layout).frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                            .formLabels([L10n.tr("c2c.change_at"), L10n.tr("c2c.first_bus")])
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
@@ -63,7 +64,7 @@ public struct ChangeBusesView: View {
                     Text(L10n.tr("c2c.our_stop")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 }
             }
-            pills(L10n.tr("c2c.first_bus"), services: store.firstBuses, picked: store.firstBus) {
+            pills(L10n.tr("c2c.first_bus"), controlWidth: layout.controlWidth, services: store.firstBuses, picked: store.firstBus) {
                 store.send(.firstBusTapped($0))
             }
             ListRow(leading: L10n.tr("c2c.change_at"), labelHeight: 80) {
@@ -71,7 +72,7 @@ public struct ChangeBusesView: View {
                                 listWidth: layout.controlWidth)
             }
             .zIndex(1)
-            pills(L10n.tr("c2c.then"), services: store.thenBuses, picked: store.thenBus) {
+            pills(L10n.tr("c2c.then"), controlWidth: layout.controlWidth, services: store.thenBuses, picked: store.thenBus) {
                 store.send(.thenBusTapped($0))
             }
             stepper(L10n.tr("c2c.ride1"), text: store.ride1Text, caption: store.ride1Caption, value: store.ride1) {
@@ -87,14 +88,14 @@ public struct ChangeBusesView: View {
     }
 
     /// Bus pills (180 × 72), one picked; "No buses found" while the stop has none.
-    private func pills(_ label: String, services: [String], picked: String?,
+    private func pills(_ label: String, controlWidth: CGFloat, services: [String], picked: String?,
                        tap: @escaping (String) -> Void) -> some View {
         ListRow(leading: label, labelHeight: PillToggle.size.height) {
             if services.isEmpty {
                 Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: PillToggle.size.height)
             } else {
-                LazyVGrid(columns: PillToggle.columns, alignment: .leading, spacing: Spacing.sm) {
+                PillToggleGrid(controlWidth: controlWidth) {
                     ForEach(services, id: \.self) { service in
                         PillToggle(service, isOn: picked == service) { tap(service) }
                     }

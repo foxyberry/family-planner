@@ -49,8 +49,8 @@ public struct TimeLeft: View {
 
     public var body: some View {
         let p = Self.presentation(minutes: minutes)
-        // 72 is three quarters of display 96, and shrinks with it on smaller screens.
-        let size = sizing.size(of: .display) * (compact ? 0.75 : 1)
+        // Compact: 72 on the board, never under 56 (spec "Part floors").
+        let size = compact ? sizing.timeLeftCompact : sizing.size(of: .display)
         Text(p.text)
             .font(Font(FontRegistrar.font(size: size, weight: .bold)))
             .foregroundStyle(p.tone == .late ? CrayonColor.lateText : look.ink)

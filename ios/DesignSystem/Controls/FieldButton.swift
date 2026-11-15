@@ -4,6 +4,7 @@ import SwiftUI
 /// A value on paper, 80 tall, that opens a picker or a card when tapped: the look of `TimeField`
 /// and `DateField`, and of a field like Runs' end ("End of term", spec "Repeats, dates and changes").
 public struct FieldButton: View {
+    @Environment(\.sizing) private var sizing
     private let label: String
     private let isPlaceholder: Bool
     private let width: CGFloat?
@@ -29,10 +30,11 @@ public struct FieldButton: View {
                 .crayonType(.body)
                 .foregroundStyle(isPlaceholder ? CrayonColor.softText : CrayonColor.ink)
                 .lineLimit(1)
-                // A narrow field on a smaller iPad shrinks its time a little rather than cut it.
-                .minimumScaleFactor(0.75)
-                .padding(.horizontal, Spacing.m)
-                .frame(minWidth: width ?? 200, maxWidth: width, minHeight: 80)
+                // Spec "Part floors": text never shrinks. With a formula width (TimeField) the text is
+                // centred and adds no padding (it keeps 16 clear); without one the field is 200 × s
+                // (200 on the 13"), never narrower than its text + fluid(24, 16) on each side.
+                .padding(.horizontal, width == nil ? sizing.textPadding : 0)
+                .frame(minWidth: width ?? 200 * sizing.s, maxWidth: width, minHeight: sizing.fieldHeight)
                 .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,
                                 markerColor: isActive ? CrayonColor.pickBlue : hasProblem ? CrayonColor.lateText : CrayonColor.outline)
         }

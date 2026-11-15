@@ -48,6 +48,10 @@ public struct SchoolEntry: Identifiable, Hashable, Sendable {
 
     /// The caption under the name in the match list and under a picked school (spec S2):
     /// "MOE primary · Woodlands", "International · IB PYP · own term dates".
+    /// The one-line result row's part after the name (S2s with the keyboard up, 2026-11-15): the
+    /// area, or the full caption when there is none.
+    public func resultCaption(oneLine: Bool) -> String { oneLine ? area ?? caption : caption }
+
     public var caption: String {
         switch kind {
         case let .moe(level):

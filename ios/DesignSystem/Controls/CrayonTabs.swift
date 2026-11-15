@@ -4,6 +4,8 @@ import SwiftUI
 /// Segmented tabs, 72 tall; only the selected one is sky blue. Items may carry a kid's face (40,
 /// beside the body 30 label).
 public struct CrayonTabs<ID: Hashable>: View {
+    @Environment(\.sizing) private var sizing
+    @Environment(\.isHeaderRow) private var isHeaderRow
     @Binding private var selection: ID
     private let items: [(ID, String, KidFace.Badge?)]
     private let inset: CGFloat
@@ -57,10 +59,12 @@ public struct CrayonTabs<ID: Hashable>: View {
                         }
                     }
                     .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
-                    .padding(.horizontal, itemSize == nil && widths == nil && !fills ? inset : 0)
+                    // Spec "Part floors": text 24 from a tab's edge, never under 16.
+                    .padding(.horizontal, itemSize == nil && widths == nil && !fills ? min(inset, sizing.textPadding) : 0)
                     .frame(width: widths.flatMap { $0.indices.contains(index) ? $0[index] : nil } ?? itemSize?.width)
                     .frame(maxWidth: fills ? .infinity : nil)
-                    .frame(minHeight: itemSize?.height ?? 72)
+                    // Spec "Part floors": 72 × s, never under 56.
+                    .frame(minHeight: isHeaderRow ? Sizing.headerControlHeight : sizing.tabHeight(itemSize?.height ?? 72))
                     .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }

@@ -135,7 +135,7 @@ public struct EditClock: View {
             if let addBetween {
                 // Board G1e: a RoundButton 56 on the knob's boundary line, its centre 64 in from the rim.
                 RoundButton(glyph: .plus, accessibilityLabel: addBetween.label, action: onAddBetween)
-                    .size(56 * k)
+                    .size(56).floor(48)
                     .position(point(radius: r - 64 * k, minute: Double(addBetween.minute)))
             }
         }
@@ -184,7 +184,7 @@ public struct EditClock: View {
         ForEach(sectors, id: \.self) { sector in
             let middle = Double(sector.start + sector.end) / 2
             if sector.style == .free {
-                PlusGlyph(size: 56 * k) // board C6: a 56 ring
+                PlusGlyph(size: sizing.clockPlus) // board C6: a 56 ring, at least 48 (part floors)
                     .position(point(radius: (hubR + r) / 2, minute: middle))
                     .onTapGesture { onPlusTap(sector.start) }
                     .accessibilityElement()

@@ -7,6 +7,7 @@ import SwiftUI
 /// spec "Event form rows", Bring), and (when `onRequestDrawing` is given) a final "+" that asks the
 /// child to draw a new picture. Drawings arrive in M6; until then screens leave it out.
 public struct IconPicker: View {
+    @Environment(\.sizing) private var sizing
     private let isOn: (KitSlot) -> Bool
     private let onTap: (KitSlot) -> Void
     private let slots: [KitSlot]
@@ -39,13 +40,15 @@ public struct IconPicker: View {
 
     public var body: some View {
         // Board C3: six 88 cells, 16 apart, from the control line (232 … 840); never centred.
-        LazyVGrid(columns: Array(repeating: GridItem(.fixed(88), spacing: Spacing.s), count: columns),
+        // Spec "Part floors": cells 88 × s, never under 72.
+        let cell = sizing.pictureCircle(88)
+        LazyVGrid(columns: Array(repeating: GridItem(.fixed(cell), spacing: Spacing.s), count: columns),
                   alignment: .leading, spacing: Spacing.s) {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
                 let isOn = isOn(slot)
                 Button { onTap(slot) } label: {
-                    KitIcon(slot, size: 64)
-                        .frame(width: 88, height: 88)
+                    KitIcon(slot, size: cell * 64 / 88)
+                        .frame(width: cell, height: cell)
                         .background(
                             CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.pictureGround,
                                           markerColor: isOn ? CrayonColor.link : CrayonColor.pictureMarker.opacity(0.25),

@@ -41,7 +41,8 @@ public struct GrownupLayout: Equatable, Sendable {
                height: max(bottom - sizing.y(148), 96 * s))
     }
     /// Rows start 40 inside the card (x 80) and end 40 before its right edge (800).
-    public var formInset: CGFloat { 40 * s }
+    /// Spec "Part floors": 40, never under 28.
+    public var formInset: CGFloat { sizing.formCardInset }
     public var labelLeft: CGFloat { sizing.left(80) }
     /// Form controls start on 208 (C3, C4, E5); a label column is 208 − 80 wide.
     public var controlLeft: CGFloat { sizing.left(208) }

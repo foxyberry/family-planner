@@ -38,7 +38,7 @@ public struct HomeView: View {
                 RoundButton(picture: .pencil, accessibilityLabel: L10n.tr("home.grownup")) {
                     store.send(.pencilTapped)
                 }
-                .size(layout.pencil.width)
+                .size(96)
                 .look(store.look)
                 .place(topLeft: layout.pencil.origin)
             }

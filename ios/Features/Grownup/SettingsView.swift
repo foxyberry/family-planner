@@ -28,6 +28,7 @@ public struct SettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
+                .formLabels([L10n.tr("settings.face")])
                 .environment(\.formLabelWidth, layout.valueLeft - layout.labelLeft)
                 .frame(width: layout.form.width, height: layout.form.height)
                 Color.clear.frame(width: layout.side.width, height: 1)
