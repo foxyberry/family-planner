@@ -181,9 +181,9 @@ public struct FormRow<Control: View, Second: View>: View {
 }
 
 public extension View {
-    /// Spec S1 "Remove a kid" (board v51): a control on a card's top-right corner, its centre one
-    /// inset outside the card's right edge and two insets below its top; `popover` hangs under it,
-    /// right-aligned. Placement lives here so screens carry no offsets.
+    /// Spec S1 "Remove a kid" (board v54): a control centred on a card's drawn top-right corner
+    /// (one inset in from the frame's right and top), so it never reaches into the next region;
+    /// `popover` hangs under it, right-aligned. Placement lives here so screens carry no offsets.
     func cardCorner<Corner: View, Popover: View>(size: CGFloat, @ViewBuilder _ corner: () -> Corner,
                                                  @ViewBuilder popover: () -> Popover) -> some View {
         let corner = corner()
@@ -194,8 +194,8 @@ public extension View {
                 .overlay(alignment: .topTrailing) {
                     popover.alignmentGuide(.top) { $0[.top] - size }
                 }
-                .alignmentGuide(.trailing) { $0[.trailing] - size / 2 - CrayonPart.inset }
-                .alignmentGuide(.top) { $0[.top] + size / 2 - 2 * CrayonPart.inset }
+                .alignmentGuide(.trailing) { $0[.trailing] - size / 2 + CrayonPart.inset }
+                .alignmentGuide(.top) { $0[.top] + size / 2 - CrayonPart.inset }
         }
     }
 }
@@ -205,7 +205,6 @@ public extension EdgeInsets {
     /// plus one inset for crayon wobble, for a scroll column's `bleed`: a scroll view neither draws
     /// nor takes touches outside its frame.
     static func cardCorner(touch: CGFloat) -> EdgeInsets {
-        EdgeInsets(top: touch / 2 - CrayonPart.inset, leading: 0, bottom: 0,
-                   trailing: touch / 2 + 2 * CrayonPart.inset)
+        EdgeInsets(top: touch / 2, leading: 0, bottom: 0, trailing: touch / 2)
     }
 }
