@@ -87,6 +87,8 @@ public struct SetupView: View {
             Text(store.stepText).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1).fixedSize()
             StepDots(current: store.step.number)
         }
+        // Spec "Header row": the kid tabs stay 72 on every iPad.
+        .environment(\.isHeaderRow, true)
     }
 
     /// S2 and S3: the kid tabs, as State lists them (spec "S3 · Getting there").
@@ -557,17 +559,22 @@ private struct AlmostDoneStep: View {
             .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
 
+    /// Spec "Part floors": the board's 140 pitch is a minimum. A taller row (a 2-line caption at its
+    /// floor) grows and the rows below move down, at least the 16 token apart; the card scrolls.
     private var rows: some View {
-        ZStack(alignment: .topLeading) {
-            ForEach(Array(store.settingRows.enumerated()), id: \.element.setting) { index, row in
-                let origin = layout.s4Main(80, 188 + 140 * CGFloat(index))
-                SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
-                           action: { store.send(.settingTapped(row.setting)) }) {
-                    picture(row.picture)
+        let origin = layout.s4Main(80, 188)
+        return ScrollColumn {
+            VStack(alignment: .leading, spacing: max(layout.length(20), Spacing.s)) {
+                ForEach(store.settingRows, id: \.setting) { row in
+                    SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
+                               action: { store.send(.settingTapped(row.setting)) }) {
+                        picture(row.picture)
+                    }
+                    .frame(width: layout.length(738))
                 }
-                .frame(width: layout.length(738), height: layout.length(120))
-                .place(topLeft: origin)
             }
+            .padding(.leading, origin.x)
+            .padding(.top, origin.y)
         }
         .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
@@ -600,7 +607,9 @@ private struct SummarySide: View {
                 let titleLine = layout.s4Side(936, top + 35)
                 Text(row.title).crayonType(.body).lineLimit(1).place(left: titleLine.x, baseline: titleLine.y)
                 let detailLine = layout.s4Side(936, top + 67)
-                Text(row.detail).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
+                // Spec: a " · " value line wraps at a separator onto 2 lines, never clips.
+                SeparatedValueText(row.detail).foregroundStyle(CrayonColor.softText)
+                    .frame(width: layout.grown.side.width - detailLine.x, alignment: .leading)
                     .place(left: detailLine.x, baseline: detailLine.y)
             }
         }

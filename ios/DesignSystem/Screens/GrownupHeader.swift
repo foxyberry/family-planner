@@ -40,6 +40,7 @@ public struct GrownupHeader<Accessory: View, Trailing: View>: View {
                     .fixedSize()
             }
         }
+        .environment(\.isHeaderRow, true)
     }
 }
 

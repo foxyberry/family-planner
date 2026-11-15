@@ -5,6 +5,7 @@ import SwiftUI
 /// beside the body 30 label).
 public struct CrayonTabs<ID: Hashable>: View {
     @Environment(\.sizing) private var sizing
+    @Environment(\.isHeaderRow) private var isHeaderRow
     @Binding private var selection: ID
     private let items: [(ID, String, KidFace.Badge?)]
     private let inset: CGFloat
@@ -63,7 +64,7 @@ public struct CrayonTabs<ID: Hashable>: View {
                     .frame(width: widths.flatMap { $0.indices.contains(index) ? $0[index] : nil } ?? itemSize?.width)
                     .frame(maxWidth: fills ? .infinity : nil)
                     // Spec "Part floors": 72 × s, never under 56.
-                    .frame(minHeight: sizing.tabHeight(itemSize?.height ?? 72))
+                    .frame(minHeight: isHeaderRow ? Sizing.headerControlHeight : sizing.tabHeight(itemSize?.height ?? 72))
                     .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }

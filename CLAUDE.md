@@ -10,8 +10,8 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - Real values live only in git-ignored files: `docs/private/`, `.private-terms`, `LocalConfig.*`, `user.bazelrc`.
 - If gitleaks or the private-term check blocks you, replace the data. Never bypass (`--no-verify`).
 - Design doc and research: `docs/private/` (git-ignored). Do not quote them in tracked files or @-import them.
-- One design copy: only the design session edits `docs/superpowers/specs`, `docs/superpowers/layout`
-  and `.claude/skills/crayon-design`. Read the spec from develop; ask it for changes.
+- Screen specs come from the design session; `docs/superpowers/specs/` copies must match its file.
+  Diff them before building or changing a screen, and copy changes in first.
 - Publishing text (commit/PR/issue bodies): pass literal text or `--body-file <file>`; shell expansion is blocked.
 
 ## Machine limits (8 GB Mac)
@@ -101,8 +101,7 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 
 ## Agent harness
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
-- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `tca-feature`,
-  `skill-retro`, `crayon-design` (sizes, floors, copy).
+- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `tca-feature`, `skill-retro`.
 - Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known; the
   `skill-retro` skill moves them into guards, this file or skills (a session-start note says when 5+ wait).
   `bash scripts/check-skills.sh` checks skills, this file's length and the inbox.

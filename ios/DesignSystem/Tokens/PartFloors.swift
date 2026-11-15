@@ -25,6 +25,8 @@ public extension Sizing {
     func inkButtonHeight(_ board: CGFloat) -> CGFloat {
         board >= 96 ? fluid(board, 72) : board >= 80 ? fluid(board, 64) : fluid(board, 56)
     }
+    /// Spec "Header row": every text control in a grown-up header is 72 tall on every iPad.
+    static let headerControlHeight: CGFloat = 72
     /// `CrayonTabs`, `PillToggle`, `DayChip`: 72 on the board, never under 56.
     func tabHeight(_ board: CGFloat = 72) -> CGFloat { fluid(board, 56) }
     /// An equal-choice tab: the board width × s, never under its longest label + 2 × 16.
@@ -113,6 +115,9 @@ public extension EnvironmentValues {
     /// How much `formLabels` widened the card's label column: controls sized from the layout's
     /// control column take this off.
     @Entry var formLabelExtra: CGFloat = 0
+    /// True inside a grown-up header row: its text controls (tabs, pills) stay 72 on every iPad
+    /// (spec "Part floors → Header row").
+    @Entry var isHeaderRow = false
 }
 
 public extension CrayonType {
@@ -140,4 +145,31 @@ public extension View {
     /// Spec "Label column": the card's label column fits its longest label (+ 16) on smaller iPads,
     /// so labels never shrink or wrap. Pass every label the card shows.
     func formLabels(_ labels: [String]) -> some View { modifier(FormLabelsModifier(labels: labels)) }
+}
+
+/// Spec "Part floors", text: a value line joined by " · " stays on one line when it fits, else wraps
+/// at a separator onto at most 2 lines ("walk 10 min ·" / "ride 10 min"); it never clips mid-word.
+public struct SeparatedValueText: View {
+    private let parts: [String]
+    private let type: CrayonType
+    private let separator = " · " // copy-ok: a separator
+
+    public init(_ text: String, type: CrayonType = .caption) {
+        parts = text.components(separatedBy: " · ") // copy-ok: a separator
+        self.type = type
+    }
+
+    public var body: some View {
+        ViewThatFits(in: .horizontal) {
+            Text(parts.joined(separator: separator)).crayonType(type).lineLimit(1).fixedSize()
+            ForEach((1..<max(parts.count, 2)).reversed(), id: \.self) { split in
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(parts.prefix(split).joined(separator: separator) + " ·").crayonType(type) // copy-ok: a separator
+                        .lineLimit(1).fixedSize()
+                    Text(parts.dropFirst(split).joined(separator: separator)).crayonType(type).lineLimit(1).fixedSize()
+                }
+            }
+            Text(parts.joined(separator: separator)).crayonType(type).lineLimit(2)
+        }
+    }
 }
