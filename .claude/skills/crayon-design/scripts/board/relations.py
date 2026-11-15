@@ -3,15 +3,16 @@
 #   e.g. DESIGN_WORK=~/design-work python3 relations.py S1,C3      (no ids = every grown-up board)
 # Renders each board (local-render.py), loads it in headless Chrome with relations.js, and measures every part
 # box, its kind, the ink box of its art, then checks, in board units at 13":
-#   (rules: spec "Layout model" and "Grown-up form layout")
+#   (rules: spec "Layout model", "Layout balance" and "Grown-up form layout")
 #   1 line    each row's first control: its frame (box x) on the line (--line drawn: box x + the app's inset);
 #             named exceptions (F4 indent, F1/F2/F4 caption columns) are listed, not failed
-#   2 col2    second column: one label line and one control line per card, its controls end on 818,
-#             label line = control line - (longest second-column label + 16)
+#   2 col2    second column: one label line and one control line per card, its controls end on 808,
+#             label line = control line - (longest second-column label + 10)
 #   3 height  one height per row for controls of the same kind; other kinds centred on the row; header tabs 72
-#   4 right   stretching controls (fields, search, value areas, side rows, main button) end on frame 818 / 1336 /
+#   4 right   stretching controls (fields, search, value areas, side rows, main button) end on frame 808 / 1336 /
 #             the small card's content edge; choices next to a label may end short and are not checked
 #   5 label   each label's glyph centred on its control's drawn box
+#   6 balance card padding by kind, card gap 40, row gap (spec "Layout balance")
 # Rulings (2026-11-15): frames sit on the lines; every part draws its outline 6 inside its frame; extra touch area
 # is outside the frame and invisible; pick rings are an outward overlay. So the default is --line box (frames);
 # --line drawn checks the drawn outlines instead. --sizes prints an inventory of every control / picture size instead
@@ -174,10 +175,10 @@ def lines_for(reg, fam, bid):
     """(label line, control line, inner right) for a region."""
     if reg == 'header': return (None, 40, 1336) if fam == 'grown' else (None, 64, 1312)
     if reg == 'side': return (None, 864, 1336) if fam == 'grown' else (None, 930, 1312)
-    if reg == 'main': return (80, 208, 818) if fam == 'grown' else (104, 232, 860)
+    if reg == 'main': return (78, 192, 808) if fam == 'grown' else (104, 232, 860)
     c = reg
     if c['w'] >= 700:                                                 # form card
-        return c['x'] + 40, c['x'] + 168, c['x'] + c['w'] - 22     # spec: stretching controls end at frame 818
+        return c['x'] + 38, c['x'] + 152, c['x'] + c['w'] - 32     # spec: label 78, control 192, right edge 808
     pl = c['bw'][3] + c['pad'][3]; pr = c['bw'][1] + c['pad'][1]
     if not c['kids']: pl = pr = 24
     return c['x'] + pl, c['x'] + pl, c['x'] + c['w'] - pr          # small card: its content edge
@@ -297,12 +298,59 @@ def check(bid, name, fam, els):
                 if z: out('2 col2', where, f"y{n(y)} ends on {n(RIGHT)}", f"{z['kind']} box right {n(z['x'] + z['w'])}", z['x'] + z['w'] - RIGHT)
             if cx:
                 longest = max((lb.get('glyph') or lb)['w'] for lb, _, _, _ in col2)
-                want = cx[0] - (longest + 16)
+                want = cx[0] - (longest + 10)
                 # the label width is measured from Chrome's text metrics; a board that rounds it up to the 4 grid
                 # (54.7 -> 56) is on the rule, so allow up to 4 short of the exact value, never longer
                 dd = lx[0] - want; ok = -4 <= dd <= TOL
-                out('2 col2', where, 'label line = control line - (longest + 16)', f"control {cx[0]} longest label {n(longest)} -> {n(want)}; labels at {'/'.join(map(str, lx))}" + (' (label width rounded up)' if ok and abs(dd) > TOL else ''), dd, fail=not ok)
+                out('2 col2', where, 'label line = control line - (longest + 10)', f"control {cx[0]} longest label {n(longest)} -> {n(want)}; labels at {'/'.join(map(str, lx))}" + (' (label width rounded up)' if ok and abs(dd) > TOL else ''), dd, fail=not ok)
+    balance(cards, els, out)
     return rows, flags
+
+# 6 balance (spec "Layout balance"), every gap between drawn edges: card padding by card kind (main form card and
+# overlay cards 32, nested cards 24; a fixed main card's bottom is spare, at least 32), card -> card 40, and
+# row -> row at least 24 inside a main / overlay card (16 inside a nested card). A caption or body line within 12 under
+# the row above belongs to that row.
+def ink(e):
+    if e['cat'] in ('text', 'label', 'title') and e.get('glyph') and e['glyph']['w'] > 0:
+        g = e['glyph']; return g['x'], g['y'], g['x'] + g['w'], g['y'] + g['h']
+    if e['cat'] in ('part', 'card'): return drawn(e)
+    return e['x'], e['y'], e['x'] + e['w'], e['y'] + e['h']
+
+def card_kind(c, cards):
+    inside = any(o is not c and o['x'] <= c['x'] and o['y'] <= c['y'] and c['x'] + c['w'] <= o['x'] + o['w'] + 0.5
+                 and c['y'] + c['h'] <= o['y'] + o['h'] + 0.5 for o in cards)
+    return 'nested' if inside or c['x'] >= 860 else ('main' if c['w'] >= 700 else 'overlay')
+
+def balance(cards, els, out):
+    for c in cards:
+        k = card_kind(c, cards); want = 24 if k == 'nested' else 32
+        inner = [o for o in cards if o is not c and card_kind(o, cards) == 'nested' and o['reg'] is c] if 'reg' in c else []
+        mem = [e for e in els if e.get('reg') is c and e['cat'] in ('part', 'label', 'text', 'picture', 'title') and e.get('kind') != 'badge']
+        if not mem: continue
+        d = drawn(c); I = [ink(e) for e in mem]
+        pads = (min(i[0] for i in I) - d[0], min(i[1] for i in I) - d[1], d[2] - max(i[2] for i in I), d[3] - max(i[3] for i in I))
+        tag = f"{k} card @{n(c['x'])},{n(c['y'])} {n(c['w'])}x{n(c['h'])}"
+        fixed = k == 'main' and c['h'] >= 800
+        for side, v in zip('LTRB', pads):
+            if side == 'R': out('6 pad', tag, f'R >= {want}', f'ink {n(v)}', min(0, v - want)); continue   # rows may end short (check 4 covers stretching ones)
+            if side == 'B' and fixed: out('6 pad', tag, f'{side} spare >= {want}', f'ink {n(v)}', min(0, v - want)); continue
+            out('6 pad', tag, f'{side} {want}', f'ink {n(v)}', v - want)
+        # rows inside the card
+        rowsep = 16 if k == 'nested' else 24
+        bs = sorted(bands([e for e in mem if e['cat'] in ('part', 'text', 'label', 'picture')]), key=lambda b: min(ink(e)[1] for e in b))
+        prev = None
+        for b in bs:
+            top = min(ink(e)[1] for e in b); bot = max(ink(e)[3] for e in b)
+            small = all(e['cat'] == 'text' and e.get('font', 30) <= 30 for e in b)
+            if prev is not None:
+                gap = top - prev
+                if small and gap <= 12.5: prev = max(prev, bot); continue       # caption / body under its row
+                out('6 row', tag, f'row gap >= {rowsep}', f'ink {n(gap)} at y{n(top)}', min(0, gap - rowsep))
+            prev = bot if prev is None else max(prev, bot)
+    cs = sorted([c for c in cards if card_kind(c, cards) != 'nested'], key=lambda c: c['y'])
+    for a, b in zip(cs, cs[1:]):
+        if abs(a['x'] - b['x']) < 5 and b['y'] > a['y'] + a['h'] - 1:
+            out('6 cards', f"card @{n(a['x'])},{n(a['y'])}", 'card gap 40', f'ink {n(drawn(b)[1] - drawn(a)[3])}', drawn(b)[1] - drawn(a)[3] - 40)
 
 # ---- --sizes: inventory of part sizes ------------------------------------------------------------------------
 def group_of(e):
