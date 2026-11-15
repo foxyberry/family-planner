@@ -156,8 +156,10 @@ public extension GrownupLayout {
     /// content top and its list runs down to the keyboard, as many rows as fit; else `rows`.
     func searchListRows(_ rows: Int) -> Int {
         guard let keyboardTop else { return rows }
-        let listTop = contentTop + 80 + Spacing.l
-        return max(1, min(rows, Int((keyboardTop - listTop - Spacing.m - 24) / (ResultListCard.rowHeight + 2))))
+        // The field (80) at the card's top inset, then the list 8 below it (no caption, 2026-11-15).
+        let listTop = contentTop + formInset + 80 + Spacing.xs
+        let room = keyboardTop - listTop - Spacing.xs - 2 * 12 + 2
+        return max(1, min(rows, Int(room / (ResultListCard.rowHeight + 2))))
     }
 }
 

@@ -19,8 +19,9 @@ public struct HomeLayout: Equatable, Sendable {
     // Clock and sky switch
     public var clockCentre: CGPoint { CGPoint(x: sizing.left(448), y: sizing.y(528)) }
     public var skySwitch: CGRect { sizing.left(40, 36, 160, 96) }
-    /// Board G0: the pencil `RoundButton` 80 at (1260, 44), 40 from the glass like the sky switch.
-    public var pencil: CGRect { CGRect(x: sizing.right(1260), y: sizing.y(44), width: 80 * s, height: 80 * s) }
+    /// Board G0: the pencil `RoundButton`, as tall as the sky switch (96; user, 2026-11-15: the 80
+    /// circle looked tight beside it) and on its centre line (y 36–132), 40 from the glass (1240–1336).
+    public var pencil: CGRect { CGRect(x: sizing.right(1240), y: sizing.y(36), width: 96 * s, height: 96 * s) }
 
     // Panel (928 s … W − 40 s, layout v29: the right margin matches the sky switch's 40)
     public var panelLeft: CGFloat { sizing.left(928) }

@@ -28,7 +28,8 @@ public struct SetupView: View {
             HStack(alignment: .top, spacing: grown.gap) {
                 ScrollColumn(scrollTarget: searchFocus == 0 ? nil : GrownupScrollTarget(id: SchoolStep.fieldID, request: searchFocus),
                              anchor: .top) {
-                    main(layout, listRows: grown.searchListRows(6)).frame(width: grown.form.width, alignment: .topLeading)
+                    main(layout, listRows: grown.searchListRows(6), keyboardIsUp: grown.keyboardTop != nil)
+                        .frame(width: grown.form.width, alignment: .topLeading)
                 }
                 .onPreferenceChange(FieldFocusKey.self) { focused in
                     guard focused else { return }
@@ -103,10 +104,10 @@ public struct SetupView: View {
 
     // MARK: Main column
 
-    @ViewBuilder private func main(_ layout: SetupLayout, listRows: Int) -> some View {
+    @ViewBuilder private func main(_ layout: SetupLayout, listRows: Int, keyboardIsUp: Bool) -> some View {
         switch store.step {
         case .family: FamilyStep(store: store, layout: layout)
-        case .school: SchoolStep(store: store, layout: layout, listRows: listRows)
+        case .school: SchoolStep(store: store, layout: layout, listRows: listRows, keyboardIsUp: keyboardIsUp)
         case .gettingThere: GoingStep(store: store)
         case .almostDone: AlmostDoneStep(store: store, layout: layout)
         }
@@ -279,6 +280,8 @@ private struct SchoolStep: View {
     let layout: SetupLayout
     /// Result rows that fit above the keyboard (6 without it).
     let listRows: Int
+    /// With the keyboard up the list starts 8 under the field, over the caption (2026-11-15).
+    let keyboardIsUp: Bool
 
     var body: some View {
         // Exactly the card's inner width, so no row can widen the card.
@@ -368,7 +371,9 @@ private struct SchoolStep: View {
             .frame(width: layout.schoolFieldWidth)
             .overlay(alignment: .topLeading) {
                 // Padding, not offset, so the veil's hole lands on the card itself.
-                if school.isListOpen { matches(school).resultVeilHole().padding(.top, 80 + Spacing.l) }
+                if school.isListOpen {
+                    matches(school).resultVeilHole().padding(.top, 80 + (keyboardIsUp ? Spacing.xs : Spacing.l))
+                }
             }
             // A pick closes the keyboard (S2s, 2026-11-15); typing keeps it up.
             .keyboardHidden(when: school.picked != nil || school.typedByHand)
@@ -381,6 +386,8 @@ private struct SchoolStep: View {
                         .padding(.leading, Spacing.s)
                 }
             }
+            // Hidden while the list sits on it above the keyboard (S2s, 2026-11-15).
+            .opacity(keyboardIsUp && school.isListOpen ? 0 : 1)
         }
         .resultVeilHole()
     }
