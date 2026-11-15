@@ -24,7 +24,10 @@ public struct ListRow<Content: View>: View {
     public var body: some View {
         HStack(alignment: labelHeight == nil ? .center : .top, spacing: formLabelWidth == nil ? Spacing.m : 0) {
             // Boards C1–C4: row labels are caption bold in soft text.
+            // One line: on a smaller iPad the label column shrinks but caption does not, so a long
+            // label ("Arrive by", "Face, colour") shrinks a little instead of wrapping or "…".
             Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
+                .lineLimit(1).minimumScaleFactor(0.7)
                 .frame(width: formLabelWidth ?? 120, height: labelHeight, alignment: .leading)
             content.crayonType(.body).frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -103,6 +106,7 @@ public struct FormLabel: View {
         FormLabelColumn {
             Text(text).crayonType(.caption, bold: true)
                 .foregroundStyle(isActive ? CrayonColor.pickBlue : CrayonColor.softText)
+                .lineLimit(1).minimumScaleFactor(0.7)
         }
     }
 }

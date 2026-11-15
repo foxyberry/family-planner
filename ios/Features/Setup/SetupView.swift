@@ -276,7 +276,9 @@ private struct SchoolStep: View {
                 SetupRow(label: L10n.tr("s2.goes"), height: 72) {
                     CrayonTabs(selection: Binding(get: { kid.goesTo }, set: { if let place = $0 { store.send(.goesToTapped(place)) } }),
                                items: SetupFeature.State.places.map { (Optional($0.0), $0.1, nil) },
-                               itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
+                               // 180 on the board; three always fit the control column.
+                               itemSize: CGSize(width: min(180, (layout.grown.controlWidth - 2 * Spacing.sm) / 3), height: 72),
+                               spacing: Spacing.sm)
                 }
                 if let line = store.atHomeLine {
                     Text(line).crayonType(.body).foregroundStyle(CrayonColor.softText)
@@ -607,6 +609,7 @@ private struct SetupRow<Control: View>: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             Text(label).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText).lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .frame(width: labelWidth ?? 128, height: height, alignment: .leading)
             control.frame(minHeight: height, alignment: .leading)
         }

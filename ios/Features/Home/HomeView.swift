@@ -55,8 +55,8 @@ public struct HomeView: View {
 
     /// The night wipe starts from the sky switch's centre (board 0g).
     private var skySwitchCentre: CGPoint {
-        let origin = HomeLayout(sizing: sizing).skySwitch.origin
-        return CGPoint(x: origin.x + SkySwitch.size.width / 2, y: origin.y + SkySwitch.size.height / 2)
+        let frame = HomeLayout(sizing: sizing).skySwitch
+        return CGPoint(x: frame.midX, y: frame.midY)
     }
 
     // MARK: Clock
