@@ -57,6 +57,7 @@ final class SettingsTests: XCTestCase {
             $0.date.now = F.monday.date(minute: 600, calendar: F.calendar)
             $0.scheduleStore.load = { snapshot }
             $0.schoolDirectory.calendar = { _, _ in SchoolCalendar(terms: [self.term4], isMoe: true) }
+            $0.schoolDirectory.updated = { Day(year: 2026, month: 11, day: 9) }
             $0.appSettings.load = { .defaults }
             $0.appSettings.save = { settings in saved.withValue { $0.append(settings) } }
             $0.parentAuth.authenticate = { _ in auth }
@@ -91,6 +92,14 @@ final class SettingsTests: XCTestCase {
                                           today: Day(year: 2026, month: 11, day: 10), calendar: Fixture.calendar)
             .flatMap(\.rows)
         XCTAssertEqual(rows.first { $0.key == "To school" }?.value, "Bus 12 · leave 7:05 · 2nd 34")
+    }
+
+    /// Board G6 foot: "School lists · 9 Nov" over Data sources.
+    func testTheFootNamesTheListsDay() async {
+        let store = store()
+        await store.send(.task)
+        await store.receive(\.listsLoaded)
+        XCTAssertEqual(store.state.listsLine, "School lists · 9 Nov")
     }
 
     func testAKidAtHomeHasASchoolRowToAddAPlace() async {

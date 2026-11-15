@@ -28,6 +28,8 @@ public struct SettingsFeature {
         public var isCheckingLock = false
         public var lockNeedsFaceID = false
         public var today: Day?
+        /// The day the bundled school lists were made (the foot's "School lists · 9 Nov").
+        public var listsUpdated: Day?
         /// Replaced by the `\.calendar` dependency on `.task`, together with `today`.
         public var calendar = Calendar(identifier: .gregorian)
 
@@ -59,6 +61,10 @@ public struct SettingsFeature {
             }
         }
         /// "+ Add a child", up to four kids.
+        /// Board G6 / G6f foot: "School lists · 9 Nov" over "Data sources".
+        public var listsLine: String? {
+            listsUpdated.map { L10n.tr("settings.lists", DayText.dayMonth($0, calendar: calendar)) }
+        }
         public var canAddChild: Bool { (snapshot?.kids.count ?? 0) < AddChildFeature.most }
 
         /// The Family tab's switches (the same rows as S4).
@@ -68,6 +74,7 @@ public struct SettingsFeature {
     public enum Action: Equatable {
         case task
         case loaded(ScheduleSnapshot?, schools: [Kid.ID: SchoolCalendar])
+        case listsLoaded(Day?)
         case tabTapped(Tab)
         case settingTapped(AppSetting)
         case lockChecked(ParentAuthOutcome)
@@ -114,7 +121,12 @@ public struct SettingsFeature {
                     let snapshot = try? await scheduleStore.load()
                     let family = await schoolDirectory.family(kids: snapshot?.kids ?? [], publicHolidays: [])
                     await send(.loaded(snapshot, schools: family.schools))
+                    await send(.listsLoaded(await schoolDirectory.updated()))
                 }
+
+            case let .listsLoaded(day):
+                state.listsUpdated = day
+                return .none
 
             case let .loaded(snapshot, schools):
                 state.snapshot = snapshot

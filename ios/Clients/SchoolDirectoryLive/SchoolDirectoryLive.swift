@@ -12,7 +12,7 @@ extension SchoolDirectory {
         return SchoolDirectory(schools: { lists.schools }, sources: { lists.sources }, calendar: { school, age in
             @Dependency(\.calendar) var calendar
             return lists.calendars(calendar).calendar(for: school, age: age)
-        })
+        }, updated: { lists.updated })
     }()
 }
 
@@ -20,6 +20,8 @@ enum BundledSchools {
     struct Lists: Sendable {
         var schools: [SchoolEntry]
         var sources: [DataSource]
+        /// The day the bundled school list was made (its `dataVersion`).
+        var updated: Day?
         /// The school calendars for the app's calendar (read at call time).
         var calendars: @Sendable (Calendar) -> SchoolCalendars = { _ in
             SchoolCalendars(moeLevels: [:], own: [:], moe: { _ in .none })
@@ -39,7 +41,8 @@ enum BundledSchools {
         var levels: [String: SchoolEntry.MoeLevel] = [:]
         for entry in schools { if case let .moe(level) = entry.kind { levels[entry.id] = level } }
         let moeLevels = levels
-        return Lists(schools: schools, sources: sources, calendars: { calendar in
+        let updated = day(moe.dataVersion?.replacingOccurrences(of: ".", with: "-"))
+        return Lists(schools: schools, sources: sources, updated: updated, calendars: { calendar in
             let own = Dictionary((other?.schools ?? []).compactMap { school in
                 school.calendar(calendar: calendar).map { (school.id, $0) }
             }, uniquingKeysWith: { first, _ in first })
@@ -117,6 +120,8 @@ struct MoeFile: Decodable, Versioned {
     }
 
     let schemaVersion: Int
+    /// "2026.11.09": the day the list was made.
+    let dataVersion: String?
     let source: Source
     let geocoding: Source
     let schools: [School]

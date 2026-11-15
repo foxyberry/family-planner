@@ -4797,6 +4797,17 @@
         }
       }
     },
+    "settings.lists" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "School lists · %@"
+          }
+        }
+      }
+    },
     "settings.missions" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -35,6 +35,13 @@ final class SchoolDirectoryLiveTests: XCTestCase {
         }
     }
 
+    /// The Settings foot's "School lists · {d Mon}": the day the bundled list was made.
+    func testTheListsDayComesFromTheFile() async {
+        let updated = await SchoolDirectory.live.updated()
+        XCTAssertNotNil(updated)
+        XCTAssertGreaterThanOrEqual(updated ?? Day(year: 2000, month: 1, day: 1), Day(year: 2026, month: 11, day: 9))
+    }
+
     func testTheLicencesNoticesAreThere() async {
         let sources = await SchoolDirectory.live.sources()
         XCTAssertEqual(sources.count, 2)
