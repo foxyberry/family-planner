@@ -33,10 +33,15 @@ public struct SettingsView: View {
                 Color.clear.frame(width: layout.side.width, height: 1)
             }
         } primaryAction: { _ in
-            Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
-                .crayonType(.caption, bold: true)
-                .foregroundStyle(CrayonColor.link)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                if let lists = store.listsLine {
+                    Text(lists).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                }
+                Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
+                    .crayonType(.caption, bold: true)
+                    .foregroundStyle(CrayonColor.link)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .task { await store.send(.task).finish() }
     }

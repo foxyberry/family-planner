@@ -12,6 +12,8 @@ public struct SchoolDirectory: Sendable {
     /// The terms and closed days of a kid's school (MOE calendar by level, or the school's own
     /// term dates); `.none` when the school follows neither.
     public var calendar: @Sendable (_ school: School, _ age: Int) async -> SchoolCalendar = { _, _ in .none }
+    /// The day the bundled school lists were made (Settings foot "School lists · {d Mon}").
+    public var updated: @Sendable () async -> Day? = { nil }
 }
 
 /// One data set and the notice its licence asks for (data.gov.sg, OneMap).
@@ -64,7 +66,8 @@ extension SchoolDirectory: TestDependencyKey {
             // A made-up term ending on Friday 20 Nov 2026, then the year-end break.
             SchoolCalendar(terms: [SchoolCalendar.Term(name: "Term 4", start: Day(year: 2026, month: 9, day: 14), // copy-ok: preview data
                                                        end: Day(year: 2026, month: 11, day: 20))])
-        }
+        },
+        updated: { Day(year: 2026, month: 11, day: 9) }
     )
 }
 
