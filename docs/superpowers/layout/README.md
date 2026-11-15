@@ -81,3 +81,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v50 (2026-11-15): G6 / G7 About label "Face"; G6, G6f, G7 and G8 re-exported from their current boards (main.card was missing: the card is now found with or without spaces in its style). G7 catches up with its current board.
 - v51 (2026-11-15): S1 second column on one label line (606) and one control line (678), ending on the right-edge line 818; swatches start at drawn 214 (frame on 208).
 - v52 (2026-11-15): C3g / C3k labels on 80 and controls on 208; C2 / C2c / S3 stop field stretches to 818.
+- v53 (2026-11-15): C3x ConfirmCard choices as built: outlined lateText "Leave" CardButton 240 × 72, then "Keep editing" as softText text.

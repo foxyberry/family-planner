@@ -147,6 +147,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-15: supported screens (user): landscape, mini and up; s from the device screen read once at launch; smaller windows (Split View, Stage Manager) keep the layout, cropped and scrolled; minimum window = mini where the system honours it. Board fixes: C3g / C3k controls on 208; C2 / C2c / S3 stop field stretches to the map button on 818 (layout v52); C2c label "Change at" → "Change" (fits the 112 label column).
 - 2026-11-15: S1 values as built in the FormLayout pilot (main session asked): Name field stretches to the second-column label − 24, Age 140 × 80 on the second column, swatch frame 68 with gap 12, remove × centred at card right + 6 / top + 12 as on the board.
 - 2026-11-15: ConfirmCard has no tail: it hangs under its trigger with the matching edge aligned, over the dim layer (as board C3x); covering the rows below while open is expected.
+- 2026-11-15: ConfirmCard looks confirmed as built (user): destructive or leave = outlined lateText CardButton + softText text; otherwise InkButton + softText text. Board C3x redrawn to match (layout v53).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -1154,7 +1155,7 @@ UI shapes are drawn in code by `CrayonKit` (roadmap rule); only pictures are kit
 
 Small marker icons that were inline SVG on the boards are now marker-drawn too: search (S3), drag handle ≡ (C5, soft), clock (was E4, retired), lock (S4, yellow crayon body). They are `MarkerGlyph` cases in the same style.
 
-- `ConfirmCard`: small `PaperCard` with title (head), body, and two buttons, the destructive one in `lateText`. It hangs directly under the control that opened it, the matching edge aligned (left edge under "←", right edge under the S1 ×), over the dim layer; it has no tail (board C3x). **Every confirm or alert in the app is this one part** (G1d, G5, G7, "Leave without saving?", "Remove {name}?", the S-step and C5 removes): at most two buttons, the main one first; when several controls can open it (G1d: List, Settings, ←, a kid tab, a day), it sits centred over the dim layer.
+- `ConfirmCard`: small `PaperCard` with title (head), body, and two choices, main first. Two looks (user, 2026-11-15): when the main choice removes or leaves something, it is a `CardButton` (outlined paper capsule 240 × 72, text `lateText` head); otherwise an `InkButton` 240 × 72. The other choice is plain bold body text in `softText`, 72 tall. It hangs directly under the control that opened it, the matching edge aligned (left edge under "←", right edge under the S1 ×), over the dim layer; it has no tail (board C3x). **Every confirm or alert in the app is this one part** (G1d, G5, G7, "Leave without saving?", "Remove {name}?", the S-step and C5 removes): at most two buttons, the main one first; when several controls can open it (G1d: List, Settings, ←, a kid tab, a day), it sits centred over the dim layer.
 - `LockOverlay` (C0 overlay and card with the state table).
 - Everything else uses M1 parts:
   - Screens: `KidScreen`, `GrownupScreen`
