@@ -139,6 +139,8 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-15: one spec (user): the design session edits this repo file, the layout JSON and the crayon-design skill directly on its own branch; the separate design copy is retired.
 - 2026-11-15: Part floors rulings for the build (main session asked): label column `max(128 s, longest + 12)`; FieldButton width `max(200 s, text + padding)`; pictures keep board ratios; search list ends at the column foot over the keyboard; G6 About label "Face".
 - 2026-11-15: contrast rule (user: no new tokens): body / caption 4.5 : 1, title and up 3 : 1, UI parts 3 : 1; the G1 drag readout in `pickBlue` (title 48) passes at 3.4 : 1.
+- 2026-11-15: Keyboard rule (user): keyboard looks apply only when the keyboard covers the screen bottom (> 100 pt); floating, split and hardware keyboards count as none; one injected keyboard dependency decides it for every screen.
+- 2026-11-15: 11" pass rulings (main session asked): touch floors apply to the frame, drawn box = frame − 12 (≥ 44 grown-up, ≥ 60 kid); give-way step 2 also takes small-card insets to their floor, and centred text in formula-width controls (TimeField, tabs) adds no padding, only 16 clear; the G1 times stay one row on the 11" (s 0.788, measured).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -181,6 +183,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Type: `CrayonType` hero 144, display 96, title 48, head 36, body 30, caption 24. Nothing smaller than 24.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
 - **Status bar** (user decision, 2026-11-08): the iPad status bar shows on **every** screen, kid and grown-up. Its band, y 0–24, holds nothing; only full-bleed backgrounds (paper, night sky) run under it. Status bar text is dark on day screens and light on night screens (A1n, B2n).
+- **Keyboard** (user, 2026-11-15): "keyboard up" means the on-screen keyboard covers the bottom of the screen by more than 100 pt. Only then do the keyboard looks apply (C3k card and button above the keyboard, side column heading only, one-line search rows). A floating or split keyboard, or a hardware keyboard with only its shortcut bar, counts as no keyboard: every screen keeps its normal look. Built as one injected keyboard dependency that reports the covered height; screens never read keyboard notifications or focus to decide this themselves.
 - **Sizing formulas: landscape, full screen, every iPad** (2026-11-08, user: "the design language is fixed to the 13 inch"; research report "아이패드 화면 크기 대응 레이아웃"). The boards stay drawn at 1376 × 1032; these formulas turn a board value into a value on any landscape iPad, from the mini (1133 × 744) to the 13" (1376 × 1032). At 13" every formula gives the board value back.
   - **Inputs**: W = window width, H = window height, `safe.top` = the top safe-area inset as the system reports it (24 on the 13"; 32 on the 12.9" under iPadOS 26, measured on the family's iPad 2026-11-09). Never hard-code it. H_safe = H − safe.top. Lay the screen out in full-screen space; the band 0 … `safe.top` holds nothing but full-bleed backgrounds.
   - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (the family's, 1366 × 1024, safe top 32): 0.984 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714. The reference height is 1008 (the 13" safe area), not 1032: this is the fix for the overflow bug. Never `scaleEffect` the whole screen (blurry text, wrong hit areas); multiply each value by s instead.
@@ -201,7 +204,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - A picture inside a control keeps its board ratio to the control (pencil 56 in 80, PictureRow 64 in 88), not s.
     - **Touch.**
       - Floors: grown-up **48**, kid **72**.
-      - A drawn control (field, button, tab, pill, chip, round button, switch, swatch, picture circle) is never drawn smaller than its touch floor: its visible box is its touch box.
+      - The touch floor applies to the control's frame, which is its hit area. The crayon outline is drawn inside the frame by the **Crayon part inset**, so the drawn box is the frame minus 12; it stays at least 44 (grown-up) or 60 (kid). Tabs, round buttons and the kid pencil meet this at their floors; a part whose drawn box would fall under it (small swatches, chips) keeps a hit area larger than its frame instead of growing.
       - Only bare glyphs (›, ✕, text links) may have a hit area larger than what is drawn. It extends invisibly to the floor, and two enlarged hit areas never overlap.
       - [open] Larger primary targets on the youngest kid's screens.
     - **Control floors, grown-up**:
@@ -227,7 +230,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - pencil and sky switch: `max(96 s, 72)` tall;
       - `TimeLeft` compact: `max(72 s, 56)`.
     - **Padding (floored).**
-      - Text to a control's drawn edge: `fluid(24, 16)`: fields, `FieldButton`, tabs, pills, `InkButton`. Centred text in a fixed-width control (`TimeField`, a tab) needs at least 16 clear on each side.
+      - Text to a control's drawn edge: `fluid(24, 16)` for leading text (fields, `FieldButton`, `InkButton`). Centred text in a control whose width comes from a formula (`TimeField`, tabs, pills) adds no padding: the width formula holds, and the text only needs at least 16 clear on each side.
       - Card insets: form card `fluid(40, 28)`; small cards (G1 slice card, `ConfirmCard`, list cards) `max(24 s, 16)`.
       - Label → control gap: `fluid(16, 12)` (the 16 token).
       - Paired controls (time → time, "latest"): gap `fluid(16, 12)` on each side of the joiner; the "→" joiner `fluid(40, 24)`.
@@ -245,7 +248,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - **Dynamic Type:** every height above is a minimum, not a fixed frame. When the user's text size makes text taller or wider, the control grows, a one-line button or tab may wrap to 2 lines, and the row reflows (step 5) before anything clips.
     - **When a row does not fit, give way in this order:**
       1. the row's spare width;
-      2. the gap tokens and joiners, down to their floors;
+      2. the gap tokens, joiners and small-card insets, down to their floors;
       3. stretchable controls (search, name, value areas, `TimeField`), down to their minimum width (measured content + both paddings);
       4. the label column, which may grow into the card's spare width (see "Label column");
       5. reflow: the control drops under its label (label line, then the control at full content width); an equal-choice group wraps to a second line (fill rule per line); a start → end pair stacks (start on the first line, "→ end" on the second);
@@ -254,8 +257,8 @@ Every board and the app follow these. Change them here and on board 00 first.
     - **G1 slice card times row** (worked example):
       - inner = `472 s − 2 × max(24 s, 16)`; fields = `min(176, (inner − 2 × gap − arrow) / 2)`, with gap `fluid(16, 12)` and arrow `fluid(40, 24)`.
       - 13": inner 424, fields 176 (unchanged).
-      - 11" (s 0.79): inner 335. With the gaps at their scaled values the fields would be 139, so step 2 takes the gaps to 12 and the arrow to 24; the fields are then 143 (≥ 142).
-      - mini (s 0.714): inner 303. Even at the floors the fields are 127 (< 142), so step 5 stacks the pair.
+      - 11" (s 0.788, measured): inner 334. With the gaps at their scaled values the fields would be 139, so step 2 takes the gaps to 12 and the arrow to 24; the fields are then 143 (≥ 142), one row.
+      - mini (s about 0.71): even at the floors the fields are about 127 (< 142), so step 5 stacks the pair.
   - **Not covered yet**: portrait and resizable windows (iPadOS 26 cannot be refused). Until they are designed (backlog), the same formulas run with s floored at 0.70; content may clip in small windows.
 - **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
 - **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 72.
@@ -1036,7 +1039,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - Validation and errors as C3, without the day rule. A start time already past today: "That time has passed" (blocking).
 
 ## C3k · Add, keyboard open [board]
-- When a text field has focus, the iPad keyboard covers about y 612–1032 (≈ 420 pt in landscape).
+- With the keyboard up (see **Keyboard** in Shared rules), the iPad keyboard covers about y 612–1032 (≈ 420 pt in landscape).
 - The form card shrinks to 800 × 352 at y 148 and becomes a scroll area. It keeps the field with focus in view. **The header never moves** (main session's iPad check, 2026-11-14): the screen itself does not shift up for the keyboard; only the form card's scroll area shrinks and scrolls the focused field into view (16 above the keyboard top). The side column keeps its place; only the main button moves up as below.
 - Inside it, rows are tighter: label at card x 40, controls at card x 168, rows at 20 / 136 / 248 / 360.
 - Focus: the focused field gets the blue focus outline (`pickBlue`, 610 wide) and a 3 × 36 caret in `pickBlue`. Its label turns `pickBlue`.
