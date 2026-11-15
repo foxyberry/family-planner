@@ -129,7 +129,16 @@ public extension EnvironmentValues {
 public extension CrayonType {
     /// The width of `text` in caption 24 bold (labels), measured in Playpen Sans.
     nonisolated static func captionBoldWidth(_ text: String) -> CGFloat {
-        let font = FontRegistrar.font(size: 24, weight: .bold)
+        width(text, size: 24, bold: true)
+    }
+
+    /// The width of one line of `text` in this style on `sizing`, measured in Playpen Sans.
+    nonisolated func width(_ text: String, sizing: Sizing, bold: Bool) -> CGFloat {
+        Self.width(text, size: sizing.size(of: self), bold: bold)
+    }
+
+    nonisolated private static func width(_ text: String, size: CGFloat, bold: Bool) -> CGFloat {
+        let font = FontRegistrar.font(size: size, weight: bold ? .bold : .medium)
         return ceil((text as NSString).size(withAttributes: [.font: font]).width)
     }
 }

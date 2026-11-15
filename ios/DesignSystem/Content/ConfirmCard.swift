@@ -10,7 +10,7 @@ public struct ConfirmCard: View {
     private let title: String
     private let message: String?
     private let messageGlyph: MarkerGlyph?
-    private let width: CGFloat
+    private let width: CGFloat?
     private let cancel: String
     private let confirm: String
     private let isDestructive: Bool
@@ -18,7 +18,7 @@ public struct ConfirmCard: View {
     private let onConfirm: () -> Void
 
     public init(title: String, message: String?, messageGlyph: MarkerGlyph? = nil, cancel: String, confirm: String,
-                isDestructive: Bool, width: CGFloat = 520, onCancel: @escaping () -> Void,
+                isDestructive: Bool, width: CGFloat? = nil, onCancel: @escaping () -> Void,
                 onConfirm: @escaping () -> Void) {
         self.width = width
         self.title = title
@@ -31,8 +31,21 @@ public struct ConfirmCard: View {
         self.onConfirm = onConfirm
     }
 
+    @Environment(\.sizing) private var sizing
+
+    /// Spec "Layout balance": an overlay card pads 32 from its drawn edge (text at the top and left,
+    /// the buttons' frames at the bottom and right).
+    static let padding = EdgeInsets(top: Spacing.card + CrayonPart.inset, leading: Spacing.card + CrayonPart.inset,
+                                    bottom: Spacing.card, trailing: Spacing.card)
+    /// Spec "Part floors": width max(520 s, its content + the padding); the content is the buttons
+    /// row, and the title and message wrap inside.
+    static func width(sizing: Sizing, cancel: String) -> CGFloat {
+        let buttons = CardButton.width + Spacing.m + CrayonType.body.width(cancel, sizing: sizing, bold: true)
+        return max(520 * sizing.s, ceil(buttons + padding.leading + padding.trailing))
+    }
+
     public var body: some View {
-        PaperCard(seed: CrayonStyle.Seed.card + 7) {
+        PaperCard(seed: CrayonStyle.Seed.card + 7, padding: Self.padding) {
             VStack(alignment: .leading, spacing: Spacing.s) {
                 Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 if let message, let messageGlyph {
@@ -47,7 +60,7 @@ public struct ConfirmCard: View {
                     if isDestructive {
                         CardButton(confirm, isDestructive: true, action: onConfirm)
                     } else {
-                        InkButton(confirm, height: 72, action: onConfirm).frame(width: 240)
+                        InkButton(confirm, height: 72, action: onConfirm).frame(width: CardButton.width)
                     }
                     Button(action: onCancel) {
                         Text(cancel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
@@ -61,12 +74,13 @@ public struct ConfirmCard: View {
             // The paper is the card's full width (board C3x: 560); only its height hugs the content.
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: width)
+        .frame(width: width ?? Self.width(sizing: sizing, cancel: cancel))
     }
 }
 
 /// The 240 × 72 paper buttons of confirm cards and the grown-up lock (boards C0, E5).
 struct CardButton: View {
+    static let width: CGFloat = 240
     private let title: String
     private let isDestructive: Bool
     private let action: () -> Void
@@ -83,7 +97,7 @@ struct CardButton: View {
                 .crayonType(isDestructive ? .head : .body)
                 .foregroundStyle(isDestructive ? CrayonColor.lateText : CrayonColor.ink)
                 .lineLimit(1)
-                .frame(width: 240, height: 72)
+                .frame(width: Self.width, height: 72)
                 .partBackground(.capsule, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.tabs + 9)
         }
         .buttonStyle(.plain)

@@ -46,9 +46,8 @@ public struct FormCard<Content: View>: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, Spacing.l)
-            .padding(.top, 36)
-            .padding(.bottom, Spacing.m)
+            // Spec "Layout balance": an overlay card pads 32 from its drawn edge.
+            .padding(ConfirmCard.padding)
             .frame(width: size.width, alignment: .topLeading)
             .fixedSize(horizontal: false, vertical: true)
             .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.formCard)
