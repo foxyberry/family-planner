@@ -78,3 +78,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v47 (2026-11-14): new board C3x: "←" with changes → ConfirmCard "Leave without adding?" at (40, 140, 560 wide), buttons "Leave" · "Keep editing". Night C3 Repeat tabs → Once · Weekly · Monthly.
 - v48 (2026-11-14): new boards A1b (home before an outing: Kid A "Leave in" with the car, main button "Before Birthday →") and G1g (slice skipped this day: faded slice, hub "Play / Skipped / this day", card with "Bring back").
 - v49 (2026-11-15): G4 When and Arrive by are inline TimeFields (180 × 80, "→" / "latest" between; no ›), as the spec row rules and the build; Going reads "Bus 12 · leave 7:05 · 2nd 34"; Bring shows the new libraryBag art.
+- v50 (2026-11-15): G6 / G7 About label "Face"; G6, G6f, G7 and G8 re-exported from their current boards (main.card was missing: the card is now found with or without spaces in its style). G7 catches up with its current board.

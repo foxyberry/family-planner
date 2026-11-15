@@ -137,6 +137,8 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-15: Part floors, one rule set for every iPad (user via main session; checked by a design-system audit and an accessibility review): measured text minimums, 13" stays the board, touch floors grown-up / kid, floors per part, floored padding, label column, header flow, no text shrink, Dynamic Type, give-way order, G1 times row worked example.
 - 2026-11-15: SlideToGo stays slide-only (user: it is part of the fun), an accepted exception to the "alternative to every drag" guideline.
 - 2026-11-15: one spec (user): the design session edits this repo file, the layout JSON and the crayon-design skill directly on its own branch; the separate design copy is retired.
+- 2026-11-15: Part floors rulings for the build (main session asked): label column `max(128 s, longest + 12)`; FieldButton width `max(200 s, text + padding)`; pictures keep board ratios; search list ends at the column foot over the keyboard; G6 About label "Face".
+- 2026-11-15: contrast rule (user: no new tokens): body / caption 4.5 : 1, title and up 3 : 1, UI parts 3 : 1; the G1 drag readout in `pickBlue` (title 48) passes at 3.4 : 1.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -196,14 +198,14 @@ Every board and the app follow these. Change them here and on board 00 first.
       - Free × s: region frames and positions, gaps between regions, and drawings that are not controls (clock R and hub, the way strip, kid home art).
       - Floored, `max(ref × s, floor)`: every control's drawn box, the type ramp, the spacing tokens, every card inset.
       - Fixed, never scaled: marker strokes, touch floors, caption 24, row heights that hold two lines of text (72), and identity faces (`KidFace` 48 / 40 / 32; not tap targets).
-      - A picture inside a control follows the control by a fixed ratio (picture = circle × 0.73), not s.
+      - A picture inside a control keeps its board ratio to the control (pencil 56 in 80, PictureRow 64 in 88), not s.
     - **Touch.**
       - Floors: grown-up **48**, kid **72**.
       - A drawn control (field, button, tab, pill, chip, round button, switch, swatch, picture circle) is never drawn smaller than its touch floor: its visible box is its touch box.
       - Only bare glyphs (›, ✕, text links) may have a hit area larger than what is drawn. It extends invisibly to the floor, and two enlarged hit areas never overlap.
       - [open] Larger primary targets on the youngest kid's screens.
     - **Control floors, grown-up**:
-      - `CrayonField`, `FieldButton`: `max(80 s, 64)` tall; minimum width from its content (measured text + both paddings).
+      - `CrayonField`, `FieldButton`: `max(80 s, 64)` tall; width `max(200 s, measured text + both paddings)` unless the board sets one.
       - `TimeField`: as `FieldButton`; width `max(176 s, 142)` (110 + 2 × 16).
       - `InkButton`: 96 → `max(96 s, 72)`; 80 → `max(80 s, 64)`; the 72 `CardButton` → `max(72 s, 56)`.
       - `CrayonTabs`, `PillToggle`, `DayChip`: `max(72 s, 56)` tall.
@@ -231,7 +233,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - Paired controls (time → time, "latest"): gap `fluid(16, 12)` on each side of the joiner; the "→" joiner `fluid(40, 24)`.
       - Items in one group: chips and tabs 12; picture grids 16, or as the board spaces them.
     - **Label column.**
-      - Width `max(128 s, longest label in that card at caption 24 + 16)`, taken from the card's spare width.
+      - Width `max(128 s, longest label in that card at caption 24 bold + 12)`, taken from the card's spare width (12 is the label → control gap floor, so the 13" keeps 128).
       - If the card has no spare width, that card's rows reflow (step 5 below).
       - A label is still reworded rather than squeezed when it would make the column wider than 160.
     - **Header row.** Items after a floored title (the kid tabs after "Settings") flow from the title's end plus the 24 token. The ±1 board-line check is waived for them; they never overlap the title.
@@ -258,6 +260,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
 - **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 72.
 - Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
+- **Contrast**: body and caption text 4.5 : 1 on its ground, day and night; title size and up 3 : 1 (WCAG large text); UI parts and outlines 3 : 1. No extra colour tokens just to pass: change the size class or use ink.
 
 ### Grown-up form layout (every grown-up screen: C2–C5, C3k, E5, S1–S4, G1–G8, F1–F5; layout v31, 2026-11-10)
 - Side margins 40, like home (user, 2026-11-10: the old 64 + 18 inset wasted the right side). Header 40–1336: ← at 40, the right group ends at 1336.
@@ -658,7 +661,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, l
 - Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1. The tabs follow the title at gap 24 (no fixed x); "Step {n} of 4" and the dots stay at the right end (S2, S2s, S3; board fixed 2026-11-09, layout v20).
 - **School** (search, 2026-11-09; data: bundled `schools-sg.json` (MOE, 337) and `international-schools-sg.json` (81), searched together):
   - Field 610 × 80 at (232, 304), placeholder "School name". Caption "Type your school's name" (y 392).
-  - **With the keyboard up** (2026-11-15, found on the 11" iPad; applies on every size): while the search field has focus, the card scrolls so the field sits at the top of the content area (board y 148), the rows above it scroll out, and the list card opens under the field down to the keyboard top. While the keyboard is up, the "Tap your school" caption is hidden, the list starts at field bottom + 8 and may run down to the keyboard top − 8 (over the 28 × s card gap), its padding drops to 8, and rows turn into **one line of 48**: "{school name} · {area}" (name body, " · {area}" caption soft). Measured on the 11" (field 154–218, keyboard top 398): 2 rows plus half of a third, which shows the list scrolls. With the keyboard down the rows are the two-line 72 rows as before. The keyboard stays up while typing; a pick closes it.
+  - **With the keyboard up** (2026-11-15, found on the 11" iPad; applies on every size): while the search field has focus, the card scrolls so the field sits at the top of the content area (board y 148), the rows above it scroll out, and the list card opens under the field down to the keyboard top. While the keyboard is up, the "Tap your school" caption is hidden, the list starts at field bottom + 8 and ends at the card column foot above the keyboard (keyboard top − 28 × s), its padding drops to 8, and rows turn into **one line of 48**: "{school name} · {area}" (name body, " · {area}" caption soft). Measured on the 11" (field 154–218, keyboard top 398): 2 rows plus half of a third, which shows the list scrolls. With the keyboard down the rows are the two-line 72 rows as before. The keyboard stays up while typing; a pick closes it.
   - From 2 letters: caption "Tap your school"; a list card 610 wide at field bottom + 40 (y 424), over the rows below, with up to 8 matches, rows 64: the school name (body bold, `link`) over a caption: MOE school "MOE primary · {planning area}" (secondary / mixed by level); other school "International · {first curriculum}" plus " · own term dates" when it does not follow MOE terms. The **last row is always** "+ Not in the list? Type the name" (plus 32 + body bold `link`).
   - Matching: every typed word is the start of a word in the school's `searchKeys`, or the whole text equals a key (initials such as "PLMGS"). Order: exact key, name prefix, word prefix; primary before others; then A–Z.
   - No match: only the "Not in the list?" row, caption "No school with that name".
@@ -842,7 +845,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - **G3 · This day**: Days, Runs and holidays hidden; side column "{Day d Mon} only" and "Skip this day". This day keeps any change on the form for that day only, name and picture included (built, 6c). "Next {weekday}" in G5 is the first day after today that is one of the new series' weekdays (built).
 - **G4 · Edit School**: School (name ›), When, Days, Arrive by + latest, **Terms**, Going, Bring, Medal (on). Side column: tabs, "Every school day". Changing the school itself is G7. **Where each row goes** (2026-11-14, user: no new screens): School › → G7; When, Days, Arrive by edit on the G4 form itself (time fields, day chips, the S2 Arrive by / latest pair, as on S2); Terms › → the S2 term rows (MOE calendar switch and the term list) shown in the G4 form card; Going › → the S3 screen for this school's trip (stop, buses, walk, ride), opened from Settings with "←" back to G4; Bring › → F2.
 - **G5 · From when?**: the small card on Save in All days ("Today" / "Next {weekday}" / "Date", one caption when changed days no longer fit, Save / Cancel).
-- **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face/colour), School (School, Hours, Terms; a kid at home shows only "School · At home ›" → G7, and while a change waits "From {d Mon} · {new place} ›"; built PR #98), Getting there (To school, Home), Routines (Missions). **Family tab** (board G6f, 2026-11-14): "This iPad" — Grown-up lock and Medals switches (the S4 rows; Live bus times was dropped, user); "Children" — one row per kid (face 48, name bold, "{age} · {place}", "›" → that kid's tab), then "+ Add a child" (→ the S1 kid card for one new kid, up to 4). Foot as on the kid tabs: "School lists · {d Mon}" and "Data sources".
+- **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face: the row shows the face and its colour; label "Face"), School (School, Hours, Terms; a kid at home shows only "School · At home ›" → G7, and while a change waits "From {d Mon} · {new place} ›"; built PR #98), Getting there (To school, Home), Routines (Missions). **Family tab** (board G6f, 2026-11-14): "This iPad" — Grown-up lock and Medals switches (the S4 rows; Live bus times was dropped, user); "Children" — one row per kid (face 48, name bold, "{age} · {place}", "›" → that kid's tab), then "+ Add a child" (→ the S1 kid card for one new kid, up to 4). Foot as on the kid tabs: "School lists · {d Mon}" and "Data sources".
 - **G7 · Change school**: "Starts on" card ("Next term" / "Date"); then S3 for the new trip; pending row and cancel as in "Where the kid goes changes".
 - Night: grown-up screens follow the iPad's dark mode through the night mapping table.
 

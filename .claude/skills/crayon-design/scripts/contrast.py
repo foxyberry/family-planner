@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """WCAG contrast ratio of a colour pair. Usage: python3 contrast.py 625D6E FFFFFF [more pairs ...]
-This app's rule: every text colour needs 4.5 : 1 on its ground (day and night); UI parts and
-outlines need 3 : 1. (WCAG allows 3 : 1 for large text; the app holds all text to 4.5 for kids.)"""
+Pass marks follow the spec's Contrast rule: body / caption text 4.5 : 1; title size and up and UI
+parts 3 : 1."""
 import sys
 
 
@@ -19,7 +19,7 @@ def main(args):
     for fg, bg in zip(pairs[::2], pairs[1::2]):
         a, b = luminance(fg), luminance(bg)
         ratio = (max(a, b) + 0.05) / (min(a, b) + 0.05)
-        verdict = "text ok" if ratio >= 4.5 else "UI parts only, not text" if ratio >= 3 else "fails"
+        verdict = "any text" if ratio >= 4.5 else "title and up, UI parts; not body or caption" if ratio >= 3 else "fails"
         print(f"#{fg} on #{bg}: {ratio:.2f} : 1  ({verdict})")
     return 0
 

@@ -32,5 +32,5 @@ answer here.
 - Dynamic Type including accessibility sizes: controls grow and rows reflow; nothing clips.
 - VoiceOver labels on every control.
 - Bold Text, Reduce Motion and Increase Contrast.
-- Contrast at least 4.5 : 1 for text and 3 : 1 for UI parts (`scripts/contrast.py`).
+- Contrast by the spec's **Contrast** rule (`scripts/contrast.py`).
 - Never override system gestures.

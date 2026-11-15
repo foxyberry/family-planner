@@ -56,7 +56,7 @@ Rules for reading the spec:
      give-way step that applies.
 4. **Check colour pairs** before naming one:
    `python3 .claude/skills/crayon-design/scripts/contrast.py 625D6E FFFFFF`.
-   Text needs 4.5 : 1 and UI parts 3 : 1, on both day and night grounds.
+   The pass marks are the spec's **Contrast** rule (by text size), on day and night grounds.
 5. **Write it down.** Put the value into the spec with its formula, plus a change-log line. A
    value that only lives in a chat message or a PR description is lost.
 

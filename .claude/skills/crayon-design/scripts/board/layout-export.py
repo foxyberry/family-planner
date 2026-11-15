@@ -177,7 +177,7 @@ for bid, name, fam in BOARDS:
         if nc: doc['lines']['nowNextBottom'] = nc[0]['y'] + nc[0]['h']
         if cap: doc['lines']['baselines']['nowNextCaptions'] = cap[0]['baseline']
     if fam in ('grown', 'grown64'):
-        cards = list(re.finditer(r'<div class="(?:bg-cardform|card-form|bg-card[ab])"[^>]*left: (\d+)px; top: (\d+)px; width: (\d+)px; height: (\d+)px', src))
+        cards = list(re.finditer(r'<div class="(?:bg-cardform|card-form|bg-card[ab])"[^>]*left:\s*(\d+)px;\s*top:\s*(\d+)px;\s*width:\s*(\d+)px;\s*height:\s*(\d+)px', src))
         if not cards: cards = list(re.finditer(r'<div style="position: ?absolute; ?left: ?(\d+)px; ?top: ?(\d+)px; ?width: ?(8\d\d)px; ?height: ?(\d+)px; ?background: ?url\([^)]*card-8\d\dx', src))
         for n, cm in enumerate(cards, 1):
             x, y, w, h = map(int, cm.groups())
