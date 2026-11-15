@@ -82,3 +82,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v51 (2026-11-15): S1 second column on one label line (606) and one control line (678), ending on the right-edge line 818; swatches start at drawn 214 (frame on 208).
 - v52 (2026-11-15): C3g / C3k labels on 80 and controls on 208; C2 / C2c / S3 stop field stretches to 818.
 - v53 (2026-11-15): C3x ConfirmCard choices as built: outlined lateText "Leave" CardButton 240 × 72, then "Keep editing" as softText text.
+- v54 (2026-11-15): S1 remove × centred on the card's drawn corner (810–858), inside the gap before the side column.
