@@ -30,9 +30,10 @@ public struct FieldButton: View {
                 .crayonType(.body)
                 .foregroundStyle(isPlaceholder ? CrayonColor.softText : CrayonColor.ink)
                 .lineLimit(1)
-                // Spec "Part floors": text never shrinks; its padding and height have floors. Without a
-                // width the field is 200 × s (200 on the 13"), never narrower than its text + padding.
-                .padding(.horizontal, sizing.textPadding)
+                // Spec "Part floors": text never shrinks. With a formula width (TimeField) the text is
+                // centred and adds no padding (it keeps 16 clear); without one the field is 200 × s
+                // (200 on the 13"), never narrower than its text + fluid(24, 16) on each side.
+                .padding(.horizontal, width == nil ? sizing.textPadding : 0)
                 .frame(minWidth: width ?? 200 * sizing.s, maxWidth: width, minHeight: sizing.fieldHeight)
                 .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,
                                 markerColor: isActive ? CrayonColor.pickBlue : hasProblem ? CrayonColor.lateText : CrayonColor.outline)

@@ -296,12 +296,15 @@ public struct OurDayView: View {
 
     /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16.
     /// Spec "Part floors" give-way (worked example): fields max(176 s, 142); the row tries the
-    /// scaled gaps and joiner, then their floors (12, 24), then stacks ("→ end" on a second line).
+    /// scaled gaps and joiner, then their floors (12, 24), then the card inset at its floor (16),
+    /// then stacks ("→ end" on a second line).
     /// `ViewThatFits` measures the card's real width, so no width is worked out by hand.
     private var timesRow: some View {
         ViewThatFits(in: .horizontal) {
             timesLine(gap: sizing.pairGap, joiner: sizing.joiner)
             timesLine(gap: 12, joiner: 24)
+            // Step 2 also takes the small card's inset to its floor (16): the row may use that room.
+            timesLine(gap: 12, joiner: 24).padding(.horizontal, -(sliceCardInset - Spacing.s))
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 startField
                 HStack(spacing: 12) { arrow(24); endField }
