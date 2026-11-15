@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "50",
  "board": "G6",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -288,14 +288,14 @@
    "kind": "text",
    "x": 80,
    "y": 295,
-   "w": 145,
+   "w": 56,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 323,
    "font": 24,
-   "text": "Face, colour"
+   "text": "Face"
   },
   {
    "id": "main.picture.3",

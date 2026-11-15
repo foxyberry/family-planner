@@ -4,7 +4,7 @@ Boards: A1, E1, E3, C0, C1, C3, C4, C3k, E5, E6 (design canvas, page "v3 · Cray
 Public-safe: children are **Kid A** (older, school) and **Kid B** (toddler, at home). No school, stop, route or bus numbers appear here. Times in examples are seed values, not real ones.
 
 ## Change log
-The repo copy of this file must match this one. Each change is dated; the newest is last.
+This file is the only copy: the design session edits it on its own branch (PR into develop) and the building session reads it. Each change is dated; the newest is last.
 - 2026-11-07: first version.
 - 2026-11-07: hub text on M1 type steps (24 / 48 / 30); midnight day change; sleep stored as two slots and merged; E5 save rule.
 - 2026-11-08: E3 shows the day above both kids; C1 "Day" opens C6, "Holidays" opens C7 (later); new C6 and C7 sections.
@@ -125,13 +125,20 @@ The repo copy of this file must match this one. Each change is dated; the newest
 - 2026-11-14: clock-drawing tools rebuilt (home clock and G1 editor clock, now driven by a config file); new boards A1b (home before an outing, "Before Birthday →") and G1g (slice skipped this day, "Bring back"). Layout v48.
 - 2026-11-14: bring kit batch drawn (swimsuit = unisex two-piece, all blue (rash-guard top + swim shorts, slim), goggles, towel = kids' hooded robe, slim (label "Robe"), rollerblades, helmet, libraryBag; kit.js lines 435–491, board 0d4; no pink; libraryBag has backpack's face, the rest none; tap rig = default hop).
 - 2026-11-15: swim shorts narrowed to the top's width (top body 86, shorts 88–98); robe body slimmed from 96 to 72 wide with shorter sleeves (kit.js swimsuit / towel, board 0d4).
-- 2026-11-15: G7 Goes to built (PR #98) and confirmed: a kid at home keeps a School section with "School · At home ›"; a new place moves / renames the School slice (School or Preschool), a day without one gets a slice over the hours, At home makes it free time.
-- 2026-11-15: C2c built rules confirmed (tight < 2 min incl. the walk, link "2nd choice · 34 › 33", Then = all buses but the first until N11, ← uses the C3x ConfirmCard); G7 "Goes to" reuses S2's Goes to row and search geometry, At home also asks Starts on.
-- 2026-11-15: G4 This day skip built (PR #95): School's G1 card has "Edit School ›" instead of Skip; G4 This day "Skip this day" ↔ "Bring back this day", saved at once.
-- 2026-11-15: board G4 follows the build (main session asked): When and Arrive by are inline time fields, no ›; Terms › opens the S2 term rows in the G4 card (no new board); G6 "Home" row is backlog 6b (way back), "evening" missions are the evening-and-screens item; both rows hidden until built. Layout v49.
-- 2026-11-15: G1 slice card link (main session asked, PR #90): This day shows "Skip this day" in place of "Make this free time" (one link per card); School can be skipped this day; G1g hub text is `softText`.
-- 2026-11-15: Bring picker clash fixed (main session asked): the first row stays the F2 row of 4 with Shoes; the batch of six leads the More list, as built in PR #83.
 - 2026-11-15: bring colours: helmet red (grey buckle), rollerblades ivory boot (yellow cuff kept), libraryBag navy with white face (white eyes r7 and a white smile, both ink-ringed) and a yellow book.
+- 2026-11-15: Bring picker clash fixed (main session asked): the first row stays the F2 row of 4 with Shoes; the batch of six leads the More list, as built in PR #83.
+- 2026-11-15: G1 slice card link (main session asked, PR #90): This day shows "Skip this day" in place of "Make this free time" (one link per card); School can be skipped this day; G1g hub text is `softText`.
+- 2026-11-15: board G4 follows the build (main session asked): When and Arrive by are inline time fields, no ›; Terms › opens the S2 term rows in the G4 card (no new board); G6 "Home" row is backlog 6b (way back), "evening" missions are the evening-and-screens item; both rows hidden until built. Layout v49.
+- 2026-11-15: G4 This day skip built (PR #95): School's G1 card has "Edit School ›" instead of Skip; G4 This day "Skip this day" ↔ "Bring back this day", saved at once.
+- 2026-11-15: C2c built rules confirmed (tight < 2 min incl. the walk, link "2nd choice · 34 › 33", Then = all buses but the first until N11, ← uses the C3x ConfirmCard); G7 "Goes to" reuses S2's Goes to row and search geometry, At home also asks Starts on.
+- 2026-11-15: G7 Goes to built (PR #98) and confirmed: a kid at home keeps a School section with "School · At home ›"; a new place moves / renames the School slice (School or Preschool), a day without one gets a slice over the hours, At home makes it free time.
+- 2026-11-15: 11" iPad pass (main session, branch feature/m2-ipad11-fixes). User decisions: on narrower iPads the spare width goes to the grown-up form card (the card ends 24 × s before the side column, as on 13"), not the gap; form labels stay on one line (the 70 % shrink was dropped the same day: Part floors). Design decision: S2s / G7 search with the keyboard up scrolls the field to the content top with the list between the field and the keyboard.
+- 2026-11-15: search with the keyboard up gets one-line 48 rows and runs to the keyboard top − 8 (2½ rows on the 11"); home pencil 96 (user, built), x 1240–1336, y 36–132. Kid home boards still draw the 80 pencil; next board batch.
+- 2026-11-15: Part floors, one rule set for every iPad (user via main session; checked by a design-system audit and an accessibility review): measured text minimums, 13" stays the board, touch floors grown-up / kid, floors per part, floored padding, label column, header flow, no text shrink, Dynamic Type, give-way order, G1 times row worked example.
+- 2026-11-15: SlideToGo stays slide-only (user: it is part of the fun), an accepted exception to the "alternative to every drag" guideline.
+- 2026-11-15: one spec (user): the design session edits this repo file, the layout JSON and the crayon-design skill directly on its own branch; the separate design copy is retired.
+- 2026-11-15: Part floors rulings for the build (main session asked): label column `max(128 s, longest + 12)`; FieldButton width `max(200 s, text + padding)`; pictures keep board ratios; search list ends at the column foot over the keyboard; G6 About label "Face".
+- 2026-11-15: contrast rule (user: no new tokens): body / caption 4.5 : 1, title and up 3 : 1, UI parts 3 : 1; the G1 drag readout in `pickBlue` (title 48) passes at 3.4 : 1.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -165,7 +172,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Fixed regions** (2026-11-08, user): every screen is a fixed frame of named regions taken from its board (for example header 48–128, strip 176–516, kids and missions 536–968). A region's place and size never come from its content, and a region never disappears so that the regions below can move up: when it has nothing to show, it shows its empty look (each screen names one). Content inside a region is top-aligned (or aligned as the board shows) and capped to the region; it never pushes, centres or resizes the frame. The y values are board coordinates, which already sit below the 24 pt status bar band (see "Status bar"); on other iPads they turn into screen values through "Sizing formulas" below.
 - **Layout contract** (user, 2026-11-09: screens kept drifting off the board lines). One source, three views, one check:
   1. **Source**: the board. Every part of every screen sits on a named line or in a named region; a part that needs a new line gets the line named first (board + this spec), never an ad-hoc offset.
-  2. **Machine copy**: `handover/layout/<board>.json` (exported from the boards, versioned `layout vN`; public-safe). The app copies it as its layout table and places every listed part from it through one modifier. Inside a part, padding is the part's own; between parts, only the table decides. No stack spacing, no centring, no guessed offsets for anything that is in the table.
+  2. **Machine copy**: `docs/superpowers/layout/<board>.json` (exported from the boards, versioned `layout vN`; public-safe). The app copies it as its layout table and places every listed part from it through one modifier. Inside a part, padding is the part's own; between parts, only the table decides. No stack spacing, no centring, no guessed offsets for anything that is in the table.
   3. **Human view**: the canvas page "Redlines" shows every screen with its lines, regions and part boxes, generated from the same JSON (do not edit by hand). Read a screen's redline before building or fixing it.
   4. **Check**: the app's layout test compares part frames with the table (shared lines ±1 pt after scaling) on 1376 × 1032, 1366 × 1024, 1180 × 820 and 1133 × 744, and a debug overlay draws the same lines on the device.
   - Any board change re-exports the JSON and the redlines together and bumps `layout vN`; the message to the main session names the version and the changed ids. A part missing from the table is a question to the design session, not a guess.
@@ -182,16 +189,83 @@ Every board and the app follow these. Change them here and on board 00 first.
   - **Horizontal position**: every region has an anchor. Default, when a screen does not name one: a region that spans both margins (64 … 1312 on the morning screens; 40 … 1336 on home and grown-up screens) **stretches** (left = margin × s, right = W − margin × s); otherwise it is **left**-anchored (x = x_board × s) when its board centre is left of 688, else **right**-anchored (x = W − (1376 − x_board) × s). Named exceptions: the home right panel (A1, A1n, E1, E3, E3b) stretches from 928 s to W − 40 s, so the extra width of a narrower-but-taller iPad goes to the text, not to a gap.
   - **Type**: hero `fluid(144, 96)`, display `fluid(96, 64)`, title `fluid(48, 36)`, head `fluid(36, 30)`, body `fluid(30, 24)`, caption **24 fixed** (still nothing under 24). Mini: 103 / 69 / 36 / 30 / 24 / 24. Use `Font.custom(_:size:relativeTo:)` with the scaled size so Dynamic Type still works on top; do not also use `@ScaledMetric` on the same size. Text that may not fit at its floor wraps or uses `ViewThatFits`; it never shrinks below the floor.
   - **Spacing**: 4, 8, 12 fixed (inside one part). 16 → `fluid(16, 12)`, 24 → `fluid(24, 16)`, 40 → `fluid(40, 28)`, 64 → `fluid(64, 40)`. Grid: margin `fluid(64, 40)`, gutter `fluid(24, 16)`, column = (W − 2 margin − 11 gutter) / 12 (82 at 13").
-  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip: the ground and the road fill the strip region (64 s … W − 64 s) and its height is 340 s; stop, stem and picture **x** positions are proportional to the strip width, every **size and y** uses s, and nothing is stretched (a tree stays round); labels and the card sit on top at their own type sizes (changed 2026-11-09 from keep-aspect, which left a 6 pt gap per side)). Kid tap targets stay ≥ 64 [proposed]. Crayon outlines × s; focus rings and hairlines fixed.
+  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip: the ground and the road fill the strip region (64 s … W − 64 s) and its height is 340 s; stop, stem and picture **x** positions are proportional to the strip width, every **size and y** uses s, and nothing is stretched (a tree stays round); labels and the card sit on top at their own type sizes (changed 2026-11-09 from keep-aspect, which left a 6 pt gap per side)). Kid tap targets: see Part floors. Crayon outlines × s; focus rings and hairlines fixed.
+  - **Part floors: one rule set for every iPad**. Build it once in DesignSystem as one `Sizing` helper per part; no screen sets its own sizes.
+    - **Ground rules.**
+      - **13" is the board.** At s = 1 every formula below gives the board value back; a floor never changes the 13" look.
+      - **Measure, don't guess.** Minimum widths come from the text measured in Playpen Sans at its type floor, not from rounded numbers. Measured at 24 pt: "12:45 pm" medium 110; "Preschool" medium 113, bold 117; "Arrive by" bold 113. The layout test measures the same way.
+    - **Three kinds of value.**
+      - Free × s: region frames and positions, gaps between regions, and drawings that are not controls (clock R and hub, the way strip, kid home art).
+      - Floored, `max(ref × s, floor)`: every control's drawn box, the type ramp, the spacing tokens, every card inset.
+      - Fixed, never scaled: marker strokes, touch floors, caption 24, row heights that hold two lines of text (72), and identity faces (`KidFace` 48 / 40 / 32; not tap targets).
+      - A picture inside a control keeps its board ratio to the control (pencil 56 in 80, PictureRow 64 in 88), not s.
+    - **Touch.**
+      - Floors: grown-up **48**, kid **72**.
+      - A drawn control (field, button, tab, pill, chip, round button, switch, swatch, picture circle) is never drawn smaller than its touch floor: its visible box is its touch box.
+      - Only bare glyphs (›, ✕, text links) may have a hit area larger than what is drawn. It extends invisibly to the floor, and two enlarged hit areas never overlap.
+      - [open] Larger primary targets on the youngest kid's screens.
+    - **Control floors, grown-up**:
+      - `CrayonField`, `FieldButton`: `max(80 s, 64)` tall; width `max(200 s, measured text + both paddings)` unless the board sets one.
+      - `TimeField`: as `FieldButton`; width `max(176 s, 142)` (110 + 2 × 16).
+      - `InkButton`: 96 → `max(96 s, 72)`; 80 → `max(80 s, 64)`; the 72 `CardButton` → `max(72 s, 56)`.
+      - `CrayonTabs`, `PillToggle`, `DayChip`: `max(72 s, 56)` tall.
+      - Tab width in an equal-choice row (Goes to, Once · Weekly · Monthly, This day / All days): `max(board width × s, longest label at its picked weight + 2 × 16)`. Goes to: `max(180 s, 149)`, so 13" stays 180.
+      - `RoundButton` (← 80, Undo / Redo 72, the bus steppers 72): `max(ref s, 56)`.
+      - `CrayonSwitch`: `max(96 s, 72)` wide × `max(52 s, 48)` tall; knob `max(44 s, 40)`.
+      - `ColourSwatch`: `max(56 s, 48)`. Faces picked in S1: `max(64 s, 56)`.
+      - `ChoiceCircles` (88 / 104 / 112), `PictureRow` 88, `IconPicker` tiles 88: `max(ref s, 72)`.
+      - `DateChip` 96 × 104: `max(ref s, 72)` wide; height in proportion.
+      - `SettingRow` 120: `max(120 s, 88)`, its picture `max(56 s, 48)`.
+      - Rows: two-line `ResultListCard` / `PreviewRow` / `ListRow` rows are **72 fixed**; one-line rows (the keyboard-up search) are **48 fixed** (the board value).
+      - `ConfirmCard`: width `max(520 s, its content)`, buttons as `CardButton`.
+      - `FormCard`: top padding is the 40 token (`fluid(40, 28)`); its buttons follow `InkButton` / `FieldButton`.
+      - Clock knob: drawn 36 and touch 64, both fixed. The clock "+" and add-between: `max(56 s, 48)`.
+    - **Control floors, kid:**
+      - every kid tap target: `max(ref s, 72)`;
+      - `MissionCircle` and check circles: `max(112 s, 88)`;
+      - `SlideToGo`: track `max(ref s, 72)` tall, thumb `max(ref s, 72)`; the slide is the only way to finish (user, 2026-11-15: the slide is part of the fun; no tap path);
+      - pencil and sky switch: `max(96 s, 72)` tall;
+      - `TimeLeft` compact: `max(72 s, 56)`.
+    - **Padding (floored).**
+      - Text to a control's drawn edge: `fluid(24, 16)`: fields, `FieldButton`, tabs, pills, `InkButton`. Centred text in a fixed-width control (`TimeField`, a tab) needs at least 16 clear on each side.
+      - Card insets: form card `fluid(40, 28)`; small cards (G1 slice card, `ConfirmCard`, list cards) `max(24 s, 16)`.
+      - Label → control gap: `fluid(16, 12)` (the 16 token).
+      - Paired controls (time → time, "latest"): gap `fluid(16, 12)` on each side of the joiner; the "→" joiner `fluid(40, 24)`.
+      - Items in one group: chips and tabs 12; picture grids 16, or as the board spaces them.
+    - **Label column.**
+      - Width `max(128 s, longest label in that card at caption 24 bold + 12)`, taken from the card's spare width (12 is the label → control gap floor, so the 13" keeps 128).
+      - If the card has no spare width, that card's rows reflow (step 5 below).
+      - A label is still reworded rather than squeezed when it would make the column wider than 160.
+    - **Header row.** Items after a floored title (the kid tabs after "Settings") flow from the title's end plus the 24 token. The ±1 board-line check is waived for them; they never overlap the title.
+    - **Text.**
+      - No `minimumScaleFactor` anywhere: text never draws under its type floor.
+      - A label that does not fit is reworded, never squeezed.
+      - Typed names (kid, school, activity) may wrap to 2 lines in a row, then end with "…". VoiceOver still reads the whole name.
+      - Button and tab text: one line at the default text size. Switch captions: at most 2 lines.
+      - **Dynamic Type:** every height above is a minimum, not a fixed frame. When the user's text size makes text taller or wider, the control grows, a one-line button or tab may wrap to 2 lines, and the row reflows (step 5) before anything clips.
+    - **When a row does not fit, give way in this order:**
+      1. the row's spare width;
+      2. the gap tokens and joiners, down to their floors;
+      3. stretchable controls (search, name, value areas, `TimeField`), down to their minimum width (measured content + both paddings);
+      4. the label column, which may grow into the card's spare width (see "Label column");
+      5. reflow: the control drops under its label (label line, then the control at full content width); an equal-choice group wraps to a second line (fill rule per line); a start → end pair stacks (start on the first line, "→ end" on the second);
+      6. the card scrolls vertically.
+      Never sideways scroll, never shrink text, never cut padding under its floor, never go under a touch floor.
+    - **G1 slice card times row** (worked example):
+      - inner = `472 s − 2 × max(24 s, 16)`; fields = `min(176, (inner − 2 × gap − arrow) / 2)`, with gap `fluid(16, 12)` and arrow `fluid(40, 24)`.
+      - 13": inner 424, fields 176 (unchanged).
+      - 11" (s 0.79): inner 335. With the gaps at their scaled values the fields would be 139, so step 2 takes the gaps to 12 and the arrow to 24; the fields are then 143 (≥ 142).
+      - mini (s 0.714): inner 303. Even at the floors the fields are 127 (< 142), so step 5 stacks the pair.
   - **Not covered yet**: portrait and resizable windows (iPadOS 26 cannot be refused). Until they are designed (backlog), the same formulas run with s floored at 0.70; content may clip in small windows.
 - **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
-- **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 64.
+- **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 72.
 - Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
+- **Contrast**: body and caption text 4.5 : 1 on its ground, day and night; title size and up 3 : 1 (WCAG large text); UI parts and outlines 3 : 1. No extra colour tokens just to pass: change the size class or use ink.
 
 ### Grown-up form layout (every grown-up screen: C2–C5, C3k, E5, S1–S4, G1–G8, F1–F5; layout v31, 2026-11-10)
 - Side margins 40, like home (user, 2026-11-10: the old 64 + 18 inset wasted the right side). Header 40–1336: ← at 40, the right group ends at 1336.
 - Top (layout v32, user: use the top like home): header row **44–124**, so the ← (80) sits on the same row as the home pencil (1260, 44, 80); title baseline 103. Content starts at **148** (24 below the header). Bottom stays 968.
-- Form card: `PaperCard`, x 40, w 800 (to 840), y 148–968 (h 820). The marker stroke stays 6 inside its box.
+- Form card: `PaperCard`, x 40, w 800 (to 840), y 148–968 (h 820). The marker stroke stays 6 inside its box. On a narrower iPad the form card takes the spare width: it ends 24 × s before the side column (the side column keeps its right anchor).
 - Labels inside the card: x 80 (card + 40), caption-weight body text in `softText`, label tops align with their control tops. A label fits in 112 (ends by 192, 16 clear of the controls at 208); a longer label is reworded, never squeezed (C2 "Late up to" → "Late", 2026-11-14).
 - Controls start at x 208 (label + 128). Full-width rows run 80–800 (w 720).
 - Gap 24, then the side column: x 864, w 472 (to 1336). Every side part that spans the column is 472 wide: day button, slice card, tabs row, list rows and their highlight, "Remove every week" / "Skip" buttons.
@@ -587,6 +661,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, l
 - Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1. The tabs follow the title at gap 24 (no fixed x); "Step {n} of 4" and the dots stay at the right end (S2, S2s, S3; board fixed 2026-11-09, layout v20).
 - **School** (search, 2026-11-09; data: bundled `schools-sg.json` (MOE, 337) and `international-schools-sg.json` (81), searched together):
   - Field 610 × 80 at (232, 304), placeholder "School name". Caption "Type your school's name" (y 392).
+  - **With the keyboard up** (2026-11-15, found on the 11" iPad; applies on every size): while the search field has focus, the card scrolls so the field sits at the top of the content area (board y 148), the rows above it scroll out, and the list card opens under the field down to the keyboard top. While the keyboard is up, the "Tap your school" caption is hidden, the list starts at field bottom + 8 and ends at the card column foot above the keyboard (keyboard top − 28 × s), its padding drops to 8, and rows turn into **one line of 48**: "{school name} · {area}" (name body, " · {area}" caption soft). Measured on the 11" (field 154–218, keyboard top 398): 2 rows plus half of a third, which shows the list scrolls. With the keyboard down the rows are the two-line 72 rows as before. The keyboard stays up while typing; a pick closes it.
   - From 2 letters: caption "Tap your school"; a list card 610 wide at field bottom + 40 (y 424), over the rows below, with up to 8 matches, rows 64: the school name (body bold, `link`) over a caption: MOE school "MOE primary · {planning area}" (secondary / mixed by level); other school "International · {first curriculum}" plus " · own term dates" when it does not follow MOE terms. The **last row is always** "+ Not in the list? Type the name" (plus 32 + body bold `link`).
   - Matching: every typed word is the start of a word in the school's `searchKeys`, or the whole text equals a key (initials such as "PLMGS"). Order: exact key, name prefix, word prefix; primary before others; then A–Z.
   - No match: only the "Not in the list?" row, caption "No school with that name".
@@ -755,7 +830,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 
 ## Grown-up mode (final design 2026-11-09; boards G0–G8 on page "Grown-up mode (next to build)") [board, ahead of build]
 User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settings; a List view is kept. Screens are as plain as the built ones (values, pictures, short labels; no explanatory sentences; no lines in cards).
-- **G0 · Way in**: the pencil `RoundButton` 80 (yellow pencil picture 56) at x 1260, y 44 on every kid home → C0 Face ID → G1. The 2 s clock hold stays; a hold on a slice opens G1 with that slice picked.
+- **G0 · Way in**: the pencil `RoundButton` **96** (user, 2026-11-15, built: as tall as the sky switch, on its centre line, 40 from the glass: x 1240–1336, y 36–132; was 80 at 1260, 44) on every kid home → C0 Face ID → G1. The 2 s clock hold stays; a hold on a slice opens G1 with that slice picked.
 - **G1 · The day on the clock** (replaces C6; boards G1, G1c): C6's clock, drag rules and slice card, on a real date. Header: "←" (back to the kid home; locks again), "Our day", kid tabs, then `CrayonTabs` **List** 110 · **Settings** 160 at the right (always these two; Undo / Redo live by the clock, below). Right column: one **day button** (382 × 72, `CrayonTabs` off look): "Today" (body bold) + "Mon 9 Nov" (body soft) + a down chevron; on another day it reads "Sat 14 Nov". Tap → **G1c** day picker (user, 2026-11-09: look ahead, e.g. at the weekend): a small card with the month (head) and ‹ › round buttons, two weeks of date chips (62 × 84, today underlined, the picked one in sky), and a "Today" link. Picking a day closes the card and shows that day on the clock. A template slot (wake, meals, bed) opens the C6 slice card with "This day" / "All days" under the title; School and activities open G2/G4. "+" on free time adds (C3/C4). "Save" (InkButton). **Undo** only steps back drags made since the last Save; it is not a change history. **Undo / Redo** (user, 2026-11-09): two `RoundButton` 72 at the bottom right of the clock area (x 722 and 810, y 880), with the new marker glyphs `undo` / `redo` (36, ink). Always shown; **off** = the button at 45 % with the soft glyph (nothing to undo / redo), **on** = full ink. One tap = one step: Undo takes back the last change (one finished drag, one time typed in the slice card, one "Make this free time"), Redo puts it back; they only reach back to the last Save, and Save clears them. To throw changes away, Undo back to the last Save ("Don't save" was dropped 2026-11-14, user). The header right end is always List · Settings. **Leaving with unsaved drags** (List, Settings, ←, a kid tab, another day) asks first (G1d), with the shared `ConfirmCard`: "Save the changes?" (head), one line naming the change (body soft), then two buttons, Save (ink) · Cancel (stay on G1). Never a third button.
 - **G1 as built (PR 60) and the calls on it** (2026-11-10):
   - Template slots follow the one scope rule fully: Save on **All days** shows **G5 "Change from when?"** too (Today / Next {weekday} / Date); the day type's template changes from that day, never before today.
@@ -770,7 +845,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - **G3 · This day**: Days, Runs and holidays hidden; side column "{Day d Mon} only" and "Skip this day". This day keeps any change on the form for that day only, name and picture included (built, 6c). "Next {weekday}" in G5 is the first day after today that is one of the new series' weekdays (built).
 - **G4 · Edit School**: School (name ›), When, Days, Arrive by + latest, **Terms**, Going, Bring, Medal (on). Side column: tabs, "Every school day". Changing the school itself is G7. **Where each row goes** (2026-11-14, user: no new screens): School › → G7; When, Days, Arrive by edit on the G4 form itself (time fields, day chips, the S2 Arrive by / latest pair, as on S2); Terms › → the S2 term rows (MOE calendar switch and the term list) shown in the G4 form card; Going › → the S3 screen for this school's trip (stop, buses, walk, ride), opened from Settings with "←" back to G4; Bring › → F2.
 - **G5 · From when?**: the small card on Save in All days ("Today" / "Next {weekday}" / "Date", one caption when changed days no longer fit, Save / Cancel).
-- **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face/colour), School (School, Hours, Terms; a kid at home shows only "School · At home ›" → G7, and while a change waits "From {d Mon} · {new place} ›"; built PR #98), Getting there (To school, Home), Routines (Missions). **Family tab** (board G6f, 2026-11-14): "This iPad" — Grown-up lock and Medals switches (the S4 rows; Live bus times was dropped, user); "Children" — one row per kid (face 48, name bold, "{age} · {place}", "›" → that kid's tab), then "+ Add a child" (→ the S1 kid card for one new kid, up to 4). Foot as on the kid tabs: "School lists · {d Mon}" and "Data sources".
+- **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face: the row shows the face and its colour; label "Face"), School (School, Hours, Terms; a kid at home shows only "School · At home ›" → G7, and while a change waits "From {d Mon} · {new place} ›"; built PR #98), Getting there (To school, Home), Routines (Missions). **Family tab** (board G6f, 2026-11-14): "This iPad" — Grown-up lock and Medals switches (the S4 rows; Live bus times was dropped, user); "Children" — one row per kid (face 48, name bold, "{age} · {place}", "›" → that kid's tab), then "+ Add a child" (→ the S1 kid card for one new kid, up to 4). Foot as on the kid tabs: "School lists · {d Mon}" and "Data sources".
 - **G7 · Change school**: "Starts on" card ("Next term" / "Date"); then S3 for the new trip; pending row and cancel as in "Where the kid goes changes".
 - Night: grown-up screens follow the iPad's dark mode through the night mapping table.
 
@@ -930,9 +1005,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 ### Transitions
 - Repeat → "Just once" switches the same screen to the C4 layout. Values kept: For, What, Name, When.
 - "Add to the clock" → save, pop back to the screen that opened it (C1 or home). The new item appears there and on the clock.
-- "←" with changes → the shared `ConfirmCard` pointing at "←" (board C3x, 2026-11-14): title "Leave without adding?" (C3 / C4) or "Leave without saving?" (E5 / G2–G4); buttons main first, "Leave" (`lateText`) · "Keep editing". Was:
-  - title "Leave without adding?"
-  - buttons "Keep editing" / "Leave"
+- "←" with changes → the shared `ConfirmCard` pointing at "←" (board C3x, 2026-11-14): title "Leave without adding?" (C3 / C4) or "Leave without saving?" (E5 / G2–G4); buttons main first, "Leave" (`lateText`) · "Keep editing".
 - "←" without changes → back at once.
 
 ### Validation [proposed]

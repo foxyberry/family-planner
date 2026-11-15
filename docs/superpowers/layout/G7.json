@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "50",
  "board": "G7",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -288,14 +288,14 @@
    "kind": "text",
    "x": 80,
    "y": 295,
-   "w": 145,
+   "w": 56,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 323,
    "font": 24,
-   "text": "Face, colour"
+   "text": "Face"
   },
   {
    "id": "main.picture.3",
@@ -320,32 +320,7 @@
    "align": "inside"
   },
   {
-   "id": "main.picture.5",
-   "kind": "picture",
-   "x": 448,
-   "y": 342,
-   "w": 56,
-   "h": 56,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "main.text.6",
-   "kind": "text",
-   "x": 520,
-   "y": 342,
-   "w": 321,
-   "h": 54,
-   "region": "main",
-   "anchor": "left",
-   "align": "end",
-   "baseline": 384,
-   "font": 36,
-   "text": "Riverside Primary"
-  },
-  {
-   "id": "main.text.7",
    "kind": "text",
    "x": 80,
    "y": 358,
@@ -359,28 +334,29 @@
    "text": "School"
   },
   {
-   "id": "main.button.1",
-   "kind": "button",
-   "x": 584,
-   "y": 418,
-   "w": 184,
-   "h": 72,
+   "id": "main.picture.5",
+   "kind": "picture",
+   "x": 448,
+   "y": 362,
+   "w": 56,
+   "h": 56,
    "region": "main",
    "anchor": "left",
-   "align": "inside",
-   "text": "Next term"
+   "align": "inside"
   },
   {
-   "id": "main.button.2",
-   "kind": "button",
-   "x": 784,
-   "y": 418,
-   "w": 130,
-   "h": 72,
+   "id": "main.text.7",
+   "kind": "text",
+   "x": 520,
+   "y": 363,
+   "w": 321,
+   "h": 54,
    "region": "main",
    "anchor": "left",
-   "align": "inside",
-   "text": "Date"
+   "align": "end",
+   "baseline": 405,
+   "font": 36,
+   "text": "Riverside Primary"
   },
   {
    "id": "main.text.8",
@@ -433,16 +409,40 @@
    "align": "inside"
   },
   {
+   "id": "main.button.1",
+   "kind": "button",
+   "x": 584,
+   "y": 438,
+   "w": 184,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Next term"
+  },
+  {
+   "id": "main.button.2",
+   "kind": "button",
+   "x": 784,
+   "y": 438,
+   "w": 130,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Date"
+  },
+  {
    "id": "main.text.10",
    "kind": "text",
    "x": 448,
-   "y": 435,
+   "y": 456,
    "w": 117,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 463,
+   "baseline": 484,
    "font": 24,
    "text": "Starts on"
   },
@@ -488,13 +488,13 @@
    "id": "main.text.13",
    "kind": "text",
    "x": 560,
-   "y": 507,
+   "y": 527,
    "w": 223,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 535,
+   "baseline": 555,
    "font": 24
   },
   {
@@ -538,6 +538,20 @@
   {
    "id": "main.text.16",
    "kind": "text",
+   "x": 516,
+   "y": 602,
+   "w": 84,
+   "h": 54,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 630,
+   "font": 36,
+   "text": "Save"
+  },
+  {
+   "id": "main.text.17",
+   "kind": "text",
    "x": 80,
    "y": 606,
    "w": 243,
@@ -550,30 +564,16 @@
    "text": "Getting there"
   },
   {
-   "id": "main.text.17",
-   "kind": "text",
-   "x": 516,
-   "y": 622,
-   "w": 84,
-   "h": 54,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 650,
-   "font": 36,
-   "text": "Save"
-  },
-  {
    "id": "main.text.18",
    "kind": "text",
    "x": 692,
-   "y": 627,
+   "y": 607,
    "w": 102,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 662,
+   "baseline": 642,
    "font": 30,
    "text": "Cancel"
   },
