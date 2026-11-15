@@ -9,6 +9,7 @@ fp_swift_library(
         "//ios/AppCore",
         "//ios/Clients/AppSettings",
         "//ios/Clients/DeviceLook",
+        "//ios/Clients/KeyboardClient",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Domain",

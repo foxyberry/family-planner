@@ -10,8 +10,10 @@ import SwiftUI
 /// the pending line with "Cancel the change".
 public struct ChangeSchoolView: View {
     @Bindable var store: StoreOf<ChangeSchoolFeature>
-    /// Focusing a field asks the card to bring the search to its top (S2s rule, 2026-11-15).
+    /// The search comes to the card's top once the keyboard is up (spec "Keyboard").
     @State private var searchFocus = 0
+    @State private var fieldIsFocused = false
+    @Environment(\.keyboardTop) private var keyboardTop
     private static let searchID = "g7.search"
 
     public init(store: StoreOf<ChangeSchoolFeature>) {
@@ -30,11 +32,10 @@ public struct ChangeSchoolView: View {
                             .formLabels([L10n.tr("s2.goes"), L10n.tr("s2.preschool")])
                     }
                     .onPreferenceChange(FieldFocusKey.self) { focused in
-                        guard focused else { return }
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .milliseconds(350))
-                            if store.place == .school { searchFocus += 1 }
-                        }
+                        Task { @MainActor in fieldIsFocused = focused }
+                    }
+                    .onChange(of: keyboardTop) { _, top in
+                        if top != nil, fieldIsFocused, store.place == .school { searchFocus += 1 }
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)

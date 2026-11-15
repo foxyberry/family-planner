@@ -1,5 +1,6 @@
 import AppSettings
 import ComposableArchitecture
+import KeyboardClient
 import DesignSystem
 import DeviceLook
 import Domain
@@ -63,6 +64,10 @@ public struct AppFeature {
         public var grownupIdleSeconds: Int?
         /// "Locks in 0:30" during the last 30 seconds, shown instead of "Grown-ups only".
         public var relockCaption: String?
+        /// Spec "Keyboard": the docked keyboard's top in window points while it is up (the one
+        /// injected decision every screen reads), and its animation time.
+        public var keyboardTop: CGFloat?
+        public var keyboardDuration: Double = 0.25
         /// A debug link's grown-up board, opened once the unlock passes and Our day has loaded.
         public var pendingBoard: GrownupBoard?
         /// Grown-up mode was asked for before the home had loaded its kids (a link at launch with
@@ -122,9 +127,12 @@ public struct AppFeature {
         case home(HomeFeature.Action)
         /// A screen deep link (`familyplanner://missions`).
         case linkOpened(ScreenLink)
+        /// The keyboard client's change (spec "Keyboard").
+        case keyboardChanged(KeyboardChange)
     }
 
     @Dependency(\.deviceLook) var deviceLook
+    @Dependency(\.keyboard) var keyboard
     @Dependency(\.appSettings) var appSettings
     @Dependency(\.calendar) var calendar
     @Dependency(\.continuousClock) var clock
@@ -199,11 +207,21 @@ public struct AppFeature {
                 return .send(.home(.reload))
 
             case .task:
-                return .run { [clock, date] send in
-                    for await _ in clock.timer(interval: .seconds(1)) {
-                        await send(.tick(date.now))
+                return .merge(
+                    .run { [clock, date] send in
+                        for await _ in clock.timer(interval: .seconds(1)) {
+                            await send(.tick(date.now))
+                        }
+                    },
+                    .run { [keyboard] send in
+                        for await change in keyboard.changes() { await send(.keyboardChanged(change)) }
                     }
-                }
+                )
+
+            case let .keyboardChanged(change):
+                state.keyboardTop = change.top
+                state.keyboardDuration = change.duration
+                return .none
 
             case let .tick(now):
                 state.now = now

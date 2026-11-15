@@ -14,6 +14,8 @@ import DebugTools
 #endif
 import HolidayProvider
 import HolidayProviderLive
+import KeyboardClient
+import KeyboardClientLive
 import ParentAuthClient
 import ParentAuthClientLive
 import SchoolDirectory
@@ -27,6 +29,7 @@ final class AppDelegate: AppDelegateBase {
         dependencies.parentAuth = .live
         dependencies.appSettings = .live()
         dependencies.deviceLook = .live
+        dependencies.keyboard = .live
         dependencies.holidays = .live
         dependencies.scheduleStore = .live(directory: .applicationSupportDirectory)
         dependencies.schoolDirectory = .live

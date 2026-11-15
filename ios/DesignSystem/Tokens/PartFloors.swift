@@ -118,6 +118,9 @@ public extension EnvironmentValues {
     /// True inside a grown-up header row: its text controls (tabs, pills) stay 72 on every iPad
     /// (spec "Part floors → Header row").
     @Entry var isHeaderRow = false
+    /// Spec "Keyboard": the docked keyboard's top in window points while it is up, from the one
+    /// keyboard client (AppFeature sets it at the root); nil when no keyboard counts as up.
+    @Entry var keyboardTop: CGFloat? = nil
 }
 
 public extension CrayonType {

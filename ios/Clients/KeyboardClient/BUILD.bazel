@@ -1,0 +1,8 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Interface and the pure "keyboard up" rule. The UIKit notifications live in KeyboardClientLive.
+fp_swift_library(
+    name = "KeyboardClient",
+    visibility = ["//ios:__subpackages__"],
+    deps = ["@swiftpkg_swift_composable_architecture//:ComposableArchitecture"],
+)

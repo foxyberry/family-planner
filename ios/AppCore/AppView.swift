@@ -55,6 +55,9 @@ public struct AppView: View {
         .preferredColorScheme(store.colorScheme)
         .environment(\.crayonOutline, CrayonColor.outline)
         .environment(\.rigScale, Self.rigScale)
+        // Spec "Keyboard": the keyboard client's one decision reaches every screen.
+        .environment(\.keyboardTop, store.keyboardTop)
+        .animation(.easeOut(duration: store.keyboardDuration), value: store.keyboardTop)
         // Spec "Sizing formulas": one Sizing for the window, read once here.
         .readsSizing()
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
