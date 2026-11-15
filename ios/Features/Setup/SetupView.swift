@@ -235,7 +235,9 @@ private struct FamilyStep: View {
                 }
                 .padding(.leading, -Spacing.xs)
                 // Board S1: "Face" on 576, the faces on 648 and 724.
-                .frame(width: 344 * layout.grown.sizing.s, alignment: .leading)
+                // Board 344 wide; the four swatches at their floor keep their room on the mini.
+                .frame(minWidth: 344 * layout.grown.sizing.s, alignment: .leading)
+                .fixedSize()
                 Text(L10n.tr("s1.face")).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
                     .fixedSize()
                     .padding(.trailing, Spacing.xs)
