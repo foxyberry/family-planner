@@ -76,3 +76,5 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v45 (2026-11-14): Repeat tabs read "Once · Weekly · Monthly", 3 × 180, gap 12 (C3, C3g, C4, C3m).
 - v46 (2026-11-14): new board G2m (edit an every-month item, All days): Days row holds "2nd Sat" / "Day 14" (2 × 299 at 208, 608); side "Every 2nd Sat", "Remove every month".
 - v47 (2026-11-14): new board C3x: "←" with changes → ConfirmCard "Leave without adding?" at (40, 140, 560 wide), buttons "Leave" · "Keep editing". Night C3 Repeat tabs → Once · Weekly · Monthly.
+- v48 (2026-11-14): new boards A1b (home before an outing: Kid A "Leave in" with the car, main button "Before Birthday →") and G1g (slice skipped this day: faded slice, hub "Play / Skipped / this day", card with "Bring back").
+- v49 (2026-11-15): G4 When and Arrive by are inline TimeFields (180 × 80, "→" / "latest" between; no ›), as the spec row rules and the build; Going reads "Bus 12 · leave 7:05 · 2nd 34"; Bring shows the new libraryBag art.

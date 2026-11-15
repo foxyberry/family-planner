@@ -1,5 +1,5 @@
 {
- "version": "42",
+ "version": "49",
  "board": "G4",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -222,11 +222,11 @@
    "text": "When"
   },
   {
-   "id": "main.row.when.text",
+   "id": "main.row.when.text.1",
    "kind": "text",
-   "x": 208,
+   "x": 237,
    "y": 265,
-   "w": 290,
+   "w": 123,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -235,15 +235,31 @@
    "font": 30
   },
   {
-   "id": "main.row.when.picture",
-   "kind": "picture",
-   "x": 790,
-   "y": 274,
-   "w": 28,
-   "h": 28,
+   "id": "main.row.when.text.2",
+   "kind": "text",
+   "x": 404,
+   "y": 265,
+   "w": 30,
+   "h": 45,
    "region": "main",
    "anchor": "left",
-   "align": "inside"
+   "align": "inside",
+   "baseline": 300,
+   "font": 30,
+   "text": "→"
+  },
+  {
+   "id": "main.row.when.text.3",
+   "kind": "text",
+   "x": 481,
+   "y": 265,
+   "w": 119,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 288,
+   "font": 30
   },
   {
    "id": "main.label.days",
@@ -368,11 +384,11 @@
    "text": "Arrive by"
   },
   {
-   "id": "main.row.arrive-by.text",
+   "id": "main.row.arrive-by.text.1",
    "kind": "text",
-   "x": 208,
+   "x": 237,
    "y": 433,
-   "w": 309,
+   "w": 123,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -381,15 +397,31 @@
    "font": 30
   },
   {
-   "id": "main.row.arrive-by.picture",
-   "kind": "picture",
-   "x": 790,
-   "y": 442,
-   "w": 28,
-   "h": 28,
+   "id": "main.row.arrive-by.text.2",
+   "kind": "text",
+   "x": 514,
+   "y": 433,
+   "w": 123,
+   "h": 45,
    "region": "main",
    "anchor": "left",
-   "align": "inside"
+   "align": "inside",
+   "baseline": 456,
+   "font": 30
+  },
+  {
+   "id": "main.row.arrive-by.text.3",
+   "kind": "text",
+   "x": 404,
+   "y": 437,
+   "w": 66,
+   "h": 36,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 465,
+   "font": 24,
+   "text": "latest"
   },
   {
    "id": "main.label.terms",
@@ -455,7 +487,7 @@
    "kind": "text",
    "x": 208,
    "y": 600,
-   "w": 333,
+   "w": 468,
    "h": 48,
    "region": "main",
    "anchor": "left",
