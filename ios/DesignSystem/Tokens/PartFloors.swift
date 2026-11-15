@@ -110,6 +110,9 @@ public extension Sizing {
 public extension EnvironmentValues {
     /// True on kid screens (`KidFullScreen`, `KidScreen`): controls take the kid touch floor (72).
     @Entry var isKidScreen = false
+    /// How much `formLabels` widened the card's label column: controls sized from the layout's
+    /// control column take this off.
+    @Entry var formLabelExtra: CGFloat = 0
 }
 
 public extension CrayonType {
@@ -126,7 +129,10 @@ private struct FormLabelsModifier: ViewModifier {
     @Environment(\.formLabelWidth) private var base
 
     func body(content: Content) -> some View {
-        content.environment(\.formLabelWidth, sizing.labelColumn(base: base ?? 128 * sizing.s, labels: labels))
+        let start = base ?? 128 * sizing.s
+        let column = sizing.labelColumn(base: start, labels: labels)
+        content.environment(\.formLabelWidth, column)
+            .environment(\.formLabelExtra, column - start)
     }
 }
 

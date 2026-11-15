@@ -10,6 +10,7 @@ import SwiftUI
 /// and Medal, one row each on the editor rows (labels 80, controls 208, to 818). The side column
 /// reads "Every school day"; Save changes sits at its foot.
 public struct SchoolEditorView: View {
+    @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<SchoolEditorFeature>
 
     public init(store: StoreOf<SchoolEditorFeature>) {
@@ -120,12 +121,12 @@ public struct SchoolEditorView: View {
             ListRow(leading: L10n.tr("editor.row.when"), minHeight: 80) {
                 HStack(spacing: Spacing.s) {
                     TimeField(label: store.startLabel, time: Binding(get: { store.startDate },
-                                                                     set: { store.send(.startPicked($0)) }))
-                        .frame(width: 176)
+                                                                     set: { store.send(.startPicked($0)) }),
+                              width: sizing.timeFieldWidth)
                     MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
                     TimeField(label: store.endLabel, time: Binding(get: { store.endDate },
-                                                                   set: { store.send(.endPicked($0)) }))
-                        .frame(width: 176)
+                                                                   set: { store.send(.endPicked($0)) }),
+                              width: sizing.timeFieldWidth)
                 }
             }
             ListRow(leading: L10n.tr("editor.row.days"), minHeight: 80) {
@@ -141,12 +142,12 @@ public struct SchoolEditorView: View {
             ListRow(leading: L10n.tr("s2.arrive_by"), minHeight: 80) {
                 HStack(spacing: Spacing.s) {
                     TimeField(label: store.arriveByLabel,
-                              time: Binding(get: { store.arriveByDate }, set: { store.send(.arriveByPicked($0)) }))
-                        .frame(width: 176)
+                              time: Binding(get: { store.arriveByDate }, set: { store.send(.arriveByPicked($0)) }),
+                              width: sizing.timeFieldWidth)
                     Text(L10n.tr("s2.latest")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     TimeField(label: store.latestLabel,
-                              time: Binding(get: { store.latestDate }, set: { store.send(.latestPicked($0)) }))
-                        .frame(width: 176)
+                              time: Binding(get: { store.latestDate }, set: { store.send(.latestPicked($0)) }),
+                              width: sizing.timeFieldWidth)
                 }
             }
             // Board G4 Terms: the term text, and the S2 MOE switch for a school that can follow it.

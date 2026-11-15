@@ -8,6 +8,11 @@ public struct PillToggle: View {
     public static let size = CGSize(width: 180, height: 72)
     /// Grid columns for a row of pills in the 610 control column (three across, gap 12).
     public static let columns = Array(repeating: GridItem(.fixed(size.width), spacing: Spacing.sm), count: 3)
+    /// As many 180 columns as fit `width` (3 on the 13"; fewer where a narrower card would overflow).
+    public static func columns(fitting width: CGFloat) -> [GridItem] {
+        let count = max(1, min(3, Int((width + Spacing.sm) / (size.width + Spacing.sm))))
+        return Array(repeating: GridItem(.fixed(size.width), spacing: Spacing.sm), count: count)
+    }
 
     private let title: String
     private let isOn: Bool
@@ -47,5 +52,23 @@ public struct PillToggle: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn || tag != nil ? .isSelected : [])
+    }
+}
+
+/// A wrapping grid of `PillToggle`s in a form's control column: 3 columns of 180 on the 13", fewer
+/// when the column (less a widened label column, `formLabels`) cannot hold them.
+public struct PillToggleGrid<Content: View>: View {
+    private let controlWidth: CGFloat
+    private let content: Content
+    @Environment(\.formLabelExtra) private var formLabelExtra
+
+    public init(controlWidth: CGFloat, @ViewBuilder content: () -> Content) {
+        self.controlWidth = controlWidth
+        self.content = content()
+    }
+
+    public var body: some View {
+        LazyVGrid(columns: PillToggle.columns(fitting: controlWidth - formLabelExtra), alignment: .leading,
+                  spacing: Spacing.sm) { content }
     }
 }

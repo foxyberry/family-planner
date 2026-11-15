@@ -30,6 +30,7 @@ public struct ItemEditorView: View {
                     PaperCard(seed: 31, trailingInset: layout.editorTrailingInset) {
                         ScrollColumn(scrollTarget: store.scrollTarget) {
                             form
+                                .formLabels([L10n.tr("editor.row.repeat")])
                                 .frame(width: layout.editorRowsWidth, alignment: .leading)
                         }
                     }

@@ -247,7 +247,8 @@ private struct FamilyStep: View {
             }
         }
         .padding(.top, layout.cardTopInset - layout.grown.formInset)
-        // Board S1: labels on 80, controls on 208, on the screen's scale.
+        // Board S1: labels on 80, controls on 208, on the screen's scale; wider for "Colour" on the mini.
+        .formLabels([L10n.tr("s1.name"), L10n.tr("s1.colour")])
         .environment(\.formLabelWidth, layout.grown.labelWidth)
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
@@ -498,7 +499,7 @@ private struct GoingStep: View {
                                     .frame(height: PillToggle.size.height)
                             } else {
                                 // Boards S3/C2: bus pills 180 × 72, three across.
-                                LazyVGrid(columns: PillToggle.columns, alignment: .leading, spacing: Spacing.sm) {
+                                PillToggleGrid(controlWidth: GrownupLayout(sizing: sizing).controlWidth) {
                                     ForEach(going.search.servicesAtStop, id: \.self) { service in
                                         PillToggle(service, isOn: going.services.contains(service)) {
                                             store.send(.serviceTapped(service))
