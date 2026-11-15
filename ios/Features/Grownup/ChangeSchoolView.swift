@@ -10,6 +10,9 @@ import SwiftUI
 /// the pending line with "Cancel the change".
 public struct ChangeSchoolView: View {
     @Bindable var store: StoreOf<ChangeSchoolFeature>
+    /// Focusing a field asks the card to bring the search to its top (S2s rule, 2026-11-15).
+    @State private var searchFocus = 0
+    private static let searchID = "g7.search"
 
     public init(store: StoreOf<ChangeSchoolFeature>) {
         self.store = store
@@ -21,7 +24,17 @@ public struct ChangeSchoolView: View {
                 GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
             } content: { layout in
                 PaperCard(seed: 39, trailingInset: layout.editorTrailingInset) {
-                    ScrollColumn { rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading) }
+                    ScrollColumn(scrollTarget: searchFocus == 0 ? nil : GrownupScrollTarget(id: Self.searchID, request: searchFocus),
+                                 anchor: .top) {
+                        rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
+                    }
+                    .onPreferenceChange(FieldFocusKey.self) { focused in
+                        guard focused else { return }
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(350))
+                            if store.place == .school { searchFocus += 1 }
+                        }
+                    }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
             } primaryAction: { layout in
@@ -98,10 +111,11 @@ public struct ChangeSchoolView: View {
                 if !store.matches.isEmpty {
                     ResultListCard(rows: store.matches.map { entry in
                         .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.picked(entry)) }
-                    }, visibleRows: 5, seed: 77, width: layout.controlWidth)
+                    }, visibleRows: layout.searchListRows(5), seed: 77, width: layout.controlWidth)
                 }
             }
         }
+        .id(Self.searchID)
     }
 
     /// S2's preschool rows: the typed name, then drop-off and pick-up.

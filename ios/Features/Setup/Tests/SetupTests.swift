@@ -176,9 +176,13 @@ final class SetupTests: XCTestCase {
         // Layout v14: a tap on the veil closes the list; typing opens it again.
         await store.send(.resultVeilTapped)
         XCTAssertFalse(store.state.isResultListOpen)
-        await store.send(.schoolTextChanged("exam"))
+        await store.send(.schoolTextChanged("examp"))
         XCTAssertTrue(store.state.isResultListOpen)
         await store.send(.schoolPicked(school))
+        // The field resends its text when a pick closes the keyboard: the pick stays.
+        await store.send(.schoolTextChanged(store.state.tabKid?.school.text ?? ""))
+        XCTAssertNotNil(store.state.tabKid?.school.picked)
+        XCTAssertFalse(store.state.isResultListOpen)
         let picked = store.state.tabKid?.school
         XCTAssertEqual([picked?.start, picked?.end, picked?.arriveBy, picked?.latest], [450, 810, 450, 460])
         XCTAssertEqual(picked?.hoursSource, "From the school website, checked 9 Nov")

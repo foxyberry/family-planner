@@ -125,10 +125,14 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
 /// that fits shows no bounce and no bar. `scrollTarget` scrolls a row marked with `.id` to the middle.
 public struct ScrollColumn<Content: View>: View {
     private let scrollTarget: GrownupScrollTarget?
+    private let anchor: UnitPoint
     private let content: Content
 
-    public init(scrollTarget: GrownupScrollTarget? = nil, @ViewBuilder content: () -> Content) {
+    /// `anchor`: where the target row lands (`.top` for a search field, so its list fits above the
+    /// keyboard; spec S2s, design session 2026-11-15).
+    public init(scrollTarget: GrownupScrollTarget? = nil, anchor: UnitPoint = .center, @ViewBuilder content: () -> Content) {
         self.scrollTarget = scrollTarget
+        self.anchor = anchor
         self.content = content()
     }
 
@@ -141,9 +145,19 @@ public struct ScrollColumn<Content: View>: View {
             .scrollDismissesKeyboard(.interactively)
             .onChange(of: scrollTarget) { _, target in
                 guard let target else { return }
-                withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(target.id, anchor: .center) }
+                withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(target.id, anchor: anchor) }
             }
         }
+    }
+}
+
+public extension GrownupLayout {
+    /// S2s / G7 search (design session 2026-11-15): with the keyboard up the field sits at the
+    /// content top and its list runs down to the keyboard, as many rows as fit; else `rows`.
+    func searchListRows(_ rows: Int) -> Int {
+        guard let keyboardTop else { return rows }
+        let listTop = contentTop + 80 + Spacing.l
+        return max(1, min(rows, Int((keyboardTop - listTop - Spacing.m - 24) / (ResultListCard.rowHeight + 2))))
     }
 }
 

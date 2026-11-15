@@ -344,6 +344,9 @@ public struct SetupFeature {
                 return .none
 
             case let .schoolTextChanged(text):
+                // The field sends its text again when the keyboard closes after a pick: the same
+                // text keeps the pick (the list stayed open on the iPad, 2026-11-15).
+                guard text != state.tabKid?.school.text else { return .none }
                 updateSchool(&state) { school in
                     school.text = text
                     school.picked = nil

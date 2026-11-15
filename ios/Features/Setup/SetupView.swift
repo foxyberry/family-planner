@@ -12,6 +12,8 @@ import SwiftUI
 public struct SetupView: View {
     @Bindable var store: StoreOf<SetupFeature>
     @Environment(\.sizing) private var sizing
+    /// Focusing S2's school field asks the main column to bring it to the top (S2s, 2026-11-15).
+    @State private var searchFocus = 0
 
     public init(store: StoreOf<SetupFeature>) {
         self.store = store
@@ -24,7 +26,18 @@ public struct SetupView: View {
             header(layout)
         } content: { grown in
             HStack(alignment: .top, spacing: grown.gap) {
-                ScrollColumn { main(layout).frame(width: grown.form.width, alignment: .topLeading) }
+                ScrollColumn(scrollTarget: searchFocus == 0 ? nil : GrownupScrollTarget(id: SchoolStep.fieldID, request: searchFocus),
+                             anchor: .top) {
+                    main(layout, listRows: grown.searchListRows(6)).frame(width: grown.form.width, alignment: .topLeading)
+                }
+                .onPreferenceChange(FieldFocusKey.self) { focused in
+                    guard focused else { return }
+                    // After the keyboard has risen, so the column is already its short height.
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(350))
+                        if store.step == .school { searchFocus += 1 }
+                    }
+                }
                     .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
                 ScrollColumn { side(layout, keyboardIsOpen: grown.keyboardTop != nil)
                     .frame(width: grown.side.width, alignment: .topLeading) }
@@ -90,10 +103,10 @@ public struct SetupView: View {
 
     // MARK: Main column
 
-    @ViewBuilder private func main(_ layout: SetupLayout) -> some View {
+    @ViewBuilder private func main(_ layout: SetupLayout, listRows: Int) -> some View {
         switch store.step {
         case .family: FamilyStep(store: store, layout: layout)
-        case .school: SchoolStep(store: store, layout: layout)
+        case .school: SchoolStep(store: store, layout: layout, listRows: listRows)
         case .gettingThere: GoingStep(store: store)
         case .almostDone: AlmostDoneStep(store: store, layout: layout)
         }
@@ -261,8 +274,11 @@ private struct FamilyStep: View {
 // MARK: - S2 · School
 
 private struct SchoolStep: View {
+    static let fieldID = "s2.schoolField"
     let store: StoreOf<SetupFeature>
     let layout: SetupLayout
+    /// Result rows that fit above the keyboard (6 without it).
+    let listRows: Int
 
     var body: some View {
         // Exactly the card's inner width, so no row can widen the card.
@@ -296,6 +312,7 @@ private struct SchoolStep: View {
 
     @ViewBuilder private func form(_ school: SchoolForm) -> some View {
         row(school.kind == .preschool ? L10n.tr("s2.preschool") : L10n.tr("s2.school")) { schoolField(school) }
+            .id(Self.fieldID)
             .zIndex(1)
         row(L10n.tr("s2.days")) {
             // Board S2: 56 circles on a 72 pitch.
@@ -353,6 +370,8 @@ private struct SchoolStep: View {
                 // Padding, not offset, so the veil's hole lands on the card itself.
                 if school.isListOpen { matches(school).resultVeilHole().padding(.top, 80 + Spacing.l) }
             }
+            // A pick closes the keyboard (S2s, 2026-11-15); typing keeps it up.
+            .keyboardHidden(when: school.picked != nil || school.typedByHand)
             HStack(spacing: Spacing.xs) {
                 if school.picked != nil { CheckMark(isDone: true, size: 32) }
                 Text(store.schoolCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
@@ -372,7 +391,7 @@ private struct SchoolStep: View {
         ResultListCard(rows: school.matches.map { entry in
             .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.schoolPicked(entry)) }
         } + [.init(id: "not-listed", glyph: .plus, title: L10n.tr("s2.school.not_listed")) { store.send(.notInListTapped) }],
-        visibleRows: 6, seed: 75, width: layout.grown.controlWidth)
+        visibleRows: listRows, seed: 75, width: layout.grown.controlWidth)
     }
 
     @ViewBuilder private func termsRow(_ row: SchoolForm.TermsRow) -> some View {
