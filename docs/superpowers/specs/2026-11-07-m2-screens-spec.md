@@ -141,6 +141,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-15: contrast rule (user: no new tokens): body / caption 4.5 : 1, title and up 3 : 1, UI parts 3 : 1; the G1 drag readout in `pickBlue` (title 48) passes at 3.4 : 1.
 - 2026-11-15: Keyboard rule (user): keyboard looks apply only when the keyboard covers the screen bottom (> 100 pt); floating, split and hardware keyboards count as none; one injected keyboard dependency decides it for every screen.
 - 2026-11-15: 11" pass rulings (main session asked): touch floors apply to the frame, drawn box = frame − 12 (≥ 44 grown-up, ≥ 60 kid); give-way step 2 also takes small-card insets to their floor, and centred text in formula-width controls (TimeField, tabs) adds no padding, only 16 clear; the G1 times stay one row on the 11" (s 0.788, measured).
+- 2026-11-15: mini pass rulings (main session asked, S4): " · " value lines wrap at a separator onto 2 lines; a board row pitch is a minimum, so rows with a wrapped caption grow and push the next row down.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -239,11 +240,13 @@ Every board and the app follow these. Change them here and on board 00 first.
       - Width `max(128 s, longest label in that card at caption 24 bold + 12)`, taken from the card's spare width (12 is the label → control gap floor, so the 13" keeps 128).
       - If the card has no spare width, that card's rows reflow (step 5 below).
       - A label is still reworded rather than squeezed when it would make the column wider than 160.
+    - **Rows.** A board row pitch is a minimum, not a fixed step: when a row's content (title, wrapped caption, its floor height) is taller, the row grows and the rows below move down by the same amount, keeping at least the 16 token between rows. The card scrolls if it runs out (give-way step 6).
     - **Header row.** Items after a floored title (the kid tabs after "Settings") flow from the title's end plus the 24 token. The ±1 board-line check is waived for them; they never overlap the title.
     - **Text.**
       - No `minimumScaleFactor` anywhere: text never draws under its type floor.
       - A label that does not fit is reworded, never squeezed.
       - Typed names (kid, school, activity) may wrap to 2 lines in a row, then end with "…". VoiceOver still reads the whole name.
+      - Value lines built from parts joined by " · " (summaries such as "walk 10 min · ride 10 min", row values) wrap at a " · " onto at most 2 lines, never mid-part; they never clip.
       - Button and tab text: one line at the default text size. Switch captions: at most 2 lines.
       - **Dynamic Type:** every height above is a minimum, not a fixed frame. When the user's text size makes text taller or wider, the control grows, a one-line button or tab may wrap to 2 lines, and the row reflows (step 5) before anything clips.
     - **When a row does not fit, give way in this order:**
