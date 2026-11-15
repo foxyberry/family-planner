@@ -152,15 +152,14 @@ public struct ScrollColumn<Content: View>: View {
 }
 
 public extension GrownupLayout {
-    /// S2s / G7 search (design session 2026-11-15): with the keyboard up the field sits at the
-    /// content top and its list runs down to the keyboard, as many rows as fit; else `rows`.
-    func searchListRows(_ rows: Int) -> Int {
-        guard let keyboardTop else { return rows }
-        // The field (80) at the card's top inset, then the list 8 below it (no caption, 2026-11-15).
+    /// S2s / G7 with the keyboard up: the list card's height from 8 under the field (at the card's
+    /// top inset) down to the column's foot above the keyboard; nil without the keyboard.
+    var searchListHeight: CGFloat? {
+        guard keyboardTop != nil else { return nil }
         let listTop = contentTop + formInset + 80 + Spacing.xs
-        let room = keyboardTop - listTop - Spacing.xs - 2 * 12 + 2
-        return max(1, min(rows, Int(room / (ResultListCard.rowHeight + 2))))
+        return max(ResultListCard.compactRowHeight + 24, form.maxY - listTop)
     }
+
 }
 
 extension EnvironmentValues {

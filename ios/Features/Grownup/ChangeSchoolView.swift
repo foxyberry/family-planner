@@ -111,7 +111,7 @@ public struct ChangeSchoolView: View {
                 if !store.matches.isEmpty {
                     ResultListCard(rows: store.matches.map { entry in
                         .init(id: entry.id, title: entry.name, caption: entry.caption) { store.send(.picked(entry)) }
-                    }, visibleRows: layout.searchListRows(5), seed: 77, width: layout.controlWidth)
+                    }, visibleRows: 5, seed: 77, width: layout.controlWidth, fitHeight: layout.searchListHeight)
                 }
             }
         }
