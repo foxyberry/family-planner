@@ -95,9 +95,13 @@ public struct SchoolEditorFeature {
         public var arriveByLabel: String { TimeText.withPeriod(arriveBy) }
         public var latestLabel: String { TimeText.withPeriod(latest) }
         /// The Going row (board G4): "Bus 12 · leave 7:05", as Settings' To school; or none yet.
-        public var goingText: String {
-            guard let busPlan, let school else { return L10n.tr("hub.more.buses.none") }
-            return SettingsModel.toSchool(busPlan, school: school)
+        public var goingText: String { goingLine.text }
+        /// The way's picture, or none until a way is set.
+        public var goingPicture: String? { goingLine.picture }
+        private var goingLine: (picture: String?, text: String) {
+            guard let school else { return (nil, L10n.tr("hub.more.buses.none")) }
+            return SettingsModel.going(trip: SettingsModel.schoolTrip(kid: kid, routines: routines, today: today),
+                                       plan: busPlan, school: school)
         }
         public var isChanged: Bool { school != original || medal != originalMedal }
         public var canSave: Bool {

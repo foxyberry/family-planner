@@ -184,5 +184,5 @@ extension SetupFeature.State {
     }
 
     /// S4's switch rows (spec "S4 · Almost done"), shared with Settings' Family tab.
-    public var settingRows: [AppSettingRow] { settings.rows(lockNeedsFaceID: lockNeedsFaceID) }
+    public var settingRows: [AppSettingRow] { settings.rows(lockNeedsFaceID: lockNeedsFaceID, touchID: isTouchID) }
 }

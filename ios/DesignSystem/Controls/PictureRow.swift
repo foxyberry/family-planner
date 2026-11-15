@@ -16,6 +16,9 @@ public struct PictureRow: View {
     private let onMore: () -> Void
     /// Board G1f: in a narrow card the slots wrap, this many per row (88, gap 16); nil keeps one row.
     private let columns: Int?
+    /// Board sizes on the screen's scale (88 circles on the 13"; six still fit the 11" row).
+    @Environment(\.sizing) private var sizing
+    private var d: CGFloat { 88 * sizing.s }
 
     public init(slots: [KitSlot], selection: Binding<KitSlot?>, all: [KitSlot], isShowingAll: Bool,
                 moreTitle: String, moreLabel: String, columns: Int? = nil, onMore: @escaping () -> Void) {
@@ -33,7 +36,7 @@ public struct PictureRow: View {
         if let columns {
             // Layout v43: the rows spread edge to edge (the first slot on the left edge, the last on the right).
             LazyVGrid(columns: (0..<columns).map { column in
-                GridItem(.flexible(minimum: 88), spacing: Spacing.s,
+                GridItem(.flexible(minimum: d), spacing: Spacing.s,
                          alignment: column == 0 ? .leading : column == columns - 1 ? .trailing : .center)
             }, alignment: .leading, spacing: Spacing.s) { items }
         } else {
@@ -47,8 +50,8 @@ public struct PictureRow: View {
                 Button { selection = slot } label: {
                     // Boards C3/C4: 88 paper circles with an ink outline; the picked one gets a 104
                     // blue ring around it.
-                    KitIcon(slot, size: 64)
-                        .frame(width: 88, height: 88)
+                    KitIcon(slot, size: 64 * sizing.s)
+                        .frame(width: d, height: d)
                         .background(
                             CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
                                           seed: CrayonStyle.Seed.iconPicker + UInt32(index))
@@ -58,7 +61,7 @@ public struct PictureRow: View {
                             if isOn {
                                 CrayonSurface(.circle, fill: nil, markerColor: CrayonColor.link,
                                               seed: CrayonStyle.Seed.iconPicker + 500 + UInt32(index))
-                                    .frame(width: 104, height: 104)
+                                    .frame(width: 104 * sizing.s, height: 104 * sizing.s)
                             }
                         }
                 }
@@ -68,7 +71,7 @@ public struct PictureRow: View {
             }
             Button(action: onMore) {
                 Text(moreTitle).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
-                    .frame(width: 88, height: 88)
+                    .frame(width: d, height: d)
                     .background(CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
                                               seed: CrayonStyle.Seed.iconPicker + 998))
             }
@@ -80,7 +83,7 @@ public struct PictureRow: View {
                     // Under the "More" slot, its right edge on the slot's: every picture, 6 per row.
                     PaperCard(seed: 97) { IconPicker(selection: $selection, slots: all) }
                         .fixedSize()
-                        .offset(y: 88 + Spacing.sm)
+                        .offset(y: d + Spacing.sm)
                 }
             }
     }

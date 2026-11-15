@@ -26,7 +26,8 @@ public struct SetupView: View {
             HStack(alignment: .top, spacing: grown.gap) {
                 ScrollColumn { main(layout).frame(width: grown.form.width, alignment: .topLeading) }
                     .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
-                ScrollColumn { side(layout).frame(width: grown.side.width, alignment: .topLeading) }
+                ScrollColumn { side(layout, keyboardIsOpen: grown.keyboardTop != nil)
+                    .frame(width: grown.side.width, alignment: .topLeading) }
                     .frame(width: grown.side.width, height: grown.action.minY - grown.side.minY - Spacing.s,
                            alignment: .topLeading)
             }
@@ -100,12 +101,16 @@ public struct SetupView: View {
 
     // MARK: Side column
 
-    @ViewBuilder private func side(_ layout: SetupLayout) -> some View {
+    /// A4 rule: while the keyboard is open the side column keeps only its words (the picture would
+    /// sit under the raised button on a smaller iPad).
+    @ViewBuilder private func side(_ layout: SetupLayout, keyboardIsOpen: Bool) -> some View {
         switch store.step {
         case .family:
             VStack(alignment: .leading, spacing: Spacing.m) {
                 // The kit's home picture only: the family's own home drawing is never used here.
-                KitIcon(.home, size: 280).environment(\.kitArt, BundledKitArt(includePrivate: false))
+                if !keyboardIsOpen {
+                    KitIcon(.home, size: 280 * layout.grown.sizing.s).environment(\.kitArt, BundledKitArt(includePrivate: false))
+                }
                 Text(L10n.tr("s1.side.title")).crayonType(.head)
                 Text(L10n.tr("s1.side.body")).crayonType(.body).foregroundStyle(CrayonColor.softText)
             }
@@ -265,7 +270,7 @@ private struct SchoolStep: View {
             rows.frame(width: layout.grown.form.width - 2 * layout.grown.formInset, alignment: .leading)
         }
         // Boards S2/S3: the card fills the main region down to 968, whatever its rows.
-        .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
+        .frame(width: layout.grown.form.width).frame(minHeight: layout.length(968 - 148), alignment: .topLeading)
     }
 
     /// Board S2 (layout v11): Goes to 208, School 304, Days 448, Hours 544, Arrive by 680, MOE 792.

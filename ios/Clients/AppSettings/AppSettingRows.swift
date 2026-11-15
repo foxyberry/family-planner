@@ -18,12 +18,15 @@ public struct AppSettingRow: Equatable, Sendable {
 
 public extension AppSettings {
     /// The switch rows in board order. `lockNeedsFaceID`: the lock could not be turned on (no Face ID).
-    func rows(lockNeedsFaceID: Bool = false) -> [AppSettingRow] {
+    /// `touchID`: this iPad has Touch ID, so the words name it instead of Face ID.
+    func rows(lockNeedsFaceID: Bool = false, touchID: Bool = false) -> [AppSettingRow] {
         AppSetting.allCases.map { setting in
             switch setting {
             case .grownupLock:
-                let caption = lockNeedsFaceID && !grownupLock ? L10n.tr("s4.lock.needs_face_id")
-                    : grownupLock ? L10n.tr("s4.lock.caption") : L10n.tr("s4.lock.off")
+                let caption = lockNeedsFaceID && !grownupLock
+                    ? (touchID ? L10n.tr("s4.lock.needs_touch_id") : L10n.tr("s4.lock.needs_face_id"))
+                    : grownupLock ? (touchID ? L10n.tr("s4.lock.caption.touch_id") : L10n.tr("s4.lock.caption"))
+                    : L10n.tr("s4.lock.off")
                 return AppSettingRow(setting: setting, title: L10n.tr("s4.lock"), caption: caption, isWarning: !grownupLock,
                                      isOn: grownupLock, picture: .lock)
             case .medals:
