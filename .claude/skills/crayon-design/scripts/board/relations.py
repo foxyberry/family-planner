@@ -9,7 +9,7 @@
 #   2 col2    second column: one label line and one control line per card, its controls end on 808,
 #             label line = control line - (longest second-column label + 10)
 #   3 height  one height per row for controls of the same kind; other kinds centred on the row; header tabs 72
-#   4 right   stretching controls (fields, search, value areas, side rows, main button) end on frame 808 / 1336 /
+#   4 right   stretching controls (fields, search, value areas, side rows, main button) end drawn on 802 / 1330 /
 #             the small card's content edge; choices next to a label may end short and are not checked
 #   5 label   each label's glyph centred on its control's drawn box
 #   6 balance card padding by kind, card gap 40, row gap (spec "Layout balance")
@@ -281,7 +281,7 @@ def check(bid, name, fam, els):
                     a = art(last)
                     out('4 right', tag, f"{last['kind']} {mask(last.get('text') or last.get('aria'))}",
                         f"box {n(last['x'] + last['w'])} drawn {n(drawn(last)[2])}" + (f" art {n(a[2])}" if a else '') + f" right line {n(RIGHT if LINE_MODE == 'box' else RIGHT - 6)}",
-                        ex(last)[2] - (RIGHT if LINE_MODE == 'box' else RIGHT - 6))
+                        drawn(last)[2] - (RIGHT - 6))                  # drawn edges line up (parts without the inset too)
             # 5. label centred on its control's drawn box
             for lb in labels:
                 nxt = [e for e in ctr if e['x'] > lb['x']]
@@ -290,19 +290,19 @@ def check(bid, name, fam, els):
                 gc = g['y'] + g['h'] / 2; cc = (d[1] + d[3]) / 2
                 out('5 label', tag, f"{mask(lb.get('text'))} -> {c['kind']}", f"glyph centre {n(gc)} control drawn centre {n(cc)}", gc - cc)
         if col2:
-            lx = sorted({round(lb['x']) for lb, _, _, _ in col2}); cx = sorted({round(c['x']) for _, c, _, _ in col2 if c})
+            lx = sorted({round(lb['x']) for lb, _, _, _ in col2}); cx = sorted({round(drawn(c)[0]) for _, c, _, _ in col2 if c})        # drawn edges (parts without the inset too)
             desc = '; '.join(f"y{n(y)} {mask(lb.get('text'))}@{n(lb['x'])} -> {c['kind'] + '@' + n(c['x']) + '..' + n(z['x'] + z['w']) if c else '-'}" for lb, c, z, y in col2)
             out('2 col2', where, 'one label line', desc, lx[-1] - lx[0])
-            if cx: out('2 col2', where, 'one control line', 'controls x ' + '/'.join(map(str, cx)), cx[-1] - cx[0])
+            if cx: out('2 col2', where, 'one control line', 'controls drawn x ' + '/'.join(map(str, cx)), cx[-1] - cx[0])
             for lb, c, z, y in col2:
-                if z: out('2 col2', where, f"y{n(y)} ends on {n(RIGHT)}", f"{z['kind']} box right {n(z['x'] + z['w'])}", z['x'] + z['w'] - RIGHT)
+                if z: out('2 col2', where, f"y{n(y)} ends on {n(RIGHT)} (drawn {n(RIGHT - 6)})", f"{z['kind']} drawn right {n(drawn(z)[2])}", drawn(z)[2] - (RIGHT - 6))
             if cx:
                 longest = max((lb.get('glyph') or lb)['w'] for lb, _, _, _ in col2)
-                want = cx[0] - (longest + 10)
+                want = cx[0] - (longest + 16)
                 # the label width is measured from Chrome's text metrics; a board that rounds it up to the 4 grid
                 # (54.7 -> 56) is on the rule, so allow up to 4 short of the exact value, never longer
                 dd = lx[0] - want; ok = -4 <= dd <= TOL
-                out('2 col2', where, 'label line = control line - (longest + 10)', f"control {cx[0]} longest label {n(longest)} -> {n(want)}; labels at {'/'.join(map(str, lx))}" + (' (label width rounded up)' if ok and abs(dd) > TOL else ''), dd, fail=not ok)
+                out('2 col2', where, 'label line = control line - (longest + 10)', f"control drawn {cx[0]} longest label {n(longest)} -> {n(want)}; labels at {'/'.join(map(str, lx))}" + (' (label width rounded up)' if ok and abs(dd) > TOL else ''), dd, fail=not ok)
     balance(cards, els, out)
     return rows, flags
 
