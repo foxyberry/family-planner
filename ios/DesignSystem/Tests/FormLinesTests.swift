@@ -91,4 +91,12 @@ final class FormLinesTests: XCTestCase {
         XCTAssertEqual(second.labelX, 0)
         XCTAssertEqual(lines.firstControlWidth, lines.width - lines.controlX)
     }
+
+    /// Layout v56 board C3x: "Leave" / "Keep editing" gives a 541 card on the 13" (drawn content +
+    /// 64, frame + 12); the 520 s floor holds for short choices.
+    func testConfirmCardWidth() {
+        let sizing = ipads[0].1
+        XCTAssertEqual(ConfirmCard.width(sizing: sizing, cancel: "Keep editing"), 541, accuracy: 1)
+        XCTAssertEqual(ConfirmCard.width(sizing: sizing, cancel: "Keep"), 532, "520 drawn + 12")
+    }
 }
