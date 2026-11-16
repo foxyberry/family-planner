@@ -207,7 +207,7 @@ private struct FamilyStep: View {
 
     private var sizing: Sizing { layout.grown.sizing }
 
-    /// Board S1 v55: Name and Colour on the label and control lines; Age and Face on a second
+    /// Board S1 v56: Name and Colour on the label and control lines; Age and Face on a second
     /// column ending on the right edge, under the first column when it does not fit.
     private var lines: FormLines {
         layout.grown.formLines(secondLabels: [L10n.tr("s1.age"), L10n.tr("s1.face")],
@@ -243,6 +243,7 @@ private struct FamilyStep: View {
                     face(.kidGirl, label: L10n.tr("s1.face.girl"), kid: kid)
                     face(.kidBoy, label: L10n.tr("s1.face.boy"), kid: kid)
                 }
+                .partInset()
             }
         }
         .formLines(lines)

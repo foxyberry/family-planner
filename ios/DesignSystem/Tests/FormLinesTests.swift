@@ -2,7 +2,7 @@ import DesignSystem
 import XCTest
 
 /// Spec "Layout model" and "Layout balance" relations for `FormLines` on every checked iPad (13",
-/// 12.9", 11", mini), with S1's rows (board v55) as the example: Name / Colour, then Age / Face on a
+/// 12.9", 11", mini), with S1's rows (board v56) as the example: Name / Colour, then Age / Face on a
 /// second column. Gaps are drawn-edge gaps: a crayon part draws 6 inside its frame.
 final class FormLinesTests: XCTestCase {
     private let ipads: [(String, Sizing)] = [
@@ -27,8 +27,8 @@ final class FormLinesTests: XCTestCase {
             + max(sizing.pickedFace, sizing.swatch) + FormLines.cardPadding.bottom
     }
 
-    /// 13" is board S1 v55: labels 78, controls 192, Name 192–568, second labels 602, Age and faces
-    /// 668–808, cards 232 tall and 28 apart (148, 408).
+    /// 13" is board S1 v56: labels 78, controls 192, Name 192–556, second labels 590, the second
+    /// column frame 656–808 (drawn 662–802), cards 232 tall and 28 apart (148, 408).
     func testThirteenInchIsTheBoard() throws {
         let sizing = ipads[0].1
         let layout = GrownupLayout(sizing: sizing)
@@ -39,12 +39,12 @@ final class FormLinesTests: XCTestCase {
         XCTAssertEqual(left + lines.width, 808, "rows end on the right-edge line")
         XCTAssertEqual(left + lines.controlX, 192)
         XCTAssertFalse(second.dropsUnder)
-        XCTAssertEqual(left + second.controlX, 668)
-        XCTAssertEqual(second.controlWidth, 140)
-        XCTAssertEqual(left + second.labelX, 602, accuracy: 2, "Face's measured width + 10")
-        XCTAssertEqual(left + lines.controlX + lines.firstControlWidth, 568, accuracy: 2, "Name ends 40 drawn before Age")
+        XCTAssertEqual(left + second.controlX, 656)
+        XCTAssertEqual(second.controlWidth, 152, "drawn 140 + one inset each side")
+        XCTAssertEqual(left + second.labelX, 590, accuracy: 2, "Face's measured width + 10")
+        XCTAssertEqual(left + lines.controlX + lines.firstControlWidth, 556, accuracy: 2, "Name ends 40 drawn before Age")
         XCTAssertEqual(ColourSwatch.frame(sizing), 68, "a 56 circle plus one inset each side")
-        XCTAssertEqual(sizing.choiceRowHeight, 68)
+        XCTAssertEqual(sizing.choiceRowHeight, 76, "a 64 face in one inset each side")
         XCTAssertEqual(sizing.fieldRowHeight, 80)
         XCTAssertEqual(sizing.formRowGap, 24)
         XCTAssertEqual(s1CardHeight(sizing), 232)
@@ -56,7 +56,7 @@ final class FormLinesTests: XCTestCase {
             let lines = s1(sizing)
             let second = try XCTUnwrap(lines.second, name)
             XCTAssertEqual(lines.controlX, 114, "\(name): one fixed label column")
-            XCTAssertEqual(second.controlWidth, 2 * sizing.pickedFace + Spacing.sm, name)
+            XCTAssertEqual(second.controlWidth, 2 * sizing.pickedFace + Spacing.sm + 2 * inset, name)
             XCTAssertFalse(second.dropsUnder, "\(name): S1's second column stands beside the first down to the mini")
             XCTAssertEqual(second.controlX + second.controlWidth, lines.width, "\(name): ends on the right edge")
             let longest = max(CrayonType.captionBoldWidth("Age"), CrayonType.captionBoldWidth("Face"))

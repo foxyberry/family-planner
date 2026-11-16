@@ -17,6 +17,7 @@ public struct FormLines: Equatable, Sendable {
         /// The second label line, from the card's label line (0 when the column drops under the
         /// first).
         public let labelX: CGFloat
+        /// The column's frame: its controls' frames, or `partInset()` around a part drawn to its edge.
         public let controlX: CGFloat
         public let controlWidth: CGFloat
         /// True when it does not fit beside the first column and sits under it instead.
@@ -42,7 +43,9 @@ public struct FormLines: Equatable, Sendable {
     /// - Parameters:
     ///   - width: label line to right-edge line (`GrownupLayout.formRowsWidth`).
     ///   - secondLabels: the second column's labels; empty for one column.
-    ///   - secondControlWidth: the second column's widest control, from its parts (S1: two faces).
+    ///   - secondControlWidth: the second column's widest control, drawn, from its parts (S1: two
+    ///     faces). The column's frame is one inset wider each side, so it ends drawn on the right
+    ///     edge's drawn line (802 on the 13", spec "Alignment contract").
     ///   - firstControlMinimum: the narrowest the first column's controls may be, as frames from the
     ///     control line, for the drop rule (S1: four swatches).
     public init(width: CGFloat, secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
@@ -54,13 +57,14 @@ public struct FormLines: Equatable, Sendable {
             return
         }
         let labelWidth = (secondLabels.map { CrayonType.captionBoldWidth($0) }.max() ?? 0) + Self.secondLabelGap
-        let besideControlX = width - secondControlWidth
+        let frameWidth = secondControlWidth + 2 * CrayonPart.inset
+        let besideControlX = width - frameWidth
         let besideLabelX = besideControlX - labelWidth
         let firstDrawnEnd = controlX + firstControlMinimum - CrayonPart.inset
         let drops = besideLabelX - firstDrawnEnd < Self.columnGap
         second = drops
-            ? SecondColumn(labelX: 0, controlX: controlX, controlWidth: secondControlWidth, dropsUnder: true)
-            : SecondColumn(labelX: besideLabelX, controlX: besideControlX, controlWidth: secondControlWidth,
+            ? SecondColumn(labelX: 0, controlX: controlX, controlWidth: frameWidth, dropsUnder: true)
+            : SecondColumn(labelX: besideLabelX, controlX: besideControlX, controlWidth: frameWidth,
                            dropsUnder: false)
     }
 
@@ -98,9 +102,10 @@ public extension Sizing {
     /// Spec "Layout balance": row → row 24 between drawn edges (`fluid(24, 16)`).
     var formRowGap: CGFloat { space(Spacing.m) }
     /// Spec "Layout model" row heights, as frames: a field row 80 (the field's height); a picture
-    /// choice row (faces, swatches) as tall as its tallest frame. Rows grow with their content.
+    /// choice row (faces in `partInset()`, swatches) as tall as its tallest frame. Rows grow with
+    /// their content.
     var fieldRowHeight: CGFloat { fieldHeight }
-    var choiceRowHeight: CGFloat { max(pickedFace, ColourSwatch.frame(self)) }
+    var choiceRowHeight: CGFloat { max(pickedFace + 2 * CrayonPart.inset, ColourSwatch.frame(self)) }
     /// A picked face's ring (an overlay; it never moves layout).
     var pickedFaceRing: CGFloat { pickedFace + 2 * CrayonPart.pickRing }
 }
@@ -112,6 +117,13 @@ public enum CrayonPart {
     /// The ring's overlay width: a pick ring draws this far outside the part, as an overlay. It
     /// never moves layout.
     public static let pickRing: CGFloat = 4
+}
+
+public extension View {
+    /// Spec "Alignment contract": a part drawn to its frame edge (faces, chevrons, switches,
+    /// borderless rows) gets one crayon inset around it, so its frame sits on the lines and its
+    /// drawn edge lines up with every crayon part's (802, not 808, on the 13").
+    func partInset() -> some View { padding(CrayonPart.inset) }
 }
 
 public extension EnvironmentValues {
@@ -133,8 +145,8 @@ public extension View {
 public enum FormRowKind: Sendable {
     /// Crayon fields: frame 80, drawn one inset inside.
     case field
-    /// Picture choices: faces draw to their frame (pictures have no inset), swatches 6 inside theirs;
-    /// the drawn box is the tallest drawn part.
+    /// Picture choices: faces (drawn to their edge, so placed in `partInset()`) and swatches; the
+    /// drawn box is the tallest drawn part.
     case choice
 
     func minHeight(_ sizing: Sizing) -> CGFloat {

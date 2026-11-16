@@ -357,7 +357,7 @@ final class ComponentSnapshotTests: XCTestCase {
                          cancel: "Keep", confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {}))
     }
 
-    /// Spec "Layout balance" on board S1 v55: `FormRow` lines (second column on 602 / 668 … 808 on the
+    /// Spec "Layout balance" on board S1 v56: `FormRow` lines (second column on 590 / 656 … 808 (drawn 802) on the
     /// 13", the card hugging its rows) and `cardCorner`'s × with its confirm card hanging under it,
     /// on the 13" and the mini.
     func testFormRowsAndCardCorner() {
@@ -382,6 +382,7 @@ final class ComponentSnapshotTests: XCTestCase {
                             KitIcon(.kidGirl, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
                             KitIcon(.kidBoy, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
                         }
+                        .partInset()
                     }
                 }
                 .formLines(lines)
