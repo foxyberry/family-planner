@@ -107,8 +107,9 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
 
     private func placed(_ layout: GrownupLayout) -> some View {
         content(layout)
-            // Cards inset their rows 40 (x 104) and rows put their controls on 232.
-            .environment(\.cardInset, layout.formInset)
+            // Spec "Layout balance": cards pad 32 from their drawn edge (labels on 78) and rows put
+            // their controls on the control line (192).
+            .environment(\.cardPadding, FormLines.cardPadding)
             .environment(\.formLabelWidth, layout.labelWidth)
             // Exactly 64 … 1312 wide, so a long line can never push the card off 64.
             .frame(width: layout.side.maxX - layout.form.minX, alignment: .topLeading)
@@ -167,9 +168,10 @@ public extension GrownupLayout {
 }
 
 extension EnvironmentValues {
-    /// The padding inside a `PaperCard` (24; grown-up screens: 40, so rows start on 104).
-    @Entry public var cardInset: CGFloat = Spacing.m
-    /// A grown-up form's label column (104 … 232); `nil` keeps `ListRow`'s own 120 + gap.
+    /// The padding inside a `PaperCard` (24 each side; grown-up screens: `FormLines.cardPadding`).
+    @Entry public var cardPadding = EdgeInsets(top: Spacing.m, leading: Spacing.m, bottom: Spacing.m, trailing: Spacing.m)
+    /// A grown-up form's label column (114, labels 78 → controls 192); `nil` keeps `ListRow`'s own
+    /// 120 + gap.
     @Entry public var formLabelWidth: CGFloat? = nil
     /// Replaces the "Grown-ups only" header caption during the relock countdown ("Locks in 0:30").
     @Entry public var relockCaption: String? = nil

@@ -56,11 +56,10 @@ public struct PillToggle: View {
 }
 
 /// A wrapping grid of `PillToggle`s in a form's control column: 3 columns of 180 on the 13", fewer
-/// when the column (less a widened label column, `formLabels`) cannot hold them.
+/// when the column cannot hold them.
 public struct PillToggleGrid<Content: View>: View {
     private let controlWidth: CGFloat
     private let content: Content
-    @Environment(\.formLabelExtra) private var formLabelExtra
 
     public init(controlWidth: CGFloat, @ViewBuilder content: () -> Content) {
         self.controlWidth = controlWidth
@@ -68,7 +67,7 @@ public struct PillToggleGrid<Content: View>: View {
     }
 
     public var body: some View {
-        LazyVGrid(columns: PillToggle.columns(fitting: controlWidth - formLabelExtra), alignment: .leading,
+        LazyVGrid(columns: PillToggle.columns(fitting: controlWidth), alignment: .leading,
                   spacing: Spacing.sm) { content }
     }
 }

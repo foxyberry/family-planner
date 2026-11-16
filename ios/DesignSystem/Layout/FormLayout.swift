@@ -89,7 +89,7 @@ public struct FormLines: Equatable, Sendable {
 public extension GrownupLayout {
     /// A form card's rows run from the label line (card + 38, board 78) to the right-edge line
     /// (card right − 32, board 808).
-    var formRowsWidth: CGFloat { form.width - FormLines.cardPadding.leading - FormLines.cardPadding.trailing }
+    var formRowsWidth: CGFloat { editorRowsWidth }
 
     func formLines(secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
                    firstControlMinimum: CGFloat = 0) -> FormLines {
@@ -119,7 +119,17 @@ public enum CrayonPart {
     public static let pickRing: CGFloat = 4
 }
 
+public extension EdgeInsets {
+    /// The same padding on every side.
+    init(all value: CGFloat) { self.init(top: value, leading: value, bottom: value, trailing: value) }
+}
+
 public extension View {
+    /// Spec "Layout balance": a row of crayon parts (fields, tabs, pills, chips, time fields) lays out
+    /// its drawn box, one inset inside its frames top and bottom, so a card's rows sit
+    /// `formRowGap` apart and `FormLines.cardPadding` from its edge, between drawn edges.
+    func drawnRow() -> some View { padding(.vertical, -CrayonPart.inset) }
+
     /// Spec "Alignment contract": a part drawn to its frame edge (faces, chevrons, switches,
     /// borderless rows) gets one crayon inset around it, so its frame sits on the lines and its
     /// drawn edge lines up with every crayon part's (802, not 808, on the 13").

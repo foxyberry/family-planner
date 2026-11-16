@@ -62,9 +62,7 @@ public extension Sizing {
 
     /// Text to a control's drawn edge: 24, never under 16.
     var textPadding: CGFloat { fluid(24, 16) }
-    /// Form card inset: 40, never under 28.
-    var formCardInset: CGFloat { fluid(40, 28) }
-    /// Small cards (G1 slice card, `ConfirmCard`, list cards): 24, never under 16.
+    /// Nested cards (G1 slice card, list cards; spec "Layout balance"): 24, never under 16.
     var smallCardInset: CGFloat { fluid(24, 16) }
     /// Label → control gap and the gaps beside a joiner: 16, never under 12.
     var pairGap: CGFloat { fluid(16, 12) }
@@ -102,22 +100,11 @@ public extension Sizing {
         if tight >= Self.timeFieldMinimum { return TimePair(field: tight, gap: 12, joiner: 24, stacked: false) }
         return TimePair(field: max(Self.timeFieldMinimum, min(board, inner - 12 - 24)), gap: 12, joiner: 24, stacked: true)
     }
-
-    /// A card's label column (spec "Label column"): its board column × s, or wider for its longest
-    /// label (caption 24 bold) + 12, the floor of the label → control gap ("Arrive by" 125.5, so the
-    /// 13" keeps 128).
-    func labelColumn(base: CGFloat, labels: [String]) -> CGFloat {
-        let widest = labels.map { CrayonType.captionBoldWidth($0) }.max() ?? 0
-        return max(base, ceil(widest) + 12)
-    }
 }
 
 public extension EnvironmentValues {
     /// True on kid screens (`KidFullScreen`, `KidScreen`): controls take the kid touch floor (72).
     @Entry var isKidScreen = false
-    /// How much `formLabels` widened the card's label column: controls sized from the layout's
-    /// control column take this off.
-    @Entry var formLabelExtra: CGFloat = 0
     /// True inside a grown-up header row: its text controls (tabs, pills) stay 72 on every iPad
     /// (spec "Part floors → Header row").
     @Entry var isHeaderRow = false
@@ -141,25 +128,6 @@ public extension CrayonType {
         let font = FontRegistrar.font(size: size, weight: bold ? .bold : .medium)
         return ceil((text as NSString).size(withAttributes: [.font: font]).width)
     }
-}
-
-private struct FormLabelsModifier: ViewModifier {
-    let labels: [String]
-    @Environment(\.sizing) private var sizing
-    @Environment(\.formLabelWidth) private var base
-
-    func body(content: Content) -> some View {
-        let start = base ?? 128 * sizing.s
-        let column = sizing.labelColumn(base: start, labels: labels)
-        content.environment(\.formLabelWidth, column)
-            .environment(\.formLabelExtra, column - start)
-    }
-}
-
-public extension View {
-    /// Spec "Label column": the card's label column fits its longest label (+ 16) on smaller iPads,
-    /// so labels never shrink or wrap. Pass every label the card shows.
-    func formLabels(_ labels: [String]) -> some View { modifier(FormLabelsModifier(labels: labels)) }
 }
 
 /// Spec "Part floors", text: a value line joined by " · " stays on one line when it fits, else wraps

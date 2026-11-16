@@ -284,9 +284,7 @@ private struct SchoolStep: View {
     var body: some View {
         // Exactly the card's inner width, so no row can widen the card.
         PaperCard(seed: 71) {
-            rows.frame(width: layout.grown.form.width - 2 * layout.grown.formInset, alignment: .leading)
-                // Spec "Label column": the column fits this card's longest label.
-                .formLabels([L10n.tr("s2.goes"), L10n.tr("s2.preschool"), L10n.tr("s2.arrive_by")])
+            rows.frame(width: layout.grown.editorRowsWidth, alignment: .leading)
         }
         // Boards S2/S3: the card fills the main region down to 968, whatever its rows.
         .frame(width: layout.grown.form.width).frame(minHeight: layout.length(968 - 148), alignment: .topLeading)
@@ -467,7 +465,7 @@ private struct GoingStep: View {
     var body: some View {
         let grown = GrownupLayout(sizing: sizing)
         PaperCard(seed: 81) {
-            rows.frame(width: grown.form.width - 2 * grown.formInset, alignment: .leading)
+            rows.frame(width: grown.editorRowsWidth, alignment: .leading)
         }
         .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
     }
@@ -548,7 +546,7 @@ private struct AlmostDoneStep: View {
     /// at 653. Rows for features not built yet are not listed.
     var body: some View {
         PaperCard(seed: 91) { rows }
-            .environment(\.cardInset, 0)
+            .environment(\.cardPadding, EdgeInsets())
             .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
 
@@ -563,10 +561,11 @@ private struct AlmostDoneStep: View {
                                action: { store.send(.settingTapped(row.setting)) }) {
                         picture(row.picture)
                     }
-                    .frame(width: layout.length(738))
+                    .frame(width: layout.grown.editorRowsWidth)
                 }
             }
-            .padding(.leading, origin.x)
+            // Layout v56: the rows start on the label line and end on the right edge.
+            .padding(.leading, layout.grown.formInset)
             .padding(.top, origin.y)
         }
         .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
