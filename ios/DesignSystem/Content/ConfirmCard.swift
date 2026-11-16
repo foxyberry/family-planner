@@ -31,30 +31,37 @@ public struct ConfirmCard: View {
 
     @Environment(\.sizing) private var sizing
 
-    /// Spec "Layout balance": an overlay card pads 32 from its drawn edge (text at the top and left,
-    /// the buttons' frames at the bottom and right).
+    /// Spec "Layout balance": an overlay card pads 32 from its drawn edge to the content's drawn
+    /// boxes. Its content starts on the content line (drawn + 32, where a framed button's frame also
+    /// sits) and ends on text (the cancel choice); its last row is the buttons' frames.
     static let padding = EdgeInsets(top: Spacing.card + CrayonPart.inset, leading: Spacing.card + CrayonPart.inset,
-                                    bottom: Spacing.card, trailing: Spacing.card)
-    /// Spec "Part floors": width max(520 s, its content + the padding); the content is the buttons
-    /// row, and the title and message wrap inside.
-    static func width(sizing: Sizing, cancel: String) -> CGFloat {
-        let buttons = CardButton.width + Spacing.m + CrayonType.body.width(cancel, sizing: sizing, bold: true)
-        return max(520 * sizing.s, ceil(buttons + padding.leading + padding.trailing))
+                                    bottom: Spacing.card, trailing: Spacing.card + CrayonPart.inset)
+    /// Board C3x: 40 from the main button's frame to the cancel text.
+    static let buttonGap: CGFloat = Spacing.l
+    /// Spec "Part floors" (design session, layout v56): drawn width max(520 s, content + 64), frame
+    /// one inset wider each side. The content is the buttons row (button frame, gap, cancel text);
+    /// the title and message wrap inside. C3x "Leave" / "Keep editing" gives 541 on the 13".
+    public static func width(sizing: Sizing, cancel: String) -> CGFloat {
+        let content = CardButton.width + buttonGap + CrayonType.body.width(cancel, sizing: sizing, bold: true)
+        return ceil(max(520 * sizing.s, content + 2 * Spacing.card) + 2 * CrayonPart.inset)
     }
 
     public var body: some View {
         PaperCard(seed: CrayonStyle.Seed.card + 7, padding: Self.padding) {
-            VStack(alignment: .leading, spacing: Spacing.s) {
-                Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                if let message, let messageGlyph {
-                    GlyphText(message, glyph: messageGlyph, type: .body, color: CrayonColor.softText)
-                } else if let message {
-                    Text(message).crayonType(.body).foregroundStyle(CrayonColor.softText)
-                        .fixedSize(horizontal: false, vertical: true)
+            // Spec "Layout balance": the text block, then the buttons row 24 below between drawn edges.
+            VStack(alignment: .leading, spacing: sizing.formRowGap - CrayonPart.inset) {
+                VStack(alignment: .leading, spacing: Spacing.s) {
+                    Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                    if let message, let messageGlyph {
+                        GlyphText(message, glyph: messageGlyph, type: .body, color: CrayonColor.softText)
+                    } else if let message {
+                        Text(message).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 // The main choice first (design session, 2026-11-14): an InkButton, or the lateText
                 // button when it destroys something; the other choice after it as plain text.
-                HStack(spacing: Spacing.m) {
+                HStack(spacing: Self.buttonGap) {
                     if isDestructive {
                         CardButton(confirm, isDestructive: true, action: onConfirm)
                     } else {
@@ -69,7 +76,7 @@ public struct ConfirmCard: View {
                     .buttonStyle(.plain)
                 }
             }
-            // The paper is the card's full width (board C3x: 560); only its height hugs the content.
+            // The paper is the card's full width (`width`); only its height hugs the content.
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(width: Self.width(sizing: sizing, cancel: cancel))
