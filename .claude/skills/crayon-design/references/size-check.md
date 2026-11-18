@@ -47,7 +47,7 @@ The iPads and their scale are in `scripts/scale.py` (it prints s for each). Read
   - E1, one kid;
   - E3 / E3b, weekend and Sunday.
 - A2:
-  - live with several buses: the chosen one and faded "or" buses, one that changes ✱4;
+  - live with several buses: the chosen one and faded tagged buses close together, one that changes ✱4;
   - timetable look;
   - Bring checks ✱3.
 - A3 / A3r: medal and ready ✱3.
