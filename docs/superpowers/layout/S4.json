@@ -1,5 +1,5 @@
 {
- "version": "44",
+ "version": "56",
  "board": "S4",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -38,8 +38,9 @@
   "margin": 40,
   "formLeft": 40,
   "formRight": 840,
-  "labelLeft": 80,
-  "controlLeft": 208,
+  "labelLeft": 78,
+  "controlLeft": 192,
+  "rightEdge": 808,
   "sideLeft": 864,
   "sideWidth": 472,
   "right": 1336,
@@ -139,16 +140,38 @@
   {
    "id": "main.text.1",
    "kind": "text",
-   "x": 160,
-   "y": 210,
+   "x": 158,
+   "y": 186,
    "w": 222,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 245,
+   "baseline": 221,
    "font": 30,
    "text": "Grown-up lock"
+  },
+  {
+   "id": "main.picture.1",
+   "kind": "picture",
+   "x": 78,
+   "y": 196,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.picture.2",
+   "kind": "picture",
+   "x": 764,
+   "y": 210,
+   "w": 28,
+   "h": 28,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
   },
   {
    "id": "side.line.2",
@@ -208,38 +231,16 @@
    "align": "inside"
   },
   {
-   "id": "main.picture.1",
-   "kind": "picture",
-   "x": 80,
-   "y": 220,
-   "w": 56,
-   "h": 56,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
-   "id": "main.picture.2",
-   "kind": "picture",
-   "x": 760,
-   "y": 234,
-   "w": 28,
-   "h": 28,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "main.text.2",
    "kind": "text",
-   "x": 160,
-   "y": 248,
+   "x": 158,
+   "y": 224,
    "w": 385,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 276,
+   "baseline": 252,
    "font": 24,
    "text": "Face ID before grown-up screens"
   },
@@ -258,6 +259,20 @@
    "text": "School"
   },
   {
+   "id": "main.text.3",
+   "kind": "text",
+   "x": 158,
+   "y": 284,
+   "w": 106,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 319,
+   "font": 30,
+   "text": "Medals"
+  },
+  {
    "id": "side.picture.5",
    "kind": "picture",
    "x": 864,
@@ -267,6 +282,28 @@
    "region": "side",
    "anchor": "right",
    "align": "start"
+  },
+  {
+   "id": "main.picture.3",
+   "kind": "picture",
+   "x": 78,
+   "y": 295,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.picture.4",
+   "kind": "picture",
+   "x": 764,
+   "y": 309,
+   "w": 28,
+   "h": 28,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
   },
   {
    "id": "side.line.4",
@@ -282,29 +319,17 @@
    "font": 24
   },
   {
-   "id": "main.text.3",
+   "id": "main.text.4",
    "kind": "text",
-   "x": 160,
-   "y": 350,
-   "w": 106,
-   "h": 45,
+   "x": 158,
+   "y": 323,
+   "w": 492,
+   "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 385,
-   "font": 30,
-   "text": "Medals"
-  },
-  {
-   "id": "main.picture.3",
-   "kind": "picture",
-   "x": 80,
-   "y": 360,
-   "w": 56,
-   "h": 56,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
+   "baseline": 351,
+   "font": 24
   },
   {
    "id": "side.line.5",
@@ -321,17 +346,6 @@
    "text": "Bus from Our stop"
   },
   {
-   "id": "main.picture.4",
-   "kind": "picture",
-   "x": 760,
-   "y": 374,
-   "w": 28,
-   "h": 28,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "side.picture.6",
    "kind": "picture",
    "x": 864,
@@ -341,19 +355,6 @@
    "region": "side",
    "anchor": "right",
    "align": "start"
-  },
-  {
-   "id": "main.text.4",
-   "kind": "text",
-   "x": 160,
-   "y": 388,
-   "w": 492,
-   "h": 36,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "baseline": 416,
-   "font": 24
   },
   {
    "id": "side.line.6",
