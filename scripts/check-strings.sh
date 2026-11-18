@@ -1,10 +1,10 @@
 #!/bin/bash
 # User-facing copy lives in one String Catalog (ios/Strings/Localizable.xcstrings) and reaches the
-# screens only through L10n.tr("key"), so it can be translated and reviewed in one place.
+# screens only through `.tr("key")` (L10n, or the Localizer State keeps), so it can be translated and reviewed in one place.
 # This fails when:
 #   (a) a Swift file has a string literal that starts with an upper-case letter followed by a
 #       lower-case one ("Hello there"): copy typed into code
-#   (b) a key used as L10n.tr("key") is not in the catalog
+#   (b) a key used as L10n.tr("key") or strings.tr("key") (an injected Localizer) is not in the catalog
 #   (c) a catalog key is used nowhere in the app's Swift code
 #   (d) a catalog key has no English value
 #   (e) an L10n.tr("key", ...) call passes a different number of arguments than the key's English
@@ -58,7 +58,7 @@ import sys
 root = sys.argv[1]
 catalog_path = os.path.join(root, "ios", "Strings", "Localizable.xcstrings")
 catalog_rel = "ios/Strings/Localizable.xcstrings"
-key_use = re.compile(r'L10n\.tr\("([^"\\]+)"')
+key_use = re.compile(r'\.tr\("([^"\\]+)"')  # L10n.tr("key") and strings.tr("key")
 
 used = {}  # key -> first "file:line" that uses it
 for folder, dirs, files in os.walk(os.path.join(root, "ios")):
@@ -103,7 +103,7 @@ def placeholders(value):
     return max(len([p for p in found_args if not p]), max(positions, default=0))
 
 def call_args(text, start):
-    """Arguments after the key in an L10n.tr( call whose key literal ends at `start`."""
+    """Arguments after the key in a .tr( call whose key literal ends at `start`."""
     depth, commas, i = 1, 0, start
     while i < len(text) and depth:
         c = text[i]
@@ -120,7 +120,7 @@ def call_args(text, start):
         i += 1
     return commas
 
-call = re.compile(r'L10n\.tr\("([^"\\]+)"')
+call = re.compile(r'[\w.]+\.tr\("([^"\\]+)"')  # receiver included, for the GlyphText( check
 for folder, dirs, files in os.walk(os.path.join(root, "ios")):
     dirs[:] = [d for d in dirs if d not in ("Tests", "SnapshotTests")]
     for name in sorted(files):

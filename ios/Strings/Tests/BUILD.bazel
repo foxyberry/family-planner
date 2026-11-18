@@ -5,7 +5,11 @@ load("//ios:build_defs.bzl", "fp_swift_library")
 fp_swift_library(
     name = "StringsTestsLib",
     testonly = True,
-    deps = ["//ios/Strings"],
+    deps = [
+        "//ios/Clients/Localization",
+        "//ios/Strings",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
 )
 
 ios_unit_test(

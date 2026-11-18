@@ -35,7 +35,7 @@ new_repo() {
   mkdir -p "$REPO/.githooks" "$REPO/scripts"
   cp "$SRC/.githooks/pre-push" "$REPO/.githooks/"
   cp "$SRC/scripts/check-private-terms.sh" "$REPO/scripts/"
-  cp "$SRC/scripts/check-kid-screens.sh" "$SRC/scripts/check-crayon-canvas.sh" "$SRC/scripts/check-debug-boundary.sh" "$SRC/scripts/check-layout-literals.sh" \
+  cp "$SRC/scripts/check-kid-screens.sh" "$SRC/scripts/check-crayon-canvas.sh" "$SRC/scripts/check-debug-boundary.sh" "$SRC/scripts/check-layout-literals.sh" "$SRC/scripts/check-view-values.sh" \
      "$REPO/scripts/"
   cp "$SRC/scripts/check-dependencies.sh" "$SRC/scripts/check-skills.sh" "$SRC/scripts/check-strings.sh" "$REPO/scripts/"
   cp "$SRC/Makefile" "$REPO/"

@@ -1,0 +1,12 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# `\.localizer`: the copy dependency. State reads it once (`Localizer.injected`) and keeps the
+# value, so State's computed copy never reads a dependency at render time.
+fp_swift_library(
+    name = "Localization",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Strings",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)
