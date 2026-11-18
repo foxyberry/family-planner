@@ -76,7 +76,7 @@ public struct ChangeBusesView: View {
                         .fieldProblem(store.thenHasProblem)
                         .frame(width: FormLines.busNumberField)
                     if let caption = store.thenCaption {
-                        Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+                        Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.hurry)
                     }
                 }
             }
