@@ -57,13 +57,19 @@ public struct School: Hashable, Codable, Sendable {
 
     public var isPreschool: Bool { kind == .preschool }
 
+    /// The times a new school or preschool form starts on (S2, G7), before the website or the
+    /// grown-up sets them: 7:30 am to 3:00 pm, Latest 10 minutes after Arrive by.
+    public static let defaultStart = 450
+    public static let defaultEnd = 900
+    public static let defaultGrace = 10
+
     /// A school picked from the bundled list (S2, G7): its own hours when known (else 7:30–3:00),
     /// Arrive by at the start and Latest 10 minutes after, school days, MOE terms when it follows them.
     public init(entry: SchoolEntry) {
-        let start = entry.hours?.start ?? 450
-        self.init(name: entry.name, days: Weekday.schoolDays, start: start, end: entry.hours?.end ?? 900,
+        let start = entry.hours?.start ?? Self.defaultStart
+        self.init(name: entry.name, days: Weekday.schoolDays, start: start, end: entry.hours?.end ?? Self.defaultEnd,
                   directoryID: entry.id, usesMoeTerms: entry.followsMoeTerms ?? false, arriveBy: start,
-                  latest: start + 10)
+                  latest: start + Self.defaultGrace)
     }
 
     /// The School slice moved on the clock (layout v37, All days): the slice starts at Arrive by (or

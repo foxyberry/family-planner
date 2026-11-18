@@ -369,11 +369,15 @@ public struct SetupFeature {
                     school.days = Weekday.schoolDays
                     school.moeAnswer = nil
                     school.usesMoeTerms = entry.followsMoeTerms ?? false
-                    // Hours from the school's own website; Latest = the start + 10 minutes.
-                    school.start = entry.hours?.start
-                    school.end = entry.hours?.end
-                    school.arriveBy = entry.hours?.start
-                    school.latest = entry.hours.map { $0.start + 10 }
+                    // Hours from the school's own website (Latest = the start + 10 minutes), else
+                    // the defaults.
+                    school.resetTimes()
+                    if let hours = entry.hours {
+                        school.start = hours.start
+                        school.end = hours.end
+                        school.arriveBy = hours.start
+                        school.latest = hours.start + School.defaultGrace
+                    }
                     school.hoursSource = source
                     school.websiteDays = entry.hours?.byWeekday ?? [:]
                 }
@@ -384,10 +388,7 @@ public struct SetupFeature {
                     school.typedByHand = true
                     school.picked = nil
                     school.matches = []
-                    school.start = nil
-                    school.end = nil
-                    school.arriveBy = nil
-                    school.latest = nil
+                    school.resetTimes()
                     school.hoursSource = nil
                     school.websiteDays = [:]
                     school.usesMoeTerms = false
