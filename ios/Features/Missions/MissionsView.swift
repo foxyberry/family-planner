@@ -3,7 +3,6 @@ import CrayonKit
 import DesignSystem
 import Domain
 import KitArt
-import Strings
 import SwiftUI
 
 /// A2 · Morning (boards A2, A2t, A2t-w, A3): header, the way strip, the kid list and the chosen
@@ -38,20 +37,20 @@ public struct MissionsView: View {
     @ViewBuilder private var strip: some View {
         if let live = store.liveStrip {
             WayStrip(live: live)
-                .accessibilityLabel(store.liveSpoken ?? "")
+                .accessibilityLabel(store.stripLabel)
         } else if let trip = store.wayTrip {
             WayStrip(trip: trip)
-                .accessibilityLabel(store.way?.spoken ?? "")
+                .accessibilityLabel(store.stripLabel)
         } else {
-            WayStrip(homeAllDay: L10n.tr("missions.home_all_day"))
-                .accessibilityLabel(L10n.tr("missions.way.none"))
+            WayStrip(homeAllDay: store.homeAllDayText)
+                .accessibilityLabel(store.stripLabel)
         }
     }
 
     // MARK: Header (48–128): ← at 64, title at 168, the right group ending at 1312, baseline 107.
 
     @ViewBuilder private func header(_ layout: MorningLayout) -> some View {
-        RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("missions.back")) { store.send(.backTapped) }
+        RoundButton(glyph: .chevronLeft, accessibilityLabel: store.backLabel) { store.send(.backTapped) }
             .place(layout.back)
         Text(store.title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1)
             .place(left: layout.titleLeft, baseline: layout.headerBaseline)
@@ -160,7 +159,7 @@ public struct MissionsView: View {
 
     @ViewBuilder private func bottomControl(_ layout: MorningLayout) -> some View {
         if let kid = store.chosenKid {
-            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: L10n.tr("missions.ready"), knob: store.slideKnob, doneKnob: store.slideDoneKnob,
+            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: store.slideDoneTitle, knob: store.slideKnob, doneKnob: store.slideDoneKnob,
                       onUndo: { store.send(.slideUndone) }) {
                 ticks += 1
                 store.send(.slid)
@@ -176,22 +175,22 @@ public struct MissionsView: View {
         switch circle {
         case let .mission(mission, isDone, isCurrent):
             Button { store.send(.missionTapped(mission.id)) } label: {
-                MissionCircle(picture: KitSlot(iconName: mission.picture), name: mission.name, colorIndex: colorIndex,
+                MissionCircle(picture: store.state.picture(of: mission), name: store.state.name(of: circle), colorIndex: colorIndex,
                               isDone: isDone, isCurrent: isCurrent, labelWidth: labelWidth,
-                              playID: store.plays[mission.id] ?? 0)
+                              playID: store.state.playID(of: mission.id))
             }
             .buttonStyle(.plain)
         case let .folded(count):
-            MissionCircle(.tick, name: L10n.tr("missions.folded", count), colorIndex: colorIndex, labelWidth: labelWidth)
+            MissionCircle(.tick, name: store.state.name(of: circle), colorIndex: colorIndex, labelWidth: labelWidth)
         case let .more(count):
             Button { store.send(.moreTapped) } label: {
-                MissionCircle(.text(L10n.tr("missions.more_count", count)), name: L10n.tr("missions.more", count),
+                MissionCircle(.text(store.state.moreText(count: count)), name: store.state.name(of: circle),
                               colorIndex: colorIndex, labelWidth: labelWidth)
             }
             .buttonStyle(.plain)
         case .back:
             Button { store.send(.backPageTapped) } label: {
-                MissionCircle(.glyph(.chevronLeft), name: L10n.tr("missions.page_back"), colorIndex: colorIndex,
+                MissionCircle(.glyph(.chevronLeft), name: store.state.name(of: circle), colorIndex: colorIndex,
                               labelWidth: labelWidth)
             }
             .buttonStyle(.plain)

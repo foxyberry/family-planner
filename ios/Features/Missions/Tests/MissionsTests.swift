@@ -4,6 +4,8 @@ import DesignSystem
 import Domain
 import Foundation
 import HolidayProvider
+import KitArt
+import Localization
 import Missions
 import ScheduleStore
 import SchoolDirectory
@@ -349,6 +351,26 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.circles.first, .folded(count: 3))
         XCTAssertEqual(store.state.circles.count, 6)
         XCTAssertFalse(store.state.circles.contains { if case .more = $0 { true } else { false } })
+    }
+
+    /// Views hold no values: the circles' words, play ids and the strip label come from State.
+    func testCircleWordsAndPlayIDsComeFromState() {
+        let state = MissionsFeature.State()
+        XCTAssertEqual(state.name(of: .folded(count: 3)), "3 done")
+        XCTAssertEqual(state.name(of: .more(count: 2)), "2 more")
+        XCTAssertEqual(state.moreText(count: 2), "+2")
+        XCTAssertEqual(state.name(of: .back), "Back")
+        XCTAssertEqual(state.playID(of: id("301")), 0)
+        XCTAssertEqual(state.picture(of: WindowMission(window: .morning, id: id("301"), name: "Teeth", picture: "toothbrush")),
+                       .toothbrush)
+        XCTAssertEqual(state.picture(of: WindowMission(window: .morning, id: id("302"), name: "Odd", picture: "noSuchPicture")),
+                       .actPlay)
+        XCTAssertEqual(state.stripLabel, "No more trips today")
+        XCTAssertEqual(state.backLabel, "Back to the clock")
+
+        let keys = withDependencies { $0.localizer = .keys } operation: { MissionsFeature.State() }
+        XCTAssertEqual(keys.name(of: .folded(count: 3)), "missions.folded|3")
+        XCTAssertEqual(keys.slideDoneTitle, "missions.ready")
     }
 
     /// Spec "Mission windows": after school, Kid A's list is swimming's Bring checks; the slide
