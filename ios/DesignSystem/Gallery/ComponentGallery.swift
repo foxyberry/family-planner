@@ -103,7 +103,7 @@ public struct ComponentGallery: View {
                         FormLabel("Name")
                         Text("Swimming").crayonType(.body)
                     }
-                    .environment(\.formLabelWidth, 128)
+                    .environment(\.formLabelWidth, FormLines.labelColumn)
                     TodayRow(leading: "Today") { Text("Swimming 15:30") }
                     PreviewRow(time: "3:30 pm", isNew: false) { Text("Play").crayonType(.body) }
                     PreviewRow(time: "4:00 pm", isNew: true) { Text("Swimming").crayonType(.head) }

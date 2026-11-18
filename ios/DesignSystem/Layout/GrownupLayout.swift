@@ -3,7 +3,7 @@ import CoreGraphics
 /// The grown-up boards' shared lines (family `grown`, layout v31: G1–G8, C2, C3, C3g, C4, E5, C5,
 /// S1–S4 in docs/superpowers/layout) through "Sizing formulas". Every grown-up screen places its
 /// frame from here: 40 side margins like home, the header band 44–124 (layout v32: ← at 40, 44, on
-/// the home pencil's row; title at 144), the form card 40–840 × 148–968 (left-anchored; labels at 80, controls at 208), the side column 864–1336
+/// the home pencil's row; title at 144), the form card 40–840 × 148–968 (left-anchored; labels at 78, controls at 192, right edge 808), the side column 864–1336
 /// (right-anchored, 472 wide) and the action button (864, 872, 472 × 96) ending on 968.
 public struct GrownupLayout: Equatable, Sendable {
     public let sizing: Sizing
@@ -40,19 +40,24 @@ public struct GrownupLayout: Equatable, Sendable {
         CGRect(x: sizing.left(40), y: sizing.y(148), width: max((840 - 40) * s, sizing.right(864) - 24 * s - sizing.left(40)),
                height: max(bottom - sizing.y(148), 96 * s))
     }
-    /// Rows start 40 inside the card (x 80) and end 40 before its right edge (800).
-    /// Spec "Part floors": 40, never under 28.
-    public var formInset: CGFloat { sizing.formCardInset }
-    public var labelLeft: CGFloat { sizing.left(80) }
-    /// Form controls start on 208 (C3, C4, E5); a label column is 208 − 80 wide.
-    public var controlLeft: CGFloat { sizing.left(208) }
-    public var labelWidth: CGFloat { controlLeft - labelLeft }
-    /// The control column of a form row: 208 to 40 inside the card's right edge (592).
-    public var controlWidth: CGFloat { form.width - formInset - (controlLeft - form.minX) }
-    /// The editor boards (C3, C4, E5, G2–G4) run their rows to 818: six "What" circles end on 816,
-    /// the name field on 818. Their card keeps 40 on the left and only 22 on the right.
-    public var editorTrailingInset: CGFloat { 22 * s }
-    public var editorRowsWidth: CGFloat { form.width - formInset - editorTrailingInset }
+    /// Spec "Layout balance": the card pads 32 from its drawn edge on every iPad, so rows start on
+    /// the label line (card + 38, board 78) and end on the right-edge line (card right − 32, 808).
+    public var formInset: CGFloat { FormLines.cardPadding.leading }
+    public var labelLeft: CGFloat { form.minX + FormLines.cardPadding.leading }
+    /// One fixed label column (114) on every grown-up form: controls start on 192.
+    public var controlLeft: CGFloat { labelLeft + FormLines.labelColumn }
+    public var labelWidth: CGFloat { FormLines.labelColumn }
+    /// The right-edge line: stretching controls end here (drawn 802).
+    public var rightEdge: CGFloat { form.maxX - FormLines.cardPadding.trailing }
+    /// The control column of a form row: the control line to the right edge (616 on the 13").
+    public var controlWidth: CGFloat { rightEdge - controlLeft }
+    /// A form card's rows, label line to right edge (730 on the 13").
+    public var editorRowsWidth: CGFloat { rightEdge - labelLeft }
+    /// A row of `count` tabs 12 apart: the board width (180 on C3), or less so the row ends on the
+    /// right edge on smaller iPads.
+    public func tabWidth(count: Int, board: CGFloat) -> CGFloat {
+        min(board, ((controlWidth - CGFloat(count - 1) * Spacing.sm) / CGFloat(count)).rounded(.down))
+    }
     /// G6 "About" values start on 256.
     public var valueLeft: CGFloat { sizing.left(256) }
 

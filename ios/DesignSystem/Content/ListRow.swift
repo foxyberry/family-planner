@@ -25,7 +25,7 @@ public struct ListRow<Content: View>: View {
         HStack(alignment: labelHeight == nil ? .center : .top, spacing: formLabelWidth == nil ? Spacing.m : 0) {
             // Boards C1–C4: row labels are caption bold in soft text.
             // Spec "Part floors": one line, never shrunk; the card's label column fits its longest
-            // label (`formLabels`).
+            // label (spec "Label column").
             Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
                 .lineLimit(1)
                 .frame(width: formLabelWidth ?? 120, height: labelHeight, alignment: .leading)

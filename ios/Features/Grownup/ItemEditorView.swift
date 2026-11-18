@@ -27,10 +27,9 @@ public struct ItemEditorView: View {
             } content: { layout in
                 HStack(alignment: .top, spacing: layout.gap) {
                     // Exactly the card's inner width, so no row can widen the card past 64 … 882.
-                    PaperCard(seed: 31, trailingInset: layout.editorTrailingInset) {
+                    PaperCard(seed: 31) {
                         ScrollColumn(scrollTarget: store.scrollTarget) {
-                            form
-                                .formLabels([L10n.tr("editor.row.repeat")])
+                            form(layout)
                                 .frame(width: layout.editorRowsWidth, alignment: .leading)
                         }
                     }
@@ -99,9 +98,10 @@ public struct ItemEditorView: View {
 
     // MARK: Form
 
-    private var form: some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
-            row(L10n.tr("editor.row.for")) { audienceTabs }
+    /// Layout v56: rows 24 apart between drawn edges (C3 180 / 264 / 364 / 456 / 548 / 632 / 718).
+    private func form(_ layout: GrownupLayout) -> some View {
+        VStack(alignment: .leading, spacing: sizing.formRowGap) {
+            row(L10n.tr("editor.row.for")) { audienceTabs(layout) }
             // Board C3 (layout v6): five pictures and "More", which opens every picture, 6 per row.
             row(L10n.tr("editor.row.what")) {
                 PictureRow(slots: store.whatRow.compactMap(KitSlot.init(rawValue:)),
@@ -123,12 +123,13 @@ public struct ItemEditorView: View {
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
                 row(L10n.tr("editor.row.repeat")) {
-                    // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12.
+                    // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12 (less on smaller iPads).
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
                                items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
                                        (.weekly, L10n.tr("editor.repeat.weekly"), nil),
                                        (.monthly, L10n.tr("editor.repeat.monthly"), nil)],
-                               widths: [180, 180, 180], spacing: Spacing.sm)
+                               widths: Array(repeating: layout.tabWidth(count: 3, board: 180), count: 3),
+                               spacing: Spacing.sm)
                 }
             }
             // Board G3: This day keeps the item's own rows only (no Days, Runs or event rows).
@@ -155,7 +156,7 @@ public struct ItemEditorView: View {
     private func row(_ label: String, problem row: FormRow? = nil, isActive: Bool = false,
                      @ViewBuilder control: () -> some View) -> some View {
         let shown = row.flatMap { store.state.problem(for: $0) }
-        // Labels from 104, controls on 232 (GrownupLayout, boards C3 / C4 / E5). A problem (spec
+        // Labels on 78, controls on 192 (GrownupLayout, layout v56). A problem (spec
         // "Add-screen feedback") turns the field's outline `lateText` and its caption sits right under
         // the field, taking its own line.
         return HStack(alignment: .controlMiddle, spacing: 0) {
@@ -169,14 +170,15 @@ public struct ItemEditorView: View {
                 }
             }
         }
+        .drawnRow()
         .id(row?.rawValue)
     }
 
-    private var audienceTabs: some View {
-        // Board C3: three tabs 180 × 72, gap 12.
+    private func audienceTabs(_ layout: GrownupLayout) -> some View {
+        // Board C3: three tabs 180 × 72, gap 12 (less on smaller iPads).
         CrayonTabs(selection: Binding(get: { store.form.audience }, set: { store.send(.audienceTapped($0)) }),
                    items: store.audienceTabs.map { ($0.audience, $0.title, $0.badge) },
-                   itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
+                   itemSize: CGSize(width: layout.tabWidth(count: 3, board: 180), height: 72), spacing: Spacing.sm)
     }
 
     private var whenRow: some View {
@@ -376,6 +378,8 @@ public struct ItemEditorView: View {
                     Spacer(minLength: 0)
                     MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
                 }
+                // Spec "Alignment contract": a borderless value row ends drawn on 802.
+                .padding(.trailing, CrayonPart.inset)
                 .frame(maxWidth: .infinity, minHeight: 72)
                 .contentShape(Rectangle())
             }

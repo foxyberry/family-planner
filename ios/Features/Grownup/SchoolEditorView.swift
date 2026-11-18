@@ -22,10 +22,9 @@ public struct SchoolEditorView: View {
             GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
-                PaperCard(seed: 33, trailingInset: layout.editorTrailingInset) {
+                PaperCard(seed: 33) {
                     ScrollColumn {
                         rows.frame(width: layout.editorRowsWidth, alignment: .leading)
-                            .formLabels([L10n.tr("s2.arrive_by")])
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height)
@@ -99,14 +98,18 @@ public struct SchoolEditorView: View {
                     Spacer(minLength: 0)
                     MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
                 }
+                // Spec "Alignment contract": a value row ends drawn on 802.
+                .padding(.trailing, CrayonPart.inset)
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
+    /// Layout v56: rows 24 apart between drawn edges; crayon rows (time fields, chips) lay out their
+    /// drawn box, value rows draw to their frame.
     private var rows: some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
+        VStack(alignment: .leading, spacing: sizing.formRowGap) {
             // Board G4: the school's name; changing the school itself is G7 (not built yet).
             // Board G4: School › opens G7 (change school); a change waiting for its day shows under it.
             linkRow(L10n.tr("settings.school"), action: .changeSchoolTapped) {
@@ -129,6 +132,7 @@ public struct SchoolEditorView: View {
                               width: sizing.timeFieldWidth)
                 }
             }
+            .drawnRow()
             ListRow(leading: L10n.tr("editor.row.days"), minHeight: 80) {
                 HStack(spacing: Spacing.sm) {
                     ForEach(Weekday.allCases.sorted(), id: \.self) { day in
@@ -138,7 +142,8 @@ public struct SchoolEditorView: View {
                     }
                 }
             }
-            // As on S2: Arrive by, then latest (the grace sets the medals).
+            .drawnRow()
+            // As on S2: Arrive, then latest (the grace sets the medals).
             ListRow(leading: L10n.tr("s2.arrive_by"), minHeight: 80) {
                 HStack(spacing: Spacing.s) {
                     TimeField(label: store.arriveByLabel,
@@ -150,6 +155,7 @@ public struct SchoolEditorView: View {
                               width: sizing.timeFieldWidth)
                 }
             }
+            .drawnRow()
             // Board G4 Terms: the term text, and the S2 MOE switch for a school that can follow it.
             ListRow(leading: L10n.tr("settings.terms"), minHeight: 80) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {

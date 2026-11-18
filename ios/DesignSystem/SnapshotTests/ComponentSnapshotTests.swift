@@ -205,8 +205,8 @@ final class ComponentSnapshotTests: XCTestCase {
             HStack(spacing: 0) { FormLabel("Name"); Text("Swimming").crayonType(.body) }
             ListRow(leading: "Stop") { Text("00000") }
         }
-        .environment(\.formLabelWidth, 128)
-        .environment(\.cardInset, 40), width: Self.rowWidth)
+        .environment(\.formLabelWidth, FormLines.labelColumn)
+        .environment(\.cardPadding, FormLines.cardPadding), width: Self.rowWidth)
     }
 
     func testPaperCardWidths() {

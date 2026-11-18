@@ -207,7 +207,7 @@ public struct OurDayView: View {
             // The day button stays at the top and Save at the foot; only the card scrolls between them.
             ScrollColumn {
                 PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
-                    .environment(\.cardInset, sliceCardInset)
+                    .environment(\.cardPadding, EdgeInsets(all: sliceCardInset))
                     .frame(width: layout.side.width)
             }
         }

@@ -35,7 +35,7 @@ public struct DataSourcesView: View {
                     Text(L10n.tr("sources.no_endorsement")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
+                .frame(width: layout.editorRowsWidth, alignment: .leading)
                 }
             }
             .frame(width: layout.form.width, height: layout.form.height)
