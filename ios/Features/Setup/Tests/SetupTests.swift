@@ -210,7 +210,39 @@ final class SetupTests: XCTestCase {
         XCTAssertEqual(store.state.tabKid?.school.termsRow, .ownDates(breaks: 3))
         XCTAssertEqual(store.state.termsCaption, "3 breaks from the school website")
         XCTAssertEqual(store.state.tabKid?.school.usesMoeTerms, false)
-        XCTAssertNil(store.state.tabKid?.school.start, "nothing known: the fields stay empty")
+        let times = store.state.tabKid?.school
+        XCTAssertEqual([times?.start, times?.end, times?.arriveBy, times?.latest], [450, 900, 450, 460],
+                       "nothing known: the fields keep the defaults")
+    }
+
+    /// A shown default time is a real value (user, 2026-11-18): a fresh form with a name and the
+    /// school days is complete, and the fields print the defaults in ink.
+    func testDefaultTimesCountWithoutTouchingAWheel() async {
+        let store = store()
+        await family(store)
+        await kidBAtHome(store)
+        await store.send(.nextTapped)
+        XCTAssertFalse(store.state.canGoNext, "no school yet")
+        XCTAssertEqual(store.state.timeLabel(.start).text, "7:30 am")
+        XCTAssertFalse(store.state.timeLabel(.start).isPlaceholder)
+        XCTAssertFalse(store.state.timeLabel(.latest).isPlaceholder)
+        // Typed by hand.
+        await store.send(.schoolTextChanged("Example Town School"))
+        await store.send(.notInListTapped)
+        XCTAssertTrue(store.state.tabKid?.school.isComplete ?? false)
+        XCTAssertTrue(store.state.canGoNext)
+        // Picked from the list without website hours.
+        await store.send(.schoolTextChanged("eis"))
+        await store.send(.schoolPicked(international))
+        XCTAssertEqual(store.state.tabKid?.school.end, 900)
+        XCTAssertTrue(store.state.canGoNext)
+        // Preschool: a typed name only.
+        await store.send(.goesToTapped(.preschool))
+        XCTAssertFalse(store.state.canGoNext)
+        await store.send(.schoolTextChanged("Example Preschool"))
+        XCTAssertTrue(store.state.tabKid?.school.isComplete ?? false)
+        XCTAssertTrue(store.state.canGoNext)
+        XCTAssertEqual(store.state.timeLabel(.end).text, "3:00 pm")
     }
 
     func testKidsWithoutASchoolSkipGettingThereAndBackKeepsValues() async {
@@ -265,7 +297,7 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTextChanged("Example Preschool"))
         XCTAssertTrue(store.state.tabKid?.school.matches.isEmpty ?? false, "no list for preschools")
         XCTAssertNil(store.state.tabKid?.school.termsRow)
-        XCTAssertFalse(store.state.canGoNext)
+        XCTAssertTrue(store.state.canGoNext, "a name is enough: the hours start on the defaults")
         await store.send(.timeChanged(.start, 480))
         await store.send(.timeChanged(.end, 720))
         XCTAssertTrue(store.state.canGoNext)

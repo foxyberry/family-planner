@@ -71,10 +71,12 @@ public struct SchoolForm: Equatable, Sendable {
     public var typedByHand = false
     public var matches: [SchoolEntry] = []
     public var days: Set<Weekday> = Weekday.schoolDays
-    public var start: Int?
-    public var end: Int?
-    public var arriveBy: Int?
-    public var latest: Int?
+    /// The times start on the defaults (shown in ink and counted as answers; user, 2026-11-18), so
+    /// Next works without touching a wheel. A school's website hours replace them when picked.
+    public var start: Int? = School.defaultStart
+    public var end: Int? = School.defaultEnd
+    public var arriveBy: Int? = School.defaultStart
+    public var latest: Int? = School.defaultStart + School.defaultGrace
     /// "From the school website, checked 9 Nov" while Hours, Arrive by and Latest are as the school
     /// website states them; editing a value removes it.
     public var hoursSource: String?
@@ -86,6 +88,15 @@ public struct SchoolForm: Equatable, Sendable {
     public var moeAnswer: Bool?
 
     public init() {}
+
+    /// Puts the four times back on the defaults (a school without website hours, or typed by hand).
+    public mutating func resetTimes() {
+        let fresh = SchoolForm()
+        start = fresh.start
+        end = fresh.end
+        arriveBy = fresh.arriveBy
+        latest = fresh.latest
+    }
 
     public var name: String? {
         if kind == .school, let picked { return picked.name }

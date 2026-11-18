@@ -33,8 +33,9 @@ public struct ChangeSchoolFeature {
         public var place: Place = .school
         /// Preschool: the typed name, drop-off and pick-up (minutes after midnight).
         public var preschoolName = ""
-        public var dropOff: Int?
-        public var pickUp: Int?
+        /// They start on the S2 defaults, which count as answers (user, 2026-11-18).
+        public var dropOff = School.defaultStart
+        public var pickUp = School.defaultEnd
         /// The "Starts on" card is open (after a school pick, Preschool's Save, or At home).
         public var isCardOpen = false
         public var date: Day
@@ -70,15 +71,13 @@ public struct ChangeSchoolFeature {
         }
         /// Preschool's rows show "Save", which opens the card once the name and both times are in.
         public var canContinuePreschool: Bool {
-            guard place == .preschool, let dropOff, let pickUp else { return false }
+            guard place == .preschool else { return false }
             return !preschoolName.trimmingCharacters(in: .whitespaces).isEmpty && dropOff < pickUp
         }
-        /// A time as the field prints it, or the S2 placeholder in `softText`.
-        public func timeLabel(_ minute: Int?, placeholder: Int) -> (text: String, isPlaceholder: Bool) {
-            (TimeText.withPeriod(minute ?? placeholder), minute == nil)
-        }
-        public func timeDate(_ minute: Int?, placeholder: Int) -> Date {
-            Day(year: 2026, month: 1, day: 1).date(minute: minute ?? placeholder, calendar: calendar)
+        /// A time as the field prints it.
+        public func timeLabel(_ minute: Int) -> String { TimeText.withPeriod(minute) }
+        public func timeDate(_ minute: Int) -> Date {
+            Day(year: 2026, month: 1, day: 1).date(minute: minute, calendar: calendar)
         }
 
         /// The new place: the picked school, the typed preschool, or nil for at home.
@@ -86,7 +85,7 @@ public struct ChangeSchoolFeature {
             switch place {
             case .school: return picked.map(School.init(entry:))
             case .preschool:
-                guard canContinuePreschool, let dropOff, let pickUp else { return nil }
+                guard canContinuePreschool else { return nil }
                 return School(name: preschoolName.trimmingCharacters(in: .whitespaces), days: Weekday.schoolDays,
                               start: dropOff, end: pickUp, arriveBy: dropOff, kind: .preschool)
             case .home: return nil

@@ -91,28 +91,28 @@ extension SetupFeature.State {
         return L10n.tr("s2.school.hint")
     }
 
-    /// A time as the field prints it, or the seed placeholder ("7:30 am") in `softText`.
-    public func timeLabel(_ row: SetupFeature.TimeRow) -> (text: String, isPlaceholder: Bool) {
-        let school = tabKid?.school
-        let (value, placeholder): (Int?, Int) = switch row {
-        case .start: (school?.start, 450)
-        case .end: (school?.end, 900)
-        case .arriveBy: (school?.arriveBy, 450)
-        case .latest: (school?.latest, 460)
+    /// A field's time: the form's value (it starts on the defaults), or the default if one is unset.
+    func timeMinute(_ row: SetupFeature.TimeRow) -> (value: Int, isSet: Bool) {
+        let school = tabKid?.school ?? SchoolForm()
+        let fresh = SchoolForm()
+        let (value, fallback): (Int?, Int?) = switch row {
+        case .start: (school.start, fresh.start)
+        case .end: (school.end, fresh.end)
+        case .arriveBy: (school.arriveBy, fresh.arriveBy)
+        case .latest: (school.latest, fresh.latest)
         }
-        return (TimeText.withPeriod(value ?? placeholder), value == nil)
+        return (value ?? fallback ?? 0, value != nil)
     }
 
-    /// The time the wheel opens on: the field's time, or its placeholder.
+    /// A time as the field prints it; in `softText` only when the form has no value for it.
+    public func timeLabel(_ row: SetupFeature.TimeRow) -> (text: String, isPlaceholder: Bool) {
+        let time = timeMinute(row)
+        return (TimeText.withPeriod(time.value), !time.isSet)
+    }
+
+    /// The time the wheel opens on: the field's time.
     public func timeDate(_ row: SetupFeature.TimeRow) -> Date {
-        let school = tabKid?.school
-        let minute = switch row {
-        case .start: school?.start ?? 450
-        case .end: school?.end ?? 900
-        case .arriveBy: school?.arriveBy ?? 450
-        case .latest: school?.latest ?? 460
-        }
-        return Self.wheelDay.date(minute: minute, calendar: calendar)
+        Self.wheelDay.date(minute: timeMinute(row).value, calendar: calendar)
     }
 
     /// Any fixed day: the wheel picks a clock time only.

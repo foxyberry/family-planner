@@ -132,17 +132,15 @@ public struct ChangeSchoolView: View {
         }
         ListRow(leading: L10n.tr("s2.hours"), minHeight: 80) {
             HStack(spacing: Spacing.s) {
-                time(store.dropOff, placeholder: 450) { store.send(.dropOffPicked($0)) }
+                time(store.dropOff) { store.send(.dropOffPicked($0)) }
                 MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
-                time(store.pickUp, placeholder: 900) { store.send(.pickUpPicked($0)) }
+                time(store.pickUp) { store.send(.pickUpPicked($0)) }
             }
         }
     }
 
-    private func time(_ minute: Int?, placeholder: Int, set: @escaping (Date) -> Void) -> some View {
-        let label = store.state.timeLabel(minute, placeholder: placeholder)
-        return TimeField(label: label.text,
-                         time: Binding(get: { store.state.timeDate(minute, placeholder: placeholder) }, set: set),
-                         isPlaceholder: label.isPlaceholder, width: 180)
+    private func time(_ minute: Int, set: @escaping (Date) -> Void) -> some View {
+        TimeField(label: store.state.timeLabel(minute),
+                  time: Binding(get: { store.state.timeDate(minute) }, set: set), width: 180)
     }
 }
