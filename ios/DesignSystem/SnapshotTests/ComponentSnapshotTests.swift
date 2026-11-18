@@ -357,16 +357,17 @@ final class ComponentSnapshotTests: XCTestCase {
                          cancel: "Keep", confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {}))
     }
 
-    /// Spec "Layout model" on board S1 v51: `FormRow` lines (second column on 606 / 678 … 818 on the
-    /// 13") and `cardCorner`'s × with its confirm card hanging under it, on the 13" and the mini.
+    /// Spec "Layout balance" on board S1 v56: `FormRow` lines (second column on 590 / 656 … 808 (drawn 802) on the
+    /// 13", the card hugging its rows) and `cardCorner`'s × with its confirm card hanging under it,
+    /// on the 13" and the mini.
     func testFormRowsAndCardCorner() {
         for (name, sizing) in [("13", Sizing(width: 1376, height: 1032)), ("mini", Sizing(width: 1133, height: 744))] {
             let layout = GrownupLayout(sizing: sizing)
-            let lines = layout.formLines(labels: ["Name", "Colour"], secondLabels: ["Age", "Face"],
+            let lines = layout.formLines(secondLabels: ["Age", "Face"],
                                          secondControlWidth: 2 * sizing.pickedFace + Spacing.sm,
                                          firstControlMinimum: 4 * ColourSwatch.frame(sizing) + 3 * Spacing.sm)
-            let card = PaperCard(seed: 61, trailingInset: layout.editorTrailingInset) {
-                VStack(alignment: .leading, spacing: 40 * sizing.s) {
+            let card = PaperCard(seed: 61, padding: FormLines.cardPadding) {
+                VStack(alignment: .leading, spacing: sizing.formRowGap) {
                     FormRow("Name", kind: .field, second: "Age") {
                         CrayonField("Name", text: .constant("Kid A"))
                     } secondControl: {
@@ -381,6 +382,7 @@ final class ComponentSnapshotTests: XCTestCase {
                             KitIcon(.kidGirl, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
                             KitIcon(.kidBoy, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
                         }
+                        .partInset()
                     }
                 }
                 .formLines(lines)
@@ -390,7 +392,7 @@ final class ComponentSnapshotTests: XCTestCase {
                 RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(Sizing.cornerControl)
             } popover: {
                 ConfirmCard(title: "Remove Kid A?", message: nil, cancel: "Keep", confirm: "Remove",
-                            isDestructive: true, width: 360, onCancel: {}, onConfirm: {})
+                            isDestructive: true, onCancel: {}, onConfirm: {})
             }
             .padding(.top, Spacing.l)
             .padding(.trailing, Spacing.l)

@@ -159,12 +159,11 @@ private struct FamilyStep: View {
     let layout: SetupLayout
 
     var body: some View {
-        VStack(alignment: .leading, spacing: layout.cardGap) {
+        // Spec "Layout balance": each kid card hugs its rows (padding 32), cards 40 apart.
+        VStack(alignment: .leading, spacing: FormLines.cardGap) {
             ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
-                PaperCard(seed: 61 + UInt32(index), trailingInset: layout.grown.editorTrailingInset) { card(kid, index: index) }
-                    // Rows grow with their content: a dropped second column makes the card taller.
+                PaperCard(seed: 61 + UInt32(index), padding: FormLines.cardPadding) { card(kid, index: index) }
                     .frame(width: layout.grown.form.width, alignment: .topLeading)
-                    .frame(minHeight: layout.cardHeight, alignment: .topLeading)
                     .cardCorner(size: Sizing.cornerControl) { removeButton(kid) } popover: { removeConfirm(kid, index: index) }
                     .zIndex(store.removeConfirm == kid.id ? 1 : 0)
             }
@@ -180,7 +179,7 @@ private struct FamilyStep: View {
                 }
                 Text(L10n.tr("s1.one_child")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
-            .padding(.leading, layout.grown.formInset)
+            .padding(.leading, FormLines.cardPadding.leading)
         }
     }
 
@@ -202,18 +201,16 @@ private struct FamilyStep: View {
         if store.removeConfirm == kid.id {
             ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
                         cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
-                        width: layout.confirmWidth,
                         onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
         }
     }
 
     private var sizing: Sizing { layout.grown.sizing }
 
-    /// Board S1 v51: Name and Colour on the label and control lines; Age and Face on a second
+    /// Board S1 v56: Name and Colour on the label and control lines; Age and Face on a second
     /// column ending on the right edge, under the first column when it does not fit.
     private var lines: FormLines {
-        layout.grown.formLines(labels: [L10n.tr("s1.name"), L10n.tr("s1.colour")],
-                               secondLabels: [L10n.tr("s1.age"), L10n.tr("s1.face")],
+        layout.grown.formLines(secondLabels: [L10n.tr("s1.age"), L10n.tr("s1.face")],
                                secondControlWidth: 2 * sizing.pickedFace + Spacing.sm,
                                firstControlMinimum: CGFloat(KidEntry.colours) * ColourSwatch.frame(sizing)
                                    + CGFloat(KidEntry.colours - 1) * Spacing.sm)
@@ -221,7 +218,7 @@ private struct FamilyStep: View {
 
     private func card(_ kid: KidEntry, index: Int) -> some View {
         let badge = KidFace.Badge(face: kid.face ?? "", colorIndex: kid.colorIndex)
-        return VStack(alignment: .leading, spacing: layout.cardRowGap) {
+        return VStack(alignment: .leading, spacing: sizing.formRowGap) {
             FormRow(L10n.tr("s1.name"), kind: .field, second: L10n.tr("s1.age")) {
                 CrayonField(L10n.tr("s1.name.placeholder"),
                             text: Binding(get: { kid.name }, set: { store.send(.nameChanged(kid.id, $0)) })) {
@@ -246,9 +243,9 @@ private struct FamilyStep: View {
                     face(.kidGirl, label: L10n.tr("s1.face.girl"), kid: kid)
                     face(.kidBoy, label: L10n.tr("s1.face.boy"), kid: kid)
                 }
+                .partInset()
             }
         }
-        .padding(.top, layout.cardTopInset - layout.grown.formInset)
         .formLines(lines)
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
@@ -263,7 +260,7 @@ private struct FamilyStep: View {
                 .overlay {
                     if kid.face == slot.rawValue {
                         Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
-                            .frame(width: layout.grown.sizing.choiceRowHeight, height: layout.grown.sizing.choiceRowHeight)
+                            .frame(width: layout.grown.sizing.pickedFaceRing, height: layout.grown.sizing.pickedFaceRing)
                     }
                 }
         }

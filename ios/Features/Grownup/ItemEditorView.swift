@@ -73,7 +73,6 @@ public struct ItemEditorView: View {
                 let card = ConfirmCard(title: title, message: store.confirmMessage,
                                        cancel: store.confirmCancelTitle, confirm: store.confirmAcceptTitle,
                                        isDestructive: store.confirmIsDestructive,
-                                       width: store.confirmPointsAtBack ? 560 : 520,
                                        onCancel: { store.send(.confirmCancelled) },
                                        onConfirm: { store.send(.confirmAccepted) })
                 if store.confirmPointsAtBack {

@@ -1492,7 +1492,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No school"
+            "value" : "Off days"
           }
         }
       }
@@ -3406,7 +3406,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No school days"
+            "value" : "Off days"
           }
         }
       }
@@ -3956,7 +3956,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arrive by"
+            "value" : "Arrive"
           }
         }
       }
