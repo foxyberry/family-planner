@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "57",
  "board": "A2",
  "family": "morning",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -109,9 +109,9 @@
   {
    "id": "header.minutes",
    "kind": "text",
-   "x": 940,
+   "x": 960,
    "y": 51,
-   "w": 154,
+   "w": 134,
    "h": 72,
    "region": "header",
    "anchor": "stretch",
@@ -136,7 +136,7 @@
   {
    "id": "header.leaveLabel",
    "kind": "text",
-   "x": 811,
+   "x": 831,
    "y": 72,
    "w": 117,
    "h": 45,
@@ -174,9 +174,9 @@
    }
   },
   {
-   "id": "strip.bubble.1",
+   "id": "strip.bubble",
    "kind": "bubble",
-   "x": 72,
+   "x": 494,
    "y": 184,
    "w": 220,
    "h": 132,
@@ -184,7 +184,7 @@
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
-    "x": 8,
+    "x": 430,
     "y": 8
    }
   },
@@ -209,9 +209,9 @@
   {
    "id": "strip.text.1",
    "kind": "text",
-   "x": 1020,
+   "x": 1028,
    "y": 192,
-   "w": 44,
+   "w": 28,
    "h": 36,
    "region": "strip",
    "anchor": "stretch",
@@ -219,38 +219,42 @@
    "baseline": 210,
    "font": 24,
    "stripLocal": {
-    "x": 956,
+    "x": 964,
     "y": 16
    }
   },
   {
-   "id": "strip.bubble.2",
-   "kind": "bubble",
-   "x": 349,
-   "y": 204,
-   "w": 190,
-   "h": 104,
+   "id": "strip.text.2",
+   "kind": "text",
+   "x": 271,
+   "y": 217,
+   "w": 83,
+   "h": 36,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
+   "baseline": 245,
+   "font": 24,
    "stripLocal": {
-    "x": 285,
-    "y": 28
+    "x": 207,
+    "y": 41
    }
   },
   {
-   "id": "strip.bubble.3",
-   "kind": "bubble",
-   "x": 616,
-   "y": 204,
-   "w": 190,
-   "h": 104,
+   "id": "strip.text.3",
+   "kind": "text",
+   "x": 225,
+   "y": 218,
+   "w": 28,
+   "h": 36,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
+   "baseline": 236,
+   "font": 24,
    "stripLocal": {
-    "x": 552,
-    "y": 28
+    "x": 161,
+    "y": 42
    }
   },
   {
@@ -269,24 +273,7 @@
    }
   },
   {
-   "id": "strip.text.2",
-   "kind": "text",
-   "x": 1082,
-   "y": 235,
-   "w": 46,
-   "h": 36,
-   "region": "strip",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 263,
-   "font": 24,
-   "stripLocal": {
-    "x": 1018,
-    "y": 59
-   }
-  },
-  {
-   "id": "strip.text.3",
+   "id": "strip.text.4",
    "kind": "text",
    "x": 1026,
    "y": 236,
@@ -318,48 +305,114 @@
    }
   },
   {
+   "id": "strip.text.5",
+   "kind": "text",
+   "x": 324,
+   "y": 267,
+   "w": 84,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 295,
+   "font": 24,
+   "stripLocal": {
+    "x": 260,
+    "y": 91
+   }
+  },
+  {
+   "id": "strip.text.6",
+   "kind": "text",
+   "x": 276,
+   "y": 268,
+   "w": 32,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 286,
+   "font": 24,
+   "stripLocal": {
+    "x": 212,
+    "y": 92
+   }
+  },
+  {
    "id": "strip.mover.1",
    "kind": "mover",
-   "x": 90,
-   "y": 310,
-   "w": 124,
-   "h": 124,
+   "x": 224,
+   "y": 315,
+   "w": 120,
+   "h": 120,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
-    "x": 26,
-    "y": 134
+    "x": 160,
+    "y": 139
    }
   },
   {
    "id": "strip.mover.2",
    "kind": "mover",
-   "x": 383,
-   "y": 310,
-   "w": 124,
-   "h": 124,
+   "x": 277,
+   "y": 315,
+   "w": 120,
+   "h": 120,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
-    "x": 319,
-    "y": 134
+    "x": 213,
+    "y": 139
    }
   },
   {
    "id": "strip.mover.3",
    "kind": "mover",
-   "x": 650,
-   "y": 310,
-   "w": 124,
-   "h": 124,
+   "x": 464,
+   "y": 315,
+   "w": 120,
+   "h": 120,
    "region": "strip",
    "anchor": "stretch",
    "align": "inside",
    "stripLocal": {
-    "x": 586,
-    "y": 134
+    "x": 400,
+    "y": 139
+   }
+  },
+  {
+   "id": "strip.mover.4",
+   "kind": "mover",
+   "x": 544,
+   "y": 315,
+   "w": 120,
+   "h": 120,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 480,
+    "y": 139
+   }
+  },
+  {
+   "id": "strip.destinationLabel.1",
+   "kind": "text",
+   "x": 514,
+   "y": 447,
+   "w": 77,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 475,
+   "font": 24,
+   "stripLocal": {
+    "x": 450,
+    "y": 271
    }
   },
   {
@@ -381,7 +434,7 @@
    }
   },
   {
-   "id": "strip.destinationLabel",
+   "id": "strip.destinationLabel.2",
    "kind": "text",
    "x": 1174,
    "y": 447,
@@ -396,6 +449,23 @@
    "stripLocal": {
     "x": 1110,
     "y": 271
+   }
+  },
+  {
+   "id": "strip.destinationLabel.3",
+   "kind": "text",
+   "x": 466,
+   "y": 448,
+   "w": 32,
+   "h": 36,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 466,
+   "font": 24,
+   "stripLocal": {
+    "x": 402,
+    "y": 272
    }
   },
   {
@@ -462,7 +532,7 @@
    "kind": "text",
    "x": 583,
    "y": 556,
-   "w": 195,
+   "w": 197,
    "h": 36,
    "region": "missions",
    "anchor": "stretch",
@@ -695,10 +765,10 @@
   {
    "id": "bottom.knob",
    "kind": "mover",
-   "x": 473,
-   "y": 885,
-   "w": 62,
-   "h": 62,
+   "x": 474,
+   "y": 889,
+   "w": 60,
+   "h": 60,
    "region": "bottom",
    "anchor": "stretch",
    "align": "inside"

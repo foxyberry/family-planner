@@ -1,5 +1,5 @@
 {
- "version": "56",
+ "version": "57",
  "board": "G6",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -224,7 +224,7 @@
   {
    "id": "main.text.2",
    "kind": "text",
-   "x": 254,
+   "x": 192,
    "y": 264,
    "w": 187,
    "h": 45,
@@ -262,7 +262,7 @@
   {
    "id": "main.text.4",
    "kind": "text",
-   "x": 254,
+   "x": 192,
    "y": 324,
    "w": 116,
    "h": 45,
@@ -276,7 +276,7 @@
   {
    "id": "main.picture.2",
    "kind": "picture",
-   "x": 254,
+   "x": 192,
    "y": 327,
    "w": 40,
    "h": 40,
@@ -301,7 +301,7 @@
   {
    "id": "main.picture.3",
    "kind": "picture",
-   "x": 257,
+   "x": 195,
    "y": 330,
    "w": 34,
    "h": 34,
@@ -337,7 +337,7 @@
   {
    "id": "main.text.7",
    "kind": "text",
-   "x": 254,
+   "x": 192,
    "y": 471,
    "w": 351,
    "h": 45,
@@ -351,7 +351,7 @@
   {
    "id": "main.picture.5",
    "kind": "picture",
-   "x": 254,
+   "x": 192,
    "y": 474,
    "w": 40,
    "h": 40,
@@ -387,7 +387,7 @@
   {
    "id": "main.text.9",
    "kind": "text",
-   "x": 254,
+   "x": 192,
    "y": 531,
    "w": 420,
    "h": 45,
@@ -425,7 +425,7 @@
   {
    "id": "main.text.11",
    "kind": "text",
-   "x": 254,
+   "x": 192,
    "y": 591,
    "w": 480,
    "h": 45,
@@ -477,9 +477,9 @@
   {
    "id": "main.text.14",
    "kind": "text",
-   "x": 254,
+   "x": 192,
    "y": 738,
-   "w": 460,
+   "w": 393,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -490,7 +490,7 @@
   {
    "id": "main.picture.9",
    "kind": "picture",
-   "x": 254,
+   "x": 192,
    "y": 741,
    "w": 40,
    "h": 40,
@@ -503,14 +503,14 @@
    "kind": "text",
    "x": 78,
    "y": 742,
-   "w": 110,
+   "w": 69,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 770,
    "font": 24,
-   "text": "To school"
+   "text": "Going"
   },
   {
    "id": "main.picture.10",
@@ -526,7 +526,7 @@
   {
    "id": "main.text.16",
    "kind": "text",
-   "x": 254,
+   "x": 192,
    "y": 798,
    "w": 303,
    "h": 45,
