@@ -75,20 +75,23 @@ Add a row when you add a screen board, or export and redlines skip it. Families
 `relations.py` measures the boards themselves (the layout JSON drops field boxes): it renders each grown-up board
 (`grown` / `grown64` in `boards.json`, plus C3k and the F1–F4 ConfirmCard boards listed in the script as `EXTRA`),
 loads it in headless Chrome with `relations.js` and records every part box, its kind (from the classes above, or the
-art's blob id for inline art) and the ink box of its art. Then, per row band at 13", it enforces the spec's "Layout model" and "Grown-up form layout" rules:
+art's blob id for inline art) and the ink box of its art. Then, per row band at 13", it enforces the spec's "Layout model", "Layout balance" and "Grown-up form layout" rules:
 
-1. **line**: each row's first control has its frame on the line (208, 80 for full-width rows, 864 side, 40 header,
+1. **line**: each row's first control has its frame on the line (192, 78 for full-width rows, 864 side, 40 header,
    a small card's content edge). Frames sit on lines; every part draws its outline 6 inside; touch area beyond the
    frame is invisible; pick rings are an outward overlay. The S1 swatch is drawn as its 56 circle, so its frame is
    that box + 6. Named exceptions are listed, not failed: F4's indented sub-options, and pictures centred in a
    caption column (F1 / F2 / F4). `--line drawn` checks drawn outlines instead.
-2. **col2**: a second column has one label line and one control line per card, its controls end on 818, and its
-   label line = control line − (longest second-column label + 16); up to 4 short is accepted as rounding.
+2. **col2**: a second column has one label line and one control line per card, its controls end on 808, and its
+   label line = control line − (longest second-column label + 10); up to 4 short is accepted as rounding.
 3. **height**: one height per row for controls of the same kind; other kinds are centred on the row; header tabs
    are 72.
-4. **right**: stretching controls (fields, search, value areas, side rows, the main button) end on frame 818
+4. **right**: stretching controls (fields, search, value areas, side rows, the main button) end on frame 808
    (1336 in the side column, the content edge in small cards). Choices next to a label may end short.
 5. **label**: every label's glyph is centred on its control's drawn box.
+6. **balance**, every gap between drawn edges: card padding by card kind (main form and overlay cards 32,
+   nested cards 24; a fixed main card's bottom and any card's right side may be larger), card → card 40, and
+   row → row at least 24 (16 in a nested card). A caption or body line within 12 under a row belongs to it.
 
 `--cached` reuses `preview/rel-<Board>.json`; `--quiet` prints only flagged rows; `--sizes` prints, instead of the
 checks, every distinct part / picture size per kind with counts and boards (heights only for fields, tabs, rows and
