@@ -23,8 +23,8 @@ The iPads and their scale are in `scripts/scale.py` (it prints s for each). Read
 4. **Clipping or "…" on one-line text**:
    - header tab rows;
    - day-type tabs;
-   - "Bus 12 · leave 7:05 · 2nd 34" rows;
-   - "2nd choice · 34 › 33";
+   - "Bus 12 · 34 · leave 7:05" rows;
+   - the "34 → 33" pill of a bus that changes;
    - A2 bubbles.
 5. **Clock hub text in a smaller hub** (G1 drag readout, G1g, hour labels).
 6. **The keyboard covering a focused field** (G4, C3, S2s / G7 search with its list).
@@ -47,7 +47,7 @@ The iPads and their scale are in `scripts/scale.py` (it prints s for each). Read
   - E1, one kid;
   - E3 / E3b, weekend and Sunday.
 - A2:
-  - live with a faded 2nd choice, direct and changing ✱4;
+  - live with several buses: the chosen one and faded tagged buses close together, one that changes ✱4;
   - timetable look;
   - Bring checks ✱3.
 - A3 / A3r: medal and ready ✱3.
