@@ -326,6 +326,9 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Boards C2/S3: bus pills, one on and one off.
     func testPillToggles() {
         snap(HStack(spacing: Spacing.sm) { PillToggle("12", isOn: true) {}; PillToggle("345", isOn: false) {} })
+        // Spec "Several buses": a bus that changes, "34 → 33" with the arrow drawn.
+        snap(HStack(spacing: Spacing.sm) { PillToggle("34", isOn: true, then: "33") {}; PillToggle("34", isOn: false, then: "33") {} },
+             named: "changes")
     }
 
     /// S4 switch list (layout v17): the switch on and off, and a row with a warning caption.
@@ -622,24 +625,30 @@ final class ComponentSnapshotTests: XCTestCase {
         .padding(Spacing.m), width: 760)
     }
 
-    /// Spec "A2 live look": bus 1 in 4 min (too soon, faded) and the kid's bus in 28 min; made-up
-    /// numbers only.
+    /// Board A2 (v57): my bus 12 at 12 min with the big bubble; 34 at 15 (tag under the bus), 34 at
+    /// 22 and 12 at 24 (tags in rows 1 and 2); legend 12 + faded 34. Made-up numbers only.
     func testWayStripLive() {
+        func bus(_ id: String, _ service: String, _ minutes: Int, mine: Bool = false) -> WayStrip.LiveBus {
+            WayStrip.LiveBus(id: id, x: WayStrip.liveX(minutes: minutes), picture: .busDouble, service: service,
+                             minutes: "\(minutes) min", isMine: mine,
+                             tag: mine ? nil : .bus(number: service, then: nil, minutes: "\(minutes) min"),
+                             listing: "\(service) · \(minutes) min")
+        }
         let live = WayStrip.Live(
-            buses: [WayStrip.LiveBus(id: "0", x: WayStrip.liveX(minutes: 4), picture: .busSingle, service: "1",
-                                     minutes: "4 min", isMine: false, isTooSoon: true, showsBubble: true),
-                    WayStrip.LiveBus(id: "1", x: WayStrip.liveX(minutes: 28), picture: .busDouble, service: "1",
-                                     minutes: "28 min", isMine: true, isTooSoon: false, showsBubble: true)],
+            buses: [bus("0", "12", 12, mine: true), bus("1", "34", 15), bus("2", "34", 22), bus("3", "12", 24)],
             destination: .wolfie, destinationLabel: "School", ourStopLabel: "Our stop",
             owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A", myBus: "my bus",
-            tooSoon: "too soon", myService: "1")
+            myService: "12", others: [WayStrip.Plate("34")], tagJoin: ", ")
         snap(WayStrip(live: live).frame(width: 1248, height: 340), width: 1300)
     }
 
-    /// Spec "A2 strip": a changing 2nd choice's bubble, "or 3" › "4" over "wait 3 min" (made-up numbers).
-    func testLiveBusBubbleChange() {
-        snap(LiveBusBubble(service: "3", minutes: "12 min", kind: .change("or 3", then: "4", fit: "wait 3 min")),
-             width: 240)
+    /// Spec "A2 strip": the tags of the other buses: too soon, a bus that changes, a merged listing.
+    func testLiveBusTags() {
+        snap(HStack(spacing: Spacing.s) {
+            LiveBusTag(.bus(number: "1", then: nil, minutes: "too soon"))
+            LiveBusTag(.bus(number: "34", then: "33", minutes: "12 min"))
+            LiveBusTag(.listing("34 · 12 min, 56 · 13 min"))
+        }, width: 760)
     }
 
     /// Board C3g: the Going row with Car picked.

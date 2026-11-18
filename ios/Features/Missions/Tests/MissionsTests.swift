@@ -23,10 +23,11 @@ final class MissionsTests: XCTestCase {
 
     private func store(on day: Day, minute: Int, missions: [Mission] = SeedData.missions, items: [ScheduleItem]? = nil,
                        saved: LockIsolated<[MissionDay]> = LockIsolated([]),
-                       arrivals: [BusArrival]? = nil, change: BusChange? = nil,
-                       changeArrivals: [BusArrival] = []) -> TestStoreOf<MissionsFeature> {
+                       arrivals: [BusArrival]? = nil, services: [String] = ["1"], rides: [String: Int] = [:],
+                       change: BusChange? = nil) -> TestStoreOf<MissionsFeature> {
         // Made-up stop and bus numbers (privacy rule).
-        let plans = arrivals == nil ? [] : [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"], change: change)]
+        let plans = arrivals == nil ? [] : [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: services,
+                                                    rides: rides, change: change)]
         let snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines,
                                         items: items ?? SeedData.items(today: tuesday, calendar: calendar), missions: missions,
                                         busPlans: plans)
@@ -68,9 +69,9 @@ final class MissionsTests: XCTestCase {
             $0.holidays.holidays = { _ in [] }
             $0.schoolDirectory.calendar = { _, _ in .none }
             // nil: no live times (no key built in), so the call fails and the timetable shows.
-            $0.bus.arrivals = { stop in
+            $0.bus.arrivals = { _ in
                 guard let arrivals else { throw URLError(.userAuthenticationRequired) }
-                return stop == change?.stop ? changeArrivals : arrivals
+                return arrivals
             }
         }
         store.exhaustivity = .off
@@ -192,36 +193,42 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.header?.minutes, "18 min")
         XCTAssertEqual(store.state.header?.status?.text, "On time")
         XCTAssertEqual(store.state.leaveAt, "leave at 7:10 am")
-        // The strip: bus 1 in 4 min is too soon (faded, its own bubble), bus 1 in 28 min is the kid's.
+        // The strip: bus 1 in 4 min is too soon (faded, its tag says so), bus 1 in 28 min is the kid's.
         let buses = store.state.liveStrip?.buses ?? []
         XCTAssertEqual(buses.map(\.isMine), [false, true])
-        XCTAssertEqual(buses.map(\.isTooSoon), [true, false])
-        XCTAssertEqual(buses.map(\.showsBubble), [true, true])
+        XCTAssertEqual(buses.first?.tag, .bus(number: "1", then: nil, minutes: "too soon"))
+        XCTAssertNil(buses.last?.tag)
         XCTAssertEqual(buses.last?.x, 860 - 28 * 800 / 30)
         XCTAssertEqual(store.state.liveSpoken,
                        "Live bus map. Bus 1 in 28 minutes, your bus. Leave in 18 minutes, On time.")
         await store.send(.backTapped)
     }
 
-    /// Spec "A2 strip": a changing 2nd choice shows its first bus faded, "or 3" › "4" and how the
-    /// change goes; the legend names its first bus.
-    func testAChangingSecondShowsTheChange() async {
+    /// Spec "Several buses": the bus that gets there first is my bus; every other arrival is faded
+    /// with its tag, a bus that changes reads "3 → 4"; the legend lists the other buses.
+    func testEveryBusIsShownAndTheFastestIsMine() async {
         let store = store(on: tuesday, minute: 412,
-                          arrivals: [BusArrival(service: "1", minutes: 28, type: .double),
-                                     BusArrival(service: "3", minutes: 12, type: .single)],
-                          change: BusChange(firstBus: "3", stop: "00001", thenBus: "4", ride1: 8, walk: 2, ride2: 6),
-                          changeArrivals: [BusArrival(service: "4", minutes: 25, type: .double)])
+                          arrivals: [BusArrival(service: "1", minutes: 18, type: .double),
+                                     BusArrival(service: "2", minutes: 12, type: .single),
+                                     BusArrival(service: "3", minutes: 14, type: .single),
+                                     BusArrival(service: "2", minutes: 40, type: .single)],
+                          services: ["1", "2"], rides: ["2": 25],
+                          change: BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 5, ride2: 6))
         await store.send(.task)
         await store.receive(\.loaded)
         await store.receive(\.refresh)
-        await store.receive(\.changeArrivalsLoaded)
         await store.receive(\.arrivalsLoaded)
+        // Bus 1 reaches in 28, bus 2 in 37, bus 3 → 4 in 33: bus 1 is my bus though it comes last.
+        XCTAssertEqual(store.state.live?.chosen?.route.service, "1")
         let strip = store.state.liveStrip
-        XCTAssertEqual(strip?.buses.last?.service, "3")
-        XCTAssertEqual(strip?.buses.last?.isSecond, true)
-        XCTAssertEqual(strip?.secondLegend, "3 2nd")
-        XCTAssertEqual(strip?.secondChange, WayStrip.Change(caption: "or 3", then: "4", fit: "wait 3 min"))
-        XCTAssertEqual(store.state.live?.chosen?.service, "1", "my bus is still the 1st")
+        XCTAssertEqual(strip?.buses.map(\.service), ["2", "3", "1"], "under 30 min, soonest first")
+        XCTAssertEqual(strip?.buses.map(\.tag), [.bus(number: "2", then: nil, minutes: "12 min"),
+                                                 .bus(number: "3", then: "4", minutes: "14 min"), nil])
+        XCTAssertEqual(strip?.buses.first?.listing, "2 · 12 min")
+        XCTAssertEqual(strip?.myService, "1")
+        XCTAssertEqual(strip?.others, [WayStrip.Plate("2"), WayStrip.Plate("3", then: "4")])
+        XCTAssertEqual(store.state.liveSpoken,
+                       "Live bus map. Bus 1 in 18 minutes, your bus. Or bus 2 in 12 minutes. Leave in 8 minutes, On time.")
         await store.send(.backTapped)
     }
 

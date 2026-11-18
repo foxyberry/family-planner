@@ -464,8 +464,12 @@ private struct GoingStep: View {
 
     var body: some View {
         let grown = GrownupLayout(sizing: sizing)
+        // Spec "Several buses": a long list of buses wraps and the rows below move down; the rows
+        // scroll inside the card rather than run past it (as C2).
         PaperCard(seed: 81) {
-            rows.frame(width: grown.editorRowsWidth, alignment: .leading)
+            ScrollColumn {
+                rows.frame(width: grown.editorRowsWidth, alignment: .leading)
+            }
         }
         .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
     }
@@ -506,8 +510,10 @@ private struct GoingStep: View {
                     }
                     stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("s3.walk.caption"),
                             value: going.walk) { store.send(.walkChanged($0)) }
-                    stepper(L10n.tr("c2.ride"), text: store.rideText, caption: L10n.tr("s3.ride.caption"),
-                            value: going.ride) { store.send(.rideChanged($0)) }
+                    ForEach(store.rideRows) { ride in
+                        stepper(ride.label, text: ride.text, caption: ride.caption, value: ride.minutes,
+                                spoken: ride.spoken) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
+                    }
                 } else {
                     stepper(L10n.tr("going.leave"), text: store.leaveText, caption: store.leaveCaption ?? "",
                             step: 5, value: going.leaveBefore) { store.send(.leaveChanged($0)) }
@@ -521,13 +527,13 @@ private struct GoingStep: View {
     }
 
     private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
-                         change: @escaping (Int) -> Void) -> some View {
+                         spoken: String? = nil, change: @escaping (Int) -> Void) -> some View {
         // Board S3: − 72 on 232, the value centred in 304–448, + 72 on 448, the caption on 536.
         row(label) {
             HStack(spacing: 0) {
-                RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - step) }.size(72)
+                RoundButton(glyph: .minus, accessibilityLabel: spoken ?? label) { change(value - step) }.size(72)
                 Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 144)
-                RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }.size(72)
+                RoundButton(glyph: .plus, accessibilityLabel: spoken ?? label) { change(value + step) }.size(72)
                 Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
                     .padding(.leading, Spacing.s)
             }

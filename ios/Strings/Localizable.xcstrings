@@ -84,18 +84,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "2nd choice changes buses…"
-          }
-        }
-      }
-    },
-    "c2.change_link.set" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2nd choice · %@"
+            "value" : "A bus that changes…"
           }
         }
       }
@@ -166,24 +155,13 @@
         }
       }
     },
-    "c2.ride_second" : {
+    "c2.ride.spoken" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ride 2nd"
-          }
-        }
-      }
-    },
-    "c2.ride_second.on" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "on %@ · the long way"
+            "value" : "Ride on %@"
           }
         }
       }
@@ -276,28 +254,6 @@
         }
       }
     },
-    "c2.tag.first" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1st"
-          }
-        }
-      }
-    },
-    "c2.tag.second" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2nd"
-          }
-        }
-      }
-    },
     "c2.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -331,13 +287,24 @@
         }
       }
     },
-    "c2c.change_at" : {
+    "c2c.change" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Change at"
+            "value" : "Change"
+          }
+        }
+      }
+    },
+    "c2c.change.caption" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to change buses"
           }
         }
       }
@@ -419,35 +386,35 @@
         }
       }
     },
+    "c2c.then.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus"
+          }
+        }
+      }
+    },
+    "c2c.then.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No bus with that number"
+          }
+        }
+      }
+    },
     "c2c.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "2nd choice · change buses"
-          }
-        }
-      }
-    },
-    "c2c.walk" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Walk"
-          }
-        }
-      }
-    },
-    "c2c.walk.caption" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "between stops"
+            "value" : "A bus that changes"
           }
         }
       }
@@ -2597,39 +2564,6 @@
         }
       }
     },
-    "missions.change.miss" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "will miss"
-          }
-        }
-      }
-    },
-    "missions.change.tight" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tight"
-          }
-        }
-      }
-    },
-    "missions.change.wait" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "wait %d min"
-          }
-        }
-      }
-    },
     "missions.done.all_done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2751,13 +2685,35 @@
         }
       }
     },
+    "missions.legend.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%d"
+          }
+        }
+      }
+    },
     "missions.live.spoken" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live bus map. Bus %1$@ in %2$@, your bus. Leave in %3$@, %4$@."
+            "value" : "Live bus map. Bus %1$@ in %2$@, your bus.%3$@ Leave in %4$@, %5$@."
+          }
+        }
+      }
+    },
+    "missions.live.spoken.or" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " Or bus %1$@ in %2$@."
           }
         }
       }
@@ -2872,39 +2828,6 @@
         }
       }
     },
-    "missions.second" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "or · 2nd"
-          }
-        }
-      }
-    },
-    "missions.second_change" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "or %@"
-          }
-        }
-      }
-    },
-    "missions.second_legend" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 2nd"
-          }
-        }
-      }
-    },
     "missions.slide" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2956,6 +2879,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On time"
+          }
+        }
+      }
+    },
+    "missions.tag.join" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", "
+          }
+        }
+      }
+    },
+    "missions.tag.listing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
           }
         }
       }
@@ -4951,13 +4896,13 @@
         }
       }
     },
-    "settings.to_school.second" : {
+    "settings.to_school.join" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bus %1$@ · leave %2$@ · 2nd %3$@"
+            "value" : " · "
           }
         }
       }

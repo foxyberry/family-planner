@@ -18,9 +18,9 @@ public struct BusArrival: Hashable, Codable, Sendable {
     }
 }
 
-/// A kid's bus route (C2 "Our buses", plan A only): the stop, the bus numbers the kid takes and the
-/// minutes that matter. Stop codes and bus numbers stay on the iPad (spec privacy rule).
-public struct BusPlan: Hashable, Codable, Sendable {
+/// A kid's bus route (C2 "Our buses", plan A only): the stop, the kid's buses and the minutes that
+/// matter. Stop codes and bus numbers stay on the iPad (spec privacy rule).
+public struct BusPlan: Hashable, Sendable {
     public static let defaultWalk = 10
     public static let defaultRide = 10
     public static let defaultLateGrace = 15
@@ -29,23 +29,21 @@ public struct BusPlan: Hashable, Codable, Sendable {
     /// The event this route is for (spec "Events: one shape": a route per event); School by default.
     public var event: EventRef
     public var stop: String
-    /// The kid's buses in order (spec "1st and 2nd choice"): the 1st is "my bus", an optional 2nd is
-    /// shown faded and never switched to. "Leave in", the status and the medal use the 1st only.
+    /// Spec "Several buses": the kid's buses from our stop, all equal, in pill order. On the morning
+    /// the one that gets the kid there first is "my bus".
     public var services: [String]
     public var walk: Int
+    /// The ride for a bus with no ride of its own (a new pick starts with it).
     public var ride: Int
     public var lateGrace: Int
-    /// "Ride 2nd": the 2nd bus's own ride time (often the long way); the 1st's ride when not set.
-    public var secondRide: Int?
-    /// A 2nd choice that changes buses (board C2c). One 2nd choice per kid: with a change the
-    /// services hold the 1st only.
+    /// Each bus's own ride ("Ride on 12"): buses can take different ways.
+    public var rides: [String: Int]
+    /// A bus that changes (board C2c), one more equal bus of the kid.
     public var change: BusChange?
 
     public init(kid: Kid.ID, event: EventRef = .school, stop: String, services: [String],
                 walk: Int = BusPlan.defaultWalk, ride: Int = BusPlan.defaultRide,
-                lateGrace: Int = BusPlan.defaultLateGrace, secondRide: Int? = nil, change: BusChange? = nil) {
-        self.secondRide = secondRide
-        self.change = change
+                lateGrace: Int = BusPlan.defaultLateGrace, rides: [String: Int] = [:], change: BusChange? = nil) {
         self.kid = kid
         self.event = event
         self.stop = stop
@@ -53,53 +51,74 @@ public struct BusPlan: Hashable, Codable, Sendable {
         self.walk = walk
         self.ride = ride
         self.lateGrace = lateGrace
+        self.rides = rides
+        self.change = change
+    }
+}
+
+extension BusPlan: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case kid, event, stop, services, walk, ride, lateGrace, rides, change
+        /// Before "Several buses": the 2nd bus's own ride.
+        case secondRide
+    }
+
+    /// Plans stored before routes were per event are the kid's School route. Plans stored before
+    /// "Several buses" keep their buses: the 1st and 2nd become two equal buses, each with its own
+    /// ride (the 2nd's "Ride 2nd"), and a changing 2nd becomes the bus that changes.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let services = try values.decode([String].self, forKey: .services)
+        let ride = try values.decode(Int.self, forKey: .ride)
+        var rides = try values.decodeIfPresent([String: Int].self, forKey: .rides) ?? [:]
+        if let secondRide = try values.decodeIfPresent(Int.self, forKey: .secondRide), services.count > 1,
+           rides.isEmpty {
+            rides[services[1]] = secondRide
+        }
+        self.init(kid: try values.decode(Kid.ID.self, forKey: .kid),
+                  event: try values.decodeIfPresent(EventRef.self, forKey: .event) ?? .school,
+                  stop: try values.decode(String.self, forKey: .stop), services: services,
+                  walk: try values.decode(Int.self, forKey: .walk), ride: ride,
+                  lateGrace: try values.decode(Int.self, forKey: .lateGrace), rides: rides,
+                  change: try values.decodeIfPresent(BusChange.self, forKey: .change))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(kid, forKey: .kid)
+        try values.encode(event, forKey: .event)
+        try values.encode(stop, forKey: .stop)
+        try values.encode(services, forKey: .services)
+        try values.encode(walk, forKey: .walk)
+        try values.encode(ride, forKey: .ride)
+        try values.encode(lateGrace, forKey: .lateGrace)
+        try values.encode(rides, forKey: .rides)
+        try values.encodeIfPresent(change, forKey: .change)
     }
 }
 
 extension BusPlan {
-    /// Plans stored before routes were per event are the kid's School route, as they were.
-    public init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        self.init(kid: try values.decode(Kid.ID.self, forKey: .kid),
-                  event: try values.decodeIfPresent(EventRef.self, forKey: .event) ?? .school,
-                  stop: try values.decode(String.self, forKey: .stop),
-                  services: try values.decode([String].self, forKey: .services),
-                  walk: try values.decode(Int.self, forKey: .walk), ride: try values.decode(Int.self, forKey: .ride),
-                  lateGrace: try values.decode(Int.self, forKey: .lateGrace),
-                  secondRide: try values.decodeIfPresent(Int.self, forKey: .secondRide),
-                  change: try values.decodeIfPresent(BusChange.self, forKey: .change))
+    /// The ride on one of the kid's buses from our stop.
+    public func ride(on service: String) -> Int { rides[service] ?? ride }
+
+    /// Every way the kid can go: each bus from our stop with its ride, then the bus that changes.
+    public var routes: [BusRoute] {
+        services.map { BusRoute(service: $0, then: nil, trip: ride(on: $0)) }
+            + (change.map { [BusRoute(service: $0.firstBus, then: $0.thenBus, trip: $0.trip)] } ?? [])
     }
 
-    /// The 1st-choice bus ("my bus").
-    public var first: String? { services.first }
-    /// The 2nd choice, if any: a direct bus from our stop.
-    public var second: String? { services.count > 1 ? services[1] : nil }
-    /// The bus the 2nd choice starts on at our stop: the direct 2nd, or a changing route's first bus.
-    public var secondStart: String? { change?.firstBus ?? second }
-
-    /// The plan with a changing 2nd choice (C2c Save): it replaces a direct 2nd; nil removes it.
-    public func changing(_ change: BusChange?) -> BusPlan {
-        var plan = self
-        plan.change = change
-        if change != nil {
-            plan.services = Array(services.prefix(1))
-            plan.secondRide = nil
-        }
-        return plan
-    }
-
-    /// C2's Buses pills (spec "C2 rows"): the first tap makes a bus the 1st, the next the 2nd (a
-    /// third replaces the 2nd); a tap on a picked bus clears it, and a cleared 1st hands over to the 2nd.
-    public static func toggling(_ service: String, in services: [String]) -> [String] {
-        var list = Array(services.prefix(2))
-        if let index = list.firstIndex(of: service) {
-            list.remove(at: index)
-        } else if list.count < 2 {
-            list.append(service)
+    /// Spec "Several buses": a pill toggles its bus on or off; the buses stay in pill order (`order`,
+    /// the buses at the stop), any not in it after them.
+    public static func toggling(_ service: String, in services: [String], order: [String]) -> [String] {
+        var picked = services
+        if let index = picked.firstIndex(of: service) {
+            picked.remove(at: index)
         } else {
-            list[1] = service
+            picked.append(service)
         }
-        return list
+        let rank = { (bus: String) in order.firstIndex(of: bus) ?? order.count }
+        return picked.enumerated().sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }
+            .map(\.element)
     }
 
     /// The plan with the kid's school late grace, which wins over the plan's own (spec "Latest lives
@@ -111,43 +130,77 @@ extension BusPlan {
     }
 }
 
-/// A 2nd choice that changes buses (spec "C2c"): a first bus from our stop to a change stop, a walk
-/// between, then a second bus to school.
-public struct BusChange: Hashable, Codable, Sendable {
+/// One way to the place: a bus that boards at our stop, the bus it changes to (if any) and the
+/// minutes from boarding to the place.
+public struct BusRoute: Hashable, Sendable {
+    public var service: String
+    public var then: String?
+    public var trip: Int
+
+    public init(service: String, then: String?, trip: Int) {
+        self.service = service
+        self.then = then
+        self.trip = trip
+    }
+}
+
+/// A bus that changes (spec "C2c"): a first bus from our stop, then a second bus. Nothing is worked
+/// out at the change stop: the trip is Ride 1 + Change + Ride 2 as set.
+public struct BusChange: Hashable, Sendable {
+    public static let defaultChange = 5
+
     public var firstBus: String
-    /// The change stop's 5-digit code.
-    public var stop: String
     public var thenBus: String
     public var ride1: Int
-    public var walk: Int
+    /// "to change buses": the walk and the wait together.
+    public var change: Int
     public var ride2: Int
 
-    public init(firstBus: String, stop: String, thenBus: String, ride1: Int = BusPlan.defaultRide, walk: Int = 2,
-                ride2: Int = BusPlan.defaultRide) {
+    public init(firstBus: String, thenBus: String, ride1: Int = BusPlan.defaultRide,
+                change: Int = BusChange.defaultChange, ride2: Int = BusPlan.defaultRide) {
         self.firstBus = firstBus
-        self.stop = stop
         self.thenBus = thenBus
         self.ride1 = ride1
-        self.walk = walk
+        self.change = change
         self.ride2 = ride2
     }
 
-    /// How a changing 2nd choice's change goes (spec "A2 strip"): "wait {n} min", "tight", "will miss".
-    public enum Fit: Equatable, Sendable {
-        case wait(Int)
-        case tight
-        case willMiss
+    public var trip: Int { ride1 + change + ride2 }
+
+    /// A bus number as LTA writes them: digits, then at most one letter ("12", "34A").
+    public static func isServiceNumber(_ text: String) -> Bool {
+        guard let first = text.first, first.isASCII, first.isNumber, text.count <= 4 else { return false }
+        let digits = text.prefix { $0.isASCII && $0.isNumber }
+        let rest = text.dropFirst(digits.count)
+        return rest.isEmpty || (rest.count == 1 && rest.first!.isASCII && rest.first!.isLetter)
+    }
+}
+
+extension BusChange: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case firstBus, thenBus, ride1, change, ride2
+        /// Before "Several buses": the walk at the change stop (now the Change minutes).
+        case walk
     }
 
-    /// Spec "A2 strip": the kid boards `firstBus` in `boardsIn` minutes, rides, walks, and catches the
-    /// next `thenBus` arriving at the change stop (live `arrivals` there). Under 2 minutes is tight.
-    public func fit(boardsIn: Int, arrivals: [BusArrival]) -> Fit {
-        let atStop = boardsIn + ride1 + walk
-        guard let next = arrivals.filter({ $0.service == thenBus && $0.minutes >= atStop }).map(\.minutes).min() else {
-            return .willMiss
-        }
-        let wait = next - atStop
-        return wait < 2 ? .tight : .wait(wait)
+    /// A change saved with a change stop keeps its buses and rides; the walk there becomes Change.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(firstBus: try values.decode(String.self, forKey: .firstBus),
+                  thenBus: try values.decode(String.self, forKey: .thenBus),
+                  ride1: try values.decode(Int.self, forKey: .ride1),
+                  change: try values.decodeIfPresent(Int.self, forKey: .change)
+                      ?? values.decodeIfPresent(Int.self, forKey: .walk) ?? BusChange.defaultChange,
+                  ride2: try values.decode(Int.self, forKey: .ride2))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(firstBus, forKey: .firstBus)
+        try values.encode(thenBus, forKey: .thenBus)
+        try values.encode(ride1, forKey: .ride1)
+        try values.encode(change, forKey: .change)
+        try values.encode(ride2, forKey: .ride2)
     }
 }
 
@@ -167,45 +220,44 @@ public enum MorningMedal: String, Codable, Hashable, Sendable {
 public struct LiveMorning: Equatable, Sendable {
     public enum Status: Equatable, Sendable { case onTime, leaveNow, askGrownup }
 
-    /// The next two arrivals of the kid's buses at our stop, soonest first.
-    public let shown: [BusArrival]
-    /// The first arrival the kid can still walk to (minutes ≥ walk).
-    public let chosen: BusArrival?
-    /// An earlier arrival that cannot be caught, drawn faded with "too soon".
-    public let tooSoon: BusArrival?
-    /// The 2nd choice's next bus the kid can still walk to, drawn faded with "or · 2nd" (or the
-    /// changing route's first bus).
-    public let second: BusArrival?
-    /// A changing 2nd choice: how its change goes for that bus; nil without live times at the change stop.
-    public let secondFit: BusChange.Fit?
+    /// One arrival of one of the kid's buses at our stop, with the way it would take.
+    public struct Bus: Equatable, Sendable {
+        public let arrival: BusArrival
+        public let route: BusRoute
+        /// The kid can still walk to it (minutes ≥ walk).
+        public let isCatchable: Bool
+        /// Minutes from now until it reaches the place.
+        public var reaches: Int { arrival.minutes + route.trip }
+    }
+
+    /// The strip's buses (spec "A2 strip"): every arrival of the kid's buses under 30 min away (and
+    /// the chosen one), soonest first.
+    public let buses: [Bus]
+    /// Among the catchable arrivals, the one that reaches the place first; on a tie, the one at our
+    /// stop first.
+    public let chosen: Bus?
     /// Minutes until the kid should leave home for the chosen bus.
     public let leaveIn: Int?
     public let status: Status?
 
+    /// The strip shows buses under this many minutes away.
+    public static let stripMinutes = 30
+
     /// - Parameters: `arrivals` all live arrivals at the stop; `minute` now (minutes after
     ///   midnight); `start` the outing's start (arrive-by).
-    ///   `changeArrivals` the live arrivals at a changing 2nd choice's change stop.
-    public init(arrivals: [BusArrival], plan: BusPlan, minute: Int, start: Int, changeArrivals: [BusArrival]? = nil) {
-        let mine = arrivals.filter { $0.service == plan.first }.sorted { $0.minutes < $1.minutes }
-        let second = arrivals.filter { $0.service == plan.secondStart && $0.minutes >= plan.walk }.min { $0.minutes < $1.minutes }
-        self.second = second
-        if let change = plan.change, let second, let changeArrivals {
-            secondFit = change.fit(boardsIn: second.minutes, arrivals: changeArrivals)
-        } else {
-            secondFit = nil
-        }
-        shown = Array(mine.prefix(2))
-        let chosen = mine.first { $0.minutes >= plan.walk }
+    public init(arrivals: [BusArrival], plan: BusPlan, minute: Int, start: Int) {
+        let all = Self.buses(arrivals: arrivals, plan: plan)
+        let chosen = all.filter(\.isCatchable).min { ($0.reaches, $0.arrival.minutes) < ($1.reaches, $1.arrival.minutes) }
         self.chosen = chosen
-        tooSoon = shown.first { $0.minutes < plan.walk }
+        buses = all.filter { $0.arrival.minutes < Self.stripMinutes || $0 == chosen }
         guard let chosen else {
             leaveIn = nil
             status = .askGrownup
             return
         }
-        let leaveIn = chosen.minutes - plan.walk
+        let leaveIn = chosen.arrival.minutes - plan.walk
         self.leaveIn = leaveIn
-        let arrival = minute + chosen.minutes + plan.ride
+        let arrival = minute + chosen.reaches
         if arrival > start + plan.lateGrace {
             status = .askGrownup
         } else if leaveIn <= 0 {
@@ -217,14 +269,28 @@ public struct LiveMorning: Equatable, Sendable {
         }
     }
 
-    /// L1 and L2 (spec): the leave times of the last bus that still gets the kid there by the start
-    /// (L1) and by the start + late grace (L2), from the arrivals at the moment of the slide.
+    /// The other buses, soonest first.
+    public var others: [Bus] { buses.filter { $0 != chosen } }
+
+    /// Each arrival of a bus the kid takes, with its fastest way (a bus that is both direct and the
+    /// first bus of a change goes the faster way), soonest first.
+    static func buses(arrivals: [BusArrival], plan: BusPlan) -> [Bus] {
+        let routes = plan.routes
+        return arrivals.sorted { $0.minutes < $1.minutes }.compactMap { arrival in
+            routes.filter { $0.service == arrival.service }.min { $0.trip < $1.trip }.map {
+                Bus(arrival: arrival, route: $0, isCatchable: arrival.minutes >= plan.walk)
+            }
+        }
+    }
+
+    /// L1 and L2 (spec): the leave times of the last arrival of any of the kid's buses that still
+    /// gets the kid there by the start (L1) and by the start + late grace (L2), at the slide.
     public static func leaveTargets(arrivals: [BusArrival], plan: BusPlan, minute: Int,
                                     start: Int) -> (ideal: Int, latest: Int)? {
-        let mine = arrivals.filter { $0.service == plan.first }
+        let all = buses(arrivals: arrivals, plan: plan)
         func lastLeave(by deadline: Int) -> Int? {
-            mine.filter { minute + $0.minutes + plan.ride <= deadline }
-                .map { minute + $0.minutes - plan.walk }
+            all.filter { minute + $0.reaches <= deadline }
+                .map { minute + $0.arrival.minutes - plan.walk }
                 .max()
         }
         guard let latest = lastLeave(by: start + plan.lateGrace) else { return nil }

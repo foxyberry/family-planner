@@ -33,6 +33,8 @@ public struct FormLines: Equatable, Sendable {
     public static let columnGap: CGFloat = Spacing.l
     /// A second-column label's room past its longest label, to its control's frame (16 drawn).
     public static let secondLabelGap: CGFloat = labelColumn - labelMaximum
+    /// Board C2c "Then": a bus number field, 160 wide.
+    public static let busNumberField: CGFloat = 160
 
     /// From the label line to the right-edge line.
     public let width: CGFloat

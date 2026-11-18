@@ -2,53 +2,35 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// A bubble over a bus on the live strip (spec "A2 live look"): the kid's bus gets the number
-/// plate, "{n} min" and the kid's face with "my bus"; an earlier bus the kid cannot catch gets a
-/// small cream plate, its minutes and "too soon".
+/// The bubble over the kid's bus on the live strip (spec "A2 live look"): the number plate,
+/// "{n} min" and the kid's face with "my bus". Every other bus gets a `LiveBusTag`.
 public struct LiveBusBubble: View {
-    public enum Kind: Equatable, Sendable {
-        case mine(face: KidFace.Badge, name: String, myBus: String)
-        case tooSoon(String)
-        /// A changing 2nd choice (spec "A2 strip"): "or 34" › "33", then how the change goes.
-        case change(String, then: String, fit: String?)
-    }
-
+    /// About its drawn size (board A2: 220 × 132), which the tags keep clear of.
+    public static let size = CGSize(width: 220, height: 132)
     private let service: String
     private let minutes: String
-    private let kind: Kind
+    private let face: KidFace.Badge
+    private let name: String
+    private let myBus: String
 
-    public init(service: String, minutes: String, kind: Kind) {
+    public init(service: String, minutes: String, face: KidFace.Badge, name: String, myBus: String) {
         self.service = service
         self.minutes = minutes
-        self.kind = kind
+        self.face = face
+        self.name = name
+        self.myBus = myBus
     }
 
     public var body: some View {
-        // Board A2: the "too soon" bubble centres its two lines; the my-bus bubble keeps them left.
-        VStack(alignment: isMine ? .leading : .center, spacing: Spacing.xxs) {
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
             HStack(spacing: Spacing.xs) {
-                NumberPlate(service, isMine: isMine)
-                Text(minutes).crayonType(isMine ? .head : .body, bold: true).foregroundStyle(CrayonColor.pictureInk)
+                NumberPlate(service, isMine: true)
+                Text(minutes).crayonType(.head, bold: true).foregroundStyle(CrayonColor.pictureInk)
                     .lineLimit(1).fixedSize()
             }
-            switch kind {
-            case let .mine(face, name, myBus):
-                HStack(spacing: Spacing.xs) {
-                    KidFace(face, name: name, size: 32)
-                    Text(myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
-                }
-            case let .tooSoon(text):
-                Text(text).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText).fixedSize()
-            case let .change(text, then, fit):
-                HStack(spacing: Spacing.xxs) {
-                    Text(text).crayonType(.caption).fixedSize()
-                    MarkerIcon(.arrowRight, size: 20, color: CrayonColor.pictureSoftText)
-                    Text(then).crayonType(.caption).fixedSize()
-                }
-                .foregroundStyle(CrayonColor.pictureSoftText)
-                if let fit {
-                    Text(fit).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureSoftText).fixedSize()
-                }
+            HStack(spacing: Spacing.xs) {
+                KidFace(face, name: name, size: 32)
+                Text(myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
             }
         }
         .padding(.horizontal, Spacing.s)
@@ -56,16 +38,101 @@ public struct LiveBusBubble: View {
         .padding(.bottom, Spacing.xs + 16)
         .background {
             CrayonSurface(.speechBubble(tailX: 0.5, tailHeight: 16), fill: CrayonStyle.pictureGround,
-                          markerColor: CrayonColor.pictureOutline,
-                          seed: CrayonStyle.Seed.bubble + (isMine ? 1 : 2))
+                          markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 1)
         }
         .fixedSize()
-        // Board A2: a bus that cannot be caught has its whole bubble faded, like the bus itself.
-        .opacity(isMine ? 1 : 0.5)
         .accessibilityElement(children: .combine)
     }
+}
 
-    private var isMine: Bool { if case .mine = kind { true } else { false } }
+/// The tag over every bus but the kid's on the live strip (spec "A2 strip"): a small cream plate
+/// (52 × 28, 24 bold; a bus that changes reads "34 → 33", the arrow drawn) and "{n} min" (or "too
+/// soon"), caption bold, on paper, about 130 × 44. Tags that collide merge into one listing.
+public struct LiveBusTag: View {
+    public static let height: CGFloat = 44
+    static let padding = Spacing.xs
+    static let plateMinWidth: CGFloat = 52
+    static let arrow: CGFloat = 20
+
+    public enum Content: Equatable, Sendable {
+        case bus(number: String, then: String?, minutes: String)
+        /// Two or more tags merged: "34 · 12 min, 56 · 13 min".
+        case listing(String)
+    }
+
+    private let content: Content
+
+    public init(_ content: Content) {
+        self.content = content
+    }
+
+    /// The tag's width on screen, measured in Playpen Sans (the plate and the words are 24 bold).
+    public static func width(_ content: Content) -> CGFloat {
+        switch content {
+        case let .bus(number, then, minutes):
+            2 * padding + plateWidth(number, then: then) + Spacing.xs + CrayonType.captionBoldWidth(minutes)
+        case let .listing(text):
+            2 * padding + CrayonType.captionBoldWidth(text)
+        }
+    }
+
+    static func plateWidth(_ number: String, then: String?) -> CGFloat {
+        var words = CrayonType.captionBoldWidth(number)
+        if let then { words += Spacing.xxs + arrow + Spacing.xxs + CrayonType.captionBoldWidth(then) }
+        return max(plateMinWidth, words + 2 * Spacing.xs)
+    }
+
+    public var body: some View {
+        HStack(spacing: Spacing.xs) {
+            switch content {
+            case let .bus(number, then, minutes):
+                Plate(number: number, then: then)
+                Text(minutes).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
+                    .lineLimit(1).fixedSize()
+            case let .listing(text):
+                Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
+                    .lineLimit(1).fixedSize()
+            }
+        }
+        .padding(.horizontal, Self.padding)
+        .frame(width: Self.width(content), height: Self.height)
+        .background {
+            CrayonSurface(.roundedRect(cornerRadius: 14), fill: CrayonStyle.paper, marker: .thin,
+                          markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 9)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+extension LiveBusTag {
+    /// The tag's cream plate (52 × 28, 24 bold), also the legend's faded plates.
+    public struct Plate: View {
+        let number: String
+        let then: String?
+
+        public init(number: String, then: String?) {
+            self.number = number
+            self.then = then
+        }
+
+        public var body: some View {
+            HStack(spacing: Spacing.xxs) {
+                Text(number)
+                if let then {
+                    MarkerIcon(.arrowRight, size: LiveBusTag.arrow, color: CrayonColor.pictureInk)
+                    Text(then)
+                }
+            }
+            .font(Font(FontRegistrar.font(size: 24, weight: .bold)))
+            .foregroundStyle(CrayonColor.pictureInk)
+            .lineLimit(1).fixedSize()
+            .frame(width: LiveBusTag.plateWidth(number, then: then), height: 28)
+            .background {
+                CrayonSurface(.roundedRect(cornerRadius: 8), fill: CrayonFill.paper(CrayonColor.plateCream),
+                              marker: .thin, markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 8)
+            }
+        }
+    }
 }
 
 /// A bus number plate: white for the kid's bus (76 × 40, 30 bold), cream for the others; `small`

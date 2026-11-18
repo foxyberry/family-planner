@@ -25,6 +25,10 @@ extension BusClient {
             searchStops: { text in
                 guard let key else { throw LTA.Failure.noKey }
                 return LTA.search(text, in: try await stops.all(key: key, session: session))
+            },
+            isService: { number in
+                guard let key else { throw LTA.Failure.noKey }
+                return try await services.all(key: key, session: session).contains(number.uppercased())
             }
         )
     }
@@ -51,11 +55,33 @@ private actor StopList {
     }
 }
 
+/// Every bus service number (about 750 rows, one per direction, 500 a page), fetched once per app run.
+private let services = ServiceList()
+
+private actor ServiceList {
+    private var cached: Set<String>?
+
+    func all(key: String, session: URLSession) async throws -> Set<String> {
+        if let cached { return cached }
+        var list: Set<String> = []
+        for skip in stride(from: 0, to: 3000, by: 500) {
+            let data = try await LTA.get(LTA.servicesPath, query: [(LTA.skipParameter, "\(skip)")], key: key,
+                                         session: session)
+            let page = try LTA.services(from: data)
+            list.formUnion(page)
+            if page.count < 500 { break }
+        }
+        cached = list
+        return list
+    }
+}
+
 /// LTA DataMall calls and parsing, kept apart so tests can feed made-up responses.
 public enum LTA {
     static let base = "https://datamall2.mytransport.sg/ltaodataservice/" // copy-ok: API host
     static let arrivalPath = "v3/BusArrival" // copy-ok: API path
     static let stopsPath = "BusStops" // copy-ok: API path
+    static let servicesPath = "BusServices" // copy-ok: API path
     static let stopParameter = "BusStopCode" // copy-ok: API parameter
     static let skipParameter = "$skip" // copy-ok: API parameter
 
@@ -114,6 +140,11 @@ public enum LTA {
             .map { BusStop(code: $0.code, name: $0.description, road: $0.road ?? "") }
     }
 
+    /// One page of the BusServices list: the service numbers (a row per direction).
+    public static func services(from data: Data) throws -> [String] {
+        try JSONDecoder().decode(ServicesAnswer.self, from: data).value.map(\.number)
+    }
+
     /// Stops whose name or road holds every word of `text` (any case), names starting with the
     /// first word first; a run of digits matches the start of the code. At most `limit`.
     public static func search(_ text: String, in stops: [BusStop], limit: Int = 8) -> [BusStop] {
@@ -160,6 +191,15 @@ public enum LTA {
         let estimatedArrival: String
         let type: String
         enum CodingKeys: String, CodingKey { case estimatedArrival = "EstimatedArrival", type = "Type" } // copy-ok: JSON keys
+    }
+
+    private struct ServicesAnswer: Decodable {
+        let value: [ServiceRow]
+    }
+
+    private struct ServiceRow: Decodable {
+        let number: String
+        enum CodingKeys: String, CodingKey { case number = "ServiceNo" } // copy-ok: JSON key
     }
 
     private struct StopsAnswer: Decodable {

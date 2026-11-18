@@ -10,8 +10,8 @@ import SwiftUI
 /// board's 1248 × 340 frame and scaled to fit, keeping its shape; labels, bubbles and cards are
 /// set on top at real type sizes.
 public struct WayStrip: View {
-    /// A bus on the live look: x on the board (from its minutes, in State), its picture and the
-    /// words of its bubble.
+    /// A bus on the live look: x on the board (from its minutes, in State), its picture and its
+    /// words: the kid's bus has the big bubble, every other bus a tag.
     public struct LiveBus: Equatable, Sendable, Identifiable {
         public var id: String
         public var x: CGFloat
@@ -19,35 +19,31 @@ public struct WayStrip: View {
         public var service: String
         public var minutes: String
         public var isMine: Bool
-        public var isTooSoon: Bool
-        public var showsBubble: Bool
-        /// The 2nd choice's bus (spec "A2 strip"): faded like "too soon", its bubble reads "or · 2nd".
-        public var isSecond: Bool
+        /// Every bus but the kid's: its tag, and the words it gives a merged tag ("34 · 12 min").
+        public var tag: LiveBusTag.Content?
+        public var listing: String
 
         public init(id: String, x: CGFloat, picture: KitSlot, service: String, minutes: String, isMine: Bool,
-                    isTooSoon: Bool, showsBubble: Bool, isSecond: Bool = false) {
-            self.isSecond = isSecond
+                    tag: LiveBusTag.Content? = nil, listing: String = "") {
             self.id = id
             self.x = x
             self.picture = picture
             self.service = service
             self.minutes = minutes
             self.isMine = isMine
-            self.isTooSoon = isTooSoon
-            self.showsBubble = showsBubble
+            self.tag = tag
+            self.listing = listing
         }
     }
 
-    /// A changing 2nd choice's bubble (spec "A2 strip"): "or 34" › "33" over how the change goes.
-    public struct Change: Equatable, Sendable {
-        public var caption: String
-        public var then: String
-        public var fit: String?
+    /// A bus number in the legend: a bus that changes reads "34 → 33".
+    public struct Plate: Equatable, Sendable, Hashable {
+        public var number: String
+        public var then: String?
 
-        public init(caption: String, then: String, fit: String?) {
-            self.caption = caption
+        public init(_ number: String, then: String? = nil) {
+            self.number = number
             self.then = then
-            self.fit = fit
         }
     }
 
@@ -60,22 +56,17 @@ public struct WayStrip: View {
         public var owner: KidFace.Badge
         public var ownerName: String
         public var myBus: String
-        public var tooSoon: String
-        /// The kid's 1st-choice bus number for the legend plate, also when no bus can be caught.
+        /// The chosen bus's number for the legend plate (the kid's first bus when none can be caught).
         public var myService: String
-        /// The 2nd-choice bubble's caption ("or · 2nd") and the legend's faded line ("34 2nd").
-        public var secondCaption: String
-        public var secondLegend: String?
-        /// Set when the 2nd choice changes buses: its bubble shows the change instead of `secondCaption`.
-        public var secondChange: Change?
+        /// The legend's faded plates: the kid's other buses in pill order (up to 3), then "+{n}".
+        public var others: [Plate]
+        public var moreOthers: String?
+        /// Between the parts of a merged tag (", ").
+        public var tagJoin: String
 
         public init(buses: [LiveBus], destination: KitSlot, destinationLabel: String, ourStopLabel: String,
-                    owner: KidFace.Badge, ownerName: String, myBus: String, tooSoon: String, myService: String = "",
-                    secondCaption: String = "", secondLegend: String? = nil, secondChange: Change? = nil) {
-            self.secondChange = secondChange
-            self.myService = myService
-            self.secondCaption = secondCaption
-            self.secondLegend = secondLegend
+                    owner: KidFace.Badge, ownerName: String, myBus: String, myService: String = "",
+                    others: [Plate] = [], moreOthers: String? = nil, tagJoin: String = "") {
             self.buses = buses
             self.destination = destination
             self.destinationLabel = destinationLabel
@@ -83,7 +74,10 @@ public struct WayStrip: View {
             self.owner = owner
             self.ownerName = ownerName
             self.myBus = myBus
-            self.tooSoon = tooSoon
+            self.myService = myService
+            self.others = others
+            self.moreOthers = moreOthers
+            self.tagJoin = tagJoin
         }
     }
 
@@ -195,7 +189,7 @@ public struct WayStrip: View {
                 pictures(g, destination: live.destination)
                 ForEach(live.buses) { bus in
                     mover(g, bus.picture, x: bus.x)
-                        .opacity(bus.isTooSoon || bus.isSecond ? 0.5 : 1)
+                        .opacity(bus.isMine ? 1 : 0.5)
                         .animation(.linear(duration: 1), value: bus.x)
                 }
             case .homeAllDay:
@@ -321,34 +315,63 @@ public struct WayStrip: View {
         case let .live(live):
             label(live.ourStopLabel, x: Self.homeX, kx: kx, k: k)
             label(live.destinationLabel, x: Self.destinationX, kx: kx, k: k)
-            // Legend at (946, 16): the white plate with the kid's 1st-choice bus number means "my bus"
-            // (an empty plate read as broken on the iPad, 2026-11-09).
+            // Legend at (946, 16): the white plate with the chosen bus's number means "my bus" (an
+            // empty plate read as broken on the iPad, 2026-11-09); the kid's other buses faded under it.
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 HStack(spacing: Spacing.xs) {
                     NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true, small: true)
                     Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
                 }
-                if let second = live.secondLegend {
-                    Text(second).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
-                        .fixedSize().opacity(0.5)
+                if !live.others.isEmpty {
+                    HStack(spacing: Spacing.xxs) {
+                        ForEach(live.others, id: \.self) { plate in
+                            LiveBusTag.Plate(number: plate.number, then: plate.then)
+                        }
+                        if let more = live.moreOthers {
+                            Text(more).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
+                        }
+                    }
+                    .opacity(0.5)
                 }
             }
             .offset(x: 946 * kx, y: 16 * k)
-            ForEach(live.buses.filter(\.showsBubble)) { bus in
-                let x = min(max(bus.x, 120), Self.size.width - 120)
+            if let mine = live.buses.first(where: \.isMine) {
                 Color.clear.frame(width: 1, height: 1)
                     .overlay(alignment: .bottom) {
-                        LiveBusBubble(service: bus.service, minutes: bus.minutes,
-                                      kind: bus.isMine ? .mine(face: live.owner, name: live.ownerName, myBus: live.myBus)
-                                          : bus.isSecond ? live.secondChange.map { .change($0.caption, then: $0.then, fit: $0.fit) }
-                                              ?? .tooSoon(live.secondCaption)
-                                          : .tooSoon(live.tooSoon))
+                        LiveBusBubble(service: mine.service, minutes: mine.minutes, face: live.owner,
+                                      name: live.ownerName, myBus: live.myBus)
                     }
-                    .offset(x: x * kx, y: (Self.moverBottom - 120 - 8) * k)
-                    .animation(.linear(duration: 1), value: bus.x)
+                    .offset(x: Self.bubbleX(mine.x) * kx, y: Self.bubbleBottom * k)
+                    .animation(.linear(duration: 1), value: mine.x)
             }
+            tags(live, kx: kx, k: k)
         case let .homeAllDay(title):
             card(title: title, caption: nil, owner: nil).offset(x: 120 * kx, y: 38 * k)
+        }
+    }
+
+    /// The my-bus bubble's foot: centred on its bus (kept 120 inside the ends), 8 above the bus top.
+    static func bubbleX(_ x: CGFloat) -> CGFloat { min(max(x, 120), size.width - 120) }
+    static let bubbleBottom: CGFloat = moverBottom - 120 - 8
+
+    /// Spec "A2 strip": every other bus's tag, placed by `LiveTagLayout` at real sizes; tags that
+    /// cannot get a free row are listed in the nearest one.
+    @ViewBuilder private func tags(_ live: Live, kx: CGFloat, k: CGFloat) -> some View {
+        let tagged = live.buses.filter { $0.tag != nil }
+        let bubble = live.buses.first(where: \.isMine).map { mine in
+            CGRect(x: Self.bubbleX(mine.x) * kx - LiveBusBubble.size.width / 2, y: Self.bubbleBottom * k - LiveBusBubble.size.height,
+                   width: LiveBusBubble.size.width, height: LiveBusBubble.size.height)
+        }
+        let slots = LiveTagLayout.place(tagged.map { LiveTagLayout.Tag(centreX: $0.x * kx, width: LiveBusTag.width($0.tag!)) },
+                                        kx: kx, k: k, bubble: bubble)
+        ForEach(Array(tagged.enumerated()), id: \.element.id) { index, bus in
+            if case let .shown(_, frame) = slots[index], let tag = bus.tag {
+                let merged = tagged.indices.filter { slots[$0] == .merged(into: index) }
+                LiveBusTag(merged.isEmpty ? tag
+                           : .listing(([bus] + merged.map { tagged[$0] }).map(\.listing).joined(separator: live.tagJoin)))
+                    .offset(x: frame.minX, y: frame.minY)
+                    .animation(.linear(duration: 1), value: frame)
+            }
         }
     }
 

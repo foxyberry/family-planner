@@ -10,7 +10,6 @@ ios/DesignSystem/Content/Medal.swift
 ios/DesignSystem/Content/PaperCard.swift
 ios/DesignSystem/Content/ResultList.swift
 ios/DesignSystem/Content/VoiceNote.swift
-ios/DesignSystem/Content/WayStrip.swift
 ios/DesignSystem/Controls/CheckMark.swift
 ios/DesignSystem/Controls/ChoiceCircles.swift
 ios/DesignSystem/Controls/CrayonTabs.swift

@@ -43,7 +43,9 @@ final class SetupTests: XCTestCase {
             $0.schoolDirectory.schools = { [school, international] }
             $0.scheduleStore.replaceFamily = { family in saved.withValue { $0.append(family) } }
             $0.bus.stop = { code in code == "00000" ? BusStop(code: code, name: "Example Stop", road: "Example Rd") : nil }
-            $0.bus.arrivals = { _ in [BusArrival(service: "1", minutes: 5, type: .double)] }
+            $0.bus.arrivals = { _ in
+                [BusArrival(service: "1", minutes: 5, type: .double), BusArrival(service: "2", minutes: 7, type: .single)]
+            }
             $0.bus.searchStops = { _ in [] }
             $0.parentAuth.biometry = { .faceID }
         }
@@ -387,6 +389,28 @@ final class SetupTests: XCTestCase {
         XCTAssertEqual(savedSettings.value, [AppSettings(grownupLock: true, medals: false)])
     }
 
+    /// Spec "Several buses": S3 picks any number of equal buses, each with its own Ride row.
+    func testS3PicksSeveralBusesEachWithItsRide() async {
+        let store = store(saved: LockIsolated([]))
+        await family(store)
+        await store.send(.faceTapped(first, "kidGirl"))
+        await store.send(.nextTapped)
+        await kidBAtHome(store)
+        await store.send(.schoolPicked(school))
+        await store.send(.nextTapped)
+        await store.send(.stopSearch(.textChanged("00000")))
+        await store.receive(\.stopSearch.stopLooked)
+        XCTAssertEqual(store.state.rideRows.map(\.service), [nil], "one Ride row before a bus is picked")
+        await store.send(.serviceTapped("2"))
+        await store.send(.serviceTapped("1"))
+        XCTAssertEqual(store.state.goingKid?.going.services, ["1", "2"], "pill order")
+        XCTAssertEqual(store.state.rideRows.map(\.label), ["Ride", ""])
+        XCTAssertEqual(store.state.rideRows.map(\.caption), ["on 1", "on 2"])
+        await store.send(.rideChanged(service: "2", minutes: 4))
+        XCTAssertEqual(store.state.goingKid?.going.ride(on: "2"), 4)
+        XCTAssertEqual(store.state.goingKid?.going.trip.leaveBefore, 15, "walk 10 + the fastest ride 4, up to 5")
+    }
+
     func testStartSavesTheWholeFamilyOnce() async {
         let saved = LockIsolated<[ScheduleSnapshot]>([])
         let store = store(saved: saved)
@@ -419,7 +443,7 @@ final class SetupTests: XCTestCase {
         XCTAssertEqual(family.kids[0].school?.latest, 460, "Latest stays on the school record")
         XCTAssertEqual(family.kids[0].school?.lateGrace, 10)
         XCTAssertEqual(family.busPlans, [BusPlan(kid: first, stop: "00000", services: ["1"], walk: 8, ride: 10,
-                                                 lateGrace: 10)])
+                                                 lateGrace: 10, rides: ["1": 10])])
         XCTAssertEqual(family.routines.count, 6)
         XCTAssertEqual(Set(family.routines.map(\.from)), [Day(year: 2026, month: 1, day: 1)])
         let schoolBlock = family.routines.first { $0.kid == first && $0.dayType == .weekday }?

@@ -40,8 +40,8 @@ public struct ComponentGallery: View {
                         RoundButton(glyph: .redo, accessibilityLabel: "Redo") {}.size(72).opacity(0.45)
                         PillToggle("12", isOn: true) {}
                         PillToggle("34", isOn: false) {}
-                        PillToggle("12", isOn: true, tag: "1st") {}
-                        PillToggle("34", isOn: false, tag: "2nd") {}
+                        PillToggle("34", isOn: true, then: "33") {}
+                        PillToggle("56", isOn: false, then: "78") {}
                         CrayonSwitch(isOn: true)
                         CrayonSwitch(isOn: false)
                         CheckMark(isDone: true)
@@ -157,13 +157,13 @@ public struct ComponentGallery: View {
                     }
                     GlyphText("Drag %@ to change the order.", glyph: .handle, color: CrayonColor.softText)
                 }
-                section("A2 · Live bubbles") {
+                section("A2 · Live bubble and tags") {
                     HStack(alignment: .bottom, spacing: Spacing.l) {
-                        LiveBusBubble(service: "1", minutes: "28 min",
-                                      kind: .mine(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A",
-                                                  myBus: "my bus"))
-                        LiveBusBubble(service: "1", minutes: "4 min", kind: .tooSoon("too soon"))
-                        LiveBusBubble(service: "3", minutes: "12 min", kind: .change("or 3", then: "4", fit: "wait 3 min"))
+                        LiveBusBubble(service: "1", minutes: "28 min", face: KidFace.Badge(face: "kidGirl", colorIndex: 0),
+                                      name: "Kid A", myBus: "my bus")
+                        LiveBusTag(.bus(number: "1", then: nil, minutes: "too soon"))
+                        LiveBusTag(.bus(number: "3", then: "4", minutes: "12 min"))
+                        LiveBusTag(.listing("2 · 15 min, 5 · 16 min"))
                     }
                 }
                 section("F1–F4 · Form cards") {

@@ -109,8 +109,6 @@ public struct MissionsFeature {
         /// The last good live answer and when it came (spec "Refresh").
         public var arrivals: [BusArrival]?
         public var arrivalsAt: Date?
-        /// Live arrivals at a changing 2nd choice's change stop (spec "A2 strip"), from the same refresh.
-        public var changeArrivals: [BusArrival]?
         public var now: Date?
         /// "Not yet" asks once before a ready kid is undone.
 
@@ -248,66 +246,45 @@ public struct MissionsFeature {
             guard let (owner, outing) = familyOuting, outing.trip.way == .bus,
                   let plan = busPlans[owner.id], let arrivals, let arrivalsAt, let now,
                   now.timeIntervalSince(arrivalsAt) < Self.liveFreshness else { return nil }
-            return LiveMorning(arrivals: arrivals, plan: plan, minute: minute, start: outing.slot.start,
-                               changeArrivals: changeArrivals)
+            return LiveMorning(arrivals: arrivals, plan: plan, minute: minute, start: outing.slot.start)
         }
 
-        /// The live strip (spec "A2 live look"): the next two arrivals, plus the kid's bus when it is
-        /// later; bubbles over the kid's bus and an earlier "too soon" one unless they would overlap.
+        /// The live strip (spec "A2 strip"): every arrival of the kid's buses under 30 min; the chosen
+        /// one with the big bubble, every other one faded with its tag ("34 · 12 min", or "too soon").
         public var liveStrip: WayStrip.Live? {
             guard let live, let (owner, outing) = familyOuting else { return nil }
-            var arrivals = live.shown
-            if let chosen = live.chosen, !arrivals.contains(chosen) { arrivals.append(chosen) }
-            let mineX = live.chosen.map { WayStrip.liveX(minutes: $0.minutes) }
-            var buses = arrivals.enumerated().map { index, arrival in
-                let isMine = arrival == live.chosen, isTooSoon = arrival == live.tooSoon
-                let x = WayStrip.liveX(minutes: arrival.minutes)
-                let clear = mineX.map { abs($0 - x) >= 220 } ?? true
-                return WayStrip.LiveBus(id: "\(index)", x: x, picture: Self.busPicture(arrival.type),
-                                        service: arrival.service,
-                                        minutes: TimeLeft.presentation(minutes: arrival.minutes).text,
-                                        isMine: isMine, isTooSoon: isTooSoon && !isMine,
-                                        showsBubble: isMine || (isTooSoon && clear))
+            let plan = busPlans[owner.id]
+            let buses = live.buses.enumerated().map { index, bus in
+                let minutes = TimeLeft.presentation(minutes: bus.arrival.minutes).text
+                let shown = bus.isCatchable ? minutes : L10n.tr("missions.too_soon")
+                return WayStrip.LiveBus(id: "\(index)", x: WayStrip.liveX(minutes: bus.arrival.minutes),
+                                        picture: Self.busPicture(bus.arrival.type), service: bus.route.service,
+                                        minutes: minutes, isMine: bus == live.chosen,
+                                        tag: bus == live.chosen ? nil
+                                            : .bus(number: bus.route.service, then: bus.route.then, minutes: shown),
+                                        listing: L10n.tr("missions.tag.listing", bus.route.service, shown))
             }
-            // Spec "A2 strip": the 2nd choice's next catchable bus, faded, with "or · 2nd"; its bubble is
-            // left out when it would overlap a bubble already shown (the too-soon one goes first).
-            if let second = live.second {
-                let x = WayStrip.liveX(minutes: second.minutes)
-                let clear = buses.filter(\.showsBubble).allSatisfy { abs($0.x - x) >= 220 }
-                buses.append(WayStrip.LiveBus(id: "second", x: x, picture: Self.busPicture(second.type),
-                                              service: second.service,
-                                              minutes: TimeLeft.presentation(minutes: second.minutes).text,
-                                              isMine: false, isTooSoon: false, showsBubble: clear, isSecond: true))
-            }
-            // A changing 2nd reads "or 34 › 33" over how the change goes ("wait 3 min", "tight", "will miss").
-            let change = busPlans[owner.id]?.change.map { change in
-                WayStrip.Change(caption: L10n.tr("missions.second_change", change.firstBus), then: change.thenBus,
-                                fit: live.secondFit.map(Self.fitLine))
-            }
+            // Legend: the chosen bus's number, then the kid's other buses faded, in pill order.
+            let mine = live.chosen?.route ?? plan?.routes.first
+            let others = (plan?.routes ?? []).filter { $0 != mine }.map { WayStrip.Plate($0.service, then: $0.then) }
             return WayStrip.Live(buses: buses, destination: KitSlot(iconName: outing.slot.iconName),
                                  destinationLabel: outing.slot.title, ourStopLabel: L10n.tr("missions.our_stop"),
                                  owner: KidFace.Badge(face: owner.face, colorIndex: owner.colorIndex),
                                  ownerName: owner.name, myBus: L10n.tr("missions.my_bus"),
-                                 tooSoon: L10n.tr("missions.too_soon"),
-                                 myService: live.chosen?.service ?? busPlans[owner.id]?.first ?? "",
-                                 secondCaption: L10n.tr("missions.second"),
-                                 secondLegend: busPlans[owner.id]?.secondStart.map { L10n.tr("missions.second_legend", $0) },
-                                 secondChange: change)
+                                 myService: mine?.service ?? "", others: Array(others.prefix(3)),
+                                 moreOthers: others.count > 3 ? L10n.tr("missions.legend.more", others.count - 3) : nil,
+                                 tagJoin: L10n.tr("missions.tag.join"))
         }
 
-        /// "Live bus map. Bus 1 in 28 minutes, your bus. Leave in 18 minutes, on time."
+        /// "Live bus map. Bus 1 in 28 minutes, your bus. Or bus 2 in 35 minutes. Leave in 18 minutes,
+        /// on time." The "or" names the next catchable other bus.
         public var liveSpoken: String? {
             guard let live, let chosen = live.chosen, let leaveIn = live.leaveIn else { return nil }
-            return L10n.tr("missions.live.spoken", chosen.service, TimeLeft.spoken(minutes: chosen.minutes),
-                           TimeLeft.spoken(minutes: max(leaveIn, 0)), live.status.map { Self.statusLine($0).text } ?? "")
-        }
-
-        static func fitLine(_ fit: BusChange.Fit) -> String {
-            switch fit {
-            case let .wait(minutes): L10n.tr("missions.change.wait", minutes)
-            case .tight: L10n.tr("missions.change.tight")
-            case .willMiss: L10n.tr("missions.change.miss")
-            }
+            let other = live.others.first(where: \.isCatchable).map {
+                L10n.tr("missions.live.spoken.or", $0.route.service, TimeLeft.spoken(minutes: $0.arrival.minutes))
+            } ?? ""
+            return L10n.tr("missions.live.spoken", chosen.route.service, TimeLeft.spoken(minutes: chosen.arrival.minutes),
+                           other, TimeLeft.spoken(minutes: max(leaveIn, 0)), live.status.map { Self.statusLine($0).text } ?? "")
         }
 
         static func busPicture(_ type: BusType) -> KitSlot {
@@ -485,7 +462,6 @@ public struct MissionsFeature {
         case readyShown
         case refresh
         case arrivalsLoaded([BusArrival]?, at: Date)
-        case changeArrivalsLoaded([BusArrival]?)
         case backTapped
         case delegate(Delegate)
 
@@ -555,16 +531,9 @@ public struct MissionsFeature {
                 guard let (owner, outing) = state.familyOuting,
                       outing.trip.way == .bus, let plan = state.busPlans[owner.id] else { return .none }
                 return .run { [bus, date] send in
-                    if let change = plan.change {
-                        await send(.changeArrivalsLoaded(try? await bus.arrivals(change.stop)))
-                    }
                     let arrivals = try? await bus.arrivals(plan.stop)
                     await send(.arrivalsLoaded(arrivals, at: date.now))
                 }
-
-            case let .changeArrivalsLoaded(arrivals):
-                state.changeArrivals = arrivals
-                return .none
 
             case let .arrivalsLoaded(arrivals, at):
                 // A failed call keeps the last good answer until it is too old (spec "Refresh").

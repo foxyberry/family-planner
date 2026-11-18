@@ -38,6 +38,11 @@ final class BusClientLiveTests: XCTestCase {
         XCTAssertEqual(page.first?.name, "Example Stop")
     }
 
+    func testServicesPage() throws {
+        let json = #"{"value":[{"ServiceNo":"1","Direction":1},{"ServiceNo":"1","Direction":2},{"ServiceNo":"2A"}]}"#
+        XCTAssertEqual(try LTA.services(from: Data(json.utf8)), ["1", "1", "2A"])
+    }
+
     /// Families know the stop's name, not its code (user, 2026-11-09). Made-up stops only.
     func testSearchByNameRoadOrCode() {
         let stops = [BusStop(code: "11111", name: "Opp Example Park", road: "Sample Ave"),

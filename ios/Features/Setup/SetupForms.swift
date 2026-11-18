@@ -147,9 +147,13 @@ public struct GoingForm: Equatable {
 
     public var way: Way = .bus
     public var search = StopSearchFeature.State()
+    /// Spec "Several buses": the kid's buses, all equal, in pill order.
     public var services: [String] = []
     public var walk = BusPlan.defaultWalk
+    /// The ride before any bus is picked, and the one a newly picked bus starts with.
     public var ride = BusPlan.defaultRide
+    /// Each picked bus's own ride.
+    public var rides: [String: Int] = [:]
     /// Walk, car or taxi: minutes before the school starts.
     public var leaveBefore = GoingForm.defaultLeave
 
@@ -159,9 +163,12 @@ public struct GoingForm: Equatable {
     /// nothing more. Bus numbers stay optional, since a build without live times cannot list them.
     public var isFinished: Bool { way != .bus || search.stop.count == 5 }
 
-    /// By bus the kid leaves the walk and the ride before the start, rounded up to 5 minutes.
+    public func ride(on service: String) -> Int { rides[service] ?? ride }
+
+    /// By bus the kid leaves the walk and the fastest ride before the start, rounded up to 5 minutes.
     public var trip: Trip {
         guard way == .bus else { return Trip(way: way, leaveBefore: leaveBefore) }
-        return Trip(way: .bus, leaveBefore: min((walk + ride + 4) / 5 * 5, 90))
+        let fastest = services.map(ride(on:)).min() ?? ride
+        return Trip(way: .bus, leaveBefore: min((walk + fastest + 4) / 5 * 5, 90))
     }
 }

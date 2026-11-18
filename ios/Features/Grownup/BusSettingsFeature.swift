@@ -16,14 +16,15 @@ public struct BusSettingsFeature {
         public var kidName = ""
         /// The stop field (shared with S3).
         public var search = StopSearchFeature.State()
-        /// The kid's bus numbers, picked from what calls at the stop.
+        /// The kid's buses, all equal (spec "Several buses"), in pill order.
         public var services: [String] = []
         public var walk = BusPlan.defaultWalk
+        /// The ride a newly picked bus starts with.
         public var ride = BusPlan.defaultRide
         public var lateGrace = BusPlan.defaultLateGrace
-        /// "Ride 2nd" (spec "C2 rows"), shown while a 2nd bus is picked.
-        public var secondRide = BusPlan.defaultRide
-        /// A 2nd choice that changes buses (C2c); a direct 2nd replaces it.
+        /// Each picked bus's own ride.
+        public var rides: [String: Int] = [:]
+        /// The bus that changes (C2c), one more equal bus.
         public var change: BusChange?
         /// The kid as stored: "Late" is their school's Latest − Arrive by when the school has both
         /// (spec "Latest lives on the school record"), else the plan's own value.
@@ -35,42 +36,42 @@ public struct BusSettingsFeature {
 
         public var title: String { L10n.tr("c2.title") }
         public var walkText: String { L10n.tr("c2.minutes", walk) }
-        public var rideText: String { L10n.tr("c2.minutes", ride) }
         public var graceText: String { L10n.tr("c2.minutes", lateGrace) }
-        public var secondRideText: String { L10n.tr("c2.minutes", secondRide) }
-        /// The 2nd bus, when one is picked: the "Ride 2nd" row shows.
-        public var second: String? { services.count > 1 ? services[1] : nil }
-        /// "on 34 · the long way".
-        public var secondRideCaption: String { second.map { L10n.tr("c2.ride_second.on", $0) } ?? "" }
-        /// A pill's tag: "1st", "2nd" or none.
-        public func tag(for service: String) -> String? {
-            switch services.firstIndex(of: service) {
-            case 0?: L10n.tr("c2.tag.first")
-            case 1?: L10n.tr("c2.tag.second")
-            default: nil
+
+        /// One Ride row per picked bus, in pill order ("on 12"); the label "Ride" on the first only.
+        public struct RideRow: Equatable, Identifiable, Sendable {
+            public var service: String
+            public var label: String
+            public var minutes: Int
+            public var text: String
+            public var caption: String
+            /// VoiceOver names every row ("Ride on 34"), also those without a label.
+            public var spoken: String
+            public var id: String { service }
+        }
+
+        public var rideRows: [RideRow] {
+            services.enumerated().map { index, service in
+                let minutes = rides[service] ?? ride
+                return RideRow(service: service, label: index == 0 ? L10n.tr("c2.ride") : "", minutes: minutes,
+                               text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service),
+                               spoken: L10n.tr("c2.ride.spoken", service))
             }
         }
 
         /// Board C2's side column and stepper captions.
         public var sideTitle: String { L10n.tr("c2.side.title", kidName) }
-        /// "on 12" for the first picked bus, else what the ride covers.
-        public var rideCaption: String {
-            services.first.map { L10n.tr("c2.ride.on", $0) } ?? L10n.tr("s3.ride.caption")
-        }
 
         public var plan: BusPlan? {
-            guard search.stop.count == 5, !services.isEmpty else { return nil }
+            guard search.stop.count == 5, !services.isEmpty || change != nil else { return nil }
             return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace,
-                           secondRide: second == nil ? nil : secondRide, change: second == nil ? change : nil)
+                           rides: rides.filter { services.contains($0.key) }, change: change)
         }
 
-        /// The link under the rows (spec "C2 rows"): "2nd choice changes buses…", or the picked
-        /// change as "2nd choice · 34" › "33". Shown once the kid has a 1st bus at a known stop.
-        public var showsChangeLink: Bool { plan != nil }
-        public var changeLink: (first: String, then: String?) {
-            guard let change else { return (L10n.tr("c2.change_link"), nil) }
-            return (L10n.tr("c2.change_link.set", change.firstBus), change.thenBus)
-        }
+        /// The link under the rows (spec "Several buses"): "+ A bus that changes…" while the kid has no
+        /// bus that changes, at a known stop; a picked one is a pill ("34 → 33") instead.
+        public var showsChangeLink: Bool { search.stop.count == 5 && !search.servicesAtStop.isEmpty && change == nil }
+        public var changeLink: String { L10n.tr("c2.change_link") }
     }
 
     public enum Action: Equatable {
@@ -79,8 +80,7 @@ public struct BusSettingsFeature {
         case search(StopSearchFeature.Action)
         case serviceTapped(String)
         case walkChanged(Int)
-        case rideChanged(Int)
-        case secondRideChanged(Int)
+        case rideChanged(service: String, minutes: Int)
         case graceChanged(Int)
         case changeLinkTapped
         case doneTapped
@@ -112,38 +112,35 @@ public struct BusSettingsFeature {
                 state.storedKid = kid
                 if let plan = snapshot?.busPlans.route(kid: state.kid) {
                     state.search = StopSearchFeature.State(stop: plan.stop)
-                    // Older plans could hold more buses; the 1st and 2nd are the first two.
-                    state.services = Array(plan.services.prefix(2))
+                    state.services = plan.services
                     state.walk = plan.walk
                     state.ride = plan.ride
-                    state.secondRide = plan.secondRide ?? plan.ride
+                    state.rides = Dictionary(uniqueKeysWithValues: plan.services.map { ($0, plan.ride(on: $0)) })
                     state.lateGrace = plan.lateGrace
                     state.change = plan.change
                 }
                 if let grace = kid?.school?.lateGrace { state.lateGrace = grace }
                 return .send(.search(.lookUp))
 
+            case .search(.stopLooked):
+                // The pills follow the stop's order once its buses are known.
+                state.services = state.services.sorted { rank($0, in: state) < rank($1, in: state) }
+                return .none
+
             case .search:
                 return .none
 
             case let .serviceTapped(service):
-                let hadSecond = state.second != nil
-                state.services = BusPlan.toggling(service, in: state.services)
-                if !hadSecond, state.second != nil { state.secondRide = state.ride }
-                // One 2nd choice per kid: a direct 2nd replaces a changing one.
-                if state.second != nil { state.change = nil }
+                state.services = BusPlan.toggling(service, in: state.services, order: state.search.servicesAtStop)
+                if state.services.contains(service), state.rides[service] == nil { state.rides[service] = state.ride }
                 return save(state)
 
             case let .walkChanged(value):
                 state.walk = min(max(value, 0), 60)
                 return save(state)
 
-            case let .rideChanged(value):
-                state.ride = min(max(value, 0), 90)
-                return save(state)
-
-            case let .secondRideChanged(value):
-                state.secondRide = min(max(value, 0), 90)
+            case let .rideChanged(service, minutes):
+                state.rides[service] = min(max(minutes, 0), 90)
                 return save(state)
 
             case let .graceChanged(value):
@@ -163,6 +160,10 @@ public struct BusSettingsFeature {
                 return .none
             }
         }
+    }
+
+    private func rank(_ service: String, in state: State) -> Int {
+        state.search.servicesAtStop.firstIndex(of: service) ?? state.search.servicesAtStop.count
     }
 
     private func save(_ state: State) -> Effect<Action> {
