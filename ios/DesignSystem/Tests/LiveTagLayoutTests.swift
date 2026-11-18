@@ -24,9 +24,9 @@ final class LiveTagLayoutTests: XCTestCase {
     func testTheBoardsRows() {
         let slots = LiveTagLayout.place(tags(kx: 1), kx: 1, k: 1, bubble: bubble(kx: 1, k: 1))
         let rows = slots.map { slot -> Int? in if case let .shown(row, _) = slot { row } else { nil } }
-        XCTAssertEqual(rows, [2, 0, 1], "34 at 15 under its bus, 34 at 22 in row 1, 12 at 24 in row 2")
+        XCTAssertEqual(rows, [1, 0, 1], "34 at 15 under (the bubble is above), 34 at 22 above, 12 at 24 under")
         let placed = frames(slots)
-        XCTAssertEqual(placed[1].minY, 88, "row 1 ends 8 above the bus top (140)")
+        XCTAssertEqual(placed[1].minY, 88, "the row above ends 8 above the bus top (140)")
         XCTAssertEqual(placed[0].minY, 268, "the row under starts 8 under the bus box")
         XCTAssertEqual(placed[1].width, 154, accuracy: 8, "about 151–158 wide")
     }
@@ -45,10 +45,11 @@ final class LiveTagLayoutTests: XCTestCase {
         }
     }
 
-    /// No free row: the tag is listed in the nearest one.
-    func testATagWithNoFreeRowMerges() {
-        let crowd = (0..<4).map { LiveTagLayout.Tag(centreX: 300 + CGFloat($0) * 4, width: 150) }
+    /// One row above and one under (user, 2026-11-19): with both taken a tag is left out, never
+    /// merged into a listing.
+    func testATagWithNoFreeRowIsLeftOut() {
+        let crowd = (0..<3).map { LiveTagLayout.Tag(centreX: 300 + CGFloat($0) * 4, width: 150) }
         let slots = LiveTagLayout.place(crowd, kx: 1, k: 1, bubble: nil)
-        XCTAssertEqual(slots[3], .merged(into: 2), "the tag at 308 is nearest")
+        XCTAssertEqual(slots[2], .hidden)
     }
 }

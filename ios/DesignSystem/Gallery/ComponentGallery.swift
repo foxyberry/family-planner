@@ -161,9 +161,8 @@ public struct ComponentGallery: View {
                     HStack(alignment: .bottom, spacing: Spacing.l) {
                         LiveBusBubble(service: "1", minutes: "28 min", face: KidFace.Badge(face: "kidGirl", colorIndex: 0),
                                       name: "Kid A", myBus: "my bus")
-                        LiveBusTag(.bus(number: "1", then: nil, minutes: "too soon"))
+                        LiveBusTag(.bus(number: "1", then: nil, minutes: "4 min"))
                         LiveBusTag(.bus(number: "3", then: "4", minutes: "12 min"))
-                        LiveBusTag(.listing("2 · 15 min, 5 · 16 min"))
                     }
                 }
                 section("F1–F4 · Form cards") {

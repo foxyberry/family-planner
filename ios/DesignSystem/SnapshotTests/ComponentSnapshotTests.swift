@@ -625,29 +625,28 @@ final class ComponentSnapshotTests: XCTestCase {
         .padding(Spacing.m), width: 760)
     }
 
-    /// Board A2 (v57): my bus 12 at 12 min with the big bubble; 34 at 15 (tag under the bus), 34 at
-    /// 22 and 12 at 24 (tags in rows 1 and 2); legend 12 + faded 34. Made-up numbers only.
+    /// Board A2: my bus 12 at 12 min with the big bubble; 34 at 15 (tag under the bus, the bubble is
+    /// above it), 34 at 22 (tag above), 12 at 24 (tag under: the row above is taken); legend 12 +
+    /// faded 34. Made-up numbers only.
     func testWayStripLive() {
         func bus(_ id: String, _ service: String, _ minutes: Int, mine: Bool = false) -> WayStrip.LiveBus {
             WayStrip.LiveBus(id: id, x: WayStrip.liveX(minutes: minutes), picture: .busDouble, service: service,
                              minutes: "\(minutes) min", isMine: mine,
-                             tag: mine ? nil : .bus(number: service, then: nil, minutes: "\(minutes) min"),
-                             listing: "\(service) · \(minutes) min")
+                             tag: mine ? nil : .bus(number: service, then: nil, minutes: "\(minutes) min"))
         }
         let live = WayStrip.Live(
             buses: [bus("0", "12", 12, mine: true), bus("1", "34", 15), bus("2", "34", 22), bus("3", "12", 24)],
             destination: .wolfie, destinationLabel: "School", ourStopLabel: "Our stop",
             owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A", myBus: "my bus",
-            myService: "12", others: [WayStrip.Plate("34")], tagJoin: ", ")
+            myService: "12", others: [WayStrip.Plate("34")])
         snap(WayStrip(live: live).frame(width: 1248, height: 340), width: 1300)
     }
 
-    /// Spec "A2 strip": the tags of the other buses: too soon, a bus that changes, a merged listing.
+    /// Spec "A2 strip": the tags of the other buses: a plain bus and a bus that changes.
     func testLiveBusTags() {
         snap(HStack(spacing: Spacing.s) {
-            LiveBusTag(.bus(number: "1", then: nil, minutes: "too soon"))
+            LiveBusTag(.bus(number: "1", then: nil, minutes: "4 min"))
             LiveBusTag(.bus(number: "34", then: "33", minutes: "12 min"))
-            LiveBusTag(.listing("34 · 12 min, 56 · 13 min"))
         }, width: 760)
     }
 

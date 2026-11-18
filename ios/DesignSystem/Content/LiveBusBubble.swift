@@ -46,8 +46,8 @@ public struct LiveBusBubble: View {
 }
 
 /// The tag over every bus but the kid's on the live strip (spec "A2 strip"): a small cream plate
-/// (52 × 28, 24 bold; a bus that changes reads "34 → 33", the arrow drawn) and "{n} min" (or "too
-/// soon"), caption bold, on paper, about 130 × 44. Tags that collide merge into one listing.
+/// (52 × 28, 24 bold; a bus that changes reads "34 → 33", the arrow drawn) and "{n} min" (also for a
+/// bus too soon to catch), caption bold, on paper, about 130 × 44.
 public struct LiveBusTag: View {
     public static let height: CGFloat = 44
     static let padding = Spacing.xs
@@ -56,8 +56,6 @@ public struct LiveBusTag: View {
 
     public enum Content: Equatable, Sendable {
         case bus(number: String, then: String?, minutes: String)
-        /// Two or more tags merged: "34 · 12 min, 56 · 13 min".
-        case listing(String)
     }
 
     private let content: Content
@@ -71,8 +69,6 @@ public struct LiveBusTag: View {
         switch content {
         case let .bus(number, then, minutes):
             2 * padding + plateWidth(number, then: then) + Spacing.xs + CrayonType.captionBoldWidth(minutes)
-        case let .listing(text):
-            2 * padding + CrayonType.captionBoldWidth(text)
         }
     }
 
@@ -88,9 +84,6 @@ public struct LiveBusTag: View {
             case let .bus(number, then, minutes):
                 Plate(number: number, then: then)
                 Text(minutes).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
-                    .lineLimit(1).fixedSize()
-            case let .listing(text):
-                Text(text).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
                     .lineLimit(1).fixedSize()
             }
         }

@@ -193,10 +193,10 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.header?.minutes, "18 min")
         XCTAssertEqual(store.state.header?.status?.text, "On time")
         XCTAssertEqual(store.state.leaveAt, "leave at 7:10 am")
-        // The strip: bus 1 in 4 min is too soon (faded, its tag says so), bus 1 in 28 min is the kid's.
+        // The strip: bus 1 in 4 min is too soon (faded, its tag shows its minutes), bus 1 in 28 min is the kid's.
         let buses = store.state.liveStrip?.buses ?? []
         XCTAssertEqual(buses.map(\.isMine), [false, true])
-        XCTAssertEqual(buses.first?.tag, .bus(number: "1", then: nil, minutes: "too soon"))
+        XCTAssertEqual(buses.first?.tag, .bus(number: "1", then: nil, minutes: "4 min"))
         XCTAssertNil(buses.last?.tag)
         XCTAssertEqual(buses.last?.x, 860 - 28 * 800 / 30)
         XCTAssertEqual(store.state.liveSpoken,
@@ -224,7 +224,6 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(strip?.buses.map(\.service), ["2", "3", "1"], "under 30 min, soonest first")
         XCTAssertEqual(strip?.buses.map(\.tag), [.bus(number: "2", then: nil, minutes: "12 min"),
                                                  .bus(number: "3", then: "4", minutes: "14 min"), nil])
-        XCTAssertEqual(strip?.buses.first?.listing, "2 · 12 min")
         XCTAssertEqual(strip?.myService, "1")
         XCTAssertEqual(strip?.others, [WayStrip.Plate("2"), WayStrip.Plate("3", then: "4")])
         XCTAssertEqual(store.state.liveSpoken,

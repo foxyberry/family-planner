@@ -19,12 +19,11 @@ public struct WayStrip: View {
         public var service: String
         public var minutes: String
         public var isMine: Bool
-        /// Every bus but the kid's: its tag, and the words it gives a merged tag ("34 · 12 min").
+        /// Every bus but the kid's: its tag.
         public var tag: LiveBusTag.Content?
-        public var listing: String
 
         public init(id: String, x: CGFloat, picture: KitSlot, service: String, minutes: String, isMine: Bool,
-                    tag: LiveBusTag.Content? = nil, listing: String = "") {
+                    tag: LiveBusTag.Content? = nil) {
             self.id = id
             self.x = x
             self.picture = picture
@@ -32,7 +31,6 @@ public struct WayStrip: View {
             self.minutes = minutes
             self.isMine = isMine
             self.tag = tag
-            self.listing = listing
         }
     }
 
@@ -61,12 +59,10 @@ public struct WayStrip: View {
         /// The legend's faded plates: the kid's other buses in pill order (up to 3), then "+{n}".
         public var others: [Plate]
         public var moreOthers: String?
-        /// Between the parts of a merged tag (", ").
-        public var tagJoin: String
 
         public init(buses: [LiveBus], destination: KitSlot, destinationLabel: String, ourStopLabel: String,
                     owner: KidFace.Badge, ownerName: String, myBus: String, myService: String = "",
-                    others: [Plate] = [], moreOthers: String? = nil, tagJoin: String = "") {
+                    others: [Plate] = [], moreOthers: String? = nil) {
             self.buses = buses
             self.destination = destination
             self.destinationLabel = destinationLabel
@@ -77,7 +73,6 @@ public struct WayStrip: View {
             self.myService = myService
             self.others = others
             self.moreOthers = moreOthers
-            self.tagJoin = tagJoin
         }
     }
 
@@ -354,21 +349,19 @@ public struct WayStrip: View {
     static func bubbleX(_ x: CGFloat) -> CGFloat { min(max(x, 120), size.width - 120) }
     static let bubbleBottom: CGFloat = moverBottom - 120 - 8
 
-    /// Spec "A2 strip": every other bus's tag, placed by `LiveTagLayout` at real sizes; tags that
-    /// cannot get a free row are listed in the nearest one.
+    /// Spec "A2 strip": every other bus's tag, placed by `LiveTagLayout` at real sizes, one row above
+    /// the buses or one under; a tag with no free row is left out.
     @ViewBuilder private func tags(_ live: Live, kx: CGFloat, k: CGFloat) -> some View {
-        let tagged = live.buses.filter { $0.tag != nil }
+        let tagged = live.buses.compactMap { bus in bus.tag.map { (bus: bus, tag: $0) } }
         let bubble = live.buses.first(where: \.isMine).map { mine in
             CGRect(x: Self.bubbleX(mine.x) * kx - LiveBusBubble.size.width / 2, y: Self.bubbleBottom * k - LiveBusBubble.size.height,
                    width: LiveBusBubble.size.width, height: LiveBusBubble.size.height)
         }
-        let slots = LiveTagLayout.place(tagged.map { LiveTagLayout.Tag(centreX: $0.x * kx, width: LiveBusTag.width($0.tag!)) },
+        let slots = LiveTagLayout.place(tagged.map { LiveTagLayout.Tag(centreX: $0.bus.x * kx, width: LiveBusTag.width($0.tag)) },
                                         kx: kx, k: k, bubble: bubble)
-        ForEach(Array(tagged.enumerated()), id: \.element.id) { index, bus in
-            if case let .shown(_, frame) = slots[index], let tag = bus.tag {
-                let merged = tagged.indices.filter { slots[$0] == .merged(into: index) }
-                LiveBusTag(merged.isEmpty ? tag
-                           : .listing(([bus] + merged.map { tagged[$0] }).map(\.listing).joined(separator: live.tagJoin)))
+        ForEach(Array(tagged.enumerated()), id: \.element.bus.id) { index, item in
+            if case let .shown(_, frame) = slots[index] {
+                LiveBusTag(item.tag)
                     .offset(x: frame.minX, y: frame.minY)
                     .animation(.linear(duration: 1), value: frame)
             }

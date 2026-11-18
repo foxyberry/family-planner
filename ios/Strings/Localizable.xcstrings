@@ -2883,28 +2883,6 @@
         }
       }
     },
-    "missions.tag.join" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ", "
-          }
-        }
-      }
-    },
-    "missions.tag.listing" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ · %2$@"
-          }
-        }
-      }
-    },
     "missions.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2923,17 +2901,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Good morning! %@"
-          }
-        }
-      }
-    },
-    "missions.too_soon" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "too soon"
           }
         }
       }

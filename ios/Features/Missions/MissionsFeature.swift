@@ -250,19 +250,18 @@ public struct MissionsFeature {
         }
 
         /// The live strip (spec "A2 strip"): every arrival of the kid's buses under 30 min; the chosen
-        /// one with the big bubble, every other one faded with its tag ("34 · 12 min", or "too soon").
+        /// one with the big bubble, every other one faded with its tag (plate + "{n} min").
         public var liveStrip: WayStrip.Live? {
             guard let live, let (owner, outing) = familyOuting else { return nil }
             let plan = busPlans[owner.id]
             let buses = live.buses.enumerated().map { index, bus in
+                // User, 2026-11-19: a bus too soon to catch shows its real minutes too.
                 let minutes = TimeLeft.presentation(minutes: bus.arrival.minutes).text
-                let shown = bus.isCatchable ? minutes : L10n.tr("missions.too_soon")
                 return WayStrip.LiveBus(id: "\(index)", x: WayStrip.liveX(minutes: bus.arrival.minutes),
                                         picture: Self.busPicture(bus.arrival.type), service: bus.route.service,
                                         minutes: minutes, isMine: bus == live.chosen,
                                         tag: bus == live.chosen ? nil
-                                            : .bus(number: bus.route.service, then: bus.route.then, minutes: shown),
-                                        listing: L10n.tr("missions.tag.listing", bus.route.service, shown))
+                                            : .bus(number: bus.route.service, then: bus.route.then, minutes: minutes))
             }
             // Legend: the chosen bus's number, then the kid's other buses faded, in pill order.
             let mine = live.chosen?.route ?? plan?.routes.first
@@ -272,8 +271,7 @@ public struct MissionsFeature {
                                  owner: KidFace.Badge(face: owner.face, colorIndex: owner.colorIndex),
                                  ownerName: owner.name, myBus: L10n.tr("missions.my_bus"),
                                  myService: mine?.service ?? "", others: Array(others.prefix(3)),
-                                 moreOthers: others.count > 3 ? L10n.tr("missions.legend.more", others.count - 3) : nil,
-                                 tagJoin: L10n.tr("missions.tag.join"))
+                                 moreOthers: others.count > 3 ? L10n.tr("missions.legend.more", others.count - 3) : nil)
         }
 
         /// "Live bus map. Bus 1 in 28 minutes, your bus. Or bus 2 in 35 minutes. Leave in 18 minutes,
