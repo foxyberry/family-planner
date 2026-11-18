@@ -71,7 +71,7 @@ Apple advice and this app differ, `../hig-exceptions.md` decides.
 - **Increase Contrast**: read `@Environment(\.colorSchemeContrast)`. When it is `.increased`,
   use the higher-contrast variant of a soft colour (`softText` and other faded parts). If a
   token has no variant yet, that is a spec question, not a local fix.
-- **Reduce Transparency** and **Differentiate Without Colour**: faded "2nd choice" parts and
+- **Reduce Transparency** and **Differentiate Without Colour**: faded "or" buses on the live strip and
   washes must still read; the shape cue above already covers colour.
 
 ## Gestures
