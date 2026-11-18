@@ -74,6 +74,9 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(CrayonTabs(selection: .constant(0), items: [
             (0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Family", nil),
         ]))
+        // Spec "Give-way" step 5: three 180 tabs in a 420 column wrap; none shrinks.
+        snap(CrayonTabs(selection: .constant(0), items: [(0, "Once", nil), (1, "Weekly", nil), (2, "Monthly", nil)],
+                        itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm), width: 420, named: "wraps")
     }
 
     /// S1–S4 parts: step dots, colour swatches (one picked), a placeholder time, a face not picked yet.

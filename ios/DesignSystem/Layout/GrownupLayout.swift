@@ -53,11 +53,6 @@ public struct GrownupLayout: Equatable, Sendable {
     public var controlWidth: CGFloat { rightEdge - controlLeft }
     /// A form card's rows, label line to right edge (730 on the 13").
     public var editorRowsWidth: CGFloat { rightEdge - labelLeft }
-    /// A row of `count` tabs 12 apart: the board width (180 on C3), or less so the row ends on the
-    /// right edge on smaller iPads.
-    public func tabWidth(count: Int, board: CGFloat) -> CGFloat {
-        min(board, ((controlWidth - CGFloat(count - 1) * Spacing.sm) / CGFloat(count)).rounded(.down))
-    }
     /// G6 "About" values start on 256.
     public var valueLeft: CGFloat { sizing.left(256) }
 

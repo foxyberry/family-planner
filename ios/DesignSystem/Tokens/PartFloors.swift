@@ -34,6 +34,15 @@ public extension Sizing {
     func tabHeight(_ board: CGFloat = 72) -> CGFloat { fluid(board, 56) }
     /// An equal-choice tab: the board width × s, never under its longest label + 2 × 16.
     func tabWidth(_ board: CGFloat, minimum: CGFloat) -> CGFloat { fluid(board, minimum) }
+    /// Equal tabs in a labelled form row (C3 For / Repeat): the board width × s, never under the
+    /// widest tab's content (a kid's face 40 + gap, then the bold label) + 2 × 16.
+    func choiceTabWidth(_ board: CGFloat, labels: [String], faces: Bool = false) -> CGFloat {
+        let face = faces ? Self.tabFace + Spacing.xs : 0  // KidFace.medium and its gap
+        let content = labels.map { CrayonType.body.width($0, sizing: self, bold: true) }.max() ?? 0
+        return tabWidth(board, minimum: face + content + 2 * Spacing.s)
+    }
+    /// The face inside a tab (`KidFace.medium`).
+    static let tabFace: CGFloat = 40
     /// S2 / G7 Goes to: 180, never under "Preschool" bold 117 + 32.
     var goesToTabWidth: CGFloat { tabWidth(180, minimum: 149) }
     /// `RoundButton`: the board diameter × s, never under 56 (or the board size when smaller).
