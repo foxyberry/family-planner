@@ -4,6 +4,8 @@ import DeviceLook
 import Domain
 import Grownup
 import KeyboardClient
+import Localization
+import Missions
 import ScheduleStore
 import ParentAuthClient
 import SwiftUI
@@ -144,6 +146,25 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertFalse(store.state.hasGrownupScreens, "a kid screen: no grown-up rules")
         await store.send(.path(.element(id: 0, action: .missions(.delegate(.finished)))))
         XCTAssertTrue(store.state.path.isEmpty)
+    }
+
+    /// Views hold no values: the root's home State and a child State the reducer builds both keep
+    /// the store's injected localizer, so State copy follows it.
+    func testStatesKeepTheStoresLocalizer() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+            $0.localizer = .keys
+        }
+        store.exhaustivity = .off
+        XCTAssertEqual(store.state.home.strings, .keys)
+        XCTAssertEqual(store.state.home.grownupLabel, "home.grownup")
+        await store.send(.home(.missionsTapped))
+        guard case let .missions(missions)? = store.state.path.first else { return XCTFail("missions not open") }
+        XCTAssertEqual(missions.strings, .keys)
+        XCTAssertEqual(missions.backLabel, "missions.back")
     }
 
     /// The morning screen is a kid screen: going to the background neither closes nor covers it.
