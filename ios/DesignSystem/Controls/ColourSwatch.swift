@@ -2,7 +2,9 @@ import CrayonKit
 import SwiftUI
 
 /// A kid colour to pick (board S1 "Colour"): a 56 crayon circle in the colour; the picked one has
-/// the pick-blue ring (72). Colour never carries meaning alone: the screen labels the row.
+/// the pick-blue ring (72), drawn as an overlay. Colour never carries meaning alone: the screen
+/// labels the row. Spec "Layout model": the frame is the circle plus one crayon inset each side
+/// (68 on the 13"), so the frame sits on the control line and the circle 6 inside it.
 public struct ColourSwatch: View {
     private let colorIndex: Int
     private let isPicked: Bool
@@ -19,6 +21,9 @@ public struct ColourSwatch: View {
         self.action = action
     }
 
+    /// The swatch's frame on `sizing` (its row lays out four of these, 12 apart).
+    public static func frame(_ sizing: Sizing) -> CGFloat { sizing.swatch + 2 * CrayonPart.inset }
+
     public var body: some View {
         Button(action: action) {
             CrayonSurface(.circle, fill: CrayonStyle.kid(colorIndex), markerColor: CrayonColor.marker,
@@ -30,7 +35,7 @@ public struct ColourSwatch: View {
                         Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: size + 10, height: size + 10)
                     }
                 }
-                .frame(width: size + 16, height: size + 16)
+                .frame(width: Self.frame(sizing), height: Self.frame(sizing))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

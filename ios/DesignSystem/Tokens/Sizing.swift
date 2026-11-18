@@ -80,34 +80,66 @@ public extension EnvironmentValues {
     @Entry var sizing: Sizing = .thirteenInch
 }
 
+public extension Sizing {
+    /// The iPad mini screen in landscape: the smallest supported screen and the minimum window
+    /// the app asks for (spec "Supported screens and windows").
+    static let miniScreen = CGSize(width: 1133, height: 744)
+
+    /// Spec "Supported screens and windows": W and H are the device screen, never the window, so
+    /// a Split View or Stage Manager window changes nothing. Before the screen is known (or in
+    /// previews) the window stands in.
+    static func forScreen(_ screen: CGSize?, window: CGSize, safeTop: CGFloat) -> Sizing {
+        let size = screen ?? window
+        guard size.width > 0, size.height > 0 else { return .thirteenInch }
+        return Sizing(width: size.width, height: size.height, safeTop: safeTop)
+    }
+
+    /// A window smaller than the screen keeps the screen's layout, cropped; the hidden part scrolls.
+    static func crops(window: CGSize, screen: CGSize?) -> Bool {
+        guard let screen, window.width > 0, window.height > 0 else { return false }
+        return window.width < screen.width - 0.5 || window.height < screen.height - 0.5
+    }
+}
+
 extension View {
-    /// Reads the window size and safe-area top once and hands every view below its `Sizing`.
-    public func readsSizing() -> some View {
-        modifier(SizingReader())
+    /// Hands every view below one `Sizing` built from the device `screen` (spec "Supported screens
+    /// and windows"), with the window's safe-area top. A smaller window shows the screen-sized
+    /// layout cropped, in a scroll view.
+    public func readsSizing(screen: CGSize?) -> some View {
+        modifier(SizingReader(screen: screen))
     }
 }
 
 private struct SizingReader: ViewModifier {
+    let screen: CGSize?
     @State private var window: CGSize = .zero
     @State private var safeTop: CGFloat = Sizing.statusBand
 
     func body(content: Content) -> some View {
-        content
-            .environment(\.sizing, window == .zero ? .thirteenInch
-                         : Sizing(width: window.width, height: window.height, safeTop: safeTop))
-            // The window's whole size (ignoring the safe area), and the top inset (the status bar
-            // and, on iPadOS 26, the window controls) from a reader that keeps it.
-            .background {
-                GeometryReader { full in
-                    Color.clear.onAppear { window = full.size }.onChange(of: full.size) { _, size in window = size }
+        Group {
+            if let screen, Sizing.crops(window: window, screen: screen) {
+                ScrollView([.horizontal, .vertical]) {
+                    content.frame(width: screen.width, height: screen.height)
                 }
-                .ignoresSafeArea()
+                .scrollBounceBehavior(.basedOnSize)
+            } else {
+                content
             }
-            .background {
-                GeometryReader { safe in
-                    Color.clear.onAppear { safeTop = safe.safeAreaInsets.top }
-                        .onChange(of: safe.safeAreaInsets.top) { _, top in safeTop = top }
-                }
+        }
+        .environment(\.sizing, Sizing.forScreen(screen, window: window, safeTop: safeTop))
+        // The window's whole size (ignoring the safe area), and the top inset (the status bar
+        // and, on iPadOS 26, the window controls) from a reader that keeps it.
+        .background {
+            GeometryReader { full in
+                Color.clear.onAppear { window = full.size }.onChange(of: full.size) { _, size in window = size }
             }
+            .ignoresSafeArea()
+        }
+        .background {
+            GeometryReader { safe in
+                Color.clear.onAppear { safeTop = safe.safeAreaInsets.top }
+                    .onChange(of: safe.safeAreaInsets.top) { _, top in safeTop = top }
+            }
+        }
     }
 }

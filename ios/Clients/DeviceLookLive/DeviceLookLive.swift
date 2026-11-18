@@ -9,5 +9,11 @@ extension DeviceLookClient {
             let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
             return (scene?.traitCollection ?? UITraitCollection.current).userInterfaceStyle == .dark
         }
+    }, screen: {
+        // The scene's screen, not its window (spec "Supported screens and windows").
+        MainActor.assumeIsolated {
+            let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+            return scene.map { landscape($0.screen.bounds.size) }
+        }
     })
 }

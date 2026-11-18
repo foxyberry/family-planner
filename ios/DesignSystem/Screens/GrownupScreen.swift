@@ -124,21 +124,27 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
 public struct ScrollColumn<Content: View>: View {
     private let scrollTarget: GrownupScrollTarget?
     private let anchor: UnitPoint
+    private let bleed: EdgeInsets
     private let content: Content
 
     /// `anchor`: where the target row lands (`.top` for a search field, so its list fits above the
     /// keyboard; spec S2s, design session 2026-11-15).
-    public init(scrollTarget: GrownupScrollTarget? = nil, anchor: UnitPoint = .center, @ViewBuilder content: () -> Content) {
+    /// `bleed`: room outside the column where its content may still draw (a card's corner ×,
+    /// `EdgeInsets.cardCorner`); a scroll view clips at its frame otherwise.
+    public init(scrollTarget: GrownupScrollTarget? = nil, anchor: UnitPoint = .center, bleed: EdgeInsets = EdgeInsets(),
+                @ViewBuilder content: () -> Content) {
         self.scrollTarget = scrollTarget
         self.anchor = anchor
+        self.bleed = bleed
         self.content = content()
     }
 
     public var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
-                content.frame(maxWidth: .infinity, alignment: .topLeading)
+                content.frame(maxWidth: .infinity, alignment: .topLeading).padding(bleed)
             }
+            .padding(EdgeInsets(top: -bleed.top, leading: -bleed.leading, bottom: -bleed.bottom, trailing: -bleed.trailing))
             .scrollBounceBehavior(.basedOnSize, axes: .vertical)
             .scrollDismissesKeyboard(.interactively)
             .onChange(of: scrollTarget) { _, target in

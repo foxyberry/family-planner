@@ -19,6 +19,9 @@ public extension Sizing {
     var fieldHeight: CGFloat { fluid(80, 64) }
     /// `TimeField`: 176 wide on the board, never under 142 ("12:45 pm" 110 + 2 × 16).
     var timeFieldWidth: CGFloat { fluid(176, 142) }
+    /// Spec S1 "Remove a kid": the corner × is drawn 48 and takes touches over 64.
+    static let cornerControl: CGFloat = 48
+    static let cornerControlTouch: CGFloat = 64
     static let timeFieldMinimum: CGFloat = 142
     /// `InkButton`: the main 96 never under 72, the form 80 never under 64, the 72 card button
     /// never under 56.
