@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh, check-view-values.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.8.0
+  version: 0.9.0
   status: experimental
 ---
 
@@ -42,11 +42,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
 4. The view renders State with DesignSystem parts and tokens only. Kid screens use `KidFullScreen`;
    a new kid feature folder goes into `KID_DIRS` in `scripts/check-kid-screens.sh`.
 5. A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
-6. Layout comes from the board's redlines (`docs/superpowers/layout/<board>.json`; ask the design
-   session for a missing one): a `<Screen>Layout` model through `Sizing`, every part placed with
-   `place(...)`. Parts carry no outer padding. Add a layout test of the shared lines on the four
-   iPads, then check the iPad with `GRID=1` (bazel-ios).
-   Kid screens fill the window and keep the status bar visible with its band (y 0–24) empty.
+6. Layout comes from the board's redlines: follow the `screen-layout` skill.
 7. Every board of a screen family (A1, A1m, A1n, E3, …) is one State case (`HomeFeature.KidABlock`)
    with a test; capture each on the iPad at a time that hits it. A view that falls through to
    nothing is a missing case.
@@ -102,11 +98,8 @@ var stored: School?; var place: Place = .school
 - Copy assembled or looked up in views: it cannot be swapped or tested. Tests can set `$0.localizer = .keys` to check which key a State picks.
 - Reading `@Dependency(\.localizer)` in a State computed property: a view evaluating it gets the default. Store the value (`Localizer.injected`) once.
 - Mapping one enum onto another with `X(rawValue: y.rawValue)!` (a Domain kind onto a DesignSystem style): a new case then traps on screen, not in a build. Map with a `switch` or a fallback, and test every `allCases` value.
-- A form card sized by its rows: `.frame(maxWidth: .infinity)` does not cap a wider child, so a wide row widens the card past 64…882. Pin it with `.frame(width:)`.
-- Row labels in body type ("Arrive by") wrap in the 104–232 label column. Use caption labels on one line, as C2 and S2 do.
 - `TestStore` with `exhaustivity = .off`: each `send` skips the received actions not yet asserted, so `receive` an effect's actions before the next `send`.
-- A debug switch or fixture inside a feature (`#if DEBUG` state, a debug-only action): it ships and drifts from the real flow. Give the value as a dependency `DebugModel.install` swaps, keep fixtures in DebugTools, reach the screen through normal actions (`check-debug-boundary.sh`).
+- A debug switch or fixture inside a feature (`#if DEBUG` state, a debug-only action, a board setup in a reducer): it ships in the feature's shape and drifts from the real flow. Give the value as a dependency that `DebugModel.install` swaps (as the time machine swaps `\.date`), keep fixtures in DebugTools, and reach the screen through the app's normal actions. `check-debug-boundary.sh` blocks the rest.
 - Fixed test dates on a public holiday: 9 Nov 2026 (Deepavali observed) is a Sunday-template day in the app. Check the holiday list before a weekday fixture becomes a "school day" check, on the iPad too.
-- Resetting state on `textChanged`: a `TextField` resends its text when it loses focus, so ignore an unchanged text.
-- A second gesture (`DragGesture(minimumDistance: 0)`) on a view with `onLongPressGesture` takes its touch. Read the press location from a parent in `.global` space; check the clock hold on the iPad.
+- A reducer that resets state on `textChanged`: a `TextField` sends its text again when it loses focus (a card hiding the keyboard), so ignore an unchanged text. Check field-plus-card flows on the iPad.
 - `self.property` inside `LockIsolated(...)` in a test: the `Sendable` autoclosure captures `self` and the test does not build. Use statics (`SeedData.kidA.id`) or a local `let`.
