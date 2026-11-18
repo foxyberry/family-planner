@@ -29,12 +29,12 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 
 ## Module rules
 - `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients, one line each).
-  Keep it under 20 code lines, not counting imports.
+  Under 20 code lines, imports aside.
 - Screens, state and lifecycle live in `ios/AppCore` (and later `ios/Features/*`) as TCA reducers;
   lifecycle callbacks become actions (`AppDelegateBase`, `AppScene`).
-- Views only render State and send actions. Decisions, copy, date maths, parsing and picking items
-  live in the reducer, State computed properties or tested model functions. Views never read
-  `@Dependency` (it returns the default, not the store's value) or `Calendar.current`/`Date()`.
+- Views render State, send actions and hold no values (`check-view-values.sh`); State shape, load
+  phases and nil: `tca-feature` "State shape". Decisions, copy, date maths and parsing live in the
+  reducer, State or tested models. Views never read `@Dependency` or `Calendar.current`/`Date()`.
 - Features depend on `ios/Clients/*` interfaces only; `*Live` modules are visible to `//ios:__pkg__`
   and their own `Tests` package only. Live values read `\.date`/`\.calendar` at call time, never
   take a clock from `bootstrap`.
@@ -45,10 +45,9 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Outside data (time, calendar and time zone, locale, device, bundle, settings, launch arguments)
   comes only through dependencies (`\.date`, `\.calendar`, `\.continuousClock`, clients), read in
   reducers or Live values; the reference time zone is set once in `bootstrap`.
-  `scripts/check-dependencies.sh` blocks globals (`Date()`, `Calendar.current`, …) and views reading
-  `@Dependency`. Days are `Day` values and minutes after midnight (0–1440). Elapsed time counts
-  clock ticks, never `date` differences. Tests pin `Asia/Singapore` and a fixed date.
-- New screens, reducers and services: follow the `tca-feature` skill.
+  `check-dependencies.sh` blocks globals (`Date()`, …) and views reading `@Dependency`. Days are
+  `Day` values and minutes after midnight (0–1440). Elapsed time counts clock ticks, never `date` differences. Tests pin `Asia/Singapore` and a fixed date.
+- New screens, reducers, services: follow the `tca-feature` skill.
 - The app starts empty and runs first-run setup (S1–S4); `ScheduleStoreLive` never seeds or wipes.
   `SeedData` (Kid A / Kid B) is only for tests, previews and the debug menu's "Load sample family".
 - Grown-up screens: hold the clock 2 s, then Face ID (no passcode). An iPad without Face ID set up
@@ -63,11 +62,12 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 ## Design system (crayon)
 - Screens use only `DesignSystem` tokens, parts and frames. No color hex, font size numbers or
   (in kid screens) `ScrollView` outside the part files (`scripts/check-kid-screens.sh` enforces the last).
-- A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
+- New parts go into `ComponentGallery` and `ComponentSnapshotTests` first.
 - Every crayon shape has a fixed seed per part (`CrayonStyle.Seed`). Any `Canvas` other than
   `CrayonSurface` needs a `// bleed-ok:` note (a Canvas clips crayon wobble; `check-crayon-canvas.sh`).
-- Pictures only through `KitIcon(slot)`, so kid drawings can replace them later.
-- Copy only through `L10n.tr("key")` and `ios/Strings/Localizable.xcstrings`; `scripts/check-strings.sh` enforces it.
+- Pictures only through `KitIcon(slot)` (kid drawings replace them later).
+- Copy: `ios/Strings/Localizable.xcstrings` keys, read in State (`strings = Localizer.injected`,
+  `strings.tr("key")`); parts take strings from callers (`check-strings.sh`).
 - Playpen Sans has no arrows or ticks (→ ← ✓). The system fallback for them differs between
   iOS versions (snapshots break on CI), so draw them with a part or symbol, never in text.
 - Public pictures come only from `make art`; never hand-edit generated SVGs. The school mascot

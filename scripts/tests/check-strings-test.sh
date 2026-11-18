@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tests for scripts/check-strings.sh (user-facing copy only through L10n.tr and the String Catalog).
+# Tests for scripts/check-strings.sh (user-facing copy only through .tr("key") and the String Catalog).
 set -u
 
 SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/check-strings.sh"
@@ -55,11 +55,13 @@ blocks test_blocks_copy_in_part ios/DesignSystem/Content/NowRow.swift '.accessib
 blocks test_blocks_copy_in_domain ios/Domain/Formatting.swift 'if days == Weekday.schoolDays { return "Every school day" }' 'hard-coded copy'
 blocks test_blocks_copy_ok_without_reason ios/Features/Home/HomeView.swift 'Text("Hello there") // copy-ok:' 'hard-coded copy'
 blocks test_blocks_key_missing_from_catalog ios/Features/Home/HomeView.swift 'Text(L10n.tr("home.missing"))' 'home.missing'
+blocks test_blocks_injected_key_missing_from_catalog ios/Features/Home/HomeCopy.swift 'var t: String { strings.tr("home.missing") }' 'home.missing'
 
 blocks test_blocks_raw_text_field ios/Features/Grownup/EditorView.swift '    TextField(L10n.tr("home.next"), text: $name)' 'raw text input'
 blocks test_blocks_raw_text_editor ios/Features/Grownup/NotesView.swift '    TextEditor(text: $notes)' 'raw text input'
 allows test_allows_text_field_in_design_system ios/DesignSystem/Content/CrayonField.swift '    TextField(prompt, text: $text)'
 allows test_allows_catalog_key ios/Features/Home/HomeView.swift 'Text(L10n.tr("home.next"))'
+allows test_allows_injected_catalog_key ios/Features/Home/NextList.swift 'var next: String { strings.tr("home.next") }'
 allows test_allows_identifiers ios/Features/Home/HomeView.swift 'Image(systemName: "chevron.left"); KitIcon(.actPlay); let id = "actPlay"'
 allows test_allows_all_capitals ios/Features/Home/HomeView.swift 'let tag = "NOW"'
 allows test_allows_comments ios/Features/Home/HomeView.swift '    /// "Grown-ups only" on the right.'
