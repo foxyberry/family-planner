@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Domain
 import Foundation
+import Localization
 import ScheduleStore
 import SchoolDirectory
 import Strings
@@ -19,18 +20,59 @@ public struct ChangeSchoolFeature {
     @ObservableState
     public struct State: Equatable {
         public var kid: Kid.ID
-        public var stored: Kid?
-        public var routines: [Routine] = []
-        public var directory: [SchoolEntry] = []
-        public var schoolYear: SchoolCalendar = .none
-        /// The picked school's own year (board G7: Next term is the new school's next term).
+        public var today: Day
+        public var calendar: Calendar
+        /// Every word this screen shows comes from here (views hold no values).
+        public var strings = Localizer.injected
+        /// Nothing about the kid's school is known before the store answers: no form until then.
+        public var phase: Phase = .loading
+
+        public init(kid: Kid.ID, today: Day, calendar: Calendar) {
+            self.kid = kid
+            self.today = today
+            self.calendar = calendar
+        }
+
+        public var title: String { strings.tr("change_school.title") }
+        public var loadFailedText: String { strings.tr("change_school.load_failed") }
+        /// The keyboard goes down while the "Starts on" card is open.
+        public var hidesKeyboard: Bool {
+            guard case let .ready(form) = phase else { return false }
+            return form.isShowingStartsOn
+        }
+
+        /// Runs `body` on the form; actions that arrive before it is ready do nothing.
+        mutating func updateForm(_ body: (inout Form) -> Effect<Action>) -> Effect<Action> {
+            guard case var .ready(form) = phase else { return .none }
+            let effect = body(&form)
+            phase = .ready(form)
+            return effect
+        }
+    }
+
+    /// The screen before the store answers, with the kid's school and year, or when the kid is gone.
+    @CasePathable @dynamicMemberLookup
+    public enum Phase: Equatable {
+        case loading
+        case ready(Form)
+        case failed
+    }
+
+    /// Everything G7 shows once the kid, their routines, the school list and the year are known.
+    public struct Form: Equatable {
+        public var stored: Kid
+        public var routines: [Routine]
+        public var directory: [SchoolEntry]
+        public var schoolYear: SchoolCalendar
+        /// The picked school's own year (board G7: Next term is the new school's next term); nil
+        /// until it loads, when the kid's year stands in.
         public var pickedYear: SchoolCalendar?
         public var text = ""
         public var matches: [SchoolEntry] = []
         public var picked: SchoolEntry?
-        public var startsOn: StartsOn = .nextTerm
+        public var startsOn: StartsOn
         /// The "Goes to" tab: the kid's place now until a grown-up taps another.
-        public var place: Place = .school
+        public var place: Place
         /// Preschool: the typed name, drop-off and pick-up (minutes after midnight).
         public var preschoolName = ""
         /// They start on the S2 defaults, which count as answers (user, 2026-11-18).
@@ -41,33 +83,46 @@ public struct ChangeSchoolFeature {
         public var date: Day
         public var today: Day
         public var calendar: Calendar
+        public var strings: Localizer
         public var isConfirmingCancel = false
         public var saveError: String?
 
-        public init(kid: Kid.ID, today: Day, calendar: Calendar) {
-            self.kid = kid
+        /// Built in `.loaded`, with the kid's place picked and "Starts on" on Next term when the
+        /// year has one (else Date).
+        public init(stored: Kid, routines: [Routine], directory: [SchoolEntry], schoolYear: SchoolCalendar,
+                    today: Day, calendar: Calendar, strings: Localizer) {
+            self.stored = stored
+            self.routines = routines
+            self.directory = directory
+            self.schoolYear = schoolYear
             self.today = today
             date = today
             self.calendar = calendar
+            self.strings = strings
+            place = Self.place(of: stored)
+            startsOn = .nextTerm
+            if nextTermStart == nil { startsOn = .date }
         }
 
-        public var title: String { L10n.tr("change_school.title") }
-        public var currentName: String { stored?.school?.name ?? L10n.tr("settings.child.home") }
+        static func place(of kid: Kid) -> Place {
+            guard let school = kid.school else { return .home }
+            return school.isPreschool ? .preschool : .school
+        }
+
+        private var homeName: String { strings.tr("settings.child.home") }
+        public var currentName: String { stored.school?.name ?? homeName }
         /// "From 5 Jan → Example Primary School" while a change waits for its day.
         public var pendingLine: String? {
-            guard let pending = stored?.pendingSchool else { return nil }
-            return L10n.tr("change_school.pending", DayText.dayMonth(pending.from, calendar: calendar),
-                           pending.school?.name ?? L10n.tr("settings.child.home"))
+            guard let pending = stored.pendingSchool else { return nil }
+            return strings.tr("change_school.pending", DayText.dayMonth(pending.from, calendar: calendar),
+                              pending.school?.name ?? homeName)
         }
 
         /// The kid's place now (the tab picked when the screen opens).
-        public var currentPlace: Place {
-            guard let school = stored?.school else { return .home }
-            return school.isPreschool ? .preschool : .school
-        }
+        public var currentPlace: Place { Self.place(of: stored) }
         public var placeTabs: [(Place, String)] {
-            [(.school, L10n.tr("s2.goes.school")), (.preschool, L10n.tr("s2.goes.preschool")),
-             (.home, L10n.tr("s2.goes.home"))]
+            [(.school, strings.tr("s2.goes.school")), (.preschool, strings.tr("s2.goes.preschool")),
+             (.home, strings.tr("s2.goes.home"))]
         }
         /// Preschool's rows show "Save", which opens the card once the name and both times are in.
         public var canContinuePreschool: Bool {
@@ -92,10 +147,12 @@ public struct ChangeSchoolFeature {
             }
         }
         /// The card's title: the new place's name, or "At home".
-        public var cardTitle: String { newSchool?.name ?? L10n.tr("settings.child.home") }
-        /// The first day of the next term (the kid's school year), if it is known.
+        public var cardTitle: String { newSchool?.name ?? homeName }
+        /// The year Next term counts in: the picked school's once it loads, else the kid's.
+        var year: SchoolCalendar { pickedYear ?? schoolYear }
+        /// The first day of the next term, if it is known.
         public var nextTermStart: Day? {
-            (pickedYear ?? schoolYear).terms.filter { $0.start > today }.map(\.start).min()
+            year.terms.filter { $0.start > today }.map(\.start).min()
         }
         /// The day the new school starts.
         public var startDay: Day {
@@ -108,28 +165,43 @@ public struct ChangeSchoolFeature {
         /// Board G7: the "Starts on" card opens once a school is picked.
         public var isShowingStartsOn: Bool { isCardOpen }
         public var startsOnTabs: [(StartsOn, String)] {
-            [(.nextTerm, L10n.tr("change_school.next_term")), (.date, L10n.tr("change_school.date"))]
+            [(.nextTerm, strings.tr("change_school.next_term")), (.date, strings.tr("change_school.date"))]
         }
         /// Board G7: "Mon 4 Jan · Term 1" under Next term; nothing under Date (the date field says it).
         public var startsOnCaption: String? {
-            guard startsOn == .nextTerm, let start = nextTermStart else { return nil }
-            let term = (pickedYear ?? schoolYear).terms.first { $0.start == start }?.name ?? ""
-            return L10n.tr("change_school.next_term.caption", DayText.short(start, calendar: calendar), term)
+            guard startsOn == .nextTerm, let start = nextTermStart,
+                  let term = year.terms.first(where: { $0.start == start }) else { return nil }
+            return strings.tr("change_school.next_term.caption", DayText.short(start, calendar: calendar), term.name)
         }
         public var dateValue: Date { max(date, today).date(calendar: calendar) }
         public var canSave: Bool {
-            guard stored != nil else { return false }
             switch place {
             case .school: return picked != nil
             case .preschool: return canContinuePreschool
-            case .home: return currentPlace != .home || stored?.pendingSchool != nil
+            case .home: return currentPlace != .home || stored.pendingSchool != nil
             }
         }
-        public var cancelTitle: String { L10n.tr("change_school.cancel.title", currentName) }
+        public var cancelTitle: String { strings.tr("change_school.cancel.title", currentName) }
+
+        // MARK: Words the view shows
+
+        public var saveTitle: String { strings.tr("change_school.save") }
+        public var cardCancelTitle: String { strings.tr("from_when.cancel") }
+        public var keepTitle: String { strings.tr("change_school.cancel.keep") }
+        public var stayTitle: String { strings.tr("change_school.cancel.stay") }
+        public var cancelChangeTitle: String { strings.tr("change_school.cancel") }
+        public var goesToLabel: String { strings.tr("s2.goes") }
+        public var schoolLabel: String { strings.tr("s2.school") }
+        public var schoolPlaceholder: String { strings.tr("s2.school.placeholder") }
+        public var preschoolLabel: String { strings.tr("s2.preschool") }
+        public var preschoolPlaceholder: String { strings.tr("s2.preschool.placeholder") }
+        public var preschoolHint: String { strings.tr("s2.preschool.hint") }
+        public var hoursLabel: String { strings.tr("s2.hours") }
 
         /// The kid with the change, and the weekday template from its first day on the new hours.
         var change: (kid: Kid, routine: Routine?)? {
-            guard var kid = stored, canSave else { return nil }
+            guard canSave else { return nil }
+            var kid = stored
             let school = newSchool
             let day = startDay
             if day <= today {
@@ -147,7 +219,8 @@ public struct ChangeSchoolFeature {
 
         /// "Cancel the change": the template from the pending day goes back to the old school's hours.
         var cancel: (kid: Kid, routine: Routine?)? {
-            guard var kid = stored, let pending = kid.pendingSchool else { return nil }
+            var kid = stored
+            guard let pending = kid.pendingSchool else { return nil }
             kid.pendingSchool = nil
             let routine = DayPlanner.template(for: kid.id, on: pending.from, routines: routines, holidays: [], calendar: calendar)
                 .map { Routine(kid: kid.id, dayType: .weekday, from: pending.from,
@@ -206,129 +279,141 @@ public struct ChangeSchoolFeature {
                 }
 
             case let .loaded(snapshot, directory, year):
-                state.stored = snapshot?.kids.first { $0.id == state.kid }
-                state.routines = snapshot?.routines ?? []
-                state.directory = directory
-                state.schoolYear = year
-                state.place = state.currentPlace
-                if state.nextTermStart == nil { state.startsOn = .date }
-                return .none
-
-            case let .textChanged(text):
-                // The field sends its text again when it loses focus (the G7 card hides the keyboard):
-                // the same text keeps the pick.
-                guard text != state.text else { return .none }
-                state.text = text
-                state.picked = nil
-                state.matches = SchoolSearch.matches(text, in: state.directory)
-                return .none
-
-            case let .picked(entry):
-                state.picked = entry
-                state.pickedYear = nil
-                state.text = entry.name
-                state.matches = []
-                state.isCardOpen = true
-                let age = state.stored?.age ?? 7
-                return .run { [schoolDirectory] send in
-                    await send(.pickedYearLoaded(await schoolDirectory.calendar(School(entry: entry), age)))
-                }
-
-            case let .pickedYearLoaded(year):
-                state.pickedYear = year
-                state.startsOn = state.nextTermStart == nil ? .date : .nextTerm
-                return .none
-
-            case let .placeTapped(place):
-                state.place = place
-                state.picked = nil
-                state.pickedYear = nil
-                state.text = ""
-                state.matches = []
-                // Design session 2026-11-15: At home goes straight to the "Starts on" card.
-                if place == .home, state.canSave { state.isCardOpen = true }
-                return .none
-
-            case let .preschoolNameChanged(name):
-                guard name != state.preschoolName else { return .none }
-                state.preschoolName = name
-                return .none
-
-            case let .dropOffPicked(date):
-                state.dropOff = Day.minute(of: date, calendar: state.calendar)
-                return .none
-
-            case let .pickUpPicked(date):
-                state.pickUp = Day.minute(of: date, calendar: state.calendar)
-                return .none
-
-            case .preschoolSaveTapped:
-                guard state.canContinuePreschool else { return .none }
-                state.isCardOpen = true
-                return .none
-
-            case .cardCancelled:
-                state.isCardOpen = false
-                guard state.place == .school else { return .none }
-                state.picked = nil
-                state.pickedYear = nil
-                state.text = ""
-                state.matches = []
-                return .none
-
-            case let .startsOnTapped(choice):
-                state.startsOn = choice
-                return .none
-
-            case let .datePicked(date):
-                state.startsOn = .date
-                state.date = max(Day(date, calendar: state.calendar), state.today)
-                return .none
-
-            case .saveTapped:
-                guard state.canSave, let change = state.change else { return .none }
-                return .run { [scheduleStore] send in
-                    do {
-                        try await scheduleStore.saveKid(change.kid)
-                        if let routine = change.routine { try await scheduleStore.saveRoutine(routine) }
-                        await send(.saved(true))
-                    } catch {
-                        await send(.saved(false))
-                    }
-                }
-
-            case let .saved(ok):
-                guard ok else {
-                    state.saveError = L10n.tr("day.save_failed")
+                guard let snapshot, let kid = snapshot.kids.first(where: { $0.id == state.kid }) else {
+                    state.phase = .failed
                     return .none
                 }
-                state.isCardOpen = false
-                // A kid at home has no trip: back to G4 instead of the new trip's screen.
-                return .send(.delegate(state.place == .home ? .finished : .openBuses(state.kid)))
-
-            case .cancelChangeTapped:
-                state.isConfirmingCancel = true
+                state.phase = .ready(Form(stored: kid, routines: snapshot.routines, directory: directory,
+                                          schoolYear: year, today: state.today, calendar: state.calendar,
+                                          strings: state.strings))
                 return .none
-
-            case .cancelKept:
-                state.isConfirmingCancel = false
-                return .none
-
-            case .cancelConfirmed:
-                state.isConfirmingCancel = false
-                guard let cancel = state.cancel else { return .none }
-                state.stored = cancel.kid
-                return .run { [scheduleStore] _ in
-                    try? await scheduleStore.saveKid(cancel.kid)
-                    if let routine = cancel.routine { try? await scheduleStore.saveRoutine(routine) }
-                }
 
             case .backTapped:
                 return .send(.delegate(.finished))
 
             case .delegate:
                 return .none
+
+            default:
+                return state.updateForm { form in reduce(&form, action) }
             }
+        }
+    }
+
+    /// The form's actions (after load).
+    private func reduce(_ form: inout Form, _ action: Action) -> Effect<Action> {
+        switch action {
+        case let .textChanged(text):
+            // The field sends its text again when it loses focus (the G7 card hides the keyboard):
+            // the same text keeps the pick.
+            guard text != form.text else { return .none }
+            form.text = text
+            form.picked = nil
+            form.matches = SchoolSearch.matches(text, in: form.directory)
+            return .none
+
+        case let .picked(entry):
+            form.picked = entry
+            form.pickedYear = nil
+            form.text = entry.name
+            form.matches = []
+            form.isCardOpen = true
+            let age = form.stored.age ?? 7
+            return .run { [schoolDirectory] send in
+                await send(.pickedYearLoaded(await schoolDirectory.calendar(School(entry: entry), age)))
+            }
+
+        case let .pickedYearLoaded(year):
+            form.pickedYear = year
+            form.startsOn = form.nextTermStart == nil ? .date : .nextTerm
+            return .none
+
+        case let .placeTapped(place):
+            form.place = place
+            form.picked = nil
+            form.pickedYear = nil
+            form.text = ""
+            form.matches = []
+            // Design session 2026-11-15: At home goes straight to the "Starts on" card.
+            if place == .home, form.canSave { form.isCardOpen = true }
+            return .none
+
+        case let .preschoolNameChanged(name):
+            guard name != form.preschoolName else { return .none }
+            form.preschoolName = name
+            return .none
+
+        case let .dropOffPicked(date):
+            form.dropOff = Day.minute(of: date, calendar: form.calendar)
+            return .none
+
+        case let .pickUpPicked(date):
+            form.pickUp = Day.minute(of: date, calendar: form.calendar)
+            return .none
+
+        case .preschoolSaveTapped:
+            guard form.canContinuePreschool else { return .none }
+            form.isCardOpen = true
+            return .none
+
+        case .cardCancelled:
+            form.isCardOpen = false
+            guard form.place == .school else { return .none }
+            form.picked = nil
+            form.pickedYear = nil
+            form.text = ""
+            form.matches = []
+            return .none
+
+        case let .startsOnTapped(choice):
+            form.startsOn = choice
+            return .none
+
+        case let .datePicked(date):
+            form.startsOn = .date
+            form.date = max(Day(date, calendar: form.calendar), form.today)
+            return .none
+
+        case .saveTapped:
+            guard let change = form.change else { return .none }
+            return .run { [scheduleStore] send in
+                do {
+                    try await scheduleStore.saveKid(change.kid)
+                    if let routine = change.routine { try await scheduleStore.saveRoutine(routine) }
+                    await send(.saved(true))
+                } catch {
+                    await send(.saved(false))
+                }
+            }
+
+        case let .saved(ok):
+            guard ok else {
+                form.saveError = form.strings.tr("day.save_failed")
+                return .none
+            }
+            form.isCardOpen = false
+            // A kid at home has no trip: back to G4 instead of the new trip's screen.
+            return .send(.delegate(form.place == .home ? .finished : .openBuses(form.stored.id)))
+
+        case .cancelChangeTapped:
+            form.isConfirmingCancel = true
+            return .none
+
+        case .cancelKept:
+            form.isConfirmingCancel = false
+            return .none
+
+        case .cancelConfirmed:
+            form.isConfirmingCancel = false
+            guard let cancel = form.cancel else { return .none }
+            form.stored = cancel.kid
+            return .run { [scheduleStore] _ in
+                try? await scheduleStore.saveKid(cancel.kid)
+                if let routine = cancel.routine { try? await scheduleStore.saveRoutine(routine) }
+            }
+
+        case .task, .loaded, .backTapped, .delegate:
+            return .none
         }
     }
 }

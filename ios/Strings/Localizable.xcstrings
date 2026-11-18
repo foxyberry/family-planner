@@ -639,6 +639,17 @@
         }
       }
     },
+    "change_school.load_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not load. Go back and try again."
+          }
+        }
+      }
+    },
     "change_school.next_term" : {
       "extractionState" : "manual",
       "localizations" : {
