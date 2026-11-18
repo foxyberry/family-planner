@@ -21,10 +21,6 @@ final class GrownupLayoutTests: XCTestCase {
             XCTAssertEqual(layout.controlLeft - layout.labelLeft, 114, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.rightEdge, layout.form.maxX - 32, accuracy: 0.01, "\(w)")
             XCTAssertGreaterThanOrEqual(layout.gap, 24 * sizing.s - 0.01, "\(w)")
-            // Three tabs (C3 For / Repeat) end on or before the right edge.
-            let tab = layout.tabWidth(count: 3, board: 180)
-            XCTAssertLessThanOrEqual(3 * tab + 2 * 12, layout.controlWidth + 0.01, "\(w)")
-            XCTAssertLessThanOrEqual(tab, 180, "\(w)")
             // The action button ends on 968; the header stays below the status band.
             XCTAssertEqual(layout.action.maxY, sizing.y(968), accuracy: 0.01, "\(w)")
             XCTAssertGreaterThanOrEqual(layout.back.minY, Sizing.statusBand, "\(w)")
@@ -48,7 +44,6 @@ final class GrownupLayoutTests: XCTestCase {
         XCTAssertEqual(layout.rightEdge, 808)
         XCTAssertEqual(layout.editorRowsWidth, 730)
         XCTAssertEqual(layout.controlWidth, 616)
-        XCTAssertEqual(layout.tabWidth(count: 3, board: 180), 180)
     }
 
     /// Board C3k: with the keyboard open (top at 612) the form card and the button end 28 above it;

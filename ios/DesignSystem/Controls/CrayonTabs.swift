@@ -38,7 +38,10 @@ public struct CrayonTabs<ID: Hashable>: View {
     }
 
     public var body: some View {
-        HStack(spacing: spacing) {
+        // Spec "Give-way" step 5: a row of tabs that does not fit its column wraps; tabs never shrink
+        // under their content. Filling tabs share one row.
+        let row = fills ? AnyLayout(HStackLayout(spacing: spacing)) : AnyLayout(TabFlow(spacing: spacing))
+        row {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 let isOn = item.0 == selection
                 Button { selection = item.0 } label: {
@@ -73,5 +76,57 @@ public struct CrayonTabs<ID: Hashable>: View {
                 .accessibilityAddTraits(isOn ? .isSelected : [])
             }
         }
+    }
+}
+
+/// Tabs left to right, `spacing` apart; a tab that would pass the proposed width starts a new row
+/// (`spacing` below). Rows centre their tabs vertically.
+struct TabFlow: Layout {
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = rows(width: proposal.width ?? .infinity, subviews: subviews)
+        let width = rows.map(\.width).max() ?? 0
+        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
+        return CGSize(width: width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in rows(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX
+            for (index, size) in zip(row.indices, row.sizes) {
+                subviews[index].place(at: CGPoint(x: x, y: y + (row.height - size.height) / 2),
+                                      proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+
+    private struct Row {
+        var indices: [Int] = []
+        var sizes: [CGSize] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    private func rows(width: CGFloat, subviews: Subviews) -> [Row] {
+        var rows: [Row] = []
+        var row = Row()
+        for index in subviews.indices {
+            let size = subviews[index].sizeThatFits(.unspecified)
+            let next = row.indices.isEmpty ? size.width : row.width + spacing + size.width
+            if !row.indices.isEmpty, next > width + 0.5 {
+                rows.append(row)
+                row = Row()
+            }
+            row.width = row.indices.isEmpty ? size.width : row.width + spacing + size.width
+            row.indices.append(index)
+            row.sizes.append(size)
+            row.height = max(row.height, size.height)
+        }
+        if !row.indices.isEmpty { rows.append(row) }
+        return rows
     }
 }

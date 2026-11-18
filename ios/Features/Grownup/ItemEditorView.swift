@@ -29,7 +29,7 @@ public struct ItemEditorView: View {
                     // Exactly the card's inner width, so no row can widen the card past 64 … 882.
                     PaperCard(seed: 31) {
                         ScrollColumn(scrollTarget: store.scrollTarget) {
-                            form(layout)
+                            form
                                 .frame(width: layout.editorRowsWidth, alignment: .leading)
                         }
                     }
@@ -99,9 +99,9 @@ public struct ItemEditorView: View {
     // MARK: Form
 
     /// Layout v56: rows 24 apart between drawn edges (C3 180 / 264 / 364 / 456 / 548 / 632 / 718).
-    private func form(_ layout: GrownupLayout) -> some View {
+    private var form: some View {
         VStack(alignment: .leading, spacing: sizing.formRowGap) {
-            row(L10n.tr("editor.row.for")) { audienceTabs(layout) }
+            row(L10n.tr("editor.row.for")) { audienceTabs }
             // Board C3 (layout v6): five pictures and "More", which opens every picture, 6 per row.
             row(L10n.tr("editor.row.what")) {
                 PictureRow(slots: store.whatRow.compactMap(KitSlot.init(rawValue:)),
@@ -123,13 +123,12 @@ public struct ItemEditorView: View {
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
                 row(L10n.tr("editor.row.repeat")) {
-                    // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12 (less on smaller iPads).
+                    // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12; never under the words + 32.
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
                                items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
                                        (.weekly, L10n.tr("editor.repeat.weekly"), nil),
                                        (.monthly, L10n.tr("editor.repeat.monthly"), nil)],
-                               widths: Array(repeating: layout.tabWidth(count: 3, board: 180), count: 3),
-                               spacing: Spacing.sm)
+                               widths: Array(repeating: repeatTabWidth, count: 3), spacing: Spacing.sm)
                 }
             }
             // Board G3: This day keeps the item's own rows only (no Days, Runs or event rows).
@@ -174,11 +173,19 @@ public struct ItemEditorView: View {
         .id(row?.rawValue)
     }
 
-    private func audienceTabs(_ layout: GrownupLayout) -> some View {
-        // Board C3: three tabs 180 × 72, gap 12 (less on smaller iPads).
+    private var repeatTabWidth: CGFloat {
+        sizing.choiceTabWidth(180, labels: [L10n.tr("editor.repeat.once"), L10n.tr("editor.repeat.weekly"),
+                                            L10n.tr("editor.repeat.monthly")])
+    }
+
+    private var audienceTabs: some View {
+        // Board C3: three tabs 180 × 72, gap 12; never under a face and name + 32. They wrap if
+        // the column is too narrow.
         CrayonTabs(selection: Binding(get: { store.form.audience }, set: { store.send(.audienceTapped($0)) }),
                    items: store.audienceTabs.map { ($0.audience, $0.title, $0.badge) },
-                   itemSize: CGSize(width: layout.tabWidth(count: 3, board: 180), height: 72), spacing: Spacing.sm)
+                   itemSize: CGSize(width: sizing.choiceTabWidth(180, labels: store.audienceTabs.map(\.title),
+                                                                 faces: store.audienceTabs.contains { $0.badge != nil }),
+                                     height: 72), spacing: Spacing.sm)
     }
 
     private var whenRow: some View {

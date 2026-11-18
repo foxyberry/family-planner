@@ -57,6 +57,15 @@ final class PartFloorsTests: XCTestCase {
         }
         XCTAssertEqual(eleven.timeFieldWidth, 142, accuracy: 0.1)
         XCTAssertEqual(eleven.goesToTabWidth, 149, accuracy: 0.1)
+        // C3 Repeat: 180 × s on the 11" (about 142), never under "Monthly" bold + 32 (about 131).
+        let repeats = ["Once", "Weekly", "Monthly"]
+        XCTAssertEqual(thirteen.choiceTabWidth(180, labels: repeats), 180)
+        XCTAssertEqual(eleven.choiceTabWidth(180, labels: repeats), 180 * eleven.s, accuracy: 0.1)
+        XCTAssertGreaterThanOrEqual(mini.choiceTabWidth(180, labels: repeats),
+                                    CrayonType.body.width("Monthly", sizing: mini, bold: true) + 32)
+        XCTAssertEqual(eleven.choiceTabWidth(180, labels: ["A long kid name here"], faces: true),
+                       40 + 8 + CrayonType.body.width("A long kid name here", sizing: eleven, bold: true) + 32,
+                       accuracy: 0.1)
         XCTAssertEqual(eleven.missionCircle, 88.4, accuracy: 0.1)
         XCTAssertEqual(mini.fieldHeight, 64, accuracy: 0.1)
     }
