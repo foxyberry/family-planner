@@ -307,9 +307,9 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testKidNowNext() {
         snap(HStack(spacing: Spacing.xl) {
-            KidNowNext(now: "teddy", next: "actPlay")
-            KidNowNext(now: "actPlay", next: nil)
-            KidNowNext(now: "actShower", next: "actSleep", look: .night)
+            KidNowNext(now: .teddy, next: .actPlay, nowCaption: "now", nextCaption: "next")
+            KidNowNext(now: .actPlay, next: nil, nowCaption: "now", nextCaption: "next")
+            KidNowNext(now: .actShower, next: .actSleep, nowCaption: "now", nextCaption: "next", look: .night)
                 .padding(Spacing.s)
                 .background(CrayonColor.night)
         })

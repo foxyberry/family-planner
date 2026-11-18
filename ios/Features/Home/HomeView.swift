@@ -3,7 +3,6 @@ import CrayonKit
 import DesignSystem
 import Domain
 import KitArt
-import Strings
 import SwiftUI
 
 /// The kids' home screen (boards A1, A1m, A1n, E1, E3, E3b). Kids never scroll here: the lists are capped.
@@ -35,7 +34,7 @@ public struct HomeView: View {
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
                 // Board G0: the way into grown-up mode, the same by day and night.
-                RoundButton(picture: .pencil, accessibilityLabel: L10n.tr("home.grownup")) {
+                RoundButton(picture: .pencil, accessibilityLabel: store.grownupLabel) {
                     store.send(.pencilTapped)
                 }
                 .size(96)
@@ -75,17 +74,13 @@ public struct HomeView: View {
     }
 
     private var clockArea: some View {
-        let slots = firstDay?.slots ?? []
-        return PieClock(sectors: HomeModel.sectors(slots, minute: store.minute),
-                        now: slots.isEmpty ? nil : store.minute,
-                        hub: HomeModel.hub(slots, minute: store.minute),
+        PieClock(sectors: store.clockSectors, now: store.clockHand, hub: store.clockHub,
                         holdProgress: holdProgress, look: store.look,
                         motion: PieClock.Motion(slotStart: store.currentSlotStart, hour: store.hour,
                                                 winks: store.winks),
                         plays: store.plays, rigScale: rigScale)
             .onTapGesture(coordinateSpace: .local) { location in
-                if let start = PieClock.slotStart(at: location, in: HomeModel.sectors(slots, minute: store.minute),
-                                                  scale: sizing.s) {
+                if let start = PieClock.slotStart(at: location, in: store.clockSectors, scale: sizing.s) {
                     store.send(.slotTapped(start))
                 }
             }
@@ -93,7 +88,7 @@ public struct HomeView: View {
             .onLongPressGesture(minimumDuration: 2) {
                 holdCompleted += 1
                 store.send(.clockPressed(slotStart: pressLocation.flatMap {
-                    PieClock.slotStart(at: $0, in: HomeModel.sectors(slots, minute: store.minute), scale: sizing.s)
+                    PieClock.slotStart(at: $0, in: store.clockSectors, scale: sizing.s)
                 }))
                 store.send(.clockHoldCompleted)
             } onPressingChanged: { pressing in
@@ -105,9 +100,7 @@ public struct HomeView: View {
                 }
             }
             .accessibilityElement()
-            .accessibilityLabel(HomeModel.accessibilityLabel(kidName: firstDay?.kid.name ?? "", day: store.dayName ?? "",
-                                                             slots: slots,
-                                                             minute: store.minute))
+            .accessibilityLabel(store.clockAccessibilityLabel)
     }
 
     // MARK: Right panel (928 s … W − 64 s)
@@ -120,11 +113,11 @@ public struct HomeView: View {
             }
             kidHeader(first.kid, top: layout.kidATop, layout: layout)
             kidABlock(layout: layout)
-            if store.days.count > 1 {
+            if let kidB = store.kidB {
                 let top = layout.kidBTop(after: store.kidAEnd)
-                kidHeader(store.days[1].kid, top: top, layout: layout)
-                let now = DayPlanner.now(at: store.minute, in: store.days[1].slots)
-                KidNowNext(now: now.current?.iconName ?? "actPlay", next: now.next?.iconName, look: store.look)
+                kidHeader(kidB.kid, top: top, layout: layout)
+                KidNowNext(now: kidB.now, next: kidB.next, nowCaption: store.kidNowCaption,
+                           nextCaption: store.kidNextCaption, look: store.look)
                     .place(topLeft: layout.nowNext(kidBTop: top))
             } else if let next = store.leaveNext {
                 nextRow(next, at: layout.leaveNextRow)
@@ -154,12 +147,12 @@ public struct HomeView: View {
     @ViewBuilder private func kidABlock(layout: HomeLayout) -> some View {
         switch store.kidABlock {
         case .leave:
-            if let outing = store.morningOuting, let heading = store.outingHeading {
+            if let picture = store.leavePicture, let left = store.leaveTimeLeft {
                 KitPlate(look: store.look, size: layout.kidAPicture.width) {
-                    KitIcon(KitSlot(iconName: outing.trip.way.moverPicture), size: layout.kidAPicture.width)
+                    KitIcon(picture, size: layout.kidAPicture.width)
                 }
                 .place(layout.kidAPicture)
-                timeLeft(label: heading, minutes: store.minutesToLeave ?? 0, layout: layout)
+                timeLeft(label: left.label, minutes: left.minutes, layout: layout)
                 if let status = store.status {
                     StatusDot(status.text, tone: status.tone, compact: true)
                         .place(left: layout.kidATextLeft, baseline: layout.kidAStatusBaseline)
@@ -167,11 +160,11 @@ public struct HomeView: View {
             }
         case let .timeLeft(left, next):
             KitPlate(look: store.look, size: layout.kidAPicture.width) {
-                KitIcon(KitSlot(rawValue: next.iconName) ?? .actPlay, size: layout.kidAPicture.width)
+                KitIcon(next.picture, size: layout.kidAPicture.width)
             }
             .place(layout.kidAPicture)
             timeLeft(label: left.label, minutes: left.minutes, layout: layout)
-            smallRow(icon: next.iconName, title: next.title, line: next.at, layout: layout)
+            smallRow(picture: next.picture, title: next.title, line: next.at, layout: layout)
         case let .bedTime(left, tomorrow):
             // Board A1n: the moon (64) on a 96 plate.
             KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 64.0 / 96.0) {
@@ -180,7 +173,7 @@ public struct HomeView: View {
             .place(layout.kidAPicture)
             timeLeft(label: left.label, minutes: left.minutes, layout: layout)
             if let tomorrow {
-                smallRow(icon: tomorrow.iconName, title: tomorrow.title, line: tomorrow.line, layout: layout)
+                smallRow(picture: tomorrow.picture, title: tomorrow.title, line: tomorrow.line, layout: layout)
             }
         case let .next(next):
             nextRow(next, at: layout.nextRow)
@@ -199,10 +192,10 @@ public struct HomeView: View {
 
     /// A1n: the 80 row under the time left (Tomorrow, or Next by day): a 56 picture on an 80 plate,
     /// its title (body bold) over its line (caption).
-    @ViewBuilder private func smallRow(icon: String, title: String, line: String, layout: HomeLayout) -> some View {
+    @ViewBuilder private func smallRow(picture: KitSlot, title: String, line: String, layout: HomeLayout) -> some View {
         let place = layout.timeLeftRow
         KitPlate(look: store.look, size: place.picture.width, nightPicture: 56.0 / 80.0) {
-            KitIcon(KitSlot(rawValue: icon) ?? .actPlay, size: place.picture.width)
+            KitIcon(picture, size: place.picture.width)
         }
         .place(place.picture)
         Text(title).crayonType(.body, bold: true).foregroundStyle(store.look.ink).lineLimit(1)
@@ -214,11 +207,11 @@ public struct HomeView: View {
     /// The Next row: the picture (104), then "Next" (caption), its title and "at …" to its right.
     @ViewBuilder private func nextRow(_ row: NextRow, at place: HomeLayout.RowPlace) -> some View {
         if let labelBaseline = place.labelBaseline {
-            Text(L10n.tr("home.next")).crayonType(.caption).foregroundStyle(store.look.softText)
+            Text(store.nextLabel).crayonType(.caption).foregroundStyle(store.look.softText)
                 .place(left: place.textLeft, baseline: labelBaseline)
         }
         KitPlate(look: store.look, size: place.picture.width) {
-            KitIcon(KitSlot(rawValue: row.iconName) ?? .actPlay, size: place.picture.width)
+            KitIcon(row.picture, size: place.picture.width)
                 .overlay(alignment: .topTrailing) {
                     if row.showsStar { KitIcon(.star, size: 36 * sizing.s) }
                 }

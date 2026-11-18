@@ -1,6 +1,7 @@
 import DesignSystem
 import Domain
 import Foundation
+import KitArt
 import Strings
 
 /// A row of the "Next" list or the day-off item (boards E1, E3).
@@ -14,6 +15,9 @@ public struct NextRow: Equatable, Sendable {
     /// A just-once item keeps its star sticker on the picture.
     public var showsStar: Bool
 
+    /// The row's picture (an unknown name shows play).
+    public var picture: KitSlot { KitSlot(iconName: iconName) }
+
     /// "at 7:30 am": the start only; the range is on the clock.
     public var at: String { L10n.tr("home.next.at", TimeText.withPeriod(start)) }
 }
@@ -23,6 +27,8 @@ public struct TomorrowRow: Equatable, Sendable {
     public var iconName: String
     public var title: String { L10n.tr("home.tomorrow") }
     public var line: String
+    /// The row's picture (an unknown name shows play).
+    public var picture: KitSlot { KitSlot(iconName: iconName) }
 
     public init(_ outing: Outing) {
         iconName = outing.slot.iconName
