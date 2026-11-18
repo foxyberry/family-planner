@@ -62,7 +62,7 @@ device:
 	find bazel-device -exec touch {} + && \
 	xcrun devicectl device install app --device "$$UDID" bazel-device/Payload/$(APP_NAME).app && \
 	xcrun devicectl device process launch --terminate-existing --device "$$UDID" $(OPEN_URL) $(BUNDLE_ID) $(LAUNCH_ARGS) && \
-	scripts/device-check.sh $(APP_NAME) bazel-device/Payload/$(APP_NAME).app/$(APP_NAME)
+	scripts/device-check.sh $(APP_NAME) bazel-device/Payload/$(APP_NAME).app/$(APP_NAME) "$$UDID"
 
 # The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.
 # Failed snapshots leave their new picture in the git-ignored __Diffs__ folder (local runs
