@@ -27,7 +27,6 @@ ios/DesignSystem/Screens/LockOverlay.swift
 ios/Features/Grownup/AddChildView.swift
 ios/Features/Grownup/BusSettingsView.swift
 ios/Features/Grownup/ChangeBusesView.swift
-ios/Features/Grownup/ChangeSchoolView.swift
 ios/Features/Grownup/DataSourcesView.swift
 ios/Features/Grownup/ItemEditorView.swift
 ios/Features/Grownup/MissionDraftCard.swift
@@ -36,5 +35,4 @@ ios/Features/Grownup/OurDayView.swift
 ios/Features/Grownup/SchoolEditorView.swift
 ios/Features/Grownup/SettingsView.swift
 ios/Features/Grownup/StopSearchField.swift
-ios/Features/Missions/MissionsView.swift
 ios/Features/Setup/SetupView.swift

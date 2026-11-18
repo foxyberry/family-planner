@@ -5,6 +5,7 @@ import Domain
 import Foundation
 import BusClient
 import HolidayProvider
+import Localization
 import KitArt
 import ScheduleStore
 import SchoolDirectory
@@ -111,6 +112,9 @@ public struct MissionsFeature {
         public var arrivalsAt: Date?
         public var now: Date?
         /// "Not yet" asks once before a ready kid is undone.
+
+        /// Every word this screen shows comes from here (views hold no values).
+        public var strings = Localizer.injected
 
         public init(look: KidLook = .day) {
             self.look = look
@@ -441,6 +445,40 @@ public struct MissionsFeature {
 
         /// The picture plays its rig once each time a mission is tapped (spec, with the check).
         public var plays: [Mission.ID: Int] = [:]
+
+        // MARK: What the view shows (it holds no values of its own)
+
+        /// The strip's VoiceOver label: the live line, the way there, or "no outing today".
+        public var stripLabel: String {
+            if liveStrip != nil { return liveSpoken ?? "" }
+            if wayTrip != nil { return way?.spoken ?? "" }
+            return strings.tr("missions.way.none")
+        }
+
+        /// The strip's words on a day without an outing.
+        public var homeAllDayText: String { strings.tr("missions.home_all_day") }
+        public var backLabel: String { strings.tr("missions.back") }
+        /// The slide's title once the chosen kid is ready.
+        public var slideDoneTitle: String { strings.tr("missions.ready") }
+
+        /// The name under a circle: the mission's, or the folded, more and back circles' words.
+        public func name(of circle: Circle) -> String {
+            switch circle {
+            case let .mission(mission, _, _): mission.name
+            case let .folded(count): strings.tr("missions.folded", count)
+            case let .more(count): strings.tr("missions.more", count)
+            case .back: strings.tr("missions.page_back")
+            }
+        }
+
+        /// "+3" inside the more circle.
+        public func moreText(count: Int) -> String { strings.tr("missions.more_count", count) }
+
+        /// A mission's picture (an unknown name shows play).
+        public func picture(of mission: WindowMission) -> KitSlot { KitSlot(iconName: mission.picture) }
+
+        /// A mission picture's play id: it plays its rig each time this goes up.
+        public func playID(of mission: Mission.ID) -> Int { plays[mission, default: 0] }
         /// Crayon confetti plays once per slide (board 0g2).
         public var confetti = 0
     }
