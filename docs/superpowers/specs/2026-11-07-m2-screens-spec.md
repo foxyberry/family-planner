@@ -151,6 +151,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-16: Layout balance (user): gaps measured on drawn edges; ladder group ≤ 16 ≤ label 16 < row 24 < card padding 32 < card gap 40; 32 joins the spacing tokens; main form and overlay cards pad 32 fixed, nested cards 24; one label column 114 for every grown-up form (label 78, control 192, right edge 808); labels "Arrive by" → "Arrive", "No school" → "Off days"; ConfirmCard width max(520 s, content + 64); S1 rebuilt on these lines (layout v55).
 - 2026-11-16: grown-up boards redrawn to Layout balance (layout v56): every form on 78 / 192 / 808, rows 24 apart, overlay cards hug their content; S1 "Add a child" flows 40 under the last card; F4 card title "Off days"; parts drawn to their frame edge line up drawn on 802.
 - 2026-11-18: S2 time fields start on the default times, which count as values, so Next works untouched (user via the S2 session); the same for Preschool drop-off / pick-up and Change school.
+- 2026-11-18: 11" check (main session): label-row tabs keep `max(board w × s, content + 32)` and wrap when the row does not fit; C3 side preview time column 116 (widest time "10:00 am"), summary caption wraps.
 - 2026-11-18: several buses (user, after trying S3 and A2): any number of buses per route, all equal, no 1st / 2nd; one Ride row per bus; a bus that changes keeps both buses with Change minutes and no change stop or live fit; A2 takes the catchable bus that reaches the place first for Leave in, status and medal, and shows every other bus faded with a number + minutes tag (colliding tags take two rows above the buses or one under, then merge); S3 pills wrap and the row grows.
 
 Markers used below:
@@ -225,6 +226,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - `CrayonTabs`, `PillToggle`, `DayChip`: `max(72 s, 56)` tall (header row: see below).
       - **Header row** (user, 2026-11-15): every text control in a grown-up header (kid tabs, CrayonTabs such as List, pills such as Settings, header text buttons) is **72 tall on every iPad**, fixed, all the same height. Widths stay `max(board width × s, content + 2 × 16)`. A kid tab holds its `KidFace` at 40 with at least 10 clear above and below the drawn box (72 − 12 inset = 60 = 40 + 2 × 10). The ← `RoundButton` keeps its own floor and is centred on the same header line.
       - Tab width in an equal-choice row (Goes to, Once · Weekly · Monthly, This day / All days): `max(board width × s, longest label at its picked weight + 2 × 16)`. Goes to: `max(180 s, 149)`, so 13" stays 180.
+        - Content for a kid tab is its face + gap + name. When the row's tabs don't fit the control column, the row wraps (give-way step 5); tabs never shrink under this width and never squeeze to the right edge.
       - `RoundButton` (← 80, Undo / Redo 72, the bus steppers 72): `max(ref s, 56)`.
       - `CrayonSwitch`: `max(96 s, 72)` wide × `max(52 s, 48)` tall; knob `max(44 s, 40)`.
       - `ColourSwatch`: `max(56 s, 48)`. Faces picked in S1: `max(64 s, 56)`.
@@ -1037,9 +1039,9 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   - **What** (board, changed 2026-11-09): one row of 5 picture slots, then a **"More"** slot (88 circle, "More" caption bold). The 5 are the pictures this kid uses most, with the picked one first. "More" opens a `PickerPopover` pointing at it with every item picture, 6 per row (slots 88, gap 16). Picking one closes it and puts that picture, picked, in the row's first slot. The row never wraps or scrolls, so the rows below keep their lines and C3k still fits. Asking for a drawing (D1, the old "+" slot) moves into the popover in M6.
 - Side column:
   - Preview heading "{Kid}'s {weekday}" (head, h 56), e.g. "Kid A's Monday". The weekday is the first picked day. For "Both", the heading is the weekday only.
-  - `TodayRow`s, 72 tall: start time (caption `ink`, w 72), 48 picture, title (body).
+  - `TodayRow`s, 72 tall: start time (caption `ink`, w 116 fixed: the widest time, "10:00 am" at caption 24 medium, is 115.5), 48 picture, title (body; a typed title may end with "…", the time never does).
   - The new item's row uses the today style (paper card + bold) and sits in time order.
-  - Summary caption: "On the clock every {Monday and Wednesday} from {d Mon}."
+  - Summary caption: "On the clock every {Monday and Wednesday} from {d Mon}." It wraps onto as many lines as it needs, never "…".
     - Day lists: "Monday", "Monday and Wednesday", "Monday, Wednesday and Friday", "school day" (Mon–Fri).
 - Main button: `InkButton` "Add to the clock".
 
