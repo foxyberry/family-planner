@@ -1,5 +1,5 @@
 {
- "version": "47",
+ "version": "53",
  "board": "C3x",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -246,30 +246,30 @@
    "font": 24
   },
   {
-   "id": "main.row.for.text.1",
+   "id": "main.text.2",
    "kind": "text",
-   "x": 80,
-   "y": 239,
-   "w": 83,
-   "h": 45,
+   "x": 150,
+   "y": 252,
+   "w": 100,
+   "h": 54,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 274,
-   "font": 30,
+   "baseline": 279,
+   "font": 36,
    "text": "Leave"
   },
   {
-   "id": "main.row.for.text.2",
+   "id": "main.text.3",
    "kind": "text",
-   "x": 203,
-   "y": 239,
+   "x": 360,
+   "y": 256,
    "w": 184,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 274,
+   "baseline": 279,
    "font": 30,
    "text": "Keep editing"
   },
@@ -786,7 +786,7 @@
    "align": "inside"
   },
   {
-   "id": "main.text.2",
+   "id": "main.text.4",
    "kind": "text",
    "x": 268,
    "y": 813,
