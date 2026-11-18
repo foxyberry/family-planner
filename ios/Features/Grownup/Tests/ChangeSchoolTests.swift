@@ -39,9 +39,9 @@ final class ChangeSchoolTests: XCTestCase {
         let store = store(savedKids: kids, savedRoutines: routines)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.startsOn, .date, "no term dates: pick a date")
+        XCTAssertEqual(store.state.form.startsOn, .date, "no term dates: pick a date")
         await store.send(.textChanged("river"))
-        XCTAssertEqual(store.state.matches.map(\.id), ["riverside-primary"])
+        XCTAssertEqual(store.state.form.matches.map(\.id), ["riverside-primary"])
         await store.send(.picked(riverside))
         let january = Day(year: 2027, month: 1, day: 4)
         await store.send(.datePicked(january.date(calendar: F.calendar)))
@@ -63,13 +63,13 @@ final class ChangeSchoolTests: XCTestCase {
         let store = store(savedKids: .init([]), savedRoutines: .init([]))
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertFalse(store.state.isShowingStartsOn)
+        XCTAssertFalse(store.state.form.isShowingStartsOn)
         await store.send(.picked(riverside))
-        XCTAssertTrue(store.state.isShowingStartsOn)
-        XCTAssertEqual(store.state.startsOnTabs.map(\.1), ["Next term", "Date"])
+        XCTAssertTrue(store.state.form.isShowingStartsOn)
+        XCTAssertEqual(store.state.form.startsOnTabs.map(\.1), ["Next term", "Date"])
         await store.send(.cardCancelled)
-        XCTAssertFalse(store.state.isShowingStartsOn)
-        XCTAssertEqual(store.state.text, "")
+        XCTAssertFalse(store.state.form.isShowingStartsOn)
+        XCTAssertEqual(store.state.form.text, "")
     }
 
     func testCancelTheChangeKeepsTheOldSchool() async {
@@ -79,13 +79,57 @@ final class ChangeSchoolTests: XCTestCase {
         let store = store(kids: [kidA, SeedData.kidB], savedKids: kids, savedRoutines: routines)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.pendingLine, "From 4 Jan: Riverside Primary")
+        XCTAssertEqual(store.state.form.pendingLine, "From 4 Jan: Riverside Primary")
         await store.send(.cancelChangeTapped)
-        XCTAssertTrue(store.state.isConfirmingCancel)
+        XCTAssertTrue(store.state.form.isConfirmingCancel)
         await store.send(.cancelConfirmed)
         await store.finish()
         XCTAssertNil(kids.value.last?.pendingSchool)
         XCTAssertEqual(kids.value.last?.school, SeedData.kidA.school)
+    }
+
+    /// Views hold no values: before the store answers there is no form (no "At home" beside a
+    /// picked School tab); `.loaded` builds the whole form, on the kid's place.
+    func testLoadingShowsNoFormAndLoadedBuildsTheWholeForm() async {
+        let store = store(savedKids: .init([]), savedRoutines: .init([]))
+        XCTAssertEqual(store.state.phase, .loading)
+        XCTAssertFalse(store.state.hidesKeyboard)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        let form = store.state.form
+        XCTAssertEqual(form.stored, SeedData.kidA)
+        XCTAssertEqual(form.routines, SeedData.routines)
+        XCTAssertEqual(form.directory.map(\.id), ["riverside-primary"])
+        XCTAssertEqual(form.place, .school, "Kid A goes to school")
+        XCTAssertEqual(form.currentName, SeedData.kidA.school?.name)
+        XCTAssertEqual(form.startsOn, .date, "no term dates: Date")
+        XCTAssertEqual(form.date, tuesday)
+        XCTAssertNil(form.picked)
+        XCTAssertFalse(form.isShowingStartsOn)
+    }
+
+    /// A kid the store no longer has: the screen says it could not load, with no form.
+    func testAMissingKidFailsToLoad() async {
+        let store = store(kids: [SeedData.kidB], savedKids: .init([]), savedRoutines: .init([]))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.phase, .failed)
+        XCTAssertEqual(store.state.loadFailedText, "Could not load. Go back and try again.")
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.phase, .failed, "form actions do nothing without a form")
+    }
+
+    /// Save with no edits: Kid A stays at the same school, so nothing is saved.
+    func testSaveWithNoEditsSavesNothing() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertFalse(store.state.form.canSave)
+        await store.send(.saveTapped)
+        await store.finish()
+        XCTAssertTrue(kids.value.isEmpty)
+        XCTAssertTrue(routines.value.isEmpty)
     }
 
     func testAPendingSchoolBecomesTheSchoolOnItsDay() {
@@ -105,11 +149,11 @@ final class ChangeSchoolTests: XCTestCase {
         let store = store(savedKids: kids, savedRoutines: routines)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.place, .school)
-        XCTAssertEqual(store.state.placeTabs.map(\.1), ["School", "Preschool", "At home"])
+        XCTAssertEqual(store.state.form.place, .school)
+        XCTAssertEqual(store.state.form.placeTabs.map(\.1), ["School", "Preschool", "At home"])
         await store.send(.placeTapped(.home))
-        XCTAssertTrue(store.state.isShowingStartsOn)
-        XCTAssertEqual(store.state.cardTitle, "At home")
+        XCTAssertTrue(store.state.form.isShowingStartsOn)
+        XCTAssertEqual(store.state.form.cardTitle, "At home")
         await store.send(.datePicked(tuesday.date(calendar: F.calendar)))
         await store.send(.saveTapped)
         await store.receive(\.saved)
@@ -137,18 +181,18 @@ final class ChangeSchoolTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.place, .home)
-        XCTAssertFalse(store.state.canSave, "already at home")
+        XCTAssertEqual(store.state.form.place, .home)
+        XCTAssertFalse(store.state.form.canSave, "already at home")
         await store.send(.placeTapped(.preschool))
-        XCTAssertFalse(store.state.canContinuePreschool, "no name yet")
+        XCTAssertFalse(store.state.form.canContinuePreschool, "no name yet")
         await store.send(.preschoolNameChanged("Example Preschool"))
-        XCTAssertTrue(store.state.canContinuePreschool, "the default drop-off and pick-up count")
-        XCTAssertEqual([store.state.dropOff, store.state.pickUp], [450, 900])
+        XCTAssertTrue(store.state.form.canContinuePreschool, "the default drop-off and pick-up count")
+        XCTAssertEqual([store.state.form.dropOff, store.state.form.pickUp], [450, 900])
         await store.send(.dropOffPicked(Day(year: 2026, month: 1, day: 1).date(minute: 510, calendar: F.calendar)))
         await store.send(.pickUpPicked(Day(year: 2026, month: 1, day: 1).date(minute: 750, calendar: F.calendar)))
         await store.send(.preschoolSaveTapped)
-        XCTAssertTrue(store.state.isShowingStartsOn)
-        XCTAssertEqual(store.state.cardTitle, "Example Preschool")
+        XCTAssertTrue(store.state.form.isShowingStartsOn)
+        XCTAssertEqual(store.state.form.cardTitle, "Example Preschool")
         let start = Day(year: 2026, month: 12, day: 1)
         await store.send(.datePicked(start.date(calendar: F.calendar)))
         await store.send(.saveTapped)
@@ -162,5 +206,13 @@ final class ChangeSchoolTests: XCTestCase {
         XCTAssertEqual(slice?.title, "Preschool")
         XCTAssertEqual(slice?.start, 510)
         XCTAssertEqual(slice?.end, 750)
+    }
+}
+
+private extension ChangeSchoolFeature.State {
+    /// The ready form (tests read it after `.loaded`).
+    var form: ChangeSchoolFeature.Form {
+        guard case let .ready(form) = phase else { preconditionFailure("the form is not loaded") }
+        return form
     }
 }

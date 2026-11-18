@@ -9,6 +9,7 @@ fp_swift_library(
         "//ios/Clients/AppSettings",
         "//ios/Clients/BusClient",
         "//ios/Clients/HolidayProvider",
+        "//ios/Clients/Localization",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/SchoolDirectory",
