@@ -18,7 +18,7 @@ public struct AddChildView: View {
         GrownupScreen(scrolls: false) {
             GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
         } content: { layout in
-            PaperCard(seed: 37, trailingInset: layout.editorTrailingInset) {
+            PaperCard(seed: 37) {
                 VStack(alignment: .leading, spacing: Spacing.m) {
                     ListRow(leading: L10n.tr("s1.name"), minHeight: 80) {
                         CrayonField(L10n.tr("s1.name.placeholder"), text: $store.name).frame(width: 400)

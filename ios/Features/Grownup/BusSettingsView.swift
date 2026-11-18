@@ -22,8 +22,7 @@ public struct BusSettingsView: View {
                 // never widen it; a stop with many buses scrolls its rows inside the card.
                 PaperCard(seed: 51) {
                     ScrollColumn {
-                        plan(layout).frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
-                            .formLabels([L10n.tr("c2.ride_second"), L10n.tr("c2.grace")])
+                        plan(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)

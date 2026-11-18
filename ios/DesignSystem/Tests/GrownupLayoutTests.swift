@@ -15,8 +15,11 @@ final class GrownupLayoutTests: XCTestCase {
             XCTAssertEqual(layout.action.maxX, layout.right, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.action.minX, layout.side.minX, accuracy: 0.01, "\(w)")
             XCTAssertEqual(layout.right, w - 40 * sizing.s, accuracy: 0.01, "\(w)")
-            // Rows start 40 inside the card; the card and the side column never touch.
+            // Rows start 32 inside the card's drawn edge; one fixed label column; the card and the side
+            // column never touch.
             XCTAssertEqual(layout.labelLeft, layout.form.minX + layout.formInset, accuracy: 0.01, "\(w)")
+            XCTAssertEqual(layout.controlLeft - layout.labelLeft, 114, accuracy: 0.01, "\(w)")
+            XCTAssertEqual(layout.rightEdge, layout.form.maxX - 32, accuracy: 0.01, "\(w)")
             XCTAssertGreaterThanOrEqual(layout.gap, 24 * sizing.s - 0.01, "\(w)")
             // The action button ends on 968; the header stays below the status band.
             XCTAssertEqual(layout.action.maxY, sizing.y(968), accuracy: 0.01, "\(w)")
@@ -33,14 +36,14 @@ final class GrownupLayoutTests: XCTestCase {
         XCTAssertEqual(layout.side.minX, 864)
         XCTAssertEqual(layout.side.width, 472)
         XCTAssertEqual(layout.action, CGRect(x: 864, y: 872, width: 472, height: 96))
-        XCTAssertEqual(layout.labelLeft, 80)
-        XCTAssertEqual(layout.controlLeft, 208)
+        XCTAssertEqual(layout.labelLeft, 78)
+        XCTAssertEqual(layout.controlLeft, 192)
         XCTAssertEqual(layout.valueLeft, 256)
         XCTAssertEqual(layout.gap, 24)
-        // Editor boards (C3, C4, E5, G2–G4): rows run 80 … 818, 22 inside the card's right edge.
-        XCTAssertEqual(layout.editorTrailingInset, 22)
-        XCTAssertEqual(layout.editorRowsWidth, 738)
-        XCTAssertEqual(layout.controlWidth, 592)
+        // Layout v56: every form's rows run 78 … 808 (drawn 802).
+        XCTAssertEqual(layout.rightEdge, 808)
+        XCTAssertEqual(layout.editorRowsWidth, 730)
+        XCTAssertEqual(layout.controlWidth, 616)
     }
 
     /// Board C3k: with the keyboard open (top at 612) the form card and the button end 28 above it;

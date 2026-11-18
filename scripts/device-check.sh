@@ -3,11 +3,14 @@
 # report for the app since the launch (printing the crashing frames and whether the crashed
 # binary is the one just built), and saves a screenshot to bazel-device/screen.png.
 # Needs pymobiledevice3 (`uv tool install pymobiledevice3`) and works best over a cable.
-# Usage: scripts/device-check.sh <app name> <path to the built executable>
+# Usage: scripts/device-check.sh <app name> <path to the built executable> <iPad UDID>
+# Every pymobiledevice3 call names the iPad: with two iPads on USB it would otherwise read and
+# capture whichever one it finds first (another family's screen).
 set -euo pipefail
 
 app="$1"
 binary="$2"
+udid="${3:?device-check: pass the iPad UDID}"
 out="$(dirname "$0")/../bazel-device"
 since=$(date -v-20S +%Y-%m-%d-%H%M%S)
 
@@ -19,9 +22,9 @@ fi
 
 sleep 6
 # Over Wi-Fi alone pymobiledevice3 usually cannot reach the iPad: say "not checked", never "no crash".
-if ! listing=$(pymobiledevice3 crash ls 2>&1) || grep -q "ERROR" <<<"$listing"; then
+if ! listing=$(pymobiledevice3 crash ls --udid "$udid" 2>&1) || grep -q "ERROR" <<<"$listing"; then
     echo "device-check: NOT CHECKED - pymobiledevice3 cannot reach the iPad (Wi-Fi only?)." \
-         "Plug in the cable and run: scripts/device-check.sh $app $binary" >&2
+         "Plug in the cable and run: scripts/device-check.sh $app $binary $udid" >&2
     exit 0
 fi
 crashes=$(grep -o "/${app}-[0-9-]*\.ips" <<<"$listing" | sort || true)
@@ -30,7 +33,7 @@ new=$(printf '%s\n' "$crashes" | awk -v app="/${app}-" -v since="$since" \
 
 if [[ -n "$new" ]]; then
     dir=$(mktemp -d -t fp-crash)
-    pymobiledevice3 crash pull "$dir" "$new" >/dev/null 2>&1 || true
+    pymobiledevice3 crash pull --udid "$udid" "$dir" "$new" >/dev/null 2>&1 || true
     report=$(find "$dir" -name '*.ips' | head -1)
     built=$(dwarfdump --uuid "$binary" | awk '{print tolower($2)}')
     echo "device-check: the app crashed after launch ($new)." >&2
@@ -52,7 +55,7 @@ PY
     exit 1
 fi
 
-if pymobiledevice3 developer dvt screenshot "$out/screen.png" >/dev/null 2>&1; then
+if pymobiledevice3 developer dvt screenshot --udid "$udid" "$out/screen.png" >/dev/null 2>&1; then
     echo "device-check: no crash; screenshot in bazel-device/screen.png"
 else
     echo "device-check: no crash; screenshot failed (Wi-Fi only? plug in the cable)." >&2

@@ -25,7 +25,7 @@ public struct ListRow<Content: View>: View {
         HStack(alignment: labelHeight == nil ? .center : .top, spacing: formLabelWidth == nil ? Spacing.m : 0) {
             // Boards C1–C4: row labels are caption bold in soft text.
             // Spec "Part floors": one line, never shrunk; the card's label column fits its longest
-            // label (`formLabels`).
+            // label (spec "Label column").
             Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
                 .lineLimit(1)
                 .frame(width: formLabelWidth ?? 120, height: labelHeight, alignment: .leading)
@@ -59,8 +59,9 @@ public struct TodayRow<Content: View>: View {
 }
 
 /// A row of a day preview (boards C3/C4 side column): 72 tall, the time (caption, ink) 24 in, then
-/// the content 112 after it. `isNew` (the item being added) sits on a white paper card in bold.
+/// the content 116 after it. `isNew` (the item being added) sits on a white paper card in bold.
 public struct PreviewRow<Content: View>: View {
+    public static var timeColumn: CGFloat { 116 }
     private let time: String
     private let isNew: Bool
     private let content: Content
@@ -73,9 +74,10 @@ public struct PreviewRow<Content: View>: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            // Boards C3/C4: the time column is 112 (888 … 1000); the new row's bold time shrinks to fit.
-            Text(time).crayonType(.caption, bold: isNew).lineLimit(1)
-                .frame(width: 112, alignment: .leading)
+            // Spec "Part floors": the time column is 116 on every iPad (the widest time "10:00 am" is
+            // 115.5); a time never gets "…", only a typed title may. The new row's bold time shrinks.
+            Text(time).crayonType(.caption, bold: isNew).lineLimit(1).minimumScaleFactor(0.85)
+                .frame(width: Self.timeColumn, alignment: .leading)
             content.frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(CrayonColor.ink)

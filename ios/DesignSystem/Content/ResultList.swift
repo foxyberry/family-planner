@@ -59,9 +59,7 @@ public struct ResultListCard: View {
     }
 
     @Environment(\.sizing) private var sizing
-    /// A card whose label column grew (`formLabels`) leaves its controls that much less room.
-    @Environment(\.formLabelExtra) private var formLabelExtra
-    private var cardWidth: CGFloat { width - formLabelExtra }
+    private var cardWidth: CGFloat { width }
     private var isCompact: Bool { fitHeight != nil }
     /// Spec "Part floors": one-line rows 48 fixed; two-line rows 72 fixed.
     private var rowHeight: CGFloat { isCompact ? Sizing.oneLineRow : Sizing.twoLineRow }

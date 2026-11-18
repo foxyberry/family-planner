@@ -25,11 +25,10 @@ public struct ChangeSchoolView: View {
             GrownupScreen(scrolls: false) {
                 GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
             } content: { layout in
-                PaperCard(seed: 39, trailingInset: layout.editorTrailingInset) {
+                PaperCard(seed: 39) {
                     ScrollColumn(scrollTarget: searchFocus == 0 ? nil : GrownupScrollTarget(id: Self.searchID, request: searchFocus),
                                  anchor: .top) {
                         rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
-                            .formLabels([L10n.tr("s2.goes"), L10n.tr("s2.preschool")])
                     }
                     .onPreferenceChange(FieldFocusKey.self) { focused in
                         Task { @MainActor in fieldIsFocused = focused }

@@ -1,32 +1,38 @@
 import CrayonKit
 import SwiftUI
 
-/// Spec "Layout model" → `FormLayout`: the lines of one form card on one `Sizing`, as pure geometry
-/// so tests check the relations without drawing. Every x is measured from the card's label line
-/// (board x 80); `width` runs from there to the right-edge line (board 818).
+/// Spec "Layout model" → `FormLayout` and "Layout balance": the lines of one form card on one
+/// `Sizing`, as pure geometry so tests check the relations without drawing. Every x is measured from
+/// the card's label line (board x 78); `width` runs from there to the right-edge line (board 808).
 ///
-/// - Labels sit on the label line; controls start on the control line (board 208, wider for a long
-///   label: spec "Label column").
+/// - Labels sit on the label line; controls start on the control line, one fixed label column (114)
+///   past it on every grown-up form (spec "Label column": a longer label is reworded).
 /// - A second column ("Age", "Face" on S1) has one label line and one control line per card: its
 ///   controls end on the right edge, its label line is its control line − (longest second-column
-///   label + 16), and it drops under the first column when the first column's controls would come
-///   within 24 of it.
+///   label + 10), and it drops under the first column when the column gap (the first column's
+///   drawn end → the second label) would fall under 40.
+/// - Gaps are measured between drawn edges (frame − `CrayonPart.inset`); these lines are frames.
 public struct FormLines: Equatable, Sendable {
     public struct SecondColumn: Equatable, Sendable {
-        /// The second label line, from the card's label line (equal to `controlX`'s label line, 0,
-        /// when the column drops under the first).
+        /// The second label line, from the card's label line (0 when the column drops under the
+        /// first).
         public let labelX: CGFloat
+        /// The column's frame: its controls' frames, or `partInset()` around a part drawn to its edge.
         public let controlX: CGFloat
         public let controlWidth: CGFloat
         /// True when it does not fit beside the first column and sits under it instead.
         public let dropsUnder: Bool
     }
 
-    /// Between labels and their controls, and between a first column's controls and a second
-    /// column's label (spec: "within 24").
-    public static let columnGap: CGFloat = Spacing.m
-    /// A second-column label's room past its longest label.
-    public static let secondLabelGap: CGFloat = Spacing.s
+    /// Spec "Label column": the longest grown-up label ("Off days", caption 24 bold, 104) + 10 to the
+    /// control's frame (16 to its drawn box). Captions are fixed at 24, so it does not scale.
+    public static let labelColumn: CGFloat = 114
+    /// The widest label that fits the column; a longer one is reworded.
+    public static let labelMaximum: CGFloat = 104
+    /// Spec "Layout balance": the column gap, drawn edge to drawn edge, fixed.
+    public static let columnGap: CGFloat = Spacing.l
+    /// A second-column label's room past its longest label, to its control's frame (16 drawn).
+    public static let secondLabelGap: CGFloat = labelColumn - labelMaximum
 
     /// From the label line to the right-edge line.
     public let width: CGFloat
@@ -36,53 +42,72 @@ public struct FormLines: Equatable, Sendable {
 
     /// - Parameters:
     ///   - width: label line to right-edge line (`GrownupLayout.formRowsWidth`).
-    ///   - labels: the first column's labels.
     ///   - secondLabels: the second column's labels; empty for one column.
-    ///   - secondControlWidth: the second column's widest control, from its parts (S1: two faces).
-    ///   - firstControlMinimum: the narrowest the first column's controls may be, from its parts,
-    ///     for the drop rule (S1: four swatches).
-    public init(sizing: Sizing, width: CGFloat, labels: [String], secondLabels: [String] = [],
-                secondControlWidth: CGFloat = 0, firstControlMinimum: CGFloat = 0) {
+    ///   - secondControlWidth: the second column's widest control, drawn, from its parts (S1: two
+    ///     faces). The column's frame is one inset wider each side, so it ends drawn on the right
+    ///     edge's drawn line (802 on the 13", spec "Alignment contract").
+    ///   - firstControlMinimum: the narrowest the first column's controls may be, as frames from the
+    ///     control line, for the drop rule (S1: four swatches).
+    public init(width: CGFloat, secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
+                firstControlMinimum: CGFloat = 0) {
         self.width = width
-        controlX = sizing.labelColumn(base: 128 * sizing.s, labels: labels)
+        controlX = Self.labelColumn
         guard !secondLabels.isEmpty else {
             second = nil
             return
         }
         let labelWidth = (secondLabels.map { CrayonType.captionBoldWidth($0) }.max() ?? 0) + Self.secondLabelGap
-        let besideControlX = width - secondControlWidth
+        let frameWidth = secondControlWidth + 2 * CrayonPart.inset
+        let besideControlX = width - frameWidth
         let besideLabelX = besideControlX - labelWidth
-        let drops = controlX + firstControlMinimum + Self.columnGap > besideLabelX
+        let firstDrawnEnd = controlX + firstControlMinimum - CrayonPart.inset
+        let drops = besideLabelX - firstDrawnEnd < Self.columnGap
         second = drops
-            ? SecondColumn(labelX: 0, controlX: controlX, controlWidth: secondControlWidth, dropsUnder: true)
-            : SecondColumn(labelX: besideLabelX, controlX: besideControlX, controlWidth: secondControlWidth,
+            ? SecondColumn(labelX: 0, controlX: controlX, controlWidth: frameWidth, dropsUnder: true)
+            : SecondColumn(labelX: besideLabelX, controlX: besideControlX, controlWidth: frameWidth,
                            dropsUnder: false)
     }
 
-    /// The first column's control width: to the right edge, or to 24 before a second column that
-    /// stands beside it.
+    /// The first column's control width: to the right edge, or to its drawn end 40 before a second
+    /// column that stands beside it.
     public var firstControlWidth: CGFloat {
         guard let second, !second.dropsUnder else { return width - controlX }
-        return second.labelX - Self.columnGap - controlX
+        return second.labelX - Self.columnGap + CrayonPart.inset - controlX
     }
+
+    /// Spec "Layout balance": the main form card's padding, 32 from its drawn edge on all four sides.
+    /// `FormRow` lays out its drawn box, so top and bottom are 32 + the card's inset; the left reaches
+    /// the label line (text has no inset); the right reaches the right-edge line (a control's frame).
+    public static let cardPadding = EdgeInsets(top: Spacing.card + CrayonPart.inset,
+                                               leading: Spacing.card + CrayonPart.inset,
+                                               bottom: Spacing.card + CrayonPart.inset,
+                                               trailing: Spacing.card)
+    /// Card → card 40 between drawn edges, fixed: frames sit 28 apart.
+    public static let cardGap: CGFloat = Spacing.l - 2 * CrayonPart.inset
 }
 
 public extension GrownupLayout {
-    /// A form card's rows run from the label line (80) to the right-edge line (818).
+    /// A form card's rows run from the label line (card + 38, board 78) to the right-edge line
+    /// (card right − 32, board 808).
     var formRowsWidth: CGFloat { editorRowsWidth }
 
-    func formLines(labels: [String], secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
+    func formLines(secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
                    firstControlMinimum: CGFloat = 0) -> FormLines {
-        FormLines(sizing: sizing, width: formRowsWidth, labels: labels, secondLabels: secondLabels,
-                  secondControlWidth: secondControlWidth, firstControlMinimum: firstControlMinimum)
+        FormLines(width: formRowsWidth, secondLabels: secondLabels, secondControlWidth: secondControlWidth,
+                  firstControlMinimum: firstControlMinimum)
     }
 }
 
 public extension Sizing {
-    /// Spec "Layout model" row heights: a field row 80 (the field's height), a choice row 72 (a
-    /// picked face with its ring). Rows grow with their content; these are minimums.
+    /// Spec "Layout balance": row → row 24 between drawn edges (`fluid(24, 16)`).
+    var formRowGap: CGFloat { space(Spacing.m) }
+    /// Spec "Layout model" row heights, as frames: a field row 80 (the field's height); a picture
+    /// choice row (faces in `partInset()`, swatches) as tall as its tallest frame. Rows grow with
+    /// their content.
     var fieldRowHeight: CGFloat { fieldHeight }
-    var choiceRowHeight: CGFloat { pickedFace + 2 * CrayonPart.pickRing }
+    var choiceRowHeight: CGFloat { max(pickedFace + 2 * CrayonPart.inset, ColourSwatch.frame(self)) }
+    /// A picked face's ring (an overlay; it never moves layout).
+    var pickedFaceRing: CGFloat { pickedFace + 2 * CrayonPart.pickRing }
 }
 
 /// The alignment contract's shared numbers (spec "Layout model").
@@ -90,8 +115,25 @@ public enum CrayonPart {
     /// Every part draws its crayon outline this far inside its frame.
     public static let inset: CGFloat = 6
     /// The ring's overlay width: a pick ring draws this far outside the part, as an overlay. It
-    /// never moves layout; only a row's minimum height (`choiceRowHeight`) leaves room for it.
+    /// never moves layout.
     public static let pickRing: CGFloat = 4
+}
+
+public extension EdgeInsets {
+    /// The same padding on every side.
+    init(all value: CGFloat) { self.init(top: value, leading: value, bottom: value, trailing: value) }
+}
+
+public extension View {
+    /// Spec "Layout balance": a row of crayon parts (fields, tabs, pills, chips, time fields) lays out
+    /// its drawn box, one inset inside its frames top and bottom, so a card's rows sit
+    /// `formRowGap` apart and `FormLines.cardPadding` from its edge, between drawn edges.
+    func drawnRow() -> some View { padding(.vertical, -CrayonPart.inset) }
+
+    /// Spec "Alignment contract": a part drawn to its frame edge (faces, chevrons, switches,
+    /// borderless rows) gets one crayon inset around it, so its frame sits on the lines and its
+    /// drawn edge lines up with every crayon part's (802, not 808, on the 13").
+    func partInset() -> some View { padding(CrayonPart.inset) }
 }
 
 public extension EnvironmentValues {
@@ -107,14 +149,27 @@ public extension View {
     }
 }
 
-/// The kind of control a row holds; rows of one kind share one height.
+/// The kind of control a row holds; rows of one kind share one height. A row lays out its drawn box
+/// (its frame less the kind's inset), so the gaps around it are drawn-edge gaps (spec "Layout
+/// balance").
 public enum FormRowKind: Sendable {
-    case field, choice
+    /// Crayon fields: frame 80, drawn one inset inside.
+    case field
+    /// Picture choices: faces (drawn to their edge, so placed in `partInset()`) and swatches; the
+    /// drawn box is the tallest drawn part.
+    case choice
 
     func minHeight(_ sizing: Sizing) -> CGFloat {
         switch self {
         case .field: sizing.fieldRowHeight
         case .choice: sizing.choiceRowHeight
+        }
+    }
+
+    func drawnInset(_ sizing: Sizing) -> CGFloat {
+        switch self {
+        case .field: CrayonPart.inset
+        case .choice: (sizing.choiceRowHeight - max(sizing.pickedFace, sizing.swatch)) / 2
         }
     }
 }
@@ -151,7 +206,7 @@ public struct FormRow<Control: View, Second: View>: View {
         if let lines {
             if let secondLabel, let second = lines.second {
                 if second.dropsUnder {
-                    VStack(alignment: .leading, spacing: Spacing.s) {
+                    VStack(alignment: .leading, spacing: sizing.formRowGap) {
                         cell(label, labelWidth: lines.controlX, width: lines.width - lines.controlX) { control }
                         cell(secondLabel, labelWidth: lines.controlX, width: second.controlWidth) { secondControl }
                     }
@@ -177,6 +232,7 @@ public struct FormRow<Control: View, Second: View>: View {
             control().frame(width: width, alignment: .leading)
         }
         .frame(minHeight: kind.minHeight(sizing))
+        .padding(.vertical, -kind.drawnInset(sizing))
     }
 }
 

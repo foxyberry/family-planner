@@ -2,9 +2,8 @@ import CoreGraphics
 import DesignSystem
 
 /// Boards S1–S4 (layout v10) on the grown-up lines (`GrownupLayout`) through "Sizing formulas":
-/// the header ends on 1336 like every grown-up header (layout v31); S1 kid cards are 304 tall and 20
-/// apart from 148; S4 rows are 120 tall on a 140 pitch from 188. Inside a card, rows start on 80
-/// (labels) and 208 (controls).
+/// the header ends on 1336 like every grown-up header (layout v31); S1 kid cards follow `FormLines`
+/// (layout v55); S4 rows are 120 tall on a 140 pitch from 188.
 public struct SetupLayout: Equatable, Sendable {
     public let grown: GrownupLayout
 
@@ -14,22 +13,6 @@ public struct SetupLayout: Equatable, Sendable {
 
     private var sizing: Sizing { grown.sizing }
     private var s: CGFloat { sizing.s }
-
-    /// S1: one card per kid, the form card's width (40–840 on the 13").
-    public func kidCard(_ index: Int) -> CGRect {
-        let board = sizing.left(40, 148 + (304 + 20) * CGFloat(index), 800, 304)
-        return CGRect(x: board.minX, y: board.minY, width: grown.form.width, height: board.height)
-    }
-
-    /// Layout v18: S1 cards 304 tall, 20 apart.
-    public var cardHeight: CGFloat { 304 * s }
-    public var cardGap: CGFloat { 20 * s }
-    /// S1 card rows: Name at 48 below the card top, Colour 40 below it.
-    public var cardTopInset: CGFloat { 48 * s }
-    public var cardRowGap: CGFloat { 40 * s }
-
-    /// S1 "Remove {name}?" card under the ×.
-    public var confirmWidth: CGFloat { 360 }
 
     /// S2 and S3: the school field 610 wide, the stop field 400.
     public var schoolFieldWidth: CGFloat { 610 * s }

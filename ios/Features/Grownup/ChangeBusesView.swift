@@ -23,7 +23,7 @@ public struct ChangeBusesView: View {
                     .onTapGesture { store.send(.leaveCancelled) }
                 ConfirmCard(title: L10n.tr("editor.confirm.leave.title"), message: nil,
                             cancel: L10n.tr("editor.confirm.leave.cancel"), confirm: L10n.tr("editor.confirm.leave.accept"),
-                            isDestructive: true, width: 560,
+                            isDestructive: true,
                             onCancel: { store.send(.leaveCancelled) }, onConfirm: { store.send(.leaveConfirmed) })
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(.leading, sizing.left(40))
@@ -41,8 +41,7 @@ public struct ChangeBusesView: View {
             HStack(alignment: .top, spacing: layout.gap) {
                 PaperCard(seed: 52) {
                     ScrollColumn {
-                        rows(layout).frame(width: layout.form.width - 2 * layout.formInset, alignment: .leading)
-                            .formLabels([L10n.tr("c2c.change_at"), L10n.tr("c2c.first_bus")])
+                        rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)

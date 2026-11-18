@@ -30,13 +30,11 @@ final class PartFloorsTests: XCTestCase {
         XCTAssertEqual(s.dateChip, CGSize(width: 96, height: 104))
         XCTAssertEqual(s.clockPlus, 56)
         XCTAssertEqual(s.textPadding, 24)
-        XCTAssertEqual(s.formCardInset, 40)
         XCTAssertEqual(s.smallCardInset, 24)
         XCTAssertEqual(s.kidTarget(96), 96)
         XCTAssertEqual(s.missionCircle, 112)
         XCTAssertEqual(s.kidCornerControl, 96)
         XCTAssertEqual(s.timeLeftCompact, 72)
-        XCTAssertEqual(s.labelColumn(base: 128, labels: ["Arrive by"]), 128, "the 13\" label column stays as drawn")
     }
 
     /// Every control keeps its floor on every iPad (scale.py: 11" s 0.790, mini s 0.714).
@@ -59,6 +57,15 @@ final class PartFloorsTests: XCTestCase {
         }
         XCTAssertEqual(eleven.timeFieldWidth, 142, accuracy: 0.1)
         XCTAssertEqual(eleven.goesToTabWidth, 149, accuracy: 0.1)
+        // C3 Repeat: 180 × s on the 11" (about 142), never under "Monthly" bold + 32 (about 131).
+        let repeats = ["Once", "Weekly", "Monthly"]
+        XCTAssertEqual(thirteen.choiceTabWidth(180, labels: repeats), 180)
+        XCTAssertEqual(eleven.choiceTabWidth(180, labels: repeats), 180 * eleven.s, accuracy: 0.1)
+        XCTAssertGreaterThanOrEqual(mini.choiceTabWidth(180, labels: repeats),
+                                    CrayonType.body.width("Monthly", sizing: mini, bold: true) + 32)
+        XCTAssertEqual(eleven.choiceTabWidth(180, labels: ["A long kid name here"], faces: true),
+                       40 + 8 + CrayonType.body.width("A long kid name here", sizing: eleven, bold: true) + 32,
+                       accuracy: 0.1)
         XCTAssertEqual(eleven.missionCircle, 88.4, accuracy: 0.1)
         XCTAssertEqual(mini.fieldHeight, 64, accuracy: 0.1)
     }
@@ -81,14 +88,5 @@ final class PartFloorsTests: XCTestCase {
         let small = mini.timePair(inner: inner(mini))
         XCTAssertTrue(small.stacked, "step 5: the pair stacks on the mini")
         XCTAssertGreaterThanOrEqual(small.field, 142)
-    }
-
-    /// The label column fits the card's longest label on smaller iPads (caption 24 bold + 12).
-    func testTheLabelColumnFitsItsLongestLabel() {
-        let base = 128 * eleven.s
-        let column = eleven.labelColumn(base: base, labels: ["Days", "Arrive by"])
-        XCTAssertGreaterThan(column, base)
-        XCTAssertEqual(column, CrayonType.captionBoldWidth("Arrive by") + 12, accuracy: 0.5)
-        XCTAssertEqual(eleven.labelColumn(base: base, labels: ["Days"]), base, "short labels keep the scaled column")
     }
 }
