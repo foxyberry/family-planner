@@ -153,6 +153,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-18: S2 time fields start on the default times, which count as values, so Next works untouched (user via the S2 session); the same for Preschool drop-off / pick-up and Change school.
 - 2026-11-18: 11" check (main session): label-row tabs keep `max(board w × s, content + 32)` and wrap when the row does not fit; C3 side preview time column 116 (widest time "10:00 am"), summary caption wraps.
 - 2026-11-18: several buses (user, after trying S3 and A2): any number of buses per route, all equal, no 1st / 2nd; one Ride row per bus; a bus that changes keeps both buses with Change minutes and no change stop or live fit; A2 takes the catchable bus that reaches the place first for Leave in, status and medal, and shows every other bus faded with a number + minutes tag (colliding tags take two rows above the buses or one under, then merge); S3 pills wrap and the row grows.
+- 2026-11-18: TimeField keeps `max(176 s, 142)` with the widest time "10:00 am" (116) and 13 clear, so the 11" G1 times row stays one row (user); G6 "To school" → "Going", G6 values on the 192 control line (user).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -208,7 +209,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - **Part floors: one rule set for every iPad**. Build it once in DesignSystem as one `Sizing` helper per part; no screen sets its own sizes.
     - **Ground rules.**
       - **13" is the board.** At s = 1 every formula below gives the board value back; a floor never changes the 13" look.
-      - **Measure, don't guess.** Minimum widths come from the text measured in Playpen Sans at its type floor, not from rounded numbers. Measured at 24 pt: "12:45 pm" medium 110; "Preschool" medium 113, bold 117; "Off days" bold 104. The layout test measures the same way.
+      - **Measure, don't guess.** Minimum widths come from the text measured in Playpen Sans at its type floor, not from rounded numbers. Measured at 24 pt: "10:00 am" (the widest time) medium 116; "Preschool" medium 113, bold 117; "Off days" bold 104. The layout test measures the same way.
     - **Three kinds of value.**
       - Free × s: region frames and positions, gaps between regions, and drawings that are not controls (clock R and hub, the way strip, kid home art).
       - Floored, `max(ref × s, floor)`: every control's drawn box, the type ramp, the spacing tokens, every card inset.
@@ -221,7 +222,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - [open] Larger primary targets on the youngest kid's screens.
     - **Control floors, grown-up**:
       - `CrayonField`, `FieldButton`: `max(80 s, 64)` tall; width `max(200 s, measured text + both paddings)` unless the board sets one.
-      - `TimeField`: as `FieldButton`; width `max(176 s, 142)` (110 + 2 × 16).
+      - `TimeField`: as `FieldButton`; width `max(176 s, 142)` (the widest time "10:00 am" 116 + 2 × 13).
       - `InkButton`: 96 → `max(96 s, 72)`; 80 → `max(80 s, 64)`; the 72 `CardButton` → `max(72 s, 56)`.
       - `CrayonTabs`, `PillToggle`, `DayChip`: `max(72 s, 56)` tall (header row: see below).
       - **Header row** (user, 2026-11-15): every text control in a grown-up header (kid tabs, CrayonTabs such as List, pills such as Settings, header text buttons) is **72 tall on every iPad**, fixed, all the same height. Widths stay `max(board width × s, content + 2 × 16)`. A kid tab holds its `KidFace` at 40 with at least 10 clear above and below the drawn box (72 − 12 inset = 60 = 40 + 2 × 10). The ← `RoundButton` keeps its own floor and is centred on the same header line.
@@ -244,7 +245,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - pencil and sky switch: `max(96 s, 72)` tall;
       - `TimeLeft` compact: `max(72 s, 56)`.
     - **Padding (floored).**
-      - Text to a control's drawn edge: `fluid(24, 16)` for leading text (fields, `FieldButton`, `InkButton`). Centred text in a control whose width comes from a formula (`TimeField`, tabs, pills) adds no padding: the width formula holds, and the text only needs at least 16 clear on each side.
+      - Text to a control's drawn edge: `fluid(24, 16)` for leading text (fields, `FieldButton`, `InkButton`). Centred text in a control whose width comes from a formula (`TimeField`, tabs, pills) adds no padding: the width formula holds, and the text only needs at least 16 clear on each side (13 in a `TimeField`, so the G1 times row stays one row on the 11").
       - Card padding: 32 fixed for the main form card and overlay cards; `max(24 s, 16)` for nested cards (**Layout balance**).
       - Label → control gap: 16 to the drawn box, fixed (inside the label column).
       - Paired controls (time → time, "latest"): gap `fluid(16, 12)` on each side of the joiner; the "→" joiner `fluid(40, 24)`.
@@ -895,7 +896,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - **G3 · This day**: Days, Runs and holidays hidden; side column "{Day d Mon} only" and "Skip this day". This day keeps any change on the form for that day only, name and picture included (built, 6c). "Next {weekday}" in G5 is the first day after today that is one of the new series' weekdays (built).
 - **G4 · Edit School**: School (name ›), When, Days, Arrive + latest, **Terms**, Going, Bring, Medal (on). Side column: tabs, "Every school day". Changing the school itself is G7. **Where each row goes** (2026-11-14, user: no new screens): School › → G7; When, Days, Arrive edit on the G4 form itself (time fields, day chips, the S2 Arrive / latest pair, as on S2); Terms › → the S2 term rows (MOE calendar switch and the term list) shown in the G4 form card; Going › → the S3 screen for this school's trip (stop, buses, walk, ride), opened from Settings with "←" back to G4; Bring › → F2.
 - **G5 · From when?**: the small card on Save in All days ("Today" / "Next {weekday}" / "Date", one caption when changed days no longer fit, Save / Cancel).
-- **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face: the row shows the face and its colour; label "Face"), School (School, Hours, Terms; a kid at home shows only "School · At home ›" → G7, and while a change waits "From {d Mon} · {new place} ›"; built PR #98), Getting there (To school, Home), Routines (Missions). **Family tab** (board G6f, 2026-11-14): "This iPad" — Grown-up lock and Medals switches (the S4 rows; Live bus times was dropped, user); "Children" — one row per kid (face 48, name bold, "{age} · {place}", "›" → that kid's tab), then "+ Add a child" (→ the S1 kid card for one new kid, up to 4). Foot as on the kid tabs: "School lists · {d Mon}" and "Data sources".
+- **G6 · Settings** (replaces C1): tabs per kid + "Family". Kid tab: About (Age, Face: the row shows the face and its colour; label "Face"), School (School, Hours, Terms; a kid at home shows only "School · At home ›" → G7, and while a change waits "From {d Mon} · {new place} ›"; built PR #98), Getting there (Going, Home), Routines (Missions). Label + value rows use the shared lines: label 78, value on the control line 192, "›" ending drawn on 802. **Family tab** (board G6f, 2026-11-14): "This iPad" — Grown-up lock and Medals switches (the S4 rows; Live bus times was dropped, user); "Children" — one row per kid (face 48, name bold, "{age} · {place}", "›" → that kid's tab), then "+ Add a child" (→ the S1 kid card for one new kid, up to 4). Foot as on the kid tabs: "School lists · {d Mon}" and "Data sources".
 - **G7 · Change school**: "Starts on" card ("Next term" / "Date"); then S3 for the new trip; pending row and cancel as in "Where the kid goes changes".
 - Night: grown-up screens follow the iPad's dark mode through the night mapping table.
 
@@ -973,7 +974,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   - "Hours" → "{start} – {end}" in "h:mm am" form.
   - "Holidays" → "Term {n} ends {Day d Mon}" or "No holidays set", "›" → C7 (later; hidden in M2).
 - **Getting there** (a section; built, PR 38):
-  - "To school" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2. The built row is plainer; the board's richer rows are ahead of the build.
+  - "Going" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2. The built row is plainer; the board's richer rows are ahead of the build.
   - "Home time" → "{h:mm} · pick-up at the gate", "›" → C2.
 - **More** (board, 2026-11-08; in the side column, under "Add every week" and "Just once"): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
 
