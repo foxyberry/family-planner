@@ -5,6 +5,8 @@ import DesignSystem
 import Domain
 import Foundation
 import HolidayProvider
+import KitArt
+import Localization
 import ScheduleStore
 import SchoolDirectory
 import Strings
@@ -65,6 +67,8 @@ public struct HomeFeature {
         public var minute = 0
         /// One entry per kid, in the order the store keeps them. Empty when nothing could be loaded.
         public var days: [KidDay] = []
+        /// Every word this screen shows comes from here (views hold no values).
+        public var strings = Localizer.injected
 
         public init() {}
 
@@ -115,7 +119,7 @@ public struct HomeFeature {
         /// weekday school holiday.
         public var dayHeading: String? {
             guard let dayName else { return nil }
-            return isSchoolHoliday ? L10n.tr("home.day.holiday", dayName) : dayName
+            return isSchoolHoliday ? strings.tr("home.day.holiday", dayName) : dayName
         }
 
         /// Every kid's items today, for the missions and Bring of their outings.
@@ -139,13 +143,13 @@ public struct HomeFeature {
         /// The button's label (spec "Home button label per window"): "Missions", "Before Swimming"; a
         /// name too long for one line falls back to "Missions".
         public var missionsTitle: String {
-            guard let open = openWindow else { return L10n.tr("home.missions") }
+            guard let open = openWindow else { return strings.tr("home.missions") }
             let label: String
             switch open.part {
-            case let .before(event): label = L10n.tr("home.missions.before", title(of: event, in: open.day))
-            case .morning, .evening: return L10n.tr("home.missions")
+            case let .before(event): label = strings.tr("home.missions.before", title(of: event, in: open.day))
+            case .morning, .evening: return strings.tr("home.missions")
             }
-            return label.count <= Self.longestMissionsTitle ? label : L10n.tr("home.missions")
+            return label.count <= Self.longestMissionsTitle ? label : strings.tr("home.missions")
         }
 
         /// The most characters that fit the 382 button with its arrow in head type.
@@ -163,7 +167,7 @@ public struct HomeFeature {
         }
 
         /// "Leave in" (spec A1m, v132): the countdown runs to the outing's leave time.
-        public var outingHeading: String? { morningOuting.map { _ in L10n.tr("missions.leave_in") } }
+        public var outingHeading: String? { morningOuting.map { _ in strings.tr("missions.leave_in") } }
 
         /// Minutes until Kid A leaves: to the chosen bus with live times, else to start − leave before.
         public var minutesToLeave: Int? {
@@ -189,9 +193,9 @@ public struct HomeFeature {
         /// The status under the minutes, only with live times: "On time", "Leave now!", "Ask a grown-up".
         public var status: (text: String, tone: StatusDot.Tone)? {
             switch live?.status {
-            case .onTime?: (L10n.tr("missions.status.on_time"), .onTime)
-            case .leaveNow?: (L10n.tr("missions.status.leave_now"), .hurry)
-            case .askGrownup?: (L10n.tr("missions.status.ask"), .quiet)
+            case .onTime?: (strings.tr("missions.status.on_time"), .onTime)
+            case .leaveNow?: (strings.tr("missions.status.leave_now"), .hurry)
+            case .askGrownup?: (strings.tr("missions.status.ask"), .quiet)
             case nil: nil
             }
         }
@@ -200,7 +204,7 @@ public struct HomeFeature {
         var wantsLive: Bool { morningOuting?.trip.way == .bus && busPlan != nil }
 
         /// The switch's VoiceOver label: "Day. Tap for night." / "Night. Tap for day.".
-        public var skySwitchLabel: String { look == .day ? L10n.tr("home.sky.day") : L10n.tr("home.sky.night") }
+        public var skySwitchLabel: String { look == .day ? strings.tr("home.sky.day") : strings.tr("home.sky.night") }
 
         public var kidABlock: KidABlock {
             guard let first = days.first else { return .nothing }
@@ -228,6 +232,51 @@ public struct HomeFeature {
             guard days.count == 1, kidABlock == .leave, let first = days.first else { return nil }
             return HomeModel.next(first.slots, minute: minute)
         }
+
+        // MARK: What the view shows (it holds no values of its own)
+
+        /// Kid A's slots, drawn on the clock (none before the family loads).
+        public var clockSlots: [Slot] { days.first?.slots ?? [] }
+        public var clockSectors: [ClockSector] { HomeModel.sectors(clockSlots, minute: minute) }
+        public var clockHub: PieClock.Hub { HomeModel.hub(clockSlots, minute: minute) }
+        /// The hand, only when there is a day to point into.
+        public var clockHand: Int? { clockSlots.isEmpty ? nil : minute }
+        public var clockAccessibilityLabel: String {
+            HomeModel.accessibilityLabel(kidName: days.first?.kid.name ?? "", day: dayName ?? "", slots: clockSlots,
+                                         minute: minute)
+        }
+
+        /// A1 / A1m: "Leave in" over the minutes to leave, while Kid A's outing is near.
+        public var leaveTimeLeft: HomeModel.TimeLeft? {
+            guard let heading = outingHeading, let minutes = minutesToLeave else { return nil }
+            return HomeModel.TimeLeft(label: heading, minutes: minutes)
+        }
+
+        /// The second kid's now and next pictures (boards A1, A1m); play while nothing is on now.
+        public struct KidBRow: Equatable, Sendable {
+            public var kid: Kid
+            public var now: KitSlot
+            public var next: KitSlot?
+        }
+
+        public var kidB: KidBRow? {
+            guard days.count > 1 else { return nil }
+            let now = DayPlanner.now(at: minute, in: days[1].slots)
+            return KidBRow(kid: days[1].kid, now: now.current.map { KitSlot(iconName: $0.iconName) } ?? .actPlay,
+                           next: now.next.map { KitSlot(iconName: $0.iconName) })
+        }
+
+        /// Kid B's captions under the circles.
+        public var kidNowCaption: String { strings.tr("kid.now") }
+        public var kidNextCaption: String { strings.tr("kid.next") }
+
+        /// A1 / A1m: the way picture beside "Leave in" (the bus, the car, ...).
+        public var leavePicture: KitSlot? { morningOuting.map { KitSlot(iconName: $0.trip.way.moverPicture) } }
+
+        /// Board G0: the pencil's VoiceOver label.
+        public var grownupLabel: String { strings.tr("home.grownup") }
+        /// The caption over the Next row.
+        public var nextLabel: String { strings.tr("home.next") }
     }
 
     public enum Action: Equatable {

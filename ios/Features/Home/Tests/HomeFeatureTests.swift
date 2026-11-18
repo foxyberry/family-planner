@@ -6,6 +6,8 @@ import Domain
 import Foundation
 import HolidayProvider
 import Home
+import KitArt
+import Localization
 import ScheduleStore
 import SchoolDirectory
 import XCTest
@@ -67,6 +69,49 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.today, wednesday)
         XCTAssertEqual(store.state.minute, 945)
         XCTAssertTrue(store.state.days.first?.slots.contains { $0.title == "Swimming" } ?? false)
+    }
+
+    /// Views hold no values: Kid B's pictures, the leave countdown and the clock come from State.
+    func testTheViewReadsKidBAndTheCountdownFromState() async {
+        let store = store(on: tuesday, minute: 412)   // 6:52 am, Kid A leaves at 7:25
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.leaveTimeLeft, HomeModel.TimeLeft(label: "Leave in", minutes: 33))
+        let kidB = store.state.kidB
+        XCTAssertEqual(kidB?.kid, store.state.days[1].kid)
+        let now = DayPlanner.now(at: 412, in: store.state.days[1].slots)
+        XCTAssertEqual(kidB?.now, now.current.map { KitSlot(iconName: $0.iconName) } ?? .actPlay)
+        XCTAssertEqual(kidB?.next, now.next.map { KitSlot(iconName: $0.iconName) })
+        XCTAssertEqual(store.state.leavePicture, .busDouble)
+        XCTAssertEqual(store.state.kidNowCaption, "now")
+        XCTAssertEqual(store.state.clockHand, 412)
+        XCTAssertFalse(store.state.clockSectors.isEmpty)
+        XCTAssertEqual(store.state.grownupLabel, "Grown-up mode")
+
+        let empty = HomeFeature.State()
+        XCTAssertNil(empty.kidB)
+        XCTAssertNil(empty.leaveTimeLeft)
+        XCTAssertNil(empty.clockHand)
+        XCTAssertNil(empty.leavePicture)
+    }
+
+    /// Kid B with nothing on now shows the play picture.
+    func testKidBWithNothingNowShowsPlay() {
+        var state = HomeFeature.State()
+        let kid = SeedData.kidB
+        state.days = [HomeFeature.KidDay(kid: SeedData.kidA, dayType: .weekday, slots: []),
+                      HomeFeature.KidDay(kid: kid, dayType: .weekday, slots: [])]
+        XCTAssertEqual(state.kidB?.kid, kid)
+        XCTAssertEqual(state.kidB?.now, .actPlay)
+        XCTAssertNil(state.kidB?.next)
+    }
+
+    /// The copy comes from the injected localizer: a test can check the keys.
+    func testCopyComesFromTheInjectedLocalizer() {
+        let state = withDependencies { $0.localizer = .keys } operation: { HomeFeature.State() }
+        XCTAssertEqual(state.grownupLabel, "home.grownup")
+        XCTAssertEqual(state.nextLabel, "home.next")
+        XCTAssertEqual(state.missionsTitle, "home.missions")
     }
 
     /// The day name follows the app's calendar: just after midnight in Singapore it is already Saturday,

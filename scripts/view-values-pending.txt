@@ -3,7 +3,6 @@
 ios/AppCore/AppView.swift
 ios/CrayonKit/CrayonSurface.swift
 ios/DesignSystem/Clock/PieClock.swift
-ios/DesignSystem/Content/KidNowNext.swift
 ios/DesignSystem/Content/KidParts.swift
 ios/DesignSystem/Content/LeagueProgress.swift
 ios/DesignSystem/Content/ListRow.swift
@@ -38,6 +37,5 @@ ios/Features/Grownup/OurDayView.swift
 ios/Features/Grownup/SchoolEditorView.swift
 ios/Features/Grownup/SettingsView.swift
 ios/Features/Grownup/StopSearchField.swift
-ios/Features/Home/HomeView.swift
 ios/Features/Missions/MissionsView.swift
 ios/Features/Setup/SetupView.swift
