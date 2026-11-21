@@ -4,6 +4,7 @@ import CoreGraphics
 import Foundation
 import Domain
 import ParentAuthClient
+import ScheduleStore
 import XCTest
 
 final class TimeTravelTests: XCTestCase {
@@ -233,17 +234,64 @@ final class DebugModelTests: XCTestCase {
 
 @MainActor
 final class DebugInstallTests: XCTestCase {
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Singapore")!
+        return calendar
+    }
+
     private func installed(outcome: ParentAuthOutcome, arguments: [String] = ["App"],
-                           allowsSkipFaceID: Bool = true) throws -> DependencyValues {
+                           allowsSkipFaceID: Bool = true, allowsStartFamily: Bool = true,
+                           store: ScheduleStore? = nil) throws -> DependencyValues {
         let suite = "fp.debug.tests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         var dependencies = DependencyValues()
         dependencies.calendar = Calendar(identifier: .gregorian)
         dependencies.parentAuth.authenticate = { _ in outcome }
+        if let store { dependencies.scheduleStore = store }
         DebugModel.install(into: &dependencies, arguments: arguments, defaults: defaults,
-                           allowsSkipFaceID: allowsSkipFaceID)
+                           allowsSkipFaceID: allowsSkipFaceID, allowsStartFamily: allowsStartFamily)
         return dependencies
+    }
+
+    /// A store holding one family in memory, as the Live store keeps it.
+    private func memoryStore(_ start: ScheduleSnapshot) -> (ScheduleStore, LockIsolated<ScheduleSnapshot>) {
+        let family = LockIsolated(start)
+        var store = ScheduleStore.testValue
+        store.load = { family.value }
+        store.replaceFamily = { new in family.setValue(new) }
+        return (store, family)
+    }
+
+    func testStartFamilyFlag() {
+        XCTAssertEqual(LaunchOptions(arguments: ["App", "-fpFamily", "sample"], calendar: calendar).family, .sample)
+        XCTAssertEqual(LaunchOptions(arguments: ["App", "-fpFamily", "empty"], calendar: calendar).family, .empty)
+        XCTAssertNil(LaunchOptions(arguments: ["App", "-fpFamily", "nobody"], calendar: calendar).family)
+        XCTAssertNil(LaunchOptions(arguments: ["App"], calendar: calendar).family)
+    }
+
+    /// UI tests start from a known family: the first load already sees it.
+    func testStartFamilyReplacesTheStoreBeforeTheFirstLoad() async throws {
+        let (store, _) = memoryStore(ScheduleSnapshot(kids: [], routines: [], items: []))
+        let sample = try installed(outcome: .success, arguments: ["App", "-fpFamily", "sample"], store: store)
+        let loaded = try await sample.scheduleStore.load()
+        XCTAssertEqual(loaded.kids.map(\.name), ["Kid A", "Kid B"])
+
+        let (full, _) = memoryStore(.sampleFamily(today: Day(year: 2026, month: 11, day: 10), calendar: calendar))
+        let empty = try installed(outcome: .success, arguments: ["App", "-fpFamily", "empty"], store: full)
+        let none = try await empty.scheduleStore.load()
+        XCTAssertTrue(none.kids.isEmpty)
+    }
+
+    /// On a real iPad the flag would wipe the family, so it does nothing there.
+    func testStartFamilyIsIgnoredOnADevice() async throws {
+        let (store, family) = memoryStore(.sampleFamily(today: Day(year: 2026, month: 11, day: 10), calendar: calendar))
+        let dependencies = try installed(outcome: .success, arguments: ["App", "-fpFamily", "empty"],
+                                         allowsStartFamily: false, store: store)
+        let loaded = try await dependencies.scheduleStore.load()
+        XCTAssertEqual(loaded.kids.count, 2)
+        XCTAssertEqual(family.value.kids.count, 2)
     }
 
     func testSkipFlagOpensWithoutFaceID() async throws {

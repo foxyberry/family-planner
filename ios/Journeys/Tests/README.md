@@ -27,6 +27,18 @@ A new screen or flow adds or extends a journey (`tca-feature`). `scripts/check-j
 when journey code names neither a reducer's type nor its case (`.home`, `.changeBuses`); reducers
 not reached yet are in `scripts/journeys-pending.txt`, which only shrinks.
 
+## The UI layer
+`UI/` holds the thin XCUITests (`make ui-test`, tags `ui` and `manual`, outside `make test`,
+pre-push and CI). They drive the debug app on the simulator, only for what State can't show: the
+real 2 s hold, the keyboard moving between fields. Each test starts the app the way `WorldData`
+starts a journey, with DebugTools launch flags (`TestApp.launch`):
+- `-fpNow 2026-11-10T07:30`: the same pinned time;
+- `-fpFamily empty|sample`: the family the store starts with (simulators only);
+- `-fpSkipFaceID`: the hold alone opens the grown-up screens.
+
+Find parts by the words a person sees (`app.buttons["Next"]`) or a picture's slot name
+(`kidGirl`). Wait for focus before typing.
+
 ## Later
 Two pieces will join this folder:
 - the agent driver's protocol, written down as platform-neutral JSON: `ls` gives the screen, its

@@ -51,6 +51,7 @@ ios_application(
     }),
     visibility = [
         "//:__pkg__",
+        "//ios/Journeys/Tests/UI:__pkg__",
         "@rules_xcodeproj//xcodeproj:generated",
     ],
     deps = [":FamilyPlannerApp"],

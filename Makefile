@@ -21,7 +21,7 @@ OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one test-affected snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one test-affected ui-test snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios board
 
 # =============================================================================
@@ -79,11 +79,11 @@ BOOTED_DEV_SIMS = $(shell xcrun simctl list devices booted -j 2>/dev/null \
 stop-dev-sims:
 	@for udid in $(BOOTED_DEV_SIMS); do echo "shutting down simulator $$udid"; xcrun simctl shutdown "$$udid"; done
 
-# Every test except the snapshot pictures (tag "snapshot"); CI runs the same set.
+# Every test except the snapshot pictures (tag "snapshot") and the UI tests (tag "ui").
 # Extra Bazel flags: make test TEST_ARGS=--nocache_test_results (re-runs every test).
 # Run `make snapshots` whenever you change DesignSystem, KitArt or a screen.
 test: stop-dev-sims
-	$(IOS_BAZEL) test $(PUBLIC_FLAGS) //ios/... --test_tag_filters=-snapshot $(TEST_ARGS) \
+	$(IOS_BAZEL) test $(PUBLIC_FLAGS) //ios/... --test_tag_filters=-snapshot,-ui $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
@@ -115,6 +115,14 @@ snapshots-record: stop-dev-sims
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)" || true
 	@ls ios/DesignSystem/SnapshotTests/__Snapshots__ | wc -l | xargs echo "baselines:"
+
+# The thin UI tests (tag "ui"): the debug app on the simulator, for what journeys can't show.
+# Slow, so not in make test, pre-push or CI.
+UI_TEST_TARGET := //ios/Journeys/Tests/UI:UITests
+ui-test: stop-dev-sims
+	$(IOS_BAZEL) test $(PUBLIC_FLAGS) $(UI_TEST_TARGET) $(TEST_ARGS) \
+	  --ios_simulator_device="$(SIM_DEVICE)" \
+	  --ios_simulator_version="$(SIM_OS)"
 
 # Give the Simulator's memory back when you are done looking.
 sim-stop:

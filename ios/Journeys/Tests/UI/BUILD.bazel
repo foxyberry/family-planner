@@ -1,0 +1,24 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_ui_test")
+load("//:project.bzl", "APP_NAME", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# The thin UI layer over the journeys (README.md): only what State can't show (the real 2 s hold,
+# keyboard focus, sheets, scrolling). It drives the debug app on the simulator, so it is slow and
+# stays out of `make test`, pre-push and CI (tags `ui` and `manual`): run it with `make ui-test`.
+fp_swift_library(
+    name = "UITestsLib",
+    testonly = True,
+)
+
+ios_ui_test(
+    name = "UITests",
+    bundle_id = BUNDLE_ID + ".ui.tests",
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    tags = [
+        "manual",
+        "ui",
+    ],
+    test_host = "//ios:" + APP_NAME,
+    deps = [":UITestsLib"],
+)
