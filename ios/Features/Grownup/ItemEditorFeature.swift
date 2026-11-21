@@ -100,6 +100,9 @@ public struct ItemEditorFeature {
         /// The pictures offered under "What" (the kit's activity pictures), in the popover's order.
         public static let pictures: [KitSlot] = [.actSwim, .actArt, .actMusic, .actPiano, .actDance, .actFootball,
                                                  .actStory, .actCCA, .actPlay, .homework, .doctor, .cake]
+        /// Spec C3 "What" (N15): the country flags after the pictures in "More", in kit order (0d3),
+        /// so a weekend school can wear its country's flag.
+        public static let flags: [KitSlot] = [.flagKR, .flagJP, .flagCN, .flagUK, .flagFR, .flagIN, .flagTH, .flagVN]
 
         /// Board C3 "What" row: the picked picture first, then the pictures this kid's items use most,
         /// then the kit's list; five slots (the sixth is "More").

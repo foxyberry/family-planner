@@ -225,7 +225,7 @@ public struct OurDayView: View {
                 PictureRow(slots: store.newSlicePictures,
                            selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
-                           all: OurDayFeature.pictures, isShowingAll: slice.isPickingMore,
+                           all: OurDayFeature.pictures, flags: ItemEditorFeature.State.flags, isShowingAll: slice.isPickingMore,
                            moreTitle: L10n.tr("picker.more"), columns: 4) {
                     store.send(.newSliceMoreTapped)
                 }

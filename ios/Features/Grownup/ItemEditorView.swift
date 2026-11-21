@@ -108,7 +108,8 @@ public struct ItemEditorView: View {
                 PictureRow(slots: store.whatRow.compactMap(KitSlot.init(rawValue:)),
                            selection: Binding(get: { store.form.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.picturePicked(slot.rawValue)) } }),
-                           all: ItemEditorFeature.State.pictures, isShowingAll: store.isPickingMorePictures,
+                           all: ItemEditorFeature.State.pictures, flags: ItemEditorFeature.State.flags,
+                           isShowingAll: store.isPickingMorePictures,
                            moreTitle: L10n.tr("picker.more")) {
                     store.send(.morePicturesTapped)
                 }
