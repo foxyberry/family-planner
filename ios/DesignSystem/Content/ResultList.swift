@@ -75,7 +75,7 @@ public struct ResultListCard: View {
         // Every row's height; the card shows `visibleRows` (or `fitHeight`) of it and scrolls the rest.
         let full = isCompact ? CGFloat(rows.count) * (rowHeight + 2) - 2 + 2 * padding
             : Self.height(rows: rows.count, visible: rows.count)
-        let height = fitHeight.map { min($0, full) } ?? Self.height(rows: rows.count, visible: visibleRows)
+        let height = if let fitHeight { min(fitHeight, full) } else { Self.height(rows: rows.count, visible: visibleRows) }
         Group {
             if height < full {
                 ScrollView(.vertical) { list }.scrollIndicators(.visible)

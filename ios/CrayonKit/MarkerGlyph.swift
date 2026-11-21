@@ -8,6 +8,9 @@ public enum MarkerGlyph: String, CaseIterable, Sendable {
     /// yellow crayon body: `LockMark`). New cases go last: the order seeds them.
     case chevronLeft, chevronRight, arrowRight, plus, minus, handle, lock, close, undo, redo, chevronDown
 
+    /// The case's place in `allCases`: seeds its strokes, so `MarkerIcon` and inline glyphs match.
+    public var seedIndex: Int { MarkerGlyph.allCases.firstIndex(of: self) ?? 0 }
+
     /// The strokes in the 48 box (spec paths).
     public var strokes: [[CGPoint]] {
         switch self {

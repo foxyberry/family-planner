@@ -34,11 +34,16 @@ public struct FieldButton: View {
                 // centred and adds no padding (it keeps 16 clear); without one the field is 200 × s
                 // (200 on the 13"), never narrower than its text + fluid(24, 16) on each side.
                 .padding(.horizontal, width == nil ? sizing.textPadding : 0)
-                .frame(minWidth: width ?? 200 * sizing.s, maxWidth: width, minHeight: sizing.fieldHeight)
+                .frame(minWidth: minWidth, maxWidth: width, minHeight: sizing.fieldHeight)
                 .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,
                                 markerColor: isActive ? CrayonColor.pickBlue : hasProblem ? CrayonColor.lateText : CrayonColor.outline)
         }
         .buttonStyle(.plain)
+    }
+
+    /// The fixed `width`, else 200 × s.
+    private var minWidth: CGFloat {
+        if let width { width } else { 200 * sizing.s }
     }
 }
 

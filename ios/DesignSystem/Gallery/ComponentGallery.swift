@@ -111,8 +111,8 @@ public struct ComponentGallery: View {
                     PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: $choice, anchor: 0.3)
                         .frame(width: 360)
                     LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
-                                   nextName: "Double-Decker")
-                    VoiceNote(duration: .seconds(12), isPlaying: false) {}
+                                   remaining: "12 more Go! days to the Double-Decker")
+                    VoiceNote(duration: .seconds(12), isPlaying: false, label: "Play") {}
                     HStack(spacing: Spacing.m) {
                         Medal(.gold, size: 104)
                         Medal(.silver, size: 104)

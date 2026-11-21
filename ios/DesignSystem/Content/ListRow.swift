@@ -28,11 +28,16 @@ public struct ListRow<Content: View>: View {
             // label (spec "Label column").
             Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
                 .lineLimit(1)
-                .frame(width: formLabelWidth ?? 120, height: labelHeight, alignment: .leading)
+                .frame(width: labelWidth, height: labelHeight, alignment: .leading)
             content.crayonType(.body).frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minHeight: minHeight)
         .padding(.horizontal, formLabelWidth == nil ? Spacing.m : 0)
+    }
+
+    /// The form's label column; outside a grown-up form, 120.
+    private var labelWidth: CGFloat {
+        if let formLabelWidth { formLabelWidth } else { 120 }
     }
 }
 
@@ -123,6 +128,11 @@ public struct FormLabelColumn<Content: View>: View {
     }
 
     public var body: some View {
-        content.frame(width: formLabelWidth ?? 120 + Spacing.m, alignment: .leading)
+        content.frame(width: columnWidth, alignment: .leading)
+    }
+
+    /// The form's label column; outside a grown-up form, 120 plus the 24 gap.
+    private var columnWidth: CGFloat {
+        if let formLabelWidth { formLabelWidth } else { 120 + Spacing.m }
     }
 }

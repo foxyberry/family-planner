@@ -175,3 +175,13 @@ public enum DayText {
         }
     }
 }
+
+/// The bus league's words (spec "Leagues").
+public enum LeagueText {
+    /// "12 more Go! days to the Double-Decker"; "Next stop: …" once the goal is reached.
+    public static func remaining(done: Int, goal: Int, nextName: String) -> String {
+        let left = max(goal - done, 0)
+        guard left > 0 else { return L10n.tr("league.next_stop", nextName) }
+        return left == 1 ? L10n.tr("league.left.one", left, nextName) : L10n.tr("league.left.other", left, nextName)
+    }
+}

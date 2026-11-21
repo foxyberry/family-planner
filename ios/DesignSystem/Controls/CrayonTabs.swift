@@ -64,10 +64,10 @@ public struct CrayonTabs<ID: Hashable>: View {
                     .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
                     // Spec "Part floors": text 24 from a tab's edge, never under 16.
                     .padding(.horizontal, itemSize == nil && widths == nil && !fills ? min(inset, sizing.textPadding) : 0)
-                    .frame(width: widths.flatMap { $0.indices.contains(index) ? $0[index] : nil } ?? itemSize?.width)
+                    .frame(width: width(at: index))
                     .frame(maxWidth: fills ? .infinity : nil)
                     // Spec "Part floors": 72 × s, never under 56.
-                    .frame(minHeight: isHeaderRow ? Sizing.headerControlHeight : sizing.tabHeight(itemSize?.height ?? 72))
+                    .frame(minHeight: isHeaderRow ? Sizing.headerControlHeight : sizing.tabHeight(baseHeight))
                     .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }
@@ -77,6 +77,17 @@ public struct CrayonTabs<ID: Hashable>: View {
             }
         }
     }
+
+    /// A tab's fixed width: its own from `widths`, else `itemSize`'s; nil hugs the label.
+    private func width(at index: Int) -> CGFloat? {
+        if let widths, widths.indices.contains(index) { return widths[index] }
+        return itemSize?.width
+    }
+
+    /// The tab height before `Sizing` scales it: `itemSize`'s, else the board's 72.
+    private var baseHeight: CGFloat {
+        if let itemSize { itemSize.height } else { 72 }
+    }
 }
 
 /// Tabs left to right, `spacing` apart; a tab that would pass the proposed width starts a new row
@@ -85,8 +96,9 @@ struct TabFlow: Layout {
     let spacing: CGFloat
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let rows = rows(width: proposal.width ?? .infinity, subviews: subviews)
-        let width = rows.map(\.width).max() ?? 0
+        let available: CGFloat = if let width = proposal.width { width } else { .infinity }
+        let rows = rows(width: available, subviews: subviews)
+        let width: CGFloat = rows.map(\.width).reduce(0, max)
         let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
         return CGSize(width: width, height: height)
     }

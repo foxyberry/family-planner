@@ -232,10 +232,10 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testLeagueProgress() {
         snap(LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
-                            nextName: "Double-Decker"), width: Self.rowWidth)
+                            remaining: "12 more Go! days to the Double-Decker"), width: Self.rowWidth)
     }
 
-    func testVoiceNote() { snap(VoiceNote(duration: .seconds(12), isPlaying: false) {}) }
+    func testVoiceNote() { snap(VoiceNote(duration: .seconds(12), isPlaying: false, label: "Play") {}) }
 
     func testMedalsAndFaces() {
         snap(HStack(spacing: Spacing.m) {

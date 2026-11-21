@@ -18,8 +18,12 @@ public struct PaperCard<Content: View>: View {
 
     public var body: some View {
         content
-            .padding(padding ?? environmentPadding)
+            .padding(insets)
             .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                               seed: CrayonStyle.Seed.card + seed)
+    }
+
+    private var insets: EdgeInsets {
+        if let padding { padding } else { environmentPadding }
     }
 }

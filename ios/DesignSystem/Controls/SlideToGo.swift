@@ -112,8 +112,9 @@ public struct SlideToGo: View {
     /// (board A3r). Reduce Motion: still.
     @ViewBuilder private func handle(roll: CGFloat) -> some View {
         let prize = isDone ? doneKnob : nil
+        let picture = if let prize { prize } else { knob }
         // Board A2: the picture (60) on a white paper disc (74); the done prize keeps its own look.
-        RollingKitIcon(prize ?? knob, size: prize == nil ? 60 : handleSize, roll: roll, isHeld: isHeld)
+        RollingKitIcon(picture, size: prize == nil ? 60 : handleSize, roll: roll, isHeld: isHeld)
             .frame(width: handleSize, height: handleSize)
             .background {
                 if prize == nil {

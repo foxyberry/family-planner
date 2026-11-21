@@ -94,9 +94,15 @@ public struct RoundButton: View {
             .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
                             seed: CrayonStyle.Seed.roundButton,
                             markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)
-            .contentShape(Rectangle().inset(by: -max(0, ((touch ?? drawn) - drawn) / 2)))
+            .contentShape(Rectangle().inset(by: -touchOutset(drawn: drawn)))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+    }
+
+    /// How far the touch area reaches past the drawn circle on each side (0 without `touch(_:)`).
+    private func touchOutset(drawn: CGFloat) -> CGFloat {
+        guard let touch else { return 0 }
+        return max(0, (touch - drawn) / 2)
     }
 }
