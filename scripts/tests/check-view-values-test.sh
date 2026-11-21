@@ -51,6 +51,25 @@ test_finds_views_outside_view_files() {
   assert test_finds_views_outside_view_files $?
 }
 
+test_blocks_state_ternaries_in_screens() {
+  new_tree
+  printf 'Row().padding(.bottom, store.thenCaption == nil ? -inset : 0)\n' > "$TREE/ios/Features/Home/AView.swift"
+  printf 'Button("x").opacity(store.canUndo ? 1 : 0.45)\n' > "$TREE/ios/Features/Home/BView.swift"
+  run_check
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"AView.swift:1"* ]] && [[ "$ERR" == *"BView.swift:1"* ]]
+  assert test_blocks_state_ternaries_in_screens $?
+}
+
+test_parts_may_branch_on_their_own_options() {
+  new_tree
+  mkdir -p "$TREE/ios/DesignSystem/Content"
+  printf 'HStack(spacing: width == nil ? Spacing.m : 0) {}\n' > "$TREE/ios/DesignSystem/Content/Row.swift"
+  printf 'Text(store.title).foregroundStyle(store.item?.tint)\n' > "$TREE/ios/Features/Home/HomeView.swift"
+  run_check
+  [ "$CODE" -eq 0 ]
+  assert test_parts_may_branch_on_their_own_options $?
+}
+
 test_state_and_models_may_look_copy_up() {
   new_tree
   printf 'extension HomeFeature.State {\n    var title: String { strings.tr("home.title") }\n    var n: Int { x ?? 0 }\n}\n' \
@@ -107,6 +126,8 @@ test_pending_only_shrinks() {
 test_blocks_copy_lookup_in_a_view
 test_blocks_fallbacks_and_placeholders
 test_finds_views_outside_view_files
+test_blocks_state_ternaries_in_screens
+test_parts_may_branch_on_their_own_options
 test_state_and_models_may_look_copy_up
 test_parts_get_every_rule_layout_the_copy_rule
 test_exempt_places_and_comments
