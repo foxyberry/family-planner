@@ -1,6 +1,6 @@
 # M2 screen spec: the day and the home clock
 
-Boards: A1, E1, E3, C0, C1, C3, C4, C3k, E5, E6 (design canvas, page "v3 · Crayon").
+Boards: A1, E1, E3, C0, C3, C4, C3k, G0–G8 (design canvas, page "v3 · Crayon").
 Public-safe: children are **Kid A** (older, school) and **Kid B** (toddler, at home). No school, stop, route or bus numbers appear here. Times in examples are seed values, not real ones.
 
 ## Change log
@@ -164,6 +164,8 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-21: Our Day editing (user, after a UX pre-screen): one slice card for day slices, items and School ("Skip this day" on This day, "Remove" on All days, "Details ›" for items and School); the "+" between two slices shows on every shared knob all the time; a new slice added on the clock is a just-once item (This day) or an every-week item (All days). Moving a whole slice by long-press: later. Boards G1, G1c, G1d, G1e.
 - 2026-11-21: one touch rule (user): taps hit only what is drawn; drags grab the nearest handle; draw bigger only as the last resort. Clock knobs stay 36. Our Day build answers: overlapping "+" show only the earlier one; School's Remove opens G7 At home; monthly items confirm "every month"; the confirm sits centred; "Details ›" in body weight.
 - 2026-11-21: G1c day picker: weekdays once in a header row, chips 68 × 68 with the number only (13" check: the weekday touched the chip outline). Layout v66.
+- 2026-11-21: cleanup: layout JSON for the retired boards C1, E6, C6 and E5 removed (G6, G1 and G2 replace them); G1c gaps written out.
+- 2026-11-21: touching "+" on short slices use rings 64 / 120 / 176 in from the rim (the outermost free ring; hide only when none is free); live text no longer points at the retired C1, E6 and E5. The retired C1 and E6 sections are removed (G6 Settings replaces them).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -189,7 +191,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 - **Crayon part inset** (2026-11-09, drift sweep): every crayon outline (InkButton, RoundButton, CrayonTabs, TimeField, cards, chips) is drawn **6 pt inside its box on every side**, so the spill of the crayon stays inside and the touch area is the whole box. Some boards show extra side margins (InkButton ≈ 337 × 90 in 382 × 96, tabs ≈ 173 × 54 in 180 × 72): that is an artwork aspect artefact on the canvas, not intended; do not copy it.
 - **Text weights**: body and caption 500 (Playpen medium), labels and emphasis 700. The boards set 500 too; a heavier look there comes from the web font rendering, not from the spec.
-- **DayChip** sizes: 72 wherever the chips toggle (editors, S2 "Days", which starts from the school data), 56 (pitch 64) in read-only rows (C1 / E6 "Days"); a Days row is as tall as its chips.
+- **DayChip** sizes: 72 wherever the chips toggle (editors, S2 "Days", which starts from the school data), 56 (pitch 64) in read-only rows; a Days row is as tall as its chips.
 - **Line height is total** (boards, 2026-11-09): the type steps' line heights are the whole line box, font size × factor: title 1.15, head 1.2, body 1.25, caption 1.3 (caption 24 → 31.2 per line). Never add the factor on top of the font's own leading (that made iPad captions about 25 % taller per line than the boards).
 
 ### Grid and frame (iPad landscape 1376 × 1032 pt)
@@ -227,7 +229,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
 - **Contrast**: body and caption text 4.5 : 1 on its ground, day and night; title size and up 3 : 1 (WCAG large text); UI parts and outlines 3 : 1. No extra colour tokens just to pass: change the size class or use ink.
 
-### Grown-up form layout (every grown-up screen: C2–C5, C3k, E5, S1–S4, G1–G8, F1–F5; layout v31, 2026-11-10)
+### Grown-up form layout (every grown-up screen: C2–C5, C3k, S1–S4, G1–G8, F1–F5; layout v31, 2026-11-10)
 - Side margins 40, like home (user, 2026-11-10: the old 64 + 18 inset wasted the right side). Header 40–1336: ← at 40, the right group ends at 1336.
 - Top (layout v32, user: use the top like home): header row **44–124**, so the ← (80) sits on the same row as the home pencil (1260, 44, 80); title baseline 103. Content starts at **148** (24 below the header). Bottom stays 968.
 - Form card: `PaperCard`, x 40, w 800 (to 840), y 148–968 (h 820). The marker stroke stays 6 inside its box. Like everything else it is its board size × s on every screen (**Sizing**).
@@ -322,7 +324,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
   - "Free time" is a real template slot with no picture; it is drawn as plain paper.
 - Priority when two things share time on one kid's clock: just-once > every-week > day template. The higher one is drawn and named; the lower one is cut around it. Nothing is deleted by an overlap.
 - "Skip school holidays" on an every-week item hides it on dates in the holiday list. M2 uses seed holidays; importing them is later.
-- The clock's day changes at **midnight**. A just-once item is on the clock on its date only, so it leaves at midnight. The C1/E6 "Just once" list keeps it until the kid's next wake-up time, so a grown-up can still see last night's event in the morning. (Agreed with the main session, 2026-11-07.)
+- The clock's day changes at **midnight**. A just-once item is on the clock on its date only, so it leaves at midnight. The G8 List's "Just once" section keeps it until the kid's next wake-up time, so a grown-up can still see last night's event in the morning. (Agreed with the main session, 2026-11-07.)
 - **Sleep across midnight** is stored as two slots, 0:00–wake and bedtime–24:00. The clock merges touching slots of the same kind into one sector with no edge line between them, and the merged slot is what "current", the 6 pt outline and "until" use (at 23:00 the hub says "until 7:00 am").
 
 ---
@@ -491,9 +493,9 @@ Every part sits on these lines; on other iPads apply "Sizing formulas" (y = safe
   - `way`: walk, bus, car, taxi, and shuttle (shuttle stays hidden until N1b). Mover picture: walk `shoe`, bus `busDouble`, car `car`, taxi `taxi`, shuttle `busShuttle`.
   - `leaveBefore`: minutes, 0–90 in steps of 5. leave = start − leaveBefore. The clock still draws the slot or item from its start; the start is the time at the place.
   - Seed: Kid A School slot (Mon–Fri) bus, 5 → "leave at 7:25 am". Kid A Weekend school (Sat) car, 25 → "leave at 8:35 am". Kid A Swimming car, 10. Art club, Birthday and all of Kid B: no trip.
-  - Editing trips: C1 "Getting there" → C2 for the bus, and the "Going" row on C3/C4/E5 (below). Until those are built, trips come from the seed; an item without a trip shows no strip.
+  - Editing trips: G6 "Going" → C2 for the bus, and the "Going" row on C3 / C4 / G2 (below); an item without a trip shows no strip.
 - **Done state**: per kid **per date**: `{ kid, date, doneMissionIds, ready: Bool }`, in the local store. A new date starts at **midnight**, like the clock, so every morning starts empty. Keep 14 days (the medal fields come with the live look; the M5 diary can read it later); drop older ones. Renaming a mission keeps its done state (it is keyed by id); removing it drops it.
-- **Entry**: home "Missions →" in the mission morning (A1 above). Grown-ups reach C5 from C1 "More → Morning missions" (Kid A) and E6 "Cards" (Kid B).
+- **Entry**: home "Missions →" in the mission morning (A1 above). Grown-ups reach C5 from G6 Settings → Routines → Missions.
 
 ### A2 live look: the bus with live times (new 2026-11-08) [board A2; A3 for the done state; C2 for settings]
 The same screen with live bus arrivals: same fixed regions, same kids-and-missions block; only the strip region, the header right and the bottom control change. Shuttle (A2s), crowding, the plan B buses (A2b) and the plan B screen come later (backlog).
@@ -522,9 +524,9 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
 
 ### Bus settings (C2 "Our buses") [board C2, redrawn 2026-11-09 to the built screen]
 - One route per kid with a bus outing. No route heading and no "For {kid}" line (built, PR 38). The Plan B card and "+ Add a route" are hidden (plan B comes later). The Buses row label reads "Buses".
-- Layout: the S3 form without the "Going" row. Header "←" 80 → C1, "Our buses" (title 48), "Grown-ups only" (caption) at the right. Rows (on the shared lines): **Stop**, **Buses**, **Walk**, **Ride** (one per picked bus), **Late up to**, then the link "+ A bus that changes…" → C2c. Rows grow with their content.
+- Layout: the S3 form without the "Going" row. Header "←" 80 → G6, "Our buses" (title 48), "Grown-ups only" (caption) at the right. Rows (on the shared lines): **Stop**, **Buses**, **Walk**, **Ride** (one per picked bus), **Late up to**, then the link "+ A bus that changes…" → C2c. Rows grow with their content.
 - Rows (copy from the iPad review, 2026-11-09): **Stop** (search by name or code; user review PR #24, 2026-11-09: families do not know the 5-digit code): a stretching field from 192 to 808 (80 tall), placeholder "Stop name or code". Caption "Type the stop name, or the 5-digit code on its pole". With 2 or more letters, up to 8 matching stops (by stop name or road) list under the field: the caption reads "Tap your stop" (y field bottom + 8) and the list card (400 wide, `CrayonCard` white) starts 40 below the field, over the rows below it. **Result list card** (shared by the stop and school searches; fixed 2026-11-09 after the iPad check: rows overlapped, names were cut, rows below showed through): as wide as the control column (192–808), a nested card, opaque white `CrayonCard`, padding 12 top and bottom; rows **72** tall: the name (body bold, `link`, one line, "…" only past 610) over the caption (one line), gap 2, divided by a 2 pt paper line. While the list is open, everything outside the field, its caption and the card is veiled with paper at 72 % (no tap goes through; tapping the veil closes the list). The card shows as many rows as fit above the form card's bottom (968 − 16): S3 6, C2 8, S2 6; more rows scroll inside the card. No match: "No stop with that name" (caption `hurry`). Tapping a row closes the list, fills the field with the stop name, shows the check picture 32 + "{road} · {code}" as the caption, and fills the bus pills. Five digits still work as before (the code match fills the same way). Board S3 shows the list open; board C2 shows a stop picked. **Buses**: pills (180 × 72) of the numbers that call at that stop; pick any number, all equal (**Several buses**). Before a stop is picked the row reads "Pick the stop first" (caption). **Walk**: −/+ minutes, "to the stop" (default 10). **Ride**: one row per picked bus, −/+ minutes, "on {bus}" (default 10). **Late up to**: 0–30, step 5 (default 15), "still Bronze". Labels stay on one line in the label column.
-- Side column: "{Kid} to school" (head) only (explanations removed 2026-11-14, keep screens plain). Row captions: Walk "to the stop", Ride "on {bus}", Late "still Bronze". Button "Done" → C1.
+- Side column: "{Kid} to school" (head) only (explanations removed 2026-11-14, keep screens plain). Row captions: Walk "to the stop", Ride "on {bus}", Late "still Bronze". Button "Done" → G6.
 - **Several buses** (user, 2026-11-18; boards S3, C2, C2c, A2): a kid's route has any number of buses, all equal. There is no 1st or 2nd. On the morning the app takes whichever of them gets the kid there first (A2 "Chosen bus").
   - **Buses pills** (S3, C2): each pill toggles on (`tab-on`) or off (`tab-off`); no tags, no order. A long list wraps onto more lines (gap 12), and the row grows so the rows below move down (**Rows**); pills never overlap the next row.
   - **Ride**: one row per picked bus, in pill order ("on 12", "on 34"), each with its own minutes, because buses can take different ways. The label "Ride" shows on the first of these rows only. With no bus picked, one Ride row reads "stop to school" (default 10).
@@ -544,7 +546,7 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - **Route form** (S3, C2, and the event's bus route): after the Buses row comes **Get off at**: the same search field with its map button. Under it, up to 3 suggestion pills: the stops of the picked buses that come after the boarding stop, nearest to the school (or the event's place) first, each "{name} · {n} m walk". Picking one fills the field like any stop.
   - **Map picker, get-off mode**: the same sheet titled "Where do you get off?", centred on the school. Only the stops of the picked bus after the boarding stop are shown as pins; the bus line between them is drawn as a dashed crayon line; other stops are hidden.
   - **Times are worked out, then editable**: the Walk, Ride and new "Walk at the end" rows each show the computed minutes with a small source caption: "from Apple Maps" (walks, car, taxi: MapKit ETA; car and taxi with the departure time for traffic), "from the bus route" (ride: LTA BusRoutes distance between the two stops along the service, at an average bus speed, rounded up to the minute). The −/+ steppers still work: a changed value reads "set by you" and gets a "↺ use estimate" link. The ride stays an estimate; live arrivals still come from BusArrival at the boarding stop.
-  - **Walk from home**: uses the family Home set in S3 (or C1). **Home stays on this iPad only**: a local store entry that is not synced to other iPads, never in seeds, previews, snapshots, logs or the layout JSON; tests use a made-up coordinate. Without a Home the walk and car rows stay manual.
+  - **Walk from home**: uses the family Home set in S3 (or G6 → Getting there → Home). **Home stays on this iPad only**: a local store entry that is not synced to other iPads, never in seeds, previews, snapshots, logs or the layout JSON; tests use a made-up coordinate. Without a Home the walk and car rows stay manual.
   - **No bus links the two stops** (the picked bus does not call at the get-off stop after the boarding stop, in either direction): the Get off row shows "Bus {n} doesn't stop there after {boarding stop}." (caption `hurry`) and, from BusRoutes, the buses that do link them as pills to switch to; if none, a link "Change buses on the way…" (→ C2c). Save stays on; the Ride row falls back to the plain stepper with no source caption.
   - Medals and "Leave in" use the same numbers: leave = bus at the stop − walk; arrive = bus + ride + walk at the end ≤ arrive-by.
   - Data check before building: confirm the BusRoutes field names (ServiceNo, Direction, StopSequence, BusStopCode, Distance in km from the route start) in the official DataMall guide, and test MKDirections transit ETA in Singapore (it may return no result even where the Maps app has transit), so the ride never depends on it.
@@ -555,12 +557,12 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - **Remote data safety rules** (no crash from data): use a file only after its checksum matches; decode with errors caught (never `try!`), per record (skip bad records, keep the rest), with tolerant enums (unknown → other); no force-unwrap or force-index on fetched data; range-check times and dates; refuse files over the manifest's size cap; swap the whole snapshot at once after it is fully decoded; a stored pick (school id) that is missing from a new list keeps its copied values. The publish job runs `validate.py` and the app's own Swift decoder on the files before upload; unit tests feed truncated, unknown-value and empty files and expect the old data kept.
 - **Live bus times** (user, 2026-11-08): the LTA key belongs to the app, not to each family. It is built in from a git-ignored local config file (the repo is public); a build without it (CI, clones) has no live times and every bus morning shows the timetable look. There is no key field and no "Live bus times" card in C2 ("Change key" removed, user decision, PR #22, 2026-11-09): the key is built in only. When live times are off, the morning shows the timetable look.
 - Privacy: stop codes, bus numbers and the key never go into the repo, the seed or tests (tests use made-up values such as stop "00000", bus "1").
-- Entry: first-run setup step S3 "Getting to school" (below) sets it up; until then, and for later changes, C1 "Getting there" (Kid A) → C2. The stop, buses, walk and ride are each family's own data; the local config holds only the LTA key.
+- Entry: first-run setup step S3 "Getting to school" (below) sets it up; for later changes, G6 Settings → Getting there → Going → C2. The stop, buses, walk and ride are each family's own data; the local config holds only the LTA key.
 
 ### Events: one shape for every item (user, 2026-11-09) [direction approved; sketches SK1–SK4 on "Sketches (review)"; details proposed]
 School is no longer special in the model. Every item that can sit on a kid's clock (template slot, every-week item, just-once item) has the same optional parts. School only differs in where it comes from (S2 and the school data), MOE terms and holidays.
 - **From**: "Home" (default) or "After {event}" (linked). A linked event starts when the event before it ends, at the same place: no trip, no stop at home. Its days can only be days on which that event happens. **When the event before it does not happen** (school holiday, "skip just once", another day), the linked event is skipped too (user).
-- **Trip** (only with From = Home): `way` + `leaveBefore` as now, plus **`homeAfter`** minutes (the way back; 0–90, step 5). A chain of linked events uses the last one's `homeAfter`. By bus the trip has its **own route** (stop and its buses, see C2 **Several buses**); the kid-level "Our buses" route becomes the School event's route (migration: move it as is). C1 "Getting there" stays as a shortcut to the School event's route; the C3/C4/E5 Going row by Bus opens that event's route instead of "Uses Our buses".
+- **Trip** (only with From = Home): `way` + `leaveBefore` as now, plus **`homeAfter`** minutes (the way back; 0–90, step 5). A chain of linked events uses the last one's `homeAfter`. By bus the trip has its **own route** (stop and its buses, see C2 **Several buses**); the kid-level "Our buses" route becomes the School event's route (migration: move it as is). G6 "Going" stays as a shortcut to the School event's route; the C3/C4/E5 Going row by Bus opens that event's route instead of "Uses Our buses".
 - **Bring**: things to take (kit pictures). They become missions on the days the event happens: packed the evening before together, checked by the kid in the window before she leaves home for it (see "Mission windows"). For a linked event (From = After {event}) that is the first leave of its chain: swimming after school is checked before she leaves for school, together with School's own Bring; the same picture shows once. When the event before it does not happen, the linked event and its Bring checks are skipped too.
 - ~~Missions before / after~~ — **dropped 2026-11-14** (user): Bring already covers what to take, and From already links an event to the one before it. Events carry no missions of their own; routines (C5) hold every mission. A chore that belongs to an activity (hang the swimsuit to dry) is an evening-routine mission on that activity's days (C5 days per mission) once the evening routine exists.
 - **Medal**: an on/off switch per event (user). On by default for School, off for others. An event with the medal on needs a trip and uses its own arrive-by (= start) and latest (= start + its late grace; School keeps its S2 values). Several medals a day are fine; each is kept for the diary (M5).
@@ -637,7 +639,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, o
 - **Where the kid goes in the day** (S2; user, 2026-11-09: kids go to preschool or childcare from about 2, so age decides nothing): each kid's tab starts with a three-way `CrayonTabs` row "School" · "Preschool" · "At home", nothing picked for kids under 7 and "School" picked from 7. "School" shows the school search form. "Preschool" shows the same form, searching **the preschool list** (`preschools-sg.json`, 2026-11-09: 1,784 active ECDA centres plus MOE-registered kindergartens and named upcoming ones; open data, bundled from the private data repo like the international list) together with international schools that have early years. Result rows: the centre name over its **address** (many centres share a brand, e.g. "My First Skool"), tagged "Preschool"; active centres first. After a pick: the field shows the name with the `playground` picture (until a `preschool` kit picture exists), the caption becomes check + "Preschool · {area}". Rows: Days (Mon–Fri on), **Drop-off** and **Pick-up** on one row (time field, "pick-up" caption, time field), **prefilled as a suggestion** from the centre's declared hours ("from the ECDA listing") or the type default (child and infant care 07:00–19:00, "ECDA standard hours"; kindergarten blank); editing removes the caption. Closures, set from the centre type: child and infant care: a check "Closed on public holidays" (on), which also closes Teachers' Day and Children's Day (from `preschool-calendar-rules.json`), no MOE row; kindergarten (incl. MOE Kindergartens): "Use MOE school terms for holidays" on. Both: a link "Add your centre's Development Days" (6 for child care, 3 for kindergarten; each centre picks its own) with the caption "Add other closure days later in Settings." Never assume an early closing on holiday eves. It makes a "Preschool" block on that kid's clock with its own trip in S3 and no medals. "At home" hides the form and shows "{Name} is at home in the day." Kids at home skip S3.
 - **Latest lives on the school record**, for every way of going: late grace = Latest − Arrive (0–30). The medal's L2 uses it whether the kid walks, rides or takes the bus; C2's "Late" row shows and edits the same value. The default 15 min applies only when no school was entered.
 - **S3 trip time**: by bus, the school trip's "leave before" = walk + the fastest ride (a bus that changes: Ride 1 + Change + Ride 2), rounded up to 5 (the timetable look; the live look counts from the real bus). Walk, car, taxi: a "Leave {n} min before" stepper (default 10). S3 shows every kid with a trip as a tab (see "S3 · Getting there").
-- **Data sources**: a grown-up screen with the data.gov.sg and OneMap attribution, opened from a "Data sources" link under the S2 school caption and from a caption link "Data sources" at the foot of C1 (Our kids), next to the action area.
+- **Data sources**: a grown-up screen with the data.gov.sg and OneMap attribution, opened from a "Data sources" link under the S2 school caption and from a caption link "Data sources" at the foot of G6 Settings, next to the action area.
 - **Row labels** on S2 and S3 (and every grown-up form) are caption bold (24, the app ships Playpen medium and bold only) `softText` on one line in the label column (**Grown-up form layout**).
 - **Debug only**: "Load sample family" (confirm copy in "Seed data in M2"); links familyplanner://s1 … s4 open a setup step (s2–s4 prefilled with the sample family, no unlock, nothing saved unless Start is tapped; over an existing family Start asks first: "Start over with this setup? The family on this iPad is replaced." with "Replace" (`lateText`) / "Cancel").
 - Joining a family from another iPad (sync, backlog) comes later. The "Start a new family / Join" choice is not shown yet.
@@ -654,7 +656,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, o
 - "Next →" is off until every card has a name, an age and a face (user, 2026-11-09: a face is not optional). Until a face is picked the field shows the colour dot.
 
 ### S2 · School [boards S2 (picked), S2s (search open)]
-- Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in C1. The tabs follow the title at gap 24 (no fixed x); "Step {n} of 4" and the dots stay at the right end (S2, S2s, S3; board fixed 2026-11-09, layout v20).
+- Header: one `CrayonTabs` tab per kid (200 × 72 with `KidFace` 40), as in G6. The tabs follow the title at gap 24 (no fixed x); "Step {n} of 4" and the dots stay at the right end (S2, S2s, S3; board fixed 2026-11-09, layout v20).
 - **School** (search, 2026-11-09; data: bundled `schools-sg.json` (MOE, 337) and `international-schools-sg.json` (81), searched together):
   - Field 610 × 80 at (232, 304), placeholder "School name". Caption "Type your school's name" (y 392).
   - **With the keyboard up** (2026-11-15, found on the 11" iPad; applies on every size): while the search field has focus, the card scrolls so the field sits at the top of the content area (board y 148), the rows above it scroll out, and the list card opens under the field down to the keyboard top. While the keyboard is up, the "Tap your school" caption is hidden, the list starts at field bottom + 8 and ends at the card column foot above the keyboard (keyboard top − 28 × s), its padding drops to 8, and rows turn into **one line of 48**: "{school name} · {area}" (name body, " · {area}" caption soft). Measured on the 11" (field 154–218, keyboard top 398): 2 rows plus half of a third, which shows the list scrolls. With the keyboard down the rows are the two-line 72 rows as before. The keyboard stays up while typing; a pick closes it.
@@ -680,7 +682,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, o
 - Third first-run step, right after S2. One screen for all kids who go somewhere (School or Preschool); kids "At home" are not in it.
 - **Header** (user, 2026-11-09: one kid at a time with Next felt clumsy): "←", title "Getting there" (shorter than "Getting to school", so the row fits), then the kid `CrayonTabs` as on S2 (200 × 72 with `KidFace` 40, gap 12), a 24 space, "Step 3 of 4" (no kid name) and the dots. With 3–4 kids the tabs become face-only (88 × 72). A tab whose route is not finished shows a small `hurry` dot on its face.
 - "Next →" goes to S4 once every tab is finished; it does not step through the kids. **Finished** (main session, accepted 2026-11-09): by bus, once the route has a stop (bus numbers stay optional, since a build without live times cannot list them); walk, car and taxi are always finished.
-- **Home** (side column, top; also in C1 later; **ships with N11**, hidden until the map picker exists, so there is never a dead button): "Home" (head), a map `RoundButton` 64 with a pin glyph, "Set on the map" (body bold) (no caption). It opens the map picker in "Where is home?" mode: centred on the school, "Near me" asks for location once (the grown-up is usually at home during setup), drag a pin, "Use this place". Set: the row reads "Home · set" with "Change". Skipped: walk and car steppers stay manual. One home for the family, shared by all kids' routes.
+- **Home** (side column, top; also in G6 → Getting there; **ships with N11**, hidden until the map picker exists, so there is never a dead button): "Home" (head), a map `RoundButton` 64 with a pin glyph, "Set on the map" (body bold) (no caption). It opens the map picker in "Where is home?" mode: centred on the school, "Near me" asks for location once (the grown-up is usually at home during setup), drag a pin, "Use this place". Set: the row reads "Home · set" with "Change". Skipped: walk and car steppers stay manual. One home for the family, shared by all kids' routes.
 - **Going**: `ChoiceCircles` Walk · Bus · Car · Taxi (shuttle comes with N1b). Default Bus.
 - **Stop** (Bus only): the same search field as C2 (see "Bus settings (C2)"): name or code, list of up to 8 matches, tap to pick. Board names are made up ("Opp Sunny Park"). No match leaves Next on.
 - **Buses** (Bus only): pills (180 × 72) for the numbers that call at that stop; pick any number, all equal (**Several buses**, C2). The pills wrap and the row grows. No caption.
@@ -703,7 +705,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, o
   - Grown-up screens still go back home after 2 minutes idle (a kid should not find the iPad left on a grown-up screen), but with no Face ID on return. The app-switcher cover is dropped while the lock is off.
   - Turning it **on** (S4 or C9) asks for Face ID once to check it works. If Face ID is not set up or fails, the switch stays off with "Set up Face ID in iPad Settings first."
   - Per iPad: the lock is a setting of this iPad (a parent's iPhone can differ). Medals is a family setting.
-- **C9 "This iPad"** (later screen, same list): opened from a "This iPad" caption link at the foot of C1 (next to "Data sources").
+- **C9 "This iPad"** (later screen, same list): opened from a "This iPad" caption link at the foot of G6 (next to "Data sources").
 - Side column "You're set up" (head), gap 24:
   - the kids' faces 40 and names (body);
   - the school picture 56 with "School" (body) over "{start} – {end}" (caption);
@@ -779,7 +781,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
   - 900–1200 ms: three stars pop in (staggered 80 ms) and the moon blinks once. Success haptic at the end.
   - Night → day reverses it: the moon rolls left, the sun rises with one ray spin, stars fade, and day spreads from the switch.
 - **Reduce Motion**: a 0.3 s crossfade between the two looks, with no wipe and no popping.
-- Grown-ups can hide the switch (a C1 setting, "Day/night switch", on by default) [proposed].
+- Grown-ups can hide the switch (a G6 Family setting, "Day/night switch", on by default) [proposed].
 - Accessibility: a button labelled "Day. Tap for night." or "Night. Tap for day.".
 
 ## Motion: every moment (new 2026-11-08) [board 0g2]
@@ -831,7 +833,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - **G1 as built (PR 60) and the calls on it** (2026-11-10):
   - Template slots follow the one scope rule fully: Save on **All days** shows **G5 "Change from when?"** too (Today / Next {weekday} / Date); the day type's template changes from that day, never before today.
   - **This day** on a template slot is stored as that date's own template; it wins on that date and is kept when All days changes later (its date always still exists).
-  - G1c card 600 wide. Like a calendar: one weekday row on top ("Mon" … "Sun", caption 24 `softText`, one label centred over each column), then two weeks of square date chips **68 × 68** with the day number only (body 30 bold), gap 8, today underlined, the picked day sky; ‹ › move two weeks. (The weekday no longer sits inside the chip: "Wed" and a number did not fit a 74 × 84 chip with its outline, 13" check 2026-11-21.)
+  - G1c card 600 wide. Like a calendar: one weekday row on top ("Mon" … "Sun", caption 24 `softText`, one label centred over each column), then two weeks of square date chips **68 × 68** with the day number only (body 30 bold), 8 between columns and 16 between the two weeks, today underlined, the picked day sky; ‹ › move two weeks. (The weekday no longer sits inside the chip: "Wed" and a number did not fit a 74 × 84 chip with its outline, 13" check 2026-11-21.)
   - G1d line: the first changed slice's new times, then the scope ("Dinner 6:30 pm → 7:30 pm, this day").
   - Save reads "Save"; no holiday note, no "Changes start tomorrow.".
   - **No empty slice card**: G1 always opens with a slice picked (the slice the hold started on, else the one at the current time on today, else the first of the day), so the card is never empty and needs no hint sentence.
@@ -867,7 +869,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   - Lock icon + "Grown-ups only" (title 48).
   - Message line (body).
   - Buttons row, gap 24: `RoundButton`-style tabs 240 × 72.
-- The caption under the card on the board ("Opens C1 · Our kids. Locks again after 2 minutes.") is a design note, not UI text.
+- The caption under the card on the board ("Opens grown-up mode. Locks again after 2 minutes.") is a design note, not UI text.
 
 ### Face ID only
 - Use `LAContext` with `.deviceOwnerAuthenticationWithBiometrics`.
@@ -876,7 +878,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 
 | state | message line | buttons | next |
 |---|---|---|---|
-| scanning | "Look at the iPad to unlock." | "Cancel" | success → C1 |
+| scanning | "Look at the iPad to unlock." | "Cancel" | success → G1 |
 | not recognised (system gave up) | "That didn't unlock." | "Try again", "Cancel" | Try again → scan |
 | cancelled by the user or the system sheet | — | — | overlay closes, back to home |
 | Face ID not set up / not available | "Face ID is off on this iPad. Turn it on in Settings to open grown-up screens." | "Open Settings", "Cancel" | Settings app |
@@ -893,67 +895,8 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 
 ---
 
-## C1 · Our kids, Kid A [board]
-
-### Layout
-- `GrownupScreen`. Header row at x 64, y 48, h 80, gap 24:
-  - `RoundButton` "←" 80 → home.
-  - "Our kids" (title 48).
-  - `CrayonTabs` with Kid A and Kid B, each 200 × 72 with its `KidFace` 40. Exactly one is on.
-  - "Grown-ups only" caption at the right end.
-- Left: `PaperCard` columns 1–8, y 176–968. **This card scrolls; the header and tabs stay pinned (0f).**
-  - Section headings at x 104 (head 36): "About", "School", "Getting there".
-  - Rows: `ListRow`, 60 tall (72 for the day chips row):
-    - key in the left column (body `softText`, w 160)
-    - value (body)
-    - optional "›" at the right (only on rows that open something)
-- Right: side column, columns 9–12, from y 176, gap 8. Scrolls with its own content if long.
-
-### Rows (Kid A)
-- **About**:
-  - "Age" → "{age} · {school year}".
-  - "Day" → wake picture "Up {h:mm} · " + sleep picture "Bed {h:mm}", "›" → **C6 Our day**.
-- **School**:
-  - "School" → school picture + school name (from settings).
-  - "Days" → seven read-only `DayChip` 56 (on = school day).
-  - "Hours" → "{start} – {end}" in "h:mm am" form.
-  - "Holidays" → "Term {n} ends {Day d Mon}" or "No holidays set", "›" → C7 (later; hidden in M2).
-- **Getting there** (a section; built, PR 38):
-  - "Going" → bus picture, bus plate, "leave about {h:mm} · in by {h:mm}", "›" → C2. The built row is plainer; the board's richer rows are ahead of the build.
-  - "Home time" → "{h:mm} · pick-up at the gate", "›" → C2.
-- **More** (board, 2026-11-08; in the side column, under "Add every week" and "Just once"): "Morning missions" → "{n} missions" ("1 mission"; "Nothing yet" at 0), "›" → **C5** with this tab's kid; shown from build step 5. "Drawings" → "ask for a picture", "›" → D1 **[later M6]**: hidden.
-
-### Side column
-- "After school" (head, h 52), then one `ListRow`-style item per every-week item:
-  - 56 picture, title (body) over "{days} · {start}–{end}" (caption). No "›": the whole row is the button (iPad review, 2026-11-09).
-  - When the caption does not fit on one line, the days go over the time on two caption lines ("Mon · Wed" / "3:30–4:30 pm"). Never cut it.
-  - Tap → **E5** for that item.
-  - Days text: "Mon · Wed"; all weekdays → "Every school day".
-- "Add every week": 56 plus-picture + link text (body, `link`) → **C3** with "For" set to this tab's kid.
-- "Just once" (head, h 52), then upcoming just-once items for this kid, nearest first, at most 5. Each shows "{Day d Mon} · {start}–{end}", with the same two-line rule (date over time) and no "›". Tap → **C4 in edit mode** (see C4).
-- "Add once" link → **C4**.
-- Empty lists [proposed]: under the heading, "Nothing yet" (body `softText`), then the add link. Same as E6.
-
-### States
-- Seed data cannot fail to load, so there is no loading screen. If storage fails to save, see C3 errors.
-
-## E6 · Our kids, Kid B [board]
-- Same screen with the Kid B tab on.
-- **About**:
-  - "Age" → "{age} · at home".
-  - "Day" → nap picture "Nap {start}–{end} · Bed {h:mm}". **[later M4]** editing.
-- **Nursery**:
-  - "Nursery" → "Not yet" (`softText`).
-  - Next row: link "Add when they start" → S2. **[later M4]**: hidden in M2.
-  - Use "they" in public copy.
-- **Morning**:
-  - "Cards" → "Wake up · Milk · Shoes" ("Nothing yet" when empty), "›" → C5 with the Kid B tab. Shown once missions are built; hidden before.
-  - "Taps" → "A grown-up taps for now".
-- Side column: "Every week" with "Nothing yet" when empty, "Add every week", then "Just once" with items and "Add once". Same rules as C1.
-
-
 ## C5 · Morning missions (grown-up editor) [board C5, details proposed]
-- `GrownupScreen`. Header: `RoundButton` "←" 80 → C1 (or E6), "Morning missions" (title 48), kid `CrayonTabs` (Kid A, Kid B with `KidFace` 40) at the right.
+- `GrownupScreen`. Header: `RoundButton` "←" 80 → G6, "Morning missions" (title 48), kid `CrayonTabs` (Kid A, Kid B with `KidFace` 40) at the right.
 - Left: `PaperCard` columns 1–8, y 176–968:
   - One row per mission, 88 tall (built, PR 38), no divider lines (user, 2026-11-09: no lines inside cards; rows are separated by space): drag handle `MarkerGlyph` ≡ (soft), `KitIcon` 48, name (body), "›" (body `softText`). Drag ≡ to reorder; the order is the circle order on A2t.
   - "+ Add a mission ({n} of 8)" (`MarkerGlyph.plus` in a 56 ring + body `link`). At 8 the row is replaced by "8 is the most" (caption).
@@ -992,7 +935,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - Main button: `InkButton` "Add to the clock".
 
 ### Defaults when opened [proposed]
-- For = the kid of the C1 tab (Kid A from home).
+- For = the kid of the G1 / G8 tab (Kid A from home).
 - What = none picked. Name empty.
 - When = the next full hour, for 1 hour.
 - Repeat = Every week. Days = today's weekday. Skip school holidays = on.
@@ -1000,7 +943,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 
 ### Transitions
 - Repeat → "Just once" switches the same screen to the C4 layout. Values kept: For, What, Name, When.
-- "Add to the clock" → save, pop back to the screen that opened it (C1 or home). The new item appears there and on the clock.
+- "Add to the clock" → save, pop back to the screen that opened it (G1, G8 or home). The new item appears there and on the clock.
 - "←" with changes → the shared `ConfirmCard` pointing at "←" (board C3x, 2026-11-14): title "Leave without adding?" (C3 / C4) or "Leave without saving?" (E5 / G2–G4); buttons main first, "Leave" (`lateText`) · "Keep editing".
 - "←" without changes → back at once.
 
@@ -1025,7 +968,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   - Caption "Just this day, for {Kid A | Kid B | both kids}." (The midnight sentence was dropped in the iPad review, 2026-11-09.)
   - `TodayRow` preview of that date for the chosen kid (Kid A for "Both"), the new item in today style.
 - Main button "Add to the clock".
-- **Edit mode** (opened from a just-once item in C1/E6) [proposed]:
+- **Edit mode** (opened from a just-once item in G8 or on the G1 clock) [proposed]:
   - Title "Edit {Name}". Main button "Save changes".
   - Under the preview, a row button 88 tall "Remove {Name}" in `lateText` bold.
     - Confirm: title "Remove {Name}?", body "It leaves the clock on {Weekday d Mon}.", buttons "Remove" (`lateText`) / "Keep".
@@ -1070,10 +1013,10 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   - Title: "Remove {Name} every week?"
   - Body: "It leaves {Kid A}'s clock from {Day d Mon}. Days before stay in the diary."
   - Buttons: "Remove" (`lateText` bold) / "Keep".
-  - After Remove: pop back to C1; the item is gone from the list.
+  - After Remove: pop back to G8; the item is gone from the list.
 - **Save changes** (agreed 2026-11-07): if today's occurrence has already started (or finished), the old series ends today and a new series with the edits starts tomorrow. Otherwise the edits apply to the series at once, today included.
   - Skip exceptions dated after today move to the new series.
-  - C1/E6 show one item, the new series. The old one only lives on in past days (diary).
+  - G8 shows one item, the new series. The old one only lives on in past days (diary).
 - "←" with unsaved edits → "Leave without saving?" with "Keep editing" / "Leave".
 - Validation and errors as C3.
 
@@ -1082,12 +1025,12 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 ## Navigation summary (M2)
 
 ```
-A1/E1/E3 home --hold clock 2 s--> C0 lock --Face ID--> C1 Our kids (tab Kid A | Kid B = E6)
-C1/E6 --"Add every week"--> C3 --Repeat: Just once--> C4
-C1/E6 --"Add once"--> C4
-C1/E6 --every-week item--> E5
-C1/E6 --just-once item--> C4 (edit mode)
-C3/C4/E5 --save / remove--> back to C1/E6
+A1/E1/E3 home --pencil or hold clock 2 s--> C0 lock --Face ID--> G1 Our day (kid tabs)
+G1 --tap a slice--> slice card (Skip this day / Remove / Details ›) --Details ›--> G2 / G3 (item) or G4 (School)
+G1 --"+"--> new slice card (just-once or every-week item)
+G1 --List--> G8 --row--> G2 / G4 / C4 · G8 --Add--> C3 (Repeat: Once / Weekly / Monthly)
+G1 --Settings--> G6 (kid tabs + Family)
+G2 / G3 / G4 / C3 / C4 --save / remove--> back where it was opened
 any grown-up screen --2 min idle or app backgrounded--> home
 ```
 
@@ -1136,12 +1079,12 @@ Small marker icons that were inline SVG on the boards are now marker-drawn too: 
 
 ## C6 · Our day: drag the times on the clock (new 2026-11-08) [board]
 
-Edits a kid's **day template**: wake-up, routines, school block, dinner, shower, sleep. Opened from the "Day" row in C1/E6.
+Edits a kid's **day template**: wake-up, routines, school block, dinner, shower, sleep. Its clock, drag rules and slice card live on in G1 (grown-up mode), which replaced this screen.
 Every-week and just-once items sit on top of the template on the real clock; on G1 they open the same slice card (**One card for everything on the clock**), and their full form is behind "Details ›".
 
 ### Layout
 - Header:
-  - `RoundButton` "←" → C1.
+  - `RoundButton` "←" → the kid home.
   - "Our day" (title).
   - `CrayonTabs` Kid A | Kid B.
   - "Undo" button 182 × 72 at the right end.
@@ -1175,7 +1118,7 @@ Every-week and just-once items sit on top of the template on the real clock; on 
   - A slice cannot get shorter than 15 minutes. The knob stops there with a bump haptic.
   - A knob cannot cross another knob.
   - **No forced gaps** (user, 2026-11-14): a slice can always end exactly where the next one starts. A free gap shorter than 15 minutes never stays on the clock: when a drag, a typed time or a new slice would leave one, the edge snaps onto its neighbour and the two share one knob (0 gap). No 5-minute spacing is kept between slices anywhere (drag, typed time, "+", a deleted slice made free and filled again).
-- **Add between two slices** (user, 2026-11-21: always visible; board G1): every shared knob (two slices that touch, not free time; an item's edges too) shows a `RoundButton` 56 "+" on its boundary line, just inside the rim (its centre 64 in from the knob), all the time; the "+" of the knob being dragged hides while it moves. When two "+" would overlap (slices shorter than about 25 minutes), only the earlier one in the day shows. Tapping "+" adds a new 30-minute item that starts at the knob and covers the first 30 minutes of the slice after it (the last 30 minutes of the slice before it when the one after is shorter than 45 minutes); the new-slice card opens with the times filled in. The item sits on top of that slice on the clock; the day template underneath stays as it is (the slice shows around the item), so removing the item gives the slice its time back. The item's two edges are knobs like any other: they drag (moving only the item's start or end, never the slice under it), and they get the "+" too, since every boundary on the clock shows one (user, 2026-11-21). 
+- **Add between two slices** (user, 2026-11-21: always visible; board G1): every shared knob (two slices that touch, not free time; an item's edges too) shows a `RoundButton` 56 "+" on its boundary line, just inside the rim (its centre 64 in from the knob), all the time; the "+" of the knob being dragged hides while it moves. When two "+" would touch, they sit on rings 56 apart: 64, 120 and 176 in from the rim. Each "+", in day order, takes the outermost ring where its drawn circle touches no earlier "+"; if no ring is free (four or more short slices in a row), that "+" hides. At the 13" size two "+" on one ring touch below about 47 minutes apart, so a 30-minute item keeps both of its "+" on two rings. Tapping "+" adds a new 30-minute item that starts at the knob and covers the first 30 minutes of the slice after it (the last 30 minutes of the slice before it when the one after is shorter than 45 minutes); the new-slice card opens with the times filled in. The item sits on top of that slice on the clock; the day template underneath stays as it is (the slice shows around the item), so removing the item gives the slice its time back. The item's two edges are knobs like any other: they drag (moving only the item's start or end, never the slice under it), and they get the "+" too, since every boundary on the clock shows one (user, 2026-11-21). 
 - **School edges move like any other** (user, 2026-11-14; the padlock knobs are gone): dragging the School slice's start or end, or typing it in the slice card, changes School's hours with the one scope rule. **This day** changes that date only (a late start, an early dismissal); **All days** asks G5 "Change from when?" and changes the Hours row of School (G4 / G6). Arrive by follows the new start and Latest keeps its grace; the trip's leave time and the medals are worked out again from them. School can still not get shorter than 15 minutes or cross another knob.
 - **Tap a slice** → it becomes selected (6 pt outline) and the slice card shows it. Typing a time in the card moves the knob the same way, with the same limits.
 - **Free time**:
@@ -1188,7 +1131,7 @@ Every-week and just-once items sit on top of the template on the real clock; on 
 - **Save the day** applies the template **from tomorrow**. Leaving with unsaved changes asks first with G1d ("Save the changes?", Save · Cancel).
 
 ## C7 · School calendar: add from a photo or PDF (new 2026-11-08) [board, later]
-Backlog DA-1; not in M2. Opened from the "Holidays" row in C1.
+Backlog DA-1; not in M2. Opened from the Terms row in G4 / G6.
 - Left card:
   - "Found in {file name}" (head).
   - "Read on this iPad. Tick what to add; tap a row to fix it." (caption).

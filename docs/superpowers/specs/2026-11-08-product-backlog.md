@@ -47,6 +47,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 - 2026-11-14: G8 right column stays one "Add" (user: keep it plain). Parked ideas, not planned: "Coming up" (holidays, skipped days and one-offs in the next 2 weeks) and "Ended" (finished items with Bring back).
 - 2026-11-15: ~~6d gap~~ done in PR #95 (main session, PR #94): G4 This day still needs "Skip this day" (spec E5 School rule). It is the only way to skip School, because a tap on the School slice in G1 opens G4, not the slice card. Next G4 build step; no new board (G3 This day pattern: side column "{Day d Mon} only" + "Skip this day").
 
+- 2026-11-21: cleanup: build status brought up to date (steps 3–6d done), VoiceOver out of this phase, resizable windows decided (one scale from the window); portrait stays open.
 ## Goal (the user's words)
 > **See today's schedule on this iPad, and do today's missions.**
 
@@ -66,7 +67,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 | 6 | Grown-up lock (Face ID) and the kids hub | C0, C1, E6 | Kids must not edit the plan | C1 rows for later features stay hidden |
 | 7 | Morning missions: Kid A checklist, Kid B picture cards (a grown-up taps), "All done!" for a kid with no outing | A2, A2t, A3, C5 | This *is* "do today's missions" | The same screen carries the way there (rows 10–11) |
 | 8 | Crayon design system and kit pictures | 0a–0f, kit | Already built (M1) | — |
-| 9 | Basic accessibility: VoiceOver labels, Reduce Motion respected, contrast | all | Required for any release | — |
+| 9 | Basic accessibility: Reduce Motion respected, contrast | all | Required for any release | VoiceOver: not in this phase (user, 2026-11-21) |
 | 10 | Live bus: LTA arrivals for the family's stop and bus numbers, the toy-town map with the live bus coming to our stop, bubbles (number, minutes, "my bus"), "Leave in" + "On time" / hurry on the mission screen and on home | A2 (live look), A1 (Leave in), C2 (stop, buses, walk time); no live times → A2t (timetable look) | Getting to the bus is the point of the morning (user, 2026-11-08) | No crowding, no shuttle, no plan B screen. No live data → the timetable look (A2t) with "no live times". Stop code and API key are entered on the iPad and stored there, never in the repo. |
 | 11 | Medals and slide to go: Kid A slides "Ready? Slide to go" (always awake, never locked by missions); medal from the time only; Kid B (no trip) taps "All done!" | A3, 0b SlideToGo, A2 | Same screen as 10; splitting it meant building the end of the morning twice | Medal rules: M2 spec "A2 live look" |
 
@@ -85,13 +86,13 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 |---|---|---|
 | 1 | Day templates and the new seed | done (PR #10 merged) |
 | 2 | Home: A1 and E3/E3b in `KidScreen`, picture size and radius rules, free time as paper, new-slot hop, night look, sky switch, now/next rule, `KidFace` | done (PR #11 merged) |
-| 3 | Picture rigs playback + debug "Rig scale" slider (default 1.5 from rigs.json) | built (PR #13 open; with the app icon and school-roof flags) |
-| 4 | C6 Our day | built (PR #14 open, with board 00 principles) |
-| 5 | **Morning** (one step): Kid A checklist, Kid B cards, "All done!", C5 editor; the way strip with its timetable look (car, taxi, walk, no live times) and its live look (bus service module for LTA arrivals, key and stop stored on the iPad); C2 bus settings; "Leave in" + "On time" on A2 and A1; slide to go and medals; the "Going" row on C3/C4/E5 | built in full (feature/m2-morning-live, not pushed; installed on the iPad, waiting for the user's check) |
-| 6b | **Events, one shape** (user, 2026-11-09; spec "Events: one shape for every item"): From / linked events, trip way back, bus route per event (1st and 2nd choice), Bring (a linked event's Bring is checked before the chain's first leave), ~~missions before/after~~ (dropped 2026-11-14), medal switch, mission windows, slide and done per outing | design: sketches SK1–SK4 in review; model first, then form rows, then windows |
-| 6c | **Repeats and dates** (user, 2026-11-09; spec "Repeats, dates and changes", sketches SK10–SK11): Runs start/end (end of term, date, count, none), skip school holidays from the term data, linked time worked out per day, No school days (skip / set time), Today vs Every week with "from when?", exception rule; then monthly, yearly, multi-day and extra one-off sessions in the same plan |
-| 6d | **Grown-up mode** (user, 2026-11-09; spec "Grown-up mode", boards G0–G8): pencil way in, the day on the clock (absorbs C6), List, edit screens with This day / All days (E5, School G4), "from when?", Settings (replaces C1), change school |
-| 6 | After the morning, proposed order: E1 one child, first-run setup (S1–S4), school shuttle, bus crowding, "time to leave" nudge, reference time zone, the rest of the delight pack, taxi ETA, portrait and windows | later |
+| 3 | Picture rigs playback + debug "Rig scale" slider (default 1.5 from rigs.json) | done (#13) |
+| 4 | C6 Our day | done (#14); C6 later replaced by grown-up mode G1 |
+| 5 | **Morning** (one step): Kid A checklist, Kid B cards, "All done!", C5 editor; the way strip with its timetable look (car, taxi, walk, no live times) and its live look (bus service module for LTA arrivals, key and stop stored on the iPad); C2 bus settings; "Leave in" + "On time" on A2 and A1; slide to go and medals; the "Going" row on C3/C4/E5 | done (#16) |
+| 6b | **Events, one shape** (user, 2026-11-09; spec "Events: one shape for every item"): From / linked events, trip way back, bus route per event (1st and 2nd choice), Bring (a linked event's Bring is checked before the chain's first leave), ~~missions before/after~~ (dropped 2026-11-14), medal switch, mission windows, slide and done per outing | done (#41, #42, #46, #47; missions before/after dropped in #67) |
+| 6c | **Repeats and dates** (user, 2026-11-09; spec "Repeats, dates and changes", sketches SK10–SK11): Runs start/end (end of term, date, count, none), skip school holidays from the term data, linked time worked out per day, No school days (skip / set time), Today vs Every week with "from when?", exception rule; then monthly, yearly, multi-day and extra one-off sessions in the same plan | done (#50, #51; monthly in #79) |
+| 6d | **Grown-up mode** (user, 2026-11-09; spec "Grown-up mode", boards G0–G8): pencil way in, the day on the clock (absorbs C6), List, edit screens with This day / All days (E5, School G4), "from when?", Settings (replaces C1), change school | done (G0–G8; Our Day one slice card: #164, app #174) |
+| 6 | After the morning, proposed order: E1 one child, first-run setup (S1–S4), school shuttle, bus crowding, "time to leave" nudge, reference time zone, the rest of the delight pack, taxi ETA, portrait and windows | first-run setup S1–S4 done; the rest later, in this order |
 
 
 ### Design to finish before the build reaches it (added 2026-11-08 review)
@@ -121,7 +122,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 | N8 | One-child layout (also used by an iPad set to show one kid) | E1 | kids |
 | N6 | First-run setup (family, school, getting to school: stop code + buses + walk, permissions) | S1, S2, S3 (new 2026-11-08), S4 | setup |
 | N7 | "Time to leave" nudge (local notification) | — | bus |
-| N10 | Portrait and resizable windows (iPadOS 26 cannot refuse them): layout switch by free space (two columns → stacked → clock only), boards for 12.9" portrait and a half window; see the research report "아이패드 화면 크기 대응 레이아웃" | — | sizing formulas (landscape) |
+| N10 | Portrait (iPadOS 26 cannot refuse it): grown-up screens in portrait, boards for 12.9" portrait. Resizable windows are decided: one scale from the app window shows the whole board smaller (spec "Sizing: one scale, no floors", 2026-11-21) | — | sizing formulas (landscape) |
 | N11 | Pick the bus stop on a map (user, 2026-11-09): map button at the end of the Stop field; a "Find your stop" sheet centred on the school, LTA stop pins (clustered), search by stop or place, tap a pin → name, road, code, buses, "Use this stop"; plus a get-off stop so walk, ride and car times are worked out (MapKit ETA for walk and car, LTA BusRoutes distance for the ride), editable, with "no bus links these stops" help | S3, C2, C2c; spec "Pick the stop on a map" + "Get-off stop and worked-out times" | bus |
 | N12 | Setup polish from the iPad (user, 2026-11-09): S3 kid tabs (one screen, no per-kid Next); Preschool search from the ECDA list (private resource), typed drop-off / pick-up, "Closed on public holidays"; family Home on the map (device only) for walk and car times | S2, S3, map picker; spec "S3 · Getting there", "Where the kid goes in the day" | setup |
 | N13 | CI builds with the private school data (user, 2026-11-09): read-only deploy key on the private data repo (private key as a secret in the public repo; fine-grained token or GitHub App as alternatives); PR checks build with `public_build=1` and no secret (fork PRs get none; never `pull_request_target` with secrets); real builds only on push to develop/main or manual dispatch, behind an approval environment; never upload the .ipa as a public Actions artifact (send it to TestFlight); no data in logs | CI | platform |
