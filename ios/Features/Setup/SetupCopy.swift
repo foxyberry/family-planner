@@ -133,10 +133,29 @@ extension SetupFeature.State {
         }
     }
 
-    public var termsCaption: String? {
-        guard case let .ownDates(breaks)? = tabKid?.school.termsRow else { return nil }
-        return breaks > 0 ? L10n.tr("s2.terms.breaks", breaks) : L10n.tr("s2.terms.later")
+    /// The Terms row's label (layout v63 `main.label.terms`).
+    public var termsLabel: String { L10n.tr("settings.terms") }
+
+    /// The Terms row's read-only value for a school our data knows (layout v63 `main.row.terms.text`).
+    public var termsValue: String? {
+        switch tabKid?.school.termsRow {
+        case .moe?: L10n.tr("s2.terms.moe_known")
+        case let .own(breaks)?: breaks > 0 ? L10n.tr("s2.terms.own_breaks", breaks) : L10n.tr("s2.terms.own")
+        default: nil
+        }
     }
+
+    /// Under "Own terms" when the list has no term dates: the holidays are added later.
+    public var termsCaption: String? {
+        guard case .own(0)? = tabKid?.school.termsRow else { return nil }
+        return L10n.tr("s2.terms.later")
+    }
+
+    /// The question, its two pills and the check's text for a school our data doesn't know.
+    public var termsQuestion: String { L10n.tr("s2.terms.ask") }
+    public var termsYes: String { L10n.tr("s2.terms.yes") }
+    public var termsNotSure: String { L10n.tr("s2.terms.not_sure") }
+    public var termsCheckText: String { L10n.tr("s2.terms.moe") }
 
     /// The side column's medal captions, filled from Arrive by and Latest (spec S2 side column).
     public var medalCaptions: (gold: String, silver: String, bronze: String) {

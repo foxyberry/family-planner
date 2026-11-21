@@ -4005,17 +4005,6 @@
         }
       }
     },
-    "s2.terms.breaks" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld breaks from the school website"
-          }
-        }
-      }
-    },
     "s2.terms.later" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4038,6 +4027,17 @@
         }
       }
     },
+    "s2.terms.moe_known" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MOE terms"
+          }
+        }
+      }
+    },
     "s2.terms.not_sure" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4055,7 +4055,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uses its own term dates"
+            "value" : "Own terms"
+          }
+        }
+      }
+    },
+    "s2.terms.own_breaks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Own terms · %lld breaks"
           }
         }
       }

@@ -11,11 +11,13 @@ final class SchoolEditorTests: XCTestCase {
     private typealias F = Fixture
     private let tuesday = Day(year: 2026, month: 11, day: 10)
 
-    private func store(savedKids: LockIsolated<[Kid]>, savedRoutines: LockIsolated<[Routine]>)
+    private func store(savedKids: LockIsolated<[Kid]>, savedRoutines: LockIsolated<[Routine]>,
+                       directoryID: String? = nil, schools: [SchoolEntry] = [])
         -> TestStoreOf<SchoolEditorFeature> {
         var kidA = SeedData.kidA
         kidA.school?.arriveBy = 450
         kidA.school?.latest = 460
+        kidA.school?.directoryID = directoryID
         let kids = [kidA, SeedData.kidB]
         let store = TestStore(initialState: SchoolEditorFeature.State(kid: kidA.id, today: tuesday, calendar: F.calendar)) {
             SchoolEditorFeature()
@@ -25,10 +27,31 @@ final class SchoolEditorTests: XCTestCase {
             $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.scheduleStore.saveRoutine = { routine in savedRoutines.withValue { $0.append(routine) } }
             $0.schoolDirectory.calendar = { _, _ in .none }
+            $0.schoolDirectory.schools = { schools }
             $0.uuid = .incrementing
         }
         store.exhaustivity = .off
         return store
+    }
+
+    /// Spec G4 Terms (layout v63): a school the list knows shows its terms as text, with no MOE
+    /// switch; a school typed by hand, or one whose terms the list doesn't know, keeps the switch.
+    func testTheMoeSwitchShowsOnlyForASchoolTheListDoesNotKnow() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        func entry(_ follows: Bool?) -> SchoolEntry {
+            SchoolEntry(id: "example-primary", name: "Example Primary School", kind: .moe(.primary), area: "Example Town",
+                        hasPrimary: true, followsMoeTerms: follows, hours: nil, breakCount: 0, searchKeys: [])
+        }
+        for (directoryID, schools, shows) in [(String?.none, [SchoolEntry](), true),
+                                              ("example-primary", [entry(true)], false),
+                                              ("example-primary", [entry(false)], false),
+                                              ("example-primary", [entry(nil)], true)] {
+            let store = store(savedKids: kids, savedRoutines: routines, directoryID: directoryID, schools: schools)
+            await store.send(.task)
+            await store.receive(\.loaded)
+            await store.receive(\.schoolYearLoaded)
+            XCTAssertEqual(store.state.showsMoeCheck, shows, "\(String(describing: directoryID)) \(schools.map(\.followsMoeTerms))")
+        }
     }
 
     func testMovingTheStartMovesArriveByAndKeepsTheGrace() async {

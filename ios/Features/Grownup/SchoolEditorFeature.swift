@@ -26,6 +26,9 @@ public struct SchoolEditorFeature {
         public var editScope: Scope = .allDays
         /// The school's year, for the Terms row (MOE calendar or its own dates).
         public var schoolYear: SchoolCalendar = .none
+        /// The school list says whether this school follows MOE terms (a known MOE school, or one
+        /// with its own term dates): then the Terms row is text only (spec G4 Terms, layout v63).
+        public var termsKnown = false
         /// Board F2 over G4: the Bring card is open, and the bring list when it opened (Cancel puts it back).
         public var bringWas: [ItemMission]?
         public var isPickingMoreBring = false
@@ -52,8 +55,13 @@ public struct SchoolEditorFeature {
         public var termsText: String {
             SettingsModel.terms(schoolYear, today: today, dayCalendar: calendar) ?? L10n.tr("editor.row.nothing")
         }
-        /// The S2 MOE switch shows for a school that can follow MOE terms.
-        public var showsMoeCheck: Bool { school?.usesMoeTerms == true || schoolYear.isMoe }
+        /// The S2 MOE switch shows only for a school our data does not know or one typed by hand
+        /// (a known school's own dates are never overridden); a preschool shows it while it uses them.
+        public var showsMoeCheck: Bool {
+            guard let school, !termsKnown else { return false }
+            return !school.isPreschool || school.usesMoeTerms == true
+        }
+        public var moeCheckText: String { strings.tr("s2.terms.moe") }
         public var usesMoeTerms: Bool { school?.usesMoeTerms ?? false }
         /// Board G4 Bring: "Library bag · Water bottle", or "Nothing".
         public var bring: [ItemMission] { school?.bring ?? [] }
@@ -157,7 +165,8 @@ public struct SchoolEditorFeature {
     public enum Action: Equatable {
         case task
         case loaded(ScheduleSnapshot?)
-        case schoolYearLoaded(SchoolCalendar)
+        /// The school's year, and whether the school list knows its terms.
+        case schoolYearLoaded(SchoolCalendar, termsKnown: Bool)
         case startPicked(Date)
         case endPicked(Date)
         case dayToggled(Weekday)
@@ -208,12 +217,17 @@ public struct SchoolEditorFeature {
                 return .run { [scheduleStore, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
                     let family = await schoolDirectory.family(kids: snapshot?.kids ?? [], publicHolidays: [])
+                    let directoryID = snapshot?.kids.first { $0.id == kid }?.school?.directoryID
+                    let known = if let directoryID {
+                        await schoolDirectory.schools().first { $0.id == directoryID }?.followsMoeTerms != nil
+                    } else { false }
                     await send(.loaded(snapshot))
-                    await send(.schoolYearLoaded(family.schools[kid] ?? .none))
+                    await send(.schoolYearLoaded(family.schools[kid] ?? .none, termsKnown: known))
                 }
 
-            case let .schoolYearLoaded(year):
+            case let .schoolYearLoaded(year, known):
                 state.schoolYear = year
+                state.termsKnown = known
                 return .none
 
             case let .loaded(snapshot):
