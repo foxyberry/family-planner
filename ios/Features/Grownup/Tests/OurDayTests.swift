@@ -159,8 +159,10 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.addButtons.first { $0.minute == 1200 }?.ring, 1)
     }
 
-    /// Spec "Add between two slices": a new 30-minute item keeps both of its "+", on two rings;
-    /// dragging one hides only its own "+", the others keep their rings. Dragging the item's end
+    /// Spec "Add between two slices": a new 30-minute item keeps both of its "+", on two rings (its
+    /// start one ring in, 45 minutes after Dinner's start; its end back on the outer ring; Shower |
+    /// Sleep, 15 minutes later, takes the inner ring). Dragging one hides only its own "+", the others
+    /// keep their rings. Dragging the item's end
     /// moves only the item, so the Shower under it lights neither of its time fields.
     func testANewThirtyMinuteItemKeepsBothPlus() async throws {
         let store = await loaded()
@@ -168,14 +170,15 @@ final class OurDayTests: XCTestCase {
         await store.send(.addBetweenTapped(plus.knob))
         await store.send(.newSlicePicturePicked("actPiano"))
         let rings = { Dictionary(uniqueKeysWithValues: store.state.addButtons.map { ($0.minute, $0.ring) }) }
-        XCTAssertEqual(rings()[1155], 0)
-        XCTAssertEqual(rings()[1185], 1)
-        XCTAssertEqual(rings()[1200], 0)
+        XCTAssertEqual(rings()[1155], 1)
+        XCTAssertEqual(rings()[1185], 0)
+        XCTAssertEqual(rings()[1200], 2)
         await store.send(.sliceTapped(start: 1185))
         XCTAssertEqual(store.state.selectedBlock?.title, "Shower")
         await store.send(.knobDragged(index: knob(store, at: 1185), minute: 1185))
         XCTAssertNil(rings()[1185], "the dragged knob hides its +")
-        XCTAssertEqual(rings()[1200], 0, "the others keep their rings")
+        XCTAssertEqual(rings()[1200], 2, "the others keep their rings")
+        XCTAssertEqual(rings()[1155], 1)
         XCTAssertFalse(store.state.isStartDragged, "the item's end is not the Shower's start")
         XCTAssertFalse(store.state.isEndDragged)
     }

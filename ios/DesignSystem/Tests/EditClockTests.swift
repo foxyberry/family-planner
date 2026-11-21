@@ -3,23 +3,25 @@ import XCTest
 
 /// Board G1 on the edit clock, at board units: when two "+" touch and which ring each takes.
 final class EditClockTests: XCTestCase {
-    /// Drawn circles 44 across with centres 276 from the middle meet under about 37 minutes apart.
-    func testTwoPlusOverlapWhenTheirDrawnCirclesMeet() {
+    /// Tap frames 56 across with centres 276 from the middle meet under about 47 minutes apart (not
+    /// the 44 drawn circles: a tap must never land on the neighbour).
+    func testTwoPlusOverlapWhenTheirTapFramesMeet() {
         XCTAssertTrue(EditClock.addButtonsOverlap(1185, 1200), "a 15-minute shower")
         XCTAssertTrue(EditClock.addButtonsOverlap(1155, 1185), "30 minutes")
-        XCTAssertTrue(EditClock.addButtonsOverlap(1100, 1136))
-        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1137))
-        XCTAssertFalse(EditClock.addButtonsOverlap(1155, 1200), "45 minutes")
+        XCTAssertTrue(EditClock.addButtonsOverlap(1155, 1200), "45 minutes: the circles don't meet, the frames do")
+        XCTAssertTrue(EditClock.addButtonsOverlap(1100, 1146))
+        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1147))
         XCTAssertTrue(EditClock.addButtonsOverlap(1430, 10), "across midnight")
     }
 
-    /// The inner rings are smaller, so "+" there touch further apart: 46 and 62 minutes.
+    /// The inner rings are smaller, so "+" there touch further apart: 58 and 78 minutes.
     func testInnerRingsTouchFurtherApart() {
-        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1140, ring: 0), "40 minutes is free on the outer ring")
-        XCTAssertTrue(EditClock.addButtonsOverlap(1100, 1140, ring: 1), "but touches on the middle one")
-        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1147, ring: 1))
-        XCTAssertTrue(EditClock.addButtonsOverlap(1100, 1161, ring: 2))
-        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1162, ring: 2))
+        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1150, ring: 0), "50 minutes is free on the outer ring")
+        XCTAssertTrue(EditClock.addButtonsOverlap(1100, 1150, ring: 1), "but touches on the middle one")
+        XCTAssertTrue(EditClock.addButtonsOverlap(1100, 1158, ring: 1))
+        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1159, ring: 1))
+        XCTAssertTrue(EditClock.addButtonsOverlap(1100, 1178, ring: 2))
+        XCTAssertFalse(EditClock.addButtonsOverlap(1100, 1179, ring: 2))
     }
 
     /// Spec "Add between two slices": each "+", in day order, takes the outermost free ring.
@@ -28,7 +30,8 @@ final class EditClockTests: XCTestCase {
             let buttons = minutes.enumerated().map { EditClock.AddBetween(knob: $0.offset, minute: $0.element) }
             return Dictionary(uniqueKeysWithValues: EditClock.placed(buttons).map { ($0.minute, $0.ring) })
         }
-        XCTAssertEqual(rings([1200, 1110, 1155]), [1110: 0, 1155: 0, 1200: 0], "45 minutes apart: one ring")
+        XCTAssertEqual(rings([1200, 1100, 1150]), [1100: 0, 1150: 0, 1200: 0], "50 minutes apart: one ring")
+        XCTAssertEqual(rings([1200, 1110, 1155]), [1110: 0, 1155: 1, 1200: 0], "45 minutes apart alternate")
         XCTAssertEqual(rings([1155, 1185]), [1155: 0, 1185: 1], "a 30-minute item keeps both, on two rings")
         XCTAssertEqual(rings([1110, 1185, 1200]), [1110: 0, 1185: 0, 1200: 1], "a 15-minute shower")
         XCTAssertEqual(rings([1100, 1115, 1130]), [1100: 0, 1115: 1, 1130: 2], "three short slices: three rings")
