@@ -334,7 +334,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
     /// Boards C2 / C2c / S3: − 72, the value in 144, + 72, the caption 16 after.
     func testMinutesStepper() {
-        snap(MinutesStepper(value: "10 min", caption: "to the stop", spoken: "Walk", minus: {}, plus: {}), width: 560)
+        snap(MinutesStepper(value: "10 min", caption: "to the stop", label: "Walk", minus: {}, plus: {}), width: 560)
     }
 
     /// S4 switch list (layout v17): the switch on and off, and a row with a warning caption.

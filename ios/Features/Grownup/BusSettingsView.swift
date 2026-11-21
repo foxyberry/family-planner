@@ -22,7 +22,7 @@ public struct BusSettingsView: View {
                 // Board C2: the card runs 148–968, exactly its inner width, so a long row of buses can
                 // never widen it; a stop with many buses scrolls its rows inside the card.
                 PaperCard(seed: 51) {
-                    ScrollColumn {
+                    ScrollColumn(bleed: FormLines.drawnBleed) {
                         plan(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
                     }
                 }
@@ -76,7 +76,7 @@ public struct BusSettingsView: View {
                     value: store.walk, sizing: layout.sizing) { store.send(.walkChanged($0)) }
             ForEach(store.rideRows) { row in
                 stepper(row.label, text: row.text, caption: row.caption, step: 1,
-                        value: row.minutes, spoken: row.spoken, sizing: layout.sizing) {
+                        value: row.minutes, sizing: layout.sizing) {
                     store.send(.rideChanged(service: row.service, minutes: $0))
                 }
             }
@@ -110,9 +110,9 @@ public struct BusSettingsView: View {
 
     /// A minutes row (board C2): the shared stepper, laid out by its drawn box.
     private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int,
-                         spoken: String? = nil, sizing: Sizing, change: @escaping (Int) -> Void) -> some View {
+                         sizing: Sizing, change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
-            MinutesStepper(value: text, caption: caption, spoken: spoken ?? label,
+            MinutesStepper(value: text, caption: caption, label: label,
                            minus: { change(value - step) }, plus: { change(value + step) })
         }
         .drawnRow()

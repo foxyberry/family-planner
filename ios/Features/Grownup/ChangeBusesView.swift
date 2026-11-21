@@ -41,7 +41,7 @@ public struct ChangeBusesView: View {
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
                 PaperCard(seed: 52) {
-                    ScrollColumn {
+                    ScrollColumn(bleed: FormLines.drawnBleed) {
                         rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
                     }
                 }
@@ -118,7 +118,7 @@ public struct ChangeBusesView: View {
     private func stepper(_ label: String, text: String, caption: String, value: Int,
                          change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
-            MinutesStepper(value: text, caption: caption, spoken: label,
+            MinutesStepper(value: text, caption: caption, label: label,
                            minus: { change(value - 1) }, plus: { change(value + 1) })
         }
         .drawnRow()

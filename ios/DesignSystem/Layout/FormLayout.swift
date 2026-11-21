@@ -35,6 +35,9 @@ public struct FormLines: Equatable, Sendable {
     public static let secondLabelGap: CGFloat = labelColumn - labelMaximum
     /// A caption under a crayon field: 8 below the field's drawn edge (boards C2, S2, S3).
     public static let captionGap: CGFloat = Spacing.xs - CrayonPart.inset
+    /// A form's rows lay out their drawn box, so their frames reach one inset past the scroll column;
+    /// `ScrollColumn(bleed: FormLines.drawnBleed)` lets them draw there instead of clipping.
+    public static let drawnBleed = EdgeInsets(all: CrayonPart.inset)
     /// Board C2c "Then": a bus number field, 160 wide.
     public static let busNumberField: CGFloat = 160
 

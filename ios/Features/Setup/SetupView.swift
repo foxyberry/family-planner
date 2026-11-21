@@ -335,11 +335,14 @@ private struct SchoolStep: View {
                     MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
                     time(.end, width: 180)
                 }
-                // The caption's line is kept even when empty, so the rows below stay on their lines.
-                Text(school.hoursCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                // The website caption shows only when the hours came from the site (user, 2026-11-21:
+                // no blank line, so Arrive keeps the standard gap).
+                if let source = school.hoursSource {
+                    Text(source).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                }
             }
         }
-        .captionedRow()
+        .captionedRow(hasCaption: school.hoursSource != nil)
         if school.kind == .school {
             // One row: Arrive by, then "latest" and the gate's time (both 180 × 80, gap 16).
             row(L10n.tr("s2.arrive_by")) {
@@ -474,7 +477,7 @@ private struct GoingStep: View {
         // Spec "Several buses": a long list of buses wraps and the rows below move down; the rows
         // scroll inside the card rather than run past it (as C2).
         PaperCard(seed: 81) {
-            ScrollColumn {
+            ScrollColumn(bleed: FormLines.drawnBleed) {
                 rows.frame(width: grown.editorRowsWidth, alignment: .leading)
             }
         }
@@ -523,8 +526,7 @@ private struct GoingStep: View {
                     stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("s3.walk.caption"),
                             value: going.walk) { store.send(.walkChanged($0)) }
                     ForEach(store.rideRows) { ride in
-                        stepper(ride.label, text: ride.text, caption: ride.caption, value: ride.minutes,
-                                spoken: ride.spoken) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
+                        stepper(ride.label, text: ride.text, caption: ride.caption, value: ride.minutes) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
                     }
                 } else {
                     stepper(L10n.tr("going.leave"), text: store.leaveText, caption: store.leaveCaptionText,
@@ -540,10 +542,10 @@ private struct GoingStep: View {
     }
 
     private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
-                         spoken: String? = nil, change: @escaping (Int) -> Void) -> some View {
+                         change: @escaping (Int) -> Void) -> some View {
         // Board S3: the shared stepper on the control line, laid out by its drawn box.
         row(label) {
-            MinutesStepper(value: text, caption: caption, spoken: spoken ?? label,
+            MinutesStepper(value: text, caption: caption, label: label,
                            minus: { change(value - step) }, plus: { change(value + step) })
         }
         .drawnRow()

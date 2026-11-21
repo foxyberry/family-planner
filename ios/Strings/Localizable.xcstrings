@@ -155,17 +155,6 @@
         }
       }
     },
-    "c2.ride.spoken" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ride on %@"
-          }
-        }
-      }
-    },
     "c2.side.title" : {
       "extractionState" : "manual",
       "localizations" : {

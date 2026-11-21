@@ -100,7 +100,6 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(store.state.services, ["1", "2"], "pill order")
         XCTAssertEqual(store.state.rideRows.map(\.label), ["Ride", ""])
         XCTAssertEqual(store.state.rideRows.map(\.caption), ["on 1", "on 2"])
-        XCTAssertEqual(store.state.rideRows.map(\.spoken), ["Ride on 1", "Ride on 2"])
         await store.send(.rideChanged(service: "2", minutes: 18))
         await store.finish(timeout: .seconds(1))
         XCTAssertEqual(saved.value.last?.services, ["1", "2"])

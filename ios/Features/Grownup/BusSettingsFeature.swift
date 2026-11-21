@@ -48,21 +48,18 @@ public struct BusSettingsFeature {
             public var minutes: Int
             public var text: String
             public var caption: String
-            /// VoiceOver names every row ("Ride on 34"), also those without a label.
-            public var spoken: String
             public var id: String { service ?? "" }
         }
 
         public var rideRows: [RideRow] {
             guard !services.isEmpty else {
                 return [RideRow(service: nil, label: L10n.tr("c2.ride"), minutes: ride, text: L10n.tr("c2.minutes", ride),
-                                caption: L10n.tr("s3.ride.caption"), spoken: L10n.tr("c2.ride"))]
+                                caption: L10n.tr("s3.ride.caption"))]
             }
             return services.enumerated().map { index, service in
                 let minutes = rides[service] ?? ride
                 return RideRow(service: service, label: index == 0 ? L10n.tr("c2.ride") : "", minutes: minutes,
-                               text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service),
-                               spoken: L10n.tr("c2.ride.spoken", service))
+                               text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service))
             }
         }
 
