@@ -157,7 +157,8 @@ public struct SchoolEditorView: View {
                 }
             }
             .drawnRow()
-            // Board G4 Terms: the term text, and the S2 MOE switch for a school that can follow it.
+            // Board G4 Terms: the term text, and the S2 MOE switch only for a school our data
+            // doesn't know or one typed by hand.
             ListRow(leading: L10n.tr("settings.terms"), minHeight: sizing.fieldHeight) {
                 VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                     Text(store.termsText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(2)
@@ -165,7 +166,7 @@ public struct SchoolEditorView: View {
                         Button { store.send(.moeTermsToggled) } label: {
                             HStack(spacing: sizing(Spacing.s)) {
                                 CheckMark(isDone: store.usesMoeTerms, size: 40)
-                                Text(L10n.tr("s2.terms.moe")).crayonType(.caption).foregroundStyle(CrayonColor.ink)
+                                Text(store.moeCheckText).crayonType(.caption).foregroundStyle(CrayonColor.ink)
                             }
                         }
                         .buttonStyle(.plain)

@@ -302,8 +302,21 @@ private struct SchoolStep: View {
             }
             .drawnRow()
         }
-        // Board S2: the MOE row starts on the control column (232).
-        if let terms = school.termsRow { termsRow(terms).padding(.leading, layout.grown.labelWidth) }
+        // Board S2 (layout v63): a school our data knows reads "Terms" + its terms as text; one it
+        // doesn't know asks on the control column.
+        if let value = store.termsValue {
+            row(store.termsLabel) {
+                VStack(alignment: .leading, spacing: sizing.captionGap) {
+                    Text(value).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                    if let caption = store.termsCaption {
+                        Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    }
+                }
+            }
+            .captionedRow(hasCaption: store.termsCaption != nil)
+        } else if let terms = school.termsRow {
+            termsRow(terms).padding(.leading, layout.grown.labelWidth)
+        }
     }
 
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
@@ -364,23 +377,21 @@ private struct SchoolStep: View {
             Button { store.send(.moeTermsToggled) } label: {
                 HStack(spacing: sizing(Spacing.s)) {
                     CheckMark(isDone: isOn, size: 48)
-                    Text(L10n.tr("s2.terms.moe")).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                    Text(store.termsCheckText).crayonType(.body).foregroundStyle(CrayonColor.ink)
                 }
             }
             .buttonStyle(.plain)
-        case .ownDates:
-            VStack(alignment: .leading, spacing: sizing(Spacing.xxs)) {
-                Text(L10n.tr("s2.terms.own")).crayonType(.body).foregroundStyle(CrayonColor.ink)
-                if let caption = store.termsCaption {
-                    Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                }
-            }
+        case .moe, .own:
+            // Shown as the "Terms" text row above.
+            EmptyView()
         case let .ask(answer):
+            // Spec S2 Terms row: the question, then "Yes" / "Not sure" pills 64 tall, 12 apart. They
+            // stay 180 wide: "Not sure" in body 30 runs over a 140 pill's outline (13" check).
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
-                Text(L10n.tr("s2.terms.ask")).crayonType(.caption).foregroundStyle(CrayonColor.ink)
+                Text(store.termsQuestion).crayonType(.caption).foregroundStyle(CrayonColor.ink)
                 CrayonTabs(selection: Binding(get: { answer }, set: { if let yes = $0 { store.send(.moeAnswered(yes)) } }),
-                           items: [(Optional(true), L10n.tr("s2.terms.yes"), nil),
-                                   (Optional(false), L10n.tr("s2.terms.not_sure"), nil)],
+                           items: [(Optional(true), store.termsYes, nil),
+                                   (Optional(false), store.termsNotSure, nil)],
                            itemSize: CGSize(width: 180, height: 64), spacing: Spacing.sm)
             }
         }

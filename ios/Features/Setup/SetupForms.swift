@@ -120,23 +120,31 @@ public struct SchoolForm: Equatable, Sendable {
         return arriveBy <= latest && latest < end
     }
 
-    /// What the MOE terms row shows (spec S2 "MOE terms row").
+    /// What the Terms row shows (spec S2 "Terms row", layout v63): a school our data knows shows
+    /// its terms as text and never asks, so its own dates are never overridden.
     public enum TermsRow: Equatable, Sendable {
-        case check(isOn: Bool)
-        case ownDates(breaks: Int)
+        /// An MOE school, or one that follows MOE terms: "MOE terms".
+        case moe
+        /// A school with its own terms: "Own terms · {n} breaks", or "Own terms".
+        case own(breaks: Int)
+        /// Not known or typed by hand: "Does your school follow the MOE term dates?" (Yes / Not sure).
         case ask(answer: Bool?)
+        /// After "Yes": the MOE check, which the grown-up can turn off again.
+        case check(isOn: Bool)
     }
 
     public var termsRow: TermsRow? {
         guard kind == .school else { return nil }
         if let picked {
             switch picked.followsMoeTerms {
-            case true?: return .check(isOn: usesMoeTerms)
-            case false?: return .ownDates(breaks: picked.breakCount)
-            case nil: return .ask(answer: moeAnswer)
+            case true?: return .moe
+            case false?: return .own(breaks: picked.breakCount)
+            case nil: break
             }
+        } else if !typedByHand {
+            return nil
         }
-        return typedByHand ? .ask(answer: moeAnswer) : nil
+        return moeAnswer == true ? .check(isOn: usesMoeTerms) : .ask(answer: moeAnswer)
     }
 }
 
