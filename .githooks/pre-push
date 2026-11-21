@@ -70,6 +70,15 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   bash "$ROOT/scripts/check-debug-boundary.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-layout-literals.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-view-values.sh" </dev/null || status=1
+  # Comments this push adds or edits must cite each board's current layout version.
+  while read -r local_ref local_sha _ _; do
+    case "$local_ref" in refs/heads/*) ;; *) continue ;; esac
+    [[ "$local_sha" =~ ^0+$ ]] && continue
+    base="$(git merge-base "$remote/develop" "$local_sha" 2>/dev/null || true)"
+    if [ -n "$base" ]; then
+      bash "$ROOT/scripts/check-layout-versions.sh" --diff "$base" "$local_sha" </dev/null || status=1
+    fi
+  done <<< "$refs"
 fi
 
 if printf '%s' "$changed" | grep -Eq '^ios/.*\.(swift|xcstrings)$'; then

@@ -34,6 +34,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the PR's base, for the checks that read only what the PR changes
+      - name: Layout version citations this PR adds
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: bash scripts/check-layout-versions.sh --diff "origin/$BASE_REF" HEAD
+      - name: Layout version check tests
+        run: bash scripts/tests/check-layout-versions-test.sh
       - name: Private-term check tests
         run: bash scripts/tests/check-private-terms-test.sh
       - name: Claude hook tests
