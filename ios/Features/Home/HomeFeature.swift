@@ -203,9 +203,6 @@ public struct HomeFeature {
         /// Live times are fetched only for Kid A's next bus outing in an open window.
         var wantsLive: Bool { morningOuting?.trip.way == .bus && busPlan != nil }
 
-        /// The switch's VoiceOver label: "Day. Tap for night." / "Night. Tap for day.".
-        public var skySwitchLabel: String { look == .day ? strings.tr("home.sky.day") : strings.tr("home.sky.night") }
-
         public var kidABlock: KidABlock {
             guard let first = days.first else { return .nothing }
             if morningOuting != nil { return .leave }
@@ -241,10 +238,6 @@ public struct HomeFeature {
         public var clockHub: PieClock.Hub { HomeModel.hub(clockSlots, minute: minute) }
         /// The hand, only when there is a day to point into.
         public var clockHand: Int? { clockSlots.isEmpty ? nil : minute }
-        public var clockAccessibilityLabel: String {
-            HomeModel.accessibilityLabel(kidName: days.first?.kid.name ?? "", day: dayName ?? "", slots: clockSlots,
-                                         minute: minute)
-        }
 
         /// A1 / A1m: "Leave in" over the minutes to leave, while Kid A's outing is near.
         public var leaveTimeLeft: HomeModel.TimeLeft? {
@@ -273,8 +266,6 @@ public struct HomeFeature {
         /// A1 / A1m: the way picture beside "Leave in" (the bus, the car, ...).
         public var leavePicture: KitSlot? { morningOuting.map { KitSlot(iconName: $0.trip.way.moverPicture) } }
 
-        /// Board G0: the pencil's VoiceOver label.
-        public var grownupLabel: String { strings.tr("home.grownup") }
         /// The caption over the Next row.
         public var nextLabel: String { strings.tr("home.next") }
     }

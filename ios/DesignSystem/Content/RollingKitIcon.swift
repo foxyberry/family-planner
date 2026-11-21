@@ -25,7 +25,6 @@ public struct RollingKitIcon: View {
                 view.rotationEffect(.degrees(slot == .star ? 0 : 2 * phase), anchor: .bottom)
                     .scaleEffect(slot == .star ? 1 + 0.12 * abs(phase) : 1)
             } animation: { _ in .easeInOut(duration: 0.2) }
-            .accessibilityHidden(true)
     }
 
     /// The wheels turn one revolution per wheel circumference travelled (a wheel is about 44 of 240).

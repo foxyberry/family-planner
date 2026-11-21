@@ -8,8 +8,8 @@ import SwiftUI
 public struct ComponentGallery: View {
     /// The kid card's words (made up, gallery only).
     static let kidWords = KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
-                                        colour: "Colour", face: "Face", colourNames: ["Blue", "Orange", "Green", "Purple"],
-                                        faces: [(.kidGirl, "Girl"), (.kidBoy, "Boy")])
+                                        colour: "Colour", face: "Face", colourCount: 4,
+                                        faces: [.kidGirl, .kidBoy])
 
     @State private var tab = 0
     @State private var monday = true
@@ -29,20 +29,20 @@ public struct ComponentGallery: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
                 if let onBack {
-                    GrownupHeader(title: "Design gallery", caption: "Grown-ups only", backLabel: "Back", onBack: onBack)
+                    GrownupHeader(title: "Design gallery", caption: "Grown-ups only", onBack: onBack)
                 }
                 section("0b · Controls") {
                     InkButton("Missions") {}
                     HStack(spacing: Spacing.m) {
-                        RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
-                        RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
-                        RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(48)
+                        RoundButton(glyph: .chevronLeft) {}
+                        RoundButton(glyph: .plus) {}
+                        RoundButton(glyph: .close) {}.size(48)
                         // G0: the pencil way in.
-                        RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {}
-                        RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {}.look(.night)
+                        RoundButton(picture: .pencil) {}
+                        RoundButton(picture: .pencil) {}.look(.night)
                         // G1 Undo (on) and Redo (off, at 45 %).
-                        RoundButton(glyph: .undo, accessibilityLabel: "Undo") {}.size(72)
-                        RoundButton(glyph: .redo, accessibilityLabel: "Redo") {}.size(72).opacity(0.45)
+                        RoundButton(glyph: .undo) {}.size(72)
+                        RoundButton(glyph: .redo) {}.size(72).opacity(0.45)
                         PillToggle("12", isOn: true) {}
                         PillToggle("34", isOn: false) {}
                         PillToggle("34", isOn: true, then: "33") {}
@@ -56,13 +56,13 @@ public struct ComponentGallery: View {
                     PaperCard(padding: FormLines.cardPadding) {
                         KidCard(words: Self.kidWords,
                                 name: .constant("Kid A"), age: .constant("7"),
-                                badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), shownName: "Kid A",
+                                badge: KidFace.Badge(face: "kidGirl", colorIndex: 1),
                                 colorIndex: 1, face: "kidGirl", onColour: { _ in }, onFace: { _ in })
                             .formLines(KidCard.lines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)), words: Self.kidWords))
                     }
                     .frame(width: 800)
                     // C2 / C2c / S3: a minutes stepper.
-                    MinutesStepper(value: "10 min", caption: "to the stop", label: "Walk", minus: {}, plus: {})
+                    MinutesStepper(value: "10 min", caption: "to the stop", minus: {}, plus: {})
                     CrayonTabs(selection: $tab, items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Family", nil)])
                     HStack(spacing: Spacing.s) {
                         DayChip("M", isOn: $monday)
@@ -73,37 +73,37 @@ public struct ComponentGallery: View {
                     }
                     HStack(spacing: Spacing.m) {
                         CrayonField("Activity name", text: $name).frame(width: 480)
-                        TimeField(label: "7:30 am", pickerTitle: "Time", time: $time)
+                        TimeField(label: "7:30 am", time: $time)
                         DateField(label: "9 Nov", date: $time)
                         FieldButton("End of term") {}
                     }
                     // S1–S4: setup progress, kid colour swatches, a time not chosen yet.
                     HStack(spacing: Spacing.m) {
-                        StepDots(current: 2, label: "Step 2 of 4")
+                        StepDots(current: 2)
                         HStack(spacing: Spacing.xs) {
                             ForEach(0..<4, id: \.self) { index in
-                                ColourSwatch(colorIndex: index, isPicked: index == 0, accessibilityLabel: "Colour") {}
+                                ColourSwatch(colorIndex: index, isPicked: index == 0) {}
                             }
                         }
-                        TimeField(label: "7:30 am", pickerTitle: "Time", time: $time, isPlaceholder: true)
-                        KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
+                        TimeField(label: "7:30 am", time: $time, isPlaceholder: true)
+                        KidFace(.init(face: "", colorIndex: 2))
                         LockMark(size: 56)
                     }
                     CrayonTabs(selection: .constant(0), items: [(0, "School", nil), (1, "Preschool", nil), (2, "At home", nil)],
                                itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
                     PictureRow(slots: [.actSwim, .actArt, .actMusic, .actPiano, .actDance], selection: .constant(.actSwim),
-                               all: [.actSwim, .actArt], isShowingAll: false, moreTitle: "More", moreLabel: "More pictures") {}
+                               all: [.actSwim, .actArt], isShowingAll: false, moreTitle: "More") {}
                     IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA],
-                               drawing: IconPicker.Drawing(label: "Draw a new picture") {})
+                               drawing: IconPicker.Drawing {})
                     // Spec "Event form rows", Bring: several picks, up to 4.
                     IconPicker(picked: [.backpack, .waterBottle], slots: [.backpack, .lunchBox, .waterBottle]) { _ in }
                     HStack(spacing: Spacing.xl) {
-                        TimeLeft("19 min", spoken: "19 minutes", isLate: false)
-                        TimeLeft("\u{2212}2 min", spoken: "2 minutes late", isLate: true)
+                        TimeLeft("19 min", isLate: false)
+                        TimeLeft("\u{2212}2 min", isLate: true)
                     }
-                    SlideToGo(state: .idle, idleTitle: "Slide to go", doneTitle: "On our way!", goLabel: "Go") {}
-                    SlideToGo(state: .done, idleTitle: "", doneTitle: "On our way!", goLabel: "Go") {}
-                    SlideToGo(state: .done, idleTitle: "", doneTitle: "Ready!", goLabel: "Go", knob: .star, doneKnob: .crown) {}
+                    SlideToGo(state: .idle, idleTitle: "Slide to go", doneTitle: "On our way!") {}
+                    SlideToGo(state: .done, idleTitle: "", doneTitle: "On our way!") {}
+                    SlideToGo(state: .done, idleTitle: "", doneTitle: "Ready!", knob: .star, doneKnob: .crown) {}
                 }
                 section("0c · Content") {
                     ListRow(leading: "7:30") { Text("Bus to school") }
@@ -129,13 +129,13 @@ public struct ComponentGallery: View {
                         .frame(width: 360)
                     LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
                                    remaining: "12 more Go! days to the Double-Decker")
-                    VoiceNote(duration: .seconds(12), isPlaying: false, label: "Play") {}
+                    VoiceNote(duration: .seconds(12), isPlaying: false) {}
                     HStack(spacing: Spacing.m) {
-                        Medal(.gold, size: 104, label: "Gold medal")
-                        Medal(.silver, size: 104, label: "Silver medal")
-                        Medal(.bronze, size: 104, label: "Bronze medal")
-                        KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
-                        KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
+                        Medal(.gold, size: 104)
+                        Medal(.silver, size: 104)
+                        Medal(.bronze, size: 104)
+                        KidFace(.init(face: "kidGirl", colorIndex: 0))
+                        KidFace(.init(face: "kidBoy", colorIndex: 1), size: KidFace.medium)
                     }
                 }
                 section("M2 · Home and lock") {
@@ -176,8 +176,7 @@ public struct ComponentGallery: View {
                 }
                 section("A2 · Live bubble and tags") {
                     HStack(alignment: .bottom, spacing: Spacing.l) {
-                        LiveBusBubble(service: "1", minutes: "28 min", face: KidFace.Badge(face: "kidGirl", colorIndex: 0),
-                                      name: "Kid A", myBus: "my bus")
+                        LiveBusBubble(service: "1", minutes: "28 min", face: KidFace.Badge(face: "kidGirl", colorIndex: 0), myBus: "my bus")
                         LiveBusTag(.bus(number: "1", then: nil, minutes: "4 min"))
                         LiveBusTag(.bus(number: "3", then: "4", minutes: "12 min"))
                     }
@@ -195,7 +194,7 @@ public struct ComponentGallery: View {
                 }
                 section("G1 · Day button, picker, save changes") {
                     DayButton(today: "Today", date: "Tue 10 Nov") {}.frame(width: 472)
-                    DayPickerCard(month: "November", weeks: Self.sampleWeeks, earlier: "Earlier", later: "Later",
+                    DayPickerCard(month: "November", weeks: Self.sampleWeeks,
                                   today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {})
                     ConfirmCard(title: "Save the changes?", message: "Dinner 6:30 pm %@ 7:30 pm, this day",
                                 messageGlyph: .arrowRight, cancel: "Cancel", confirm: "Save", isDestructive: false,
@@ -213,9 +212,9 @@ public struct ComponentGallery: View {
                         ForEach(MedalKind.allCases, id: \.self) { kind in
                             ZStack {
                                 CrayonRing(progress: 1, colorIndex: 0)
-                                KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A", size: 56)
+                                KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), size: 56)
                             }
-                            .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76, label: "Medal") }
+                            .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76) }
                         }
                     }
                 }
@@ -234,7 +233,7 @@ public struct ComponentGallery: View {
                     WayStrip(trip: .init(destination: .wolfie, destinationLabel: "School", homeLabel: "Our stop",
                                          showsStops: true, mover: .busDouble, moverX: WayStrip.liveX(minutes: 12),
                                          cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable",
-                                         owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A"))
+                                         owner: KidFace.Badge(face: "kidGirl", colorIndex: 0)))
                         .frame(height: 340)
                     WayStrip(homeAllDay: "Home all day").frame(height: 340)
                     HStack(spacing: Spacing.l) {
@@ -262,7 +261,7 @@ public struct ComponentGallery: View {
                     .frame(height: 160)
                     KidFullScreen(look: .night) {
                         HStack(spacing: Spacing.l) {
-                            SkySwitch(look: .night, isAnimating: false, label: "Night. Tap for day.") {}
+                            SkySwitch(look: .night, isAnimating: false) {}
                             Text("Night look").crayonType(.head)
                             KitPlate(look: .night, size: 72) { KitIcon(.actDinner, size: 72) }
                             InkButton("Diary", arrow: true, look: .night) {}.frame(width: 384)

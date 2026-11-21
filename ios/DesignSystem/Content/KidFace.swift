@@ -6,7 +6,7 @@ import SwiftUI
 /// crayon UI shape drawn in code (stroke about 9 % of the box, a fixed seed per kid, the kid's one
 /// colour by day and night); only the face is a kit picture, centred at 86 % of the box (the
 /// face drawing fills only 68 % of its own box). A kid with no face yet (`face` empty, S1) shows
-/// their colour dot. One accessibility element labelled with the name.
+/// their colour dot.
 public struct KidFace: View {
     /// What a tab or row needs to show a kid's face.
     public struct Badge: Equatable, Sendable {
@@ -29,15 +29,13 @@ public struct KidFace: View {
 
     private let badge: Badge
     private let size: CGFloat
-    private let name: String
     private let showsRing: Bool
 
     /// `showsRing: false` inside a progress ring (the morning kid list), where the kid's colour
     /// appears only as missions get done (user, 2026-11-09).
-    public init(_ badge: Badge, name: String, size: CGFloat = KidFace.large, showsRing: Bool = true) {
+    public init(_ badge: Badge, size: CGFloat = KidFace.large, showsRing: Bool = true) {
         self.badge = badge
         self.size = size
-        self.name = name
         self.showsRing = showsRing
     }
 
@@ -60,7 +58,5 @@ public struct KidFace: View {
             }
         }
         .frame(width: size, height: size)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(name)
     }
 }

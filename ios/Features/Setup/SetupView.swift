@@ -82,13 +82,13 @@ public struct SetupView: View {
     private func header(_ layout: SetupLayout) -> some View {
         HStack(spacing: layout.grown.titleGap) {
             if store.showsBack {
-                RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("grownup.back")) { store.send(.backTapped) }
+                RoundButton(glyph: .chevronLeft) { store.send(.backTapped) }
             }
             Text(store.title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1).layoutPriority(1)
             headerAccessory(layout)
             Spacer(minLength: Spacing.m)
             Text(store.stepText).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1).fixedSize()
-            StepDots(current: store.step.number, label: store.stepText)
+            StepDots(current: store.step.number)
         }
         // Spec "Header row": the kid tabs stay 72 on every iPad.
         .environment(\.isHeaderRow, true)
@@ -162,7 +162,7 @@ private struct FamilyStep: View {
         // Spec "Layout balance": each kid card hugs its rows (padding 32), cards 40 apart.
         VStack(alignment: .leading, spacing: FormLines.cardGap) {
             ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
-                PaperCard(seed: 61 + UInt32(index), padding: FormLines.cardPadding) { card(kid, index: index) }
+                PaperCard(seed: 61 + UInt32(index), padding: FormLines.cardPadding) { card(kid) }
                     .frame(width: layout.grown.form.width, alignment: .topLeading)
                     .cardCorner(size: Sizing.cornerControl) { removeButton(kid) } popover: { removeConfirm(kid, index: index) }
                     .zIndex(store.removeConfirm == kid.id ? 1 : 0)
@@ -171,7 +171,7 @@ private struct FamilyStep: View {
                 if store.canAddKid {
                     Button { store.send(.addKidTapped) } label: {
                         HStack(spacing: Spacing.s) {
-                            RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("s1.add")) {}.size(72).allowsHitTesting(false)
+                            RoundButton(glyph: .plus) {}.size(72).allowsHitTesting(false)
                             Text(L10n.tr("s1.add")).crayonType(.body).foregroundStyle(CrayonColor.link)
                         }
                     }
@@ -187,9 +187,7 @@ private struct FamilyStep: View {
     /// (`cardCorner`); "Remove {name}?" hangs under it when the card has something typed.
     @ViewBuilder private func removeButton(_ kid: KidEntry) -> some View {
         if store.canRemoveKids {
-            let name = kid.trimmedName
-            RoundButton(glyph: .close, accessibilityLabel: name.isEmpty ? L10n.tr("s1.remove.label.empty")
-                                                                       : L10n.tr("s1.remove.label", name)) {
+            RoundButton(glyph: .close) {
                 store.send(.removeKidTapped(kid.id))
             }
             .size(Sizing.cornerControl)
@@ -208,12 +206,11 @@ private struct FamilyStep: View {
     private var sizing: Sizing { layout.grown.sizing }
 
     /// Spec "Kid card": the shared two-row card on the form lines (user, 2026-11-21).
-    private func card(_ kid: KidEntry, index: Int) -> some View {
+    private func card(_ kid: KidEntry) -> some View {
         KidCard(words: store.kidCardWords,
                 name: Binding(get: { kid.name }, set: { store.send(.nameChanged(kid.id, $0)) }),
                 age: Binding(get: { kid.ageText }, set: { store.send(.ageChanged(kid.id, $0)) }),
-                badge: kid.badge, shownName: kid.shownName(index: index), colorIndex: kid.colorIndex,
-                face: kid.pickedFace,
+                badge: kid.badge, colorIndex: kid.colorIndex, face: kid.pickedFace,
                 onColour: { store.send(.colourTapped(kid.id, $0)) }, onFace: { store.send(.faceTapped(kid.id, $0)) })
             .formLines(KidCard.lines(layout.grown, words: store.kidCardWords))
     }
@@ -313,7 +310,7 @@ private struct SchoolStep: View {
 
     private func time(_ row: SetupFeature.TimeRow, width: CGFloat? = nil) -> some View {
         let label = store.state.timeLabel(row)
-        return TimeField(label: label.text, pickerTitle: store.timePickerTitle,
+        return TimeField(label: label.text,
                          time: Binding(get: { store.state.timeDate(row) }, set: { store.send(.timePicked(row, $0)) }),
                          isPlaceholder: label.isPlaceholder, width: width)
     }
@@ -369,7 +366,6 @@ private struct SchoolStep: View {
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityAddTraits(isOn ? .isSelected : [])
         case .ownDates:
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(L10n.tr("s2.terms.own")).crayonType(.body).foregroundStyle(CrayonColor.ink)
@@ -494,7 +490,7 @@ private struct GoingStep: View {
                          change: @escaping (Int) -> Void) -> some View {
         // Board S3: the shared stepper on the control line, laid out by its drawn box.
         row(label) {
-            MinutesStepper(value: text, caption: caption, label: label,
+            MinutesStepper(value: text, caption: caption,
                            minus: { change(value - step) }, plus: { change(value + step) })
         }
         .drawnRow()
@@ -578,7 +574,7 @@ private struct SummarySide: View {
     @ViewBuilder private var kids: some View {
         ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
             HStack(alignment: .firstTextBaseline, spacing: KidFace.gap(for: KidFace.medium)) {
-                KidFace(.init(face: kid.face ?? "", colorIndex: kid.colorIndex), name: kid.shownName(index: index),
+                KidFace(.init(face: kid.face ?? "", colorIndex: kid.colorIndex),
                         size: KidFace.medium)
                     .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
                 // Board S4: "Kid A · Kid B".

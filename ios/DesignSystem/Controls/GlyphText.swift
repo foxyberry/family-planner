@@ -32,6 +32,5 @@ public struct GlyphText: View {
         Text("\(Text(verbatim: before))\(Text(image).baselineOffset(-size * 0.2))\(Text(verbatim: after))")
             .crayonType(type)
             .foregroundStyle(color)
-            .accessibilityLabel(Text(verbatim: before + after))
     }
 }

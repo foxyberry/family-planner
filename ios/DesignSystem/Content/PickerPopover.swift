@@ -31,7 +31,6 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
                     .frame(minHeight: 64)
                 }
                 .buttonStyle(.plain)
-                .accessibilityAddTraits(item == selection ? .isSelected : [])
             }
         }
         .padding(Spacing.m)

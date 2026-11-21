@@ -87,7 +87,5 @@ public struct PickRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(isPicked ? [.isButton, .isSelected] : .isButton)
     }
 }

@@ -25,6 +25,5 @@ public struct MarkerIcon: View {
                            style: StrokeStyle(lineWidth: max(3, 5 * size / 48), lineCap: .round, lineJoin: .round))
         }
         .frame(width: size, height: size)
-        .accessibilityHidden(true)
     }
 }

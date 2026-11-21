@@ -15,7 +15,7 @@ public struct BusSettingsView: View {
     public var body: some View {
         // Spec "Scrolling": the card stays put and its rows scroll inside it; the side scrolls on its own.
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+            GrownupHeader(title: store.title, caption: store.headerCaption,
                           onBack: { store.send(.doneTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
@@ -112,7 +112,7 @@ public struct BusSettingsView: View {
     private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int,
                          sizing: Sizing, change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
-            MinutesStepper(value: text, caption: caption, label: label,
+            MinutesStepper(value: text, caption: caption,
                            minus: { change(value - step) }, plus: { change(value + step) })
         }
         .drawnRow()

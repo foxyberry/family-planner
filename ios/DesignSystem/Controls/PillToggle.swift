@@ -49,7 +49,6 @@ public struct PillToggle: View {
                             seed: CrayonStyle.Seed.tabs + 50)
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 

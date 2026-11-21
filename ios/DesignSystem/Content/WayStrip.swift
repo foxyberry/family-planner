@@ -52,7 +52,6 @@ public struct WayStrip: View {
         public var destinationLabel: String
         public var ourStopLabel: String
         public var owner: KidFace.Badge
-        public var ownerName: String
         public var myBus: String
         /// The chosen bus's number for the legend plate (the kid's first bus when none can be caught).
         public var myService: String
@@ -61,14 +60,13 @@ public struct WayStrip: View {
         public var moreOthers: String?
 
         public init(buses: [LiveBus], destination: KitSlot, destinationLabel: String, ourStopLabel: String,
-                    owner: KidFace.Badge, ownerName: String, myBus: String, myService: String = "",
+                    owner: KidFace.Badge, myBus: String, myService: String = "",
                     others: [Plate] = [], moreOthers: String? = nil) {
             self.buses = buses
             self.destination = destination
             self.destinationLabel = destinationLabel
             self.ourStopLabel = ourStopLabel
             self.owner = owner
-            self.ownerName = ownerName
             self.myBus = myBus
             self.myService = myService
             self.others = others
@@ -87,11 +85,9 @@ public struct WayStrip: View {
         public var cardTitle: String
         public var cardCaption: String
         public var owner: KidFace.Badge
-        public var ownerName: String
 
         public init(destination: KitSlot, destinationLabel: String, homeLabel: String, showsStops: Bool,
-                    mover: KitSlot, moverX: CGFloat, cardTitle: String, cardCaption: String, owner: KidFace.Badge,
-                    ownerName: String) {
+                    mover: KitSlot, moverX: CGFloat, cardTitle: String, cardCaption: String, owner: KidFace.Badge) {
             self.destination = destination
             self.destinationLabel = destinationLabel
             self.homeLabel = homeLabel
@@ -101,7 +97,6 @@ public struct WayStrip: View {
             self.cardTitle = cardTitle
             self.cardCaption = cardCaption
             self.owner = owner
-            self.ownerName = ownerName
         }
     }
 
@@ -156,7 +151,6 @@ public struct WayStrip: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
         }
-        .accessibilityElement(children: .ignore)
     }
 
     /// Board units to screen points: x by the strip's width, y and sizes by s.
@@ -267,7 +261,6 @@ public struct WayStrip: View {
             context.stroke(path, with: .color(CrayonColor.pictureMarker),
                            style: StrokeStyle(lineWidth: g.len(5), lineCap: .round))
         }
-        .accessibilityHidden(true)
     }
 
     private func stop(_ g: Geo, x: CGFloat, radius: CGFloat, fill: CrayonFill, width: CGFloat, seed: UInt32) -> some View {
@@ -305,7 +298,7 @@ public struct WayStrip: View {
         case let .trip(trip):
             label(trip.homeLabel, x: Self.homeX, kx: kx, k: k)
             label(trip.destinationLabel, x: Self.destinationX, kx: kx, k: k)
-            card(title: trip.cardTitle, caption: trip.cardCaption, owner: (trip.owner, trip.ownerName))
+            card(title: trip.cardTitle, caption: trip.cardCaption, owner: trip.owner)
                 .offset(x: (trip.showsStops ? 236 : 56) * kx, y: (trip.showsStops ? 38 : 30) * k)
         case let .live(live):
             label(live.ourStopLabel, x: Self.homeX, kx: kx, k: k)
@@ -333,8 +326,7 @@ public struct WayStrip: View {
             if let mine = live.buses.first(where: \.isMine) {
                 Color.clear.frame(width: 1, height: 1)
                     .overlay(alignment: .bottom) {
-                        LiveBusBubble(service: mine.service, minutes: mine.minutes, face: live.owner,
-                                      name: live.ownerName, myBus: live.myBus)
+                        LiveBusBubble(service: mine.service, minutes: mine.minutes, face: live.owner, myBus: live.myBus)
                     }
                     .offset(x: Self.bubbleX(mine.x) * kx, y: Self.bubbleBottom * k)
                     .animation(.linear(duration: 1), value: mine.x)
@@ -380,9 +372,9 @@ public struct WayStrip: View {
             .offset(x: (x - half) * kx, y: Self.labelTop * k)
     }
 
-    private func card(title: String, caption: String?, owner: (KidFace.Badge, String)?) -> some View {
+    private func card(title: String, caption: String?, owner: KidFace.Badge?) -> some View {
         HStack(spacing: Spacing.s) {
-            if let owner { KidFace(owner.0, name: owner.1, size: 40) }
+            if let owner { KidFace(owner, size: 40) }
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(title).crayonType(.head).foregroundStyle(CrayonColor.pictureInk)
                 if let caption { Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText) }

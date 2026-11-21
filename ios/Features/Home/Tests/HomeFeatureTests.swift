@@ -86,7 +86,6 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.kidNowCaption, "now")
         XCTAssertEqual(store.state.clockHand, 412)
         XCTAssertFalse(store.state.clockSectors.isEmpty)
-        XCTAssertEqual(store.state.grownupLabel, "Grown-up mode")
 
         let empty = HomeFeature.State()
         XCTAssertNil(empty.kidB)
@@ -109,7 +108,6 @@ final class HomeFeatureTests: XCTestCase {
     /// The copy comes from the injected localizer: a test can check the keys.
     func testCopyComesFromTheInjectedLocalizer() {
         let state = withDependencies { $0.localizer = .keys } operation: { HomeFeature.State() }
-        XCTAssertEqual(state.grownupLabel, "home.grownup")
         XCTAssertEqual(state.nextLabel, "home.next")
         XCTAssertEqual(state.missionsTitle, "home.missions")
     }
@@ -141,11 +139,9 @@ final class HomeFeatureTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         XCTAssertEqual(store.state.look, .day)
-        XCTAssertEqual(store.state.skySwitchLabel, "Day. Tap for night.")
 
         await store.send(.skySwitchTapped)
         XCTAssertEqual(store.state.look, .night)
-        XCTAssertEqual(store.state.skySwitchLabel, "Night. Tap for day.")
         await store.send(.skySwitchTapped)   // still animating: ignored
         XCTAssertEqual(store.state.look, .night)
         await clock.advance(by: .milliseconds(1200))

@@ -13,22 +13,18 @@ public enum MedalKind: Sendable, CaseIterable {
     }
 }
 
-/// A gold, silver or bronze medal from the crayon kit. `label`: its VoiceOver name ("Gold medal"),
-/// from the caller.
+/// A gold, silver or bronze medal from the crayon kit.
 public struct Medal: View {
     private let kind: MedalKind
     private let size: CGFloat
-    private let label: String
 
-    public init(_ kind: MedalKind, size: CGFloat, label: String) {
+    public init(_ kind: MedalKind, size: CGFloat) {
         self.kind = kind
         self.size = size
-        self.label = label
     }
 
     public var body: some View {
         KitIcon(kind.slot, size: size)
-            .accessibilityLabel(label)
     }
 }
 
@@ -37,19 +33,17 @@ public struct Medal: View {
 public struct DroppingMedal: View {
     private let kind: MedalKind
     private let size: CGFloat
-    private let label: String
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown: Bool
 
-    public init(_ kind: MedalKind, size: CGFloat, label: String, dropsIn: Bool = true) {
+    public init(_ kind: MedalKind, size: CGFloat, dropsIn: Bool = true) {
         self.kind = kind
         self.size = size
-        self.label = label
         _shown = State(initialValue: !dropsIn)
     }
 
     public var body: some View {
-        Medal(kind, size: size, label: label)
+        Medal(kind, size: size)
             .rotationEffect(.degrees(reduceMotion || shown ? 0 : -24), anchor: .top)
             .offset(y: reduceMotion || shown ? 0 : -size * 1.2)
             .opacity(shown ? 1 : 0)
@@ -67,18 +61,16 @@ public struct DroppingMedal: View {
 public struct MedalBadge: View {
     private let kind: MedalKind
     private let ring: CGFloat
-    private let label: String
     private let dropsIn: Bool
 
-    public init(_ kind: MedalKind, ring: CGFloat, label: String, dropsIn: Bool = true) {
+    public init(_ kind: MedalKind, ring: CGFloat, dropsIn: Bool = true) {
         self.kind = kind
         self.ring = ring
-        self.label = label
         self.dropsIn = dropsIn
     }
 
     public var body: some View {
-        DroppingMedal(kind, size: ring * 0.47, label: label, dropsIn: dropsIn)
+        DroppingMedal(kind, size: ring * 0.47, dropsIn: dropsIn)
             .offset(x: ring * 48 / 76, y: ring * 46 / 76)
             .frame(width: ring, height: ring, alignment: .topLeading)
     }

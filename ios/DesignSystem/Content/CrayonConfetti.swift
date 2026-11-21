@@ -33,7 +33,6 @@ public struct CrayonConfetti: View {
             }
             .id(trigger)
             .allowsHitTesting(false)
-            .accessibilityHidden(true)
         }
     }
 

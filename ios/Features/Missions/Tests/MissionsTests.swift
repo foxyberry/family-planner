@@ -177,8 +177,6 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.way?.cardCaption, "by bus · no live times")
         XCTAssertEqual(store.state.header?.minutes, "33 min")
         XCTAssertNil(store.state.leaveAt)
-        XCTAssertEqual(store.state.way?.spoken,
-                       "Kid A's way to School, by bus, 38 minutes, School starts at 7:30 am.")
     }
 
     /// Spec "A2 live look": fresh live times give "Leave in" with "On time", and the chosen bus sets
@@ -201,8 +199,6 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(buses.first?.tag, .bus(number: "1", then: nil, minutes: "4 min"))
         XCTAssertNil(buses.last?.tag)
         XCTAssertEqual(buses.last?.x, 860 - 28 * 800 / 30)
-        XCTAssertEqual(store.state.liveSpoken,
-                       "Live bus map. Bus 1 in 28 minutes, your bus. Leave in 18 minutes, On time.")
         await store.send(.backTapped)
     }
 
@@ -228,8 +224,6 @@ final class MissionsTests: XCTestCase {
                                                  .bus(number: "3", then: "4", minutes: "14 min"), nil])
         XCTAssertEqual(strip?.myService, "1")
         XCTAssertEqual(strip?.others, [WayStrip.Plate("2"), WayStrip.Plate("3", then: "4")])
-        XCTAssertEqual(store.state.liveSpoken,
-                       "Live bus map. Bus 1 in 18 minutes, your bus. Or bus 2 in 12 minutes. Leave in 8 minutes, On time.")
         await store.send(.backTapped)
     }
 
@@ -359,7 +353,7 @@ final class MissionsTests: XCTestCase {
         XCTAssertFalse(store.state.circles.contains { if case .more = $0 { true } else { false } })
     }
 
-    /// Views hold no values: the circles' words, play ids and the strip label come from State.
+    /// Views hold no values: the circles' words and play ids come from State.
     func testCircleWordsAndPlayIDsComeFromState() {
         let state = MissionsFeature.State()
         XCTAssertEqual(state.name(of: .folded(count: 3)), "3 done")
@@ -371,17 +365,10 @@ final class MissionsTests: XCTestCase {
                        .toothbrush)
         XCTAssertEqual(state.picture(of: WindowMission(window: .morning, id: id("302"), name: "Odd", picture: "noSuchPicture")),
                        .actPlay)
-        XCTAssertEqual(state.stripLabel, "No more trips today")
-        XCTAssertEqual(state.backLabel, "Back to the clock")
-        XCTAssertEqual(state.slideGoLabel, "Go")
-        XCTAssertEqual(state.medalLabel(.gold), "Gold medal")
-        XCTAssertEqual(state.medalLabel(.bronze), "Bronze medal")
 
         let keys = withDependencies { $0.localizer = .keys } operation: { MissionsFeature.State() }
         XCTAssertEqual(keys.name(of: .folded(count: 3)), "missions.folded|3")
         XCTAssertEqual(keys.slideDoneTitle, "missions.ready")
-        XCTAssertEqual(keys.slideGoLabel, "slide.go")
-        XCTAssertEqual(keys.medalLabel(.silver), "medal.silver")
     }
 
     /// Spec "Mission windows": after school, Kid A's list is swimming's Bring checks; the slide

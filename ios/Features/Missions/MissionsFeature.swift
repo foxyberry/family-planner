@@ -84,7 +84,6 @@ public struct MissionsFeature {
         public var place: String
         /// Whose outing it is: the card starts with this kid's face.
         public var owner: Kid
-        public var spoken: String
     }
 
     @ObservableState
@@ -236,10 +235,7 @@ public struct MissionsFeature {
                        showsStops: stops,
                        cardTitle: L10n.tr("missions.card.title", outing.slot.title, time),
                        cardCaption: wayLine, place: outing.slot.title,
-                       owner: owner,
-                       spoken: L10n.tr("missions.way.spoken", owner.name, outing.slot.title,
-                                       Self.wayPhrase(outing.trip.way),
-                                       TimeLeftText.spoken(minutes: max(outing.slot.start - minute, 0)), outing.slot.title, time))
+                       owner: owner)
         }
 
         /// Live times count while the last good answer is under 2 minutes old.
@@ -273,20 +269,9 @@ public struct MissionsFeature {
             return WayStrip.Live(buses: buses, destination: KitSlot(iconName: outing.slot.iconName),
                                  destinationLabel: outing.slot.title, ourStopLabel: L10n.tr("missions.our_stop"),
                                  owner: KidFace.Badge(face: owner.face, colorIndex: owner.colorIndex),
-                                 ownerName: owner.name, myBus: L10n.tr("missions.my_bus"),
+                                 myBus: L10n.tr("missions.my_bus"),
                                  myService: mine?.service ?? "", others: Array(others.prefix(3)),
                                  moreOthers: others.count > 3 ? L10n.tr("missions.legend.more", others.count - 3) : nil)
-        }
-
-        /// "Live bus map. Bus 1 in 28 minutes, your bus. Or bus 2 in 35 minutes. Leave in 18 minutes,
-        /// on time." The "or" names the next catchable other bus.
-        public var liveSpoken: String? {
-            guard let live, let chosen = live.chosen, let leaveIn = live.leaveIn else { return nil }
-            let other = live.others.first(where: \.isCatchable).map {
-                L10n.tr("missions.live.spoken.or", $0.route.service, TimeLeftText.spoken(minutes: $0.arrival.minutes))
-            } ?? ""
-            return L10n.tr("missions.live.spoken", chosen.route.service, TimeLeftText.spoken(minutes: chosen.arrival.minutes),
-                           other, TimeLeftText.spoken(minutes: max(leaveIn, 0)), live.status.map { Self.statusLine($0).text } ?? "")
         }
 
         static func busPicture(_ type: BusType) -> KitSlot {
@@ -304,8 +289,7 @@ public struct MissionsFeature {
                                  homeLabel: way.homeLabel, showsStops: way.showsStops,
                                  mover: KitSlot(iconName: way.mover), moverX: way.moverX, cardTitle: way.cardTitle,
                                  cardCaption: way.cardCaption,
-                                 owner: KidFace.Badge(face: way.owner.face, colorIndex: way.owner.colorIndex),
-                                 ownerName: way.owner.name)
+                                 owner: KidFace.Badge(face: way.owner.face, colorIndex: way.owner.colorIndex))
         }
 
         /// The family outing goes by bus but there are no fresh live times.
@@ -448,29 +432,10 @@ public struct MissionsFeature {
 
         // MARK: What the view shows (it holds no values of its own)
 
-        /// The strip's VoiceOver label: the live line, the way there, or "no outing today".
-        public var stripLabel: String {
-            if liveStrip != nil { return liveSpoken ?? "" }
-            if wayTrip != nil { return way?.spoken ?? "" }
-            return strings.tr("missions.way.none")
-        }
-
         /// The strip's words on a day without an outing.
         public var homeAllDayText: String { strings.tr("missions.home_all_day") }
-        public var backLabel: String { strings.tr("missions.back") }
         /// The slide's title once the chosen kid is ready.
         public var slideDoneTitle: String { strings.tr("missions.ready") }
-        /// The slide's VoiceOver action.
-        public var slideGoLabel: String { strings.tr("slide.go") }
-
-        /// A medal's VoiceOver name ("Gold medal").
-        public func medalLabel(_ kind: MedalKind) -> String {
-            switch kind {
-            case .gold: strings.tr("medal.gold")
-            case .silver: strings.tr("medal.silver")
-            case .bronze: strings.tr("medal.bronze")
-            }
-        }
 
         /// The name under a circle: the mission's, or the folded, more and back circles' words.
         public func name(of circle: Circle) -> String {

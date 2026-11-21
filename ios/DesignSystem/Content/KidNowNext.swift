@@ -43,6 +43,5 @@ public struct KidNowNext: View {
                 .crayonBackground(.circle, fill: fill, seed: seed)
             Text(caption).crayonType(.caption).foregroundStyle(look.softText)
         }
-        .accessibilityElement(children: .combine)
     }
 }

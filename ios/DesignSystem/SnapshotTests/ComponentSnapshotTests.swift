@@ -39,17 +39,17 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testRoundButtons() {
         snap(HStack(spacing: Spacing.m) {
-            RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
-            RoundButton(glyph: .plus, accessibilityLabel: "Add") {}
+            RoundButton(glyph: .chevronLeft) {}
+            RoundButton(glyph: .plus) {}
         })
     }
 
     /// Board G0: the pencil, 56 in an 80 circle.
     func testPencilButton() {
         snap(HStack(spacing: Spacing.m) {
-            RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {}
+            RoundButton(picture: .pencil) {}
             // Night: the pencil on a night control round.
-            RoundButton(picture: .pencil, accessibilityLabel: "Grown-up mode") {}.look(.night)
+            RoundButton(picture: .pencil) {}.look(.night)
         }
         .padding(Spacing.m)
         .background(CrayonColor.night))
@@ -58,8 +58,8 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Board G1: Undo on, Redo off (45 %), 72 each.
     func testUndoRedoButtons() {
         snap(HStack(spacing: Spacing.s) {
-            RoundButton(glyph: .undo, accessibilityLabel: "Undo") {}.size(72)
-            RoundButton(glyph: .redo, accessibilityLabel: "Redo") {}.size(72).opacity(0.45)
+            RoundButton(glyph: .undo) {}.size(72)
+            RoundButton(glyph: .redo) {}.size(72).opacity(0.45)
         })
     }
 
@@ -82,14 +82,14 @@ final class ComponentSnapshotTests: XCTestCase {
     /// S1–S4 parts: step dots, colour swatches (one picked), a placeholder time, a face not picked yet.
     func testSetupParts() {
         snap(HStack(spacing: Spacing.m) {
-            StepDots(current: 2, label: "Step 2 of 4")
+            StepDots(current: 2)
             HStack(spacing: Spacing.xs) {
                 ForEach(0..<4, id: \.self) { index in
-                    ColourSwatch(colorIndex: index, isPicked: index == 0, accessibilityLabel: "Colour") {}
+                    ColourSwatch(colorIndex: index, isPicked: index == 0) {}
                 }
             }
-            TimeField(label: "7:30 am", pickerTitle: "Time", time: .constant(Date(timeIntervalSince1970: 0)), isPlaceholder: true)
-            KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
+            TimeField(label: "7:30 am", time: .constant(Date(timeIntervalSince1970: 0)), isPlaceholder: true)
+            KidFace(.init(face: "", colorIndex: 2))
             LockMark(size: 56)
         })
         snap(CrayonTabs(selection: .constant(0), items: [(0, "School", nil), (1, "Preschool", nil), (2, "At home", nil)],
@@ -108,7 +108,7 @@ final class ComponentSnapshotTests: XCTestCase {
     func testFields() {
         snap(HStack(spacing: Spacing.m) {
             CrayonField("Activity name", text: .constant("")).frame(width: 480)
-            TimeField(label: "7:30 am", pickerTitle: "Time", time: .constant(Date(timeIntervalSince1970: 7 * 3600 + 30 * 60)))
+            TimeField(label: "7:30 am", time: .constant(Date(timeIntervalSince1970: 7 * 3600 + 30 * 60)))
         })
     }
 
@@ -124,17 +124,17 @@ final class ComponentSnapshotTests: XCTestCase {
     func testPictureRow() {
         let row = [KitSlot.actSwim, .actArt, .actMusic, .actPiano, .actDance]
         snap(PictureRow(slots: row, selection: .constant(.actSwim), all: row, isShowingAll: false,
-                        moreTitle: "More", moreLabel: "More pictures") {}, width: Self.rowWidth, named: "closed")
+                        moreTitle: "More") {}, width: Self.rowWidth, named: "closed")
         snap(PictureRow(slots: row, selection: .constant(.actSwim),
                         all: row + [.actFootball, .actStory, .actCCA, .actPlay, .homework, .doctor, .cake],
-                        isShowingAll: true, moreTitle: "More", moreLabel: "More pictures") {}
+                        isShowingAll: true, moreTitle: "More") {}
             .frame(height: 440, alignment: .top), width: Self.rowWidth, named: "open")
     }
 
     func testIconPicker() {
         snap(IconPicker(selection: .constant(.actSwim),
                         slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA],
-                        drawing: IconPicker.Drawing(label: "Draw a new picture") {}),
+                        drawing: IconPicker.Drawing {}),
              width: Self.rowWidth)
     }
 
@@ -145,14 +145,14 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     func testTimeLeft() {
-        snap(TimeLeft("19 min", spoken: "19 minutes", isLate: false), named: "19")
-        snap(TimeLeft("\u{2212}2 min", spoken: "2 minutes late", isLate: true), named: "minus2")
-        snap(TimeLeft("1h 20m", spoken: "1 hour 20 minutes", isLate: false, compact: true), named: "compact")
+        snap(TimeLeft("19 min", isLate: false), named: "19")
+        snap(TimeLeft("\u{2212}2 min", isLate: true), named: "minus2")
+        snap(TimeLeft("1h 20m", isLate: false, compact: true), named: "compact")
     }
 
     /// Board A3r: a kid ready with no medal has the crown on the done knob, no check.
     func testSlideToGoDoneWithCrown() {
-        snap(SlideToGo(state: .done, idleTitle: "Slide", doneTitle: "Ready!", goLabel: "Go", knob: .star, doneKnob: .crown) {},
+        snap(SlideToGo(state: .done, idleTitle: "Slide", doneTitle: "Ready!", knob: .star, doneKnob: .crown) {},
              width: Self.rowWidth)
     }
 
@@ -176,7 +176,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
         var body: some View {
             SlideToGo(state: phase, idleTitle: "Slide to go",
-                      doneTitle: "On our way!", goLabel: "Go") {}
+                      doneTitle: "On our way!") {}
                 .onAppear { phase = .idle }
         }
     }
@@ -236,16 +236,16 @@ final class ComponentSnapshotTests: XCTestCase {
                             remaining: "12 more Go! days to the Double-Decker"), width: Self.rowWidth)
     }
 
-    func testVoiceNote() { snap(VoiceNote(duration: .seconds(12), isPlaying: false, label: "Play") {}) }
+    func testVoiceNote() { snap(VoiceNote(duration: .seconds(12), isPlaying: false) {}) }
 
     func testMedalsAndFaces() {
         snap(HStack(spacing: Spacing.m) {
-            Medal(.gold, size: 104, label: "Gold medal")
-            Medal(.silver, size: 104, label: "Silver medal")
-            Medal(.bronze, size: 104, label: "Bronze medal")
-            KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
-            KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
-            KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A", size: KidFace.small)
+            Medal(.gold, size: 104)
+            Medal(.silver, size: 104)
+            Medal(.bronze, size: 104)
+            KidFace(.init(face: "kidGirl", colorIndex: 0))
+            KidFace(.init(face: "kidBoy", colorIndex: 1), size: KidFace.medium)
+            KidFace(.init(face: "kidGirl", colorIndex: 0), size: KidFace.small)
         })
     }
 
@@ -336,11 +336,11 @@ final class ComponentSnapshotTests: XCTestCase {
     /// 24 apart drawn on the form lines; made-up names only.
     func testKidCard() {
         let words = KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
-                              colour: "Colour", face: "Face", colourNames: ["Blue", "Orange", "Green", "Purple"],
-                              faces: [(.kidGirl, "Girl"), (.kidBoy, "Boy")])
+                              colour: "Colour", face: "Face", colourCount: 4,
+                              faces: [.kidGirl, .kidBoy])
         snap(PaperCard(padding: FormLines.cardPadding) {
             KidCard(words: words, name: .constant("Kid A"), age: .constant("7"),
-                    badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), shownName: "Kid A", colorIndex: 1,
+                    badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), colorIndex: 1,
                     face: "kidGirl", onColour: { _ in }, onFace: { _ in })
                 .formLines(KidCard.lines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)), words: words))
         }.frame(width: 800), width: 840)
@@ -348,7 +348,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
     /// Boards C2 / C2c / S3: − 72, the value in 144, + 72, the caption 16 after.
     func testMinutesStepper() {
-        snap(MinutesStepper(value: "10 min", caption: "to the stop", label: "Walk", minus: {}, plus: {}), width: 560)
+        snap(MinutesStepper(value: "10 min", caption: "to the stop", minus: {}, plus: {}), width: 560)
     }
 
     /// S4 switch list (layout v17): the switch on and off, and a row with a warning caption.
@@ -408,7 +408,7 @@ final class ComponentSnapshotTests: XCTestCase {
                     }
                     FormRow("Colour", kind: .choice, second: "Face") {
                         HStack(spacing: Spacing.sm) {
-                            ForEach(0..<4, id: \.self) { ColourSwatch(colorIndex: $0, isPicked: $0 == 0, accessibilityLabel: "") {} }
+                            ForEach(0..<4, id: \.self) { ColourSwatch(colorIndex: $0, isPicked: $0 == 0) {} }
                         }
                     } secondControl: {
                         HStack(spacing: Spacing.sm) {
@@ -422,7 +422,7 @@ final class ComponentSnapshotTests: XCTestCase {
             }
             .frame(width: layout.form.width, alignment: .topLeading)
             .cardCorner(size: Sizing.cornerControl) {
-                RoundButton(glyph: .close, accessibilityLabel: "Remove") {}.size(Sizing.cornerControl)
+                RoundButton(glyph: .close) {}.size(Sizing.cornerControl)
             } popover: {
                 ConfirmCard(title: "Remove Kid A?", message: nil, cancel: "Keep", confirm: "Remove",
                             isDestructive: true, onCancel: {}, onConfirm: {})
@@ -475,7 +475,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
     /// Board G1c: two weeks, today underlined, the picked day in sky.
     func testDayPickerCard() {
-        snap(DayPickerCard(month: "November", weeks: ComponentGallery.sampleWeeks, earlier: "Earlier", later: "Later",
+        snap(DayPickerCard(month: "November", weeks: ComponentGallery.sampleWeeks,
                            today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {}), width: 660)
     }
 
@@ -504,12 +504,12 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Board 0f: the shared grown-up header (Back, title, optional tabs, "Grown-ups only" or the countdown).
     func testGrownupHeader() {
         let width = Self.grid.span(12)
-        snap(GrownupHeader(title: "Our kids", caption: "Grown-ups only", backLabel: "Back", onBack: {}) {
+        snap(GrownupHeader(title: "Our kids", caption: "Grown-ups only", onBack: {}) {
             CrayonTabs(selection: .constant(0), items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1))])
         }, width: width, named: "tabs")
-        snap(GrownupHeader(title: "Edit Swimming", caption: "Grown-ups only · behind the parent lock", backLabel: "Back", onBack: {}),
+        snap(GrownupHeader(title: "Edit Swimming", caption: "Grown-ups only · behind the parent lock", onBack: {}),
              width: width, named: "caption")
-        snap(GrownupHeader(title: "Edit Saturday language school and lunch with grandparents", caption: "Grown-ups only", backLabel: "Back", onBack: {})
+        snap(GrownupHeader(title: "Edit Saturday language school and lunch with grandparents", caption: "Grown-ups only", onBack: {})
             .environment(\.relockCaption, "Locks in 0:12"), width: width, named: "countdownLongTitle")
     }
 
@@ -517,7 +517,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
     private func slide(_ state: SlideToGoModel.Phase) -> SlideToGo {
         SlideToGo(state: state, idleTitle: "Slide to go",
-                  doneTitle: "On our way!", goLabel: "Go") {}
+                  doneTitle: "On our way!") {}
     }
 
     /// Lays the part on paper (fixed width when given, natural size otherwise) at 2x scale.
@@ -536,8 +536,8 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testSkySwitch() {
         snap(HStack(spacing: Spacing.l) {
-            SkySwitch(look: .day, isAnimating: false, label: "Day. Tap for night.") {}
-            SkySwitch(look: .night, isAnimating: false, label: "Night. Tap for day.") {}
+            SkySwitch(look: .day, isAnimating: false) {}
+            SkySwitch(look: .night, isAnimating: false) {}
         }
         .padding(Spacing.l)
         .background(CrayonColor.paper))
@@ -566,13 +566,13 @@ final class ComponentSnapshotTests: XCTestCase {
     ]
 
     private static let editKnobs: [EditClock.Knob] = [390, 450, 900, 960, 1110, 1155, 1200].map {
-        EditClock.Knob(minute: $0, isLocked: $0 == 450 || $0 == 900, label: "")
+        EditClock.Knob(minute: $0, isLocked: $0 == 450 || $0 == 900)
     }
 
     func testEditClock() {
         snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: nil, dragOrigin: nil,
                        hub: .init(title: "Dinner"), onKnobDrag: { _, _ in }, onKnobEnd: { _ in },
-                       onKnobTap: { _ in }, onSliceTap: { _ in }, onPlusTap: { _ in }, onKnobAdjust: { _, _ in })
+                       onKnobTap: { _ in }, onSliceTap: { _ in }, onPlusTap: { _ in })
             .padding(80))
     }
 
@@ -580,7 +580,7 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: 5, dragOrigin: 1140,
                        hub: .init(above: "Dinner ends", time: "7:15 pm", below: "Shower starts"),
                        onKnobDrag: { _, _ in }, onKnobEnd: { _ in }, onKnobTap: { _ in }, onSliceTap: { _ in },
-                       onPlusTap: { _ in }, onKnobAdjust: { _, _ in })
+                       onPlusTap: { _ in })
             .padding(80))
     }
 
@@ -600,7 +600,7 @@ final class ComponentSnapshotTests: XCTestCase {
                 CrayonRing(progress: 1, colorIndex: 1)
                 ZStack {
                     KidBand(colorIndex: 0)
-                    KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
+                    KidFace(.init(face: "kidGirl", colorIndex: 0))
                 }
                 .frame(width: 340, height: 100)
             }
@@ -632,13 +632,12 @@ final class ComponentSnapshotTests: XCTestCase {
             WayStrip(trip: .init(destination: .wolfie, destinationLabel: "School", homeLabel: "Our stop",
                                  showsStops: true, mover: .busDouble, moverX: WayStrip.liveX(minutes: 12),
                                  cardTitle: "School at 7:30 am", cardCaption: "by bus · timetable",
-                                 owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A"))
+                                 owner: KidFace.Badge(face: "kidGirl", colorIndex: 0)))
                 .frame(width: 1248, height: 340)
             // A2t-w: the car waits right of home; the long place name is right-aligned.
             WayStrip(trip: .init(destination: .actLanguageSchool, destinationLabel: "Weekend school", homeLabel: "Home",
                                  showsStops: false, mover: .car, moverX: 990, cardTitle: "Weekend school at 9:00 am",
-                                 cardCaption: "by car", owner: KidFace.Badge(face: "kidGirl", colorIndex: 0),
-                                 ownerName: "Kid A"))
+                                 cardCaption: "by car", owner: KidFace.Badge(face: "kidGirl", colorIndex: 0)))
                 .frame(width: 1248, height: 340)
             WayStrip(homeAllDay: "Home all day")
                 .frame(width: 1248, height: 340)
@@ -669,7 +668,7 @@ final class ComponentSnapshotTests: XCTestCase {
         let live = WayStrip.Live(
             buses: [bus("0", "12", 12, mine: true), bus("1", "34", 15), bus("2", "34", 22), bus("3", "12", 24)],
             destination: .wolfie, destinationLabel: "School", ourStopLabel: "Our stop",
-            owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), ownerName: "Kid A", myBus: "my bus",
+            owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), myBus: "my bus",
             myService: "12", others: [WayStrip.Plate("34")])
         snap(WayStrip(live: live).frame(width: 1248, height: 340), width: 1300)
     }
@@ -697,9 +696,9 @@ final class ComponentSnapshotTests: XCTestCase {
             ForEach(MedalKind.allCases, id: \.self) { kind in
                 ZStack {
                     CrayonRing(progress: 1, colorIndex: 0)
-                    KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A", size: 56)
+                    KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), size: 56)
                 }
-                .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76, label: "Medal", dropsIn: false) }
+                .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76, dropsIn: false) }
             }
         }
         .transaction { $0.disablesAnimations = true }, width: 420)
@@ -729,7 +728,7 @@ final class ComponentSnapshotTests: XCTestCase {
     /// night control with chalk lines, picture grounds moon paper with ink, on-states keep ink.
     func testGrownupPartsAtNight() {
         snap(VStack(alignment: .leading, spacing: Spacing.m) {
-            GrownupHeader(title: "Add to the day", caption: "Grown-ups only", backLabel: "Back", onBack: {})
+            GrownupHeader(title: "Add to the day", caption: "Grown-ups only", onBack: {})
             PaperCard(seed: 31) {
                 VStack(alignment: .leading, spacing: Spacing.m) {
                     CrayonTabs(selection: .constant(0), items: [
@@ -751,7 +750,7 @@ final class ComponentSnapshotTests: XCTestCase {
                 }
             }
             HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .chevronLeft, accessibilityLabel: "Back") {}
+                RoundButton(glyph: .chevronLeft) {}
                 InkButton("Add to the clock") {}.frame(width: 382)
             }
         }, width: 900, dark: true)

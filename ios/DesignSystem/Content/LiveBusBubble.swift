@@ -10,14 +10,12 @@ public struct LiveBusBubble: View {
     private let service: String
     private let minutes: String
     private let face: KidFace.Badge
-    private let name: String
     private let myBus: String
 
-    public init(service: String, minutes: String, face: KidFace.Badge, name: String, myBus: String) {
+    public init(service: String, minutes: String, face: KidFace.Badge, myBus: String) {
         self.service = service
         self.minutes = minutes
         self.face = face
-        self.name = name
         self.myBus = myBus
     }
 
@@ -29,7 +27,7 @@ public struct LiveBusBubble: View {
                     .lineLimit(1).fixedSize()
             }
             HStack(spacing: Spacing.xs) {
-                KidFace(face, name: name, size: 32)
+                KidFace(face, size: 32)
                 Text(myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
             }
         }
@@ -41,7 +39,6 @@ public struct LiveBusBubble: View {
                           markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 1)
         }
         .fixedSize()
-        .accessibilityElement(children: .combine)
     }
 }
 
@@ -93,7 +90,6 @@ public struct LiveBusTag: View {
             CrayonSurface(.roundedRect(cornerRadius: 14), fill: CrayonStyle.paper, marker: .thin,
                           markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 9)
         }
-        .accessibilityElement(children: .combine)
     }
 }
 

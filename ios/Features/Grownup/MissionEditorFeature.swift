@@ -86,7 +86,7 @@ public struct MissionEditorFeature {
         case removeTapped
         case removeConfirmed
         case removeCancelled
-        /// A dragged row dropped on the place of another (drag ≡), or moved by VoiceOver.
+        /// A dragged row dropped on the place of another (drag ≡).
         case moved(Mission.ID, to: Int)
         case saveFailed
         case doneTapped

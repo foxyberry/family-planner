@@ -29,7 +29,6 @@ public struct CrayonRing: View {
         }
         .padding(inset)
         .frame(width: size, height: size)
-        .accessibilityHidden(true)
     }
 }
 
@@ -50,7 +49,6 @@ public struct KidBand: View {
             BandShape().fill(tint)
             BandShape().stroke(edge, style: StrokeStyle(lineWidth: 3, lineJoin: .round))
         }
-        .accessibilityHidden(true)
     }
 
     /// A rounded band (r 28) with a 14 pt notch on its trailing side, as one outline.
@@ -151,9 +149,6 @@ public struct MissionCircle: View {
             // The circle's column: one pitch of the row (136 s on its own, never under 112).
             .frame(width: columnWidth)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(name)
-        .accessibilityAddTraits(isDone ? [.isButton, .isSelected] : .isButton)
     }
 
     private var columnWidth: CGFloat {

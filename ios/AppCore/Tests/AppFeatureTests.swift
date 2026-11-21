@@ -160,11 +160,11 @@ final class AppFeatureTests: XCTestCase {
         }
         store.exhaustivity = .off
         XCTAssertEqual(store.state.home.strings, .keys)
-        XCTAssertEqual(store.state.home.grownupLabel, "home.grownup")
+        XCTAssertEqual(store.state.home.nextLabel, "home.next")
         await store.send(.home(.missionsTapped))
         guard case let .missions(missions)? = store.state.path.first else { return XCTFail("missions not open") }
         XCTAssertEqual(missions.strings, .keys)
-        XCTAssertEqual(missions.backLabel, "missions.back")
+        XCTAssertEqual(missions.slideDoneTitle, "missions.ready")
     }
 
     /// The lock card's words come from State (board C0): one button while scanning or locked out.

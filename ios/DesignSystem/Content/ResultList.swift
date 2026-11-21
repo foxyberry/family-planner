@@ -161,7 +161,6 @@ extension View {
                         .onTapGesture(perform: onClose)
                 }
                 .ignoresSafeArea()
-                .accessibilityHidden(true)
             }
         }
     }

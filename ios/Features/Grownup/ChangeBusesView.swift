@@ -36,7 +36,7 @@ public struct ChangeBusesView: View {
 
     private var screen: some View {
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+            GrownupHeader(title: store.title, caption: store.headerCaption,
                           onBack: { store.send(.backTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
@@ -118,7 +118,7 @@ public struct ChangeBusesView: View {
     private func stepper(_ label: String, text: String, caption: String, value: Int,
                          change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
-            MinutesStepper(value: text, caption: caption, label: label,
+            MinutesStepper(value: text, caption: caption,
                            minus: { change(value - 1) }, plus: { change(value + 1) })
         }
         .drawnRow()

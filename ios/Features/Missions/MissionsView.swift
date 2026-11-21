@@ -37,20 +37,17 @@ public struct MissionsView: View {
     @ViewBuilder private var strip: some View {
         if let live = store.liveStrip {
             WayStrip(live: live)
-                .accessibilityLabel(store.stripLabel)
         } else if let trip = store.wayTrip {
             WayStrip(trip: trip)
-                .accessibilityLabel(store.stripLabel)
         } else {
             WayStrip(homeAllDay: store.homeAllDayText)
-                .accessibilityLabel(store.stripLabel)
         }
     }
 
     // MARK: Header (48–128): ← at 64, title at 168, the right group ending at 1312, baseline 107.
 
     @ViewBuilder private func header(_ layout: MorningLayout) -> some View {
-        RoundButton(glyph: .chevronLeft, accessibilityLabel: store.backLabel) { store.send(.backTapped) }
+        RoundButton(glyph: .chevronLeft) { store.send(.backTapped) }
             .place(layout.back)
         Text(store.title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1)
             .place(left: layout.titleLeft, baseline: layout.headerBaseline)
@@ -86,12 +83,12 @@ public struct MissionsView: View {
             }
             CrayonRing(progress: row.progress, colorIndex: row.kid.colorIndex, size: layout.kidRing(index).width)
                 .place(layout.kidRing(index))
-            KidFace(KidFace.Badge(face: row.kid.face, colorIndex: row.kid.colorIndex), name: row.kid.name,
+            KidFace(KidFace.Badge(face: row.kid.face, colorIndex: row.kid.colorIndex),
                     size: layout.kidFace(index).width, showsRing: false)
                 .place(layout.kidFace(index))
             if let medal = row.medal {
                 // Board A3: the medal badge on the ring's lower right, dropping in once.
-                MedalBadge(medal, ring: layout.kidRing(index).width, label: store.state.medalLabel(medal)).place(layout.kidRing(index))
+                MedalBadge(medal, ring: layout.kidRing(index).width).place(layout.kidRing(index))
             }
             Text(row.kid.name).crayonType(.body, bold: true)
                 .foregroundStyle(row.isChosen ? CrayonColor.pictureInk : CrayonColor.ink)
@@ -103,9 +100,6 @@ public struct MissionsView: View {
             Button { store.send(.kidTapped(row.kid.id)) } label: { Color.clear.contentShape(Rectangle()) }
                 .buttonStyle(.plain)
                 .place(layout.kidRow(index))
-                .accessibilityLabel(row.kid.name)
-                .accessibilityValue(store.state.caption(row))
-                .accessibilityAddTraits(row.isChosen ? [.isButton, .isSelected] : .isButton)
         }
     }
 
@@ -124,7 +118,7 @@ public struct MissionsView: View {
                 // Board A3r: the done view in place of the missions.
                 Group {
                     if let medal = done.medal {
-                        DroppingMedal(medal, size: layout.doneMedal.width, label: store.state.medalLabel(medal))
+                        DroppingMedal(medal, size: layout.doneMedal.width)
                     } else {
                         // It plays its rig once when the done view appears.
                         RiggedKitIcon(done.prize, size: layout.doneMedal.width, playID: store.confetti)
@@ -159,7 +153,7 @@ public struct MissionsView: View {
 
     @ViewBuilder private func bottomControl(_ layout: MorningLayout) -> some View {
         if let kid = store.chosenKid {
-            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: store.slideDoneTitle, goLabel: store.slideGoLabel, knob: store.slideKnob, doneKnob: store.slideDoneKnob,
+            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: store.slideDoneTitle, knob: store.slideKnob, doneKnob: store.slideDoneKnob,
                       onUndo: { store.send(.slideUndone) }) {
                 ticks += 1
                 store.send(.slid)

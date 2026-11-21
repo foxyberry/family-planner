@@ -21,8 +21,8 @@ public struct CrayonTabs<ID: Hashable>: View {
     /// question's pills 140 × 64).
     /// `widths`: each tab its own width, 72 tall. `fills` (layout v42 fill rule): equal tabs alone on
     /// a row share its width, `spacing` apart, on every iPad size.
-    /// `faceOnly`: the kid's face without the name (S2/S3 with 3–4 kids, 88 × 72); VoiceOver still
-    /// reads the name. `marked`: tabs that show a small hurry dot on the face (S3: route not finished).
+    /// `faceOnly`: the kid's face without the name (S2/S3 with 3–4 kids, 88 × 72). `marked`: tabs that
+    /// show a small hurry dot on the face (S3: route not finished).
     public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)], compact: Bool = false,
                 itemSize: CGSize? = nil, widths: [CGFloat]? = nil, fills: Bool = false, spacing: CGFloat = Spacing.s,
                 faceOnly: Bool = false, marked: Set<ID> = []) {
@@ -47,7 +47,7 @@ public struct CrayonTabs<ID: Hashable>: View {
                 Button { selection = item.0 } label: {
                     HStack(spacing: KidFace.gap(for: KidFace.medium)) {
                         if let badge = item.2 {
-                            KidFace(badge, name: item.1, size: KidFace.medium).accessibilityHidden(true)
+                            KidFace(badge, size: KidFace.medium)
                                 .overlay(alignment: .topTrailing) {
                                     if marked.contains(item.0) {
                                         Circle().fill(CrayonColor.hurry).frame(width: 14, height: 14)
@@ -72,8 +72,6 @@ public struct CrayonTabs<ID: Hashable>: View {
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(item.1)
-                .accessibilityAddTraits(isOn ? .isSelected : [])
             }
         }
     }

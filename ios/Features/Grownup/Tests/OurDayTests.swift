@@ -62,7 +62,6 @@ final class OurDayTests: XCTestCase {
     func testLoadsTheKidsWeekdayTemplate() async {
         let store = await loaded()
         XCTAssertEqual(store.state.edit.knobs.map(\.minute), [390, 450, 900, 960, 1020, 1110, 1155, 1200])
-        XCTAssertEqual(store.state.knobs[knob(store, at: 1155)].label, "Dinner ends, 7:15 pm")
     }
 
     func testDraggingADinnerKnobShowsTheTimeAndTheEffect() async {
@@ -108,7 +107,7 @@ final class OurDayTests: XCTestCase {
         let store = await loaded()
         let before = store.state.edit.blocks
         await store.send(.knobTapped(knob(store, at: 1155)))
-        XCTAssertEqual(store.state.addBetweenButton?.label, "Add between Dinner and Shower")
+        XCTAssertEqual(store.state.addBetweenButton?.minute, 1155)
         await store.send(.addBetweenTapped)
         XCTAssertNil(store.state.addBetweenButton)
         // Shower (45 min) gives its first 30 minutes.
