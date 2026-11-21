@@ -1178,8 +1178,8 @@ Every-week and just-once items sit on top of the template on the real clock; on 
   - The new-slice card shows the day pictures in a grid, **4 per row** (slots 88, gap 16; 400 wide fills the 424 card inside; changed from 3 per row 2026-11-14, user). **Board G1f** (2026-11-14): the right-column card 472 × 572 holds, top to bottom with gap 16: This day / All days tabs (the scope rule), the picture grid (4 × 2; the last slot is "More" for the whole kit; the picked one has the ring), a Name field 424 × 72 (filled with the picture's name, editable, max 14), and the times "{start} → {end}" (two time fields 170 × 80). The hub reads "New" / "{start}" / "until {end}". The slice shows on the clock as soon as a picture is picked; Undo takes it back. Every day picture can be picked, sleep included, and **the picture sets the slice kind** (sleep picture = a sleep slot, and so on).
   - Making a slice free joins it with free time on either side, so the number of slices on a template is not fixed.
   - Free time on the real clock shows as "Free time" in the hub (A1 day rule).
-- **Undo** steps back one change at a time (drag, typed time, skip, remove, add), back to the last save. Every change on the clock waits for Save, Skip and Remove included; one Undo covers them all.
-- **Save the day** applies the template **from tomorrow**. Leaving with unsaved changes asks "Leave without saving?" (Keep editing / Leave).
+- **Undo** steps back one change at a time (drag, typed time, skip, remove, add), back to the last save. Every change on the clock waits for Save, Skip and Remove included; Undo takes each back, one step per tap.
+- **Save the day** applies the template **from tomorrow**. Leaving with unsaved changes asks first with G1d ("Save the changes?", Save · Cancel).
 
 ## C7 · School calendar: add from a photo or PDF (new 2026-11-08) [board, later]
 Backlog DA-1; not in M2. Opened from the "Holidays" row in C1.
