@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "about": "The parity contract (PROTOCOL.md): the screens, visible State fields and person actions an agent driver exposes. Any platform implements these names; `ios` binds each to this app's code and scripts/check-driver-contract.sh checks it. v1 covers the screens the journeys walk that are not being redesigned.",
+  "app": {
+    "ios": { "file": "ios/AppCore/AppFeature.swift" },
+    "fields": [
+      { "name": "relockCaption", "type": "string?", "about": "the countdown before the grown-up screens close", "ios": "relockCaption" }
+    ]
+  },
+  "screens": [
+    {
+      "id": "setup",
+      "about": "First run S1–S4, shown while no family is saved.",
+      "ios": { "file": "ios/Features/Setup/SetupFeature.swift" },
+      "fields": [
+        { "name": "step", "type": "enum", "values": ["family", "school", "gettingThere", "almostDone"], "ios": "step" },
+        { "name": "canGoNext", "type": "bool", "ios": "canGoNext" },
+        { "name": "kids", "type": "[{name, age, face}]", "about": "S1's cards in order; actions name a kid by its index here", "ios": "kids" },
+        { "name": "removeConfirm", "type": "bool", "about": "the confirm card under a card's ×", "ios": "removeConfirm" },
+        { "name": "school.text", "type": "string", "about": "S2's field for the kid on the tab", "ios": "tabKid" },
+        { "name": "school.picked", "type": "string?", "about": "the picked school's id", "ios": "tabKid" },
+        { "name": "stop.code", "type": "string", "about": "S3's stop for the kid on the tab", "ios": "goingSearch" },
+        { "name": "stop.buses", "type": "[string]", "about": "the buses at that stop", "ios": "goingSearch" }
+      ],
+      "actions": [
+        { "name": "nameChanged", "args": { "kid": "int", "text": "string" }, "ios": "nameChanged" },
+        { "name": "ageChanged", "args": { "kid": "int", "text": "string" }, "ios": "ageChanged" },
+        { "name": "faceTapped", "args": { "kid": "int", "face": "string" }, "ios": "faceTapped" },
+        { "name": "addKidTapped", "args": {}, "ios": "addKidTapped" },
+        { "name": "removeKidTapped", "args": { "kid": "int" }, "ios": "removeKidTapped" },
+        { "name": "removeConfirmed", "args": {}, "ios": "removeConfirmed" },
+        { "name": "removeCancelled", "args": {}, "ios": "removeCancelled" },
+        { "name": "nextTapped", "args": {}, "ios": "nextTapped" },
+        { "name": "schoolTextChanged", "args": { "text": "string" }, "ios": "schoolTextChanged" },
+        { "name": "schoolPicked", "args": { "school": "string" }, "about": "a school id from the world's list", "ios": "schoolPicked" },
+        { "name": "wayPicked", "args": { "way": "walk|bus|car|taxi|shuttle" }, "ios": "wayPicked" },
+        { "name": "stopTextChanged", "args": { "text": "string" }, "ios": "stopSearch" },
+        { "name": "busTapped", "args": { "bus": "string" }, "ios": "serviceTapped" },
+        { "name": "walkChanged", "args": { "minutes": "int" }, "ios": "walkChanged" }
+      ]
+    },
+    {
+      "id": "home",
+      "about": "The kids' home: the clock and each kid's now and next.",
+      "ios": { "file": "ios/Features/Home/HomeFeature.swift" },
+      "fields": [
+        { "name": "weekday", "type": "enum", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"], "ios": "weekday" },
+        { "name": "today", "type": "date", "about": "yyyy-MM-dd", "ios": "today" },
+        { "name": "kids", "type": "[string]", "about": "the names shown, in order", "ios": "days" }
+      ],
+      "actions": [
+        { "name": "clockHeld", "args": {}, "about": "the clock held 2 s; then Face ID asks (lock)", "ios": "clockHoldCompleted" },
+        { "name": "missionsTapped", "args": {}, "ios": "missionsTapped" }
+      ]
+    },
+    {
+      "id": "lock",
+      "about": "The grown-up lock card over the home (board C0), shown while Face ID has no answer yet or failed.",
+      "ios": { "file": "ios/AppCore/AppFeature.swift" },
+      "fields": [
+        { "name": "primary", "type": "string?", "about": "the card's main button: Try again, or Enter without Face ID", "ios": "lockCard" },
+        { "name": "cancel", "type": "string", "ios": "lockCard" }
+      ],
+      "actions": [
+        { "name": "primaryTapped", "args": {}, "ios": "lockPrimaryTapped" },
+        { "name": "cancelTapped", "args": {}, "ios": "lockCancelTapped" }
+      ]
+    },
+    {
+      "id": "ourDay",
+      "about": "Our day, the first grown-up screen. v1 holds only its way on to Settings: the day editing is being redesigned (layout v65) and joins the contract with that build.",
+      "ios": { "file": "ios/Features/Grownup/OurDayFeature.swift" },
+      "fields": [],
+      "actions": [
+        { "name": "settingsTapped", "args": {}, "ios": "settingsTapped" },
+        { "name": "backTapped", "args": {}, "ios": "backTapped" }
+      ]
+    },
+    {
+      "id": "settings",
+      "about": "Settings, pushed over the home after the lock.",
+      "ios": { "file": "ios/Features/Grownup/SettingsFeature.swift" },
+      "fields": [
+        { "name": "kids", "type": "[string]", "about": "the family's names, in order", "ios": "snapshot" }
+      ],
+      "actions": [
+        { "name": "addChildTapped", "args": {}, "ios": "addChildTapped" },
+        { "name": "backTapped", "args": {}, "ios": "backTapped" }
+      ]
+    },
+    {
+      "id": "addChild",
+      "about": "G6a Add a child, pushed over Settings.",
+      "ios": { "file": "ios/Features/Grownup/AddChildFeature.swift" },
+      "fields": [
+        { "name": "name", "type": "string", "ios": "name" },
+        { "name": "age", "type": "string", "ios": "ageText" },
+        { "name": "colour", "type": "int", "about": "the colour's index; a new kid gets the first one no kid has", "ios": "colorIndex" },
+        { "name": "canSave", "type": "bool", "ios": "canSave" }
+      ],
+      "actions": [
+        { "name": "nameChanged", "args": { "text": "string" }, "ios": "binding" },
+        { "name": "ageChanged", "args": { "text": "string" }, "ios": "binding" },
+        { "name": "faceTapped", "args": { "face": "string" }, "ios": "faceTapped" },
+        { "name": "saveTapped", "args": {}, "ios": "saveTapped" },
+        { "name": "backTapped", "args": {}, "ios": "backTapped" }
+      ]
+    }
+  ]
+}

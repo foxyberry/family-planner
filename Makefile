@@ -108,7 +108,7 @@ snapshots: stop-dev-sims
 	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) $(SCREEN_SNAPSHOT_TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
-	@if [ -d ios/KitArt/Private ]; then echo "note: private art is in this checkout, so the screen snapshots skipped (PASSED compared nothing); compare them from a worktree without it"; fi
+	@if [ -d ios/KitArt/Private/KitArtPrivate.xcassets ]; then echo "note: private art is in this checkout, so the screen snapshots skipped (PASSED compared nothing); compare them from a worktree without it"; fi
 
 # Re-record the design system snapshot baselines into the source tree (the run itself fails:
 # recording is not a pass). Compare the new pictures with the design boards before committing.

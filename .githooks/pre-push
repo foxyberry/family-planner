@@ -88,6 +88,11 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   done <<< "$refs"
 fi
 
+# The driver contract names Swift cases and fields; journey files name the contract.
+if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$|^ios/Journeys/Tests/Driver/'; then
+  bash "$ROOT/scripts/check-driver-contract.sh" </dev/null || status=1
+fi
+
 if printf '%s' "$changed" | grep -Eq '^ios/.*\.(swift|xcstrings)$'; then
   bash "$ROOT/scripts/check-strings.sh" </dev/null || status=1
 fi

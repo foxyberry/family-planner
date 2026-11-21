@@ -49,10 +49,9 @@ The skip applies to comparing too: with private art in the checkout Bazel still 
 no screen was compared (`make snapshots` prints a note), so compare screens from a worktree without
 it.
 
-## Later
-Two pieces will join this folder:
-- the agent driver's protocol, written down as platform-neutral JSON: `ls` gives the screen, its
-  State and the actions it accepts, and `do <action> <json>` runs one;
-- a per-screen contract of State fields and actions.
-
-Together they are the parity contract another platform would implement to run these same journeys.
+## The agent driver
+`Driver/` holds the platform-neutral side: `PROTOCOL.md` (an agent's `ls` and `do <action> <json>`),
+`contract.json` (each screen's fields and person actions, the parity contract another platform
+implements) and `journeys/*.json` (journeys as steps). `scripts/check-driver-contract.sh` keeps the
+contract's names true to the code and the journey files true to the contract. A new screen or a
+renamed action updates the contract with it. The driver itself comes next.

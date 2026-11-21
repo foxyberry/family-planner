@@ -1,0 +1,36 @@
+{
+  "journey": "One kid from an empty iPad to the home",
+  "same as": "FirstRunJourneys.testOneKidFromAnEmptyIPadToTheHome",
+  "world": { "now": "2026-11-10T07:30", "timeZone": "Asia/Singapore", "family": "empty", "faceID": "success" },
+  "steps": [
+    { "expect": { "screen": "setup", "step": "family", "canGoNext": false } },
+    { "do": "setup.nameChanged", "args": { "kid": 0, "text": "Kid A" } },
+    { "do": "setup.ageChanged", "args": { "kid": 0, "text": "8" } },
+    { "expect": { "canGoNext": false } },
+    { "do": "setup.faceTapped", "args": { "kid": 0, "face": "kidGirl" } },
+    { "expect": { "canGoNext": true } },
+    { "do": "setup.nextTapped" },
+    { "expect": { "step": "school" } },
+
+    { "do": "setup.schoolTextChanged", "args": { "text": "exam" } },
+    { "do": "setup.schoolPicked", "args": { "school": "example-primary" } },
+    { "do": "setup.schoolTextChanged", "args": { "text": "$school.text" }, "why": "the field sends its text again as the keyboard closes" },
+    { "expect": { "school.picked": "example-primary", "canGoNext": true } },
+    { "do": "setup.nextTapped" },
+    { "expect": { "step": "gettingThere" } },
+
+    { "do": "setup.wayPicked", "args": { "way": "bus" } },
+    { "do": "setup.stopTextChanged", "args": { "text": "12345" } },
+    { "expect": { "stop.buses": ["1", "2"] } },
+    { "do": "setup.stopTextChanged", "args": { "text": "12345" }, "why": "the same text again as the keyboard closes" },
+    { "expect": { "stop.code": "12345", "stop.buses": ["1", "2"] } },
+    { "do": "setup.busTapped", "args": { "bus": "1" } },
+    { "do": "setup.walkChanged", "args": { "minutes": 8 } },
+    { "expect": { "canGoNext": true } },
+    { "do": "setup.nextTapped" },
+    { "expect": { "step": "almostDone" } },
+
+    { "do": "setup.nextTapped" },
+    { "expect": { "screen": "home", "weekday": "tuesday", "today": "2026-11-10", "kids": ["Kid A"] } }
+  ]
+}
