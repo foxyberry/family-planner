@@ -55,7 +55,8 @@ A checkout another session also works in keeps its branch: start there in a work
 ## Before pushing
 
 Ask the user before a branch's first push. Later pushes to an open PR's `feature/*` branch need
-no ask when they carry fixes for review comments (`pr-review-handoff`) or a red CI check (user,
+no ask when they carry fixes for review comments (`pr-review-handoff`), a red CI check, or a merge
+conflict with `develop` resolved by a merge commit (never a rebase: that rewrites history) (user,
 2026-11-21): push, then reply on each thread with the fixing commit. The hooks still run, and
 force-pushes, rewritten history and pushes to any other branch still need the user's OK.
 
