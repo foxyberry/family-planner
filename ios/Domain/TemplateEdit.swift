@@ -35,10 +35,13 @@ public struct TemplateEdit: Equatable, Sendable {
     public private(set) var blocks: [RoutineBlock]
     /// The day's items, drawn over the template (removed ones stay here until Save, for Undo).
     public private(set) var items: [ClockItem]
+    /// The template's changes since the last save, each with its scope.
+    public private(set) var changes: [TemplateChange] = []
 
     private struct Snapshot: Equatable, Sendable {
         var blocks: [RoutineBlock]
         var items: [ClockItem]
+        var changes: [TemplateChange]
     }
 
     private var history: [Snapshot] = []
@@ -66,7 +69,7 @@ public struct TemplateEdit: Equatable, Sendable {
     /// Call once when a drag starts (or before a typed change), so undo steps back a whole change.
     /// A new change ends what Redo could put back.
     public mutating func beginChange() {
-        history.append(Snapshot(blocks: blocks, items: items))
+        history.append(Snapshot(blocks: blocks, items: items, changes: changes))
         future.removeAll()
     }
 
@@ -80,21 +83,35 @@ public struct TemplateEdit: Equatable, Sendable {
     }
 
     /// A typed start time: moves the knob before the slice, with the same rules.
-    public mutating func setStart(ofBlock block: Int, to minute: Int) -> Move {
+    public mutating func setStart(ofBlock block: Int, to minute: Int, scope: EditScope = .thisDay) -> Move {
         guard let index = knobs.firstIndex(where: { $0.after == block }) else { return .noKnob }
+        return typed(knob: index, to: minute, favoring: block, scope: scope)
+    }
+
+    /// A typed end time: moves the knob after the slice, with the same rules.
+    public mutating func setEnd(ofBlock block: Int, to minute: Int, scope: EditScope = .thisDay) -> Move {
+        guard let index = knobs.firstIndex(where: { $0.before == block }) else { return .noKnob }
+        return typed(knob: index, to: minute, favoring: block, scope: scope)
+    }
+
+    private mutating func typed(knob index: Int, to minute: Int, favoring block: Int, scope: EditScope) -> Move {
         beginChange()
+        let from = knobs[index].minute
         let move = moveKnob(index, to: minute)
+        let to = knobs[index].minute
+        if to != from { changes.append(TemplateChange(scope, .move(from: from, to: to))) }
         closeShortGaps(favoring: block)
         return move
     }
 
-    /// A typed end time: moves the knob after the slice, with the same rules.
-    public mutating func setEnd(ofBlock block: Int, to minute: Int) -> Move {
-        guard let index = knobs.firstIndex(where: { $0.before == block }) else { return .noKnob }
-        beginChange()
-        let move = moveKnob(index, to: minute)
-        closeShortGaps(favoring: block)
-        return move
+    /// The end of a template knob's drag (it began at `from`): the move is kept with its scope, and
+    /// free time left under 15 minutes joins the slice grown or shrunk on purpose (the side that is
+    /// not free time). Returns that slice's index.
+    public mutating func finishMove(before index: Int, from: Int, scope: EditScope) -> Int? {
+        guard blocks.indices.contains(index + 1) else { return nil }
+        let to = blocks[index].end
+        if to != from { changes.append(TemplateChange(scope, .move(from: from, to: to))) }
+        return closeShortGaps(favoring: blocks[index].kind == .free ? index + 1 : index)
     }
 
     /// Spec "No forced gaps": free time under 15 minutes never stays. A free slice that short joins
@@ -137,9 +154,10 @@ public struct TemplateEdit: Equatable, Sendable {
     /// after it, so the day can lose slices. School too (after its ConfirmCard). Returns the free
     /// slice's index.
     @discardableResult
-    public mutating func makeFree(_ block: Int) -> Int {
+    public mutating func makeFree(_ block: Int, scope: EditScope = .allDays) -> Int {
         guard blocks[block].kind != .free else { return block }
         beginChange()
+        changes.append(TemplateChange(scope, .free(start: blocks[block].start, end: blocks[block].end)))
         var index = block
         blocks[index] = Self.free(from: blocks[index].start, to: blocks[index].end)
         if index + 1 < blocks.count, blocks[index + 1].kind == .free, blocks[index + 1].start == blocks[index].end {
@@ -160,6 +178,7 @@ public struct TemplateEdit: Equatable, Sendable {
         guard blocks.indices.contains(block), blocks[block].kind != .free,
               blocks[block].isSkipped != skipped else { return }
         beginChange()
+        changes.append(TemplateChange(.thisDay, .skip(start: blocks[block].start, skipped: skipped)))
         blocks[block].isSkipped = skipped
     }
 
@@ -170,20 +189,21 @@ public struct TemplateEdit: Equatable, Sendable {
     /// Takes back the last change (one finished drag, one typed time, one skip, remove or add).
     public mutating func undo() {
         guard let last = history.popLast() else { return }
-        future.append(Snapshot(blocks: blocks, items: items))
+        future.append(Snapshot(blocks: blocks, items: items, changes: changes))
         restore(last)
     }
 
     /// Puts back the change Undo took back last.
     public mutating func redo() {
         guard let next = future.popLast() else { return }
-        history.append(Snapshot(blocks: blocks, items: items))
+        history.append(Snapshot(blocks: blocks, items: items, changes: changes))
         restore(next)
     }
 
     private mutating func restore(_ snapshot: Snapshot) {
         blocks = snapshot.blocks
         items = snapshot.items
+        changes = snapshot.changes
     }
 
     /// The blocks as they were at the last save (or when the edit began).
@@ -208,14 +228,55 @@ public struct TemplateEdit: Equatable, Sendable {
         return items.sorted { $0.start < $1.start }.first { item in saved.first { $0.id == item.id } != item }
     }
 
-    /// A change that applies to a series from a date on (an All days save asks G5 for it): a new
-    /// or removed every-week item, or one with new times.
+    /// A change to an every-week series from a date on: a new or removed series, or new times on
+    /// All days.
     public var hasSeriesChange: Bool {
         let saved = savedItems
         return items.contains { item in
             guard item.isRepeating else { return false }
             guard let was = saved.first(where: { $0.id == item.id }) else { return item.isNew }
-            return item.isRemoved != was.isRemoved || item.start != was.start || item.end != was.end
+            let retimed = item.start != was.start || item.end != was.end
+            return item.isRemoved != was.isRemoved || (retimed && item.retimeScope == .allDays)
+        }
+    }
+
+    /// Something to write from a date on (G5 "Change from when?" asks only then).
+    public var hasAllDaysChange: Bool { changes.contains { $0.scope == .allDays } || hasSeriesChange }
+    /// Something to write as the day's own template.
+    public var hasThisDayTemplateChange: Bool { changes.contains { $0.scope == .thisDay } && isTemplateChanged }
+
+    /// The day type's template (`base`) with only the All days changes: what an All days save
+    /// writes from G5's date. Skips are never in it.
+    public func seriesBlocks(from base: [RoutineBlock]) -> [RoutineBlock] {
+        replaying(on: base, scopes: [.allDays])
+    }
+
+    /// `base` with the changes of `scopes`, in the order they were made. A change whose knob or
+    /// slice is not on `base` (the day had its own template) is left out. Without This day changes
+    /// no slice is skipped.
+    public func replaying(on base: [RoutineBlock], scopes: Set<EditScope>) -> [RoutineBlock] {
+        var edit = TemplateEdit(blocks: base)
+        for change in changes where scopes.contains(change.scope) {
+            switch change.kind {
+            case let .move(from, to):
+                guard let index = edit.knobs.firstIndex(where: { $0.minute == from }) else { continue }
+                let before = edit.knobs[index].before
+                _ = edit.moveKnob(index, to: to)
+                _ = edit.finishMove(before: before, from: from, scope: change.scope)
+            case let .free(start, end):
+                guard let index = edit.blocks.firstIndex(where: { $0.start == start && $0.end == end })
+                    ?? edit.blocks.firstIndex(where: { $0.start == start }) else { continue }
+                edit.makeFree(index)
+            case let .skip(start, skipped):
+                guard let index = edit.blocks.firstIndex(where: { $0.start == start }) else { continue }
+                edit.setSkipped(index, skipped)
+            }
+        }
+        guard !scopes.contains(.thisDay) else { return edit.blocks }
+        return edit.blocks.map { block in
+            var block = block
+            block.isSkipped = false
+            return block
         }
     }
 
@@ -348,8 +409,13 @@ public extension TemplateEdit {
         }
     }
 
+    /// An item's times were changed in `scope` (a drag's end, a typed time).
+    mutating func markRetimed(_ id: ScheduleItem.ID, scope: EditScope) {
+        setItem(id) { $0.retimeScope = scope }
+    }
+
     /// A typed start time for an item: its knob's rules, or the day's edge when nothing touches it.
-    mutating func setItemStart(_ id: ScheduleItem.ID, to minute: Int) -> Move {
+    mutating func setItemStart(_ id: ScheduleItem.ID, to minute: Int, scope: EditScope = .thisDay) -> Move {
         guard let item = item(id), !item.isAnchored else { return .noKnob }
         let edge = clockKnobs.first { knob in
             switch knob.edge {
@@ -360,11 +426,12 @@ public extension TemplateEdit {
         beginChange()
         let move = move(edge, to: minute, within: range(of: edge))
         settleItem(id)
+        retimed(edge, scope: scope)
         return move
     }
 
     /// A typed end time for an item.
-    mutating func setItemEnd(_ id: ScheduleItem.ID, to minute: Int) -> Move {
+    mutating func setItemEnd(_ id: ScheduleItem.ID, to minute: Int, scope: EditScope = .thisDay) -> Move {
         guard let item = item(id), !item.isAnchored else { return .noKnob }
         let edge = clockKnobs.first { knob in
             switch knob.edge {
@@ -375,6 +442,7 @@ public extension TemplateEdit {
         beginChange()
         let move = move(edge, to: minute, within: range(of: edge))
         settleItem(id)
+        retimed(edge, scope: scope)
         return move
     }
 
@@ -412,14 +480,32 @@ public extension TemplateEdit {
         items.append(item)
     }
 
-    /// A new item's picture, name or kind of repeat changed while its card is open: part of the
-    /// change that added it, so Undo takes the whole new item back in one step.
-    mutating func restyleItem(_ id: ScheduleItem.ID, title: String, iconName: String, isRepeating: Bool) {
+    /// Every item an edge moved has new times in `scope`.
+    mutating func retimed(_ edge: DayKnob.Edge, scope: EditScope) {
+        switch edge {
+        case .blocks: break
+        case let .itemStart(id), let .itemEnd(id): markRetimed(id, scope: scope)
+        case let .items(ending, starting):
+            markRetimed(ending, scope: scope)
+            markRetimed(starting, scope: scope)
+        }
+    }
+
+    /// A new item's picture or name changed while its card is open: part of the change that added
+    /// it, so Undo takes the whole new item back in one step.
+    mutating func restyleItem(_ id: ScheduleItem.ID, title: String, iconName: String) {
         setItem(id) {
             $0.title = title
             $0.iconName = iconName
-            $0.isRepeating = isRepeating
         }
+    }
+
+    /// A new item's scope tab (spec "Tapping +"): just once (This day) or every week (All days),
+    /// one change for Undo.
+    mutating func setNewItemScope(_ id: ScheduleItem.ID, _ scope: EditScope) {
+        guard let item = item(id), item.isNew, item.newScope != scope else { return }
+        beginChange()
+        setItem(id) { $0.isRepeating = scope == .allDays }
     }
 
     /// "Skip this day" / "Bring back" on an item (one change for Undo).

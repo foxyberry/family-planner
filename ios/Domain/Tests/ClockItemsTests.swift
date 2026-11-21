@@ -114,6 +114,28 @@ final class ClockItemsTests: XCTestCase {
         XCTAssertNotNil(edit.item(newID))
     }
 
+    /// Each template change keeps its scope: the All days ones replay onto the day type's template
+    /// (never a skip), the This day ones onto the day's own.
+    func testTemplateChangesReplayByScope() {
+        var clock = edit([])
+        let play = clock.blocks.firstIndex { $0.title == "Play" }!
+        clock.setSkipped(play, true)
+        _ = clock.setEnd(ofBlock: clock.blocks.firstIndex { $0.title == "Dinner" }!, to: 1170, scope: .allDays)
+        clock.makeFree(clock.blocks.firstIndex { $0.title == "Shower" }!, scope: .allDays)
+        XCTAssertTrue(clock.hasAllDaysChange)
+        XCTAssertTrue(clock.hasThisDayTemplateChange)
+        let series = clock.seriesBlocks(from: blocks)
+        XCTAssertEqual(series.first { $0.title == "Dinner" }?.end, 1170)
+        XCTAssertFalse(series.contains { $0.title == "Shower" })
+        XCTAssertFalse(series.contains(where: \.isSkipped), "a skip is never every day")
+        let day = clock.replaying(on: clock.savedBlocks, scopes: [.thisDay])
+        XCTAssertEqual(day.first { $0.title == "Play" }?.isSkipped, true)
+        XCTAssertEqual(day.first { $0.title == "Dinner" }?.end, 1155, "the All days changes are not in it")
+        clock.undo()
+        clock.undo()
+        XCTAssertFalse(clock.hasAllDaysChange, "Undo takes the scoped changes back too")
+    }
+
     // MARK: Items of the day
 
     func testClockItemsKeepASkippedItemAndPlaceAfterSchool() {
@@ -133,11 +155,11 @@ final class ClockItemsTests: XCTestCase {
 
     // MARK: Save
 
-    private func writes(_ items: [ClockItem], saved: [ClockItem], originals: [ScheduleItem], allDays: Bool = false,
+    private func writes(_ items: [ClockItem], saved: [ClockItem], originals: [ScheduleItem],
                         from: Day? = nil) -> ClockSave.Writes {
         var ids = [UUID(uuidString: "00000000-0000-0000-0000-0000000000B1")!]
         return ClockSave.writes(items: items, saved: saved, originals: originals, kid: SeedData.kidA.id, day: F.tuesday,
-                                allDays: allDays, from: from ?? F.tuesday, calendar: F.calendar,
+                                from: from ?? F.tuesday, calendar: F.calendar,
                                 newID: { ids.removeFirst() })
     }
 
@@ -148,7 +170,7 @@ final class ClockItemsTests: XCTestCase {
         XCTAssertEqual(writes([skipped], saved: [swim], originals: [original]).saved.first?.skippedDays, [F.tuesday])
         var removed = swim
         removed.isRemoved = true
-        let ended = writes([removed], saved: [swim], originals: [original], allDays: true, from: F.thursday)
+        let ended = writes([removed], saved: [swim], originals: [original], from: F.thursday)
         XCTAssertEqual(ended.saved.first?.recurrence.range?.until, F.wednesday, "earlier days stay")
         XCTAssertEqual(writes([removed], saved: [swim], originals: [original], from: original.recurrence.range!.from).deleted,
                        [swimID], "a series that has not started yet goes")
@@ -176,18 +198,21 @@ final class ClockItemsTests: XCTestCase {
         XCTAssertEqual([added?.start, added?.end], [1155, 1185])
         var weekly = once
         weekly.isRepeating = true
-        XCTAssertEqual(writes([weekly], saved: [], originals: [], allDays: true, from: F.thursday).saved.first?.recurrence,
+        XCTAssertEqual(writes([weekly], saved: [], originals: [], from: F.thursday).saved.first?.recurrence,
                        .weekly([.tuesday], from: F.thursday, until: nil))
     }
 
-    /// New times: This day keeps them for the day; All days splits the series from the date.
+    /// New times by the scope they were changed in: This day keeps them for the day; All days
+    /// splits the series from the date.
     func testSaveMovesTimesThisDayOrFromADate() {
         let original = series(id: swimID, days: [.tuesday])
         var moved = swim
         moved.end = 1080
+        moved.retimeScope = .thisDay
         let thisDay = writes([moved], saved: [swim], originals: [original]).saved
         XCTAssertEqual(thisDay.first?.dayChanges, [DayChange(day: F.tuesday, end: 1080)])
-        let allDays = writes([moved], saved: [swim], originals: [original], allDays: true, from: F.thursday).saved
+        moved.retimeScope = .allDays
+        let allDays = writes([moved], saved: [swim], originals: [original], from: F.thursday).saved
         XCTAssertEqual(allDays.count, 2, "the old part ends, a new part starts on Thursday")
         XCTAssertEqual(allDays.last?.end, 1080)
     }

@@ -1,5 +1,30 @@
 import Foundation
 
+/// "This day" or "All days" (spec "Edit scope"): every change on the G1 clock carries the scope it
+/// was made in, and Save writes each change by its own scope.
+public enum EditScope: Hashable, Sendable { case thisDay, allDays }
+
+/// A change to the day template, kept with its scope so Save can write the All days ones onto the
+/// day type's template (from G5's date) and the This day ones as the day's own template.
+public struct TemplateChange: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
+        /// A template knob moved (a drag or a typed time), by its minutes.
+        case move(from: Int, to: Int)
+        /// "Remove": the slice over this span became free time.
+        case free(start: Int, end: Int)
+        /// "Skip this day" or "Bring back" on the slice starting at `start` (always This day).
+        case skip(start: Int, skipped: Bool)
+    }
+
+    public var scope: EditScope
+    public var kind: Kind
+
+    public init(_ scope: EditScope, _ kind: Kind) {
+        self.scope = scope
+        self.kind = kind
+    }
+}
+
 /// An every-week, every-month or just-once item on the G1 clock (spec C6 "One card for everything on
 /// the clock"): its times on the day, and what the grown-up did to it before Save. It sits on top of
 /// the day template; the template underneath stays as it is.
@@ -20,6 +45,8 @@ public struct ClockItem: Equatable, Sendable, Identifiable {
     public var isRemoved: Bool
     /// Added on the clock ("+") and not saved yet.
     public var isNew: Bool
+    /// The scope its times were last changed in (a drag or a typed time); nil while they are as saved.
+    public var retimeScope: EditScope?
 
     public init(id: ScheduleItem.ID, title: String, iconName: String, start: Int, end: Int, isRepeating: Bool,
                 isAnchored: Bool = false, isSkipped: Bool = false, isRemoved: Bool = false, isNew: Bool = false) {
@@ -34,6 +61,9 @@ public struct ClockItem: Equatable, Sendable, Identifiable {
         self.isRemoved = isRemoved
         self.isNew = isNew
     }
+
+    /// A new item's scope is its kind: just once on This day, every week on All days.
+    public var newScope: EditScope { isRepeating ? .allDays : .thisDay }
 
     /// The slice colour an item has (as `ScheduleItem.kind`).
     public var kind: SlotKind { isRepeating ? .afterSchool : .event }
@@ -144,13 +174,13 @@ public enum ClockSave {
     }
 
     /// - `items`: the clock's items now; `saved`: as they were at the last save (or load).
-    /// - `allDays`: the save scope for changed times. Skip, remove and add carry their own meaning:
-    ///   a skip is this day, a remove ends the series from `from` (a just-once item is deleted), an
-    ///   add is a just-once item on `day` or, when added on All days, an every-week item on `day`'s
-    ///   weekday from `from`.
+    /// - Each change is written by the scope it was made in: new times by `retimeScope` (This day
+    ///   keeps them for `day`, All days from `from`), a skip is this day, a remove ends the series
+    ///   from `from` (a just-once item is deleted), an add is a just-once item on `day` or, when
+    ///   added on All days, an every-week item on `day`'s weekday from `from`. `from` is G5's date,
+    ///   asked only when there are All days changes.
     public static func writes(items: [ClockItem], saved: [ClockItem], originals: [ScheduleItem], kid: Kid.ID,
-                              day: Day, allDays: Bool, from: Day, calendar: Calendar,
-                              newID: () -> UUID) -> Writes {
+                              day: Day, from: Day, calendar: Calendar, newID: () -> UUID) -> Writes {
         var writes = Writes()
         let before = Dictionary(saved.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         for draft in items {
@@ -170,8 +200,8 @@ public enum ClockSave {
             }
             var parts = [original]
             if draft.start != was.start || draft.end != was.end {
-                parts = retimed(original, to: draft, day: day, allDays: allDays, from: from, calendar: calendar,
-                                newID: newID)
+                parts = retimed(original, to: draft, day: day, allDays: draft.retimeScope == .allDays, from: from,
+                                calendar: calendar, newID: newID)
             }
             if draft.isSkipped != was.isSkipped {
                 parts = parts.map {
