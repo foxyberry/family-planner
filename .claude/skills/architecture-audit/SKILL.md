@@ -2,7 +2,7 @@
 name: architecture-audit
 description: Use only when the user asks to audit or check develop ("develop 점검해줘", "audit develop", "아키텍처 점검") — never on a schedule or on your own — or when asked whether develop has dead code, rule drift, stale board citations or pending lists that stopped shrinking.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   status: experimental
 ---
 
@@ -24,6 +24,8 @@ lessons and a short Korean report. It never edits the shared checkout.
      lists stale board citations).
    - **Pending lists**: a list that did not shrink since the last audit is a cleanup item.
    - **Dead-code candidates** (grep): judge each (below).
+   - **Board numbers without a version**: comments quoting a board's sizes that no version guard
+     watches; check each against the board, and fix the numbers or drop them.
 3. Read the changed files against the rules guards can't see:
    - views: decisions or copy computed in a view, values in parts (`tca-feature`, View row);
    - layout: board values vs screen points, rows sized by hand (`screen-layout`);

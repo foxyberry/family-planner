@@ -7,7 +7,8 @@
 #   - the shrink-only pending lists: their size now and at the last audit;
 #   - dead-code candidates from the changed Swift files (grep): declarations whose name appears
 #     nowhere else in ios/, or only in tests or DebugTools. Candidates, not verdicts: a protocol
-#     requirement, an override or a SwiftUI entry point can look unused.
+#     requirement, an override or a SwiftUI entry point can look unused;
+#   - comments that quote a board's numbers without a layout version, to re-check against the board.
 #
 # Usage: scripts/audit.sh [--since SHA] [--mark]
 #   --since SHA  audit from SHA instead of the last audited one (first run: 50 commits back)
@@ -78,6 +79,21 @@ printf '%s\n' "$changed" | grep -E '^ios/.*\.swift$' | grep -vE '/(Tests|Snapsho
       fi
     done
 done
+
+# A comment that quotes a board's numbers without "layout vN" can't go stale in check-layout-versions'
+# eyes (2026-11-22: the audit dropped 34 stale versions): re-check these against the board each audit.
+echo
+echo "## Board numbers without a version (changed Swift files)"
+boards="$(ls docs/superpowers/layout/*.json 2>/dev/null | xargs -n1 basename | sed 's/\.json$//' | paste -sd'|' -)"
+if [ -n "$boards" ]; then
+  printf '%s\n' "$changed" | grep -E '^ios/.*\.swift$' | while read -r file; do
+    [ -f "$file" ] || continue
+    grep -nE "^[[:space:]]*//.*\b($boards)\b" "$file" | grep -v "layout v[0-9]" |
+      awk '{ line = $0; sub(/^[0-9]+:/, "", line); gsub(/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/, "", line)
+             if (line ~ /[0-9][0-9]/) print }' |
+      sed "s|^|- $file:|" | cut -c1-160
+  done
+fi
 
 if [ "$mark" = 1 ]; then
   echo "$head" > "$LAST_FILE"
