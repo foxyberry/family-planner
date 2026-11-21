@@ -24,16 +24,6 @@ feelSad
 feelVeryHappy
 feelVerySad
 
-# Flags: kept. The spec lets the language-school cloth become a country flag through C3's "More",
-# but no picker lists flags yet (Bring's "More" shows things only), so the swap is not built.
-flagCN
-flagFR
-flagIN
-flagJP
-flagKR
-flagTH
-flagUK
-flagVN
 
 # A rig frame the rig data no longer names: make art writes frames but never prunes old ones, so
 # this stays until the generator prunes and make art runs again.
