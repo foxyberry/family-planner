@@ -60,25 +60,45 @@ public enum CrayonStyle {
     }
 }
 
+/// Where a part with a crayon outline takes taps (spec "Sizing → Touch", rule 1).
+public enum PartTap: Equatable, Sendable {
+    /// A control: only its drawn shape, the frame less the art inset (a round part its circle, a pill
+    /// its capsule, a box its rounded rect).
+    case drawn
+    /// A container (cards, list cards, form cards): its whole frame, so a near miss just outside the
+    /// outline stops on the card instead of reaching the dim behind it and cancelling the form.
+    case frame
+}
+
 extension View {
     /// A part's crayon shape, drawn `CrayonStyle.artInset` × s inside the view's box (spec "Art inset").
-    /// Taps hit only that drawn shape, the frame less the inset (spec "Sizing → Touch", rule 1; user
-    /// 2026-11-22): a round part its circle, a pill its capsule, a box its rounded rect.
+    /// `tap`: a control takes taps only on that drawn shape (user, 2026-11-22); a container passes
+    /// `.frame`.
     public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
-                               marker: MarkerStyle = .standard, markerColor: Color? = nil) -> some View {
+                               marker: MarkerStyle = .standard, markerColor: Color? = nil,
+                               tap: PartTap = .drawn) -> some View {
         background(PartSurface(kind: kind, fill: fill, seed: seed, marker: marker, markerColor: markerColor))
-            .modifier(DrawnTapShape(kind: kind))
+            .modifier(DrawnTapShape(kind: kind, tap: tap))
     }
 }
 
-/// Spec "Sizing → Touch", rule 1: the tap area of a part with a crayon outline is its drawn shape,
-/// one art inset inside its frame, × s.
+/// Spec "Sizing → Touch", rule 1: the tap area of a control with a crayon outline is its drawn shape,
+/// one art inset inside its frame, × s; a container keeps its frame.
 private struct DrawnTapShape: ViewModifier {
     let kind: CrayonShapeKind
+    let tap: PartTap
     @Environment(\.sizing) private var sizing
 
-    func body(content: Content) -> some View {
+    @ViewBuilder func body(content: Content) -> some View {
         let inset = sizing(CrayonStyle.artInset)
+        if tap == .frame {
+            content.contentShape(Rectangle())
+        } else {
+            drawn(content, inset: inset)
+        }
+    }
+
+    @ViewBuilder private func drawn(_ content: Content, inset: CGFloat) -> some View {
         switch kind {
         case .circle: content.contentShape(Circle().inset(by: inset))
         case .capsule: content.contentShape(Capsule().inset(by: inset))

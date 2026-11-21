@@ -21,7 +21,7 @@ public struct PaperCard<Content: View>: View {
         content
             .padding(insets)
             .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
-                              seed: CrayonStyle.Seed.card + seed)
+                              seed: CrayonStyle.Seed.card + seed, tap: .frame)
     }
 
     private var insets: EdgeInsets {
