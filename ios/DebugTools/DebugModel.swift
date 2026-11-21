@@ -118,11 +118,13 @@ extension DebugModel {
     }
 
     /// Debug builds only (`AppDelegate.bootstrap`): the app clock runs on the time machine, and the
-    /// "Skip Face ID" flag opens grown-up screens at once. Launch arguments `-fpNow` / `-fpSpeed` set the time.
+    /// "Skip Face ID" flag opens grown-up screens at once. Launch arguments `-fpNow` / `-fpSpeed` set the time;
+    /// `-fpFamily` sets the starting family (simulators only: a UI test must not wipe a real iPad).
     public static func install(into dependencies: inout DependencyValues,
                                arguments: [String] = ProcessInfo.processInfo.arguments,
                                defaults: UserDefaults = .standard,
-                               allowsSkipFaceID: Bool = isSimulator) {
+                               allowsSkipFaceID: Bool = isSimulator,
+                               allowsStartFamily: Bool = isSimulator) {
         let core = DebugCore(settings: DebugSettings())
         let live = dependencies.parentAuth
         let store = dependencies.scheduleStore
@@ -135,9 +137,21 @@ extension DebugModel {
                                    let today = Day(core.now(), calendar: calendar)
                                    try await store.replaceFamily(.sampleFamily(today: today, calendar: calendar))
                                })
-        model.settings.apply(LaunchOptions(arguments: arguments, calendar: dependencies.calendar),
-                             realNow: core.realDate())
+        let options = LaunchOptions(arguments: arguments, calendar: dependencies.calendar)
+        model.settings.apply(options, realNow: core.realDate())
         dependencies.date = DateGenerator { core.now() }
+        if allowsStartFamily, let start = options.family {
+            // The first load waits for the replace, so the app never sees the old family.
+            let today = Day(core.now(), calendar: calendar)
+            let family = start == .sample
+                ? ScheduleSnapshot.sampleFamily(today: today, calendar: calendar)
+                : ScheduleSnapshot(kids: [], routines: [], items: [])
+            let replaced = Task { try await store.replaceFamily(family) }
+            dependencies.scheduleStore.load = {
+                try await replaced.value
+                return try await store.load()
+            }
+        }
         if allowsSkipFaceID {
             dependencies.parentAuth.authenticate = { reason in
                 core.skipsFaceID ? .success : await live.authenticate(reason)

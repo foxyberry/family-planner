@@ -36,6 +36,11 @@ public struct LaunchOptions: Equatable, Sendable {
     /// `-fpSkipFaceID` (`make run SKIP_FACE_ID=1`): turn "Skip Face ID" on. It only works where the
     /// switch exists (a simulator); a real iPad still asks for Face ID.
     public var skipsFaceID = false
+    /// `-fpFamily empty|sample` (UI tests): the family the app starts with, replacing what the
+    /// simulator's store holds, as the menu's "Load sample family" does. Simulators only.
+    public var family: StartFamily?
+
+    public enum StartFamily: String, Equatable, Sendable { case empty, sample }
 
     public init(now: Date?, speed: Double?, grid: Bool = false) {
         self.now = now
@@ -57,6 +62,7 @@ public struct LaunchOptions: Equatable, Sendable {
         speed = value(after: "-fpSpeed").flatMap(Double.init).flatMap { $0 > 0 ? $0 : nil }
         grid = arguments.contains("-fpGrid")
         skipsFaceID = arguments.contains("-fpSkipFaceID")
+        family = value(after: "-fpFamily").flatMap(StartFamily.init(rawValue:))
     }
 }
 
