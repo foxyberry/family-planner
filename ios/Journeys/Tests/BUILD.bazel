@@ -53,6 +53,8 @@ fp_swift_library(
 ios_unit_test(
     name = "Journeys",
     bundle_id = BUNDLE_ID + ".journeys.tests",
+    # The platform-neutral journey files AgentJourneyTests replays.
+    data = glob(["Driver/journeys/*.json"]),
     minimum_os_version = MINIMUM_OS_VERSION,
     runner = "//ios:test_runner",
     deps = [":JourneysLib"],

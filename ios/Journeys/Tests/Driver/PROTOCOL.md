@@ -9,7 +9,8 @@ journeys here can later run against an Android build unchanged. Nothing here is 
 - `PROTOCOL.md`: this page, the commands and how a journey file runs.
 - `contract.json`: the parity contract. For each screen: its id, the visible State fields `ls` shows,
   and the person actions `do` accepts with their arguments. Each entry's `ios` binds it to this
-  app's code; `scripts/check-driver-contract.sh` checks those names exist.
+  app's code; `scripts/check-driver-contract.sh` checks those names exist, and `AgentContract`
+  (ios/AppCore) maps them to the app's State and actions.
 - `journeys/*.json`: journeys as steps. Each names the Swift journey it mirrors (`same as`).
 
 ## `ls`

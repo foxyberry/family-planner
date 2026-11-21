@@ -99,8 +99,8 @@
         { "name": "canSave", "type": "bool", "ios": "canSave" }
       ],
       "actions": [
-        { "name": "nameChanged", "args": { "text": "string" }, "ios": "binding" },
-        { "name": "ageChanged", "args": { "text": "string" }, "ios": "binding" },
+        { "name": "nameChanged", "args": { "text": "string" }, "ios": "binding:name" },
+        { "name": "ageChanged", "args": { "text": "string" }, "ios": "binding:ageText" },
         { "name": "faceTapped", "args": { "face": "string" }, "ios": "faceTapped" },
         { "name": "saveTapped", "args": {}, "ios": "saveTapped" },
         { "name": "backTapped", "args": {}, "ios": "backTapped" }
