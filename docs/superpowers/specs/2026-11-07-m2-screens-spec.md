@@ -163,6 +163,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-21: one scale, no floors (user, from the review session's proposal): every size is board × s for kid and grown-up screens, leftover space is paper, touch area = visible box, the iPhone Duo inner screen joins the supported screens (small parts under 44 accepted there); the Part floors, fluid() tokens, fixed captions and the give-way order are gone. s comes from the app window, so a smaller window shows the whole board smaller (no cropping).
 - 2026-11-21: Our Day editing (user, after a UX pre-screen): one slice card for day slices, items and School ("Skip this day" on This day, "Remove" on All days, "Details ›" for items and School); the "+" between two slices shows on every shared knob all the time; a new slice added on the clock is a just-once item (This day) or an every-week item (All days). Moving a whole slice by long-press: later. Boards G1, G1c, G1d, G1e.
 - 2026-11-21: one touch rule (user): taps hit only what is drawn; drags grab the nearest handle; draw bigger only as the last resort. Clock knobs stay 36. Our Day build answers: overlapping "+" show only the earlier one; School's Remove opens G7 At home; monthly items confirm "every month"; the confirm sits centred; "Details ›" in body weight.
+- 2026-11-21: G1c day picker: weekdays once in a header row, chips 68 × 68 with the number only (13" check: the weekday touched the chip outline). Layout v66.
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -830,7 +831,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
 - **G1 as built (PR 60) and the calls on it** (2026-11-10):
   - Template slots follow the one scope rule fully: Save on **All days** shows **G5 "Change from when?"** too (Today / Next {weekday} / Date); the day type's template changes from that day, never before today.
   - **This day** on a template slot is stored as that date's own template; it wins on that date and is kept when All days changes later (its date always still exists).
-  - G1c card 600 wide, date chips 70 × 84 ("Wed" must fit at caption 24); today underlined, the picked day sky; ‹ › move two weeks.
+  - G1c card 600 wide. Like a calendar: one weekday row on top ("Mon" … "Sun", caption 24 `softText`, one label centred over each column), then two weeks of square date chips **68 × 68** with the day number only (body 30 bold), gap 8, today underlined, the picked day sky; ‹ › move two weeks. (The weekday no longer sits inside the chip: "Wed" and a number did not fit a 74 × 84 chip with its outline, 13" check 2026-11-21.)
   - G1d line: the first changed slice's new times, then the scope ("Dinner 6:30 pm → 7:30 pm, this day").
   - Save reads "Save"; no holiday note, no "Changes start tomorrow.".
   - **No empty slice card**: G1 always opens with a slice picked (the slice the hold started on, else the one at the current time on today, else the first of the day), so the card is never empty and needs no hint sentence.
