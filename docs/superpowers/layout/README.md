@@ -95,3 +95,4 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v64 (2026-11-21): A2t exports the timetable card on the strip (`strip.card` 300 × 214, 436 × 96) with its face, title and caption inside. The exporter keeps a paper card's contents (search result lists still export as one card).
 - v65 (2026-11-21): Our Day one slice card. G1 and G1e show a "+" (56) on every shared knob, 64 in from the rim (6:30 am, 7:30 am, 3 pm, 6:30 pm, 8 pm). G1 shows Dinner's end being dragged from 7:15 to 7:30 pm, so that knob has no "+" while it moves. The card action reads "Skip this day" on This day (G1, G1c, G1d) and "Remove" on All days (G1e, All days picked).
 - v66 (2026-11-21): G1c day picker card 600 wide (698–1298): weekday header row ("Mon" … "Sun", caption 24), then two weeks of date chips 68 × 68 with the number only, gap 8.
+- v67 (2026-11-21): retired boards C1, E6, C6 and E5 removed (superseded by G6, G6, G1 and G2; nothing reads them).
