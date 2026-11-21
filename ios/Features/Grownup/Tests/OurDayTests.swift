@@ -128,6 +128,16 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.addButtons.contains { $0.minute == 1160 })
     }
 
+    /// Spec "Add between two slices": a 15-minute Shower keeps Dinner | Shower's "+"; Shower | Sleep
+    /// would overlap it, so it has none.
+    func testOverlappingPlusShowOnlyTheEarlier() async {
+        let store = await loaded()
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1185))
+        await store.send(.knobReleased(0))
+        XCTAssertTrue(store.state.addButtons.contains { $0.minute == 1185 })
+        XCTAssertFalse(store.state.addButtons.contains { $0.minute == 1200 })
+    }
+
     /// Spec "Tapping +": the "+" between Dinner and Shower covers Shower's first 30 minutes as a new
     /// item (This day: just once); the template underneath stays. Closing the card before a picture
     /// is picked leaves nothing behind.
@@ -520,8 +530,8 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.showsScopeTabs)
         XCTAssertEqual(store.state.sliceActionTitle, "Skip this day")
         XCTAssertEqual(store.state.detailsTitle, "Details %@")
-        XCTAssertEqual(store.state.addButtons.map(\.minute), [390, 450, 900, 1110, 1155, 1200],
-                       "an item's edges are drag knobs without +")
+        XCTAssertEqual(store.state.addButtons.map(\.minute), [390, 450, 900, 1080, 1155, 1200],
+                       "Swimming's end has a +; Play | Dinner, 30 minutes later, gives way to it")
 
         await store.send(.scopeTapped(.allDays))
         XCTAssertEqual(store.state.sliceActionTitle, "Remove")

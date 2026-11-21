@@ -51,6 +51,31 @@ public struct EditClock: View {
 
     public static let radius: CGFloat = 340
     public static let hubRadius: CGFloat = 130
+    /// Board G1: a "+" is a RoundButton 56 whose centre sits 64 in from the rim; its circle is drawn
+    /// one part inset (6) inside its frame.
+    public static let addSize: CGFloat = 56
+    public static let addInset: CGFloat = 64
+    static var addDrawn: CGFloat { addSize - 2 * CrayonPart.inset }
+
+    /// Spec "Add between two slices": two "+" overlap when their drawn circles meet, at board units
+    /// (centres on a circle of radius 276, drawn circles 44 across): knobs under about 37 minutes
+    /// apart.
+    public static func addButtonsOverlap(_ a: Int, _ b: Int) -> Bool {
+        let apart = abs(a - b) % 1440
+        let minutes = Double(min(apart, 1440 - apart))
+        let chord = 2 * (radius - addInset) * sin(minutes * 0.25 * .pi / 180 / 2)
+        return chord < addDrawn
+    }
+
+    /// Where two "+" would overlap, only the earlier one in the day shows.
+    public static func showing(_ buttons: [AddBetween]) -> [AddBetween] {
+        var kept: [AddBetween] = []
+        for button in buttons.sorted(by: { $0.minute < $1.minute })
+            where !kept.contains(where: { addButtonsOverlap($0.minute, button.minute) }) {
+            kept.append(button)
+        }
+        return kept
+    }
 
     private let sectors: [ClockSector]
     private let knobs: [Knob]
@@ -125,8 +150,8 @@ public struct EditClock: View {
             // Board G1: a RoundButton 56 on each shared knob's boundary line, its centre 64 in from the rim.
             ForEach(addButtons, id: \.knob) { button in
                 RoundButton(glyph: .plus) { onAddBetween(button.knob) }
-                    .size(56)
-                    .position(point(radius: r - 64 * k, minute: Double(button.minute)))
+                    .size(Self.addSize)
+                    .position(point(radius: r - Self.addInset * k, minute: Double(button.minute)))
             }
         }
         .frame(width: 2 * r, height: 2 * r)

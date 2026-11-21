@@ -36,15 +36,15 @@ final class ClockItemsTests: XCTestCase {
         XCTAssertEqual(edit.blocks, TemplateEdit(blocks: blocks).blocks, "the template underneath stays")
     }
 
-    /// The "+" shows on knobs between two template slices that are not free time; an item's edges are
-    /// drag knobs without "+" (open detail).
-    func testItemEdgesAreKnobsWithoutPlus() {
+    /// The "+" shows on every knob between two slices that are not free time, an item's edges too
+    /// (user, 2026-11-21).
+    func testItemEdgesAreKnobsWithPlus() {
         let knobs = edit([swim]).clockKnobs
         let at = { (minute: Int) in knobs.first { $0.minute == minute } }
         XCTAssertEqual(at(960)?.edge, .itemStart(swimID))
         XCTAssertEqual(at(1050)?.edge, .itemEnd(swimID))
-        XCTAssertEqual(at(960)?.showsAdd, false)
-        XCTAssertEqual(at(1050)?.showsAdd, false)
+        XCTAssertEqual(at(960)?.showsAdd, true, "Snack | Swimming")
+        XCTAssertEqual(at(1050)?.showsAdd, true, "Swimming | Play")
         XCTAssertEqual(at(1155)?.showsAdd, true, "Dinner | Shower")
         XCTAssertEqual(at(900)?.showsAdd, true, "School | Snack")
         XCTAssertNil(at(1020), "Free | Play is under Swimming")

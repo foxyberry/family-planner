@@ -384,13 +384,14 @@ public struct OurDayFeature {
             return edit.clockKnobs.firstIndex { $0.edge == drag.edge }
         }
 
-        /// Spec "Add between two slices": a "+" on every shared knob, all the time; the knob being
-        /// dragged hides its "+".
+        /// Spec "Add between two slices": a "+" on every shared knob, an item's edges too, all the
+        /// time; the knob being dragged hides its "+", and of two that would overlap only the
+        /// earlier one shows.
         public var addButtons: [EditClock.AddBetween] {
             let dragging = dragging
-            return edit.clockKnobs.enumerated().compactMap { index, knob in
+            return EditClock.showing(edit.clockKnobs.enumerated().compactMap { index, knob in
                 knob.showsAdd && index != dragging ? EditClock.AddBetween(knob: index, minute: knob.minute) : nil
-            }
+            })
         }
 
         /// While dragging: "Dinner ends" / "7:30 pm" / "Shower starts"; else the selected slice's name.

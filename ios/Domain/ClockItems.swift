@@ -120,9 +120,9 @@ public struct DayKnob: Equatable, Sendable {
     public var edge: Edge
     public var before: ClockSlice.Source
     public var after: ClockSlice.Source
-    /// Spec "Add between two slices": the "+" shows on every shared knob of two template slices that
-    /// are not free time. An item's edge is a drag knob without "+" (open detail, 2026-11-21: flip it
-    /// here if the design session decides otherwise).
+    /// Spec "Add between two slices": the "+" shows on every shared knob of two slices that are not
+    /// free time, an item's edges too (user, 2026-11-21). Where two "+" would overlap, the screen
+    /// shows only the earlier one (`EditClock.showing`).
     public var showsAdd: Bool
 
     public init(minute: Int, edge: Edge, before: ClockSlice.Source, after: ClockSlice.Source, showsAdd: Bool) {

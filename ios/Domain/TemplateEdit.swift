@@ -325,7 +325,7 @@ public extension TemplateEdit {
         return slices.indices.dropLast().compactMap { i in
             let a = slices[i], b = slices[i + 1]
             guard a.end == b.start, let edge = edge(between: a, b) else { return nil }
-            let shows = !a.isItem && !b.isItem && a.kind != .free && b.kind != .free
+            let shows = a.kind != .free && b.kind != .free
             return DayKnob(minute: a.end, edge: edge, before: a.source, after: b.source, showsAdd: shows)
         }
     }
