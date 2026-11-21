@@ -318,9 +318,9 @@ private struct SchoolStep: View {
             .captionedRow()
             .id(Self.fieldID)
             .zIndex(1)
-        // Board S2: 56 circles on a 72 pitch; the row is as tall as the chips.
+        // Board S2 (layout v60): 56 circles 8 apart (a 64 pitch); the row is as tall as the chips.
         SetupRow(label: L10n.tr("s2.days"), height: DayChip.small) {
-            HStack(spacing: Spacing.s) {
+            HStack(spacing: Spacing.xs) {
                 ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                     DayChip(DayText.initial(day), isOn: Binding(get: { school.days.contains(day) },
                                                                 set: { _ in store.send(.dayToggled(day)) }), size: DayChip.small)
