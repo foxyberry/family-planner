@@ -159,6 +159,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-21: S2 Days toggles, so it uses the editor `DayChip` 72 (gap 8), the row 72 tall (user); Hours 485, Arrive 621, terms 719 on the 13" (layout v60).
 - 2026-11-21: buses that change (user, after the 13" check): one or more first buses per bus that change ("12 · 34 → 33", one Ride 1 row each), any number of them per route (the link always shows, on S3 too), "Remove this bus" in the C2c side column; `ChoiceCircles` pick ring 4 outside the drawn circle (84), not 104; S2 school-hours caption only when there is one (layout v61).
 - 2026-11-21: no VoiceOver work in this phase (user): every VoiceOver and spoken-text rule removed from the spec.
+- 2026-11-21: one scale, no floors (user, from the review session's proposal): every size is board × s for kid and grown-up screens, leftover space is paper, touch area = visible box, the iPhone Duo inner screen joins the supported screens (small parts under 44 accepted there); the Part floors, fluid() tokens, fixed captions and the give-way order are gone.
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -175,7 +176,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Time**: every time is 12-hour with am / pm. One now and one next per kid, never a list; Next skips free time and slots that only resume. Medals come from time only.
 - **Kids**: never locked (every kid's slide is always on). Each kid finishes on their own. Kid screens never scroll; more turns a page ("+n"). No shame: late = no medal, never a sad face.
 - **Who is who**: a kid = face + name, colour never alone. One colour per kid day and night (#56B4E9 / #E69F00). Pick blue #2E8FE0 = ✓, picked, focus, for any kid. 2+ kids: list on the left, chosen kid's missions on the right.
-- **Type and space**: Playpen Sans, six sizes (144 · 96 · 48 · 36 · 30 · 24), nothing under 24. Gaps 4 · 8 · 12 · 16 · 24 · 40 · 64 (4 and 12 inside one part). 12 columns, margin 64; header 48–128, content 176–968.
+- **Type and space**: Playpen Sans, six sizes (144 · 96 · 48 · 36 · 30 · 24), nothing under 24 on the board (all × s on screen, **Sizing**). Gaps 4 · 8 · 12 · 16 · 24 · 40 · 64 (4 and 12 inside one part). 12 columns, margin 64; header 48–128, content 176–968.
 - **Drawing**: UI shapes are CrayonKit Shapes; pictures come from the kit only (`KitIcon`); the kid's own drawings swap into the same slot later. Motion 1.2 s, rigid parts; reduced motion = still.
 - **Privacy**: public repo uses Kid A / Kid B; no home, stops, routes, school names or keys; real family times stay on the canvas. Wolfie is public; the home drawing is not.
 - Parts: board 0b (controls), 0c (content), 0c2 (kid parts: `KidFace`, `MissionCircle`, `KidList`/`KidBand`, `NextRow`/`KidNowNext`, `WayCard`, `DonePill`).
@@ -203,88 +204,18 @@ Every board and the app follow these. Change them here and on board 00 first.
 - Kid screens use `KidScreen` (no scrolling; cap content). Grown-up screens use `GrownupScreen` (header and main button pinned; only the named area scrolls).
 - **Status bar** (user decision, 2026-11-08): the iPad status bar shows on **every** screen, kid and grown-up. Its band, y 0–24, holds nothing; only full-bleed backgrounds (paper, night sky) run under it. Status bar text is dark on day screens and light on night screens (A1n, B2n).
 - **Keyboard** (user, 2026-11-15): "keyboard up" means the on-screen keyboard covers the bottom of the screen by more than 100 pt. Only then do the keyboard looks apply (C3k card and button above the keyboard, side column heading only, one-line search rows). A floating or split keyboard, or a hardware keyboard with only its shortcut bar, counts as no keyboard: every screen keeps its normal look. Built as one injected keyboard dependency that reports the covered height; screens never read keyboard notifications or focus to decide this themselves.
-- **Sizing formulas: landscape, full screen, every iPad** (2026-11-08, user: "the design language is fixed to the 13 inch"; research report "아이패드 화면 크기 대응 레이아웃"). The boards stay drawn at 1376 × 1032; these formulas turn a board value into a value on any landscape iPad, from the mini (1133 × 744) to the 13" (1376 × 1032). At 13" every formula gives the board value back.
-  - **Inputs**: W = device screen width, H = device screen height (landscape, read once at launch), `safe.top` = the top safe-area inset as the system reports it (24 on the 13"; 32 on the 12.9" under iPadOS 26, measured on the family's iPad 2026-11-09). Never hard-code it. H_safe = H − safe.top. Lay the screen out in full-screen space; the band 0 … `safe.top` holds nothing but full-bleed backgrounds.
-  - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (the family's, 1366 × 1024, safe top 32): 0.984 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714. The reference height is 1008 (the 13" safe area), not 1032: this is the fix for the overflow bug. Never `scaleEffect` the whole screen (blurry text, wrong hit areas); multiply each value by s instead.
-  - **Floors**: `fluid(ref, lo) = max(lo, ref × s)`. Floors are design choices, not research values: check them on the family iPad and on a mini simulator [proposed].
-  - **Vertical position**: y = safe.top + (y_board − 24) × s. Header top 48 → 24 + 24 s; main button bottom 968 → 24 + 944 s (mini: 41 and 698, leaving 46 below).
-  - **Horizontal position**: every region has an anchor. Default, when a screen does not name one: a region that spans both margins (64 … 1312 on the morning screens; 40 … 1336 on home and grown-up screens) **stretches** (left = margin × s, right = W − margin × s); otherwise it is **left**-anchored (x = x_board × s) when its board centre is left of 688, else **right**-anchored (x = W − (1376 − x_board) × s). Named exceptions: the home right panel (A1, A1n, E1, E3, E3b) stretches from 928 s to W − 40 s, so the extra width of a narrower-but-taller iPad goes to the text, not to a gap.
-  - **Type**: hero `fluid(144, 96)`, display `fluid(96, 64)`, title `fluid(48, 36)`, head `fluid(36, 30)`, body `fluid(30, 24)`, caption **24 fixed** (still nothing under 24). Mini: 103 / 69 / 36 / 30 / 24 / 24. Use `Font.custom(_:size:relativeTo:)` with the scaled size so Dynamic Type still works on top; do not also use `@ScaledMetric` on the same size. Text that may not fit at its floor wraps or uses `ViewThatFits`; it never shrinks below the floor.
-  - **Spacing**: 4, 8, 12 fixed (inside one part). 16 → `fluid(16, 12)`, 24 → `fluid(24, 16)`, 40 → `fluid(40, 28)`, 64 → `fluid(64, 40)`. Fixed on every iPad: the label → control gap 16 (inside the label column), the card padding 32, and the 40 between cards and between a card's two columns (**Layout balance**). Grid: margin `fluid(64, 40)`, gutter `fluid(24, 16)`, column = (W − 2 margin − 11 gutter) / 12 (82 at 13").
-  - **Pictures and drawn parts**: sizes × s (clock R 372 s, centre (448 s, safe.top + 504 s); mission circle 112 s; way strip: the ground and the road fill the strip region (64 s … W − 64 s) and its height is 340 s; stop, stem and picture **x** positions are proportional to the strip width, every **size and y** uses s, and nothing is stretched (a tree stays round); labels and the card sit on top at their own type sizes (changed 2026-11-09 from keep-aspect, which left a 6 pt gap per side)). Kid tap targets: see Part floors. Crayon outlines × s; focus rings and hairlines fixed.
-  - **Part floors: one rule set for every iPad**. Build it once in DesignSystem as one `Sizing` helper per part; no screen sets its own sizes.
-    - **Ground rules.**
-      - **13" is the board.** At s = 1 every formula below gives the board value back; a floor never changes the 13" look.
-      - **Measure, don't guess.** Minimum widths come from the text measured in Playpen Sans at its type floor, not from rounded numbers. Measured at 24 pt: "10:00 am" (the widest time) medium 116; "Preschool" medium 113, bold 117; "Off days" bold 104. The layout test measures the same way.
-    - **Three kinds of value.**
-      - Free × s: region frames and positions, gaps between regions, and drawings that are not controls (clock R and hub, the way strip, kid home art).
-      - Floored, `max(ref × s, floor)`: every control's drawn box, the type ramp, the spacing tokens, every card inset.
-      - Fixed, never scaled: marker strokes, touch floors, caption 24, row heights that hold two lines of text (72), and identity faces (`KidFace` 48 / 40 / 32; not tap targets).
-      - A picture inside a control keeps its board ratio to the control (pencil 56 in 80, PictureRow 64 in 88), not s.
-    - **Touch.**
-      - Floors: grown-up **48**, kid **72**.
-      - The touch floor applies to the control's frame, which is its hit area. The crayon outline is drawn inside the frame by the **Crayon part inset**, so the drawn box is the frame minus 12; it stays at least 44 (grown-up) or 60 (kid). Tabs, round buttons and the kid pencil meet this at their floors; a part whose drawn box would fall under it (small swatches, chips) keeps a hit area larger than its frame instead of growing.
-      - Only bare glyphs (›, ✕, text links) may have a hit area larger than what is drawn. It extends invisibly to the floor, and two enlarged hit areas never overlap.
-      - [open] Larger primary targets on the youngest kid's screens.
-    - **Control floors, grown-up**:
-      - `CrayonField`, `FieldButton`: `max(80 s, 64)` tall; width `max(200 s, measured text + both paddings)` unless the board sets one.
-      - `TimeField`: as `FieldButton`; width `max(176 s, 142)` (the widest time "10:00 am" 116 + 2 × 13).
-      - `InkButton`: 96 → `max(96 s, 72)`; 80 → `max(80 s, 64)`; the 72 `CardButton` → `max(72 s, 56)`.
-      - `CrayonTabs`, `PillToggle`, `DayChip`: `max(72 s, 56)` tall (header row: see below).
-      - **Header row** (user, 2026-11-15): every text control in a grown-up header (kid tabs, CrayonTabs such as List, pills such as Settings, header text buttons) is **72 tall on every iPad**, fixed, all the same height. Widths stay `max(board width × s, content + 2 × 16)`. A kid tab holds its `KidFace` at 40 with at least 10 clear above and below the drawn box (72 − 12 inset = 60 = 40 + 2 × 10). The ← `RoundButton` keeps its own floor and is centred on the same header line.
-      - Tab width in an equal-choice row (Goes to, Once · Weekly · Monthly, This day / All days): `max(board width × s, longest label at its picked weight + 2 × 16)`. Goes to: `max(180 s, 149)`, so 13" stays 180.
-        - Content for a kid tab is its face + gap + name. When the row's tabs don't fit the control column, the row wraps (give-way step 5); tabs never shrink under this width and never squeeze to the right edge.
-      - `RoundButton` (← 80, Undo / Redo 72, the bus steppers 72): `max(ref s, 56)`.
-      - `CrayonSwitch`: `max(96 s, 72)` wide × `max(52 s, 48)` tall; knob `max(44 s, 40)`.
-      - `ColourSwatch`: `max(56 s, 48)`. Faces picked in S1: `max(64 s, 56)`.
-      - `ChoiceCircles` (88 slot, 112 pitch; the pick ring is derived, 4 outside the drawn circle, 84), `PictureRow` 88, `IconPicker` slots 88: `max(ref s, 72)`.
-      - `DateChip` 96 × 104: `max(ref s, 72)` wide; height in proportion.
-      - `SettingRow` 120: `max(120 s, 88)`, its picture `max(56 s, 48)`.
-      - Rows: two-line `ResultListCard` / `PreviewRow` / `ListRow` rows are **72 fixed**; one-line rows (the keyboard-up search) are **48 fixed** (the board value).
-      - `ConfirmCard`: drawn width `max(520 s, its content + 2 × 32)`, padding 32, buttons as `CardButton`.
-      - `FormCard`: padding 32 (an overlay card, **Layout balance**); its buttons follow `InkButton` / `FieldButton`.
-      - Clock knob: drawn 36 and touch 64, both fixed. The clock "+" and add-between: `max(56 s, 48)`.
-    - **Control floors, kid:**
-      - every kid tap target: `max(ref s, 72)`;
-      - `MissionCircle` and check circles: `max(112 s, 88)`;
-      - `SlideToGo`: track `max(ref s, 72)` tall, thumb `max(ref s, 72)`; the slide is the only way to finish (user, 2026-11-15: the slide is part of the fun; no tap path);
-      - pencil and sky switch: `max(96 s, 72)` tall;
-      - `TimeLeft` compact: `max(72 s, 56)`.
-    - **Padding (floored).**
-      - Text to a control's drawn edge: `fluid(24, 16)` for leading text (fields, `FieldButton`, `InkButton`). Centred text in a control whose width comes from a formula (`TimeField`, tabs, pills) adds no padding: the width formula holds, and the text only needs at least 16 clear on each side (13 in a `TimeField`, so the G1 times row stays one row on the 11").
-      - Card padding: 32 fixed for the main form card and overlay cards; `max(24 s, 16)` for nested cards (**Layout balance**).
-      - Label → control gap: 16 to the drawn box, fixed (inside the label column).
-      - Paired controls (time → time, "latest"): gap `fluid(16, 12)` on each side of the joiner; the "→" joiner `fluid(40, 24)`.
-      - Items in one group: chips and tabs 12; picture grids 16, or as the board spaces them.
-    - **Label column.**
-      - One label column for every grown-up form: 114 on every iPad = the longest grown-up label ("Off days", caption 24 bold, 104) + 10 to the control's frame (16 to its drawn box). Captions are fixed at 24, so the column does not scale.
-      - Label line: the card's drawn left edge + 32 (78 on the 13"). Control line: label line + 114 (192 on the 13").
-      - A label wider than 104 at caption 24 bold is reworded, never squeezed and never widening the column.
-    - **Rows.** A board row pitch is a minimum, not a fixed step: when a row's content (title, wrapped caption, its floor height) is taller, the row grows and the rows below move down by the same amount, keeping the row gap (**Layout balance**) between rows. The card scrolls if it runs out (give-way step 6).
-    - **Header row.** Items after a floored title (the kid tabs after "Settings") flow from the title's end plus the 24 token. The ±1 board-line check is waived for them; they never overlap the title.
-    - **Text.**
-      - No `minimumScaleFactor` anywhere: text never draws under its type floor.
-      - A label that does not fit is reworded, never squeezed.
-      - Typed names (kid, school, activity) may wrap to 2 lines in a row, then end with "…".
-      - Value lines built from parts joined by " · " (summaries such as "walk 10 min · ride 10 min", row values) wrap at a " · " onto at most 2 lines, never mid-part; they never clip.
-      - Button and tab text: one line at the default text size. Switch captions: at most 2 lines.
-      - **Dynamic Type:** every height above is a minimum, not a fixed frame. When the user's text size makes text taller or wider, the control grows, a one-line button or tab may wrap to 2 lines, and the row reflows (step 5) before anything clips.
-    - **When a row does not fit, give way in this order:**
-      1. the row's spare width;
-      2. the gap tokens, joiners and nested-card padding, down to their floors;
-      3. stretchable controls (search, name, value areas, `TimeField`), down to their minimum width (measured content + both paddings);
-      4. the label column, which may grow into the card's spare width (see "Label column");
-      5. reflow: the control drops under its label (label line, then the control at full content width); an equal-choice group wraps to a second line (fill rule per line); a start → end pair stacks (start on the first line, "→ end" on the second);
-      6. the card scrolls vertically.
-      Never sideways scroll, never shrink text, never cut padding under its floor, never go under a touch floor.
-    - **G1 slice card times row** (worked example):
-      - inner = `472 s − 2 × max(24 s, 16)`; fields = `min(176, (inner − 2 × gap − arrow) / 2)`, with gap `fluid(16, 12)` and arrow `fluid(40, 24)`.
-      - 13": inner 424, fields 176 (unchanged).
-      - 11" (s 0.788, measured): inner 334. With the gaps at their scaled values the fields would be 139, so step 2 takes the gaps to 12 and the arrow to 24; the fields are then 143 (≥ 142), one row.
-      - mini (s about 0.71): even at the floors the fields are about 127 (< 142), so step 5 stacks the pair.
-  - **Supported screens and windows** (user, 2026-11-15): landscape on iPads from the mini (1133 × 744) up to the 13". W and H are the **device screen** in landscape, read once at launch, not the window, so s and every token stay the same when the window changes. In a window smaller than the screen (Split View, Stage Manager) the layout stays as it is and is cropped; the hidden part scrolls into view. The app asks for the mini size as its minimum window where the system honours it. Portrait, and designing for small windows, come later.
+- **Sizing: one scale, no floors** (user, 2026-11-21, replacing the part floors). The boards stay drawn at 1376 × 1032, and every screen is the board scaled as one picture.
+  - **Inputs**: W = device screen width, H = device screen height (landscape, read once at launch), `safe.top` = the top safe-area inset the system reports. H_safe = H − safe.top.
+  - **One scale**: s = min(W / 1376, H_safe / 1008). 13": 1.0 · 12.9" (1366 × 1024, safe top 32): 0.984 · iPad Pro 11" (1210 × 834): 0.804 · iPad / Air 11" (1180 × 820): 0.790 · mini (1133 × 744): 0.714 · iPhone Duo inner screen (890 × 626): about 0.60.
+  - **Every size is board × s**: positions, region frames, gaps, card padding, control boxes, touch areas, pictures, strokes and type. No value is floored or kept fixed, so proportions never break on a small screen. At s = 1 every value is the board value.
+  - **Place**: the scaled board (1376 s × 1008 s, from the board's y 24 down) sits centred horizontally, its top on `safe.top`. The space left over on the sides or at the bottom is paper (night sky at night), with nothing on it.
+  - **Type**: the board sizes × s, kept fractional (fonts are vectors, so 23.8 pt is crisp; round to 0.5 only where text measuring needs it). Never draw a whole screen with `scaleEffect`: it rasterizes and blurs. Text sizes come from s only; the system text size (Dynamic Type) does not change them in this phase.
+  - **Touch**: a control's touch area is its visible box, scaled with it. No invisible touch floors and no hit areas bigger than what is drawn. On the Duo inner screen some grown-up parts fall under 44 pt (the S1 remove × 48 → about 29); the user accepted that (2026-11-21).
+  - **Text that does not fit**: a label is reworded on the board. Typed names wrap to 2 lines, then end with "…". Value lines joined by " · " wrap at a " · " onto at most 2 lines. No `minimumScaleFactor`.
+  - **Rows grow** only for wrapped text (a typed name, a value line), by the same amount on every screen, since everything scales together; the card scrolls if its content is taller than the card.
+  - **Supported screens and windows**: landscape on iPads from the mini up to the 13", and the iPhone Duo inner screen. The Duo outer screen (phone width) is out of scope. W and H are the device screen, not the window, so s stays the same when the window changes; in a smaller window (Split View, Stage Manager) the layout stays as it is and is cropped, and the hidden part scrolls into view. Portrait comes later.
 - **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
-- **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Test 1376 × 1032, 1366 × 1024, 1180 × 820 and the mini 1133 × 744 (largest and smallest first), and fail if any text is under its floor or a kid tap target under 72.
+- **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Layout tests run at s = 1 against the layout JSON; one more size (the mini) checks that everything scales by the same s.
 - Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
 - **Contrast**: body and caption text 4.5 : 1 on its ground, day and night; title size and up 3 : 1 (WCAG large text); UI parts and outlines 3 : 1. No extra colour tokens just to pass: change the size class or use ink.
 
@@ -303,7 +234,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 ### Layout model (user, 2026-11-15)
 Screens are assembled from layouts; they never place parts by coordinates. Four layers, each using only the ones before it:
 1. **Tokens** (DesignSystem): the shared lines (label 78, control 192, right edge 808, side 864, header 44–124), row heights (field row 80, choice row 72, header 72 fixed, list rows 72 / 88, main button 96), the crayon part inset 6, and the spacing tokens. Every token is a function of the one `Sizing` that the app root builds once from the device screen (**Supported screens and windows**) and puts in the environment, so tokens follow the iPad by themselves; nothing passes a reference size, and a window resize changes nothing.
-2. **Parts** (DesignSystem): each part owns its default size and floor (`TimeField` 176 / 142, picture circle 88, chips 72 / 56, round buttons 56 / 72 / 80, card button content ≥ 200). A screen may pick a part's size variant or override it with a token, never with a number.
+2. **Parts** (DesignSystem): each part owns its board size (`TimeField` 176, picture circle 88, chips 72 / 56, round buttons 56 / 72 / 80), scaled by s. A screen may pick a part's size variant or override it with a token, never with a number.
 3. **Layouts** (DesignSystem): they own placement and alignment.
    - `FormScreen`: the slots header, main card, side column and action button. It gives the spare width to the main card and moves the card and button for the keyboard (**Keyboard**).
    - `FormLayout`: the card's rows on the lines above. Labels are centred on their control. A second column has one label line and one control line per card: its controls end on the right-edge line, its label line is its control line − (longest second-column label + 10), and it drops under the first column when the column gap (first column's drawn end → second-column label) would fall under 40. One height per row for controls of the same kind; other kinds are centred on the row. Rows grow with their content (**Rows**).
@@ -314,17 +245,17 @@ Screens are assembled from layouts; they never place parts by coordinates. Four 
 - **Known difference**: canvas art draws its outline 0–4 inside its box; the app draws it at 6, so drawn edges sit about 3 further in than on the boards.
 
 ### Layout balance (user, 2026-11-16)
-How far apart things sit. Every gap here is measured between **drawn** edges: a control's drawn box (frame − 6 per side), a card's drawn edge, a text's box. Frames are invisible and may touch; the layout turns these gaps into frame positions (±6), so a screen never adds the inset itself.
+How far apart things sit, in board points (every value × s on screen). Every gap here is measured between **drawn** edges: a control's drawn box (frame − 6 per side), a card's drawn edge, a text's box. Frames are invisible and may touch; the layout turns these gaps into frame positions (±6), so a screen never adds the inset itself.
 - **Proximity ladder**, closest first: inside one group ≤ 16 ≤ label → control 16 < row → row 24 < card padding 32 < card → card 40. Things that belong together sit closer than things that don't, at every step.
   - Inside one group: chips, tabs and swatches 12; a caption under its control and a body line under its title belong to that row, 4–12 below it.
-  - Label → control 16, fixed (the label column, **Part floors**).
-  - Row → row 24 (`fluid(24, 16)`, 17 on the mini, still above 16).
-  - Card padding 32, fixed, on all four sides.
-  - Card → card 40, fixed, and the column gap between a card's two columns 40, fixed.
+  - Label → control 16.
+  - Row → row 24.
+  - Card padding 32 on all four sides.
+  - Card → card 40, and the column gap between a card's two columns 40.
   - Region gaps (header → card, card → side column) come from the screen grid (**Grid and frame**) and sit outside the ladder.
 - **Card kinds**, by role, not by size:
   - Main form card (`FormScreen` main slot) and overlay cards over the dim layer (`ConfirmCard`, `FormCard` pickers F1–F4, "Change from when?", "Starts on", the G1d leave card, the G0 lock card): padding 32.
-  - Nested cards inside a region (G1 slice card, the search result list under a field, side-column cards): padding `max(24 s, 16)` and rows 16 apart, one step tighter than the main card, as their own small ladder.
+  - Nested cards inside a region (G1 slice card, the search result list under a field, side-column cards): padding 24 and rows 16 apart, one step tighter than the main card, as their own small ladder.
 - **Card height**: the main form card is a fixed region (148–968); it keeps its height, and the spare height stays below the last row in one piece. Every other card hugs its content: padding + rows + padding, no empty band.
 - **Shared lines**: one label line, one control line and one right edge for every grown-up form (**Grown-up form layout**), so the controls stay put when you move between screens. Labels longer than the column are reworded.
 - **Second column**: its controls end on the right edge; a fixed-size control there (Age, the face picks) keeps its size and the spare width stays on its left. A first-column control that stretches ends 40 before the second-column label.
@@ -545,7 +476,7 @@ Every part sits on these lines; on other iPads apply "Sizing formulas" (y = safe
 
 ### Morning data: missions, trips, done state (2026-11-08) [proposed]
 - **Missions**: `Mission { id, kid, name, picture: KitSlot, order }`. Morning only, at most 8 per kid, kept in the local store with the schedule.
-  - The circle caption is the name itself: caption 24, centred under the circle in a label as wide as the circle's column (pitch 136 s, never under 112), **up to two lines**, broken between words; "…" only if it still does not fit after two lines. The first mission not done is bold. C5 limits a name to 14 characters, which fits two lines at 24 on every iPad. Never shrink below 24.
+  - The circle caption is the name itself: caption 24, centred under the circle in a label as wide as the circle's column (pitch 136), **up to two lines**, broken between words; "…" only if it still does not fit after two lines. The first mission not done is bold. C5 limits a name to 14 characters, which fits two lines at 24 on every iPad. Never shrink below 24.
   - Seed Kid A: Wake up (`sun`) · Brush teeth (`toothbrush`) · Get dressed (`shirt`) · Breakfast (`actBreakfast`) · Pack bag (`backpack`) · Shoes on (`shoe`).
   - Seed Kid B: Wake up (`sun`) · Milk (`babyBottle`) · Shoes (`shoe`).
 - **Trip** (what makes something an outing): an optional `Trip { way, leaveBefore }` on a template slot, an every-week item or a just-once item. **An outing is anything with a trip**; the picture or the name does not decide it.
