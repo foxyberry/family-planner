@@ -37,6 +37,8 @@ public struct ClockItem: Equatable, Sendable, Identifiable {
     public var end: Int
     /// Every week or every month (This day / All days); false for a just-once item.
     public var isRepeating: Bool
+    /// Every month: its Remove asks "every month".
+    public var isMonthly: Bool
     /// Placed after another event ("after School"): its edges follow that event, so they have no knobs.
     public var isAnchored: Bool
     /// "Skip this day" (This day): faded on the clock, "Bring back" on its card.
@@ -49,7 +51,9 @@ public struct ClockItem: Equatable, Sendable, Identifiable {
     public var retimeScope: EditScope?
 
     public init(id: ScheduleItem.ID, title: String, iconName: String, start: Int, end: Int, isRepeating: Bool,
-                isAnchored: Bool = false, isSkipped: Bool = false, isRemoved: Bool = false, isNew: Bool = false) {
+                isMonthly: Bool = false, isAnchored: Bool = false, isSkipped: Bool = false, isRemoved: Bool = false,
+                isNew: Bool = false) {
+        self.isMonthly = isMonthly
         self.id = id
         self.title = title
         self.iconName = iconName
@@ -120,9 +124,9 @@ public struct DayKnob: Equatable, Sendable {
     public var edge: Edge
     public var before: ClockSlice.Source
     public var after: ClockSlice.Source
-    /// Spec "Add between two slices": the "+" shows on every shared knob of two template slices that
-    /// are not free time. An item's edge is a drag knob without "+" (open detail, 2026-11-21: flip it
-    /// here if the design session decides otherwise).
+    /// Spec "Add between two slices": the "+" shows on every shared knob of two slices that are not
+    /// free time, an item's edges too (user, 2026-11-21). Where two "+" would touch, the screen
+    /// puts the later one on an inner ring (`EditClock.placed`).
     public var showsAdd: Bool
 
     public init(minute: Int, edge: Edge, before: ClockSlice.Source, after: ClockSlice.Source, showsAdd: Bool) {
@@ -151,7 +155,7 @@ public extension DayPlanner {
             let original = byID[item.id]
             return ClockItem(id: item.id, title: item.title, iconName: item.iconName, start: start,
                              end: start + item.end - item.start, isRepeating: item.isRepeating,
-                             isAnchored: original?.after != nil,
+                             isMonthly: item.isMonthly, isAnchored: original?.after != nil,
                              isSkipped: original?.skippedDays.contains(day) ?? false)
         }
         .sorted { $0.start < $1.start }

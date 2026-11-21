@@ -15,7 +15,7 @@ public enum TimeText {
     }
 
     /// "3:30–4:30 pm" within one half of the day, "7:30 am–3:00 pm" across noon or midnight.
-    /// School hours as the boards write them (spec C1, S4): "8:00 am – 3:00 pm", both periods, spaced.
+    /// School hours as the boards write them (G6 Settings, S4): "8:00 am – 3:00 pm", both periods, spaced.
     public static func hours(_ start: Int, _ end: Int) -> String {
         "\(withPeriod(start)) – \(withPeriod(end))"
     }

@@ -3,8 +3,9 @@ import KitArt
 import SwiftUI
 
 /// An 80 paper circle holding a symbol, a short text, a glyph (back, close, +) or a kit picture
-/// (G0's pencil); 64 for C4's date paging. Board sizes, × s on screen; the touch area is the circle's
-/// box.
+/// (G0's pencil); 64 for C4's date paging. Board sizes, × s on screen. A tap hits only the drawn
+/// circle, the frame less the part inset (spec "Sizing → Touch", rule 1, user 2026-11-22), so two
+/// buttons whose frames meet never take each other's taps.
 public struct RoundButton: View {
     private enum Content { case symbol(String), text(String), glyph(MarkerGlyph), picture(KitSlot) }
     private let content: Content
@@ -68,6 +69,7 @@ public struct RoundButton: View {
             .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
                             seed: CrayonStyle.Seed.roundButton,
                             markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)
+            .contentShape(Circle().inset(by: sizing(CrayonPart.inset)))
         }
         .buttonStyle(.plain)
     }

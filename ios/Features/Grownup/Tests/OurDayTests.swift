@@ -93,6 +93,27 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.selectedBlock?.title, "Dinner")
     }
 
+    /// Board G1: the dragged knob's time field on the slice card is outlined in pickBlue.
+    func testDraggedKnobOutlinesItsTimeField() async {
+        let store = await loaded()
+        await store.send(.sliceTapped(start: 1110))
+        XCTAssertEqual(store.state.selectedBlock?.title, "Dinner")
+        XCTAssertFalse(store.state.isStartDragged)
+        XCTAssertFalse(store.state.isEndDragged)
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1160))
+        XCTAssertFalse(store.state.isStartDragged)
+        XCTAssertTrue(store.state.isEndDragged, "Dinner | Shower is Dinner's end")
+        await store.send(.knobReleased(0))
+        XCTAssertFalse(store.state.isEndDragged)
+        await store.send(.knobDragged(index: knob(store, at: 1110), minute: 1100))
+        XCTAssertTrue(store.state.isStartDragged, "the knob before Dinner is its start")
+        XCTAssertFalse(store.state.isEndDragged)
+        await store.send(.knobReleased(0))
+        await store.send(.knobDragged(index: knob(store, at: 450), minute: 460))
+        XCTAssertFalse(store.state.isStartDragged, "a knob away from the selected slice outlines neither")
+        XCTAssertFalse(store.state.isEndDragged)
+    }
+
     func testLimitsBump() async {
         let store = await loaded()
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1250))
@@ -126,6 +147,37 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.addButtons.count, 5)
         await store.send(.knobReleased(0))
         XCTAssertTrue(store.state.addButtons.contains { $0.minute == 1160 })
+    }
+
+    /// Spec "Add between two slices": a 15-minute Shower keeps both "+": Dinner | Shower on the
+    /// outer ring, Shower | Sleep one ring in.
+    func testTouchingPlusTakeTheNextRing() async {
+        let store = await loaded()
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1185))
+        await store.send(.knobReleased(0))
+        XCTAssertEqual(store.state.addButtons.first { $0.minute == 1185 }?.ring, 0)
+        XCTAssertEqual(store.state.addButtons.first { $0.minute == 1200 }?.ring, 1)
+    }
+
+    /// Spec "Add between two slices": a new 30-minute item keeps both of its "+", on two rings;
+    /// dragging one hides only its own "+", the others keep their rings. Dragging the item's end
+    /// moves only the item, so the Shower under it lights neither of its time fields.
+    func testANewThirtyMinuteItemKeepsBothPlus() async throws {
+        let store = await loaded()
+        let plus = try XCTUnwrap(store.state.addButtons.first { $0.minute == 1155 })
+        await store.send(.addBetweenTapped(plus.knob))
+        await store.send(.newSlicePicturePicked("actPiano"))
+        let rings = { Dictionary(uniqueKeysWithValues: store.state.addButtons.map { ($0.minute, $0.ring) }) }
+        XCTAssertEqual(rings()[1155], 0)
+        XCTAssertEqual(rings()[1185], 1)
+        XCTAssertEqual(rings()[1200], 0)
+        await store.send(.sliceTapped(start: 1185))
+        XCTAssertEqual(store.state.selectedBlock?.title, "Shower")
+        await store.send(.knobDragged(index: knob(store, at: 1185), minute: 1185))
+        XCTAssertNil(rings()[1185], "the dragged knob hides its +")
+        XCTAssertEqual(rings()[1200], 0, "the others keep their rings")
+        XCTAssertFalse(store.state.isStartDragged, "the item's end is not the Shower's start")
+        XCTAssertFalse(store.state.isEndDragged)
     }
 
     /// Spec "Tapping +": the "+" between Dinner and Shower covers Shower's first 30 minutes as a new
@@ -261,31 +313,20 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.edit.items.first?.isRepeating, false, "the kind change is its own step")
     }
 
-    /// Review case A (PR 174): a confirmed "Remove School every week" is an All days change even
-    /// when This day shows at Save. It is written from G5's date (here the clock's day), template
-    /// only: School's record is not changed.
-    func testRemovingSchoolEveryWeekSavesOnAllDays() async throws {
-        let writes = Writes()
-        let savedKids = LockIsolated<[Kid]>([])
-        let store = await loaded(savedKids: savedKids, writes: writes)
+    /// School's Remove leaves the clock, so unsaved changes ask G1d first; Save goes on to G7.
+    func testSchoolRemoveAsksFirstWithUnsavedChanges() async throws {
+        let store = await loaded()
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.knobReleased(0))
         let school = try XCTUnwrap(store.state.edit.blocks.first { $0.kind == .school })
         await store.send(.sliceTapped(start: school.start))
         await store.send(.scopeTapped(.allDays))
         await store.send(.sliceActionTapped)
-        await store.send(.removeConfirmed)
-        await store.send(.sliceTapped(start: 1110))
-        await store.send(.scopeTapped(.thisDay))
-        await store.send(.saveTapped)
-        XCTAssertEqual(store.state.fromWhen, .today, "All days changes ask from when")
-        await store.send(.fromWhenSaveTapped)
+        XCTAssertTrue(store.state.isConfirmingLeave)
+        XCTAssertEqual(store.state.pendingSwitch, .atHome)
+        await store.send(.unsavedSaveTapped)
         await store.receive(\.saved)
-        let routine = try XCTUnwrap(writes.routines.value.first)
-        XCTAssertEqual(writes.routines.value.count, 1)
-        XCTAssertNil(routine.onlyOn)
-        XCTAssertEqual(routine.from, tuesday)
-        XCTAssertFalse(routine.blocks.contains { $0.kind == .school })
-        XCTAssertTrue(savedKids.value.isEmpty, "School's record stays")
-        XCTAssertFalse(store.state.edit.blocks.contains { $0.kind == .school }, "the clock shows the saved day")
+        await store.receive(\.delegate.removeSchool)
     }
 
     /// Review case B (PR 174): Skip Play on This day and Remove Dinner on All days; each is saved by
@@ -520,8 +561,10 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.showsScopeTabs)
         XCTAssertEqual(store.state.sliceActionTitle, "Skip this day")
         XCTAssertEqual(store.state.detailsTitle, "Details %@")
-        XCTAssertEqual(store.state.addButtons.map(\.minute), [390, 450, 900, 1110, 1155, 1200],
-                       "an item's edges are drag knobs without +")
+        XCTAssertEqual(store.state.addButtons.map(\.minute), [390, 450, 900, 1080, 1110, 1155, 1200],
+                       "Swimming's end has a +")
+        XCTAssertEqual(store.state.addButtons.first { $0.minute == 1110 }?.ring, 1,
+                       "Play | Dinner, 30 minutes later, one ring in")
 
         await store.send(.scopeTapped(.allDays))
         XCTAssertEqual(store.state.sliceActionTitle, "Remove")
@@ -581,8 +624,9 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.items.isEmpty)
     }
 
-    /// School: Skip this day in one tap; Remove on All days asks first, then School is free time.
-    func testSchoolSkipsInOneTapAndRemoveAsksFirst() async throws {
+    /// School: Skip this day in one tap; Remove on All days opens G7 with At home picked (spec C6
+    /// "One card", e39b24d), never a template-only removal.
+    func testSchoolSkipsInOneTapAndRemoveOpensG7() async throws {
         let store = await loaded()
         let school = try XCTUnwrap(store.state.edit.blocks.first { $0.kind == .school })
         await store.send(.sliceTapped(start: school.start))
@@ -593,10 +637,24 @@ final class OurDayTests: XCTestCase {
         await store.send(.undoTapped)
         await store.send(.scopeTapped(.allDays))
         await store.send(.sliceActionTapped)
-        XCTAssertEqual(store.state.removeTitle, "Remove School every week?")
-        await store.send(.removeConfirmed)
-        XCTAssertFalse(store.state.edit.blocks.contains { $0.kind == .school })
-        XCTAssertEqual(store.state.selectedBlock?.kind, .free)
+        XCTAssertNil(store.state.removeTitle, "no confirm: G7 is the next step")
+        await store.receive(\.delegate.removeSchool, SeedData.kidA.id)
+        XCTAssertTrue(store.state.edit.blocks.contains { $0.kind == .school }, "the clock does not free it")
+        XCTAssertFalse(store.state.canUndo)
+    }
+
+    /// Every-month items confirm "every month" (spec C6 "One card").
+    func testAMonthlyItemAsksEveryMonth() async {
+        let club = ScheduleItem(id: swimID, title: "Book club", iconName: "actStory", audience: .kid(SeedData.kidA.id),
+                                start: 1020, end: 1080,
+                                recurrence: .monthly(.nthWeekday(2, .tuesday), from: Day(year: 2026, month: 11, day: 1),
+                                                     until: nil),
+                                skippedDays: [], skipsHolidays: false, showsStar: false)
+        let store = await loaded(items: [club])
+        await store.send(.sliceTapped(start: 1020))
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.sliceActionTapped)
+        XCTAssertEqual(store.state.removeTitle, "Remove Book club every month?")
     }
 
     /// "Details ›" opens the item's form, after G1d when something is unsaved.

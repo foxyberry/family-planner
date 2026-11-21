@@ -77,9 +77,10 @@ public struct OurDayFeature {
     /// day, "Remove" on All days and on a just-once item.
     public enum SliceAction: Equatable, Sendable { case skip, remove }
 
-    /// Board G1: the ConfirmCard before an every-week item, School or a just-once item is removed.
+    /// Board G1: the ConfirmCard before an every-week or every-month item or a just-once item is
+    /// removed (School's Remove opens G7 instead).
     public enum Removing: Equatable, Sendable {
-        case series(ClockSlice.Source)
+        case series(ScheduleItem.ID)
         case once(ScheduleItem.ID)
     }
 
@@ -133,6 +134,8 @@ public struct OurDayFeature {
             /// "Details ›" on an item's or School's slice card (E5 / G2, G4).
             case item(ScheduleItem.ID)
             case school
+            /// School's "Remove" on All days: G7 with "At home" picked.
+            case atHome
         }
 
         /// Board G8: the kid's items as a list instead of the clock.
@@ -248,6 +251,26 @@ public struct OurDayFeature {
         public var endDate: Date { day.date(minute: selectedSpan?.end ?? 0, calendar: calendar) }
         public var startLabel: String? { selectedSpan.map { TimeText.withPeriod($0.start) } }
         public var endLabel: String? { selectedSpan.map { TimeText.withPeriod($0.end) } }
+        /// Board G1: the time field of the knob being dragged is outlined in `pickBlue`: the
+        /// selected slice's start when the drag moves its start, its end when it moves its end. An
+        /// item's edge moves only the item, never the slice it sits on.
+        public var isStartDragged: Bool {
+            guard let knob = draggedKnob else { return false }
+            switch knob.edge {
+            case .blocks: return knob.after == selected
+            case let .itemStart(id), let .items(_, id): return selected == .item(id)
+            case .itemEnd: return false
+            }
+        }
+        public var isEndDragged: Bool {
+            guard let knob = draggedKnob else { return false }
+            switch knob.edge {
+            case .blocks: return knob.before == selected
+            case let .itemEnd(id), let .items(id, _): return selected == .item(id)
+            case .itemStart: return false
+            }
+        }
+        private var draggedKnob: DayKnob? { dragging.map { edit.clockKnobs[$0] } }
 
         /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
         public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true || selectedItem?.isSkipped == true }
@@ -292,7 +315,9 @@ public struct OurDayFeature {
         /// Board G1: the ConfirmCard's words while it is open.
         public var removeTitle: String? {
             switch removing {
-            case let .series(source)?: strings.tr("day.remove.series", title(of: source))
+            case let .series(id)?:
+                edit.item(id)?.isMonthly == true ? strings.tr("day.remove.monthly", title(of: .item(id)))
+                    : strings.tr("day.remove.series", title(of: .item(id)))
             case let .once(id)?: strings.tr("day.remove.once", title(of: .item(id)))
             case nil: nil
             }
@@ -384,13 +409,15 @@ public struct OurDayFeature {
             return edit.clockKnobs.firstIndex { $0.edge == drag.edge }
         }
 
-        /// Spec "Add between two slices": a "+" on every shared knob, all the time; the knob being
-        /// dragged hides its "+".
+        /// Spec "Add between two slices": a "+" on every shared knob, an item's edges too, all the
+        /// time; "+" that would touch take the outermost free ring (`EditClock.placed`); the knob
+        /// being dragged hides its "+" without moving the others to another ring.
         public var addButtons: [EditClock.AddBetween] {
             let dragging = dragging
-            return edit.clockKnobs.enumerated().compactMap { index, knob in
-                knob.showsAdd && index != dragging ? EditClock.AddBetween(knob: index, minute: knob.minute) : nil
-            }
+            return EditClock.placed(edit.clockKnobs.enumerated().compactMap { index, knob in
+                knob.showsAdd ? EditClock.AddBetween(knob: index, minute: knob.minute) : nil
+            })
+            .filter { $0.knob != dragging }
         }
 
         /// While dragging: "Dinner ends" / "7:30 pm" / "Shower starts"; else the selected slice's name.
@@ -513,6 +540,9 @@ public struct OurDayFeature {
             case add(Kid.ID, ItemForm.Repeat)
             /// Board G8: the School row opens G4.
             case openSchool
+            /// School's "Remove" on All days (spec C6 "One card"): G7 with "At home" picked, so where
+            /// the kid goes changes the one way it always does.
+            case removeSchool(Kid.ID)
         }
     }
 
@@ -714,9 +744,10 @@ public struct OurDayFeature {
                 case let (.skip, .item(id)):
                     state.edit.setItemSkipped(id, true)
                 case let (.remove, .block(block)):
-                    // School asks first ("Remove School every week?"); a day slice becomes free time.
+                    // School opens G7 with At home picked (after G1d when something is unsaved); a
+                    // day slice becomes free time.
                     if state.edit.blocks[block].kind == .school {
-                        state.removing = .series(source)
+                        return ask(.atHome, &state)
                     } else {
                         state.selected = .block(state.edit.makeFree(block, scope: .allDays))
                     }
@@ -725,7 +756,7 @@ public struct OurDayFeature {
                     if item.isNew {
                         remove(item, &state)
                     } else {
-                        state.removing = item.isRepeating ? .series(source) : .once(id)
+                        state.removing = item.isRepeating ? .series(id) : .once(id)
                     }
                 }
                 return .none
@@ -734,10 +765,7 @@ public struct OurDayFeature {
                 guard let removing = state.removing else { return .none }
                 state.removing = nil
                 switch removing {
-                case let .series(.block(block)):
-                    // "Remove School every week" is an All days change (from G5's date).
-                    state.selected = .block(state.edit.makeFree(block, scope: .allDays))
-                case let .series(.item(id)), let .once(id):
+                case let .series(id), let .once(id):
                     if let item = state.edit.item(id) { remove(item, &state) }
                 }
                 return .none
@@ -994,6 +1022,8 @@ public struct OurDayFeature {
             return .send(.delegate(.openItem(id)))
         case .school:
             return .send(.delegate(.openSchool))
+        case .atHome:
+            return .send(.delegate(.removeSchool(state.kid)))
         case nil:
             return .none
         }

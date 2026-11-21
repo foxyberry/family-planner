@@ -17,10 +17,11 @@ final class ChangeSchoolTests: XCTestCase {
                                         breakCount: 0, searchKeys: [])
 
     private func store(kids: [Kid] = SeedData.kids, savedKids: LockIsolated<[Kid]>,
-                       savedRoutines: LockIsolated<[Routine]>) -> TestStoreOf<ChangeSchoolFeature> {
+                       savedRoutines: LockIsolated<[Routine]>,
+                       opensAt: ChangeSchoolFeature.Place? = nil) -> TestStoreOf<ChangeSchoolFeature> {
         let directory = [riverside]
         let store = TestStore(initialState: ChangeSchoolFeature.State(kid: SeedData.kidA.id, today: tuesday,
-                                                                      calendar: F.calendar)) {
+                                                                      calendar: F.calendar, opensAt: opensAt)) {
             ChangeSchoolFeature()
         } withDependencies: {
             $0.calendar = F.calendar
@@ -161,6 +162,17 @@ final class ChangeSchoolTests: XCTestCase {
         XCTAssertNil(kids.value.last?.school)
         XCTAssertNil(kids.value.last?.pendingSchool)
         XCTAssertFalse(routines.value.last?.blocks.contains { $0.kind == .school } ?? true)
+    }
+
+    /// G1's School "Remove" opens G7 on At home, with "Starts on" open, as a tap on At home does.
+    func testOpensOnAtHome() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let opened = store(savedKids: kids, savedRoutines: routines, opensAt: .home)
+        await opened.send(.task)
+        await opened.receive(\.loaded)
+        XCTAssertEqual(opened.state.form.place, .home)
+        XCTAssertTrue(opened.state.form.isShowingStartsOn)
+        XCTAssertEqual(opened.state.form.cardTitle, "At home")
     }
 
     /// A kid at home starting preschool: typed name, drop-off and pick-up, Save opens the card; a
