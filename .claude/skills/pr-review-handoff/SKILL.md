@@ -2,7 +2,7 @@
 name: pr-review-handoff
 description: Use when a change in this repo is ready for review (code, guards, docs or design spec), when sending work to the code review session, when another session's commits need a PR, when acting as the review session ("Family-planner iOS 코드 리뷰"), when a review or LGTM is posted on your PR, or before merging a PR.
 metadata:
-  version: 0.6.0
+  version: 0.7.0
   status: experimental
 ---
 
@@ -17,7 +17,8 @@ record, so the review lives on the PR as inline review comments, and messages on
 
 | Step | Who | Where |
 |---|---|---|
-| 1. Open the PR and ask for a review | author | PR, then a message with the PR number |
+| 0. Start the work as a draft PR | author | draft PR, so the board shows it (not reviewed) |
+| 1. Mark it ready and ask for a review | author | PR, then a message with the PR number |
 | 2. Review | reviewer | one inline review on the PR (`event: COMMENT`) |
 | 3. Say the review is posted | reviewer | message with the review URL |
 | 4. Fix each comment, or reply with the reason | author | commits, and a reply on each thread |
@@ -31,7 +32,14 @@ per-post OK (2026-11-21). Post from a file (`--body-file`, or `--input` for JSON
 hook blocks shell expansion and checks the text for private terms.
 
 ## Author
-1. Commit on a `feature/*` branch, push, and open a PR into `develop` (`git-flow-delivery`).
+1. Show the work from its start (user, 2026-11-21: the board must show what is being built).
+   - Work in a worktree of your own, cut from `develop` (`git worktree add`), not in a checkout
+     another session uses; a long build there blocks everyone else.
+   - At the start, push the branch with its first commit (an empty "start" commit is fine) and open
+     a draft PR into `develop` (`gh pr create --draft`; `git-flow-delivery`). The board shows it as
+     "초안: 작성 중"; the review session does not review drafts.
+   - When the work is done and checked, update the PR body with the test evidence, then
+     `gh pr ready N` and ask for the review (step 3).
    - Write the body file in its own step and read it back before `gh pr create` or `gh pr edit`.
    - Never put the two in one batch: a failed write still creates the PR, with an old body.
 2. One PR per change. Run `gh pr list --state open` first.
@@ -60,6 +68,7 @@ hook blocks shell expansion and checks the text for private terms.
    message to another session.
 
 ## Review session
+- Skip draft PRs: review a PR once it is marked ready and its author asks.
 - Read only from the PR, never from a shared checkout:
   - `gh pr view N --json headRefOid,files`, `gh pr diff N` and `gh pr checks N`;
   - `git fetch origin <sha>`, then `git show <sha>:<path>` and `git diff <old>..<new>`.
