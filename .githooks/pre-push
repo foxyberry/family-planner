@@ -80,6 +80,11 @@ if printf '%s' "$changed" | grep -Eq '^(CLAUDE\.md|\.claude/)'; then
   bash "$ROOT/scripts/check-skills.sh" </dev/null || status=1
 fi
 
+# Names in skills and CLAUDE.md must still exist when either side changes.
+if printf '%s' "$changed" | grep -Eq '^(CLAUDE\.md|\.claude/skills/|ios/.*\.swift$|scripts/)'; then
+  bash "$ROOT/scripts/check-skill-refs.sh" "$ROOT" </dev/null || status=1
+fi
+
 # (pre-push-test.sh pushes too, but from scratch repos that hold no tests, so this never recurses.)
 if printf '%s' "$changed" | grep -Eq '^(scripts/|\.githooks/|\.claude/hooks/|tools/crayon-art/|tools/board/|ios/KitArt/Resources/)'; then
   for test in scripts/tests/*-test.sh; do

@@ -1,0 +1,7 @@
+# Names in skills and CLAUDE.md that are right but that check-skill-refs.sh can't verify.
+# One backtick span per line, exactly as written in the doc.
+# tca-feature "New service": X stands for the new client's name.
+ios/Clients/X
+ios/Clients/XLive
+ios/Clients/X/X.swift
+ios/Clients/XLive/XLive.swift
