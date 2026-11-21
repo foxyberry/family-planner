@@ -175,7 +175,7 @@ def scan_sessions(repo_root, slug):
         cache[path] = c
         if c["related"]:
             ask = c.get("ask")
-            waiting = ask if ask and (not c.get("user_at") or ask["at"] > c["user_at"]) else None
+            waiting = ask if ask and is_waiting(ask.get("at"), c.get("user_at")) else None
             sessions[sid] = {"id": sid, "title": c["title"] or sid[:8], "cwd": c["cwd"], "prs": c["prs"],
                              "branches": c["branches"], "waiting": waiting,
                              "mtime": parse_time(c.get("active_at")) or dt.datetime.fromtimestamp(mtime, dt.timezone.utc)}
@@ -225,6 +225,13 @@ def desktop_sessions():
             if key:
                 out.setdefault(key, rec)
     return out
+
+
+def is_waiting(asked_at, user_at):
+    """A question waits when it came after the user's last own turn (ISO times; either may be missing)."""
+    if not asked_at:
+        return False
+    return not user_at or asked_at > user_at
 
 
 def session_state(s):
@@ -550,7 +557,11 @@ details.fold>summary{list-style:none;cursor:pointer}details.fold>summary::-webki
 details.fold>summary h2::before{content:"▾";color:var(--soft);margin-right:6px;display:inline-block;width:10px}
 details.fold:not([open])>summary h2::before{content:"▸"}details.fold:not([open])>summary h2{margin-bottom:0}
 .lane.fold>summary h2{justify-content:flex-start;gap:6px}.lane.fold>summary h2 .soft{margin-left:auto}
-.box.wide{grid-column:1/-1}a.sess{color:var(--info);text-decoration:none;border-bottom:1px dotted var(--info)}
+.box.wide{grid-column:1/-1}
+.glance{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px}
+.pill{display:inline-flex;gap:6px;align-items:baseline;background:var(--card);border:1px solid var(--line);
+border-radius:999px;padding:2px 10px}.pill .pl{color:var(--soft)}.pill.good b{color:var(--good)}
+.pill.wait{border-color:var(--wait)}.pill.wait b{color:var(--wait)}.pill.bad{border-color:var(--bad)}.pill.bad b{color:var(--bad)}a.sess{color:var(--info);text-decoration:none;border-bottom:1px dotted var(--info)}
 a.sess::after{content:" ↗";font-size:11px}td.report{font-size:12px;color:var(--soft);max-width:520px}
 .mine{background:var(--card);border:2px solid var(--user);border-radius:14px;padding:14px 16px;display:grid;gap:10px}
 .mine.calm{border-color:var(--line)}.mine h2{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
@@ -659,6 +670,26 @@ def build():
          '<div class="wrap">']
     if error:
         h.append(f'<div class="banner">GitHub를 읽지 못했습니다: {esc(error)}. 로컬 정보만 보여 줍니다.</div>')
+
+    # This Mac at a glance: one short strip of pills; red when an 8 GB limit is crossed.
+    free, bz, sims = mac["free"], mac["bazel"], mac["sims"]
+    busy = sum(1 for s_ in sessions.values() if session_state(s_)[0] == "busy")
+
+    def pill(label, value, level="", tip=""):
+        return (f'<span class="pill {level}" title="{esc(tip)}"><span class="pl">{label}</span>'
+                f'<b>{value}</b></span>')
+
+    pills = [
+        pill("메모리 여유", f'{free if free is not None else "?"}%',
+             "bad" if free is not None and free < 15 else ("wait" if free is not None and free < 30 else "good")),
+        pill("Bazel", f"{len(bz)}개", "bad" if len(bz) > 1 else "",
+             ", ".join(f"{n} {r} MB" for n, r in bz) + (" · 한 번에 하나만" if len(bz) > 1 else "")),
+        pill("시뮬레이터", f"{len(sims)}대", "bad" if len(sims) > 1 else "", ", ".join(sims)),
+        pill("작업 중인 세션", f"{busy}개"),
+        pill("lessons", f'{mac["lessons"]}개', "wait" if mac["lessons"] >= 5 else "",
+             "5개 이상이면 skill-retro" if mac["lessons"] >= 5 else ""),
+    ]
+    h.append('<div class="glance"><span class="soft">이 맥 (8 GB)</span>' + "".join(pills) + "</div>")
 
     # What only the user can do: answer a waiting session, check a screen PR on the iPad, decide
     # about local branches. Everything else moves between the sessions on its own.
@@ -792,17 +823,7 @@ def build():
                  f'<pre>{esc(chr(10).join(cmds))}</pre></details>')
     h.append("</details></div>")
 
-    free = mac["free"]
-    h.append('<div class="box wide"><details class="fold" data-id="machine" open><summary><h2>이 맥 (8 GB)</h2></summary><ul>')
-    h.append(f'<li>메모리 여유: <b class="{"f-bad" if free is not None and free < 15 else ""}">{free if free is not None else "?"}%</b></li>')
-    bz = mac["bazel"]
-    h.append(f'<li>Bazel 서버 {len(bz)}개' + (": " + ", ".join(f"{esc(n)} {r} MB" for n, r in bz) if bz else "") +
-             (' <span class="f-bad">(한 번에 하나만)</span>' if len(bz) > 1 else "") + "</li>")
-    sims = mac["sims"]
-    h.append(f'<li>켜진 시뮬레이터 {len(sims)}대' + (": " + esc(", ".join(sims)) if sims else "") +
-             (' <span class="f-bad">(하나만)</span>' if len(sims) > 1 else "") + "</li>")
-    h.append(f'<li>lessons inbox: {mac["lessons"]}개' + (' <span class="f-wait">(5개 이상: skill-retro)</span>' if mac["lessons"] >= 5 else "") + "</li>")
-    h.append("</ul></details></div></section>")
+    h.append("</section>")
 
     h.append('<p class="soft">사용자 확인: 화면을 바꾼 PR은 LGTM 뒤 iPad 확인이 필요합니다. 확인되면 작성 세션이 PR에 '
              '<code>iPad OK at &lt;헤드 SHA&gt;</code>를 남기고, 그 헤드에서만 유효합니다 (새 push 뒤에는 다시 확인).</p>')
@@ -848,7 +869,10 @@ def serve(port):
         def log_message(self, *args):
             pass
 
-    build()
+    try:
+        build()
+    except Exception as e:  # still serve; the next reload tries again and shows the last good page
+        print("first build failed:", e, flush=True)
     state["built"] = time.time()
     print(f"작업 현황판: http://127.0.0.1:{port}/", flush=True)
     http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
