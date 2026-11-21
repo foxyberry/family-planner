@@ -701,7 +701,7 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, o
 - **S3 trip time**: by bus, the school trip's "leave before" = walk + the fastest ride (a bus that changes: Ride 1 + Change + Ride 2), rounded up to 5 (the timetable look; the live look counts from the real bus). Walk, car, taxi: a "Leave {n} min before" stepper (default 10). S3 shows every kid with a trip as a tab (see "S3 · Getting there").
 - **Data sources**: a grown-up screen with the data.gov.sg and OneMap attribution, opened from a "Data sources" link under the S2 school caption and from a caption link "Data sources" at the foot of C1 (Our kids), next to the action area.
 - **Row labels** on S2 and S3 (and every grown-up form) are caption bold (24, the app ships Playpen medium and bold only) `softText` on one line in the label column (**Grown-up form layout**).
-- **VoiceOver on grown-up forms** (user, 2026-11-21): each control reads as its part does (label + value, buttons and toggles as they are); no extra adjustable elements or custom spoken labels on setup and settings screens.
+- **VoiceOver on grown-up forms** (user, 2026-11-21): each control reads as its part does (label + value, buttons and toggles as they are); no extra adjustable elements or custom spoken labels on setup and settings screens. Floor: every button still has a name, its row label or its visible caption (a −/+ chip reads "less" / "more" after its row label, a picture slot reads its caption).
 - **Debug only**: "Load sample family" (confirm copy in "Seed data in M2"); links familyplanner://s1 … s4 open a setup step (s2–s4 prefilled with the sample family, no unlock, nothing saved unless Start is tapped; over an existing family Start asks first: "Start over with this setup? The family on this iPad is replaced." with "Replace" (`lateText`) / "Cancel").
 - Joining a family from another iPad (sync, backlog) comes later. The "Start a new family / Join" choice is not shown yet.
 
@@ -1039,7 +1039,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   | y | label | control |
   |---|---|---|
   | 200 | For | `CrayonTabs` single-select, 3 options of 180 × 72: Kid A, Kid B (each with `KidFace` 40), "Both" |
-  | 296 | What | `IconPicker`: 5 slots 88 with gap 16, then a "More" slot. The picked one gets a 104 ring. |
+  | 296 | What | `IconPicker`: 5 slots 88 with gap 16, then a "More" slot. The picked one gets the pick ring 4 outside the drawn circle (84), as every `ChoiceCircles`. |
   | 412 | Name | `CrayonField` 610 × 80 |
   | 524 | When | `TimeField` 200 × 80, "→" (head `softText`), `TimeField` 200 × 80, then the duration caption ("1 hour", "1 hr 30 min", "45 min") |
   | 636 | Repeat | `CrayonTabs` 2 options of 220 × 72: "Just once", "Every week" (on) |
