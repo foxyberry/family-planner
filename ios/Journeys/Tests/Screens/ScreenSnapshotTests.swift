@@ -89,6 +89,29 @@ final class ScreenSnapshotTests: XCTestCase {
         if let failure { XCTFail(failure, file: file, line: line) }
     }
 
+    /// Our day (board G1) for Kid A: a just-once Piano added with the "+" between Dinner and Shower
+    /// and saved, then Dinner picked: "+" on every shared knob, the item on top of Shower, and
+    /// Dinner's card with "Skip this day".
+    func testOurDay() async throws {
+        let world = World(sample)
+        let store = world.store()
+        await opened(store)
+        await store.send(.home(.pencilTapped))
+        await store.receive(\.parentAuthResponse)
+        let ourDay = store.state.path.ids[0]
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.task))))
+        await store.receive(\.path[id: ourDay].ourDay.loaded)
+        guard case let .ourDay(day)? = store.state.path[id: ourDay],
+              let plus = day.addButtons.first(where: { $0.minute == 1155 }) else { return XCTFail("no + at 7:15 pm") }
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.addBetweenTapped(plus.knob)))))
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.newSlicePicturePicked("actPiano")))))
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.saveTapped))))
+        await store.receive(\.path[id: ourDay].ourDay.saved)
+        await store.receive(\.home.loaded)
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.sliceTapped(start: 1110)))))
+        for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
+    }
+
     /// Launch as the app does: the store is read once (the home stays paper until then), then the
     /// home loads its day.
     private func opened(_ store: TestStoreOf<AppFeature>) async {
