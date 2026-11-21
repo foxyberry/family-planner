@@ -54,9 +54,11 @@ public struct ChangeBusesView: View {
         }
     }
 
+    /// Board C2c (layout v58): rows 24 apart between drawn edges; From is a text row drawn to its
+    /// edge, the pills, field and steppers lay out their drawn box.
     private func rows(_ layout: GrownupLayout) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
-            ListRow(leading: L10n.tr("c2c.from"), minHeight: 72) {
+        VStack(alignment: .leading, spacing: layout.sizing.formRowGap) {
+            ListRow(leading: L10n.tr("c2c.from"), minHeight: 0) {
                 HStack(alignment: .firstTextBaseline, spacing: Spacing.s) {
                     Text(store.fromName).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                     Text(L10n.tr("c2c.our_stop")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
@@ -67,7 +69,7 @@ public struct ChangeBusesView: View {
             }
             // Board C2c: the second bus is typed (160 × 80), checked against LTA's service list.
             ListRow(leading: L10n.tr("c2c.then"), labelHeight: 80) {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
+                VStack(alignment: .leading, spacing: FormLines.captionGap) {
                     CrayonField(L10n.tr("c2c.then.placeholder"),
                                 text: Binding(get: { store.thenText }, set: { store.send(.thenChanged($0)) }))
                         .keyboardType(.asciiCapable)
@@ -80,6 +82,7 @@ public struct ChangeBusesView: View {
                     }
                 }
             }
+            .captionedRow()
             stepper(L10n.tr("c2c.ride1"), text: store.ride1Text, caption: store.ride1Caption, value: store.ride1) {
                 store.send(.ride1Changed($0))
             }
@@ -96,7 +99,7 @@ public struct ChangeBusesView: View {
     /// Bus pills (180 × 72), one picked; "No buses found" while the stop has none.
     private func pills(_ label: String, controlWidth: CGFloat, services: [String], picked: String?,
                        tap: @escaping (String) -> Void) -> some View {
-        ListRow(leading: label, labelHeight: PillToggle.size.height) {
+        ListRow(leading: label, minHeight: PillToggle.size.height, labelHeight: PillToggle.size.height) {
             if services.isEmpty {
                 Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: PillToggle.size.height)
@@ -108,17 +111,15 @@ public struct ChangeBusesView: View {
                 }
             }
         }
+        .drawnRow()
     }
 
     private func stepper(_ label: String, text: String, caption: String, value: Int,
                          change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: 72) {
-            HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - 1) }.size(72)
-                Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 112)
-                RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + 1) }.size(72)
-                Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
-            }
+            MinutesStepper(value: text, caption: caption, spoken: label,
+                           minus: { change(value - 1) }, plus: { change(value + 1) })
         }
+        .drawnRow()
     }
 }

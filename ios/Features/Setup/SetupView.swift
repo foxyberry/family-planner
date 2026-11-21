@@ -290,11 +290,12 @@ private struct SchoolStep: View {
         .frame(width: layout.grown.form.width).frame(minHeight: layout.length(968 - 148), alignment: .topLeading)
     }
 
-    /// Board S2 (layout v11): Goes to 208, School 304, Days 448, Hours 544, Arrive by 680, MOE 792.
+    /// Board S2 (layout v56): Goes to 180, School 264 (caption 346), Days 401, Hours 477 (caption 559),
+    /// Arrive 613, terms 712; rows 24 apart between drawn edges (spec "Layout balance").
     @ViewBuilder private var rows: some View {
         if let kid = store.tabKid {
             let school = kid.school
-            VStack(alignment: .leading, spacing: Spacing.m) {
+            VStack(alignment: .leading, spacing: layout.grown.sizing.formRowGap) {
                 SetupRow(label: L10n.tr("s2.goes"), height: 72) {
                     CrayonTabs(selection: Binding(get: { kid.goesTo }, set: { if let place = $0 { store.send(.goesToTapped(place)) } }),
                                items: SetupFeature.State.places.map { (Optional($0.0), $0.1, nil) },
@@ -302,6 +303,7 @@ private struct SchoolStep: View {
                                itemSize: CGSize(width: layout.grown.sizing.goesToTabWidth, height: 72),
                                spacing: Spacing.sm)
                 }
+                .drawnRow()
                 if let line = store.atHomeLine {
                     Text(line).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 } else if kid.goesTo != nil {
@@ -313,6 +315,7 @@ private struct SchoolStep: View {
 
     @ViewBuilder private func form(_ school: SchoolForm) -> some View {
         row(school.kind == .preschool ? L10n.tr("s2.preschool") : L10n.tr("s2.school")) { schoolField(school) }
+            .captionedRow()
             .id(Self.fieldID)
             .zIndex(1)
         row(L10n.tr("s2.days")) {
@@ -324,8 +327,9 @@ private struct SchoolStep: View {
                 }
             }
         }
+        .drawnRow()
         row(L10n.tr("s2.hours")) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
+            VStack(alignment: .leading, spacing: FormLines.captionGap) {
                 HStack(spacing: Spacing.s) {
                     time(.start, width: 180)
                     MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
@@ -335,6 +339,7 @@ private struct SchoolStep: View {
                 Text(school.hoursSource ?? " ").crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
         }
+        .captionedRow()
         if school.kind == .school {
             // One row: Arrive by, then "latest" and the gate's time (both 180 × 80, gap 16).
             row(L10n.tr("s2.arrive_by")) {
@@ -344,6 +349,7 @@ private struct SchoolStep: View {
                     time(.latest, width: 180)
                 }
             }
+            .drawnRow()
         }
         // Board S2: the MOE row starts on the control column (232).
         if let terms = school.termsRow { termsRow(terms).padding(.leading, layout.grown.labelWidth) }
@@ -361,7 +367,7 @@ private struct SchoolStep: View {
     }
 
     private func schoolField(_ school: SchoolForm) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        VStack(alignment: .leading, spacing: FormLines.captionGap) {
             CrayonField(store.schoolPlaceholder,
                         text: Binding(get: { school.text }, set: { store.send(.schoolTextChanged($0)) })) {
                 if school.picked != nil { KitIcon(.actSchool, size: 48) }
@@ -474,21 +480,25 @@ private struct GoingStep: View {
         .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
     }
 
+    /// Board S3 (layout v57): Going 180, Stop 323 (caption 405), Buses 459, Walk 543, Ride 627 (one
+    /// per bus); rows 24 apart between drawn edges (spec "Layout balance").
     @ViewBuilder private var rows: some View {
         if let kid = store.goingKid {
             let going = kid.going
-            VStack(alignment: .leading, spacing: Spacing.m) {
+            VStack(alignment: .leading, spacing: sizing.formRowGap) {
                 row(L10n.tr("going.label")) {
                     ChoiceCircles(GoingForm.ways.map { way in
                         ChoiceCircles.Choice(id: way.rawValue, picture: KitSlot(rawValue: way.moverPicture),
                                              caption: SetupFeature.State.wayCaption(way), isPicked: going.way == way)
                     }) { id in if let way = Way(rawValue: id) { store.send(.wayPicked(way)) } }
                 }
+                .captionedRow()
                 if going.way == .bus {
                     row(L10n.tr("c2.stop")) {
                         StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch), visibleRows: 6,
                                         listWidth: GrownupLayout(sizing: sizing).controlWidth)
                     }
+                    .captionedRow()
                     .zIndex(1)
                     row(L10n.tr("s3.buses")) {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -508,6 +518,7 @@ private struct GoingStep: View {
                             }
                         }
                     }
+                    .drawnRow()
                     stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("s3.walk.caption"),
                             value: going.walk) { store.send(.walkChanged($0)) }
                     ForEach(store.rideRows) { ride in
@@ -528,16 +539,12 @@ private struct GoingStep: View {
 
     private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
                          spoken: String? = nil, change: @escaping (Int) -> Void) -> some View {
-        // Board S3: − 72 on 232, the value centred in 304–448, + 72 on 448, the caption on 536.
+        // Board S3: the shared stepper on the control line, laid out by its drawn box.
         row(label) {
-            HStack(spacing: 0) {
-                RoundButton(glyph: .minus, accessibilityLabel: spoken ?? label) { change(value - step) }.size(72)
-                Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 144)
-                RoundButton(glyph: .plus, accessibilityLabel: spoken ?? label) { change(value + step) }.size(72)
-                Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
-                    .padding(.leading, Spacing.s)
-            }
+            MinutesStepper(value: text, caption: caption, spoken: spoken ?? label,
+                           minus: { change(value - step) }, plus: { change(value + step) })
         }
+        .drawnRow()
     }
 }
 
@@ -547,32 +554,22 @@ private struct AlmostDoneStep: View {
     let store: StoreOf<SetupFeature>
     let layout: SetupLayout
 
-    /// Board S4 (layout v17), placed on its lines on the white form card (64, 176, 818 × 792): rows
-    /// 120 tall on a 140 pitch from 216 (picture at 104, the switch ending at 842), then the caption
-    /// at 653. Rows for features not built yet are not listed.
+    /// Board S4 (layout v56): the switch rows on the form card's lines, the picture on the label line
+    /// (78) and the words 24 after it, each row as tall as its words and 24 apart (first at 186).
+    /// Rows for features not built yet are not listed.
     var body: some View {
-        PaperCard(seed: 91) { rows }
-            .environment(\.cardPadding, EdgeInsets())
-            .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
-    }
-
-    /// Spec "Part floors": the board's 140 pitch is a minimum. A taller row (a 2-line caption at its
-    /// floor) grows and the rows below move down, at least the 16 token apart; the card scrolls.
-    private var rows: some View {
-        let origin = layout.s4Main(80, 188)
-        return ScrollColumn {
-            VStack(alignment: .leading, spacing: max(layout.length(20), Spacing.s)) {
-                ForEach(store.settingRows, id: \.setting) { row in
-                    SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
-                               action: { store.send(.settingTapped(row.setting)) }) {
-                        picture(row.picture)
+        PaperCard(seed: 91) {
+            ScrollColumn {
+                VStack(alignment: .leading, spacing: layout.grown.sizing.formRowGap) {
+                    ForEach(store.settingRows, id: \.setting) { row in
+                        SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning,
+                                   isOn: row.isOn, hugs: true, action: { store.send(.settingTapped(row.setting)) }) {
+                            picture(row.picture)
+                        }
                     }
-                    .frame(width: layout.grown.editorRowsWidth)
                 }
+                .frame(width: layout.grown.editorRowsWidth, alignment: .leading)
             }
-            // Layout v56: the rows start on the label line and end on the right edge.
-            .padding(.leading, layout.grown.formInset)
-            .padding(.top, origin.y)
         }
         .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }

@@ -47,6 +47,8 @@ public struct ComponentGallery: View {
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }
+                    // C2 / C2c / S3: a minutes stepper.
+                    MinutesStepper(value: "10 min", caption: "to the stop", spoken: "Walk", minus: {}, plus: {})
                     CrayonTabs(selection: $tab, items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Family", nil)])
                     HStack(spacing: Spacing.s) {
                         DayChip("M", isOn: $monday)

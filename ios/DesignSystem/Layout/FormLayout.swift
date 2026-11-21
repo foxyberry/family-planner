@@ -33,6 +33,8 @@ public struct FormLines: Equatable, Sendable {
     public static let columnGap: CGFloat = Spacing.l
     /// A second-column label's room past its longest label, to its control's frame (16 drawn).
     public static let secondLabelGap: CGFloat = labelColumn - labelMaximum
+    /// A caption under a crayon field: 8 below the field's drawn edge (boards C2, S2, S3).
+    public static let captionGap: CGFloat = Spacing.xs - CrayonPart.inset
     /// Board C2c "Then": a bus number field, 160 wide.
     public static let busNumberField: CGFloat = 160
 
@@ -131,6 +133,10 @@ public extension View {
     /// its drawn box, one inset inside its frames top and bottom, so a card's rows sit
     /// `formRowGap` apart and `FormLines.cardPadding` from its edge, between drawn edges.
     func drawnRow() -> some View { padding(.vertical, -CrayonPart.inset) }
+
+    /// A crayon row with a caption under it (a field and its caption): the top lays out the drawn
+    /// box, the caption draws to its own edge (boards C2, S2, S3).
+    func captionedRow() -> some View { padding(.top, -CrayonPart.inset) }
 
     /// Spec "Alignment contract": a part drawn to its frame edge (faces, chevrons, switches,
     /// borderless rows) gets one crayon inset around it, so its frame sits on the lines and its

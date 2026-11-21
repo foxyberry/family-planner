@@ -12,9 +12,6 @@ final class SetupLayoutTests: XCTestCase {
             let layout = SetupLayout(sizing: sizing), w = sizing.width
             // The step dots end the header on 1336, with the side column and the action button.
             XCTAssertEqual(layout.grown.action.maxX, layout.grown.right, accuracy: 0.01, "\(w)")
-            // S4 rows keep their pitch.
-            XCTAssertEqual(layout.s4Main(80, 328).y - layout.s4Main(80, 188).y, layout.length(140),
-                           accuracy: 0.01, "\(w)")
             // The cards never reach the side column.
             XCTAssertLessThanOrEqual(layout.grown.form.maxX, layout.grown.side.minX, "\(w)")
         }
@@ -22,7 +19,6 @@ final class SetupLayoutTests: XCTestCase {
 
     func testThirteenInchIsTheBoard() {
         let layout = SetupLayout(sizing: Sizing(width: 1376, height: 1032))
-        XCTAssertEqual(layout.s4Main(80, 188), CGPoint(x: 40, y: 40), "board S4: the first row at (80, 188)")
         XCTAssertEqual(layout.s4Side(936, 275), CGPoint(x: 72, y: 127))
         XCTAssertEqual(layout.schoolFieldWidth, 610)
     }

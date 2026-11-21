@@ -21,7 +21,7 @@ public struct StopSearchField: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        VStack(alignment: .leading, spacing: FormLines.captionGap) {
             CrayonField(L10n.tr("c2.stop.placeholder"),
                         text: Binding(get: { store.text }, set: { store.send(.textChanged($0)) }))
                 .frame(width: 400)

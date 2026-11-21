@@ -331,6 +331,11 @@ final class ComponentSnapshotTests: XCTestCase {
              named: "changes")
     }
 
+    /// Boards C2 / C2c / S3: − 72, the value in 144, + 72, the caption 16 after.
+    func testMinutesStepper() {
+        snap(MinutesStepper(value: "10 min", caption: "to the stop", spoken: "Walk", minus: {}, plus: {}), width: 560)
+    }
+
     /// S4 switch list (layout v17): the switch on and off, and a row with a warning caption.
     func testSettingRows() {
         snap(HStack(spacing: Spacing.m) { CrayonSwitch(isOn: true); CrayonSwitch(isOn: false) }, named: "switches")
@@ -342,6 +347,13 @@ final class ComponentSnapshotTests: XCTestCase {
                        caption: "Off: anyone who holds the clock for 2 s can change the plan.",
                        captionIsWarning: true, isOn: false, action: {}) { LockMark(size: 56) }
         }, width: 738 + 2 * Spacing.m, named: "rows")
+        // Board S4 (layout v56): rows that hug their words, 24 apart, the words 24 after the picture.
+        snap(VStack(alignment: .leading, spacing: Spacing.m) {
+            SettingRow(title: "Grown-up lock", caption: "Face ID before grown-up screens", isOn: true, hugs: true,
+                       action: {}) { LockMark(size: 56) }
+            SettingRow(title: "Medals", caption: "Gold, Silver or Bronze for getting ready in time", isOn: false,
+                       hugs: true, action: {}) { KitIcon(.medalGold, size: 56) }
+        }.frame(width: 726), width: 726 + 2 * Spacing.m, named: "hugging")
     }
 
     /// Layout v14: rows 72 tall never overlap, a long name ends in "…" only at 610, and more rows

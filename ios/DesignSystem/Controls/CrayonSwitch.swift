@@ -52,9 +52,13 @@ public struct SettingRow<Picture: View>: View {
     private let isOn: Bool
     private let picture: Picture
     private let action: () -> Void
+    private let hugs: Bool
 
-    public init(title: String, caption: String, captionIsWarning: Bool = false, isOn: Bool,
+    /// `hugs`: a row on a form card's rhythm (board S4, layout v56): as tall as its words, the words
+    /// 24 after the picture, rows `formRowGap` apart. Otherwise the 120 list row.
+    public init(title: String, caption: String, captionIsWarning: Bool = false, isOn: Bool, hugs: Bool = false,
                 action: @escaping () -> Void, @ViewBuilder picture: () -> Picture) {
+        self.hugs = hugs
         self.title = title
         self.caption = caption
         self.captionIsWarning = captionIsWarning
@@ -65,7 +69,7 @@ public struct SettingRow<Picture: View>: View {
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: Spacing.m + Spacing.xs) {
+            HStack(spacing: hugs ? Spacing.m : Spacing.m + Spacing.xs) {
                 picture.frame(width: sizing.settingRowPicture, height: sizing.settingRowPicture)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).lineLimit(1)
@@ -81,7 +85,7 @@ public struct SettingRow<Picture: View>: View {
                 CrayonSwitch(isOn: isOn)
             }
             // A two-line caption may grow the row past 120 (spec: up to the 140 pitch).
-            .frame(minHeight: sizing.settingRowHeight)
+            .frame(minHeight: hugs ? 0 : sizing.settingRowHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
