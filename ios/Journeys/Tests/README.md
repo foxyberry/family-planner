@@ -45,6 +45,9 @@ Find parts by the words a person sees (`app.buttons["Next"]`) or a picture's slo
 the journey's World and steps reach the state, then the real `AppView` draws it at the 13-inch and
 the mini. Record with `make snapshots-record` from a worktree without private art (the test skips
 when private art is in the build), and open every PNG before committing: they go to a public repo.
+The skip applies to comparing too: with private art in the checkout Bazel still says PASSED though
+no screen was compared (`make snapshots` prints a note), so compare screens from a worktree without
+it.
 
 ## Later
 Two pieces will join this folder:
