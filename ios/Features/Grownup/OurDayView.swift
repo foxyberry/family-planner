@@ -6,7 +6,8 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// G1 · The day on the clock (boards G1, G1c, G1d): drag the times of a kid's day on a real date.
+/// G1 · The day on the clock (boards G1, G1c, G1d, G1e): a kid's day and its items on a real date,
+/// edited through one slice card.
 public struct OurDayView: View {
     @Bindable var store: StoreOf<OurDayFeature>
     @Environment(\.sizing) private var sizing
@@ -35,6 +36,14 @@ public struct OurDayView: View {
                             isDestructive: false, onCancel: { store.send(.leaveCancelled) },
                             onConfirm: { store.send(.unsavedSaveTapped) })
             }
+            if let title = store.removeTitle {
+                // Spec C6 "One card": "Remove {Name} every week?" / "Remove {Name}?", Remove · Keep.
+                CrayonColor.dim.fullBleed()
+                    .onTapGesture { store.send(.removeCancelled) }
+                ConfirmCard(title: title, message: nil, cancel: store.removeKeep, confirm: store.removeAccept,
+                            isDestructive: true, onCancel: { store.send(.removeCancelled) },
+                            onConfirm: { store.send(.removeConfirmed) })
+            }
             if store.fromWhen != nil {
                 CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.fromWhenCancelTapped) }
@@ -58,10 +67,9 @@ public struct OurDayView: View {
                       dragOrigin: store.dragOrigin, hub: store.hub,
                       onKnobDrag: { store.send(.knobDragged(index: $0, minute: $1)) },
                       onKnobEnd: { store.send(.knobReleased($0)) },
-                      onKnobTap: { store.send(.knobTapped($0)) },
                       onSliceTap: { store.send(.sliceTapped(start: $0)) },
                       onPlusTap: { store.send(.plusTapped(start: $0)) },
-                      addBetween: store.addBetweenButton, onAddBetween: { store.send(.addBetweenTapped) })
+                      addButtons: store.addButtons, onAddBetween: { store.send(.addBetweenTapped($0)) })
                 // Board G1 (layout v32): the clock centred at (410, 549), 30 left of and 9 above the
                 // form box's middle (440, 558), so its hour labels start at x 30 as on the home clock.
                 .offset(x: -30 * layout.sizing.s, y: -9 * layout.sizing.s)
@@ -213,7 +221,8 @@ public struct OurDayView: View {
 
     @ViewBuilder private var card: some View {
         if let slice = store.newSlice {
-            // Board G1f (layout v41): scope tabs, seven pictures and "More" (4 per row), the name, the times.
+            // Board G1f: scope tabs (just once or every week), seven pictures and "More"
+            // (4 per row), the name, the times.
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 scopeTabs
                 PictureRow(slots: store.newSlicePictures,
@@ -228,56 +237,57 @@ public struct OurDayView: View {
                                                                    set: { store.send(.newSliceNameChanged($0)) }))
                 if slice.isOnClock { timesRow }
             }
-        } else if let block = store.selectedBlock, store.isSelectedSkipped {
+        } else if let title = store.selectedTitle, store.isSelectedSkipped {
             // Board G1g: the picture faded, the name, the times (soft) and "Bring back"; no scope tabs.
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 HStack(spacing: sizing(Spacing.s)) {
-                    KitIcon(KitSlot(iconName: block.iconName), size: sizing(64)).opacity(0.35)
-                    Text(block.title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                    if let picture = store.selectedPicture { KitIcon(picture, size: sizing(64)).opacity(0.35) }
+                    Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
-                // "5:00 pm → 6:30 pm" (soft); the arrow is a part, the font has none.
-                HStack(spacing: sizing(Spacing.xs)) {
-                    Text(store.startLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
-                    MarkerIcon(.arrowRight, size: sizing(28), color: CrayonColor.softText)
-                    Text(store.endLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
-                }
+                softTimes
                 Button { store.send(.bringBackTapped) } label: {
                     Text(L10n.tr("day.bring_back")).crayonType(.body).bold().foregroundStyle(CrayonColor.link)
                 }
                 .buttonStyle(.plain)
             }
-        } else if let block = store.selectedBlock {
+        } else if let title = store.selectedTitle {
+            // Spec C6 "One card for everything on the clock": a day slice, an item or School.
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 HStack(spacing: sizing(Spacing.s)) {
-                    if block.kind != .free { KitIcon(KitSlot(iconName: block.iconName), size: sizing(64)) }
-                    Text(block.title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                    if let picture = store.selectedPicture { KitIcon(picture, size: sizing(64)) }
+                    Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
-                // Spec "Edit scope": This day / All days under the title.
-                scopeTabs
-                timesRow
+                // Spec "Edit scope": This day / All days under the title (not for a just-once item).
+                if store.showsScopeTabs { scopeTabs }
+                if store.timesAreEditable { timesRow } else { softTimes }
                 if let message = store.message {
                     Text(message).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if store.canEditSchool {
-                    Button { store.send(.editSchoolTapped) } label: {
-                        GlyphText(L10n.tr("day.edit_school"), glyph: .chevronRight, type: .body, color: CrayonColor.link)
+                // "Skip this day" (This day) or "Remove" (All days, a just-once item), under the times.
+                if let action = store.sliceActionTitle {
+                    Button { store.send(.sliceActionTapped) } label: {
+                        Text(action).crayonType(.body).bold().foregroundStyle(CrayonColor.lateText)
                     }
                     .buttonStyle(.plain)
                 }
-                if store.canSkip {
-                    Button { store.send(.skipTapped) } label: {
-                        Text(L10n.tr("day.skip_this_day")).crayonType(.body).bold().foregroundStyle(CrayonColor.lateText)
-                    }
-                    .buttonStyle(.plain)
-                }
-                if store.canMakeFree {
-                    Button { store.send(.makeFreeTapped) } label: {
-                        Text(L10n.tr("day.make_free")).crayonType(.body).bold().foregroundStyle(CrayonColor.lateText)
+                if let details = store.detailsTitle {
+                    Button { store.send(.detailsTapped) } label: {
+                        GlyphText(details, glyph: .chevronRight, type: .body, color: CrayonColor.link)
                     }
                     .buttonStyle(.plain)
                 }
             }
+        }
+    }
+
+    /// "5:00 pm → 6:30 pm" (soft), for a skipped slice or one whose times follow another event; the
+    /// arrow is a part, the font has none.
+    private var softTimes: some View {
+        HStack(spacing: sizing(Spacing.xs)) {
+            Text(store.startLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+            MarkerIcon(.arrowRight, size: sizing(28), color: CrayonColor.softText)
+            Text(store.endLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
         }
     }
 

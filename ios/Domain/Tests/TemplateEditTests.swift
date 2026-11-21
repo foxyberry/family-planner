@@ -3,7 +3,7 @@ import XCTest
 
 /// Spec C6 drag rules: knobs on the rim move the shared edge, snap to 5 minutes, keep every slice
 /// at 15 minutes or more and never cross. School's edges move too (layout v37); free time under 15
-/// minutes never stays; a tap on a knob can add a slice between (G1e).
+/// minutes never stays; a "+" on a shared knob covers 30 minutes (G1).
 final class TemplateEditTests: XCTestCase {
     /// Kid A's seed school day: Sleep 0–390, Breakfast 390–450, School 450–900 (locked), Snack 900–960,
     /// Free time 960–1020, Play 1020–1110, Dinner 1110–1155, Shower 1155–1200, Sleep 1200–1440.
@@ -80,34 +80,20 @@ final class TemplateEditTests: XCTestCase {
         XCTAssertEqual(closed.blocks.first { $0.title == "Dinner" }?.end, closed.blocks.first { $0.title == "Shower" }?.start)
     }
 
-    /// Board G1e: "+" on a shared knob puts 30 minutes of free time there for the new-slice card,
-    /// from the slice after it, or before it when the one after is under 45 minutes.
-    func testAddBetweenTakesThirtyMinutes() {
+    /// Spec "Add between two slices": the "+" on a shared knob covers 30 minutes of the slice after
+    /// it, or of the slice before it when the one after is under 45 minutes. The template stays.
+    func testAddBetweenCoversThirtyMinutes() {
         var edit = edit
-        // Dinner 1110–1155 | Shower 1155–1200: Shower has 45 minutes, so the slice comes out of it.
-        let fromAfter = edit.insertBetween(knob: knob(edit, at: 1155))!
-        XCTAssertEqual(edit.blocks[fromAfter].start, 1155)
-        XCTAssertEqual(edit.blocks[fromAfter + 1].start, 1185)
-        edit.dropLastChange()
-        // Shower 1170–1200 is under 45: the slice comes out of Dinner and ends at the knob.
+        let at = { (minute: Int) in edit.clockKnobs.firstIndex { $0.minute == minute }! }
+        // Dinner 1110–1155 | Shower 1155–1200: Shower has 45 minutes.
+        XCTAssertEqual(edit.addSpan(atKnob: at(1155)), 1155..<1185)
+        // Shower 1170–1200 is under 45: the item comes out of Dinner and ends at the knob.
         edit.beginChange()
         _ = edit.moveKnob(knob(edit, at: 1155), to: 1170)
-        let slot = edit.insertBetween(knob: knob(edit, at: 1170))!
-        XCTAssertEqual(edit.blocks[slot].kind, .free)
-        XCTAssertEqual(edit.blocks[slot].start, 1140)
-        XCTAssertEqual(edit.blocks[slot].end, 1170)
-        XCTAssertEqual(edit.blocks[slot - 1].end, 1140)
+        XCTAssertEqual(edit.addSpan(atKnob: at(1170)), 1140..<1170)
         // Breakfast 390–450 | School 450–900: from School.
-        let school = edit.insertBetween(knob: knob(edit, at: 450))!
-        XCTAssertEqual(edit.blocks[school].start, 450)
-        XCTAssertEqual(edit.blocks[school + 1].start, 480)
-        edit.fill(school, title: "Reading", iconName: "actStory", kind: .play)
-        XCTAssertEqual(edit.blocks[school].end, 480, "the new slice keeps its 30 minutes")
-        edit.undo()
-        edit.undo()
-        edit.undo()
-        edit.undo()
-        XCTAssertFalse(edit.isChanged)
+        XCTAssertEqual(edit.addSpan(atKnob: at(450)), 450..<480)
+        XCTAssertEqual(edit.blocks.count, self.edit.blocks.count, "a span changes nothing")
     }
 
     func testSchoolHoursFollowTheMovedSlice() {
@@ -132,7 +118,7 @@ final class TemplateEditTests: XCTestCase {
         XCTAssertEqual(edit.setStart(ofBlock: 0, to: 30), .noKnob, "the day's first start has no knob")
     }
 
-    func testMakeFreeThenFillAndUndoBackToTheStart() {
+    func testMakeFreeAndUndoBackToTheStart() {
         let start = edit
         var edit = edit
         let play = edit.blocks.firstIndex { $0.title == "Play" }!
@@ -140,54 +126,35 @@ final class TemplateEditTests: XCTestCase {
         let free = edit.makeFree(play)
         XCTAssertEqual(edit.blocks[free].kind, .free)
         XCTAssertEqual(edit.blocks[free].iconName, "")
-        let freeStart = edit.blocks[free].start
-        edit.fill(free, title: "Piano", iconName: "actPiano", kind: .play)
-        XCTAssertEqual(edit.blocks[free].title, "Piano")
-        XCTAssertEqual(edit.blocks[free].start, freeStart)
-        XCTAssertLessThanOrEqual(freeStart, playStart)
+        XCTAssertLessThanOrEqual(edit.blocks[free].start, playStart, "joined with the free time before it")
         XCTAssertTrue(edit.isChanged)
-        edit.undo()
-        XCTAssertEqual(edit.blocks[free].kind, .free)
         edit.undo()
         XCTAssertEqual(edit.blocks, start.blocks)
         XCTAssertFalse(edit.isChanged)
     }
 
-    func testTheSchoolBlockCannotBeMadeFree() {
+    /// Spec C6 "One card": Remove on All days makes School free time too (after its ConfirmCard).
+    func testTheSchoolBlockCanBeMadeFree() {
         var edit = edit
         edit.makeFree(edit.blocks.firstIndex { $0.kind == .school }!)
-        XCTAssertFalse(edit.isChanged)
+        XCTAssertFalse(edit.blocks.contains { $0.kind == .school })
+        XCTAssertTrue(edit.isChanged)
     }
 
-    /// User, 2026-11-09: slices come and go. A new one takes the first hour of free time and leaves
-    /// the rest free; freeing a slice joins it with the free time beside it.
-    func testSlicesGrowAndShrink() {
+    /// Spec "Tapping +": the free-paper "+" covers the first hour; a span of an hour or less, or a
+    /// leftover under 15 minutes, is covered whole.
+    func testFreePaperPlusCoversTheFirstHour() {
         var edit = edit
-        let count = edit.blocks.count
-        let play = edit.blocks.firstIndex { $0.title == "Play" }!
-        let slot = edit.makeFree(play)
-        let freed = edit.blocks.count
-        XCTAssertLessThanOrEqual(freed, count)
-        let span = (edit.blocks[slot].start, edit.blocks[slot].end)
-        edit.fill(slot, title: "Piano", iconName: "actPiano", kind: .afterSchool, length: 30)
-        XCTAssertEqual(edit.blocks.count, freed + 1)
-        XCTAssertEqual(edit.blocks[slot].end, span.0 + 30)
-        XCTAssertEqual(edit.blocks[slot + 1].kind, .free)
-        XCTAssertEqual(edit.blocks[slot + 1].end, span.1)
-        // Freeing Piano joins it with the free time after it: one free slice again.
-        let free = edit.makeFree(slot)
-        XCTAssertEqual(edit.blocks.count, freed)
-        XCTAssertEqual(edit.blocks[free].start, span.0)
-        XCTAssertEqual(edit.blocks[free].end, span.1)
-    }
-
-    /// Free time shorter than 15 minutes after the new slice goes to the new slice.
-    func testFillTakesAShortRemainder() {
-        var edit = edit
+        // Free time 960–1020 is one hour: all of it.
+        XCTAssertEqual(edit.addSpan(inFreeAt: 980), 960..<1020)
+        XCTAssertNil(edit.addSpan(inFreeAt: 1030), "Play is not free time")
+        // Freeing Play joins it with the free time before it: 960–1110, so the first hour.
         let slot = edit.makeFree(edit.blocks.firstIndex { $0.title == "Play" }!)
-        let end = edit.blocks[slot].end
-        edit.fill(slot, title: "Piano", iconName: "actPiano", kind: .play, length: end - edit.blocks[slot].start - 10)
-        XCTAssertEqual(edit.blocks[slot].end, end)
+        XCTAssertEqual(edit.blocks[slot].start, 960)
+        XCTAssertEqual(edit.addSpan(inFreeAt: 1000), 960..<1020)
+        // 960–1030: the 10 minutes left join the new slice.
+        _ = edit.setEnd(ofBlock: slot, to: 1030)
+        XCTAssertEqual(edit.addSpan(inFreeAt: 960), 960..<1030)
     }
 
     /// Spec "Where the kid goes changes": at home turns School into free time; a new place without a
