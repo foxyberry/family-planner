@@ -25,6 +25,7 @@ LocalConfig.*
 .env.local
 
 # Agent working files
+tools/board/out/
 .superpowers/
 .claude/*
 !.claude/settings.json

@@ -22,7 +22,7 @@ SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
 .PHONY: build run device test test-one snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
-        check-prereqs setup setup-ios
+        check-prereqs setup setup-ios board
 
 # =============================================================================
 # iOS
@@ -145,6 +145,10 @@ private:
 # =============================================================================
 # Shared
 # =============================================================================
+
+# Local status board of the sessions' PRs, branches and the machine: http://127.0.0.1:8765
+board:
+	python3 tools/board/board.py --serve
 
 clean:
 	bazel clean
