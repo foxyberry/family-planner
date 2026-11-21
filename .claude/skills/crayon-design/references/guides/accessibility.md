@@ -1,35 +1,25 @@
 # Accessibility for the crayon app
 
-Use this for touch, Dynamic Type, contrast, the system accessibility settings and gestures.
+Use this for touch, contrast, the system accessibility settings and gestures.
 VoiceOver is not in this phase (user, 2026-11-21; `../hig-exceptions.md`): add no labels,
-spoken text or adjustable actions. It holds no numbers: every size, floor and colour is in the spec
+spoken text or adjustable actions. It holds no numbers: every size and colour is in the spec
 (`docs/superpowers/specs/2026-11-07-m2-screens-spec.md`, section 0 "Shared rules"). Where general
 Apple advice and this app differ, `../hig-exceptions.md` decides.
 
 ## Touch
-- Read the touch floors in **Sizing formulas → Part floors → Touch**. They sit above the system
-  minimum on purpose. Kid controls take the kid floor; never give a kid control a grown-up floor.
-- A drawn control's visible box is its touch box. Build the box from `Sizing` with a minimum
-  frame (`.frame(minWidth:minHeight:)`), and put `.contentShape` on the whole box.
-- Only bare glyphs (›, ✕, a text link) may have a hit area bigger than what is drawn. Grow it
-  invisibly to the floor, and check that two grown hit areas never overlap.
+- A control's touch area is its visible box, scaled with the board by `s` (spec **Sizing →
+  Touch**). No invisible touch floors and no hit area bigger than what is drawn: they cause taps
+  nobody meant.
+- Kid targets are big on the board; they stay big by scaling, not by floors. On the iPhone Duo
+  inner screen some grown-up parts fall under 44 pt; the user accepted that.
 - Use `Button` (or a custom `ButtonStyle`) for anything tappable, not `onTapGesture`: it brings
   the button trait and focus for free.
-- Neighbouring targets are spaced only by the spec's tokens; never close a gap below its floor
-  to fit a row (give way instead).
+- Neighbouring targets are spaced only by the spec's tokens × s.
 
-## Dynamic Type with Playpen Sans
-- Playpen is a custom font, so the app owes Dynamic Type back. Every text style is made with
-  `Font.custom(_:size:relativeTo:)` from the scaled ramp size; `typography.md` has the details.
-- Support the accessibility sizes too, not just the default ladder.
-- Every height in Part floors is a **minimum**. When text grows, the control grows. A one-line
-  button or tab may wrap to two lines, and the row then gives way in the spec's order
-  (**Part floors → "When a row does not fit"**). Nothing clips, nothing turns into "…" except
-  typed names, as the spec's **Text** bullets allow.
-- Never use `minimumScaleFactor` and never `scaleEffect` a screen: text never draws under its
-  floor and hit areas must stay true.
-- Test the default size and at least one mid and the largest accessibility size; wrap points
-  differ per step.
+## Text size
+- Text sizes come from the board × s only. The system text size (Dynamic Type) does not change
+  them in this phase (spec **Sizing → Type**; `../hig-exceptions.md`).
+- Never use `minimumScaleFactor` and never `scaleEffect` a screen (it blurs text).
 
 ## Contrast
 - Check every colour pair before you name it:
@@ -75,8 +65,7 @@ Apple advice and this app differ, `../hig-exceptions.md` decides.
 ## Not designed yet (ask before you build)
 - Switch Control and Full Keyboard Access: the app is touch-only today
   (`../hig-exceptions.md`). Standard `Button`s keep them working by default; don't break that.
-- Larger primary targets on the youngest kid's screens: open in Part floors and in
-  `../hig-exceptions.md`.
+- Larger primary targets on the youngest kid's screens: open in `../hig-exceptions.md`.
 
 Source: distilled from ios-design-guidelines and ipados-design-guidelines (platform-design-skills,
 MIT), swiftui-expert accessibility-patterns (Antoine van der Lee, MIT), apple-skills design

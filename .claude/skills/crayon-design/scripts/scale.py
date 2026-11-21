@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
-"""Works out board formulas on every iPad the app checks, so a floor is tried on all sizes at once.
+"""Shows a board value on every screen the app supports: board × s (spec "Sizing: one scale, no floors").
 
-Usage: python3 scale.py [--top N] "max(176*s,142)" "472*s - 2*max(24*s,16)" ...
-An expression may use numbers, + - * / ( ), the names s, W, H, top and the calls max, min, fluid.
-fluid(ref, lo) = max(lo, ref * s). s = min(W/1376, (H - top)/1008) with a 0.70 lower bound
-(spec "Sizing formulas"). --top N replaces every iPad's safe.top with a value read on a device.
+Usage: python3 scale.py [--top N] "176*s" "472*s - 2*24*s" ...
+An expression may use numbers, + - * / ( ), the names s, W, H, top and the calls max, min.
+s = min(W/1376, (H - top)/1008). --top N replaces every screen's safe.top with a value read on a device.
 """
 import ast
 import operator
 import sys
 
-IPADS = [  # name, W, H, safe.top (landscape, full screen)
+IPADS = [  # name, W, H, safe.top (landscape, full screen; the Duo inner safe.top is a guess until read on a device)
     ("13in", 1376, 1032, 24),
     ("12.9in", 1366, 1024, 32),
     ("Pro 11in", 1210, 834, 24),
     ("11in", 1180, 820, 24),
     ("mini", 1133, 744, 24),
+    ("Duo inner", 890, 626, 24),
 ]
 OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv}
 
 
 def scale(W, H, top):
-    return max(0.70, min(W / 1376, (H - top) / 1008))
+    return min(W / 1376, (H - top) / 1008)
 
 
 def evaluate(node, env):
@@ -41,8 +41,6 @@ def evaluate(node, env):
             return max(args)
         if node.func.id == "min":
             return min(args)
-        if node.func.id == "fluid" and len(args) == 2:
-            return max(args[1], args[0] * env["s"])
     raise ValueError(f"not allowed: {ast.unparse(node)}")
 
 
