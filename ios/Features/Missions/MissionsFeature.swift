@@ -546,7 +546,7 @@ public struct MissionsFeature {
             case .refresh:
                 // S4 "Live bus times" off: no LTA call; the morning keeps the timetable look.
                 guard let (owner, outing) = state.familyOuting,
-                      outing.trip.way == .bus, let plan = state.busPlans[owner.id] else { return .none }
+                      outing.trip.way == .bus, let plan = state.busPlans[owner.id], !plan.routes.isEmpty else { return .none }
                 return .run { [bus, date] send in
                     let arrivals = try? await bus.arrivals(plan.stop)
                     await send(.arrivalsLoaded(arrivals, at: date.now))

@@ -202,7 +202,8 @@ public struct HomeFeature {
         }
 
         /// Live times are fetched only for Kid A's next bus outing in an open window.
-        var wantsLive: Bool { morningOuting?.trip.way == .bus && busPlan != nil }
+        /// A bus morning with a route that has buses: an empty route never calls LTA.
+        var wantsLive: Bool { morningOuting?.trip.way == .bus && !(busPlan?.routes.isEmpty ?? true) }
 
         public var kidABlock: KidABlock {
             guard let first = days.first else { return .nothing }

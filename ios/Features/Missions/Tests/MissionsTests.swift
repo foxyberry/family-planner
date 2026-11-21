@@ -179,8 +179,6 @@ final class MissionsTests: XCTestCase {
         XCTAssertNil(store.state.leaveAt)
     }
 
-    /// Spec "A2 live look": fresh live times give "Leave in" with "On time", and the chosen bus sets
-    /// "leave at".
     /// Review of #159: a route with no buses left (the last one removed) shows the timetable, not a
     /// live look with no bus to choose.
     func testAnEmptyRouteShowsTheTimetable() async {
@@ -189,12 +187,14 @@ final class MissionsTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         await store.receive(\.refresh)
-        await store.receive(\.arrivalsLoaded)
+        // No LTA call for a route with no buses (review of #159): nothing loads.
         XCTAssertNil(store.state.live)
         XCTAssertNil(store.state.liveStrip)
         await store.send(.backTapped)
     }
 
+    /// Spec "A2 live look": fresh live times give "Leave in" with "On time", and the chosen bus sets
+    /// "leave at".
     func testLiveTimesShowLeaveInAndOnTime() async {
         let store = store(on: tuesday, minute: 412, arrivals: [BusArrival(service: "1", minutes: 4, type: .single),
                                                                BusArrival(service: "1", minutes: 28, type: .double)])
