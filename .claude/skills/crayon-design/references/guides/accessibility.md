@@ -8,9 +8,9 @@ Apple advice and this app differ, `../hig-exceptions.md` decides.
 
 ## Touch
 - One touch rule (spec **Sizing → Touch**), in this order: (1) a tap hits only what is drawn,
-  scaled by `s`, never an invisible floor; (2) a drag that starts on no tappable part grabs the
-  nearest draggable handle in that area (clock knobs, slider knobs), up to half the way to the
-  next one; (3) draw the part bigger on the board only as the last resort.
+  scaled by `s`, never an invisible floor; (2) a drag that starts on a part with no drag of its own
+  grabs the nearest handle of its named area only: the clock ring (nearest knob by angle, up to
+  half the angle to the next) or a slider's own track; the tap stays that part's; (3) draw the part bigger on the board only as the last resort.
 - Kid targets are big on the board; they stay big by scaling, not by floors. On the iPhone Duo
   inner screen some grown-up parts fall under 44 pt; the user accepted that.
 - Use `Button` (or a custom `ButtonStyle`) for anything tappable, not `onTapGesture`: it brings
