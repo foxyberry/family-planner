@@ -128,9 +128,12 @@ def name_of(fam, reg, e, els):
         if reg == 'header' and k == 'text': return 'note'
         if reg == 'main' and k == 'label': return 'label.' + slug(t)
         if reg == 'main':
-            for l in els:
-                if l['kind'] == 'label' and l['y'] <= y < l['y'] + max(l['h'], 72) and l is not e:
-                    return 'row.' + slug(l.get('text')) + '.' + k
+            # a row can hold two columns: name the part by the nearest label on its left
+            row = [l for l in els if l['kind'] == 'label' and l['y'] <= y < l['y'] + max(l['h'], 72) and l is not e]
+            left = [l for l in row if l['x'] <= e['x']]
+            if row:
+                l = max(left, key=lambda l: l['x']) if left else row[0]
+                return 'row.' + slug(l.get('text')) + '.' + k
             return k
         if reg == 'side': return {'text': 'line', 'picture': 'picture'}.get(k, k)
         if reg == 'action': return 'primary' if k == 'primary' else k
