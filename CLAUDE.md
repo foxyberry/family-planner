@@ -102,7 +102,7 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 ## Agent harness
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
 - Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `tca-feature`, `screen-layout`,
-  `test-layers`, `skill-retro`, `crayon-design` (sizes, copy), `pr-review-handoff` (review starts from a PR).
+  `test-layers`, `architecture-audit`, `skill-retro`, `crayon-design` (sizes, copy), `pr-review-handoff` (review starts from a PR).
 - Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known; the
   `skill-retro` skill moves them into guards, this file or skills (a session-start note says when 5+ wait).
   `bash scripts/check-skills.sh` checks skills, this file's length and the inbox.
