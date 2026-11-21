@@ -55,9 +55,14 @@ public struct BusSettingsView: View {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         PillToggleGrid(controlWidth: layout.controlWidth) {
                             ForEach(store.search.servicesAtStop, id: \.self) { service in
-                                PillToggle(service, isOn: store.services.first == service,
-                                           tag: store.state.tag(for: service)) {
+                                PillToggle(service, isOn: store.services.contains(service)) {
                                     store.send(.serviceTapped(service))
+                                }
+                            }
+                            // Spec "Several buses": the bus that changes is one more pill; a tap reopens C2c.
+                            if let change = store.change {
+                                PillToggle(change.firstBus, isOn: true, then: change.thenBus) {
+                                    store.send(.changeLinkTapped)
                                 }
                             }
                         }
@@ -66,11 +71,9 @@ public struct BusSettingsView: View {
             }
             stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("c2.walk.caption"), step: 1,
                     value: store.walk) { store.send(.walkChanged($0)) }
-            stepper(L10n.tr("c2.ride"), text: store.rideText, caption: store.rideCaption, step: 1,
-                    value: store.ride) { store.send(.rideChanged($0)) }
-            if store.second != nil {
-                stepper(L10n.tr("c2.ride_second"), text: store.secondRideText, caption: store.secondRideCaption, step: 1,
-                        value: store.secondRide) { store.send(.secondRideChanged($0)) }
+            ForEach(store.rideRows) { row in
+                stepper(row.label, text: row.text, caption: row.caption, step: 1,
+                        value: row.minutes, spoken: row.spoken) { store.send(.rideChanged(service: row.service, minutes: $0)) }
             }
             stepper(L10n.tr("c2.grace"), text: store.graceText, caption: L10n.tr("c2.grace.caption"), step: 5,
                     value: store.lateGrace) { store.send(.graceChanged($0)) }
@@ -78,17 +81,12 @@ public struct BusSettingsView: View {
         }
     }
 
-    /// Board C2 (y 900): "+ 2nd choice changes buses…" → C2c; a picked change reads "2nd choice · 34 › 33".
+    /// Board C2 (v57, y 742): "+ A bus that changes…" → C2c.
     private var changeLink: some View {
-        let link = store.changeLink
-        return ListRow(leading: "", minHeight: 72) { Button { store.send(.changeLinkTapped) } label: {
+        ListRow(leading: "", minHeight: 72) { Button { store.send(.changeLinkTapped) } label: {
             HStack(spacing: Spacing.s) {
-                if link.then == nil { MarkerIcon(.plus, size: 28, color: CrayonColor.ink) }
-                Text(link.first).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
-                if let then = link.then {
-                    MarkerIcon(.arrowRight, size: 28, color: CrayonColor.link)
-                    Text(then).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
-                }
+                MarkerIcon(.plus, size: 28, color: CrayonColor.ink)
+                Text(store.changeLink).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
             }
             .frame(minHeight: 72)
             .contentShape(Rectangle())
@@ -107,12 +105,12 @@ public struct BusSettingsView: View {
 
     /// − 72, the value, + 72, then what the number means (board C2).
     private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int,
-                         change: @escaping (Int) -> Void) -> some View {
+                         spoken: String? = nil, change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: 72) {
             HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .minus, accessibilityLabel: label) { change(value - step) }.size(72)
+                RoundButton(glyph: .minus, accessibilityLabel: spoken ?? label) { change(value - step) }.size(72)
                 Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 112)
-                RoundButton(glyph: .plus, accessibilityLabel: label) { change(value + step) }.size(72)
+                RoundButton(glyph: .plus, accessibilityLabel: spoken ?? label) { change(value + step) }.size(72)
                 Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
             }
         }

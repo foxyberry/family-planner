@@ -57,44 +57,55 @@ final class BusSettingsTests: XCTestCase {
         await store.send(.serviceTapped("1"))
         await store.send(.walkChanged(8))
         await store.finish(timeout: .seconds(1))
-        XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1"], walk: 8)])
+        XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1"], walk: 8, rides: ["1": 10])])
     }
 
-    /// Spec "C2c": one 2nd choice per kid; the link shows a changing 2nd, and a direct 2nd replaces it.
-    func testADirectSecondReplacesAChangingOne() async {
-        let change = BusChange(firstBus: "2", stop: "00001", thenBus: "4")
+    /// Spec "Several buses": the bus that changes is one more pill; the link shows until there is
+    /// one, and both open C2c.
+    func testABusThatChangesIsOneMorePill() async {
+        let change = BusChange(firstBus: "2", thenBus: "4")
         let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"], change: change)])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.changeLink.first, "2nd choice · 2")
-        XCTAssertEqual(store.state.changeLink.then, "4")
+        await store.receive(\.search.stopLooked)
+        XCTAssertEqual(store.state.change, change)
+        XCTAssertFalse(store.state.showsChangeLink)
         await store.send(.changeLinkTapped)
         await store.receive(\.delegate.openChange)
+        // A direct 2 sits next to the bus that changes; both stay.
         await store.send(.serviceTapped("2"))
         await store.finish(timeout: .seconds(1))
-        XCTAssertNil(saved.value.last?.change)
+        XCTAssertEqual(saved.value.last?.change, change)
         XCTAssertEqual(saved.value.last?.services, ["1", "2"])
-        XCTAssertEqual(store.state.changeLink.first, "2nd choice changes buses…")
     }
 
-    /// Spec "C2 rows": the second pick is the 2nd choice with "Ride 2nd" (starting from Ride).
-    func testASecondBusGetsItsOwnRide() async {
+    /// Spec "Several buses": pills toggle on their own, in pill order, each with its own Ride row
+    /// ("Ride" on the first only).
+    func testEveryBusGetsItsOwnRide() async {
         let saved = LockIsolated<[BusPlan]>([])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
         await store.send(.search(.textChanged("00000")))
-        await store.send(.serviceTapped("1"))
-        XCTAssertNil(store.state.second)
+        await store.receive(\.search.stopLooked)
+        XCTAssertTrue(store.state.showsChangeLink)
+        XCTAssertEqual(store.state.changeLink, "A bus that changes…")
         await store.send(.serviceTapped("2"))
-        XCTAssertEqual(store.state.tag(for: "1"), "1st")
-        XCTAssertEqual(store.state.tag(for: "2"), "2nd")
-        XCTAssertEqual(store.state.secondRideCaption, "on 2 · the long way")
-        await store.send(.secondRideChanged(18))
+        await store.send(.serviceTapped("1"))
+        XCTAssertEqual(store.state.services, ["1", "2"], "pill order")
+        XCTAssertEqual(store.state.rideRows.map(\.label), ["Ride", ""])
+        XCTAssertEqual(store.state.rideRows.map(\.caption), ["on 1", "on 2"])
+        XCTAssertEqual(store.state.rideRows.map(\.spoken), ["Ride on 1", "Ride on 2"])
+        await store.send(.rideChanged(service: "2", minutes: 18))
         await store.finish(timeout: .seconds(1))
         XCTAssertEqual(saved.value.last?.services, ["1", "2"])
-        XCTAssertEqual(saved.value.last?.secondRide, 18)
+        XCTAssertEqual(saved.value.last?.ride(on: "1"), 10)
+        XCTAssertEqual(saved.value.last?.ride(on: "2"), 18)
+        await store.send(.serviceTapped("1"))
+        await store.finish(timeout: .seconds(1))
+        XCTAssertEqual(saved.value.last?.services, ["2"])
+        XCTAssertEqual(saved.value.last?.rides, ["2": 18], "a bus taken off keeps no ride")
     }
 
     /// Families know the stop's name (user, 2026-11-09): typing a name lists stops; picking one

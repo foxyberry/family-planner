@@ -179,7 +179,7 @@ public struct SetupFeature {
         case stopSearch(StopSearchFeature.Action)
         case serviceTapped(String)
         case walkChanged(Int)
-        case rideChanged(Int)
+        case rideChanged(service: String?, minutes: Int)
         case leaveChanged(Int)
         // S4
         case settingTapped(AppSetting)
@@ -448,7 +448,7 @@ public struct SetupFeature {
 
             case .stopSearch(.textChanged):
                 // A new stop: the buses picked for the old one no longer apply.
-                updateGoing(&state) { $0.services = [] }
+                updateGoing(&state) { $0.services = []; $0.rides = [:] }
                 return .none
 
             case .stopSearch:
@@ -466,9 +466,10 @@ public struct SetupFeature {
                 }
 
             case let .serviceTapped(service):
-                // Spec "1st and 2nd choice": S3 sets the 1st only; the 2nd comes later in C2.
+                // Spec "Several buses": S3 sets the same equal buses as C2.
                 updateGoing(&state) { going in
-                    going.services = going.services.first == service ? [] : [service]
+                    going.services = BusPlan.toggling(service, in: going.services, order: going.search.servicesAtStop)
+                    if going.services.contains(service), going.rides[service] == nil { going.rides[service] = going.ride }
                 }
                 return .none
 
@@ -476,8 +477,11 @@ public struct SetupFeature {
                 updateGoing(&state) { $0.walk = min(max(value, 0), 60) }
                 return .none
 
-            case let .rideChanged(value):
-                updateGoing(&state) { $0.ride = min(max(value, 0), 90) }
+            case let .rideChanged(service, value):
+                updateGoing(&state) { going in
+                    let minutes = min(max(value, 0), 90)
+                    if let service { going.rides[service] = minutes } else { going.ride = minutes }
+                }
                 return .none
 
             case let .leaveChanged(value):
@@ -573,7 +577,8 @@ extension KidEntry {
     var busPlan: BusPlan? {
         guard going.way == .bus, going.search.stop.count == 5 else { return nil }
         return BusPlan(kid: id, stop: going.search.stop, services: going.services, walk: going.walk, ride: going.ride,
-                       lateGrace: kid.school?.lateGrace ?? BusPlan.defaultLateGrace)
+                       lateGrace: kid.school?.lateGrace ?? BusPlan.defaultLateGrace,
+                       rides: going.rides.filter { going.services.contains($0.key) })
     }
 }
 

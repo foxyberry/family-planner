@@ -13,6 +13,8 @@ public struct BusClient: Sendable {
     /// Stops whose name or road has every word of `text` (user, 2026-11-09: families know the
     /// name, not the 5-digit code), at most 8.
     public var searchStops: @Sendable (_ text: String) async throws -> [BusStop]
+    /// Whether `number` is a bus service LTA runs (C2c "Then": checked against the service list).
+    public var isService: @Sendable (_ number: String) async throws -> Bool
 }
 
 /// A bus stop from the LTA list: the 5-digit code on its pole, its name and road.
@@ -37,7 +39,8 @@ extension BusClient: TestDependencyKey {
             [BusArrival(service: "1", minutes: 4, type: .single), BusArrival(service: "1", minutes: 28, type: .double)]
         },
         stop: { code in BusStop(code: code, name: "Example Stop", road: "Example Rd") }, // copy-ok: preview data
-        searchStops: { _ in [BusStop(code: "00000", name: "Example Stop", road: "Example Rd")] } // copy-ok: preview data
+        searchStops: { _ in [BusStop(code: "00000", name: "Example Stop", road: "Example Rd")] }, // copy-ok: preview data
+        isService: { _ in true }
     )
 }
 

@@ -87,13 +87,15 @@ public enum SettingsModel {
         return sections
     }
 
-    /// Board G6: "Bus 12 · leave 7:05 · 2nd 34": the 1st bus, when to leave (arrive-by, or the
-    /// start, less the ride and the walk) and the 2nd choice if any.
+    /// Boards G4/G6/G7 (v57): "Bus 12 · 34 · leave 7:05": the kid's buses (a bus that changes by
+    /// its first bus; no arrow in text) and when to leave for the fastest of them (arrive-by, or the
+    /// start, less the trip and the walk).
     public static func toSchool(_ plan: BusPlan, school: School) -> String {
-        let leave = TimeText.clock((school.arriveBy ?? school.start) - plan.ride - plan.walk)
-        let first = plan.first ?? ""
-        return plan.second.map { L10n.tr("settings.to_school.second", first, leave, $0) }
-            ?? L10n.tr("settings.to_school.value", first, leave)
+        let fastest = plan.routes.map(\.trip).min() ?? plan.ride
+        let leave = TimeText.clock((school.arriveBy ?? school.start) - fastest - plan.walk)
+        var numbers: [String] = []
+        for route in plan.routes where !numbers.contains(route.service) { numbers.append(route.service) }
+        return L10n.tr("settings.to_school.value", numbers.joined(separator: L10n.tr("settings.to_school.join")), leave)
     }
 
     /// The way to school on the kid's weekday template (S3 or G4's Going), if one is set.

@@ -10,7 +10,9 @@ import XCTest
 final class ChangeBusesTests: XCTestCase {
     private let kid = SeedData.kidA.id
 
-    private func store(saved: LockIsolated<[BusPlan]>) -> TestStoreOf<ChangeBusesFeature> {
+    private func store(saved: LockIsolated<[BusPlan]>,
+                       isService: @escaping @Sendable (String) async throws -> Bool = { ["3", "4", "33A"].contains($0) })
+        -> TestStoreOf<ChangeBusesFeature> {
         let store = TestStore(initialState: ChangeBusesFeature.State(kid: kid)) {
             ChangeBusesFeature()
         } withDependencies: {
@@ -27,6 +29,7 @@ final class ChangeBusesTests: XCTestCase {
                 }
             }
             $0.bus.searchStops = { _ in [] }
+            $0.bus.isService = isService
             $0.bus.arrivals = { code in
                 code == "00000"
                     ? [BusArrival(service: "1", minutes: 5, type: .double), BusArrival(service: "3", minutes: 8, type: .single)]
@@ -37,46 +40,80 @@ final class ChangeBusesTests: XCTestCase {
         return store
     }
 
-    func testSavingAChangeReplacesTheDirectSecond() async {
-        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1", "2"], ride: 12, secondRide: 18)])
+    /// Spec "Several buses": a first bus from our stop, the second typed by its number, and the
+    /// three times; Save adds it as one more bus and keeps the others.
+    func testSavingABusThatChanges() async {
+        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1", "2"], ride: 12,
+                                          rides: ["2": 18])])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
         await store.receive(\.ourStop.stopLooked)
         XCTAssertEqual(store.state.fromName, "Example Stop")
-        XCTAssertEqual(store.state.firstBuses, ["3"], "the kid's 1st is not offered")
-        XCTAssertEqual(store.state.ride1, 12, "Ride 1 starts from the 1st's ride")
+        XCTAssertEqual(store.state.firstBuses, ["1", "3"], "every bus at our stop")
+        XCTAssertEqual(store.state.ride1, 12, "Ride 1 starts from the route's ride")
+        XCTAssertEqual(store.state.change, 5, "Change starts at 5")
         XCTAssertFalse(store.state.canSave)
         await store.send(.firstBusTapped("3"))
-        await store.send(.search(.textChanged("00001")))
-        await store.receive(\.search.stopLooked)
-        XCTAssertEqual(store.state.thenBuses, ["4"], "the bus the kid gets off is not offered")
-        await store.send(.thenBusTapped("4"))
-        await store.send(.walkChanged(3))
+        await store.send(.thenChanged("4"))
+        await store.receive(\.thenChecked)
         XCTAssertEqual(store.state.ride2Caption, "on 4")
+        await store.send(.changeChanged(3))
         XCTAssertTrue(store.state.canSave)
         await store.send(.saveTapped)
         await store.receive(\.delegate.finished)
-        XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1"], ride: 12,
-                                             change: BusChange(firstBus: "3", stop: "00001", thenBus: "4", ride1: 12,
-                                                               walk: 3, ride2: BusPlan.defaultRide))])
+        XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1", "2"], ride: 12, rides: ["2": 18],
+                                             change: BusChange(firstBus: "3", thenBus: "4", ride1: 12, change: 3,
+                                                               ride2: BusPlan.defaultRide))])
+    }
+
+    /// "Then" takes digits and a letter, checked against LTA's service list; a wrong one shows why
+    /// and cannot be saved. Without an answer from LTA the number is taken as typed.
+    func testThenIsCheckedAgainstTheServiceList() async {
+        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])])
+        let store = store(saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.firstBusTapped("3"))
+        await store.send(.thenChanged("A3"))
+        XCTAssertNil(store.state.thenBus)
+        XCTAssertTrue(store.state.thenHasProblem)
+        XCTAssertEqual(store.state.thenCaption, "No bus with that number")
+        await store.send(.thenChanged("99"))
+        await store.receive(\.thenChecked)
+        XCTAssertEqual(store.state.thenIsService, false)
+        XCTAssertFalse(store.state.canSave)
+        await store.send(.thenChanged("33a"))
+        await store.receive(\.thenChecked)
+        XCTAssertEqual(store.state.thenBus, "33A")
+        XCTAssertFalse(store.state.thenHasProblem)
+        XCTAssertTrue(store.state.canSave)
+
+        let offline = self.store(saved: saved, isService: { _ in throw CancellationError() })
+        await offline.send(.task)
+        await offline.receive(\.loaded)
+        await offline.send(.firstBusTapped("3"))
+        await offline.send(.thenChanged("99"))
+        await offline.receive(\.thenChecked)
+        XCTAssertNil(offline.state.thenIsService)
+        XCTAssertTrue(offline.state.canSave)
     }
 
     func testClearingBothBusesRemovesTheChange() async {
-        let change = BusChange(firstBus: "3", stop: "00001", thenBus: "4")
+        let change = BusChange(firstBus: "3", thenBus: "4")
         let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"], change: change)])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.change, change)
+        XCTAssertEqual(store.state.busChange, change)
         await store.send(.firstBusTapped("3"))
         XCTAssertNil(store.state.firstBus)
-        XCTAssertEqual(store.state.thenBus, "4")
-        await store.send(.thenBusTapped("4"))
+        await store.send(.thenChanged(""))
         XCTAssertTrue(store.state.canSave)
         await store.send(.saveTapped)
         await store.receive(\.delegate.finished)
         XCTAssertNil(saved.value.first?.change)
+        XCTAssertEqual(saved.value.first?.services, ["1"])
     }
 
     func testBackAsksBeforeDroppingChanges() async {

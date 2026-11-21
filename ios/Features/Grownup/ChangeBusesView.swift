@@ -4,7 +4,7 @@ import DesignSystem
 import Strings
 import SwiftUI
 
-/// C2c · 2nd choice · change buses (board C2c): From, First bus, Change at, Then, Ride 1, Walk, Ride 2.
+/// C2c · A bus that changes (board C2c, v57): From, First bus, Then, Ride 1, Change, Ride 2.
 public struct ChangeBusesView: View {
     @Bindable var store: StoreOf<ChangeBusesFeature>
     @Environment(\.sizing) private var sizing
@@ -52,7 +52,6 @@ public struct ChangeBusesView: View {
                 .disabled(!store.canSave)
                 .frame(width: layout.side.width)
         }
-        .resultVeil(isOpen: store.search.isListOpen) { store.send(.search(.listClosed)) }
     }
 
     private func rows(_ layout: GrownupLayout) -> some View {
@@ -66,19 +65,27 @@ public struct ChangeBusesView: View {
             pills(L10n.tr("c2c.first_bus"), controlWidth: layout.controlWidth, services: store.firstBuses, picked: store.firstBus) {
                 store.send(.firstBusTapped($0))
             }
-            ListRow(leading: L10n.tr("c2c.change_at"), labelHeight: 80) {
-                StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 6,
-                                listWidth: layout.controlWidth)
-            }
-            .zIndex(1)
-            pills(L10n.tr("c2c.then"), controlWidth: layout.controlWidth, services: store.thenBuses, picked: store.thenBus) {
-                store.send(.thenBusTapped($0))
+            // Board C2c: the second bus is typed (160 × 80), checked against LTA's service list.
+            ListRow(leading: L10n.tr("c2c.then"), labelHeight: 80) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    CrayonField(L10n.tr("c2c.then.placeholder"),
+                                text: Binding(get: { store.thenText }, set: { store.send(.thenChanged($0)) }))
+                        .keyboardType(.asciiCapable)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .fieldProblem(store.thenHasProblem)
+                        .frame(width: FormLines.busNumberField)
+                    if let caption = store.thenCaption {
+                        Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.hurry)
+                    }
+                }
             }
             stepper(L10n.tr("c2c.ride1"), text: store.ride1Text, caption: store.ride1Caption, value: store.ride1) {
                 store.send(.ride1Changed($0))
             }
-            stepper(L10n.tr("c2c.walk"), text: store.walkText, caption: L10n.tr("c2c.walk.caption"), value: store.walk) {
-                store.send(.walkChanged($0))
+            stepper(L10n.tr("c2c.change"), text: store.changeText, caption: L10n.tr("c2c.change.caption"),
+                    value: store.change) {
+                store.send(.changeChanged($0))
             }
             stepper(L10n.tr("c2c.ride2"), text: store.ride2Text, caption: store.ride2Caption, value: store.ride2) {
                 store.send(.ride2Changed($0))
