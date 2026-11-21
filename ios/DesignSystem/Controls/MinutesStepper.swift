@@ -13,7 +13,8 @@ public struct MinutesStepper: View {
     private let minus: () -> Void
     private let plus: () -> Void
 
-    /// `label`: the row's label, which the buttons carry.
+    /// `label`: the row's label, which the buttons carry; a row without one (the second Ride row)
+    /// names its buttons by the caption ("on 34").
     public init(value: String, caption: String, label: String, minus: @escaping () -> Void,
                 plus: @escaping () -> Void) {
         self.value = value
@@ -25,14 +26,16 @@ public struct MinutesStepper: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            RoundButton(glyph: .minus, accessibilityLabel: label, action: minus).size(Self.button)
+            RoundButton(glyph: .minus, accessibilityLabel: buttonName, action: minus).size(Self.button)
             Text(value).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                 .frame(width: sizing.stepperValueWidth)
-            RoundButton(glyph: .plus, accessibilityLabel: label, action: plus).size(Self.button)
+            RoundButton(glyph: .plus, accessibilityLabel: buttonName, action: plus).size(Self.button)
             Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
                 .padding(.leading, sizing.space(Spacing.s))
         }
     }
+
+    private var buttonName: String { label.isEmpty ? caption : label }
 
     /// The buttons' board size; on screen `Sizing.roundButton(72)` (72 × s, never under 56).
     static let button: CGFloat = 72
