@@ -1,0 +1,38 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# Whole screens drawn from journey states (test-layers): the World a journey runs in, a few of its
+# steps, then the real AppView at each iPad size, compared with the baselines in __Snapshots__.
+# Pictures, so local only like the part snapshots (tag "snapshot"): `make snapshots`.
+fp_swift_library(
+    name = "ScreenSnapshotsLib",
+    testonly = True,
+    deps = [
+        "//ios/AppCore",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/Features/Grownup",
+        "//ios/Journeys/Tests:JourneyWorld",
+        "//ios/KitArt",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+        "@swiftpkg_swift_snapshot_testing//:SnapshotTesting",
+    ],
+)
+
+ios_unit_test(
+    name = "ScreenSnapshots",
+    bundle_id = BUNDLE_ID + ".screens.snapshottests",
+    data = glob(
+        ["__Snapshots__/**"],
+        allow_empty = True,
+    ),
+    env_inherit = [
+        "SNAPSHOT_ARTIFACTS",
+        "SCREEN_SNAPSHOT_RECORD_DIR",
+    ],
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    tags = ["snapshot"],
+    deps = [":ScreenSnapshotsLib"],
+)

@@ -1,6 +1,7 @@
 import AppCore
 import ComposableArchitecture
 import Domain
+import JourneyWorld
 import Setup
 import XCTest
 

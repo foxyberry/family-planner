@@ -23,6 +23,7 @@ Write it so it reads as plain steps in spec terms, and could be replayed by anot
 - **Replay round trips a person caused as actions.** For example, a text field sends its text again
   when the keyboard goes away.
 
+Which layer a check belongs in (reducer test, journey, snapshot, UI test, self-check): `test-layers`.
 A new screen or flow adds or extends a journey (`tca-feature`). `scripts/check-journeys.sh` fails
 when journey code names neither a reducer's type nor its case (`.home`, `.changeBuses`); reducers
 not reached yet are in `scripts/journeys-pending.txt`, which only shrinks.
@@ -38,6 +39,15 @@ starts a journey, with DebugTools launch flags (`TestApp.launch`):
 
 Find parts by the words a person sees (`app.buttons["Next"]`) or a picture's slot name
 (`kidGirl`). Wait for focus before typing.
+
+## Screen snapshots
+`Screens/` draws whole screens at journey states (`make snapshots`, tag `snapshot`, local only):
+the journey's World and steps reach the state, then the real `AppView` draws it at the 13-inch and
+the mini. Record with `make snapshots-record` from a worktree without private art (the test skips
+when private art is in the build), and open every PNG before committing: they go to a public repo.
+The skip applies to comparing too: with private art in the checkout Bazel still says PASSED though
+no screen was compared (`make snapshots` prints a note), so compare screens from a worktree without
+it.
 
 ## Later
 Two pieces will join this folder:

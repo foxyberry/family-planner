@@ -67,6 +67,8 @@ jobs:
         run: bash scripts/tests/check-view-values-test.sh
       - name: Journey check tests
         run: bash scripts/tests/check-journeys-test.sh
+      - name: Unattended tests check tests
+        run: bash scripts/tests/check-unattended-tests-test.sh
       - name: Skills check tests
         run: bash scripts/tests/check-skills-test.sh
       - name: Lessons reminder tests
@@ -80,7 +82,7 @@ jobs:
       - name: Affected-test selection tests
         run: bash scripts/tests/test-affected-test.sh
       # The checks themselves, on this commit.
-      - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, layout literals, view values, journeys, strings, skills, skill refs)
+      - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, layout literals, view values, journeys, unattended tests, strings, skills, skill refs)
         run: |
           bash scripts/check-kid-screens.sh
           bash scripts/check-dependencies.sh
@@ -89,6 +91,7 @@ jobs:
           bash scripts/check-layout-literals.sh
           bash scripts/check-view-values.sh
           bash scripts/check-journeys.sh
+          bash scripts/check-unattended-tests.sh
           bash scripts/check-strings.sh
           bash scripts/check-skills.sh
           bash scripts/check-skill-refs.sh

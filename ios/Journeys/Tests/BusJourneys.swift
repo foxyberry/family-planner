@@ -2,6 +2,7 @@ import AppCore
 import ComposableArchitecture
 import Domain
 import Grownup
+import JourneyWorld
 import XCTest
 
 /// Our buses (C2) and a bus that changes (C2c), walked through the root store.
