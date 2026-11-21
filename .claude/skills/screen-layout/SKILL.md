@@ -2,7 +2,7 @@
 name: screen-layout
 description: Use when placing parts on a screen in ios/Features or ios/AppCore from a board's redlines (docs/superpowers/layout/<board>.json), writing or changing a <Screen>Layout model, sizing a grown-up form card or its rows, adding a gesture to a screen, or when a screen on the iPad looks shifted, too wide, wrapped or unresponsive to a hold. Not for sizes themselves (crayon-design) or reducers and State (tca-feature).
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   status: experimental
 ---
 
@@ -33,7 +33,8 @@ right on every window.
 - A number written straight into a view or part (`.frame(width: 180)`, `Spacing.m` as a gap)
   stays 13" sized on a smaller window and pushes the row past its card. Write `sizing(180)` (part
   size parameters such as `CrayonTabs(itemSize:)` or `RoundButton.size(_:)` take board values and
-  scale themselves); `OneScaleTests` draws parts at two scales to catch the misses.
+  scale themselves; widths a layout computes, such as `TimeField` or `KidFace` sizes, take screen
+  points, and each parameter's doc comment says which); `OneScaleTests` draws parts at two scales.
 - Row labels in body type ("Arrive by") wrap in the 104–232 label column. Use caption labels on
   one line, as C2 and S2 do.
 - A second gesture on a view that has `onLongPressGesture` (a `DragGesture(minimumDistance: 0)` to
