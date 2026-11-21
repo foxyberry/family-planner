@@ -22,8 +22,8 @@ Append one line, no private data (public repo):
 
 ## Run a retro
 Run one on request, at the end of a milestone or PR stack, after a large refactor, or when 5 lessons
-wait. A lesson with target `guard` (often from a review, `pr-review-handoff`) can't wait for 5: turn
-it into its guard in the next harness PR. There is no scheduled retro (user, 2026-11-21).
+wait. A lesson with target `guard` (often a review's, sent by the review session: `pr-review-handoff`)
+can't wait for 5: the harness session commits it and turns it into its guard in its next PR. There is no scheduled retro (user, 2026-11-21).
 
 1. `bash scripts/check-skills.sh`: count the open lessons and catch broken frontmatter or oversized files.
 2. For each lesson, choose its target in this order and record the choice:
