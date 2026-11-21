@@ -56,15 +56,10 @@ final class MorningJourneys: XCTestCase {
         XCTAssertNotNil(missions(store, morning)?.done, "Kid A's done view")
         XCTAssertTrue(world.slides.value.contains { $0.kid == kidA && $0.ready }, "the slide is saved")
 
-        // The app still moves to the next kid after 3 s; the spec says it stays. Expected to fail
-        // until the main session's fix lands: then XCTest reports the expectation as unmet, and
-        // this wrapper comes off.
+        // Ten seconds pass with no action at all (the live times refresh at 30 s).
         await world.clock.advance(by: .seconds(10))
-        await store.skipReceivedActions()
-        XCTExpectFailure("A3: the app still picks the next kid 3 s after the slide (spec PR 155)") {
-            XCTAssertEqual(missions(store, morning)?.chosen, kidA, "no kid switches by itself")
-            XCTAssertNotNil(missions(store, morning)?.done, "the done view stays")
-        }
+        XCTAssertEqual(missions(store, morning)?.chosen, kidA, "no kid switches by itself")
+        XCTAssertNotNil(missions(store, morning)?.done, "the done view stays")
 
         // A row tap chooses the other kid; tapping the ready kid's row shows the done view again.
         await store.send(.path(.element(id: morning, action: .missions(.kidTapped(kidB)))))

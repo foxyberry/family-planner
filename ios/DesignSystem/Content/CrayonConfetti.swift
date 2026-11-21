@@ -2,8 +2,8 @@ import CrayonKit
 import SwiftUI
 
 /// Crayon confetti for the done moment (board 0g2): 24 small crayon pieces in the kit colours burst
-/// from the centre over about 360 × 240 and fall away in 1.5 s. Reduce Motion: none. The caller
-/// clips it to its region.
+/// from the centre over about 360 × 240 and fall away in 1.5 s. Reduce Motion: none. It draws in
+/// a screen-level layer, never inside a clipping container (spec A3 "After the slide").
 public struct CrayonConfetti: View {
     private let trigger: Int
     private let scale: CGFloat

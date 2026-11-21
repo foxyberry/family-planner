@@ -66,8 +66,6 @@ public struct MorningLayout: Equatable, Sendable {
 
     public var doneMedal: CGRect { CGRect(x: columnLeft, y: sizing.y(612), width: 200 * s, height: 200 * s) }
     public var doneTextLeft: CGFloat { columnLeft + 240 * s }
-    /// The confetti's box: the missions column (536–968), clipped; it bursts from the medal centre.
-    public var missionsRegion: CGRect { CGRect(x: columnLeft, y: sizing.y(536), width: columnWidth, height: 432 * s) }
     public var doneTitleBaseline: CGFloat { sizing.y(728) }
     public var doneSubtitleBaseline: CGFloat { sizing.y(776) }
 

@@ -27,6 +27,7 @@ public struct MissionsView: View {
                 kidList(layout)
                 missions(layout)
                 bottomControl(layout)
+                doneMoment(layout)
             }
             .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
         }
@@ -115,29 +116,14 @@ public struct MissionsView: View {
             }
             .place(left: layout.columnLeft, baseline: layout.nameBaseline)
             if let done = store.done {
-                // Board A3r: the done view in place of the missions.
-                Group {
-                    if let medal = done.medal {
-                        DroppingMedal(medal, size: layout.doneMedal.width)
-                    } else {
-                        // It plays its rig once when the done view appears.
-                        RiggedKitIcon(done.prize, size: layout.doneMedal.width, playID: store.confetti)
-                    }
-                }
-                .place(layout.doneMedal)
+                // Board A3r: the done view's words in place of the missions; the medal and
+                // confetti draw in `doneMoment`, over the whole screen.
                 Text(done.title).crayonType(.display).foregroundStyle(CrayonColor.ink)
                     .place(left: layout.doneTextLeft, baseline: layout.doneTitleBaseline)
                 if let subtitle = done.subtitle {
                     Text(subtitle).crayonType(.body).foregroundStyle(CrayonColor.softText)
                         .place(left: layout.doneTextLeft, baseline: layout.doneSubtitleBaseline)
                 }
-                // Board 0g2: crayon confetti from the medal centre, kept inside the missions column.
-                CrayonConfetti(trigger: store.confetti, scale: sizing.s)
-                    .position(x: layout.doneMedal.midX - layout.missionsRegion.minX,
-                              y: layout.doneMedal.midY - layout.missionsRegion.minY)
-                    .frame(width: layout.missionsRegion.width, height: layout.missionsRegion.height)
-                    .clipped()
-                    .place(layout.missionsRegion)
             } else {
             ForEach(Array(store.circles.enumerated()), id: \.element.id) { index, circle in
                 let rect = layout.circleRect(index)
@@ -146,6 +132,27 @@ public struct MissionsView: View {
                     .offset(x: rect.midX - layout.pitch / 2, y: rect.minY)
             }
             }
+        }
+    }
+
+    // MARK: Done moment (board A3r): the medal and crayon confetti, one layer over the whole screen
+
+    /// Spec "After the slide": drawn last and in no container, so nothing clips the medal's swing
+    /// or the confetti; confetti may cross the kid column and the strip.
+    @ViewBuilder private func doneMoment(_ layout: MorningLayout) -> some View {
+        if let done = store.done {
+            Group {
+                if let medal = done.medal {
+                    DroppingMedal(medal, size: layout.doneMedal.width)
+                } else {
+                    // It plays its rig once when the done view appears.
+                    RiggedKitIcon(done.prize, size: layout.doneMedal.width, playID: store.confetti)
+                }
+            }
+            .place(layout.doneMedal)
+            // Board 0g2: crayon confetti bursting from the medal centre.
+            CrayonConfetti(trigger: store.confetti, scale: sizing.s)
+                .position(x: layout.doneMedal.midX, y: layout.doneMedal.midY)
         }
     }
 

@@ -346,8 +346,9 @@ final class MissionsTests: XCTestCase {
     }
 
     /// Spec "Medal from the time only" and board A3r: leave 7:25, so 7:20 is gold; the kid stays
-    /// chosen with the done view, then 3 s later the next kid comes up; dragging back undoes.
-    func testSlideShowsTheDoneViewThenTheNextKidAndDragBackUndoes() async {
+    /// chosen with the done view however long the screen waits (board A3); a row tap picks the
+    /// other kid; dragging back undoes.
+    func testSlideShowsTheDoneViewUntilARowTapAndDragBackUndoes() async {
         let clock = TestClock()
         let store = store(on: tuesday, minute: 440)
         store.dependencies.continuousClock = clock
@@ -362,8 +363,10 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(store.state.chosen, kidA)
         XCTAssertEqual(store.state.done?.title, "Gold!")
         XCTAssertEqual(store.state.done?.subtitle, "Ready in good time!")
-        await clock.advance(by: .seconds(3))
-        await store.receive(\.readyShown)
+        await clock.advance(by: .seconds(10))
+        XCTAssertEqual(store.state.chosen, kidA)
+        XCTAssertEqual(store.state.done?.title, "Gold!")
+        await store.send(.kidTapped(kidB))
         XCTAssertEqual(store.state.chosen, kidB)
         // Back to Kid A: the done view again; dragging the slide back undoes it.
         await store.send(.kidTapped(kidA))
