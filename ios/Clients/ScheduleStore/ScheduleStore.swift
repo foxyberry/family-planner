@@ -135,7 +135,7 @@ extension ScheduleStore: TestDependencyKey {
                     if let index = list.firstIndex(where: { $0.id == kid.id }) {
                         list[index] = kid
                     } else {
-                        list.append(kid)  // a new kid (G6a "Add a child"), as the Live store adds one
+                        list.append(kid)  // a new kid (board G6a), as the Live store adds one
                     }
                 }
             },
