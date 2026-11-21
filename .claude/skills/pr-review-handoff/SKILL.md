@@ -2,7 +2,7 @@
 name: pr-review-handoff
 description: Use when a change in this repo is ready for review (code, guards, docs or design spec), when sending work to the code review session, when another session's commits need a PR, when acting as the review session ("Family-planner iOS 코드 리뷰"), when a review or LGTM is posted on your PR, or before merging a PR.
 metadata:
-  version: 0.5.0
+  version: 0.6.0
   status: experimental
 ---
 
@@ -77,6 +77,11 @@ hook blocks shell expansion and checks the text for private terms.
   - resolve the fixed threads (GraphQL `resolveReviewThread`, thread ids from `pullRequest.reviewThreads`);
   - answer the author's replies;
   - post a new review for anything left, or LGTM.
+- Review to guard: when a finding could be caught by a script (a pattern in the code, a name or
+  number that can be compared) and its kind has come up twice, write the lesson line
+  (`skill-retro` format, target `guard`, naming both PRs) in the review body and send it to the
+  harness session, which commits it in its next harness PR. Never edit `.claude/lessons.md` in a
+  shared checkout: an uncommitted line there rides into another session's commit.
 
 ## Common mistakes
 
