@@ -88,8 +88,10 @@ public struct PreviewRow<Content: View>: View {
         HStack(spacing: 0) {
             // The time column is 116 × s (the widest time "10:00 am" is 115.5 on the board); a time
             // never gets "…", only a typed title may. It is never squeezed (spec "Sizing → Text").
+            // The new row's bold time may need a few points more: the column grows, never the text
+            // shrinks.
             Text(time).crayonType(.caption, bold: isNew).lineLimit(1).fixedSize()
-                .frame(width: sizing(Self.timeColumn), alignment: .leading)
+                .frame(minWidth: sizing(Self.timeColumn), alignment: .leading)
             content.frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(CrayonColor.ink)

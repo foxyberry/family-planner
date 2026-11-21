@@ -103,7 +103,31 @@ final class OneScaleTests: XCTestCase {
             ("RemoveButton", AnyView(RemoveButton("Remove this bus") {}.frame(width: sizing(472)))),
             ("StatusDot", AnyView(StatusDot("On time", tone: .onTime))),
             ("caption", AnyView(Text(verbatim: "Example Primary School").crayonType(.caption))),
+            ("ListRow", AnyView(ListRow(leading: "Stop") { Text(verbatim: "00000") }.frame(width: sizing(600)))),
+            ("SettingRow", AnyView(SettingRow(title: "Grown-up lock", caption: "Face ID first", isOn: true,
+                                              action: {}) { LockMark() }.frame(width: sizing(600)))),
+            ("ConfirmCard", AnyView(ConfirmCard(title: "Remove Swimming?", message: nil, cancel: "Keep",
+                                                confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {}))),
+            ("CrayonField", AnyView(CrayonField("Name", text: .constant("Kid A")).frame(width: sizing(400)))),
+            ("TimeField", AnyView(TimeField(label: "7:30 am", time: .constant(.distantPast), width: sizing.timeFieldWidth))),
+            ("ChoiceCircles", AnyView(ChoiceCircles([.init(id: "a", picture: nil, caption: "None", isPicked: true),
+                                                     .init(id: "b", picture: nil, caption: "More", isPicked: false)]) { _ in })),
+            ("LiveBusTag", AnyView(LiveBusTag(.bus(number: "34", then: nil, minutes: "15 min")))),
+            ("ResultListCard", AnyView(ResultListCard(rows: [.init(id: "1", title: "Example Rd", caption: "00000") {}],
+                                                      visibleRows: 3, seed: 55, width: sizing(610)))),
+            ("PreviewRow", AnyView(PreviewRow(time: "10:00 am", isNew: true) { Text(verbatim: "Swimming") }
+                .frame(width: sizing(472)))),
         ]
+    }
+
+    /// Spec "Sizing → Text that does not fit": a long typed name in a fixed-width tab ends with "…"
+    /// inside its capsule; it never draws past the tab.
+    func testALongNameStaysInsideItsTab() throws {
+        XCTAssertTrue(FontRegistrar.registerAll())
+        let tab = CrayonTabs(selection: .constant(1), items: [(1, "Kid with a very long name", KidFace.Badge(face: "", colorIndex: 0))],
+                             itemSize: CGSize(width: 180, height: 72))
+        let box = try inkBox(tab, sizing: thirteen)
+        XCTAssertLessThanOrEqual(box.width, 180 + 4, "the label stays inside the 180 tab")
     }
 
     /// The box around everything drawn (alpha over 30 %), in points, on a clear 900 × 400 canvas.

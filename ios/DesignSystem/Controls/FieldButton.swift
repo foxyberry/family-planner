@@ -54,7 +54,6 @@ public struct DateField: View {
     private let width: CGFloat?
     @Binding private var date: Date
     @State private var isPicking = false
-    @Environment(\.sizing) private var sizing
 
     public init(label: String, date: Binding<Date>, width: CGFloat? = nil) {
         self.label = label
@@ -68,8 +67,9 @@ public struct DateField: View {
                 DatePicker(label, selection: $date, displayedComponents: .date)
                     .datePickerStyle(.graphical)
                     .labelsHidden()
-                    .frame(width: sizing(360))
-                    .padding(sizing(Spacing.m))
+                    // A system picker in a popover keeps its own size (it is not a board part).
+                    .frame(width: 360)
+                    .padding(Spacing.m)
             }
     }
 }

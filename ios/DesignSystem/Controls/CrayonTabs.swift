@@ -55,14 +55,20 @@ public struct CrayonTabs<ID: Hashable>: View {
                                     }
                                 }
                         }
-                        // A tab label never wraps ("Mon–Fri" split over two lines on C6).
+                        // A tab label never wraps ("Mon–Fri" split over two lines on C6). In a tab of
+                        // a fixed width a long typed name ends with "…" inside the capsule (spec
+                        // "Sizing → Text that does not fit"); a hugging tab grows with its label.
                         if !faceOnly || item.2 == nil {
                             // Boards 0b/C1: the chosen label bold ink, the others regular soft text.
-                            Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
+                            if width(at: index) != nil || fills {
+                                Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).truncationMode(.tail)
+                            } else {
+                                Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
+                            }
                         }
                     }
                     .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
-                    // Text 24 from a tab's edge (16 compact).
+                    // Text 24 from a hugging tab's edge (16 compact).
                     .padding(.horizontal, itemSize == nil && widths == nil && !fills ? sizing(inset) : 0)
                     .frame(width: width(at: index))
                     .frame(maxWidth: fills ? .infinity : nil)

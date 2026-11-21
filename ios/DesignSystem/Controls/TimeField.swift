@@ -8,7 +8,6 @@ public struct TimeField: View {
     private let width: CGFloat?
     @Binding private var time: Date
     @State private var isPicking = false
-    @Environment(\.sizing) private var sizing
 
     /// `isPlaceholder`: no time chosen yet; `label` is an example time in `softText` (S2).
     /// `width`: a fixed width (S2 Arrive by and latest, 180); otherwise at least 200.
@@ -25,7 +24,8 @@ public struct TimeField: View {
             DatePicker(selection: $time, displayedComponents: .hourAndMinute) { EmptyView() }
                 .datePickerStyle(.wheel)
                 .labelsHidden()
-                .padding(sizing(Spacing.m))
+                // A system picker in a popover keeps its own size (it is not a board part).
+                .padding(Spacing.m)
         }
     }
 }
