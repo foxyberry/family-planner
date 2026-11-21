@@ -252,9 +252,24 @@ public struct OurDayFeature {
         public var startLabel: String? { selectedSpan.map { TimeText.withPeriod($0.start) } }
         public var endLabel: String? { selectedSpan.map { TimeText.withPeriod($0.end) } }
         /// Board G1: the time field of the knob being dragged is outlined in `pickBlue`: the
-        /// selected slice's start when the knob begins it, its end when the knob ends it.
-        public var isStartDragged: Bool { draggedKnob.map { $0.after == selected } ?? false }
-        public var isEndDragged: Bool { draggedKnob.map { $0.before == selected } ?? false }
+        /// selected slice's start when the drag moves its start, its end when it moves its end. An
+        /// item's edge moves only the item, never the slice it sits on.
+        public var isStartDragged: Bool {
+            guard let knob = draggedKnob else { return false }
+            switch knob.edge {
+            case .blocks: return knob.after == selected
+            case let .itemStart(id), let .items(_, id): return selected == .item(id)
+            case .itemEnd: return false
+            }
+        }
+        public var isEndDragged: Bool {
+            guard let knob = draggedKnob else { return false }
+            switch knob.edge {
+            case .blocks: return knob.before == selected
+            case let .itemEnd(id), let .items(id, _): return selected == .item(id)
+            case .itemStart: return false
+            }
+        }
         private var draggedKnob: DayKnob? { dragging.map { edit.clockKnobs[$0] } }
 
         /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
@@ -395,13 +410,14 @@ public struct OurDayFeature {
         }
 
         /// Spec "Add between two slices": a "+" on every shared knob, an item's edges too, all the
-        /// time; the knob being dragged hides its "+", and of two that would overlap only the
-        /// earlier one shows.
+        /// time; "+" that would touch take the outermost free ring (`EditClock.placed`); the knob
+        /// being dragged hides its "+" without moving the others to another ring.
         public var addButtons: [EditClock.AddBetween] {
             let dragging = dragging
-            return EditClock.showing(edit.clockKnobs.enumerated().compactMap { index, knob in
-                knob.showsAdd && index != dragging ? EditClock.AddBetween(knob: index, minute: knob.minute) : nil
+            return EditClock.placed(edit.clockKnobs.enumerated().compactMap { index, knob in
+                knob.showsAdd ? EditClock.AddBetween(knob: index, minute: knob.minute) : nil
             })
+            .filter { $0.knob != dragging }
         }
 
         /// While dragging: "Dinner ends" / "7:30 pm" / "Shower starts"; else the selected slice's name.

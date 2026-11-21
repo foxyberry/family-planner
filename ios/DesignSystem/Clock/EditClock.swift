@@ -37,33 +37,37 @@ public struct EditClock: View {
         }
     }
 
-    /// Board G1: a "+" on a shared knob's boundary line, 64 in from the rim (on every shared knob,
-    /// all the time; the feature leaves out the knob being dragged).
+    /// Board G1: a "+" on a shared knob's boundary line (on every shared knob, all the time; the
+    /// feature leaves out the knob being dragged). `ring` is its place in `addRings` (0 = 64 in
+    /// from the rim), from `placed`.
     public struct AddBetween: Equatable, Sendable {
         public var knob: Int
         public var minute: Int
+        public var ring: Int
 
-        public init(knob: Int, minute: Int) {
+        public init(knob: Int, minute: Int, ring: Int = 0) {
             self.knob = knob
             self.minute = minute
+            self.ring = ring
         }
     }
 
     public static let radius: CGFloat = 340
     public static let hubRadius: CGFloat = 130
-    /// Board G1: a "+" is a RoundButton 56 whose centre sits 64 in from the rim; its circle is drawn
-    /// one part inset (6) inside its frame.
+    /// Board G1: a "+" is a RoundButton 56 whose circle is drawn one part inset (6) inside its frame.
     public static let addSize: CGFloat = 56
-    public static let addInset: CGFloat = 64
     static var addDrawn: CGFloat { addSize - 2 * CrayonPart.inset }
+    /// Spec "Add between two slices": a "+" centre sits on one of three rings, 64, 120 and 176 in
+    /// from the rim (56 apart, more than a drawn circle, so "+" on two rings never touch).
+    public static let addRings: [CGFloat] = [64, 120, 176]
 
-    /// Spec "Add between two slices": two "+" overlap when their drawn circles meet, at board units
-    /// (centres on a circle of radius 276, drawn circles 44 across): knobs under about 37 minutes
-    /// apart.
-    public static func addButtonsOverlap(_ a: Int, _ b: Int) -> Bool {
+    /// Spec "Add between two slices": two "+" on `ring` touch when their drawn circles (44) meet, at
+    /// board units: under about 37 minutes apart on the outer ring (centres 276 from the middle),
+    /// 46 on the middle one (220) and 62 on the inner one (164).
+    public static func addButtonsOverlap(_ a: Int, _ b: Int, ring: Int = 0) -> Bool {
         let apart = abs(a - b) % 1440
         let minutes = Double(min(apart, 1440 - apart))
-        let chord = 2 * (radius - addInset) * sin(minutes * 0.25 * .pi / 180 / 2)
+        let chord = 2 * (radius - addRings[ring]) * sin(minutes * 0.25 * .pi / 180 / 2)
         return chord < addDrawn
     }
 
@@ -87,11 +91,16 @@ public struct EditClock: View {
         return apart(knobs[nearest], minute) <= gap / 2 ? nearest : nil
     }
 
-    /// Where two "+" would overlap, only the earlier one in the day shows.
-    public static func showing(_ buttons: [AddBetween]) -> [AddBetween] {
+    /// Spec "Add between two slices": each "+", in day order, takes the outermost ring where it
+    /// touches no earlier "+"; with no ring free (four or more short slices in a row) it hides.
+    public static func placed(_ buttons: [AddBetween]) -> [AddBetween] {
         var kept: [AddBetween] = []
-        for button in buttons.sorted(by: { $0.minute < $1.minute })
-            where !kept.contains(where: { addButtonsOverlap($0.minute, button.minute) }) {
+        for var button in buttons.sorted(by: { $0.minute < $1.minute }) {
+            let free = addRings.indices.first { ring in
+                !kept.contains { $0.ring == ring && addButtonsOverlap($0.minute, button.minute, ring: ring) }
+            }
+            guard let free else { continue }
+            button.ring = free
             kept.append(button)
         }
         return kept
@@ -183,11 +192,11 @@ public struct EditClock: View {
             if let dragOrigin { originLine(dragOrigin) }
             hubDisc
             knobViews
-            // Board G1: a RoundButton 56 on each shared knob's boundary line, its centre 64 in from the rim.
+            // Board G1: a RoundButton 56 on each shared knob's boundary line, its centre on its ring.
             ForEach(addButtons, id: \.knob) { button in
                 RoundButton(glyph: .plus) { onAddBetween(button.knob) }
                     .size(Self.addSize)
-                    .position(point(radius: r - Self.addInset * k, minute: Double(button.minute)))
+                    .position(point(radius: r - Self.addRings[button.ring] * k, minute: Double(button.minute)))
             }
         }
         .frame(width: 2 * r, height: 2 * r)

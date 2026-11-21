@@ -149,14 +149,35 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.addButtons.contains { $0.minute == 1160 })
     }
 
-    /// Spec "Add between two slices": a 15-minute Shower keeps Dinner | Shower's "+"; Shower | Sleep
-    /// would overlap it, so it has none.
-    func testOverlappingPlusShowOnlyTheEarlier() async {
+    /// Spec "Add between two slices": a 15-minute Shower keeps both "+": Dinner | Shower on the
+    /// outer ring, Shower | Sleep one ring in.
+    func testTouchingPlusTakeTheNextRing() async {
         let store = await loaded()
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1185))
         await store.send(.knobReleased(0))
-        XCTAssertTrue(store.state.addButtons.contains { $0.minute == 1185 })
-        XCTAssertFalse(store.state.addButtons.contains { $0.minute == 1200 })
+        XCTAssertEqual(store.state.addButtons.first { $0.minute == 1185 }?.ring, 0)
+        XCTAssertEqual(store.state.addButtons.first { $0.minute == 1200 }?.ring, 1)
+    }
+
+    /// Spec "Add between two slices": a new 30-minute item keeps both of its "+", on two rings;
+    /// dragging one hides only its own "+", the others keep their rings. Dragging the item's end
+    /// moves only the item, so the Shower under it lights neither of its time fields.
+    func testANewThirtyMinuteItemKeepsBothPlus() async throws {
+        let store = await loaded()
+        let plus = try XCTUnwrap(store.state.addButtons.first { $0.minute == 1155 })
+        await store.send(.addBetweenTapped(plus.knob))
+        await store.send(.newSlicePicturePicked("actPiano"))
+        let rings = { Dictionary(uniqueKeysWithValues: store.state.addButtons.map { ($0.minute, $0.ring) }) }
+        XCTAssertEqual(rings()[1155], 0)
+        XCTAssertEqual(rings()[1185], 1)
+        XCTAssertEqual(rings()[1200], 0)
+        await store.send(.sliceTapped(start: 1185))
+        XCTAssertEqual(store.state.selectedBlock?.title, "Shower")
+        await store.send(.knobDragged(index: knob(store, at: 1185), minute: 1185))
+        XCTAssertNil(rings()[1185], "the dragged knob hides its +")
+        XCTAssertEqual(rings()[1200], 0, "the others keep their rings")
+        XCTAssertFalse(store.state.isStartDragged, "the item's end is not the Shower's start")
+        XCTAssertFalse(store.state.isEndDragged)
     }
 
     /// Spec "Tapping +": the "+" between Dinner and Shower covers Shower's first 30 minutes as a new
@@ -540,8 +561,10 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.showsScopeTabs)
         XCTAssertEqual(store.state.sliceActionTitle, "Skip this day")
         XCTAssertEqual(store.state.detailsTitle, "Details %@")
-        XCTAssertEqual(store.state.addButtons.map(\.minute), [390, 450, 900, 1080, 1155, 1200],
-                       "Swimming's end has a +; Play | Dinner, 30 minutes later, gives way to it")
+        XCTAssertEqual(store.state.addButtons.map(\.minute), [390, 450, 900, 1080, 1110, 1155, 1200],
+                       "Swimming's end has a +")
+        XCTAssertEqual(store.state.addButtons.first { $0.minute == 1110 }?.ring, 1,
+                       "Play | Dinner, 30 minutes later, one ring in")
 
         await store.send(.scopeTapped(.allDays))
         XCTAssertEqual(store.state.sliceActionTitle, "Remove")

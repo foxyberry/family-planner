@@ -125,8 +125,8 @@ public struct DayKnob: Equatable, Sendable {
     public var before: ClockSlice.Source
     public var after: ClockSlice.Source
     /// Spec "Add between two slices": the "+" shows on every shared knob of two slices that are not
-    /// free time, an item's edges too (user, 2026-11-21). Where two "+" would overlap, the screen
-    /// shows only the earlier one (`EditClock.showing`).
+    /// free time, an item's edges too (user, 2026-11-21). Where two "+" would touch, the screen
+    /// puts the later one on an inner ring (`EditClock.placed`).
     public var showsAdd: Bool
 
     public init(minute: Int, edge: Edge, before: ClockSlice.Source, after: ClockSlice.Source, showsAdd: Bool) {
