@@ -5,3 +5,4 @@ ios/Clients/X
 ios/Clients/XLive
 ios/Clients/X/X.swift
 ios/Clients/XLive/XLive.swift
+//ios/Clients/XLive/Tests:__pkg__
