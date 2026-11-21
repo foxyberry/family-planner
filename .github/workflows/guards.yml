@@ -64,8 +64,10 @@ jobs:
         run: bash scripts/tests/private-sync-test.sh
       - name: Local status board tests
         run: bash scripts/tests/board-test.sh
+      - name: Skill reference check tests
+        run: bash scripts/tests/check-skill-refs-test.sh
       # The checks themselves, on this commit.
-      - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, layout literals, view values, strings, skills)
+      - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, layout literals, view values, strings, skills, skill refs)
         run: |
           bash scripts/check-kid-screens.sh
           bash scripts/check-dependencies.sh
@@ -75,3 +77,4 @@ jobs:
           bash scripts/check-view-values.sh
           bash scripts/check-strings.sh
           bash scripts/check-skills.sh
+          bash scripts/check-skill-refs.sh
