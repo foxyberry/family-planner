@@ -2,8 +2,9 @@
 # Every screen has a journey (user, 2026-11-21): each reducer in ios/AppCore and ios/Features must be
 # reached by a journey in ios/Journeys/Tests, so a new screen or flow arrives with one. A reducer
 # `XFeature` counts as reached when journey code (comment lines aside) names the type `XFeature` or
-# its case `.x` (`.home(...)`, `\.path[id: id].changeBuses...`): the case is how the root store
-# reaches a pushed or scoped screen.
+# sends or receives through its case: `.x(` (an action), `\.x` or `].x` (a key path,
+# `\.path[id: id].changeBuses.loaded`). The case is how the root store reaches a pushed or scoped
+# screen; a property read (`store.state.setup?`, `world.settings`) is not a step.
 #
 # Reducers no journey reaches yet are listed in scripts/journeys-pending.txt (one type per line).
 # The list only shrinks: a listed reducer that a journey reaches fails until its line is removed,
@@ -40,7 +41,7 @@ code="$(find "$JOURNEYS" -name '*.swift' -print0 2>/dev/null | xargs -0 cat 2>/d
 reached() {
   local type="$1" stem="${1%Feature}"
   stem="$(printf '%s' "${stem:0:1}" | tr '[:upper:]' '[:lower:]')${stem:1}"
-  printf '%s\n' "$code" | grep -qE "(^|[^A-Za-z0-9_])$type([^A-Za-z0-9_]|$)|\\.$stem([^A-Za-z0-9_]|$)"
+  printf '%s\n' "$code" | grep -qE "(^|[^A-Za-z0-9_])$type([^A-Za-z0-9_]|$)|\\.$stem\\(|(\\\\|\\])\\.$stem([^A-Za-z0-9_]|$)"
 }
 
 list="$(reducers)"

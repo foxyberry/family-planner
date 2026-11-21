@@ -50,6 +50,24 @@ test_comments_and_longer_names_do_not_count() {
   assert test_comments_and_longer_names_do_not_count $?
 }
 
+test_property_reads_do_not_count() {
+  new_tree
+  journey 'let store = TestStoreOf<AppFeature>()' 'XCTAssertEqual(store.state.home.weekday, .tuesday)' \
+    'let plan = world.changeBuses.value'
+  run_check
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"HomeFeature"* ]] && [[ "$ERR" == *"ChangeBusesFeature"* ]]
+  assert test_property_reads_do_not_count $?
+}
+
+test_key_paths_count() {
+  new_tree
+  journey 'TestStoreOf<AppFeature>' 'await store.receive(\.home.loaded)' \
+    'await store.receive(\.path[id: id].changeBuses.delegate.saved)'
+  run_check
+  [ "$CODE" -eq 0 ]
+  assert test_key_paths_count $?
+}
+
 test_pending_list_only_shrinks() {
   new_tree
   journey 'let store = TestStoreOf<AppFeature>()' 'await store.send(.home(.task))'
@@ -83,6 +101,8 @@ test_ignores_test_reducers() {
 test_passes_when_type_or_case_is_named
 test_blocks_a_reducer_no_journey_reaches
 test_comments_and_longer_names_do_not_count
+test_property_reads_do_not_count
+test_key_paths_count
 test_pending_list_only_shrinks
 test_blocks_a_pending_line_for_a_missing_reducer
 test_ignores_test_reducers
