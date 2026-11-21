@@ -23,7 +23,7 @@ The iPads and their scale are in `scripts/scale.py` (it prints s for each). Read
 4. **Clipping or "…" on one-line text**:
    - header tab rows;
    - day-type tabs;
-   - "Bus 12 · 34 · leave 7:05" rows;
+   - "Bus 12 · 34 · 56 · leave 7:05" rows (a bus that changes by its first bus);
    - the "34 → 33" pill of a bus that changes;
    - A2 bubbles.
 5. **Clock hub text in a smaller hub** (G1 drag readout, G1g, hour labels).
