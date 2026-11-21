@@ -2,7 +2,7 @@
 name: screen-layout
 description: Use when placing parts on a screen in ios/Features or ios/AppCore from a board's redlines (docs/superpowers/layout/<board>.json), writing or changing a <Screen>Layout model, sizing a grown-up form card or its rows, adding a gesture to a screen, or when a screen on the iPad looks shifted, too wide, wrapped or unresponsive to a hold. Not for sizes or floors themselves (crayon-design) or reducers and State (tca-feature).
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   status: experimental
 ---
 
@@ -24,6 +24,9 @@ Screens are placed from the board, not stacked by eye, so the four iPads keep th
 - A grown-up form card sized by its rows: `.frame(maxWidth: .infinity)` does not cap a wider
   child, so one wide row (date chips, steppers) widens the card past 64…882. Pin the form to the
   card's inner width with `.frame(width:)` and check the widest row on the grid.
+- A row of fixed-width parts copied from the 13" board (3 × 180 tabs) runs past the card on the
+  11". Widths come from the control column or `Sizing.tabWidth(_:minimum:)`; check every
+  fixed-width row on the 11" grid before merging.
 - Row labels in body type ("Arrive by") wrap in the 104–232 label column. Use caption labels on
   one line, as C2 and S2 do.
 - A second gesture on a view that has `onLongPressGesture` (a `DragGesture(minimumDistance: 0)` to

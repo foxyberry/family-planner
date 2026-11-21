@@ -48,6 +48,9 @@ A checkout another session also works in keeps its branch: start there in a work
   in that call if the note mentions a publishing command. Edit such notes with the file tools.
   The same goes for scripts or tests that contain `git commit -m`: write them with the file tools,
   then run them with `bash <file>`.
+- Before switching branches, check `git status --short` and the commit's `git show --stat HEAD`.
+  A commit that never ran (blocked in a chained call) leaves its change uncommitted, and the change
+  rides along into the next branch's commit.
 
 ## Before pushing (ask the user every time)
 
