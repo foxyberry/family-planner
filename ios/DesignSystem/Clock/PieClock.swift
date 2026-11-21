@@ -66,7 +66,7 @@ public struct PieClock: View {
         self.motion = motion
     }
 
-    /// Spec "Sizing formulas": the clock and everything on it scale by s (R 372 s).
+    /// Spec "Sizing: one scale, no floors": the clock and everything on it scale by s (R 372 s).
     private var k: CGFloat { sizing.s }
     private var r: CGFloat { PieClock.radius * k }
     private var hubR: CGFloat { Self.hubRadius * k }
@@ -134,7 +134,7 @@ public struct PieClock: View {
                 path.addLine(to: point(radius: 392 * k, degrees: Double(hour) * 15))
             }
         }
-        .stroke(look.tick, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+        .stroke(look.tick, style: StrokeStyle(lineWidth: 3 * k, lineCap: .round))
         .frame(width: 2 * r, height: 2 * r)
         .allowsHitTesting(false)
     }
@@ -143,7 +143,7 @@ public struct PieClock: View {
         ForEach(0..<24, id: \.self) { hour in
             let major = hour % 6 == 0
             Text("\(hour % 12 == 0 ? 12 : hour % 12)")
-                .font(Font(FontRegistrar.font(size: major ? sizing.fluid(30, 24) : 24, weight: .semibold)))
+                .font(Font(FontRegistrar.font(size: sizing.size(of: major ? .body : .caption), weight: .semibold)))
                 .foregroundStyle(major ? look.majorLabel : look.minorLabel)
                 .position(point(radius: 412 * k, degrees: Double(hour) * 15))
         }
@@ -211,7 +211,7 @@ public struct PieClock: View {
     }
 
     private var hubDisc: some View {
-        let title = hub.title.map { Self.hubTitleLines($0, sizing: sizing) }
+        let title = hub.title.map { Self.hubTitleLines($0) }
         let isTwoLines = if let title { title.lines.count > 1 } else { false }
         let titleBaselines: [CGFloat] = isTwoLines ? [512, 550] : [540]
         let untilBaseline: CGFloat = isTwoLines ? 594 : 590
@@ -276,10 +276,10 @@ public struct PieClock: View {
 
     /// The hub title as drawn: title 48 on one line if it fits 260; else head 36 broken at words into
     /// at most two lines within 284 (the second line ends with "…" when the rest is too long).
-    public nonisolated static func hubTitleLines(_ title: String, sizing: Sizing = .thirteenInch)
-        -> (lines: [String], isTitle: Bool) {
-        let titleSize = sizing.size(of: .title), headSize = sizing.size(of: .head)
-        let titleWidth = Self.titleWidth * sizing.s, headWidth = Self.headWidth * sizing.s
+    /// Measured on the board, so it breaks the same way at every s.
+    public nonisolated static func hubTitleLines(_ title: String) -> (lines: [String], isTitle: Bool) {
+        let titleSize = CrayonType.title.size, headSize = CrayonType.head.size
+        let titleWidth = Self.titleWidth, headWidth = Self.headWidth
         func width(_ text: String, _ size: CGFloat) -> CGFloat {
             let font = FontRegistrar.font(size: size, weight: .bold)
             return ceil((text as NSString).size(withAttributes: [.font: font]).width)

@@ -27,7 +27,7 @@ public struct OurDayView: View {
                 if !store.showsList { saveButton(layout) }
             }
             if store.isConfirmingLeave {
-                CrayonColor.dim.ignoresSafeArea()
+                CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.leaveCancelled) }
                 // Board G1d: the shared ConfirmCard, its line's arrow drawn inline (design session, 2026-11-14).
                 ConfirmCard(title: L10n.tr("day.unsaved.title"), message: store.unsavedLine, messageGlyph: .arrowRight,
@@ -36,7 +36,7 @@ public struct OurDayView: View {
                             onConfirm: { store.send(.unsavedSaveTapped) })
             }
             if store.fromWhen != nil {
-                CrayonColor.dim.ignoresSafeArea()
+                CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.fromWhenCancelTapped) }
                 FromWhenCard(title: L10n.tr("from_when.title"), tabs: store.fromWhenTabs,
                              selection: Binding(get: { store.fromWhen ?? .today }, set: { store.send(.fromWhenPicked($0)) }),
@@ -69,7 +69,7 @@ public struct OurDayView: View {
                 // Undo / Redo at 656 and 744 (y 880), 24 in from the form box's right edge.
                 .overlay(alignment: .bottomTrailing) { undoRedo.padding(.trailing, 24 * layout.sizing.s) }
             sideColumn(layout)
-                .frame(width: layout.side.width, height: layout.action.minY - Spacing.sm * layout.sizing.s
+                .frame(width: layout.side.width, height: layout.action.minY - sizing(Spacing.sm) * layout.sizing.s
                        - layout.side.minY, alignment: .topLeading)
         }
         // Board G1c: the picker opens under the day button, over the card; a tap outside closes it.
@@ -80,14 +80,14 @@ public struct OurDayView: View {
                     DayPickerCard(month: store.pickerMonth, weeks: store.pickerWeeks,
                                   today: L10n.tr("day.picker.today"), onPage: { store.send(.pickerPageTapped($0)) },
                                   onPick: { store.send(.pickerChipTapped($0)) }, onToday: { store.send(.pickerTodayTapped) })
-                        .padding(.top, 72 + Spacing.s)
+                        .padding(.top, sizing(72 + Spacing.s))
                 }
             }
         }
     }
 
     private func saveButton(_ layout: GrownupLayout) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
             InkButton(L10n.tr("day.save")) { store.send(.saveTapped) }
                 .frame(width: layout.side.width)
             if let error = store.saveError {
@@ -99,7 +99,7 @@ public struct OurDayView: View {
     /// Board G1: Undo and Redo, 72 each, at the clock area's bottom right (722 and 810, y 880);
     /// off at 45 % when there is nothing to take back or put back.
     private var undoRedo: some View {
-        HStack(spacing: Spacing.s) {
+        HStack(spacing: sizing(Spacing.s)) {
             RoundButton(glyph: .undo) { store.send(.undoTapped) }
                 .size(72)
                 .opacity(store.canUndo ? 1 : 0.45)
@@ -109,7 +109,7 @@ public struct OurDayView: View {
                 .opacity(store.canRedo ? 1 : 0.45)
                 .disabled(!store.canRedo)
         }
-        .padding(.bottom, Spacing.s)
+        .padding(.bottom, sizing(Spacing.s))
     }
 
     /// Board G8 (layout v36): the sections in one card; one "Add" on the side. A long title or caption
@@ -119,14 +119,14 @@ public struct OurDayView: View {
             // Board G8: the card stays put; its rows scroll under its top edge.
             PaperCard(seed: 63) {
                 ScrollColumn {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                    VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                         ForEach(store.listSections, id: \.title) { section in
                             Text(section.title).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                                .padding(.top, Spacing.xs)
+                                .padding(.top, sizing(Spacing.xs))
                             ForEach(section.rows) { row in
                                 Button { store.send(.listRowTapped(row.target)) } label: {
-                                    HStack(spacing: Spacing.m) {
-                                        KitIcon(KitSlot(iconName: row.picture), size: 56)
+                                    HStack(spacing: sizing(Spacing.m)) {
+                                        KitIcon(KitSlot(iconName: row.picture), size: sizing(56))
                                         VStack(alignment: .leading, spacing: 0) {
                                             Text(row.title).crayonType(.body).foregroundStyle(CrayonColor.ink)
                                                 .lineLimit(2).truncationMode(.tail)
@@ -137,10 +137,10 @@ public struct OurDayView: View {
                                         }
                                         Spacer(minLength: 0)
                                         if row.target != .school {
-                                            MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                                            MarkerIcon(.chevronRight, size: sizing(28), color: CrayonColor.softText)
                                         }
                                     }
-                                    .frame(minHeight: 88)
+                                    .frame(minHeight: sizing(88))
                                     .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
@@ -160,13 +160,13 @@ public struct OurDayView: View {
 
     private func addLink(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: Spacing.s) {
-                MarkerIcon(.plus, size: 28, color: CrayonColor.ink)
-                    .frame(width: 56, height: 56)
+            HStack(spacing: sizing(Spacing.s)) {
+                MarkerIcon(.plus, size: sizing(28), color: CrayonColor.ink)
+                    .frame(width: sizing(56), height: sizing(56))
                     .crayonBackground(.circle, fill: nil, seed: 1805)
                 Text(title).crayonType(.body).foregroundStyle(CrayonColor.link)
             }
-            .frame(minHeight: 72)
+            .frame(minHeight: sizing(72))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -179,13 +179,13 @@ public struct OurDayView: View {
             CrayonTabs(selection: Binding(get: { store.kid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
         } trailing: {
-            HStack(spacing: Spacing.sm) {
+            HStack(spacing: sizing(Spacing.sm)) {
                 CrayonTabs(selection: Binding(get: { store.showsList }, set: { _ in store.send(.listTapped) }),
                            items: [(true, L10n.tr("day.list"), nil)])
                 Button { store.send(.settingsTapped) } label: {
                     Text(L10n.tr("day.settings")).crayonType(.body).foregroundStyle(CrayonColor.ink)
-                        .padding(.horizontal, Spacing.m)
-                        .frame(height: 72)
+                        .padding(.horizontal, sizing(Spacing.m))
+                        .frame(height: sizing(72))
                         .partBackground(.capsule, fill: CrayonStyle.paper, seed: 73)
                 }
                 .buttonStyle(.plain)
@@ -198,7 +198,7 @@ public struct OurDayView: View {
     /// come within 8 of the card (short iPads) it is left out.
     /// Board G1: the day button (382 × 72) over the slice card; the G1c picker opens over the card.
     private func sideColumn(_ layout: GrownupLayout) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
             DayButton(today: store.dayButtonToday, date: store.dayButtonDate) { store.send(.dayButtonTapped) }
             // Board G1: the slice card is a fixed 382 × 440 box (a new slice's form may grow it), its
             // contents 24 inside (954 … 1288), so This day / All days fit and the card keeps the column.
@@ -214,7 +214,7 @@ public struct OurDayView: View {
     @ViewBuilder private var card: some View {
         if let slice = store.newSlice {
             // Board G1f (layout v41): scope tabs, seven pictures and "More" (4 per row), the name, the times.
-            VStack(alignment: .leading, spacing: Spacing.s) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 scopeTabs
                 PictureRow(slots: store.newSlicePictures,
                            selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
@@ -230,15 +230,15 @@ public struct OurDayView: View {
             }
         } else if let block = store.selectedBlock, store.isSelectedSkipped {
             // Board G1g: the picture faded, the name, the times (soft) and "Bring back"; no scope tabs.
-            VStack(alignment: .leading, spacing: Spacing.s) {
-                HStack(spacing: Spacing.s) {
-                    KitIcon(KitSlot(iconName: block.iconName), size: 64).opacity(0.35)
+            VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
+                HStack(spacing: sizing(Spacing.s)) {
+                    KitIcon(KitSlot(iconName: block.iconName), size: sizing(64)).opacity(0.35)
                     Text(block.title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
                 // "5:00 pm → 6:30 pm" (soft); the arrow is a part, the font has none.
-                HStack(spacing: Spacing.xs) {
+                HStack(spacing: sizing(Spacing.xs)) {
                     Text(store.startLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
-                    MarkerIcon(.arrowRight, size: 28, color: CrayonColor.softText)
+                    MarkerIcon(.arrowRight, size: sizing(28), color: CrayonColor.softText)
                     Text(store.endLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
                 }
                 Button { store.send(.bringBackTapped) } label: {
@@ -247,9 +247,9 @@ public struct OurDayView: View {
                 .buttonStyle(.plain)
             }
         } else if let block = store.selectedBlock {
-            VStack(alignment: .leading, spacing: Spacing.s) {
-                HStack(spacing: Spacing.s) {
-                    if block.kind != .free { KitIcon(KitSlot(iconName: block.iconName), size: 64) }
+            VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
+                HStack(spacing: sizing(Spacing.s)) {
+                    if block.kind != .free { KitIcon(KitSlot(iconName: block.iconName), size: sizing(64)) }
                     Text(block.title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
                 // Spec "Edit scope": This day / All days under the title.
@@ -289,33 +289,18 @@ public struct OurDayView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Small cards: 24 × s inside, at least 16.
+    /// Small cards: 24 × s inside.
     private var sliceCardInset: CGFloat { sizing.smallCardInset }
 
-    /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16.
-    /// Spec "Part floors" give-way (worked example): fields max(176 s, 142); the row tries the
-    /// scaled gaps and joiner, then their floors (12, 24), then the card inset at its floor (16),
-    /// then stacks ("→ end" on a second line).
-    /// `ViewThatFits` measures the card's real width, so no width is worked out by hand.
+    /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16, all
+    /// × s: it fits the 424 inside of the card on every screen, since everything scales together.
     private var timesRow: some View {
-        ViewThatFits(in: .horizontal) {
-            timesLine(gap: sizing.pairGap, joiner: sizing.joiner)
-            timesLine(gap: 12, joiner: 24)
-            // Step 2 also takes the small card's inset to its floor (16): the row may use that room.
-            timesLine(gap: 12, joiner: 24).padding(.horizontal, -(sliceCardInset - Spacing.s))
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                startField
-                HStack(spacing: 12) { arrow(24); endField }
-            }
+        HStack(spacing: sizing.pairGap) {
+            startField
+            MarkerIcon(.arrowRight, size: sizing.joiner, color: CrayonColor.softText)
+            endField
         }
-    }
-
-    private func timesLine(gap: CGFloat, joiner: CGFloat) -> some View {
-        HStack(spacing: gap) { startField; arrow(joiner); endField }.fixedSize()
-    }
-
-    private func arrow(_ size: CGFloat) -> some View {
-        MarkerIcon(.arrowRight, size: size, color: CrayonColor.softText)
+        .fixedSize()
     }
 
     private var startField: some View {

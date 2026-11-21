@@ -5,7 +5,9 @@ import SwiftUI
 public struct CheckMark: View {
     private let isDone: Bool
     private let size: CGFloat
+    @Environment(\.sizing) private var sizing
 
+    /// `size`: the board diameter (× s on screen).
     public init(isDone: Bool, size: CGFloat = 56) {
         self.isDone = isDone
         self.size = size
@@ -16,10 +18,10 @@ public struct CheckMark: View {
             CrayonSurface(.circle, fill: isDone ? CrayonStyle.blueCrayon : nil, seed: CrayonStyle.Seed.checkMark)
             if isDone {
                 Image(systemName: "checkmark")
-                    .font(.system(size: size * 0.45, weight: .heavy))
+                    .font(.system(size: sizing(size) * 0.45, weight: .heavy))
                     .foregroundStyle(CrayonColor.tick)
             }
         }
-        .frame(width: size, height: size)
+        .frame(width: sizing(size), height: sizing(size))
     }
 }

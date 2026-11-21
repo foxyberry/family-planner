@@ -16,8 +16,9 @@ public struct FromWhenCard<Choice: Hashable>: View {
     private let onSave: () -> Void
     private let onCancel: () -> Void
     private let tabWidths: [CGFloat]?
+    @Environment(\.sizing) private var sizing
 
-    /// `tabWidths`: per-tab widths for longer labels (G7 "Next term"); 150 each otherwise.
+    /// `tabWidths`: per-tab board widths for longer labels (G7 "Next term"); 150 each otherwise.
     public init(title: String, tabs: [(Choice, String)], selection: Binding<Choice>, dateChoice: Choice,
                 dateLabel: String, date: Binding<Date>, caption: String?, save: String, cancel: String,
                 tabWidths: [CGFloat]? = nil, onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
@@ -37,7 +38,7 @@ public struct FromWhenCard<Choice: Hashable>: View {
 
     public var body: some View {
         PaperCard(seed: 51) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
                 Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 if let tabWidths {
                     CrayonTabs(selection: $selection, items: tabs.map { ($0.0, $0.1, nil) }, widths: tabWidths,
@@ -53,8 +54,8 @@ public struct FromWhenCard<Choice: Hashable>: View {
                     Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                HStack(spacing: Spacing.l) {
-                    InkButton(save, action: onSave).frame(width: 220)
+                HStack(spacing: sizing(Spacing.l)) {
+                    InkButton(save, action: onSave).frame(width: sizing(220))
                     Button(action: onCancel) {
                         Text(cancel).crayonType(.head).foregroundStyle(CrayonColor.softText)
                     }
@@ -62,6 +63,6 @@ public struct FromWhenCard<Choice: Hashable>: View {
                 }
             }
         }
-        .frame(width: 560)
+        .frame(width: sizing(560))
     }
 }

@@ -49,14 +49,14 @@ public struct IconPicker: View {
     public static let columns = 6
 
     /// The pick ring's diameter: `pickRing` outside the circle drawn one inset inside its cell.
-    static func ringSize(cell: CGFloat) -> CGFloat { cell - 2 * CrayonPart.inset + 2 * CrayonPart.pickRing }
+    static func ringSize(cell: CGFloat, sizing: Sizing) -> CGFloat { cell - 2 * sizing.inset + 2 * sizing.pickRing }
 
     public var body: some View {
         // Board C3: six 88 cells, 16 apart, from the control line (232 … 840); never centred.
-        // Spec "Part floors": cells 88 × s, never under 72; art and ring keep their board ratio.
-        let cell = sizing.pictureCircle(88)
-        LazyVGrid(columns: Array(repeating: GridItem(.fixed(cell), spacing: Spacing.s), count: columns),
-                  alignment: .leading, spacing: Spacing.s) {
+        // Cells 88 × s; art and ring keep their board ratio.
+        let cell = sizing(88)
+        LazyVGrid(columns: Array(repeating: GridItem(.fixed(cell), spacing: sizing(Spacing.s)), count: columns),
+                  alignment: .leading, spacing: sizing(Spacing.s)) {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
                 let isOn = isOn(slot)
                 Button { onTap(slot) } label: {
@@ -68,8 +68,9 @@ public struct IconPicker: View {
                         .overlay {
                             if isOn {
                                 // As ChoiceCircles: the ring sits `pickRing` outside the drawn circle.
-                                Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
-                                    .frame(width: Self.ringSize(cell: cell), height: Self.ringSize(cell: cell))
+                                Circle().stroke(CrayonColor.pickBlue, lineWidth: sizing(5))
+                                    .frame(width: Self.ringSize(cell: cell, sizing: sizing),
+                                           height: Self.ringSize(cell: cell, sizing: sizing))
                             }
                         }
                         .contentShape(Circle())

@@ -4,17 +4,18 @@ import XCTest
 /// Spec "A2 strip, when labels collide" with board A2's v57 buses (made-up numbers).
 @MainActor
 final class LiveTagLayoutTests: XCTestCase {
-    private func tags(kx: CGFloat) -> [LiveTagLayout.Tag] {
+    /// Tags on the strip at scale `k` (one scale: their widths × k too).
+    private func tags(kx: CGFloat, k: CGFloat = 1) -> [LiveTagLayout.Tag] {
         [(15, "34"), (22, "34"), (24, "12")].map { minutes, number in
             LiveTagLayout.Tag(centreX: WayStrip.liveX(minutes: minutes) * kx,
-                              width: LiveBusTag.width(.bus(number: number, then: nil, minutes: "\(minutes) min")))
+                              width: LiveBusTag.width(.bus(number: number, then: nil, minutes: "\(minutes) min")) * k)
         }
     }
 
     private func bubble(kx: CGFloat, k: CGFloat) -> CGRect {
         // My bus at 12 min: x 540, the bubble's foot 8 above the bus top (132).
-        CGRect(x: 540 * kx - LiveBusBubble.size.width / 2, y: 132 * k - LiveBusBubble.size.height,
-               width: LiveBusBubble.size.width, height: LiveBusBubble.size.height)
+        let size = CGSize(width: LiveBusBubble.size.width * k, height: LiveBusBubble.size.height * k)
+        return CGRect(x: 540 * kx - size.width / 2, y: 132 * k - size.height, width: size.width, height: size.height)
     }
 
     private func frames(_ slots: [LiveTagLayout.Slot]) -> [CGRect] {
@@ -31,10 +32,17 @@ final class LiveTagLayoutTests: XCTestCase {
         XCTAssertEqual(placed[1].width, 154, accuracy: 8, "about 151–158 wide")
     }
 
-    /// The 11": real tag widths on a smaller strip still never overlap and stay inside it.
-    func testElevenInchKeepsTagsApartAndInside() {
-        let k: CGFloat = 820.0 / 1032.0, kx = (1180 - 128 * k) / 1248
-        let placed = frames(LiveTagLayout.place(tags(kx: kx), kx: kx, k: k, bubble: bubble(kx: kx, k: k)))
+    /// One scale (the Duo inner screen): the board's rows, every frame × s.
+    func testASmallWindowIsTheBoardTimesS() {
+        let k = Sizing(width: 890, height: 626).s, kx = k
+        let board = frames(LiveTagLayout.place(tags(kx: 1), kx: 1, k: 1, bubble: bubble(kx: 1, k: 1)))
+        let placed = frames(LiveTagLayout.place(tags(kx: kx, k: k), kx: kx, k: k, bubble: bubble(kx: kx, k: k)))
+        XCTAssertEqual(placed.count, board.count)
+        for (a, b) in zip(placed, board) {
+            XCTAssertEqual(a.minX, b.minX * k, accuracy: 0.01)
+            XCTAssertEqual(a.minY, b.minY * k, accuracy: 0.01)
+            XCTAssertEqual(a.width, b.width * k, accuracy: 0.01)
+        }
         XCTAssertEqual(placed.count, 3)
         for (i, a) in placed.enumerated() {
             XCTAssertGreaterThanOrEqual(a.minY, 0)

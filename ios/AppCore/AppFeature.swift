@@ -48,9 +48,6 @@ public struct AppFeature {
 
         /// The iPad's own light or dark setting, read every second (`deviceLook`).
         public var deviceIsDark = false
-        /// The device screen in landscape, read once when the root appears (spec "Supported screens
-        /// and windows"): every size comes from it, not from the window.
-        public var screen: CGSize?
         /// The window's colour scheme (spec "Night mapping"): the iPad's own while grown-up screens
         /// are open, light for setup, else the home's look (the kid home and A2). Always a value:
         /// going from dark back to nil (follow the system) kept the window dark on the iPad.
@@ -246,7 +243,6 @@ public struct AppFeature {
                 return .send(.home(.reload))
 
             case .task:
-                if state.screen == nil { state.screen = deviceLook.screen() }
                 return .merge(
                     .run { [clock, date] send in
                         for await _ in clock.timer(interval: .seconds(1)) {

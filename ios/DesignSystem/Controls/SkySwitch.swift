@@ -13,7 +13,7 @@ public struct SkySwitch: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// On the screen's scale, like the pencil across from it (160 × 96 on the 13").
     @Environment(\.sizing) private var sizing
-    /// Spec "Part floors": 96 × s tall, never under 72.
+    /// 160 × 96, × s.
     private var width: CGFloat { sizing.kidCornerControl * Self.size.width / Self.size.height }
     @State private var showsDusk = false
 

@@ -69,7 +69,6 @@ final class ScreenSnapshotTests: XCTestCase {
     private func snap(_ state: AppFeature.State, _ world: World, size: CGSize, named name: String,
                       file: StaticString = #filePath, testName: String = #function, line: UInt = #line) {
         var state = state
-        state.screen = size
         state.scenePhase = .active  // the app is in front, as on the iPad
         let store = Store(initialState: state) { AppFeature() } withDependencies: { world.install(&$0) }
         let view = AppView(store: store)

@@ -1,13 +1,14 @@
 import CrayonKit
 import SwiftUI
 
-/// A `MarkerGlyph` drawn in marker (5 pt at the 48 box, fixed when resized), round caps and joins.
-/// Sizes: back chevron 40 in a `RoundButton`, row-end chevron 28 (soft), arrows 32 after a label,
-/// plus / minus 40.
+/// A `MarkerGlyph` drawn in marker (5 at the 48 box, never under 3, on the board; × s on screen),
+/// round caps and joins. Sizes (board): back chevron 40 in a `RoundButton`, row-end chevron 28
+/// (soft), arrows 32 after a label, plus / minus 40. `size` is the screen size (board × s).
 public struct MarkerIcon: View {
     private let glyph: MarkerGlyph
     private let size: CGFloat
     private let color: Color
+    @Environment(\.sizing) private var sizing
 
     public init(_ glyph: MarkerGlyph, size: CGFloat, color: Color = CrayonColor.ink) {
         self.glyph = glyph
@@ -22,7 +23,8 @@ public struct MarkerIcon: View {
                 path.addLines(stroke)
             }
             context.stroke(path, with: .color(color),
-                           style: StrokeStyle(lineWidth: max(3, 5 * size / 48), lineCap: .round, lineJoin: .round))
+                           style: StrokeStyle(lineWidth: max(3, 5 * size / sizing.s / 48) * sizing.s, lineCap: .round,
+                                              lineJoin: .round))
         }
         .frame(width: size, height: size)
     }

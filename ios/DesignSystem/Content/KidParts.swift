@@ -3,19 +3,22 @@ import KitArt
 import SwiftUI
 
 /// A kid's progress ring (board 0c2, spec "CrayonKit UI parts"): a beige track and an arc in the
-/// kid's colour from 12 o'clock clockwise, 0…1. The kid chips use 76.
+/// kid's colour from 12 o'clock clockwise, 0…1. The kid chips use 76 (× s); `size` is in screen
+/// points.
 public struct CrayonRing: View {
     private let progress: Double
     private let colorIndex: Int
-    private let size: CGFloat
+    private let size: CGFloat?
+    @Environment(\.sizing) private var sizing
 
-    public init(progress: Double, colorIndex: Int, size: CGFloat = 76) {
+    public init(progress: Double, colorIndex: Int, size: CGFloat? = nil) {
         self.progress = min(max(progress, 0), 1)
         self.colorIndex = colorIndex
         self.size = size
     }
 
     public var body: some View {
+        let size = if let size { size } else { sizing(76) }
         let colour = CrayonColor.kid(colorIndex)
         let inset = size * 0.07
         ZStack {
@@ -36,6 +39,7 @@ public struct CrayonRing: View {
 /// 14 pt notch pointing at the missions it controls, and a soft edge line. 340 × 100 in A2.
 public struct KidBand: View {
     private let colorIndex: Int
+    @Environment(\.sizing) private var sizing
 
     public init(colorIndex: Int) {
         self.colorIndex = colorIndex
@@ -46,15 +50,17 @@ public struct KidBand: View {
             ? (CrayonPalette.kidBTint.color, CrayonPalette.kidBTintEdge.color)
             : (CrayonPalette.kidATint.color, CrayonPalette.kidATintEdge.color)
         ZStack {
-            BandShape().fill(tint)
-            BandShape().stroke(edge, style: StrokeStyle(lineWidth: 3, lineJoin: .round))
+            BandShape(s: sizing.s).fill(tint)
+            BandShape(s: sizing.s).stroke(edge, style: StrokeStyle(lineWidth: sizing(3), lineJoin: .round))
         }
     }
 
-    /// A rounded band (r 28) with a 14 pt notch on its trailing side, as one outline.
+    /// A rounded band (r 28) with a 14 notch on its trailing side, as one outline (× s).
     private struct BandShape: Shape {
+        let s: CGFloat
+
         func path(in rect: CGRect) -> Path {
-            let notch: CGFloat = 14, radius: CGFloat = 28
+            let notch: CGFloat = 14 * s, radius: CGFloat = 28 * s
             let right = rect.maxX - notch
             var path = Path()
             path.move(to: CGPoint(x: rect.minX + radius, y: rect.minY))
@@ -124,11 +130,11 @@ public struct MissionCircle: View {
         self.isCurrent = isCurrent
     }
 
-    /// Spec "Part floors": 112 × s, never under 88.
+    /// 112 × s.
     private var circle: CGFloat { sizing.missionCircle }
 
     public var body: some View {
-        VStack(spacing: Spacing.xs) {
+        VStack(spacing: sizing(Spacing.xs)) {
             ZStack {
                 // Board A2: a thin outline around the mission circle.
                 CrayonSurface(.circle, fill: colorIndex == 1 ? CrayonStyle.apricot : CrayonStyle.skyPill,
@@ -137,27 +143,27 @@ public struct MissionCircle: View {
             }
             .frame(width: circle, height: circle)
             .overlay(alignment: .topTrailing) {
-                if isDone { CheckMark(isDone: true, size: 40).offset(x: Spacing.xxs, y: -Spacing.xxs) }
+                if isDone { CheckMark(isDone: true, size: 40).offset(x: sizing(Spacing.xxs), y: -sizing(Spacing.xxs)) }
             }
-            // Up to two lines, broken between words (spec "Morning data"); never under 24.
+            // Up to two lines, broken between words (spec "Morning data").
             ViewThatFits(in: .horizontal) {
                 captionLine(name)
                 VStack(spacing: 0) {
                     ForEach(Array(Self.lines(name).enumerated()), id: \.offset) { _, line in captionLine(line) }
                 }
             }
-            // The circle's column: one pitch of the row (136 s on its own, never under 112).
+            // The circle's column: one pitch of the row (136 × s on its own).
             .frame(width: columnWidth)
         }
     }
 
     private var columnWidth: CGFloat {
-        if let labelWidth { labelWidth } else { max(112, 136 * sizing.s) }
+        if let labelWidth { labelWidth } else { sizing(136) }
     }
 
     private func captionLine(_ text: String) -> some View {
         Text(verbatim: text)
-            .font(Font(FontRegistrar.font(size: CrayonType.caption.size, weight: isCurrent ? .bold : .medium)))
+            .font(Font(FontRegistrar.font(size: sizing.size(of: .caption), weight: isCurrent ? .bold : .medium)))
             // Board A2: only the current mission's caption is ink; the others are soft text.
             .foregroundStyle(isCurrent ? CrayonColor.ink : CrayonColor.softText)
             .lineLimit(1)
@@ -184,7 +190,7 @@ public struct MissionCircle: View {
         case let .picture(picture):
             RiggedKitIcon(picture, size: circle * 0.64, playID: reduceMotion ? 0 : playID)
         case let .text(text): Text(verbatim: text).crayonType(.title).foregroundStyle(CrayonColor.pictureInk)
-        case .tick: CheckMark(isDone: true, size: circle * 0.56)
+        case .tick: CheckMark(isDone: true, size: Self.size * 0.56)
         case let .glyph(glyph): MarkerIcon(glyph, size: circle * 0.4)
         }
     }

@@ -11,6 +11,7 @@ public struct DrivingKitIcon: View {
     private let size: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.rigScale) private var rigScale
+    @Environment(\.sizing) private var sizing
 
     public init(_ slot: KitSlot, size: CGFloat) {
         self.slot = slot
@@ -27,7 +28,7 @@ public struct DrivingKitIcon: View {
             .phaseAnimator(reduceMotion ? [0.0] : [0.0, 1.0, 0.0, -1.0]) { view, phase in
                 view
                     .rotationEffect(.degrees(phase), anchor: .bottom)
-                    .offset(y: -2 * abs(phase))
+                    .offset(y: -sizing(2) * abs(phase))
             } animation: { _ in .easeInOut(duration: Self.loop / 4) }
     }
 

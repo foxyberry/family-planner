@@ -13,6 +13,7 @@ public struct StopSearchField: View {
     let visibleRows: Int
     /// The control column's width, so the card ends inside the form card (`GrownupLayout.controlWidth`).
     let listWidth: CGFloat
+    @Environment(\.sizing) private var sizing
 
     public init(store: StoreOf<StopSearchFeature>, visibleRows: Int, listWidth: CGFloat) {
         self.store = store
@@ -21,18 +22,18 @@ public struct StopSearchField: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: FormLines.captionGap) {
+        VStack(alignment: .leading, spacing: sizing.captionGap) {
             CrayonField(L10n.tr("c2.stop.placeholder"),
                         text: Binding(get: { store.text }, set: { store.send(.textChanged($0)) }))
-                .frame(width: 400)
+                .frame(width: sizing(400))
                 // A pick closes the keyboard, as on S2, so the field never sends back the text typed
                 // before the pick (S3 needed a second pick, 2026-11-21).
                 .keyboardHidden(when: store.showsPickedCheck)
                 .overlay(alignment: .topLeading) {
                     // Placed with padding, not offset, so the veil's hole lands on the card itself.
-                    if store.isListOpen { matches.resultVeilHole().padding(.top, 80 + Spacing.l) }
+                    if store.isListOpen { matches.resultVeilHole().padding(.top, sizing.fieldHeight + sizing(Spacing.l)) }
                 }
-            HStack(spacing: Spacing.xs) {
+            HStack(spacing: sizing(Spacing.xs)) {
                 if store.showsPickedCheck { CheckMark(isDone: true, size: 32) }
                 Text(store.caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }

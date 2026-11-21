@@ -15,9 +15,9 @@ public struct PictureRow: View {
     private let onMore: () -> Void
     /// Board G1f: in a narrow card the slots wrap, this many per row (88, gap 16); nil keeps one row.
     private let columns: Int?
-    /// Board sizes on the screen's scale (88 circles on the 13"; six still fit the 11" row).
+    /// Board sizes × s (88 circles).
     @Environment(\.sizing) private var sizing
-    private var d: CGFloat { sizing.pictureCircle(88) }
+    private var d: CGFloat { sizing(88) }
 
     public init(slots: [KitSlot], selection: Binding<KitSlot?>, all: [KitSlot], isShowingAll: Bool,
                 moreTitle: String, columns: Int? = nil, onMore: @escaping () -> Void) {
@@ -34,11 +34,11 @@ public struct PictureRow: View {
         if let columns {
             // Layout v43: the rows spread edge to edge (the first slot on the left edge, the last on the right).
             LazyVGrid(columns: (0..<columns).map { column in
-                GridItem(.flexible(minimum: d), spacing: Spacing.s,
+                GridItem(.flexible(minimum: d), spacing: sizing(Spacing.s),
                          alignment: column == 0 ? .leading : column == columns - 1 ? .trailing : .center)
-            }, alignment: .leading, spacing: Spacing.s) { items }
+            }, alignment: .leading, spacing: sizing(Spacing.s)) { items }
         } else {
-            HStack(spacing: Spacing.s) { items }
+            HStack(spacing: sizing(Spacing.s)) { items }
         }
     }
 
@@ -53,7 +53,7 @@ public struct PictureRow: View {
                         .background(
                             CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
                                           seed: CrayonStyle.Seed.iconPicker + UInt32(index))
-                                .padding(CrayonStyle.artInset)
+                                .padding(sizing(CrayonStyle.artInset))
                         )
                         .overlay {
                             if isOn {
@@ -77,7 +77,7 @@ public struct PictureRow: View {
                     // Under the "More" slot, its right edge on the slot's: every picture, 6 per row.
                     PaperCard(seed: 97) { IconPicker(selection: $selection, slots: all) }
                         .fixedSize()
-                        .offset(y: d + Spacing.sm)
+                        .offset(y: d + sizing(Spacing.sm))
                 }
             }
     }

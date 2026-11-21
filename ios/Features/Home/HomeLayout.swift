@@ -1,12 +1,11 @@
 import CoreGraphics
 import DesignSystem
 
-/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v17 "Home panel lines") through
-/// "Sizing formulas": the home screen's parts as screen rects, lines and baselines. Kid A's lines are
-/// fixed; Kid B's block moves as one unit 40 below Kid A's last part (`kidBTop(after:)`). The clock
-/// area is left-anchored (disc
-/// centre (448, 528), R 372); the panel stretches from 928 s to W − 40 s (layout v29) with every
-/// part's left on 928.
+/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v17 "Home panel lines"), every board
+/// value × s (spec "Sizing: one scale, no floors"): the home screen's parts as screen rects, lines
+/// and baselines. Kid A's lines are fixed; Kid B's block moves as one unit 40 below Kid A's last part
+/// (`kidBTop(after:)`). The clock disc's centre is (448, 528), R 372; the panel runs 928–1336
+/// (layout v29) with every part's left on 928.
 public struct HomeLayout: Equatable, Sendable {
     public let sizing: Sizing
 
@@ -17,28 +16,27 @@ public struct HomeLayout: Equatable, Sendable {
     private var s: CGFloat { sizing.s }
 
     // Clock and sky switch
-    public var clockCentre: CGPoint { CGPoint(x: sizing.left(448), y: sizing.y(528)) }
-    /// Spec "Part floors": 96 × s tall, never under 72, keeping its 160 : 96 shape.
+    public var clockCentre: CGPoint { CGPoint(x: sizing.x(448), y: sizing.y(528)) }
+    /// 160 × 96, × s.
     public var skySwitch: CGRect {
         let height = sizing.kidCornerControl
-        return CGRect(x: sizing.left(40), y: sizing.y(36), width: height * 160 / 96, height: height)
+        return CGRect(x: sizing.x(40), y: sizing.y(36), width: height * 160 / 96, height: height)
     }
     /// Board G0: the pencil `RoundButton`, as tall as the sky switch (96; user, 2026-11-15: the 80
     /// circle looked tight beside it) and on its centre line (y 36–132), 40 from the glass (1240–1336).
-    /// Spec "Part floors": kid controls 96 × s, never under 72.
     public var pencil: CGRect {
         let side = sizing.kidCornerControl
-        return CGRect(x: sizing.right(1336) - side, y: sizing.y(36), width: side, height: side)
+        return CGRect(x: sizing.x(1336) - side, y: sizing.y(36), width: side, height: side)
     }
 
-    // Panel (928 s … W − 40 s, layout v29: the right margin matches the sky switch's 40)
-    public var panelLeft: CGFloat { sizing.left(928) }
-    public var panelRight: CGFloat { sizing.right(1336) }
+    // Panel (928–1336, layout v29: the right margin matches the sky switch's 40)
+    public var panelLeft: CGFloat { sizing.x(928) }
+    public var panelRight: CGFloat { sizing.x(1336) }
     public var weekdayBaseline: CGFloat { sizing.y(132) }
 
     /// A kid's face badge (48) and name (head 36, left 992) at the top of their block.
     public func kidBadge(top: CGFloat) -> CGRect { CGRect(x: panelLeft, y: sizing.y(top), width: 48 * s, height: 48 * s) }
-    public var kidNameLeft: CGFloat { sizing.left(992) }
+    public var kidNameLeft: CGFloat { sizing.x(992) }
     public func kidNameBaseline(top: CGFloat) -> CGFloat { sizing.y(top + 24) }
     /// The name's box beside the badge, as tall as the badge, so the name sits on its middle
     /// (user, 2026-11-09: the baseline on the badge's middle put the name too high).
@@ -53,7 +51,7 @@ public struct HomeLayout: Equatable, Sendable {
     /// Leave / Bed shape: the way picture (or the moon on a plate) 96 at (928, 241); the label on
     /// 265 and the time left (72) on 337 at 1040; "On time" on 374.
     public var kidAPicture: CGRect { CGRect(x: panelLeft, y: sizing.y(241), width: 96 * s, height: 96 * s) }
-    public var kidATextLeft: CGFloat { sizing.left(1040) }
+    public var kidATextLeft: CGFloat { sizing.x(1040) }
     public var kidALabelBaseline: CGFloat { sizing.y(265) }
     public var kidATimeBaseline: CGFloat { sizing.y(337) }
     public var kidAStatusBaseline: CGFloat { sizing.y(374) }
@@ -71,7 +69,7 @@ public struct HomeLayout: Equatable, Sendable {
 
     private func row(top: CGFloat) -> RowPlace {
         RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: 104 * s, height: 104 * s),
-                 textLeft: sizing.left(1048), labelBaseline: sizing.y(top + 21),
+                 textLeft: sizing.x(1048), labelBaseline: sizing.y(top + 21),
                  titleBaseline: sizing.y(top + 62), atBaseline: sizing.y(top + 100))
     }
 
@@ -82,7 +80,7 @@ public struct HomeLayout: Equatable, Sendable {
     /// 80 plate, text at 1024 (gap 16) on 404 and 435.
     public var timeLeftRow: RowPlace {
         RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(367), width: 80 * s, height: 80 * s),
-                 textLeft: sizing.left(1024), labelBaseline: nil, titleBaseline: sizing.y(404),
+                 textLeft: sizing.x(1024), labelBaseline: nil, titleBaseline: sizing.y(404),
                  atBaseline: sizing.y(435))
     }
 
@@ -113,10 +111,10 @@ public struct HomeLayout: Equatable, Sendable {
         }
     }
 
-    /// Layout v8 "kidBRule": Kid B's name box starts 40 (a space token, 28 at the floor) below Kid
-    /// A's last part, its baseline never lower than 584; returns the badge top (board units).
+    /// Layout v8 "kidBRule": Kid B's name box starts 40 below Kid A's last part, its baseline never
+    /// lower than 584; returns the badge top (board units).
     public func kidBTop(after end: KidAEnd) -> CGFloat {
-        let nameBaseline = min(end.bottom + sizing.space(40) / s + 28, 584)
+        let nameBaseline = min(end.bottom + 40 + 28, 584)
         return nameBaseline - 24
     }
 

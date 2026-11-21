@@ -6,6 +6,7 @@ import SwiftUI
 
 /// Data sources: each data set's name, its licence notice and the licence link.
 public struct DataSourcesView: View {
+    @Environment(\.sizing) private var sizing
     let store: StoreOf<DataSourcesFeature>
 
     public init(store: StoreOf<DataSourcesFeature>) {
@@ -20,10 +21,10 @@ public struct DataSourcesView: View {
         } content: { layout in
             PaperCard(seed: 41) {
                 ScrollColumn {
-                VStack(alignment: .leading, spacing: Spacing.m) {
+                VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
                     Text(L10n.tr("sources.intro")).crayonType(.body).foregroundStyle(CrayonColor.ink)
                     ForEach(store.sources) { source in
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
+                        VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                             Text(source.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                             Text(source.attribution).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                                 .fixedSize(horizontal: false, vertical: true)

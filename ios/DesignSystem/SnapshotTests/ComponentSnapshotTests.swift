@@ -210,7 +210,7 @@ final class ComponentSnapshotTests: XCTestCase {
             ListRow(leading: "Stop") { Text("00000") }
         }
         .environment(\.formLabelWidth, FormLines.labelColumn)
-        .environment(\.cardPadding, FormLines.cardPadding), width: Self.rowWidth)
+        .environment(\.cardPadding, Sizing.thirteenInch.cardPadding), width: Self.rowWidth)
     }
 
     func testPaperCardWidths() {
@@ -356,7 +356,7 @@ final class ComponentSnapshotTests: XCTestCase {
         let words = KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
                               colour: "Colour", face: "Face", colourCount: 4,
                               faces: [.kidGirl, .kidBoy])
-        snap(PaperCard(padding: FormLines.cardPadding) {
+        snap(PaperCard(padding: Sizing.thirteenInch.cardPadding) {
             KidCard(words: words, name: .constant("Kid A"), age: .constant("7"),
                     badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), colorIndex: 1,
                     face: "kidGirl", onColour: { _ in }, onFace: { _ in })
@@ -397,9 +397,9 @@ final class ComponentSnapshotTests: XCTestCase {
                                                    : "Example Stop \(index)",
                   caption: "Example Rd · 0000\(index)") {}
         } + [.init(id: "more", glyph: .plus, title: "Not in the list? Type the name") {}]
-        snap(ResultListCard(rows: rows, visibleRows: 6, seed: 55), named: "fits")
-        snap(ResultListCard(rows: rows, visibleRows: 2, seed: 55), named: "scrolls")
-        XCTAssertEqual(ResultListCard.height(rows: 8, visible: 6), 6 * 72 + 5 * 2 + 24)
+        snap(ResultListCard(rows: rows, visibleRows: 6, seed: 55, width: 610), named: "fits")
+        snap(ResultListCard(rows: rows, visibleRows: 2, seed: 55, width: 610), named: "scrolls")
+        XCTAssertEqual(ResultListCard.height(rows: 8, visible: 6, sizing: .thirteenInch), 6 * 72 + 5 * 2 + 24)
     }
 
     func testConfirmCard() {
@@ -410,14 +410,14 @@ final class ComponentSnapshotTests: XCTestCase {
 
     /// Spec "Layout balance" on board S1 v56: `FormRow` lines (second column on 590 / 656 … 808 (drawn 802) on the
     /// 13", the card hugging its rows) and `cardCorner`'s × with its confirm card hanging under it,
-    /// on the 13" and the mini.
+    /// on the 13" and the mini (the same picture × s).
     func testFormRowsAndCardCorner() {
         for (name, sizing) in [("13", Sizing(width: 1376, height: 1032)), ("mini", Sizing(width: 1133, height: 744))] {
             let layout = GrownupLayout(sizing: sizing)
             let lines = layout.formLines(secondLabels: ["Age", "Face"],
-                                         secondControlWidth: 2 * sizing.pickedFace + Spacing.sm,
-                                         firstControlMinimum: 4 * ColourSwatch.frame(sizing) + 3 * Spacing.sm)
-            let card = PaperCard(seed: 61, padding: FormLines.cardPadding) {
+                                         secondControlWidth: 2 * sizing.pickedFace + sizing(Spacing.sm),
+                                         firstControlMinimum: 4 * ColourSwatch.frame(sizing) + 3 * sizing(Spacing.sm))
+            let card = PaperCard(seed: 61, padding: sizing.cardPadding) {
                 VStack(alignment: .leading, spacing: sizing.formRowGap) {
                     FormRow("Name", kind: .field, second: "Age") {
                         CrayonField("Name", text: .constant("Kid A"))
@@ -425,11 +425,11 @@ final class ComponentSnapshotTests: XCTestCase {
                         CrayonField("Age", text: .constant("7"))
                     }
                     FormRow("Colour", kind: .choice, second: "Face") {
-                        HStack(spacing: Spacing.sm) {
+                        HStack(spacing: sizing(Spacing.sm)) {
                             ForEach(0..<4, id: \.self) { ColourSwatch(colorIndex: $0, isPicked: $0 == 0) {} }
                         }
                     } secondControl: {
-                        HStack(spacing: Spacing.sm) {
+                        HStack(spacing: sizing(Spacing.sm)) {
                             KitIcon(.kidGirl, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
                             KitIcon(.kidBoy, size: sizing.pickedFace * 56 / 64).frame(width: sizing.pickedFace, height: sizing.pickedFace)
                         }
@@ -439,16 +439,16 @@ final class ComponentSnapshotTests: XCTestCase {
                 .formLines(lines)
             }
             .frame(width: layout.form.width, alignment: .topLeading)
-            .cardCorner(size: Sizing.cornerControl) {
+            .cardCorner(size: sizing(Sizing.cornerControl)) {
                 RoundButton(glyph: .close) {}.size(Sizing.cornerControl)
             } popover: {
                 ConfirmCard(title: "Remove Kid A?", message: nil, cancel: "Keep", confirm: "Remove",
                             isDestructive: true, onCancel: {}, onConfirm: {})
             }
-            .padding(.top, Spacing.l)
-            .padding(.trailing, Spacing.l)
-            .padding(.bottom, 240)
-            .environment(\.sizing, sizing)
+            .padding(.top, sizing(Spacing.l))
+            .padding(.trailing, sizing(Spacing.l))
+            .padding(.bottom, sizing(240))
+            .withSizing(sizing)
             snap(card, named: name)
         }
     }
@@ -799,12 +799,14 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     func testKidFullScreen() {
-        // The frame fills the window the Sizing describes, from its top-left corner.
+        // The frame is the board frame (1376 s wide, the window's height) from its top-left corner;
+        // this 720 × 540 window gives s 0.523.
+        let sizing = Sizing(width: 720, height: 540, safeTop: 0)
         snap(KidFullScreen {
-            Text("Home: the clock uses the whole screen").crayonType(.head).padding(Spacing.m)
+            Text("Home: the clock uses the whole screen").crayonType(.head).padding(sizing(Spacing.m))
         }
-        .environment(\.sizing, Sizing(width: 720, height: 160, safeTop: 0))
-        .frame(width: 720, height: 160))
+        .withSizing(sizing)
+        .frame(width: 720, height: 540))
     }
 
     private func snap(_ view: some View, width: CGFloat? = nil, named name: String? = nil, dark: Bool = false,

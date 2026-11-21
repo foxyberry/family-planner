@@ -20,7 +20,8 @@ public struct KidFace: View {
     }
 
     /// The text's line height rounded up to the 8 pt grid: 48 beside head 36, 40 beside body 30,
-    /// 32 beside caption 24. Gap to the name: 16 beside 48, 8 beside 40 and 32.
+    /// 32 beside caption 24. Gap to the name: 16 beside 48, 8 beside 40 and 32. Board values: a face's
+    /// `size` is in screen points (`sizing(KidFace.medium)`, or a kid screen's layout rect).
     public static let large: CGFloat = 48
     public static let medium: CGFloat = 40
     public static let small: CGFloat = 32
@@ -28,22 +29,26 @@ public struct KidFace: View {
     public static func gap(for size: CGFloat) -> CGFloat { size >= large ? Spacing.s : Spacing.xs }
 
     private let badge: Badge
-    private let size: CGFloat
+    private let size: CGFloat?
     private let showsRing: Bool
+    @Environment(\.sizing) private var sizing
 
     /// `showsRing: false` inside a progress ring (the morning kid list), where the kid's colour
     /// appears only as missions get done (user, 2026-11-09).
-    public init(_ badge: Badge, size: CGFloat = KidFace.large, showsRing: Bool = true) {
+    /// `size`: screen points; nil is `large` × s.
+    public init(_ badge: Badge, size: CGFloat? = nil, showsRing: Bool = true) {
         self.badge = badge
         self.size = size
         self.showsRing = showsRing
     }
 
     public var body: some View {
+        let size = if let size { size } else { sizing(Self.large) }
         ZStack {
             if showsRing {
+                // Marker widths are board units (the surface scales them): 9 % of the board box.
                 CrayonSurface(.circle, fill: nil,
-                              marker: MarkerStyle(width: size * 0.09, roughness: 0.6, bowing: 0.6),
+                              marker: MarkerStyle(width: size / sizing.s * 0.09, roughness: 0.6, bowing: 0.6),
                               markerColor: CrayonColor.kid(badge.colorIndex),
                               seed: CrayonStyle.Seed.kidFace + UInt32(max(0, badge.colorIndex)))
             }

@@ -40,9 +40,9 @@ public struct KidCard: View {
         let sizing = layout.sizing, swatches = CGFloat(words.colourCount)
         return layout.formLines(secondLabels: [words.age, words.face],
                                 secondControlWidth: CGFloat(words.faces.count) * sizing.pickedFace
-                                    + CGFloat(max(words.faces.count - 1, 0)) * Spacing.sm,
+                                    + CGFloat(max(words.faces.count - 1, 0)) * sizing(Spacing.sm),
                                 firstControlMinimum: swatches * ColourSwatch.frame(sizing)
-                                    + max(swatches - 1, 0) * Spacing.sm)
+                                    + max(swatches - 1, 0) * sizing(Spacing.sm))
     }
 
     @Environment(\.sizing) private var sizing
@@ -72,20 +72,20 @@ public struct KidCard: View {
         VStack(alignment: .leading, spacing: sizing.formRowGap) {
             FormRow(words.name, kind: .field, second: words.age) {
                 CrayonField(words.namePlaceholder, text: $name) {
-                    KidFace(badge, size: KidFace.medium)
+                    KidFace(badge, size: sizing(KidFace.medium))
                 }
             } secondControl: {
                 CrayonField(words.agePlaceholder, text: $age)
                     .keyboardType(.numberPad)
             }
             FormRow(words.colour, kind: .choice, second: words.face) {
-                HStack(spacing: Spacing.sm) {
+                HStack(spacing: sizing(Spacing.sm)) {
                     ForEach(0..<words.colourCount, id: \.self) { colour in
                         ColourSwatch(colorIndex: colour, isPicked: colorIndex == colour) { onColour(colour) }
                     }
                 }
             } secondControl: {
-                HStack(spacing: Spacing.sm) {
+                HStack(spacing: sizing(Spacing.sm)) {
                     ForEach(words.faces, id: \.self) { slot in
                         faceButton(slot)
                     }
@@ -100,13 +100,13 @@ public struct KidCard: View {
         let isPicked = face == slot.rawValue
         return Button { onFace(slot.rawValue) } label: {
             // Board S1: each face on a white disc with an ink circle; the pick adds the blue ring.
-            // Spec "Part floors": 64 × s, never under 56; the picture keeps its 56 : 64.
+            // 64 × s; the picture keeps its 56 : 64.
             KitIcon(slot, size: sizing.pickedFace * 56 / 64)
                 .frame(width: sizing.pickedFace, height: sizing.pickedFace)
                 .background { CrayonSurface(.circle, fill: CrayonStyle.paper, marker: .thin, seed: CrayonStyle.Seed.kidCardFace) }
                 .overlay {
                     if isPicked {
-                        Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
+                        Circle().stroke(CrayonColor.pickBlue, lineWidth: sizing(5))
                             .frame(width: sizing.pickedFaceRing, height: sizing.pickedFaceRing)
                     }
                 }

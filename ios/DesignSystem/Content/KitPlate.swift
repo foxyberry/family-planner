@@ -1,14 +1,16 @@
 import SwiftUI
 
 /// Board A1n: at night, kit pictures off the clock sit on a plate (a moon-paper circle with a
-/// 3.5 pt chalk ring; spec "Night mapping"), because their black outlines need a light ground. The plate is the part's
-/// box (its ring's outer edge on the frame) and the picture shrinks to 64 of 104 inside it.
+/// 3.5 chalk ring; spec "Night mapping"), because their black outlines need a light ground. The plate is the part's
+/// box (its ring's outer edge on the frame) and the picture shrinks to 64 of 104 inside it. `size`
+/// is in screen points.
 /// By day the picture fills the box as it is.
 public struct KitPlate<Picture: View>: View {
     private let look: KidLook
     private let size: CGFloat
     private let picture: Picture
     private let nightPicture: CGFloat
+    @Environment(\.sizing) private var sizing
 
     /// `nightPicture`: the picture's share of the plate at night (A1n: 64 of 104; the 80 row: 56 of 80).
     public init(look: KidLook, size: CGFloat, nightPicture: CGFloat = 64.0 / 104.0,
@@ -26,7 +28,7 @@ public struct KitPlate<Picture: View>: View {
             .background {
                 if look == .night {
                     Circle().fill(CrayonColor.moonPaper)
-                        .overlay(Circle().strokeBorder(CrayonColor.chalk, lineWidth: 3.5))
+                        .overlay(Circle().strokeBorder(CrayonColor.chalk, lineWidth: sizing(3.5)))
                 }
             }
             .frame(width: size, height: size)

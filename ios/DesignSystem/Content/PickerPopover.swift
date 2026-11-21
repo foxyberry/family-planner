@@ -8,6 +8,7 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
     private let items: [Item]
     @Binding private var selection: Item
     private let anchor: CGFloat
+    @Environment(\.sizing) private var sizing
 
     /// `anchor` is where the tail sits along the bottom edge, 0...1.
     public init(title: String, items: [Item], selection: Binding<Item>, anchor: CGFloat) {
@@ -18,7 +19,7 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
             Text(title).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText)
             ForEach(items, id: \.self) { item in
                 Button { selection = item } label: {
@@ -28,13 +29,13 @@ public struct PickerPopover<Item: Hashable & CustomStringConvertible>: View {
                         if item == selection { CheckMark(isDone: true, size: 40) }
                     }
                     .foregroundStyle(CrayonColor.pictureInk)
-                    .frame(minHeight: 64)
+                    .frame(minHeight: sizing(64))
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(Spacing.m)
-        .padding(.bottom, Spacing.m)
+        .padding(sizing(Spacing.m))
+        .padding(.bottom, sizing(Spacing.m))
         .background(CrayonSurface(.speechBubble(tailX: anchor, tailHeight: 24), fill: CrayonStyle.pictureGround,
                                       markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 7))
     }

@@ -25,7 +25,7 @@ public struct KidNowNext: View {
     public var body: some View {
         // Boards A1/A1m: now 160 and next 104, bottoms aligned, 40 apart; sizes follow the screen.
         let s = sizing.s
-        return HStack(alignment: .bottom, spacing: sizing.space(Spacing.l)) {
+        return HStack(alignment: .bottom, spacing: sizing(Spacing.l)) {
             circle(now, diameter: 160 * s, picture: 104 * s, fill: CrayonStyle.apricot, caption: nowCaption,
                    seed: 3101)
             if let next {
@@ -37,7 +37,7 @@ public struct KidNowNext: View {
 
     private func circle(_ slot: KitSlot, diameter: CGFloat, picture: CGFloat, fill: CrayonFill, caption: String,
                         seed: UInt32) -> some View {
-        VStack(spacing: Spacing.xs) {
+        VStack(spacing: sizing(Spacing.xs)) {
             KitIcon(slot, size: picture)
                 .frame(width: diameter, height: diameter)
                 .crayonBackground(.circle, fill: fill, seed: seed)

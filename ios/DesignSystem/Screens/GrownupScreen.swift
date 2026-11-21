@@ -4,9 +4,9 @@ import SwiftUI
 /// stay put, only the middle scrolls. When the keyboard opens, the button rides just above it and
 /// the focused field is scrolled into view. It also owns the paper background and hides the system
 /// navigation bar, so every grown-up screen uses the crayon Back button (`GrownupHeader`).
-/// Everything sits on `GrownupLayout`'s lines: the header at 48 and 64 … 1312, the content from
-/// 176 between 64 and 1312 (the form card 64–882, the side column 930–1312), and the primary
-/// action in the side column's foot (930, 872, 382 × 96).
+/// Everything sits on `GrownupLayout`'s lines (board × s): the header at 44 and 40 … 1336, the
+/// content from 148 (the form card 40–840, the side column 864–1336), and the primary action in the
+/// side column's foot (864, 872, 472 × 96).
 /// A row for `GrownupScreen` to bring into view (spec "Add-screen feedback": Save scrolls to the
 /// first problem); `request` changes for every new ask, so the same row can be asked for twice.
 public struct GrownupScrollTarget: Equatable, Sendable {
@@ -54,7 +54,7 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
         // keyboard client's decision (`keyboardTop`, docked and > 100 pt).
         screen(GrownupLayout(sizing: sizing, keyboardTop: keyboardTop))
             .ignoresSafeArea(.keyboard)
-        .background(CrayonColor.paper.ignoresSafeArea())
+        .background(CrayonColor.paper.fullBleed())
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -91,7 +91,7 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
             // Paper behind the button (side column only), so side rows scroll under it cleanly.
             primaryAction(layout)
                 .frame(width: layout.action.width)
-                .padding(.top, sizing.space(Spacing.s))
+                .padding(.top, sizing(Spacing.s))
                 .padding(.bottom, layout.bottomInset)
                 .background(CrayonColor.paper)
                 .padding(.trailing, sizing.width - layout.action.maxX)
@@ -99,7 +99,7 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
         // Board = screen: the header band starts at y 48 from the top of the glass; the status bar
         // sits over the empty band above it. The bottom inset counts from the glass too.
         .ignoresSafeArea(.container, edges: [.top, .bottom])
-        .background(CrayonColor.paper.ignoresSafeArea())
+        .background(CrayonColor.paper.fullBleed())
         .foregroundStyle(CrayonColor.ink)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
@@ -109,7 +109,7 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
         content(layout)
             // Spec "Layout balance": cards pad 32 from their drawn edge (labels on 78) and rows put
             // their controls on the control line (192).
-            .environment(\.cardPadding, FormLines.cardPadding)
+            .environment(\.cardPadding, sizing.cardPadding)
             .environment(\.formLabelWidth, layout.labelWidth)
             // Exactly 64 … 1312 wide, so a long line can never push the card off 64.
             .frame(width: layout.side.maxX - layout.form.minX, alignment: .topLeading)
@@ -161,15 +161,16 @@ public extension GrownupLayout {
     /// top inset) down to the column's foot above the keyboard; nil without the keyboard.
     var searchListHeight: CGFloat? {
         guard keyboardTop != nil else { return nil }
-        let listTop = contentTop + formInset + sizing.fluid(80, 64) + Spacing.xs
-        return max(ResultListCard.compactRowHeight + 2 * Spacing.xs, form.maxY - listTop)
+        let listTop = contentTop + formInset + sizing.fieldHeight + sizing(Spacing.xs)
+        return max(sizing.oneLineRow + 2 * sizing(Spacing.xs), form.maxY - listTop)
     }
 
 }
 
 extension EnvironmentValues {
-    /// The padding inside a `PaperCard` (24 each side; grown-up screens: `FormLines.cardPadding`).
-    @Entry public var cardPadding = EdgeInsets(top: Spacing.m, leading: Spacing.m, bottom: Spacing.m, trailing: Spacing.m)
+    /// The padding inside a `PaperCard`, on this screen (24 × s each side by default, `PaperCard`;
+    /// grown-up screens: `Sizing.cardPadding`).
+    @Entry public var cardPadding: EdgeInsets? = nil
     /// A grown-up form's label column (114, labels 78 → controls 192); `nil` keeps `ListRow`'s own
     /// 120 + gap.
     @Entry public var formLabelWidth: CGFloat? = nil

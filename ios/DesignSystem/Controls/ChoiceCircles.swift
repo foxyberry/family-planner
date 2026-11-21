@@ -32,16 +32,16 @@ public struct ChoiceCircles: View {
         self.onPick = onPick
     }
 
-    /// Spec "Part floors": the 88 circle × s, never under 72; ring and pitch keep their board ratio.
-    private var k: CGFloat { sizing.pictureCircle(88) / 88 }
-    private var ringSize: CGFloat { 88 * k - 2 * CrayonPart.inset + 2 * CrayonPart.pickRing }
+    /// Every board size × s.
+    private var k: CGFloat { sizing.s }
+    private var ringSize: CGFloat { 88 * k - 2 * sizing.inset + 2 * sizing.pickRing }
 
     public var body: some View {
         // Each choice is 112 wide (its caption's width), so the circles sit on the 112 pitch.
         HStack(alignment: .top, spacing: 0) {
             ForEach(choices) { choice in
                 Button { onPick(choice.id) } label: {
-                    VStack(spacing: Spacing.xxs) {
+                    VStack(spacing: sizing(Spacing.xxs)) {
                         ZStack {
                             if let picture = choice.picture {
                                 KitIcon(picture, size: 64 * k)
@@ -58,7 +58,7 @@ public struct ChoiceCircles: View {
                             if choice.isPicked {
                                 // Spec "Alignment contract": the ring sits `pickRing` outside the drawn
                                 // circle (one inset inside its frame), not on the 104 board box.
-                                Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
+                                Circle().stroke(CrayonColor.pickBlue, lineWidth: sizing(5))
                                     .frame(width: ringSize, height: ringSize)
                             }
                         }

@@ -36,24 +36,27 @@ public struct ConfirmCard: View {
 
     /// Spec "Layout balance": an overlay card pads 32 from its drawn edge to the content's drawn
     /// boxes. Its content starts on the content line (drawn + 32, where a framed button's frame also
-    /// sits) and ends on text (the cancel choice); its last row is the buttons' frames.
-    static let padding = EdgeInsets(top: Spacing.card + CrayonPart.inset, leading: Spacing.card + CrayonPart.inset,
-                                    bottom: Spacing.card, trailing: Spacing.card + CrayonPart.inset)
+    /// sits) and ends on text (the cancel choice); its last row is the buttons' frames. × s.
+    static func padding(_ sizing: Sizing) -> EdgeInsets {
+        EdgeInsets(top: sizing(Spacing.card + CrayonPart.inset), leading: sizing(Spacing.card + CrayonPart.inset),
+                   bottom: sizing(Spacing.card), trailing: sizing(Spacing.card + CrayonPart.inset))
+    }
     /// Board C3x: 40 from the main button's frame to the cancel text.
     static let buttonGap: CGFloat = Spacing.l
-    /// Spec "Part floors" (design session, layout v56): drawn width max(520 s, content + 64), frame
-    /// one inset wider each side. The content is the buttons row (button frame, gap, cancel text);
+    /// Layout v56: on the board the drawn width is max(520, content + 64), the frame one inset wider
+    /// each side; on screen × s. The content is the buttons row (button frame, gap, cancel text);
     /// the title and message wrap inside. C3x "Leave" / "Keep editing" gives 541 on the 13".
     public static func width(sizing: Sizing, cancel: String) -> CGFloat {
-        let content = CardButton.width + buttonGap + CrayonType.body.width(cancel, sizing: sizing, bold: true)
-        return ceil(max(520 * sizing.s, content + 2 * Spacing.card) + 2 * CrayonPart.inset)
+        let words = CrayonType.body.width(cancel, sizing: .thirteenInch, bold: true)
+        let content = CardButton.width + buttonGap + words
+        return ceil(max(520, content + 2 * Spacing.card) + 2 * CrayonPart.inset) * sizing.s
     }
 
     public var body: some View {
-        PaperCard(seed: CrayonStyle.Seed.card + 7, padding: Self.padding) {
+        PaperCard(seed: CrayonStyle.Seed.card + 7, padding: Self.padding(sizing)) {
             // Spec "Layout balance": the text block, then the buttons row 24 below between drawn edges.
-            VStack(alignment: .leading, spacing: sizing.formRowGap - CrayonPart.inset) {
-                VStack(alignment: .leading, spacing: Spacing.s) {
+            VStack(alignment: .leading, spacing: sizing.formRowGap - sizing.inset) {
+                VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                     if let titleGlyph {
                         GlyphText(title, glyph: titleGlyph, type: .head, color: CrayonColor.ink)
                     } else {
@@ -68,16 +71,16 @@ public struct ConfirmCard: View {
                 }
                 // The main choice first (design session, 2026-11-14): an InkButton, or the lateText
                 // button when it destroys something; the other choice after it as plain text.
-                HStack(spacing: Self.buttonGap) {
+                HStack(spacing: sizing(Self.buttonGap)) {
                     if isDestructive {
                         CardButton(confirm, isDestructive: true, action: onConfirm)
                     } else {
-                        InkButton(confirm, height: 72, action: onConfirm).frame(width: CardButton.width)
+                        InkButton(confirm, height: 72, action: onConfirm).frame(width: sizing(CardButton.width))
                     }
                     Button(action: onCancel) {
                         Text(cancel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
                             .lineLimit(1).fixedSize()
-                            .frame(minHeight: 72)
+                            .frame(minHeight: sizing(72))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -96,6 +99,7 @@ struct CardButton: View {
     private let title: String
     private let isDestructive: Bool
     private let action: () -> Void
+    @Environment(\.sizing) private var sizing
 
     init(_ title: String, isDestructive: Bool = false, action: @escaping () -> Void) {
         self.title = title
@@ -109,7 +113,7 @@ struct CardButton: View {
                 .crayonType(isDestructive ? .head : .body)
                 .foregroundStyle(isDestructive ? CrayonColor.lateText : CrayonColor.ink)
                 .lineLimit(1)
-                .frame(width: Self.width, height: 72)
+                .frame(width: sizing(Self.width), height: sizing(72))
                 .partBackground(.capsule, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.tabs + 9)
         }
         .buttonStyle(.plain)

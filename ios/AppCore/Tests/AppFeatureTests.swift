@@ -39,24 +39,6 @@ final class AppFeatureTests: XCTestCase {
         await task.cancel()
     }
 
-    /// Spec "Supported screens and windows": the device screen is read once, when the root appears.
-    func testReadsTheDeviceScreenOnce() async {
-        let store = TestStore(initialState: AppFeature.State()) {
-            AppFeature()
-        } withDependencies: {
-            $0.continuousClock = TestClock()
-            $0.date.now = fixedDate
-            $0.deviceLook.screen = { CGSize(width: 1133, height: 744) }
-        }
-        store.exhaustivity = .off
-        let task = await store.send(.task) { $0.screen = CGSize(width: 1133, height: 744) }
-        await task.cancel()
-        store.dependencies.deviceLook.screen = { CGSize(width: 1376, height: 1032) }
-        let again = await store.send(.task)
-        XCTAssertEqual(store.state.screen, CGSize(width: 1133, height: 744), "a second appearance keeps the first read")
-        await again.cancel()
-    }
-
     func testClockTicksEverySecondUntilCancelled() async {
         let clock = TestClock()
         let store = TestStore(initialState: AppFeature.State()) {
@@ -71,7 +53,7 @@ final class AppFeatureTests: XCTestCase {
             }()
         }
 
-        let task = await store.send(.task) { $0.screen = CGSize(width: 1376, height: 1032) }
+        let task = await store.send(.task)
         await clock.advance(by: .seconds(1))
         await store.receive(\.tick, fixedDate) {
             $0.now = self.fixedDate

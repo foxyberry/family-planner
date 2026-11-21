@@ -35,7 +35,7 @@ public struct ResultListCard: View {
         }
     }
 
-    public static let width: CGFloat = 610
+    /// Board values (× s on screen).
     public static let rowHeight: CGFloat = 72
     /// S2s with the keyboard up (design session 2026-11-15): one line, "{name} · {caption}".
     public static let compactRowHeight: CGFloat = 48
@@ -49,8 +49,8 @@ public struct ResultListCard: View {
     /// row at the foot shows there is more to scroll.
     private let fitHeight: CGFloat?
 
-    public init(rows: [Row], visibleRows: Int, seed: UInt32, width: CGFloat = ResultListCard.width,
-                fitHeight: CGFloat? = nil) {
+    /// `width` and `fitHeight` in screen points.
+    public init(rows: [Row], visibleRows: Int, seed: UInt32, width: CGFloat, fitHeight: CGFloat? = nil) {
         self.rows = rows
         self.visibleRows = max(visibleRows, 1)
         self.seed = seed
@@ -61,21 +61,23 @@ public struct ResultListCard: View {
     @Environment(\.sizing) private var sizing
     private var cardWidth: CGFloat { width }
     private var isCompact: Bool { fitHeight != nil }
-    /// Spec "Part floors": one-line rows 48 fixed; two-line rows 72 fixed.
-    private var rowHeight: CGFloat { isCompact ? Sizing.oneLineRow : Sizing.twoLineRow }
-    private var padding: CGFloat { isCompact ? Spacing.xs : Self.padding }
+    /// One-line rows 48 × s; two-line rows 72 × s.
+    private var rowHeight: CGFloat { isCompact ? sizing.oneLineRow : sizing.twoLineRow }
+    private var padding: CGFloat { sizing(isCompact ? Spacing.xs : Self.padding) }
 
-    /// The card's height for `count` rows when `visible` fit.
-    public static func height(rows count: Int, visible: Int) -> CGFloat {
+    /// The card's height for `count` rows when `visible` fit, on `sizing`.
+    public static func height(rows count: Int, visible: Int, sizing: Sizing) -> CGFloat {
         let shown = min(count, max(visible, 1))
-        return CGFloat(shown) * rowHeight + CGFloat(max(shown - 1, 0)) * 2 + 2 * padding
+        return sizing(CGFloat(shown) * rowHeight + CGFloat(max(shown - 1, 0)) * 2 + 2 * padding)
     }
 
     public var body: some View {
         // Every row's height; the card shows `visibleRows` (or `fitHeight`) of it and scrolls the rest.
-        let full = isCompact ? CGFloat(rows.count) * (rowHeight + 2) - 2 + 2 * padding
-            : Self.height(rows: rows.count, visible: rows.count)
-        let height = if let fitHeight { min(fitHeight, full) } else { Self.height(rows: rows.count, visible: visibleRows) }
+        let full = isCompact ? CGFloat(rows.count) * (rowHeight + sizing(2)) - sizing(2) + 2 * padding
+            : Self.height(rows: rows.count, visible: rows.count, sizing: sizing)
+        let height = if let fitHeight { min(fitHeight, full) } else {
+            Self.height(rows: rows.count, visible: visibleRows, sizing: sizing)
+        }
         Group {
             if height < full {
                 ScrollView(.vertical) { list }.scrollIndicators(.visible)
@@ -94,7 +96,7 @@ public struct ResultListCard: View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                 // Layout v21: no lines inside cards; rows keep the 2 gap as space.
-                if index > 0 { Color.clear.frame(height: 2) }
+                if index > 0 { Color.clear.frame(height: sizing(2)) }
                 Button(action: row.action) { label(row) }
                     .buttonStyle(.plain)
             }
@@ -102,8 +104,8 @@ public struct ResultListCard: View {
     }
 
     private func label(_ row: Row) -> some View {
-        HStack(spacing: Spacing.sm) {
-            if let glyph = row.glyph { MarkerIcon(glyph, size: 32, color: CrayonColor.link) }
+        HStack(spacing: sizing(Spacing.sm)) {
+            if let glyph = row.glyph { MarkerIcon(glyph, size: sizing(32), color: CrayonColor.link) }
             if isCompact {
                 // One line: the name, then " · {caption}" in soft text.
                 HStack(spacing: 0) {
@@ -115,7 +117,7 @@ public struct ResultListCard: View {
                     }
                 }
             } else {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: sizing(2)) {
                     Text(row.title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
                         .lineLimit(1).truncationMode(.tail)
                     if let caption = row.caption {
@@ -125,7 +127,7 @@ public struct ResultListCard: View {
                 }
             }
         }
-        .padding(.horizontal, Spacing.m)
+        .padding(.horizontal, sizing(Spacing.m))
         .frame(width: cardWidth, height: rowHeight, alignment: .leading)
         .contentShape(Rectangle())
     }
@@ -151,29 +153,41 @@ extension View {
     /// Spec "Result list card": while a list is open, paper at 72 % veils the screen except the
     /// views marked `resultVeilHole()`. No tap goes through the veil; a tap on it closes the list.
     public func resultVeil(isOpen: Bool, onClose: @escaping () -> Void) -> some View {
-        overlayPreferenceValue(ResultVeilHoles.self) { anchors in
+        modifier(ResultVeil(isOpen: isOpen, onClose: onClose))
+    }
+}
+
+private struct ResultVeil: ViewModifier {
+    let isOpen: Bool
+    let onClose: () -> Void
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View {
+        content.overlayPreferenceValue(ResultVeilHoles.self) { anchors in
             if isOpen {
                 GeometryReader { proxy in
                     let holes = anchors.map { proxy[$0] }
-                    let veil = VeilShape(holes: holes)
+                    let veil = VeilShape(holes: holes, margin: sizing(8), corner: sizing(24))
                     veil.fill(CrayonColor.paper.opacity(0.72), style: FillStyle(eoFill: true))
                         .contentShape(veil, eoFill: true)
                         .onTapGesture(perform: onClose)
                 }
-                .ignoresSafeArea()
+                .fullBleed()
             }
         }
     }
 }
 
-/// The whole screen with the marked views cut out.
+/// The whole screen with the marked views cut out, `margin` around each.
 private struct VeilShape: Shape {
     let holes: [CGRect]
+    let margin: CGFloat
+    let corner: CGFloat
 
     func path(in rect: CGRect) -> Path {
         var path = Path(rect.insetBy(dx: -200, dy: -200))
-        for hole in Self.merged(holes.map { $0.insetBy(dx: -8, dy: -8) }) {
-            path.addRoundedRect(in: hole, cornerSize: CGSize(width: 24, height: 24))
+        for hole in Self.merged(holes.map { $0.insetBy(dx: -margin, dy: -margin) }) {
+            path.addRoundedRect(in: hole, cornerSize: CGSize(width: corner, height: corner))
         }
         return path
     }

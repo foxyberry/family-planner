@@ -5,6 +5,7 @@ import SwiftUI
 
 /// C2 · Our buses (board C2, first cut): plan A for one kid.
 public struct BusSettingsView: View {
+    @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<BusSettingsFeature>
 
     public init(store: StoreOf<BusSettingsFeature>) {
@@ -21,13 +22,13 @@ public struct BusSettingsView: View {
                 // Board C2: the card runs 148–968, exactly its inner width, so a long row of buses can
                 // never widen it; a stop with many buses scrolls its rows inside the card.
                 PaperCard(seed: 51) {
-                    ScrollColumn(bleed: FormLines.drawnBleed) {
+                    ScrollColumn(bleed: sizing.drawnBleed) {
                         plan(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
                 ScrollColumn { side }
-                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - sizing(Spacing.s),
                            alignment: .topLeading)
             }
         } primaryAction: { layout in
@@ -79,13 +80,13 @@ public struct BusSettingsView: View {
             stepper(store.graceLabel, text: store.graceText, caption: store.graceCaption, step: 5,
                     value: store.lateGrace, sizing: layout.sizing) { store.send(.graceChanged($0)) }
             // Board C2 (v61, y 826): "+ A bus that changes…" → C2c for a new one, always shown.
-            ListRow(leading: "", minHeight: PlusLink.height) { PlusLink(store.changeLink) { store.send(.changeLinkTapped) } }
+            ListRow(leading: "", minHeight: layout.sizing(PlusLink.height)) { PlusLink(store.changeLink) { store.send(.changeLinkTapped) } }
         }
     }
 
     /// Board C2's side column (layout v38, plain screens): whose route it is, nothing more.
     private var side: some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
             Text(store.sideTitle).crayonType(.head)
         }
         .foregroundStyle(CrayonColor.ink)

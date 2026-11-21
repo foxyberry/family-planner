@@ -18,6 +18,7 @@ public struct LockOverlay: View {
     private let cancel: String
     private let onPrimary: () -> Void
     private let onCancel: () -> Void
+    @Environment(\.sizing) private var sizing
 
     /// Words from the caller. `primary`: the first button ("Try again", "Enter"); nil shows only
     /// `cancel`.
@@ -33,28 +34,28 @@ public struct LockOverlay: View {
 
     public var body: some View {
         ZStack {
-            CrayonColor.pictureMarker.opacity(0.6).ignoresSafeArea()
+            CrayonColor.pictureMarker.opacity(0.6).fullBleed()
             // Spec "Lock": no line above the card for any entry (hold, pencil, link); the title is enough.
-            VStack(spacing: Spacing.m) {
+            VStack(spacing: sizing(Spacing.m)) {
                 PaperCard(seed: CrayonStyle.Seed.card + 11) {
-                    VStack(alignment: .leading, spacing: Spacing.m) {
-                        HStack(spacing: Spacing.s) {
-                            Image(systemName: "lock.fill").font(.system(size: 40, weight: .bold))
+                    VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
+                        HStack(spacing: sizing(Spacing.s)) {
+                            Image(systemName: "lock.fill").font(.system(size: sizing(40), weight: .bold))
                             Text(title).crayonType(.title)
                         }
                         .foregroundStyle(CrayonColor.ink)
                         Text(message).crayonType(.body).foregroundStyle(CrayonColor.ink)
                             .fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: Spacing.m) {
+                        HStack(spacing: sizing(Spacing.m)) {
                             if let primary { CardButton(primary, action: onPrimary) }
                             CardButton(cancel, action: onCancel)
                         }
                     }
                     // Board C0: padding 40 × 64, gap 24.
-                    .padding(.horizontal, Spacing.xl)
-                    .padding(.vertical, Spacing.l)
+                    .padding(.horizontal, sizing(Spacing.xl))
+                    .padding(.vertical, sizing(Spacing.l))
                 }
-                .frame(width: 818)
+                .frame(width: sizing(818))
             }
         }
     }

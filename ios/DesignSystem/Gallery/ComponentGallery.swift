@@ -6,6 +6,7 @@ import SwiftUI
 /// Every design-system part on one screen, grouped like the design boards (0b controls,
 /// 0c content, 0f frames). New parts are added here first. Reached from parent mode in debug builds.
 public struct ComponentGallery: View {
+    @Environment(\.sizing) private var sizing
     /// The kid card's words (made up, gallery only).
     static let kidWords = KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
                                         colour: "Colour", face: "Face", colourCount: 4,
@@ -62,7 +63,7 @@ public struct ComponentGallery: View {
                     PlusLink("A bus that changes…") {}
                     RemoveButton("Remove this bus") {}.frame(width: 472)
                     // S1 / G6f: the kid card.
-                    PaperCard(padding: FormLines.cardPadding) {
+                    PaperCard(padding: sizing.cardPadding) {
                         KidCard(words: Self.kidWords,
                                 name: .constant("Kid A"), age: .constant("7"),
                                 badge: KidFace.Badge(face: "kidGirl", colorIndex: 1),
@@ -124,12 +125,12 @@ public struct ComponentGallery: View {
                         .init(id: "1", title: "Opp Example Hotel With A Very Long Name Past The Card", caption: "Example Rd · 00000") {},
                         .init(id: "2", title: "Example Primary School", caption: "Example Rd · 00001") {},
                         .init(id: "3", glyph: .plus, title: "Not in the list? Type the name") {},
-                    ], visibleRows: 6, seed: 55)
+                    ], visibleRows: 6, seed: 55, width: sizing(610))
                     HStack(spacing: 0) {
                         FormLabel("Name")
                         Text("Swimming").crayonType(.body)
                     }
-                    .environment(\.formLabelWidth, FormLines.labelColumn)
+                    .environment(\.formLabelWidth, sizing(FormLines.labelColumn))
                     TodayRow(leading: "Today") { Text("Swimming 15:30") }
                     PreviewRow(time: "3:30 pm", isNew: false) { Text("Play").crayonType(.body) }
                     PreviewRow(time: "4:00 pm", isNew: true) { Text("Swimming").crayonType(.head) }

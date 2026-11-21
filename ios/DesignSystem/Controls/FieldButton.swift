@@ -12,7 +12,8 @@ public struct FieldButton: View {
     private let action: () -> Void
     @Environment(\.fieldHasProblem) private var hasProblem
 
-    /// `isPlaceholder`: an example value in `softText`. `width`: fixed; otherwise at least 200.
+    /// `isPlaceholder`: an example value in `softText`. `width`: fixed, in screen points; otherwise at
+    /// least 200 × s.
     /// `isActive`: the value is being changed (its picker is open); the outline turns `pickBlue`
     /// (layout v43, "the field being changed is pickBlue").
     public init(_ label: String, isPlaceholder: Bool = false, width: CGFloat? = nil, isActive: Bool = false,
@@ -30,9 +31,8 @@ public struct FieldButton: View {
                 .crayonType(.body)
                 .foregroundStyle(isPlaceholder ? CrayonColor.softText : CrayonColor.ink)
                 .lineLimit(1)
-                // Spec "Part floors": text never shrinks. With a formula width (TimeField) the text is
-                // centred and adds no padding (it keeps 16 clear); without one the field is 200 × s
-                // (200 on the 13"), never narrower than its text + fluid(24, 16) on each side.
+                // With a fixed width (TimeField) the text is centred and adds no padding; without one
+                // the field is at least 200 × s, its text 24 × s from each side.
                 .padding(.horizontal, width == nil ? sizing.textPadding : 0)
                 .frame(minWidth: minWidth, maxWidth: width, minHeight: sizing.fieldHeight)
                 .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.field + 1,
@@ -54,6 +54,7 @@ public struct DateField: View {
     private let width: CGFloat?
     @Binding private var date: Date
     @State private var isPicking = false
+    @Environment(\.sizing) private var sizing
 
     public init(label: String, date: Binding<Date>, width: CGFloat? = nil) {
         self.label = label
@@ -67,8 +68,8 @@ public struct DateField: View {
                 DatePicker(label, selection: $date, displayedComponents: .date)
                     .datePickerStyle(.graphical)
                     .labelsHidden()
-                    .frame(width: 360)
-                    .padding(Spacing.m)
+                    .frame(width: sizing(360))
+                    .padding(sizing(Spacing.m))
             }
     }
 }

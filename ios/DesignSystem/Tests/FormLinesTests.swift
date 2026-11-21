@@ -1,8 +1,8 @@
 import DesignSystem
 import XCTest
 
-/// Spec "Layout model" and "Layout balance" relations for `FormLines` on every checked iPad (13",
-/// 12.9", 11", mini), with S1's rows (board v56) as the example: Name / Colour, then Age / Face on a
+/// Spec "Layout model" and "Layout balance" relations for `FormLines` at s = 1 and on smaller
+/// windows (12.9", 11", mini, the Duo inner screen), with S1's rows (board v56) as the example: Name / Colour, then Age / Face on a
 /// second column. Gaps are drawn-edge gaps: a crayon part draws 6 inside its frame.
 final class FormLinesTests: XCTestCase {
     private let ipads: [(String, Sizing)] = [
@@ -10,21 +10,21 @@ final class FormLinesTests: XCTestCase {
         ("12.9", Sizing(width: 1366, height: 1024, safeTop: 32)),
         ("11", Sizing(width: 1180, height: 820)),
         ("mini", Sizing(width: 1133, height: 744)),
+        ("duo", Sizing(width: 890, height: 626)),
     ]
-    private let inset = CrayonPart.inset
 
     private func s1(_ sizing: Sizing) -> FormLines {
         GrownupLayout(sizing: sizing).formLines(
             secondLabels: ["Age", "Face"],
-            secondControlWidth: 2 * sizing.pickedFace + Spacing.sm,
-            firstControlMinimum: 4 * ColourSwatch.frame(sizing) + 3 * Spacing.sm)
+            secondControlWidth: 2 * sizing.pickedFace + sizing(Spacing.sm),
+            firstControlMinimum: 4 * ColourSwatch.frame(sizing) + 3 * sizing(Spacing.sm))
     }
 
     /// S1's card height from its rows: padding, the Name row's drawn box, the row gap, the Colour /
     /// Face row's drawn box, padding.
     private func s1CardHeight(_ sizing: Sizing) -> CGFloat {
-        FormLines.cardPadding.top + sizing.fieldRowHeight - 2 * inset + sizing.formRowGap
-            + max(sizing.pickedFace, sizing.swatch) + FormLines.cardPadding.bottom
+        sizing.cardPadding.top + sizing.fieldRowHeight - 2 * sizing.inset + sizing.formRowGap
+            + max(sizing.pickedFace, sizing.swatch) + sizing.cardPadding.bottom
     }
 
     /// 13" is board S1 v56: labels 78, controls 192, Name 192–556, second labels 590, the second
@@ -34,7 +34,7 @@ final class FormLinesTests: XCTestCase {
         let layout = GrownupLayout(sizing: sizing)
         let lines = s1(sizing)
         let second = try XCTUnwrap(lines.second)
-        let left = layout.form.minX + FormLines.cardPadding.leading
+        let left = layout.form.minX + sizing.cardPadding.leading
         XCTAssertEqual(left, 78, "label line = card drawn edge + 32")
         XCTAssertEqual(left + lines.width, 808, "rows end on the right-edge line")
         XCTAssertEqual(left + lines.controlX, 192)
@@ -48,24 +48,24 @@ final class FormLinesTests: XCTestCase {
         XCTAssertEqual(sizing.fieldRowHeight, 80)
         XCTAssertEqual(sizing.formRowGap, 24)
         XCTAssertEqual(s1CardHeight(sizing), 232)
-        XCTAssertEqual(layout.form.minY + s1CardHeight(sizing) + FormLines.cardGap, 408, "the second card's top")
+        XCTAssertEqual(layout.form.minY + s1CardHeight(sizing) + sizing.cardGap, 408, "the second card's top")
     }
 
-    func testSecondColumnRelationsOnEveryIPad() throws {
+    /// Every line is the 13" line × s, so the second column never drops on a smaller window.
+    func testSecondColumnScalesWithS() throws {
+        let board = try XCTUnwrap(s1(ipads[0].1).second)
         for (name, sizing) in ipads {
-            let lines = s1(sizing)
+            let lines = s1(sizing), s = sizing.s
             let second = try XCTUnwrap(lines.second, name)
-            XCTAssertEqual(lines.controlX, 114, "\(name): one fixed label column")
-            XCTAssertEqual(second.controlWidth, 2 * sizing.pickedFace + Spacing.sm + 2 * inset, name)
-            XCTAssertFalse(second.dropsUnder, "\(name): S1's second column stands beside the first down to the mini")
-            XCTAssertEqual(second.controlX + second.controlWidth, lines.width, "\(name): ends on the right edge")
-            let longest = max(CrayonType.captionBoldWidth("Age"), CrayonType.captionBoldWidth("Face"))
-            XCTAssertEqual(second.controlX - second.labelX, longest + 10, accuracy: 0.01, name)
-            XCTAssertEqual(second.labelX - (lines.controlX + lines.firstControlWidth - inset), 40, accuracy: 0.01,
-                           "\(name): the first column's drawn end stops 40 before the second label")
-            XCTAssertGreaterThanOrEqual(lines.firstControlWidth, 4 * ColourSwatch.frame(sizing) + 3 * Spacing.sm,
-                                        "\(name): four swatches fit beside the second column")
-            XCTAssertGreaterThanOrEqual(sizing.formRowGap, 16, "\(name): rows stay further apart than label → control")
+            XCTAssertEqual(lines.controlX, 114 * s, accuracy: 0.01, "\(name): one label column × s")
+            XCTAssertFalse(second.dropsUnder, "\(name): S1's second column stands beside the first")
+            XCTAssertEqual(second.labelX, board.labelX * s, accuracy: 0.01, name)
+            XCTAssertEqual(second.controlX, board.controlX * s, accuracy: 0.01, name)
+            XCTAssertEqual(second.controlWidth, board.controlWidth * s, accuracy: 0.01, name)
+            XCTAssertEqual(second.controlX + second.controlWidth, lines.width, accuracy: 0.01, "\(name): ends on the right edge")
+            XCTAssertEqual(second.labelX - (lines.controlX + lines.firstControlWidth - sizing.inset), 40 * s,
+                           accuracy: 0.01, "\(name): the first column's drawn end stops 40 × s before the second label")
+            XCTAssertEqual(s1CardHeight(sizing), 232 * s, accuracy: 0.01, name)
         }
     }
 
@@ -85,7 +85,8 @@ final class FormLinesTests: XCTestCase {
     }
 
     func testTooNarrowDropsTheSecondColumn() throws {
-        let lines = FormLines(width: 400, secondLabels: ["Age"], secondControlWidth: 140, firstControlMinimum: 100)
+        let lines = FormLines(sizing: .thirteenInch, width: 400, secondLabels: ["Age"], secondControlWidth: 140,
+                              firstControlMinimum: 100)
         let second = try XCTUnwrap(lines.second)
         XCTAssertTrue(second.dropsUnder)
         XCTAssertEqual(second.labelX, 0)
@@ -93,7 +94,7 @@ final class FormLinesTests: XCTestCase {
     }
 
     /// Layout v56 board C3x: "Leave" / "Keep editing" gives a 541 card on the 13" (drawn content +
-    /// 64, frame + 12); the 520 s floor holds for short choices.
+    /// 64, frame + 12); a short choice keeps the 520 board width; × s elsewhere.
     func testConfirmCardWidth() {
         let sizing = ipads[0].1
         XCTAssertEqual(ConfirmCard.width(sizing: sizing, cancel: "Keep editing"), 541, accuracy: 1)

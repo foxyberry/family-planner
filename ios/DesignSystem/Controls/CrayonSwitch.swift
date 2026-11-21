@@ -17,20 +17,19 @@ public struct CrayonSwitch: View {
     }
 
     public var body: some View {
-        // Spec "Part floors": 96 × 52, never under 72 × 48; knob 44, never under 40. The track and
-        // the knob's travel keep the board's proportions.
+        // 96 × 52 and the knob 44, × s; the track and the knob's travel keep the board's proportions.
         let box = sizing.switchSize, knob = sizing.switchKnob
         ZStack(alignment: .leading) {
             Color.clear
                 .frame(width: box.width * 92 / 96, height: box.height * 28 / 52)
                 .crayonBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                   seed: CrayonStyle.Seed.crayonSwitch, marker: .thin)
-                .offset(x: 2)
+                .offset(x: sizing(2))
             Color.clear
                 .frame(width: knob, height: knob)
                 .crayonBackground(.circle, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.crayonSwitch + 1,
                                   marker: .thin)
-                .overlay { if isOn { CheckMark(isDone: true, size: knob * 28 / 44) } }
+                .overlay { if isOn { CheckMark(isDone: true, size: 28) } }
                 .offset(x: isOn ? box.width - knob - box.width * 4 / 96 : box.width * 4 / 96)
         }
         .frame(width: box.width, height: box.height)
@@ -68,13 +67,13 @@ public struct SettingRow<Picture: View>: View {
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: hugs ? Spacing.m : Spacing.m + Spacing.xs) {
+            HStack(spacing: sizing(hugs ? Spacing.m : Spacing.m + Spacing.xs)) {
                 picture.frame(width: sizing.settingRowPicture, height: sizing.settingRowPicture)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).lineLimit(1)
                     Text(caption).crayonType(.caption)
                         .foregroundStyle(captionIsWarning ? CrayonColor.hurry : CrayonColor.softText)
-                        // Spec "Part floors": at most 2 lines.
+                        // At most 2 lines.
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }

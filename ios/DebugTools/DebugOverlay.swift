@@ -138,9 +138,9 @@ struct LayoutGridOverlay: View {
 
     private var verticals: [CGFloat] {
         switch lines {
-        case .home: [sizing.left(40), sizing.left(448), sizing.left(928), sizing.right(1336)]
-        case .morning: [sizing.left(64), sizing.left(172), sizing.left(448), sizing.right(1312)]
-        case .grownup: [40, 80, 208, 256, 840].map(sizing.left) + [sizing.right(864), sizing.right(1336)]
+        case .home: [sizing.x(40), sizing.x(448), sizing.x(928), sizing.x(1336)]
+        case .morning: [sizing.x(64), sizing.x(172), sizing.x(448), sizing.x(1312)]
+        case .grownup: [40, 80, 208, 256, 840].map(sizing.x) + [sizing.x(864), sizing.x(1336)]
         }
     }
 

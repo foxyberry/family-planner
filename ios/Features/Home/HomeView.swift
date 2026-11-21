@@ -22,8 +22,8 @@ public struct HomeView: View {
 
     public var body: some View {
         KidFullScreen(look: store.look, wipeFrom: store.isSkyAnimating ? skySwitchCentre : nil) {
-            // Boards A1 / A1m / E1 (docs/superpowers/layout) through "Sizing formulas": every part
-            // placed from HomeLayout; the panel's parts all start on 928 and end on 1336 (layout v29).
+            // Boards A1 / A1m / E1 (docs/superpowers/layout), board × s: every part placed from
+            // HomeLayout; the panel's parts all start on 928 and end on 1336 (layout v29).
             let layout = HomeLayout(sizing: sizing)
             ZStack(alignment: .topLeading) {
                 clockArea
@@ -67,8 +67,10 @@ public struct HomeView: View {
         DragGesture(minimumDistance: 0, coordinateSpace: .global)
             .onChanged { value in
                 guard pressLocation == nil else { return }
+                // Global x counts the paper beside the board frame (`bleed`) too.
                 let centre = HomeLayout(sizing: sizing).clockCentre, r = PieClock.radius * sizing.s
-                pressLocation = CGPoint(x: value.startLocation.x - centre.x + r, y: value.startLocation.y - centre.y + r)
+                pressLocation = CGPoint(x: value.startLocation.x - sizing.bleed - centre.x + r,
+                                        y: value.startLocation.y - centre.y + r)
             }
             .onEnded { _ in pressLocation = nil }
     }
@@ -101,7 +103,7 @@ public struct HomeView: View {
             }
     }
 
-    // MARK: Right panel (928 s … W − 64 s)
+    // MARK: Right panel (928–1336, × s)
 
     @ViewBuilder private func panel(_ layout: HomeLayout) -> some View {
         if let first = firstDay {

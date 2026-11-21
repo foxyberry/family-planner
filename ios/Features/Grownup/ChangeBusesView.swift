@@ -23,16 +23,16 @@ public struct ChangeBusesView: View {
                                        onConfirm: { store.send(.confirmAccepted) })
                 if store.confirmPointsAtBack {
                     // Board C3x: the dim starts under the header, and the card points at "←".
-                    CrayonColor.dim.ignoresSafeArea(edges: .bottom)
+                    CrayonColor.dim.padding(.horizontal, -sizing.bleed).ignoresSafeArea(edges: .bottom)
                         .padding(.top, sizing.y(124))
                         .onTapGesture { store.send(.confirmCancelled) }
                     card.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .padding(.leading, sizing.left(40))
+                        .padding(.leading, sizing.x(40))
                         .padding(.top, sizing.y(140))
                         .ignoresSafeArea(.container, edges: .top)
                 } else {
                     // As G2's "Remove every week": the card over the dimmed screen.
-                    CrayonColor.dim.ignoresSafeArea()
+                    CrayonColor.dim.fullBleed()
                         .onTapGesture { store.send(.confirmCancelled) }
                     card
                 }
@@ -48,13 +48,13 @@ public struct ChangeBusesView: View {
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
                 PaperCard(seed: 52) {
-                    ScrollColumn(bleed: FormLines.drawnBleed) {
+                    ScrollColumn(bleed: sizing.drawnBleed) {
                         rows(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
                 ScrollColumn { side }
-                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - sizing(Spacing.s),
                            alignment: .topLeading)
             }
         } primaryAction: { layout in
@@ -69,7 +69,7 @@ public struct ChangeBusesView: View {
     private func rows(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: layout.sizing.formRowGap) {
             ListRow(leading: store.fromLabel, minHeight: 0) {
-                HStack(alignment: .firstTextBaseline, spacing: Spacing.s) {
+                HStack(alignment: .firstTextBaseline, spacing: sizing(Spacing.s)) {
                     Text(store.fromName).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                     Text(store.ourStopCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 }
@@ -77,14 +77,14 @@ public struct ChangeBusesView: View {
             firstBuses(layout)
             // Board C2c: the second bus is typed (160 × 80), checked against LTA's service list.
             ListRow(leading: store.thenLabel, labelHeight: sizing.fieldHeight) {
-                VStack(alignment: .leading, spacing: FormLines.captionGap) {
+                VStack(alignment: .leading, spacing: sizing.captionGap) {
                     CrayonField(store.thenPlaceholder,
                                 text: Binding(get: { store.thenText }, set: { store.send(.thenChanged($0)) }))
                         .keyboardType(.asciiCapable)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
                         .fieldProblem(store.thenHasProblem)
-                        .frame(width: FormLines.busNumberField)
+                        .frame(width: sizing(FormLines.busNumberField))
                     if let caption = store.thenCaption {
                         Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.hurry)
                     }
@@ -126,7 +126,7 @@ public struct ChangeBusesView: View {
     /// Board C2c's side column (v61): the bus as a head ("12 · 34 → 33", the arrow drawn) and, when
     /// it exists, "Remove this bus" (472 × 88).
     private var side: some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
             switch store.head {
             case let .buses(name)?:
                 Text(name).crayonType(.head).foregroundStyle(CrayonColor.ink)

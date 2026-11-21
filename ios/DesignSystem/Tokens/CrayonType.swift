@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The six text sizes of the crayon type scale. Nothing on screen is smaller than caption (24).
+/// The six text sizes of the crayon type scale, as board sizes (nothing on the board is smaller than
+/// caption 24); on screen each is × s (spec "Sizing → Type").
 public enum CrayonType: CaseIterable, Sendable {
     case hero, display, title, head, body, caption
 
@@ -33,15 +34,15 @@ public enum CrayonType: CaseIterable, Sendable {
         }
     }
 
-    /// Playpen Sans at this size and weight.
-    var font: Font {
-        Font(FontRegistrar.font(size: size, weight: weight == .bold ? .bold : .medium))
+    /// Playpen Sans at this size and weight on `sizing`.
+    func font(_ sizing: Sizing) -> Font {
+        Font(FontRegistrar.font(size: sizing.size(of: self), weight: weight == .bold ? .bold : .medium))
     }
 }
 
 extension View {
     /// Applies a crayon text style: font, size, weight and line spacing, at this screen's size
-    /// (spec "Sizing formulas": hero … body shrink to their floors, caption stays 24).
+    /// (spec "Sizing → Type": the board size × s, fractional).
     public func crayonType(_ type: CrayonType) -> some View {
         modifier(CrayonTypeModifier(type: type, bold: type.weight == .bold))
     }

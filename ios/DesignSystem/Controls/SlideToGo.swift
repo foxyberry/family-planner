@@ -20,8 +20,8 @@ public struct SlideToGo: View {
     private let state: SlideToGoModel.Phase
     @State private var model: SlideToGoModel
     @Environment(\.sizing) private var sizing
-    /// Spec "Part floors": the thumb 80 × s and the track 96 × s, never under the kid floor 72.
-    private var handleSize: CGFloat { sizing.kidTarget(80) }
+    /// The thumb 80 × s and the track 96 × s.
+    private var handleSize: CGFloat { sizing(80) }
 
     /// `onUndo`: dragging the knob back past the middle from done (spec "After the slide").
     /// `knob`: the way picture (bus, car, shoe) or the star sticker for a kid with no outing.
@@ -51,22 +51,22 @@ public struct SlideToGo: View {
             // Board A2: the words start 24 right of the knob; done (A3r): "Ready!" ends 24 before the
             // knob, which sits 86 from the right end.
             .frame(maxWidth: .infinity, alignment: isDone ? .trailing : .leading)
-            .padding(.leading, isDone ? 0 : handleSize + Spacing.l)
+            .padding(.leading, isDone ? 0 : handleSize + sizing(Spacing.l))
             // The capsule's round ends cut in when the words take two lines.
-            .padding(.leading, Spacing.m)
-            .padding(.trailing, isDone ? 110 : Spacing.l)
-            .padding(.vertical, Spacing.xs)
-            .frame(minHeight: sizing.kidTarget(96))
+            .padding(.leading, sizing(Spacing.m))
+            .padding(.trailing, sizing(isDone ? 110 : Spacing.l))
+            .padding(.vertical, sizing(Spacing.xs))
+            .frame(minHeight: sizing(96))
             .background {
                 CrayonSurface(.capsule, fill: isDone ? CrayonStyle.doneGreen : CrayonStyle.yellowSlider,
                               seed: CrayonStyle.Seed.slider)
             }
             .overlay {
                 GeometryReader { geometry in
-                    let travel = max(geometry.size.width - handleSize - 16, 1)
+                    let travel = max(geometry.size.width - handleSize - sizing(16), 1)
                     handle(roll: travel * progress)
                         .frame(maxHeight: .infinity)
-                        .offset(x: 8 + travel * progress)
+                        .offset(x: sizing(8) + travel * progress)
                         .gesture(
                             DragGesture()
                                 .onChanged { drag in
@@ -106,20 +106,20 @@ public struct SlideToGo: View {
         let prize = isDone ? doneKnob : nil
         let picture = if let prize { prize } else { knob }
         // Board A2: the picture (60) on a white paper disc (74); the done prize keeps its own look.
-        RollingKitIcon(picture, size: prize == nil ? 60 : handleSize, roll: roll, isHeld: isHeld)
+        RollingKitIcon(picture, size: prize == nil ? sizing(60) : handleSize, roll: roll, isHeld: isHeld)
             .frame(width: handleSize, height: handleSize)
             .background {
                 if prize == nil {
                     CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
                                   seed: CrayonStyle.Seed.slider + 7)
-                        .frame(width: 74, height: 74)
+                        .frame(width: sizing(74), height: sizing(74))
                 }
             }
             .overlay(alignment: .bottomTrailing) {
-                if isDone, prize == nil { CheckMark(isDone: true, size: handleSize * 0.45) }
+                if isDone, prize == nil { CheckMark(isDone: true, size: 80 * 0.45) }
             }
             .keyframeAnimator(initialValue: 0.0, trigger: reduceMotion ? 0 : hops) { view, lift in
-                view.offset(y: -lift)
+                view.offset(y: -sizing(lift))
             } keyframes: { _ in
                 CubicKeyframe(18, duration: 0.18)
                 CubicKeyframe(0, duration: 0.22)
