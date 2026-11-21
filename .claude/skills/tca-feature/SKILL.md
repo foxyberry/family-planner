@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh, check-view-values.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.10.1
+  version: 0.11.0
   status: experimental
 ---
 
@@ -33,7 +33,8 @@ reference time zone, the time machine and tests can replace any of it in one pla
 5. One line in `AppDelegate.bootstrap`.
 
 ## New screen or change
-1. Write the reducer test first (TestStore, pinned `\.calendar`, `\.date`, clients).
+1. Write the reducer test first (TestStore, pinned `\.calendar`, `\.date`, clients). A new screen
+   or flow also adds or extends a journey (`ios/Journeys/Tests`: root store, `World` fakes).
 2. State holds everything the view shows: rows, titles, captions, enabled flags, tab items. Add
    computed properties or pure model functions with unit tests. Example: `State.canSave`,
    `State.confirmAcceptTitle`, `HubModel.sections(kid:routines:)`.
@@ -77,9 +78,9 @@ var stored: School?; var place: Place = .school
 | a rule shared by screens (minute of day, day names) | Domain, with a unit test |
 | which kid, item or row is shown | State or a model function |
 | sizes, stacks, colours from tokens, animation progress | the view |
-| any word a person reads (labels, captions, accessibility text) | a key in `ios/Strings/Localizable.xcstrings`, read in a State computed property with `strings.tr("area.thing")`; State keeps `public var strings = Localizer.injected` (`\.localizer`, module `Localization`) |
+| any word a person reads (labels, captions) | a key in `ios/Strings/Localizable.xcstrings`, read in a State computed property with `strings.tr("area.thing")`; State keeps `public var strings = Localizer.injected` (`\.localizer`, module `Localization`) |
 | a value shown before the user picks one (7:30 am, the "now" picture) | an initial value in State (see "State shape") |
-| a DesignSystem part's words (back label, accessibility text) | arguments from the caller, which takes them from State |
+| a DesignSystem part's words (back label) | arguments from the caller, which takes them from State |
 
 ## When a guard blocks
 

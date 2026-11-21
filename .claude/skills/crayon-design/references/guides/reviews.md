@@ -22,13 +22,13 @@ Values
       `minimumScaleFactor`; each hit is either a token use or a finding.
 - [ ] Every spacing value is one of the spec's tokens; inner-part tokens are not used between
       parts.
-- [ ] Every floored size comes from one `Sizing` helper per part; no screen has its own `max`.
-- [ ] The 13" value equals the board (`scale.py`), and the value has a formula in the spec.
+- [ ] Every size is board × s from the one `Sizing`; no screen has its own size, `max` or floor.
 Coverage
-- [ ] The part has a rule in **Part floors** (touch, drawn box, padding, text).
+- [ ] The part has its board size, padding and text on a board and in the layout JSON.
 - [ ] Its states are drawn and specified: default, picked, focus, disabled, done, night look,
       and the empty look if it holds content.
-- [ ] It has a VoiceOver label, trait and value; Reduce Motion and Bold Text behaviour.
+- [ ] Reduce Motion and Bold Text behaviour.
+- [ ] Every control has an `accessibilityIdentifier`: a test hook for the UI tests (not VoiceOver work), so tests never match visible words.
 - [ ] Snapshot tests cover each state on the test sizes the spec's **Check** names.
 Conflicts
 - [ ] The rule doesn't contradict an older bullet without the change log saying which wins.
@@ -42,13 +42,11 @@ The build reads the layout JSON, so anything missing there is a guess in code.
       missing from the JSON is a question to the design session, not a guess.
 - [ ] Every new line has a name, in the JSON and in the spec.
 - [ ] Each region has its empty look named (spec **Fixed regions**).
-- [ ] Size behaviour is clear for each part: free × s, floored, or fixed, and where it gives
-      way on the mini (`../size-check.md`).
-- [ ] Text: the longest real label measured at the floor; wrap and "…" rules for typed names.
+- [ ] Every part scales by s; nothing is fixed or floored (`../size-check.md`).
+- [ ] Text: the longest real label measured at its board size; wrap and "…" rules for typed names.
 - [ ] States the board shows only once are listed: picked, disabled, keyboard up, error,
       loading, night.
 - [ ] Motion: each moment is a row in the spec's **Motion** table, with its reduced look.
-- [ ] VoiceOver: labels, grouping and reading order for anything not a plain button.
 - [ ] Copy follows `copy.md`: no explanatory sentences; confirms use `ConfirmCard`.
 - [ ] A spec change-log line exists, and the building session has been told the layout version.
 
@@ -63,7 +61,7 @@ Use
 - [ ] Nothing a kid needs is behind a long press, a scroll or a hidden gesture.
 Hierarchy
 - [ ] Type steps run from the ramp; no two neighbours at the same step pretending to differ
-      (watch body and caption at their shared floor; `../size-check.md`, risk 2).
+      (body 30 and caption 24 stay apart on every screen, since both scale).
 - [ ] Whitespace uses the tokens; regions sit on their lines.
 Consistency
 - [ ] The same part looks and behaves the same as on other boards (tabs, fields, cards,
@@ -73,11 +71,11 @@ Consistency
       (spec **Principles → Drawing**, **Crayon part inset**).
 Accessibility
 - [ ] Contrast pairs checked with `contrast.py` on day and night grounds.
-- [ ] Touch floors met; kid parts on kid floors.
+- [ ] Touch area = the visible box; kid targets big on the board.
 - [ ] Meaning never by colour alone.
 Close
 - [ ] Name what works, then the top three fixes in order of effect on the kids.
-- [ ] Check the size run (13" → 11" → mini) before you call it done.
+- [ ] Check s = 1 and the smallest screen (`../size-check.md`) before you call it done.
 
 Source: distilled from the design plugin's design-system, design-handoff and design-critique
 (Anthropic), and apple-skills design → design-system (MIT).

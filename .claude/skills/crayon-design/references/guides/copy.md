@@ -3,8 +3,8 @@
 Use this whenever you write or change words on a board or a screen. This app's first rule is
 **keep screens plain**: values, pictures and short labels stay; explanatory sentences go
 (spec change log, the plain-screens passes). Lengths and sizes are in the spec
-(`docs/superpowers/specs/2026-11-07-m2-screens-spec.md`, section 0: **Part floors → Label
-column** and **Text**); this guide is about the words.
+(`docs/superpowers/specs/2026-11-07-m2-screens-spec.md`, section 0: **Grown-up form layout** and
+**Sizing → Text that does not fit**); this guide is about the words.
 
 ## The plain-screens rule
 - No sentence on screen that explains how the screen works. If a screen seems to need one,
@@ -17,7 +17,7 @@ column** and **Text**); this guide is about the words.
 ## Labels
 - One to three words, the noun or the short question the row answers: "Arrive by",
   "Goes to", "Late". Lead with the word that differs from the row above.
-- Fit the label column at the caption floor. If it doesn't fit, **reword; never squeeze**.
+- Fit the label column at the board caption size. If it doesn't fit, **reword; never squeeze**.
   The spec's own example: "Late up to" became "Late". Shrinking, tightening, tracking or a
   smaller weight is not an option (`typography.md`).
 - Same thing, same word, on every screen and board. Keep a short word list in the spec's
@@ -53,7 +53,7 @@ column** and **Text**); this guide is about the words.
   never a sad word or face (spec **Principles → Kids**).
 - Celebrate in proportion: the biggest words for the rarest moment (gold), quieter ones for
   routine (a mission done gets no words at all).
-- Times: short on screen, full words for VoiceOver (spec A2, **Spoken times**).
+- Times: short on screen ("38 min", "1h 20m").
 
 ## Values and names
 - Times follow the format in spec **Principles → Time**. Use one formatter for times,
@@ -65,7 +65,7 @@ column** and **Text**); this guide is about the words.
 For each word on the screen ask, in this order:
 1. Does the screen still work without it? Then remove it.
 2. Is it the same word the rest of the app uses for this?
-3. Does it fit at the floor in the shown weight (`measure-text.swift`)? If not, reword.
+3. Does it fit at its board size in the shown weight (`measure-text.swift`)? If not, reword.
 4. Read it aloud: does it sound like a kind grown-up at home?
 
 Report as: `Board / screen | Now | Problem | New words`, most-seen screens first. Put accepted
