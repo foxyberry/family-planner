@@ -53,6 +53,8 @@ public enum CrayonStyle {
         static let formCard: UInt32 = 2701
         static let dayButton: UInt32 = 2801
         static let dayPicker: UInt32 = 2901
+        /// The kid card's face discs (S1 / G6f), the seed they always had.
+        static let kidCardFace: UInt32 = 1650
     }
 }
 

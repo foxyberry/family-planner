@@ -332,6 +332,20 @@ final class ComponentSnapshotTests: XCTestCase {
              named: "changes")
     }
 
+    /// Spec "Kid card" (board S1, two columns): Name with the face inside + Age, Colour + Face, rows
+    /// 24 apart drawn on the form lines; made-up names only.
+    func testKidCard() {
+        let words = KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
+                              colour: "Colour", face: "Face", colourNames: ["Blue", "Orange", "Green", "Purple"],
+                              faces: [(.kidGirl, "Girl"), (.kidBoy, "Boy")])
+        snap(PaperCard(padding: FormLines.cardPadding) {
+            KidCard(words: words, name: .constant("Kid A"), age: .constant("7"),
+                    badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), shownName: "Kid A", colorIndex: 1,
+                    face: "kidGirl", onColour: { _ in }, onFace: { _ in })
+                .formLines(KidCard.lines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)), words: words))
+        }.frame(width: 800), width: 840)
+    }
+
     /// Boards C2 / C2c / S3: − 72, the value in 144, + 72, the caption 16 after.
     func testMinutesStepper() {
         snap(MinutesStepper(value: "10 min", caption: "to the stop", label: "Walk", minus: {}, plus: {}), width: 560)

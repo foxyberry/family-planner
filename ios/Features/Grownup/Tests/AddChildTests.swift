@@ -22,6 +22,7 @@ final class AddChildTests: XCTestCase {
         }
         store.exhaustivity = .off
         XCTAssertEqual(store.state.colorIndex, 2, "the first colour nobody has")
+        XCTAssertEqual(store.state.face, "", "board G6a: no face picked at first")
         XCTAssertFalse(store.state.canSave)
         await store.send(.binding(.set(\.name, "Kid C")))
         await store.send(.binding(.set(\.ageText, "3")))
@@ -35,6 +36,17 @@ final class AddChildTests: XCTestCase {
         XCTAssertNil(kids.value.first?.school, "a new kid starts at home")
         XCTAssertEqual(Set(routines.value.map(\.dayType)), [.weekday, .saturday, .sunday])
         XCTAssertFalse(missions.value.isEmpty)
+    }
+
+    /// Board G6a starts with no face picked; as on S1, a kid needs one before Add saves.
+    func testNoFaceCannotSave() async {
+        let store = TestStore(initialState: AddChildFeature.State(today: F.monday, takenColours: [])) { AddChildFeature() }
+        store.exhaustivity = .off
+        await store.send(.binding(.set(\.name, "Kid C")))
+        await store.send(.binding(.set(\.ageText, "3")))
+        XCTAssertFalse(store.state.canSave, "no face yet")
+        await store.send(.faceTapped("kidGirl"))
+        XCTAssertTrue(store.state.canSave)
     }
 
     func testAnAgeOutOfRangeCannotSave() async {

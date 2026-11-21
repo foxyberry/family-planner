@@ -1,11 +1,16 @@
 import AppSettings
+import DesignSystem
 import Domain
 import Foundation
+import Grownup
 import KitArt
 import Strings
 
 /// Everything S1–S4 print, decided here so the views only render (spec "S1–S4").
 extension SetupFeature.State {
+    /// The shared kid card's words (spec "Kid card").
+    public var kidCardWords: KidCard.Words { .kid(strings) }
+
     /// "Step 2 of 4" (S3's kid tabs say whose route it is).
     public var stepText: String { strings.tr("setup.step", step.number, 4) }
 
@@ -118,16 +123,6 @@ extension SetupFeature.State {
     /// Any fixed day: the wheel picks a clock time only.
     static let wheelDay = Day(year: 2026, month: 1, day: 1)
 
-    /// S1 swatch names for VoiceOver.
-    public static func colourName(_ index: Int) -> String {
-        switch index {
-        case 0: L10n.tr("s1.colour.blue")
-        case 1: L10n.tr("s1.colour.orange")
-        case 2: L10n.tr("s1.colour.green")
-        default: L10n.tr("s1.colour.purple")
-        }
-    }
-
     /// S3 "Going" captions.
     public static func wayCaption(_ way: Way) -> String {
         switch way {
@@ -211,4 +206,11 @@ public struct RideRow: Equatable, Identifiable, Sendable {
     public var text: String
     public var caption: String
     public var id: String { service ?? "" }
+}
+
+extension KidEntry {
+    /// The face inside the S1 Name field, in the kid's colour (no picture until one is picked).
+    public var badge: KidFace.Badge { KidFace.Badge(face: pickedFace, colorIndex: colorIndex) }
+    /// The picked face's slot name, or none.
+    public var pickedFace: String { face ?? "" }
 }
