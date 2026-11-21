@@ -1,5 +1,5 @@
 {
- "version": "56",
+ "version": "65",
  "board": "G1e",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -272,14 +272,14 @@
   {
    "id": "main.button.1",
    "kind": "button",
-   "x": 125,
-   "y": 413,
+   "x": 143,
+   "y": 383,
    "w": 56,
    "h": 56,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "text": "Add between Dinner and Shower"
+   "text": "Add between Shower and Sleep"
   },
   {
    "id": "main.picture.3",
@@ -330,6 +330,18 @@
    "align": "inside"
   },
   {
+   "id": "main.button.2",
+   "kind": "button",
+   "x": 108,
+   "y": 485,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Add between Play and Dinner"
+  },
+  {
    "id": "main.picture.4",
    "kind": "picture",
    "x": 143,
@@ -345,14 +357,26 @@
    "kind": "text",
    "x": 894,
    "y": 534,
-   "w": 296,
+   "w": 115,
    "h": 45,
    "region": "side",
    "anchor": "right",
    "align": "inside",
    "baseline": 569,
    "font": 30,
-   "text": "Make this free time"
+   "text": "Remove"
+  },
+  {
+   "id": "main.button.3",
+   "kind": "button",
+   "x": 656,
+   "y": 557,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Add between Sleep and Wake up"
   },
   {
    "id": "main.picture.5",
@@ -366,6 +390,18 @@
    "align": "inside"
   },
   {
+   "id": "main.button.4",
+   "kind": "button",
+   "x": 637,
+   "y": 627,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Add between Wake up and School"
+  },
+  {
    "id": "main.picture.6",
    "kind": "picture",
    "x": 195,
@@ -375,6 +411,18 @@
    "region": "main",
    "anchor": "left",
    "align": "inside"
+  },
+  {
+   "id": "main.button.5",
+   "kind": "button",
+   "x": 187,
+   "y": 716,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Add between School and Snack"
   },
   {
    "id": "main.picture.7",
@@ -400,7 +448,7 @@
    "text": "Save"
   },
   {
-   "id": "main.button.2",
+   "id": "main.button.6",
    "kind": "button",
    "x": 656,
    "y": 880,
@@ -412,7 +460,7 @@
    "text": "Undo"
   },
   {
-   "id": "main.button.3",
+   "id": "main.button.7",
    "kind": "button",
    "x": 744,
    "y": 880,
