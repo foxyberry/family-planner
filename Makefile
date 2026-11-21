@@ -21,7 +21,7 @@ OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one test-affected snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios board
 
 # =============================================================================
@@ -94,6 +94,11 @@ test-one: stop-dev-sims
 	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
+
+# Only the test targets the change can affect (changed files under ios/ and their Bazel rdeps), with
+# the same flags: make test-affected [BASE=<rev>]  (default: the merge base with origin/develop).
+test-affected:
+	@bash scripts/test-affected.sh $(BASE)
 
 # The snapshot pictures only: compares every part with its committed baseline.
 SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
