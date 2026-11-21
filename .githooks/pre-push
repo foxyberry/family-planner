@@ -81,7 +81,7 @@ if printf '%s' "$changed" | grep -Eq '^(CLAUDE\.md|\.claude/)'; then
 fi
 
 # (pre-push-test.sh pushes too, but from scratch repos that hold no tests, so this never recurses.)
-if printf '%s' "$changed" | grep -Eq '^(scripts/|\.githooks/|\.claude/hooks/|tools/crayon-art/|ios/KitArt/Resources/)'; then
+if printf '%s' "$changed" | grep -Eq '^(scripts/|\.githooks/|\.claude/hooks/|tools/crayon-art/|tools/board/|ios/KitArt/Resources/)'; then
   for test in scripts/tests/*-test.sh; do
     [ -f "$test" ] || continue
     # Git sets GIT_DIR (and more) for hooks run from a worktree; a test that inherits it runs its

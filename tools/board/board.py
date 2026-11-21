@@ -32,10 +32,10 @@ CACHE = os.path.join(OUT, "sessions-cache.json")
 PROJECTS = os.path.expanduser("~/.claude/projects")
 SESSION_DAYS = 3          # sessions idle longer than this are hidden
 MERGED_HOURS = 36         # merged PRs shown in the last lane
-LOCAL_BRANCH_DAYS = 7     # unpushed branches older than this are hidden
 SCREEN_DIRS = ("ios/Features/", "ios/AppCore/", "ios/DesignSystem/", "ios/KitArt/")
 LGTM = re.compile(r"^\s*LGTM at ([0-9a-f]{7,40})", re.I | re.M)
-IPAD_OK = re.compile(r"^\s*(iPad (OK|checked|check (done|ok|waived))|iPad 확인 (완료|생략))", re.I | re.M)
+# The user's iPad check covers one head, like an LGTM: "iPad OK at <sha>" (pr-review-handoff step 8).
+IPAD_OK = re.compile(r"^\s*iPad OK at ([0-9a-f]{7,40})", re.I | re.M)
 
 TYPES = {"feat": "기능", "fix": "버그 수정", "docs": "문서", "refactor": "리팩터", "test": "테스트",
          "build": "빌드", "ci": "CI", "chore": "정리", "perf": "성능", "style": "스타일"}
@@ -87,6 +87,11 @@ def ago(t):
 
 TITLE = re.compile(rb'"(?:customTitle|agentName)":"((?:[^"\\]|\\.)*)"')
 CWD = re.compile(rb'"cwd":"((?:[^"\\]|\\.)*)"')
+EMPTY = {"v": 2, "offset": 0, "title": None, "cwd": None, "prs": [], "branches": [], "related": False,
+         "ask": None, "user_at": None}
+# Messages that reach a session as a user turn but are not the user's own words.
+NOT_USER = ("<ci-monitor-event", "<cross-session-message", "<side-sessions-event", "<system-reminder",
+            "<task-notification", "<command-", "<local-command", "Another Claude session sent a message")
 NEW_BRANCH = re.compile(rb'(?:checkout|switch)\s+-[bcBC]\s+([A-Za-z0-9._/-]+)|worktree add[^"]*?\s-b\s+([A-Za-z0-9._/-]+)')
 
 
@@ -109,8 +114,8 @@ def scan_sessions(repo_root, slug):
         sid = os.path.basename(path)[:-6]
         c = cache.get(path)
         size = os.path.getsize(path)
-        if not c or size < c["offset"]:
-            c = {"offset": 0, "title": None, "cwd": None, "prs": [], "branches": [], "related": False}
+        if not c or size < c["offset"] or c.get("v") != EMPTY["v"]:
+            c = dict(EMPTY, prs=[], branches=[])
         mine = b'"sessionId":"' + sid.encode() + b'"'
         root_b, slug_b = repo_root.encode(), slug.encode()
         with open(path, "rb") as fh:
@@ -135,6 +140,22 @@ def scan_sessions(repo_root, slug):
                     n = int(m.group(1))
                     if n not in c["prs"]:
                         c["prs"].append(n)
+            # A question the session left for the user (wrap_up's ask), and the user's last own turn.
+            if b'"name":"mcp__ccd_turn__wrap_up"' in line and b'"tool_use"' in line:
+                d = json.loads(line)
+                for part in d.get("message", {}).get("content", []):
+                    if isinstance(part, dict) and part.get("name") == "mcp__ccd_turn__wrap_up":
+                        inp = part.get("input", {})
+                        c["ask"] = ({"text": inp["ask"], "blocked": bool(inp.get("blocked")),
+                                     "at": d.get("timestamp"), "recap": inp.get("recap", "")}
+                                    if inp.get("ask") else None)
+            elif b'"type":"user"' in line and b"tool_result" not in line:
+                d = json.loads(line)
+                content = d.get("message", {}).get("content", "")
+                text = content if isinstance(content, str) else " ".join(
+                    x.get("text", "") for x in content if isinstance(x, dict))
+                if not d.get("isMeta") and text.strip() and not text.lstrip().startswith(NOT_USER):
+                    c["user_at"] = d.get("timestamp")
             if b'"tool_use"' in line and (b"-b " in line or b"-c " in line):
                 for m in NEW_BRANCH.finditer(line):
                     b = (m.group(1) or m.group(2)).decode()
@@ -143,11 +164,18 @@ def scan_sessions(repo_root, slug):
         c["offset"] += end
         cache[path] = c
         if c["related"]:
+            ask = c.get("ask")
+            waiting = ask if ask and (not c.get("user_at") or ask["at"] > c["user_at"]) else None
             sessions[sid] = {"id": sid, "title": c["title"] or sid[:8], "cwd": c["cwd"], "prs": c["prs"],
-                             "branches": c["branches"], "mtime": dt.datetime.fromtimestamp(mtime, dt.timezone.utc)}
+                             "branches": c["branches"], "waiting": waiting,
+                             "mtime": dt.datetime.fromtimestamp(mtime, dt.timezone.utc)}
+    # Keep only this repo's sessions in full; for other projects keep just the read offset.
+    slim = {k: (v if v["related"] else {**EMPTY, "offset": v["offset"]})
+            for k, v in cache.items() if os.path.exists(k)}
     os.makedirs(OUT, exist_ok=True)
-    with open(CACHE, "w") as fh:
-        json.dump({k: v for k, v in cache.items() if os.path.exists(k)}, fh)
+    fd = os.open(CACHE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as fh:
+        json.dump(slim, fh)
     return sessions
 
 
@@ -169,7 +197,6 @@ reviews(last: 30) { nodes { submittedAt commit { oid } } }
 reviewThreads(first: 100) { nodes { isResolved comments(last: 1) { nodes { createdAt } } } }
 comments(last: 40) { nodes { body createdAt } }
 files(first: 100) { nodes { path } }
-labels(first: 20) { nodes { name } }
 """
 
 
@@ -178,12 +205,17 @@ def fetch_prs(slug):
     query = (f'query {{ repository(owner: "{owner}", name: "{name}") {{ '
              f'open: pullRequests(states: OPEN, first: 40, orderBy: {{field: UPDATED_AT, direction: DESC}}) {{ nodes {{ {PR_FIELDS} }} }} '
              f'merged: pullRequests(states: MERGED, first: 15, orderBy: {{field: UPDATED_AT, direction: DESC}}) '
-             f'{{ nodes {{ number title url headRefName mergedAt files(first: 100) {{ nodes {{ path }} }} }} }} }} }}')
+             f'{{ nodes {{ number title url headRefName mergedAt files(first: 100) {{ nodes {{ path }} }} }} }} '
+             f'allMerged: pullRequests(states: MERGED, last: 100) {{ nodes {{ number url headRefName }} }} '
+             f'oldMerged: pullRequests(states: MERGED, first: 100) {{ nodes {{ number url headRefName }} }} '
+             f'closed: pullRequests(states: CLOSED, last: 50) {{ nodes {{ number url headRefName }} }} }} }}')
     code, out, err = run(["gh", "api", "graphql", "-f", "query=" + query])
     if code != 0:
         raise RuntimeError(err.strip() or "gh api graphql failed")
     repo = json.loads(out)["data"]["repository"]
-    return repo["open"]["nodes"], repo["merged"]["nodes"]
+    ended = {p["headRefName"]: ("merged", p) for p in repo["oldMerged"]["nodes"] + repo["allMerged"]["nodes"]}
+    ended.update({p["headRefName"]: ("closed", p) for p in repo["closed"]["nodes"] if p["headRefName"] not in ended})
+    return repo["open"]["nodes"], repo["merged"]["nodes"], ended
 
 
 def category(title, files):
@@ -202,28 +234,37 @@ def changes_screen(files):
 
 
 def classify(pr, author):
-    """Where the PR stands on the review loop and who has to act next."""
+    """Where the PR stands on the review loop and who has to act next:
+    (lane, actor, what, since, flags, screen). `actor` "리뷰 세션" is filled in by the caller."""
     head = pr["headRefOid"]
     files = [n["path"] for n in pr["files"]["nodes"]]
     commit = (pr["commits"]["nodes"] or [{}])[0].get("commit") or {}
     ci = ((commit.get("statusCheckRollup") or {}).get("state") or "NONE").upper()
-    reviews = [r for r in pr["reviews"]["nodes"] if r.get("submittedAt")]
-    last_review = max(reviews, key=lambda r: r["submittedAt"]) if reviews else None
-    open_threads = sum(1 for t in pr["reviewThreads"]["nodes"] if not t["isResolved"])
-    lgtm_sha, lgtm_at, ipad_ok = None, None, False
+    since = parse_time(commit.get("committedDate"))
+    # Review events: formal reviews and LGTM comments, each tied to the head it covered.
+    events = [(parse_time(r["submittedAt"]), (r.get("commit") or {}).get("oid", ""))
+              for r in pr["reviews"]["nodes"] if r.get("submittedAt")]
+    lgtm_sha = lgtm_at = None
+    ipad_ok = False
     for c in pr["comments"]["nodes"]:
         m = LGTM.search(c["body"])
         if m:
             lgtm_sha, lgtm_at = m.group(1), parse_time(c["createdAt"])
-        if IPAD_OK.search(c["body"]):
+            events.append((lgtm_at, lgtm_sha))
+        m = IPAD_OK.search(c["body"])
+        if m and head.startswith(m.group(1)):
             ipad_ok = True
-    labels = {l["name"].lower() for l in pr["labels"]["nodes"]}
-    ipad_ok = ipad_ok or "ipad-ok" in labels
+    last = max(events, key=lambda e: e[0]) if events else None
+    threads = [t for t in pr["reviewThreads"]["nodes"] if not t["isResolved"]]
+    # The author answered every open thread after the last review: the reviewer's turn.
+    replied = bool(threads) and last is not None and all(
+        (t["comments"]["nodes"] or [{}])[-1].get("createdAt")
+        and parse_time(t["comments"]["nodes"][-1]["createdAt"]) > last[0] + dt.timedelta(seconds=5)
+        for t in threads)
     screen = changes_screen(files)
     lgtm_here = bool(lgtm_sha and head.startswith(lgtm_sha))
-    since = parse_time(commit.get("committedDate"))
     flags = []
-    if ci == "FAILURE" or ci == "ERROR":
+    if ci in ("FAILURE", "ERROR"):
         flags.append(("bad", "CI 실패"))
     elif ci == "PENDING":
         flags.append(("wait", "CI 진행 중"))
@@ -231,10 +272,10 @@ def classify(pr, author):
         flags.append(("good", "CI 통과"))
     if pr["mergeable"] == "CONFLICTING":
         flags.append(("bad", "충돌"))
-    if open_threads:
-        flags.append(("wait", f"열린 스레드 {open_threads}"))
+    if threads:
+        flags.append(("wait", f"열린 스레드 {len(threads)}" + (" (작성자 답글 달림)" if replied else "")))
     if screen:
-        flags.append(("info", "iPad 확인 필요" if not ipad_ok else "iPad 확인됨"))
+        flags.append(("info", "iPad 확인됨 (현재 헤드)" if ipad_ok else "iPad 확인 필요"))
     if lgtm_sha and not lgtm_here:
         flags.append(("wait", "LGTM 뒤 새 푸시"))
 
@@ -245,15 +286,17 @@ def classify(pr, author):
         return "fixing", author, what, since, flags, screen
     if lgtm_here:
         if screen and not ipad_ok:
-            return "user", "사용자", "iPad에서 화면 확인 (확인 후 PR에 'iPad OK')", lgtm_at, flags, screen
+            return "user", "사용자", f"iPad에서 화면 확인 (확인되면 PR에 'iPad OK at {head[:7]}')", lgtm_at, flags, screen
         return "merge", author, "머지하기 (LGTM · CI 통과)" if ci == "SUCCESS" else "CI 끝나면 머지", lgtm_at, flags, screen
-    if not last_review:
+    if not last:
         return "review", "리뷰 세션", "첫 리뷰", parse_time(pr["createdAt"]), flags, screen
-    if last_review["commit"] and not head.startswith(last_review["commit"]["oid"]):
+    if last[1] and not head.startswith(last[1]):
         return "rereview", "리뷰 세션", "새 커밋 재리뷰", since, flags, screen
-    if open_threads:
-        return "fixing", author, f"리뷰 코멘트 {open_threads}개 반영 또는 답글", parse_time(last_review["submittedAt"]), flags, screen
-    return "rereview", "리뷰 세션", "남은 지적 없음: LGTM 또는 다음 리뷰", parse_time(last_review["submittedAt"]), flags, screen
+    if replied:
+        return "rereview", "리뷰 세션", f"작성자 답글 {len(threads)}개 확인", last[0], flags, screen
+    if threads:
+        return "fixing", author, f"리뷰 코멘트 {len(threads)}개 반영 또는 답글", last[0], flags, screen
+    return "rereview", "리뷰 세션", "남은 지적 없음: LGTM 또는 다음 리뷰", last[0], flags, screen
 
 
 # ---------------------------------------------------------------- git and the machine
@@ -287,23 +330,93 @@ def worktrees():
     return items
 
 
-def local_branches(checked_out):
-    fmt = "%(refname:short)|%(upstream:short)|%(upstream:track)|%(committerdate:unix)"
-    out = git("for-each-ref", "--format=" + fmt, "refs/heads") or ""
-    cutoff = time.time() - LOCAL_BRANCH_DAYS * 86400
+_last_fetch = [0.0]
+_base_tip = [""]
+
+
+def fetch_origin():
+    """Keep origin/develop and the gone-upstream marks fresh (at most every 5 minutes)."""
+    if time.time() - _last_fetch[0] > 300:
+        run(["git", "fetch", "-q", "--prune", "origin"], cwd=HERE, timeout=60)
+        _last_fetch[0] = time.time()
+
+
+_analysis = {}  # (branch tip, develop tip) -> analysis; a branch is re-read only when either moves
+
+
+def analyze_branch(name, tip, base="origin/develop"):
+    """What a local branch holds compared with develop: its last commit, size and whether its
+    changes are already there (a squash merge leaves the branch's own commits out of develop)."""
+    key = (tip, _base_tip[0])
+    if key in _analysis:
+        return _analysis[key]
+    log = git("log", "-1", "--format=%s%x1f%ct", name) or "\x1f0"
+    subject, when = log.split("\x1f")
+    ahead = int(git("rev-list", "--count", f"{base}..{name}") or 0)
+    mb = git("merge-base", base, name)
+    files = (git("diff", "--name-only", f"{mb}..{name}") or "").splitlines() if mb else []
+    # Pathspecs are relative to the working directory, and the diff names files from the repo top.
+    same = bool(files) and run(["git", "diff", "--quiet", base, name, "--", *[":(top)" + f for f in files]], cwd=HERE)[0] == 0
+    _analysis[key] = {"subject": subject, "when": int(when or 0), "ahead": ahead, "files": files, "in_develop": same}
+    return _analysis[key]
+
+
+def local_work(wts, open_by_branch, ended, by_branch, owner_of, repo_root):
+    """Every local branch with its story and a verdict: in progress, decide, or safe to delete."""
+    fmt = "%(refname:short)|%(upstream:short)|%(upstream:track)|%(objectname)"
+    refs = {}
+    for line in (git("for-each-ref", "--format=" + fmt, "refs/heads") or "").splitlines():
+        name, upstream, track, tip = line.split("|")
+        refs[name] = (upstream, track, tip)
+    _base_tip[0] = git("rev-parse", "origin/develop") or ""
+    tree_of = {w.get("branch"): w for w in wts if w.get("branch") and not w.get("missing")}
     items = []
-    for line in out.splitlines():
-        name, upstream, track, when = line.split("|")
-        if name in ("main", "develop") or name in checked_out:
+    for name, (upstream, track, tip) in refs.items():
+        if name in ("main", "develop"):
             continue
+        a = analyze_branch(name, tip)
+        w = tree_of.get(name)
+        dirty = (w or {}).get("dirty", 0)
+        unpushed = None if not upstream or "gone" in track else int(re.sub(r"\D", "", track.split(",")[0]) or 0) if "ahead" in track else 0
+        pr = open_by_branch.get(name)
+        end_state, end_pr = ended.get(name, (None, None))
+        notes = []
+        if dirty:
+            notes.append(f"커밋 안 된 변경 {dirty}")
         if not upstream:
-            if int(when) >= cutoff:
-                items.append({"branch": name, "kind": "push 안 함", "when": int(when)})
+            notes.append("push 안 함")
         elif "gone" in track:
-            items.append({"branch": name, "kind": "원격 삭제됨 (머지 뒤 정리 가능)", "when": int(when)})
-        elif "ahead" in track:
-            items.append({"branch": name, "kind": "push 안 된 커밋 " + re.sub(r"\D", "", track.split(",")[0]), "when": int(when)})
-    return sorted(items, key=lambda b: -b["when"])
+            notes.append("원격 브랜치 삭제됨")
+        elif unpushed:
+            notes.append(f"push 안 된 커밋 {unpushed}")
+        if pr:
+            verdict, why = "active", f'PR #{pr["number"]} 진행 중'
+        elif dirty:
+            verdict, why = "decide", "커밋 안 된 변경이 있음: 살릴지 정해야 함"
+        elif end_state == "merged" and not unpushed:
+            verdict, why = "delete", f'PR #{end_pr["number"]} 머지됨'
+        elif a["ahead"] == 0:
+            verdict, why = "delete", "develop에 이미 포함 (새 커밋 없음)"
+        elif a["in_develop"]:
+            verdict, why = "delete", "바뀐 파일이 develop과 같음 (내용이 이미 들어감)"
+        elif end_state == "merged":
+            verdict, why = "decide", f'PR #{end_pr["number"]} 머지 뒤 남은 커밋 {unpushed}'
+        elif end_state == "closed":
+            verdict, why = "decide", f'PR #{end_pr["number"]} 머지 없이 닫힘'
+        else:
+            verdict, why = "decide", f'develop에 없는 변경: 커밋 {a["ahead"]} · 파일 {len(a["files"])}'
+        if name.startswith("backup/") and verdict == "decide":
+            why += " (백업: 원본이 머지됐으면 삭제 가능)"
+        s_ = by_branch.get(name)
+        who = (owner_of(w["path"]) if w and w["path"] != repo_root else "") or (s_["title"] if s_ else "")
+        items.append({"branch": name, "tree": w, "notes": notes, "verdict": verdict, "why": why,
+                      "areas": category("", a["files"]), "pr": pr or end_pr, **a, "who": who})
+    for w in wts:  # worktrees whose folder is gone
+        if w.get("missing"):
+            items.append({"branch": w.get("branch") or "detached", "tree": w, "notes": ["폴더 없음"],
+                          "verdict": "delete", "why": "worktree 폴더가 없음: git worktree prune", "areas": [],
+                          "pr": None, "subject": "", "when": 0, "ahead": 0, "files": [], "who": ""})
+    return sorted(items, key=lambda i: -i["when"])
 
 
 def machine():
@@ -363,7 +476,31 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
 th{color:var(--soft);font-weight:500;border-top:none}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
 .busy{background:var(--good)}.recent{background:var(--wait)}.idle{background:var(--line)}
 code{font-size:12px}
+details.fold>summary{list-style:none;cursor:pointer}details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary h2::before{content:"▾";color:var(--soft);margin-right:6px;display:inline-block;width:10px}
+details.fold:not([open])>summary h2::before{content:"▸"}details.fold:not([open])>summary h2{margin-bottom:0}
+.lane.fold>summary h2{justify-content:flex-start;gap:6px}.lane.fold>summary h2 .soft{margin-left:auto}
+.box.wide{grid-column:1/-1}
+.mine{background:var(--card);border:2px solid var(--user);border-radius:14px;padding:14px 16px;display:grid;gap:10px}
+.mine.calm{border-color:var(--line)}.mine h2{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
+.mine .count{background:var(--user);color:var(--card);border-radius:999px;padding:0 10px;font-size:14px}
+.mine.calm .count{background:var(--line);color:var(--soft)}
+.todo{border-left:5px solid var(--user);background:var(--chip);border-radius:10px;padding:10px 12px}
+.todo.ipad{border-left-color:var(--info)}.todo.decide{border-left-color:var(--wait)}
+.todo .k{font-weight:700;font-size:15px}.todo .b{margin-top:4px;font-size:15px}.todo .how{margin-top:6px;font-size:12px;color:var(--soft)}pre{white-space:pre-wrap;word-break:break-all;font-size:12px;background:var(--chip);padding:8px 10px;border-radius:8px}
+.tools{margin-left:auto;display:flex;gap:6px}.tools button{font:inherit;font-size:12px;color:var(--ink);background:var(--card);
+border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer}
 """
+
+# Folds survive the 30 s reload: each <details data-id> keeps its open state in this viewer's
+# localStorage (a convenience only; the page works without it).
+FOLD_JS = """(function(){var K='board-folds',s={};try{s=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
+function save(){try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}
+var all=document.querySelectorAll('details[data-id]');
+all.forEach(function(d){var id=d.getAttribute('data-id');if(id in s)d.open=s[id];
+d.addEventListener('toggle',function(){s[id]=d.open;save()})});
+document.querySelectorAll('[data-fold]').forEach(function(b){b.addEventListener('click',function(){
+var o=b.getAttribute('data-fold')==='open';all.forEach(function(d){d.open=o})})})})();"""
 
 
 def esc(s):
@@ -382,9 +519,9 @@ def build():
     by_pr = {n: s for s in sessions.values() for n in s["prs"]}
     by_branch = {b: s for s in sessions.values() for b in s["branches"]}
 
-    error, open_prs, merged = None, [], []
+    error, open_prs, merged, ended = None, [], [], {}
     try:
-        open_prs, merged = fetch_prs(slug)
+        open_prs, merged, ended = fetch_prs(slug)
     except Exception as e:  # keep the local half of the board when GitHub can't be read
         error = str(e)
 
@@ -404,9 +541,7 @@ def build():
         who.setdefault(actor, []).append(card)
         pr_by_branch[pr["headRefName"]] = pr
     cutoff = now() - dt.timedelta(hours=MERGED_HOURS)
-    merged_branches = set()
     for pr in merged:
-        merged_branches.add(pr["headRefName"])
         t = parse_time(pr["mergedAt"])
         if t and t >= cutoff:
             s = by_pr.get(pr["number"]) or by_branch.get(pr["headRefName"])
@@ -414,9 +549,8 @@ def build():
             cards["merged"].append({"pr": pr, "author": s["title"] if s else "", "since": t,
                                     "chips": category(pr["title"], files), "flags": [], "actor": None})
 
+    fetch_origin()
     wts = worktrees()
-    checked_out = {w.get("branch") for w in wts if w.get("branch")}
-    branches = local_branches(checked_out)
     mac = machine()
 
     def owner_of(path):
@@ -431,28 +565,62 @@ def build():
     h = ['<!doctype html><html lang="ko"><head><meta charset="utf-8">',
          '<meta name="viewport" content="width=device-width,initial-scale=1">',
          '<meta http-equiv="refresh" content="30"><title>작업 현황판</title>', f"<style>{CSS}</style></head><body>",
-         f'<header><h1>작업 현황판</h1><span class="soft">{esc(slug)} · {dt.datetime.now().strftime("%H:%M:%S")} 갱신 · 30초마다 새로고침</span></header>',
+         f'<header><h1>작업 현황판</h1><span class="soft">{esc(slug)} · {dt.datetime.now().strftime("%H:%M:%S")} 갱신 · 30초마다 새로고침</span>'
+         '<span class="tools"><button type="button" data-fold="close">모두 접기</button>'
+         '<button type="button" data-fold="open">모두 펼치기</button></span></header>',
          '<div class="wrap">']
     if error:
         h.append(f'<div class="banner">GitHub를 읽지 못했습니다: {esc(error)}. 로컬 정보만 보여 줍니다.</div>')
 
-    # Who has to act now
-    h.append('<section><h2>지금 누가 무엇을 해야 하나</h2><div class="who">')
-    order = sorted(who.items(), key=lambda kv: (kv[0] != "사용자", kv[0] != reviewer, kv[0]))
+    # What only the user can do: answer a waiting session, check a screen PR on the iPad, decide
+    # about local branches. Everything else moves between the sessions on its own.
+    work = local_work(wts, pr_by_branch, ended, by_branch, owner_of, repo_root)
+    mine = []
+    for s_ in sorted(sessions.values(), key=lambda s_: (s_["waiting"] or {}).get("at") or ""):
+        q = s_["waiting"]
+        if q:
+            mine.append(("ask", "질문에 답하기" + (" · 세션이 멈춰 있음" if q["blocked"] else ""),
+                         esc(q["text"]), f'{esc(s_["title"])} 세션에서 답하기 · {esc(ago(parse_time(q["at"])))}'))
+    for c in cards["user"]:
+        pr = c["pr"]
+        mine.append(("ipad", "iPad에서 화면 확인",
+                     f'<a href="{esc(pr["url"])}">#{pr["number"]} {esc(pr["title"])}</a>',
+                     f'괜찮으면 {esc(c["author"])} 세션에 "iPad OK"라고 알려 주기 · LGTM {esc(ago(c["since"]))}'))
+    decide = [i for i in work if i["verdict"] == "decide"]
+    if decide:
+        mine.append(("decide", f"로컬 브랜치 {len(decide)}개: 살릴지 지울지 정하기",
+                     esc(", ".join(i["branch"] for i in decide[:4]) + (" …" if len(decide) > 4 else "")),
+                     '<a href="#local">아래 로컬 작업</a>에서 내용 보기 · 정하면 세션에 맡기기'))
+    h.append(f'<section class="mine{" calm" if not mine else ""}"><h2>내가 할 일 <span class="count">{len(mine)}</span></h2>')
+    if not mine:
+        h.append('<p>지금은 없습니다. 세션들이 알아서 진행 중입니다.</p>')
+    for kind, title, body, how in mine:
+        h.append(f'<div class="todo {kind}"><div class="k">{title}</div><div class="b">{body}</div>'
+                 f'<div class="how">{how}</div></div>')
+    h.append("</section>")
+
+    # The sessions' own turns on the review loop (they act on these without the user)
+    who.pop("사용자", None)
+    h.append('<details class="fold" data-id="who" open><summary><h2>세션들의 차례 '
+             '<span class="soft">(사용자 입력 없이 진행)</span></h2></summary><div class="who">')
+    order = sorted(who.items(), key=lambda kv: (kv[0] != reviewer, kv[0]))
     if not order:
-        h.append('<div class="box soft">열린 PR이 없습니다.</div>')
+        h.append('<div class="box soft">세션 차례인 PR이 없습니다.</div>')
     for actor, items in order:
         h.append(f'<div class="box"><b>{esc(actor)}</b> <span class="soft">· {len(items)}건</span><ul>')
         for c in sorted(items, key=lambda c: c["since"] or now()):
             h.append(f'<li><a href="{esc(c["pr"]["url"])}">#{c["pr"]["number"]}</a> {esc(c["what"])} '
                      f'<span class="soft">({esc(ago(c["since"]))}부터)</span></li>')
         h.append("</ul></div>")
-    h.append("</div></section>")
+    h.append("</div></details>")
 
     # Lanes
     h.append('<section class="lanes">')
     for key, label in LANES:
-        h.append(f'<div class="lane"><h2><span>{label}</span><span class="soft">{len(cards[key])}</span></h2>')
+        # Every lane folds; recently merged starts folded (it only grows).
+        opened = "" if key == "merged" else " open"
+        h.append(f'<details class="lane fold" data-id="lane-{key}"{opened}><summary><h2><span>{label}</span>'
+                 f'<span class="soft">{len(cards[key])}</span></h2></summary>')
         for c in cards[key]:
             pr = c["pr"]
             if key == "merged":  # one compact line each: what landed, from which session, when
@@ -471,70 +639,62 @@ def build():
             if c["flags"]:
                 h.append('<div class="meta">' + " · ".join(f'<span class="f-{k}">{esc(t)}</span>' for k, t in c["flags"]) + "</div>")
             h.append("</div>")
-        h.append("</div>")
+        h.append("</details>")
     h.append("</section>")
 
     # Sessions, local-only work, machine
     h.append('<section class="grid2">')
-    h.append('<div class="box"><h2>세션</h2><table><tr><th>세션</th><th>상태</th><th>만든 PR</th></tr>')
+    h.append('<div class="box"><details class="fold" data-id="sessions" open><summary><h2>세션</h2></summary>'
+             '<table><tr><th>세션</th><th>상태</th><th>만든 PR</th></tr>')
     open_numbers = {p["number"]: p for p in open_prs}
     for s in sorted(sessions.values(), key=lambda s: s["mtime"], reverse=True):
         cls, label = session_state(s)
         prs = " ".join(f'<a href="{esc(open_numbers[n]["url"])}">#{n}</a>' for n in s["prs"] if n in open_numbers)
         h.append(f'<tr><td>{esc(s["title"])}</td><td><span class="dot {cls}"></span>{label} '
                  f'<span class="soft">({esc(ago(s["mtime"]))})</span></td><td>{prs or "<span class=soft>열린 PR 없음</span>"}</td></tr>')
-    h.append("</table></div>")
+    h.append("</table></details></div>")
 
-    # Local work: what still needs a push or a PR first, then what can be cleaned up (folded)
-    attention, cleanup = [], []
-    for w in wts:
-        if w.get("missing"):
-            cleanup.append((esc(w["path"]), "폴더 없음: <code>git worktree prune</code>", ""))
-            continue
-        b = w.get("branch")
-        shared = w["path"] == repo_root
-        name = "공유 체크아웃" if shared else os.path.basename(w["path"])
-        where = f'{esc(name)}<br><code>{esc(b or "detached")}</code>'
-        who_ = "여러 세션이 함께 씀" if shared else owner_of(w["path"])
-        notes = []
-        if w.get("dirty"):
-            notes.append(f'<span class="f-wait">커밋 안 된 변경 {w["dirty"]}</span>')
-        if b and b not in ("develop", "main"):
-            if w.get("ahead") is None:
-                notes.append('<span class="f-wait">push 안 함</span>')
-            elif w["ahead"]:
-                notes.append(f'<span class="f-wait">push 안 된 커밋 {w["ahead"]}</span>')
-            if b in pr_by_branch:
-                notes.append(f'<a href="{esc(pr_by_branch[b]["url"])}">PR #{pr_by_branch[b]["number"]}</a> 작업 폴더')
-            elif b in merged_branches and not w.get("dirty") and not w.get("ahead"):
-                cleanup.append((where, '<span class="f-good">머지됨: worktree 정리 가능</span>', esc(who_)))
-                continue
-            elif b in merged_branches:
-                notes.append('<span class="f-bad">머지된 브랜치에 남은 작업</span>')
-            else:
-                notes.append('<span class="f-info">PR 없음</span>')
-        if notes:
-            attention.append((where, " · ".join(notes), esc(who_)))
-    for br in branches:
-        if br["branch"] in pr_by_branch:
-            continue
-        s = by_branch.get(br["branch"])
-        row = (f'<code>{esc(br["branch"])}</code>', esc(br["kind"]), esc(s["title"] if s else ""))
-        (cleanup if "정리" in br["kind"] else attention).append(row)
+    # Local work: each branch's story and a verdict; safe deletes fold away with their commands
+    tag = {"active": ("f-info", "진행 중"), "decide": ("f-wait", "결정 필요"), "delete": ("f-good", "삭제 가능")}
 
-    def table(rows):
-        return "".join(f'<tr><td>{a}</td><td>{b}</td><td class="soft">{c}</td></tr>' for a, b, c in rows)
+    def row(i):
+        w = i["tree"]
+        where = f'<code>{esc(i["branch"])}</code>'
+        if w:
+            where += f'<br><span class="soft">{"공유 체크아웃" if w["path"] == repo_root else esc(os.path.basename(w["path"]))}</span>'
+        what = esc(i["subject"]) or '<span class="soft">커밋 없음</span>'
+        size = f'develop보다 커밋 {i["ahead"]} · 파일 {len(i["files"])}' if i["ahead"] else ""
+        when = ago(dt.datetime.fromtimestamp(i["when"], dt.timezone.utc)) if i["when"] else ""
+        detail = " · ".join(x for x in [size, when] + i["notes"] if x)
+        chips = "".join(f'<span class="chip">{esc(c)}</span>' for c in i["areas"])
+        cls, label = tag[i["verdict"]]
+        link = f' <a href="{esc(i["pr"]["url"])}">#{i["pr"]["number"]}</a>' if i.get("pr") else ""
+        return (f'<tr><td>{where}</td><td>{what}<div class="meta">{esc(detail)}</div>'
+                f'{"<div class=chips>" + chips + "</div>" if chips else ""}</td>'
+                f'<td><b class="{cls}">{label}</b>{link}<div class="meta">{esc(i["why"])}</div></td>'
+                f'<td class="soft">{esc(i["who"])}</td></tr>')
 
-    h.append('<div class="box"><h2>로컬에만 있는 작업</h2><table><tr><th>위치</th><th>상태</th><th>세션</th></tr>')
-    h.append(table(attention) or '<tr><td colspan="3" class="soft">push나 PR을 기다리는 로컬 작업이 없습니다.</td></tr>')
-    h.append("</table>")
-    if cleanup:
-        h.append(f'<details><summary class="soft">정리 가능 {len(cleanup)}개 (머지됨, 원격 삭제됨)</summary><table>'
-                 f'{table(cleanup)}</table></details>')
-    h.append("</div>")
+    keep = [i for i in work if i["verdict"] != "delete"]
+    drop = [i for i in work if i["verdict"] == "delete"]
+    head_row = '<tr><th>브랜치</th><th>무슨 작업</th><th>판단</th><th>세션</th></tr>'
+    h.append('<div class="box wide" id="local"><details class="fold" data-id="local" open><summary><h2>로컬 작업 '
+             f'<span class="soft">진행 중 {sum(i["verdict"] == "active" for i in work)} · 결정 필요 '
+             f'{sum(i["verdict"] == "decide" for i in work)} · 삭제 가능 {len(drop)}</span></h2></summary>')
+    h.append(f'<table>{head_row}{"".join(row(i) for i in keep)}</table>' if keep else
+             '<p class="soft">진행 중이거나 결정이 필요한 로컬 작업이 없습니다.</p>')
+    if drop:
+        trees = [i["tree"]["path"] for i in drop if i["tree"] and not i["tree"].get("missing") and i["tree"]["path"] != repo_root]
+        names = [i["branch"] for i in drop if not (i["tree"] and i["tree"]["path"] == repo_root)]
+        cmds = [f"git worktree remove {p}" for p in trees] + (["git worktree prune"] if any(i["tree"] and i["tree"].get("missing") for i in drop) else [])
+        cmds += [f"git branch -D {' '.join(names)}"] if names else []
+        h.append(f'<details data-id="drop"><summary class="soft">삭제 가능 {len(drop)}개: 내용이 develop에 있거나 PR이 머지됨</summary>'
+                 f'<table>{head_row}{"".join(row(i) for i in drop)}</table>'
+                 f'<p class="soft">정리할 때 쓰는 명령 (현황판은 지우지 않습니다. 세션에 맡기거나 직접 실행):</p>'
+                 f'<pre>{esc(chr(10).join(cmds))}</pre></details>')
+    h.append("</details></div>")
 
     free = mac["free"]
-    h.append('<div class="box"><h2>이 맥 (8 GB)</h2><ul>')
+    h.append('<div class="box"><details class="fold" data-id="machine" open><summary><h2>이 맥 (8 GB)</h2></summary><ul>')
     h.append(f'<li>메모리 여유: <b class="{"f-bad" if free is not None and free < 15 else ""}">{free if free is not None else "?"}%</b></li>')
     bz = mac["bazel"]
     h.append(f'<li>Bazel 서버 {len(bz)}개' + (": " + ", ".join(f"{esc(n)} {r} MB" for n, r in bz) if bz else "") +
@@ -543,11 +703,11 @@ def build():
     h.append(f'<li>켜진 시뮬레이터 {len(sims)}대' + (": " + esc(", ".join(sims)) if sims else "") +
              (' <span class="f-bad">(하나만)</span>' if len(sims) > 1 else "") + "</li>")
     h.append(f'<li>lessons inbox: {mac["lessons"]}개' + (' <span class="f-wait">(5개 이상: skill-retro)</span>' if mac["lessons"] >= 5 else "") + "</li>")
-    h.append("</ul></div></section>")
+    h.append("</ul></details></div></section>")
 
-    h.append('<p class="soft">사용자 확인: 화면을 바꾼 PR은 LGTM 뒤 iPad 확인이 필요합니다. 확인하면 PR에 '
-             '"iPad OK" 코멘트(또는 <code>ipad-ok</code> 라벨)를 남기면 머지 대기로 넘어갑니다.</p>')
-    h.append("</div></body></html>")
+    h.append('<p class="soft">사용자 확인: 화면을 바꾼 PR은 LGTM 뒤 iPad 확인이 필요합니다. 확인되면 작성 세션이 PR에 '
+             '<code>iPad OK at &lt;헤드 SHA&gt;</code>를 남기고, 그 헤드에서만 유효합니다 (새 push 뒤에는 다시 확인).</p>')
+    h.append(f"</div><script>{FOLD_JS}</script></body></html>")
     os.makedirs(OUT, exist_ok=True)
     tmp = PAGE + ".tmp"
     with open(tmp, "w") as fh:
@@ -556,22 +716,34 @@ def build():
 
 
 def serve(port):
+    """Serve the page alone on 127.0.0.1. Other paths get 404 (the session cache stays private), and
+    a Host other than this address is refused, so a web page can't reach it by DNS rebinding."""
     lock, state = threading.Lock(), {"built": 0.0}
+    hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
 
-    class Handler(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *a, **k):
-            super().__init__(*a, directory=OUT, **k)
-
+    class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
-            if self.path in ("/", "/index.html"):
-                with lock:
-                    if time.time() - state["built"] > 25:
-                        try:
-                            build()
-                        except Exception as e:  # serve the last page rather than nothing
-                            print("build failed:", e)
-                        state["built"] = time.time()
-            super().do_GET()
+            if self.headers.get("Host", "") not in hosts:
+                self.send_error(403)
+                return
+            if self.path.split("?")[0] not in ("/", "/index.html"):
+                self.send_error(404)
+                return
+            with lock:
+                if time.time() - state["built"] > 25:
+                    try:
+                        build()
+                    except Exception as e:  # serve the last page rather than nothing
+                        print("build failed:", e)
+                    state["built"] = time.time()
+            with open(PAGE, "rb") as fh:
+                body = fh.read()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
 
         def log_message(self, *args):
             pass

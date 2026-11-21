@@ -16,16 +16,24 @@ What it shows:
   merge waiting, and recently merged. Each card has its category (from the conventional title and
   the paths it touches), the session that opened it, CI, open threads, and LGTM state.
 - **Sessions**: every recent session's title, whether it is busy, and its open PRs.
-- **Local-only work**: worktrees with uncommitted or unpushed changes, branches with no PR, and
-  (folded) what can be cleaned up.
+- **Local work**: every local branch with its last commit, its size against develop, the areas it
+  touches and a verdict:
+  - *in progress*: it has an open PR;
+  - *decide*: uncommitted changes, changes develop doesn't have, or a PR closed unmerged;
+  - *safe to delete*: its PR merged, or every file it changed already matches develop. These fold
+    away with the commands that clean them up; the board itself deletes nothing.
 - **This Mac**: free memory, Bazel servers, booted simulators, and open lessons.
+
+Every section and lane folds (recently merged starts folded), and the folds survive the 30 s reload.
 
 Where the facts come from:
 - `gh api graphql` for the PRs.
 - `~/.claude/projects/*/*.jsonl` for the sessions. Claude Code records each PR a session opened
   (`gitOperation.pr`, action `created`), its title and its working folder. The board reads only the
-  bytes added since the last run (`out/sessions-cache.json`).
-- `git worktree list`, `git for-each-ref`, `pgrep`, `simctl` and `memory_pressure` for the rest.
+  bytes added since the last run (`out/sessions-cache.json`, kept in full only for this repo's sessions).
+- `git worktree list`, `git for-each-ref`, `git fetch --prune` (at most every 5 minutes), `pgrep`,
+  `simctl` and `memory_pressure` for the rest.
 
-A screen PR waits in "user check" after its LGTM until a PR comment starts with `iPad OK` (or the
-PR gets the `ipad-ok` label).
+A screen PR waits in "user check" after its LGTM until a comment says `iPad OK at <head sha>`
+(`pr-review-handoff` step 6); a later push needs a new check. The server answers only `/` for a
+`127.0.0.1` or `localhost` Host.
