@@ -271,31 +271,20 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.edit.items.first?.isRepeating, false, "the kind change is its own step")
     }
 
-    /// Review case A (PR 174): a confirmed "Remove School every week" is an All days change even
-    /// when This day shows at Save. It is written from G5's date (here the clock's day), template
-    /// only: School's record is not changed.
-    func testRemovingSchoolEveryWeekSavesOnAllDays() async throws {
-        let writes = Writes()
-        let savedKids = LockIsolated<[Kid]>([])
-        let store = await loaded(savedKids: savedKids, writes: writes)
+    /// School's Remove leaves the clock, so unsaved changes ask G1d first; Save goes on to G7.
+    func testSchoolRemoveAsksFirstWithUnsavedChanges() async throws {
+        let store = await loaded()
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.knobReleased(0))
         let school = try XCTUnwrap(store.state.edit.blocks.first { $0.kind == .school })
         await store.send(.sliceTapped(start: school.start))
         await store.send(.scopeTapped(.allDays))
         await store.send(.sliceActionTapped)
-        await store.send(.removeConfirmed)
-        await store.send(.sliceTapped(start: 1110))
-        await store.send(.scopeTapped(.thisDay))
-        await store.send(.saveTapped)
-        XCTAssertEqual(store.state.fromWhen, .today, "All days changes ask from when")
-        await store.send(.fromWhenSaveTapped)
+        XCTAssertTrue(store.state.isConfirmingLeave)
+        XCTAssertEqual(store.state.pendingSwitch, .atHome)
+        await store.send(.unsavedSaveTapped)
         await store.receive(\.saved)
-        let routine = try XCTUnwrap(writes.routines.value.first)
-        XCTAssertEqual(writes.routines.value.count, 1)
-        XCTAssertNil(routine.onlyOn)
-        XCTAssertEqual(routine.from, tuesday)
-        XCTAssertFalse(routine.blocks.contains { $0.kind == .school })
-        XCTAssertTrue(savedKids.value.isEmpty, "School's record stays")
-        XCTAssertFalse(store.state.edit.blocks.contains { $0.kind == .school }, "the clock shows the saved day")
+        await store.receive(\.delegate.removeSchool)
     }
 
     /// Review case B (PR 174): Skip Play on This day and Remove Dinner on All days; each is saved by
@@ -591,8 +580,9 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.items.isEmpty)
     }
 
-    /// School: Skip this day in one tap; Remove on All days asks first, then School is free time.
-    func testSchoolSkipsInOneTapAndRemoveAsksFirst() async throws {
+    /// School: Skip this day in one tap; Remove on All days opens G7 with At home picked (spec C6
+    /// "One card", e39b24d), never a template-only removal.
+    func testSchoolSkipsInOneTapAndRemoveOpensG7() async throws {
         let store = await loaded()
         let school = try XCTUnwrap(store.state.edit.blocks.first { $0.kind == .school })
         await store.send(.sliceTapped(start: school.start))
@@ -603,10 +593,24 @@ final class OurDayTests: XCTestCase {
         await store.send(.undoTapped)
         await store.send(.scopeTapped(.allDays))
         await store.send(.sliceActionTapped)
-        XCTAssertEqual(store.state.removeTitle, "Remove School every week?")
-        await store.send(.removeConfirmed)
-        XCTAssertFalse(store.state.edit.blocks.contains { $0.kind == .school })
-        XCTAssertEqual(store.state.selectedBlock?.kind, .free)
+        XCTAssertNil(store.state.removeTitle, "no confirm: G7 is the next step")
+        await store.receive(\.delegate.removeSchool, SeedData.kidA.id)
+        XCTAssertTrue(store.state.edit.blocks.contains { $0.kind == .school }, "the clock does not free it")
+        XCTAssertFalse(store.state.canUndo)
+    }
+
+    /// Every-month items confirm "every month" (spec C6 "One card").
+    func testAMonthlyItemAsksEveryMonth() async {
+        let club = ScheduleItem(id: swimID, title: "Book club", iconName: "actStory", audience: .kid(SeedData.kidA.id),
+                                start: 1020, end: 1080,
+                                recurrence: .monthly(.nthWeekday(2, .tuesday), from: Day(year: 2026, month: 11, day: 1),
+                                                     until: nil),
+                                skippedDays: [], skipsHolidays: false, showsStar: false)
+        let store = await loaded(items: [club])
+        await store.send(.sliceTapped(start: 1020))
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.sliceActionTapped)
+        XCTAssertEqual(store.state.removeTitle, "Remove Book club every month?")
     }
 
     /// "Details ›" opens the item's form, after G1d when something is unsaved.

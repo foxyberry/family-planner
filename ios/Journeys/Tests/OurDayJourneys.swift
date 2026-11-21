@@ -57,6 +57,45 @@ final class OurDayJourneys: XCTestCase {
         XCTAssertNil(kidA(store)?.slots.first { $0.title == "Piano" })
     }
 
+    /// School's "Remove" on All days opens G7 with "At home" picked (spec C6, e39b24d); Save from
+    /// today makes Kid A a kid at home, and Our day shows the day without School.
+    func testSchoolRemoveGoesThroughG7AtHome() async throws {
+        var data = WorldData.standard
+        data.family = "sample"
+        let world = World(data)
+        let store = world.store()
+        await store.send(.home(.task))
+        await store.receive(\.home.loaded)
+        await store.send(.home(.pencilTapped))
+        await store.receive(\.parentAuthResponse)
+        let ourDay = try XCTUnwrap(store.state.path.ids.first)
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.task))))
+        await store.receive(\.path[id: ourDay].ourDay.loaded)
+
+        let school = try XCTUnwrap(day(store, ourDay)?.edit.blocks.first { $0.kind == .school })
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.sliceTapped(start: school.start)))))
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.scopeTapped(.allDays)))))
+        await store.send(.path(.element(id: ourDay, action: .ourDay(.sliceActionTapped))))
+        await store.receive(\.path[id: ourDay].ourDay.delegate.removeSchool)
+        let g7 = try XCTUnwrap(store.state.path.ids.last)
+        guard case .changeSchool? = store.state.path[id: g7] else { return XCTFail("G7 is not open") }
+        await store.send(.path(.element(id: g7, action: .changeSchool(.task))))
+        await store.receive(\.path[id: g7].changeSchool.loaded)
+        guard case let .changeSchool(change)? = store.state.path[id: g7], case let .ready(form) = change.phase
+        else { return XCTFail("G7 did not load") }
+        XCTAssertEqual(form.place, .home, "At home is picked")
+        XCTAssertTrue(form.isShowingStartsOn)
+
+        await store.send(.path(.element(id: g7, action: .changeSchool(.datePicked(world.now)))))
+        await store.send(.path(.element(id: g7, action: .changeSchool(.saveTapped))))
+        await store.receive(\.path[id: g7].changeSchool.saved)
+        await store.receive(\.path[id: g7].changeSchool.delegate.finished)
+        await store.receive(\.path[id: ourDay].ourDay.loaded)
+        XCTAssertNil(world.family.value.kids.first { $0.id == SeedData.kidA.id }?.school, "the school record changed")
+        XCTAssertEqual(store.state.path.ids.last, ourDay, "back on Our day")
+        XCTAssertFalse(day(store, ourDay)?.edit.blocks.contains { $0.kind == .school } ?? true)
+    }
+
     private func day(_ store: TestStoreOf<AppFeature>, _ id: StackElementID) -> OurDayFeature.State? {
         guard case let .ourDay(day)? = store.state.path[id: id] else { return nil }
         return day

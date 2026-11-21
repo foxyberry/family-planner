@@ -837,6 +837,17 @@
         }
       }
     },
+    "day.remove.monthly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@ every month?"
+          }
+        }
+      }
+    },
     "day.remove.once" : {
       "extractionState" : "manual",
       "localizations" : {

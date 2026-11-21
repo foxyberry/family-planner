@@ -77,9 +77,10 @@ public struct OurDayFeature {
     /// day, "Remove" on All days and on a just-once item.
     public enum SliceAction: Equatable, Sendable { case skip, remove }
 
-    /// Board G1: the ConfirmCard before an every-week item, School or a just-once item is removed.
+    /// Board G1: the ConfirmCard before an every-week or every-month item or a just-once item is
+    /// removed (School's Remove opens G7 instead).
     public enum Removing: Equatable, Sendable {
-        case series(ClockSlice.Source)
+        case series(ScheduleItem.ID)
         case once(ScheduleItem.ID)
     }
 
@@ -133,6 +134,8 @@ public struct OurDayFeature {
             /// "Details ›" on an item's or School's slice card (E5 / G2, G4).
             case item(ScheduleItem.ID)
             case school
+            /// School's "Remove" on All days: G7 with "At home" picked.
+            case atHome
         }
 
         /// Board G8: the kid's items as a list instead of the clock.
@@ -292,7 +295,9 @@ public struct OurDayFeature {
         /// Board G1: the ConfirmCard's words while it is open.
         public var removeTitle: String? {
             switch removing {
-            case let .series(source)?: strings.tr("day.remove.series", title(of: source))
+            case let .series(id)?:
+                edit.item(id)?.isMonthly == true ? strings.tr("day.remove.monthly", title(of: .item(id)))
+                    : strings.tr("day.remove.series", title(of: .item(id)))
             case let .once(id)?: strings.tr("day.remove.once", title(of: .item(id)))
             case nil: nil
             }
@@ -514,6 +519,9 @@ public struct OurDayFeature {
             case add(Kid.ID, ItemForm.Repeat)
             /// Board G8: the School row opens G4.
             case openSchool
+            /// School's "Remove" on All days (spec C6 "One card"): G7 with "At home" picked, so where
+            /// the kid goes changes the one way it always does.
+            case removeSchool(Kid.ID)
         }
     }
 
@@ -715,9 +723,10 @@ public struct OurDayFeature {
                 case let (.skip, .item(id)):
                     state.edit.setItemSkipped(id, true)
                 case let (.remove, .block(block)):
-                    // School asks first ("Remove School every week?"); a day slice becomes free time.
+                    // School opens G7 with At home picked (after G1d when something is unsaved); a
+                    // day slice becomes free time.
                     if state.edit.blocks[block].kind == .school {
-                        state.removing = .series(source)
+                        return ask(.atHome, &state)
                     } else {
                         state.selected = .block(state.edit.makeFree(block, scope: .allDays))
                     }
@@ -726,7 +735,7 @@ public struct OurDayFeature {
                     if item.isNew {
                         remove(item, &state)
                     } else {
-                        state.removing = item.isRepeating ? .series(source) : .once(id)
+                        state.removing = item.isRepeating ? .series(id) : .once(id)
                     }
                 }
                 return .none
@@ -735,10 +744,7 @@ public struct OurDayFeature {
                 guard let removing = state.removing else { return .none }
                 state.removing = nil
                 switch removing {
-                case let .series(.block(block)):
-                    // "Remove School every week" is an All days change (from G5's date).
-                    state.selected = .block(state.edit.makeFree(block, scope: .allDays))
-                case let .series(.item(id)), let .once(id):
+                case let .series(id), let .once(id):
                     if let item = state.edit.item(id) { remove(item, &state) }
                 }
                 return .none
@@ -995,6 +1001,8 @@ public struct OurDayFeature {
             return .send(.delegate(.openItem(id)))
         case .school:
             return .send(.delegate(.openSchool))
+        case .atHome:
+            return .send(.delegate(.removeSchool(state.kid)))
         case nil:
             return .none
         }

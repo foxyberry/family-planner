@@ -27,10 +27,15 @@ public struct ChangeSchoolFeature {
         /// Nothing about the kid's school is known before the store answers: no form until then.
         public var phase: Phase = .loading
 
-        public init(kid: Kid.ID, today: Day, calendar: Calendar) {
+        /// The place picked when the form opens, when it is not the kid's place now (G1's School
+        /// "Remove" opens on "At home").
+        public var opensAt: Place?
+
+        public init(kid: Kid.ID, today: Day, calendar: Calendar, opensAt: Place? = nil) {
             self.kid = kid
             self.today = today
             self.calendar = calendar
+            self.opensAt = opensAt
         }
 
         public var title: String { strings.tr("change_school.title") }
@@ -286,7 +291,9 @@ public struct ChangeSchoolFeature {
                 state.phase = .ready(Form(stored: kid, routines: snapshot.routines, directory: directory,
                                           schoolYear: year, today: state.today, calendar: state.calendar,
                                           strings: state.strings))
-                return .none
+                // Picked as a tap would pick it (At home goes straight to "Starts on").
+                guard let place = state.opensAt, place != Form.place(of: kid) else { return .none }
+                return state.updateForm { reduce(&$0, .placeTapped(place)) }
 
             case .backTapped:
                 return .send(.delegate(.finished))

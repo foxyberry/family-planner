@@ -515,13 +515,19 @@ public struct AppFeature {
 
             case let .path(.element(id: id, action: .changeSchool(.delegate(.finished)))):
                 state.path.pop(from: id)
-                return .merge(reloadSchoolEditor(state), reloadSettings(state), .send(.home(.reload)))
+                return .merge(reloadSchoolEditor(state), reloadSettings(state), reloadOurDay(state), .send(.home(.reload)))
 
             case let .path(.element(id: id, action: .changeSchool(.delegate(.openBuses(kid))))):
                 // Spec: after Save, the new trip's screen opens (Our buses, ← back to G4).
                 state.path.pop(from: id)
                 state.path.append(.busSettings(BusSettingsFeature.State(kid: kid)))
-                return .merge(reloadSchoolEditor(state), reloadSettings(state), .send(.home(.reload)))
+                return .merge(reloadSchoolEditor(state), reloadSettings(state), reloadOurDay(state), .send(.home(.reload)))
+
+            case let .path(.element(id: _, action: .ourDay(.delegate(.removeSchool(kid))))):
+                // Spec C6 "One card": School's Remove on All days is G7 with "At home" picked.
+                state.path.append(.changeSchool(ChangeSchoolFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                                          calendar: calendar, opensAt: .home)))
+                return .none
 
             case let .path(.element(id: id, action: .ourDay(.delegate(.openSchool)))):
                 guard case let .ourDay(day) = state.path[id: id] else { return .none }
@@ -597,6 +603,13 @@ public struct AppFeature {
         guard let settings = state.path.ids.last(where: { if case .settings = state.path[id: $0] { true } else { false } })
         else { return .none }
         return .send(.path(.element(id: settings, action: .settings(.task))))
+    }
+
+    /// Our day shows the day again after G7 changed where the kid goes.
+    private func reloadOurDay(_ state: State) -> Effect<Action> {
+        guard let day = state.path.ids.last(where: { if case .ourDay = state.path[id: $0] { true } else { false } })
+        else { return .none }
+        return .send(.path(.element(id: day, action: .ourDay(.task))))
     }
 
     private func reloadSchoolEditor(_ state: State) -> Effect<Action> {
