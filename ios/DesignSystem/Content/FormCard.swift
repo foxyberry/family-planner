@@ -51,7 +51,7 @@ public struct FormCard<Content: View>: View {
             .padding(ConfirmCard.padding(sizing))
             .frame(width: sizing(size.width), alignment: .topLeading)
             .fixedSize(horizontal: false, vertical: true)
-            .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.formCard)
+            .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.formCard, tap: .frame)
         }
     }
 }

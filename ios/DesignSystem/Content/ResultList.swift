@@ -88,8 +88,7 @@ public struct ResultListCard: View {
         .padding(.vertical, padding)
         .frame(width: cardWidth, height: height, alignment: .top)
         .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
-                          seed: CrayonStyle.Seed.card + seed)
-        .contentShape(Rectangle())
+                          seed: CrayonStyle.Seed.card + seed, tap: .frame)
     }
 
     private var list: some View {

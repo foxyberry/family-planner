@@ -69,7 +69,6 @@ public struct RoundButton: View {
             .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
                             seed: CrayonStyle.Seed.roundButton,
                             markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)
-            .contentShape(Circle().inset(by: sizing(CrayonPart.inset)))
         }
         .buttonStyle(.plain)
     }

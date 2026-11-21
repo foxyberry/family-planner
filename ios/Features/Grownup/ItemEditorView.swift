@@ -511,7 +511,6 @@ public struct ItemEditorView: View {
                     Text(store.skipTitle).crayonType(.body).foregroundStyle(CrayonColor.ink)
                         .frame(maxWidth: .infinity, minHeight: sizing(88))
                         .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: 1901)
-                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else {

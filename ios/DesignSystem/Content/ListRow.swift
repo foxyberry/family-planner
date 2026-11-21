@@ -65,7 +65,7 @@ public struct TodayRow<Content: View>: View {
         .foregroundStyle(CrayonColor.ink)
         .frame(minHeight: sizing(80))
         .padding(.horizontal, sizing(Spacing.m))
-        .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
+        .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50, tap: .frame)
     }
 }
 
