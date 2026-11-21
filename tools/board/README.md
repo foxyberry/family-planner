@@ -31,8 +31,10 @@ Where the facts come from:
 - `~/.claude/projects/*/*.jsonl` for the sessions. Claude Code records each PR a session opened
   (`gitOperation.pr`, action `created`), its title and its working folder. The board reads only the
   bytes added since the last run (`out/sessions-cache.json`, kept in full only for this repo's sessions).
-- `git worktree list`, `git for-each-ref`, `git fetch --prune` (at most every 5 minutes), `pgrep`,
-  `simctl` and `memory_pressure` for the rest.
+- `git worktree list`, `git for-each-ref`, `pgrep`, `simctl` and `memory_pressure` for the rest.
+  While the page is open it runs `git fetch --prune origin` in the shared repo at most every
+  5 minutes. That only updates remote-tracking refs and never touches local branches; if it hits
+  another session's fetch or push, it fails quietly and tries again later.
 
 A screen PR waits in "user check" after its LGTM until a comment says `iPad OK at <head sha>`
 (`pr-review-handoff` step 6); a later push needs a new check. The server answers only `/` for a

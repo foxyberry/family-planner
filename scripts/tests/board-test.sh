@@ -59,6 +59,26 @@ for name, p, lane, actor in cases:
     else:
         failed += 1
         print(f"FAIL {name}: got {got_lane}/{got_actor} ({what}), want {lane}/{actor}")
+# Local branch verdicts: "delete" only when nothing local can be lost.
+MERGED = {"number": 9}
+verdicts = [
+    ("open PR is in progress", ("feature/x", {"number": 1}, 0, None, None, False, 3, False, 2), "active"),
+    ("uncommitted changes need a decision", ("feature/x", None, 2, "merged", MERGED, True, 0, True, 0), "decide"),
+    ("tip inside the merged PR is safe", ("feature/x", None, 0, "merged", MERGED, True, 4, False, 3), "delete"),
+    ("commits after the merge are kept",  # the remote was deleted, so nothing says "ahead"
+     ("feature/x", None, 0, "merged", MERGED, False, 5, False, 3), "decide"),
+    ("no commits beyond develop is safe", ("feature/x", None, 0, None, None, False, 0, False, 0), "delete"),
+    ("files already match develop is safe", ("feature/x", None, 0, None, None, False, 2, True, 4), "delete"),
+    ("a PR closed unmerged needs a decision", ("feature/x", None, 0, "closed", MERGED, False, 2, False, 4), "decide"),
+    ("a local-only branch needs a decision", ("local/x", None, 0, None, None, False, 1, False, 1), "decide"),
+]
+for name, args, want in verdicts:
+    got, why = board.branch_verdict(*args)
+    if got == want:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL {name}: got {got} ({why}), want {want}")
 print(f"board: {passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 EOF

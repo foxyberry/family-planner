@@ -87,7 +87,7 @@ def ago(t):
 
 TITLE = re.compile(rb'"(?:customTitle|agentName)":"((?:[^"\\]|\\.)*)"')
 CWD = re.compile(rb'"cwd":"((?:[^"\\]|\\.)*)"')
-EMPTY = {"v": 2, "offset": 0, "title": None, "cwd": None, "prs": [], "branches": [], "related": False,
+EMPTY = {"v": 3, "active_at": None, "offset": 0, "title": None, "cwd": None, "prs": [], "branches": [], "related": False,
          "ask": None, "user_at": None}
 # Messages that reach a session as a user turn but are not the user's own words.
 NOT_USER = ("<ci-monitor-event", "<cross-session-message", "<side-sessions-event", "<system-reminder",
@@ -125,6 +125,10 @@ def scan_sessions(repo_root, slug):
         for line in data[:end].split(b"\n"):
             if mine not in line:  # a fork's copy of its parent's lines belongs to the parent
                 continue
+            if b'"type":"assistant"' in line:
+                m = re.search(rb'"timestamp":"([^"]+)"', line)
+                if m:
+                    c["active_at"] = m.group(1).decode()
             if not c["related"] and (root_b in line or slug_b in line):
                 c["related"] = True
             if b'"customTitle"' in line or b'"agentName"' in line:
@@ -142,7 +146,10 @@ def scan_sessions(repo_root, slug):
                         c["prs"].append(n)
             # A question the session left for the user (wrap_up's ask), and the user's last own turn.
             if b'"name":"mcp__ccd_turn__wrap_up"' in line and b'"tool_use"' in line:
-                d = json.loads(line)
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
                 for part in d.get("message", {}).get("content", []):
                     if isinstance(part, dict) and part.get("name") == "mcp__ccd_turn__wrap_up":
                         inp = part.get("input", {})
@@ -150,7 +157,10 @@ def scan_sessions(repo_root, slug):
                                      "at": d.get("timestamp"), "recap": inp.get("recap", "")}
                                     if inp.get("ask") else None)
             elif b'"type":"user"' in line and b"tool_result" not in line:
-                d = json.loads(line)
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
                 content = d.get("message", {}).get("content", "")
                 text = content if isinstance(content, str) else " ".join(
                     x.get("text", "") for x in content if isinstance(x, dict))
@@ -168,7 +178,7 @@ def scan_sessions(repo_root, slug):
             waiting = ask if ask and (not c.get("user_at") or ask["at"] > c["user_at"]) else None
             sessions[sid] = {"id": sid, "title": c["title"] or sid[:8], "cwd": c["cwd"], "prs": c["prs"],
                              "branches": c["branches"], "waiting": waiting,
-                             "mtime": dt.datetime.fromtimestamp(mtime, dt.timezone.utc)}
+                             "mtime": parse_time(c.get("active_at")) or dt.datetime.fromtimestamp(mtime, dt.timezone.utc)}
     # Keep only this repo's sessions in full; for other projects keep just the read offset.
     slim = {k: (v if v["related"] else {**EMPTY, "offset": v["offset"]})
             for k, v in cache.items() if os.path.exists(k)}
@@ -206,9 +216,9 @@ def fetch_prs(slug):
              f'open: pullRequests(states: OPEN, first: 40, orderBy: {{field: UPDATED_AT, direction: DESC}}) {{ nodes {{ {PR_FIELDS} }} }} '
              f'merged: pullRequests(states: MERGED, first: 15, orderBy: {{field: UPDATED_AT, direction: DESC}}) '
              f'{{ nodes {{ number title url headRefName mergedAt files(first: 100) {{ nodes {{ path }} }} }} }} '
-             f'allMerged: pullRequests(states: MERGED, last: 100) {{ nodes {{ number url headRefName }} }} '
-             f'oldMerged: pullRequests(states: MERGED, first: 100) {{ nodes {{ number url headRefName }} }} '
-             f'closed: pullRequests(states: CLOSED, last: 50) {{ nodes {{ number url headRefName }} }} }} }}')
+             f'allMerged: pullRequests(states: MERGED, last: 100) {{ nodes {{ number url headRefName headRefOid }} }} '
+             f'oldMerged: pullRequests(states: MERGED, first: 100) {{ nodes {{ number url headRefName headRefOid }} }} '
+             f'closed: pullRequests(states: CLOSED, last: 50) {{ nodes {{ number url headRefName headRefOid }} }} }} }}')
     code, out, err = run(["gh", "api", "graphql", "-f", "query=" + query])
     if code != 0:
         raise RuntimeError(err.strip() or "gh api graphql failed")
@@ -361,6 +371,37 @@ def analyze_branch(name, tip, base="origin/develop"):
     return _analysis[key]
 
 
+def shipped(tip, pr_head):
+    """The branch's tip is the merged PR's head, or an ancestor of it (nothing came after)."""
+    if not pr_head:
+        return False
+    return tip == pr_head or run(["git", "merge-base", "--is-ancestor", tip, pr_head], cwd=HERE)[0] == 0
+
+
+def branch_verdict(name, pr, dirty, end_state, end_pr, is_shipped, ahead, in_develop, nfiles):
+    """In progress, decide, or safe to delete. Safe only when nothing local can be lost: the tip is
+    in a merged PR, the branch has no commits beyond develop, or every file it changed matches develop."""
+    if pr:
+        return "active", f'PR #{pr["number"]} 진행 중'
+    if dirty:
+        return "decide", "커밋 안 된 변경이 있음: 살릴지 정해야 함"
+    if is_shipped:
+        return "delete", f'PR #{end_pr["number"]} 머지됨 (이 브랜치 끝이 그 PR에 들어감)'
+    if ahead == 0:
+        return "delete", "develop에 이미 포함 (새 커밋 없음)"
+    if in_develop:
+        return "delete", "바뀐 파일이 develop과 같음 (내용이 이미 들어감)"
+    if end_state == "merged":
+        why = f'PR #{end_pr["number"]}는 머지됐지만 그 뒤 커밋이 더 있음'
+    elif end_state == "closed":
+        why = f'PR #{end_pr["number"]} 머지 없이 닫힘'
+    else:
+        why = f"develop에 없는 변경: 커밋 {ahead} · 파일 {nfiles}"
+    if name.startswith("backup/"):
+        why += " (백업: 원본이 머지됐으면 삭제 가능)"
+    return "decide", why
+
+
 def local_work(wts, open_by_branch, ended, by_branch, owner_of, repo_root):
     """Every local branch with its story and a verdict: in progress, decide, or safe to delete."""
     fmt = "%(refname:short)|%(upstream:short)|%(upstream:track)|%(objectname)"
@@ -389,24 +430,9 @@ def local_work(wts, open_by_branch, ended, by_branch, owner_of, repo_root):
             notes.append("원격 브랜치 삭제됨")
         elif unpushed:
             notes.append(f"push 안 된 커밋 {unpushed}")
-        if pr:
-            verdict, why = "active", f'PR #{pr["number"]} 진행 중'
-        elif dirty:
-            verdict, why = "decide", "커밋 안 된 변경이 있음: 살릴지 정해야 함"
-        elif end_state == "merged" and not unpushed:
-            verdict, why = "delete", f'PR #{end_pr["number"]} 머지됨'
-        elif a["ahead"] == 0:
-            verdict, why = "delete", "develop에 이미 포함 (새 커밋 없음)"
-        elif a["in_develop"]:
-            verdict, why = "delete", "바뀐 파일이 develop과 같음 (내용이 이미 들어감)"
-        elif end_state == "merged":
-            verdict, why = "decide", f'PR #{end_pr["number"]} 머지 뒤 남은 커밋 {unpushed}'
-        elif end_state == "closed":
-            verdict, why = "decide", f'PR #{end_pr["number"]} 머지 없이 닫힘'
-        else:
-            verdict, why = "decide", f'develop에 없는 변경: 커밋 {a["ahead"]} · 파일 {len(a["files"])}'
-        if name.startswith("backup/") and verdict == "decide":
-            why += " (백업: 원본이 머지됐으면 삭제 가능)"
+        is_shipped = end_state == "merged" and shipped(tip, end_pr.get("headRefOid"))
+        verdict, why = branch_verdict(name, pr, dirty, end_state, end_pr, is_shipped, a["ahead"],
+                                      a["in_develop"], len(a["files"]))
         s_ = by_branch.get(name)
         who = (owner_of(w["path"]) if w and w["path"] != repo_root else "") or (s_["title"] if s_ else "")
         items.append({"branch": name, "tree": w, "notes": notes, "verdict": verdict, "why": why,
@@ -644,7 +670,7 @@ def build():
 
     # Sessions, local-only work, machine
     h.append('<section class="grid2">')
-    h.append('<div class="box"><details class="fold" data-id="sessions" open><summary><h2>세션</h2></summary>'
+    h.append('<div class="box wide"><details class="fold" data-id="sessions" open><summary><h2>세션</h2></summary>'
              '<table><tr><th>세션</th><th>상태</th><th>만든 PR</th></tr>')
     open_numbers = {p["number"]: p for p in open_prs}
     for s in sorted(sessions.values(), key=lambda s: s["mtime"], reverse=True):
@@ -694,7 +720,7 @@ def build():
     h.append("</details></div>")
 
     free = mac["free"]
-    h.append('<div class="box"><details class="fold" data-id="machine" open><summary><h2>이 맥 (8 GB)</h2></summary><ul>')
+    h.append('<div class="box wide"><details class="fold" data-id="machine" open><summary><h2>이 맥 (8 GB)</h2></summary><ul>')
     h.append(f'<li>메모리 여유: <b class="{"f-bad" if free is not None and free < 15 else ""}">{free if free is not None else "?"}%</b></li>')
     bz = mac["bazel"]
     h.append(f'<li>Bazel 서버 {len(bz)}개' + (": " + ", ".join(f"{esc(n)} {r} MB" for n, r in bz) if bz else "") +
