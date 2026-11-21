@@ -30,15 +30,16 @@ if [[ -z "$team" ]]; then
   exit 1
 fi
 
-# Prints the newest matching profile that is valid for at least another day and lists the iPad.
+# Prints the newest matching profile that lists the iPad and is valid for at least another $1 hours
+# (default 24).
 find_profile() {
-  python3 - "$PROFILE_NAME" "$team" "$UDID" <<'PY'
+  python3 - "$PROFILE_NAME" "$team" "$UDID" "${1:-24}" <<'PY'
 import datetime, glob, os, plistlib, subprocess, sys
-name, team, udid = sys.argv[1:]
+name, team, udid, hours = sys.argv[1:]
 home = os.path.expanduser("~")
 paths = glob.glob(f"{home}/Library/Developer/Xcode/UserData/Provisioning Profiles/*.mobileprovision")
 paths += glob.glob(f"{home}/Library/MobileDevice/Provisioning Profiles/*.mobileprovision")
-soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
+soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=int(hours))
 best = None
 for path in paths:
     try:
@@ -105,6 +106,13 @@ fi
 
 found=$(find_profile)
 if [[ -z "$found" ]]; then
+  # Xcode issues no new profile while the old one is still valid, so in its last day the stub build
+  # brings nothing new: keep using it (2026-11-22, seen twice), and renew after it expires.
+  found=$(find_profile 1)
+  if [[ -n "$found" ]]; then
+    echo "device-profile: Xcode kept the current profile; it ends ${found##*$'\t'} (run make device again after that)" >&2
+    exit 0
+  fi
   echo "device-profile: Xcode built the stub but no matching profile appeared." >&2
   exit 1
 fi
