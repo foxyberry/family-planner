@@ -18,7 +18,7 @@ The iPads and the iPhone Duo inner screen, with their s, are in `scripts/scale.p
 1. **A part that didn't scale**: a fixed number left in code, a floor, a `max(…)`, or
    `scaleEffect` on a whole screen (it blurs text).
 2. **Leftover space**: it is paper (night sky at night), centred, with nothing on it.
-3. **Touch**: the touch area is the visible box. No hit area bigger than what is drawn.
+3. **Touch**: a tap hits only the visible box; a drag on a part with no drag of its own grabs the nearest handle of its named area only (the clock ring, a slider's track; spec **Sizing → Touch**). No tap area bigger than what is drawn.
 4. **Text that wraps** (typed names, " · " value lines): it wraps the same way on every screen,
    since everything scales together. Labels are reworded on the board, never squeezed.
 5. **The keyboard covering a focused field** (G4, C3, S2s / G7 search with its list). A floating
