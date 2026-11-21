@@ -35,26 +35,25 @@ final class BusJourneys: XCTestCase {
         XCTAssertEqual(store.state.path.count, 2)
         let c2c = store.state.path.ids[1]
 
-        // C2c: first bus 2 from our stop, then 33, and save.
-        await store.send(.path(.element(id: c2c, action: .changeBuses(.task))))
-        await store.receive(\.path[id: c2c].changeBuses.loaded)
+        // C2c (an editor in memory): first bus 2 from our stop, then 33, and save.
         await store.send(.path(.element(id: c2c, action: .changeBuses(.firstBusTapped("2")))))
         await store.send(.path(.element(id: c2c, action: .changeBuses(.thenChanged("33")))))
         await world.clock.advance(by: .seconds(1))
         await store.receive(\.path[id: c2c].changeBuses.thenChecked)
         await store.send(.path(.element(id: c2c, action: .changeBuses(.saveTapped))))
-        await store.receive(\.path[id: c2c].changeBuses.delegate.finished)
+        await store.receive(\.path[id: c2c].changeBuses.delegate.saved)
 
-        // Back on C2: it reloads, and nothing it showed is gone.
+        // Back on C2: it takes the buses that change and saves them; nothing it showed is gone.
         XCTAssertEqual(store.state.path.count, 1)
-        await store.receive(\.path[id: c2].busSettings.task)
-        await store.receive(\.path[id: c2].busSettings.loaded)
+        await store.receive(\.path[id: c2].busSettings.changesSaved)
         XCTAssertEqual(c2State(store, c2)?.search.stop, "12345")
         XCTAssertEqual(c2State(store, c2)?.search.servicesAtStop, ["1", "2"], "the stop's buses are kept, not looked up again")
         XCTAssertEqual(c2State(store, c2)?.services, ["1", "2"], "our buses are kept")
-        XCTAssertEqual(c2State(store, c2)?.change?.firstBus, "2")
-        XCTAssertEqual(c2State(store, c2)?.change?.thenBus, "33")
+        XCTAssertEqual(c2State(store, c2)?.changes.first?.firstBuses, ["2"])
+        XCTAssertEqual(c2State(store, c2)?.changes.first?.thenBus, "33")
+        await store.finish()
         XCTAssertEqual(world.family.value.busPlans.first?.services, ["1", "2"], "the store kept them too")
+        XCTAssertEqual(world.family.value.busPlans.first?.changes.map(\.thenBus), ["33"])
     }
 
     private func c2State(_ store: TestStoreOf<AppFeature>, _ id: StackElementID) -> BusSettingsFeature.State? {
