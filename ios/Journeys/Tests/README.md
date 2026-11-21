@@ -40,6 +40,12 @@ starts a journey, with DebugTools launch flags (`TestApp.launch`):
 Find parts by the words a person sees (`app.buttons["Next"]`) or a picture's slot name
 (`kidGirl`). Wait for focus before typing.
 
+## Screen snapshots
+`Screens/` draws whole screens at journey states (`make snapshots`, tag `snapshot`, local only):
+the journey's World and steps reach the state, then the real `AppView` draws it at the 13-inch and
+the mini. Record with `make snapshots-record` from a worktree without private art (the test skips
+when private art is in the build), and open every PNG before committing: they go to a public repo.
+
 ## Later
 Two pieces will join this folder:
 - the agent driver's protocol, written down as platform-neutral JSON: `ls` gives the screen, its

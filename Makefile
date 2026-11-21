@@ -102,8 +102,10 @@ test-affected:
 
 # The snapshot pictures only: compares every part with its committed baseline.
 SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
+# Whole screens at journey states (ios/Journeys/Tests/Screens).
+SCREEN_SNAPSHOT_TARGET := //ios/Journeys/Tests/Screens:ScreenSnapshots
 snapshots: stop-dev-sims
-	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) $(TEST_ARGS) \
+	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) $(SCREEN_SNAPSHOT_TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
 
@@ -111,10 +113,12 @@ snapshots: stop-dev-sims
 # recording is not a pass). Compare the new pictures with the design boards before committing.
 snapshots-record: stop-dev-sims
 	SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Snapshots__" \
-	$(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) --nocache_test_results \
+	SCREEN_SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/Journeys/Tests/Screens/__Snapshots__" \
+	$(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) $(SCREEN_SNAPSHOT_TARGET) --nocache_test_results \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)" || true
-	@ls ios/DesignSystem/SnapshotTests/__Snapshots__ | wc -l | xargs echo "baselines:"
+	@ls ios/DesignSystem/SnapshotTests/__Snapshots__ | wc -l | xargs echo "part baselines:"
+	@ls ios/Journeys/Tests/Screens/__Snapshots__ 2>/dev/null | wc -l | xargs echo "screen baselines:"
 
 # The thin UI tests (tag "ui"): the debug app on the simulator, for what journeys can't show.
 # Slow, so not in make test, pre-push or CI.

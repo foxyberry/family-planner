@@ -4,10 +4,35 @@ load("//ios:build_defs.bzl", "fp_swift_library")
 
 # User journeys through the root store (Reflex style: send an action, assert State), one test per
 # journey. The outside world is faked through dependencies only (World.swift). In `make test`.
+# The outside world as plain data and its fakes (World.swift), shared with the screen snapshots.
+fp_swift_library(
+    name = "JourneyWorld",
+    testonly = True,
+    srcs = ["World.swift"],
+    visibility = ["//ios/Journeys/Tests:__subpackages__"],
+    deps = [
+        "//ios/AppCore",
+        "//ios/Clients/AppSettings",
+        "//ios/Clients/BusClient",
+        "//ios/Clients/DeviceLook",
+        "//ios/Clients/HolidayProvider",
+        "//ios/Clients/ParentAuthClient",
+        "//ios/Clients/ScheduleStore",
+        "//ios/Clients/SchoolDirectory",
+        "//ios/Domain",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)
+
 fp_swift_library(
     name = "JourneysLib",
     testonly = True,
+    srcs = glob(
+        ["*.swift"],
+        exclude = ["World.swift"],
+    ),
     deps = [
+        ":JourneyWorld",
         "//ios/AppCore",
         "//ios/Clients/AppSettings",
         "//ios/Clients/BusClient",

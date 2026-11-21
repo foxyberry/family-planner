@@ -2,6 +2,7 @@ import AppCore
 import ComposableArchitecture
 import Domain
 import Grownup
+import JourneyWorld
 import XCTest
 
 /// The grown-up lock (board C0): hold the clock 2 s, then Face ID, then Our day; after 2 minutes

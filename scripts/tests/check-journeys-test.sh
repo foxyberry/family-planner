@@ -89,6 +89,16 @@ test_blocks_a_pending_line_for_a_missing_reducer() {
   assert test_blocks_a_pending_line_for_a_missing_reducer $?
 }
 
+test_subfolders_are_not_journeys() {
+  new_tree
+  journey 'TestStoreOf<AppFeature>' '.home(.task)'
+  mkdir -p "$TREE/ios/Journeys/Tests/Screens"
+  printf 'await store.send(.changeBuses(.task))\n' > "$TREE/ios/Journeys/Tests/Screens/ScreenSnapshotTests.swift"
+  run_check
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"no journey reaches ChangeBusesFeature"* ]]
+  assert test_subfolders_are_not_journeys $?
+}
+
 test_ignores_test_reducers() {
   new_tree
   journey 'TestStoreOf<AppFeature>' '.home(.task)' '.changeBuses(.task)'
@@ -105,6 +115,7 @@ test_property_reads_do_not_count
 test_key_paths_count
 test_pending_list_only_shrinks
 test_blocks_a_pending_line_for_a_missing_reducer
+test_subfolders_are_not_journeys
 test_ignores_test_reducers
 
 echo "passed=$PASS failed=$FAIL"
