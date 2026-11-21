@@ -28,6 +28,7 @@ Coverage
 - [ ] Its states are drawn and specified: default, picked, focus, disabled, done, night look,
       and the empty look if it holds content.
 - [ ] Reduce Motion and Bold Text behaviour.
+- [ ] Every control has an `accessibilityIdentifier`: a test hook for the UI tests (not VoiceOver work), so tests never match visible words.
 - [ ] Snapshot tests cover each state on the test sizes the spec's **Check** names.
 Conflicts
 - [ ] The rule doesn't contradict an older bullet without the change log saying which wins.
