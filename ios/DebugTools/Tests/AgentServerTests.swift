@@ -4,7 +4,7 @@ import DebugTools
 import Foundation
 import XCTest
 
-/// The agent driver's transport: off unless `-fpDriver` asks on a simulator, loopback only, and one
+/// The agent driver's transport: off unless `-fpDriver` asks (test mode), loopback only, and one
 /// HTTP request in, one JSON answer out.
 @MainActor
 final class AgentServerTests: XCTestCase {

@@ -3,7 +3,7 @@ import Foundation
 import Network
 
 /// The agent driver's transport (ios/Journeys/Tests/Driver/PROTOCOL.md): plain HTTP on 127.0.0.1
-/// only, started by `-fpDriver` on a simulator (`DebugModel.driverPort`). `GET /ls` and
+/// only, started by `-fpDriver` (test mode, on a simulator or the iPad: `DebugModel.driverPort`). `GET /ls` and
 /// `POST /do` reach the app through `handle`; the app answers with JSON. One request per connection.
 public enum AgentServer {
     /// Not the board (8765) or WebDriverAgent (8100).
@@ -32,7 +32,8 @@ public enum AgentServer {
     }
 
     /// Serves until the calling task is cancelled. Listens on the loopback address only, so nothing
-    /// off this machine (or off the simulator's host) can reach it.
+    /// off the device can reach it. On the device any process can, which is why the driver runs only
+    /// in test mode's throwaway world.
     public static func serve(port: UInt16 = port,
                              handle: @escaping @Sendable (Request) async -> Response) async {
         guard let endpointPort = NWEndpoint.Port(rawValue: port) else { return }

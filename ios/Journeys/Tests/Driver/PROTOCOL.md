@@ -73,3 +73,5 @@ The driver is debug-only and starts only with `-fpDriver`, listening on 127.0.0.
 by port forwarding, as WebDriverAgent is). `-fpDriver` and `-fpFamily` put the app in test mode
 (user, 2026-11-21): the family and settings live in memory, so `ls` never shows the real family and
 `do` never changes it, and Face ID may be skipped. A normal launch keeps the stored family and Face ID.
+Loopback is not a lock: any process on the iPad can reach 127.0.0.1:8790 while the driver runs, which
+is why it only runs in that throwaway world. Run the two journeys on the iPad with `make driver-check`.
