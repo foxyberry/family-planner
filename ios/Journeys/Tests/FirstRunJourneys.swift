@@ -10,7 +10,7 @@ final class FirstRunJourneys: XCTestCase {
     /// One kid with a school who takes the bus. Two round trips the iPad showed (2026-11-21) are
     /// replayed as actions: a text field sends its text again when the keyboard goes away, and that
     /// must not undo a pick (S2's school, S3's stop).
-    func testOneKidFromAnEmptyIPadToTheHome() async {
+    func testOneKidFromAnEmptyIPadToTheHome() async throws {
         let world = World()
         let store = world.store()
 
@@ -22,7 +22,7 @@ final class FirstRunJourneys: XCTestCase {
         await store.receive(\.setup.directoryLoaded)
 
         // S1: Kid A, 8, a face. Next needs all three.
-        let kid = try! XCTUnwrap(store.state.setup?.kids.first?.id)
+        let kid = try XCTUnwrap(store.state.setup?.kids.first?.id)
         await store.send(.setup(.nameChanged(kid, "Kid A")))
         await store.send(.setup(.ageChanged(kid, "8")))
         XCTAssertEqual(store.state.setup?.canGoNext, false, "no face yet")
@@ -33,7 +33,7 @@ final class FirstRunJourneys: XCTestCase {
 
         // S2: type, pick the school; the field resends its text as the keyboard closes.
         await store.send(.setup(.schoolTextChanged("exam")))
-        await store.send(.setup(.schoolPicked(world.school("example-primary")!)))
+        await store.send(.setup(.schoolPicked(try XCTUnwrap(world.school("example-primary")))))
         let typed = store.state.setup?.tabKid?.school.text ?? ""
         await store.send(.setup(.schoolTextChanged(typed)))
         XCTAssertEqual(store.state.setup?.tabKid?.school.picked?.id, "example-primary", "the pick stays")

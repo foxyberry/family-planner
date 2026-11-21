@@ -2,6 +2,7 @@ import AppCore
 import AppSettings
 import BusClient
 import ComposableArchitecture
+import DeviceLook
 import Domain
 import Foundation
 import HolidayProvider
@@ -107,8 +108,21 @@ final class World: Sendable {
         }
         values.scheduleStore.saveKid = { kid in
             family.withValue { snapshot in
-                if let index = snapshot.kids.firstIndex(where: { $0.id == kid.id }) { snapshot.kids[index] = kid }
+                if let index = snapshot.kids.firstIndex(where: { $0.id == kid.id }) {
+                    snapshot.kids[index] = kid
+                } else {
+                    snapshot.kids.append(kid)  // G6a "Add a child"
+                }
             }
+        }
+        values.scheduleStore.saveRoutine = { routine in
+            family.withValue { snapshot in
+                snapshot.routines.removeAll { $0.kid == routine.kid && $0.dayType == routine.dayType && $0.from == routine.from }
+                snapshot.routines.append(routine)
+            }
+        }
+        values.scheduleStore.saveMissions = { kid, missions in
+            family.withValue { $0.missions.removeAll { $0.kid == kid }; $0.missions += missions }
         }
 
         let stops = data.stops, services = data.services
@@ -129,7 +143,10 @@ final class World: Sendable {
         let directory = directory
         values.schoolDirectory.schools = { directory }
         values.schoolDirectory.calendar = { _, _ in .none }
+        values.schoolDirectory.updated = { nil }
+        values.schoolDirectory.sources = { [] }
         values.holidays.holidays = { _ in [] }
+        values.deviceLook.isDark = { false }
 
         let settings = settings
         values.appSettings.load = { settings.value }

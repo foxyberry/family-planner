@@ -16,6 +16,9 @@ Write it so it reads as plain steps in spec terms, and could be replayed by anot
   it into dependencies.
 - **Anything a journey leaves unfaked is unimplemented**, so unexpected I/O fails the test.
 - **No sleeps.** Time moves by `world.clock` only.
+- **Wait for effects that run in no fixed order** with `await store.finish()`, then
+  `await store.skipReceivedActions()`. The store applies a received action to State only once it
+  is received or skipped, so checking State right after `finish()` still shows the old values.
 - **Fake values only**: Kid A and Kid B, stop 12345, Example Primary School.
 - **Replay round trips a person caused as actions.** For example, a text field sends its text again
   when the keyboard goes away.

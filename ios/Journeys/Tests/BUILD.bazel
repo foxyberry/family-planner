@@ -11,6 +11,7 @@ fp_swift_library(
         "//ios/AppCore",
         "//ios/Clients/AppSettings",
         "//ios/Clients/BusClient",
+        "//ios/Clients/DeviceLook",
         "//ios/Clients/HolidayProvider",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
