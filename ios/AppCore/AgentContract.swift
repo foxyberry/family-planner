@@ -74,7 +74,12 @@ public enum AgentContract {
             : parts[1] == "cancelTapped" ? .lockCancelTapped : nil
         default: mapped = pathAction(parts[0], parts[1], args, state)
         }
-        guard let mapped else { return .failure(AgentRefusal(reason: "unknown action or arguments: \(name)")) }
+        guard let mapped else {
+            if name == "setup.schoolPicked", case let .string(id)? = args["school"] {
+                return .failure(AgentRefusal(reason: "no school \(id) in the directory (is the app in test mode, with FakeWorld?)"))
+            }
+            return .failure(AgentRefusal(reason: "unknown action or arguments: \(name)"))
+        }
         return .success(mapped)
     }
 
@@ -171,6 +176,7 @@ public enum AgentContract {
         case "nextTapped": return .nextTapped
         case "schoolTextChanged": return string("text").map { .schoolTextChanged($0) }
         case "schoolPicked":
+            // A missing school is a world without the journey's fixtures (FakeWorld); the refusal says so.
             return string("school").flatMap { id in setup.directory.first { $0.id == id } }.map { .schoolPicked($0) }
         case "wayPicked": return string("way").flatMap(Way.init(rawValue:)).map { .wayPicked($0) }
         case "stopTextChanged": return string("text").map { .stopSearch(.textChanged($0)) }

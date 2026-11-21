@@ -37,6 +37,19 @@ def ls():
     return call("GET", "/ls")
 
 
+def wait_for_driver(seconds=30):
+    """The app may still be launching (or relaunching over USB): wait until `ls` answers."""
+    deadline = time.monotonic() + seconds
+    while True:
+        try:
+            with urllib.request.urlopen(URL + "/ls", timeout=3) as response:
+                return json.loads(response.read() or b"{}")
+        except (urllib.error.URLError, ConnectionError, OSError):
+            if time.monotonic() > deadline:
+                sys.exit(f"fp-driver: no driver at {URL} after {seconds} s; start the app with -fpDriver")
+            time.sleep(0.5)
+
+
 def do(action, args=None):
     return call("POST", "/do", {"action": action, "args": args or {}})
 
@@ -56,7 +69,7 @@ def run(path):
     print("world (start the app with): -fpNow {now} -fpFamily {family}{skip} -fpDriver".format(
         now=world.get("now", "?"), family=world.get("family", "?"),
         skip=" -fpSkipFaceID" if world.get("faceID") == "success" else ""))
-    view = ls()
+    view = wait_for_driver()
     for number, step in enumerate(journey.get("steps", []), 1):
         if "do" in step:
             args = {key: (view.get("fields", {}).get(value[1:]) if isinstance(value, str) and value.startswith("$") else value)

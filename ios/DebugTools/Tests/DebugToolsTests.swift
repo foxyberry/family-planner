@@ -1,4 +1,6 @@
 import ComposableArchitecture
+import SchoolDirectory
+import BusClient
 import CoreGraphics
 @testable import DebugTools
 import Foundation
@@ -308,6 +310,30 @@ final class DebugInstallTests: XCTestCase {
         XCTAssertEqual(device.appSettings.load().grownupLock, false, "settings kept in memory")
         XCTAssertTrue(savedSettings.value.isEmpty, "the stored settings are untouched")
         XCTAssertEqual(stored.value.kids.count, 2)
+    }
+
+    /// Test mode sees the journeys' world (FakeWorld), as Bazel's World does: the same JSON journey
+    /// picks Example Primary School and stop 12345 on the iPad (proposal, 2026-11-22).
+    func testTestModeHasTheJourneysSchoolsAndBuses() async throws {
+        let dependencies = try installed(outcome: .success, arguments: ["App", "-fpFamily", "empty"])
+        let schools = await dependencies.schoolDirectory.schools()
+        XCTAssertEqual(schools.map(\.id), ["example-primary"])
+        let stop = try await dependencies.bus.stop("12345")
+        XCTAssertEqual(stop?.name, "Example Stop")
+        let arrivals = try await dependencies.bus.arrivals("12345")
+        XCTAssertEqual(arrivals.map(\.service), ["1", "2"])
+    }
+
+    /// A new kid saved in test mode is added, as the Live store adds one (G6a "Add a child").
+    func testTestModeAddsANewKid() async throws {
+        let dependencies = try installed(outcome: .success, arguments: ["App", "-fpFamily", "sample"])
+        _ = try await dependencies.scheduleStore.load()
+        var kid = SeedData.kidA
+        kid.id = UUID()
+        kid.name = "Kid C"
+        try await dependencies.scheduleStore.saveKid(kid)
+        let loaded = try await dependencies.scheduleStore.load()
+        XCTAssertEqual(loaded.kids.map(\.name), ["Kid A", "Kid B", "Kid C"])
     }
 
     /// A normal launch on the iPad keeps the stored family and Face ID.

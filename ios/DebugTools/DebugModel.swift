@@ -144,8 +144,8 @@ extension DebugModel {
         installed = model
     }
 
-    /// The test-mode world: a fresh in-memory family store holding `family`, and in-memory
-    /// settings. Only `load` waits for the family to be written, so the app never sees the store's
+    /// The test-mode world: a fresh in-memory family store holding `family`, in-memory settings and
+    /// the journeys' fake bus network and school list (`FakeWorld`). Only `load` waits for the family to be written, so the app never sees the store's
     /// preview seed. That is enough: every other store call (marks, slides, saves) comes from a
     /// screen the app opens after its first load returned. A failed write makes every load throw,
     /// so a UI test stops at its first wait.
@@ -167,6 +167,7 @@ extension DebugModel {
             return try await load()
         }
         dependencies.scheduleStore = memory
+        FakeWorld.install(&dependencies)  // the journeys' stops and schools, as in Bazel's World
         let settings = LockIsolated(AppSettings.defaults)
         dependencies.appSettings = AppSettingsClient(load: { settings.value }, save: { settings.setValue($0) })
     }
