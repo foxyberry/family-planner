@@ -38,12 +38,12 @@ public struct BusPlan: Hashable, Sendable {
     public var lateGrace: Int
     /// Each bus's own ride ("Ride on 12"): buses can take different ways.
     public var rides: [String: Int]
-    /// A bus that changes (board C2c), one more equal bus of the kid.
-    public var change: BusChange?
+    /// The buses that change (board C2c), each one more equal pill of the kid, in the order added.
+    public var changes: [BusChange]
 
     public init(kid: Kid.ID, event: EventRef = .school, stop: String, services: [String],
                 walk: Int = BusPlan.defaultWalk, ride: Int = BusPlan.defaultRide,
-                lateGrace: Int = BusPlan.defaultLateGrace, rides: [String: Int] = [:], change: BusChange? = nil) {
+                lateGrace: Int = BusPlan.defaultLateGrace, rides: [String: Int] = [:], changes: [BusChange] = []) {
         self.kid = kid
         self.event = event
         self.stop = stop
@@ -52,20 +52,23 @@ public struct BusPlan: Hashable, Sendable {
         self.ride = ride
         self.lateGrace = lateGrace
         self.rides = rides
-        self.change = change
+        self.changes = changes
     }
 }
 
 extension BusPlan: Codable {
     private enum CodingKeys: String, CodingKey {
-        case kid, event, stop, services, walk, ride, lateGrace, rides, change
+        case kid, event, stop, services, walk, ride, lateGrace, rides, changes
         /// Before "Several buses": the 2nd bus's own ride.
         case secondRide
+        /// Before several buses that change (2026-11-21): the one bus that changes.
+        case change
     }
 
     /// Plans stored before routes were per event are the kid's School route. Plans stored before
     /// "Several buses" keep their buses: the 1st and 2nd become two equal buses, each with its own
-    /// ride (the 2nd's "Ride 2nd"), and a changing 2nd becomes the bus that changes.
+    /// ride (the 2nd's "Ride 2nd"), and a changing 2nd becomes the bus that changes. A plan with one
+    /// bus that changes keeps it as the only one in `changes`.
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         let services = try values.decode([String].self, forKey: .services)
@@ -80,7 +83,8 @@ extension BusPlan: Codable {
                   stop: try values.decode(String.self, forKey: .stop), services: services,
                   walk: try values.decode(Int.self, forKey: .walk), ride: ride,
                   lateGrace: try values.decode(Int.self, forKey: .lateGrace), rides: rides,
-                  change: try values.decodeIfPresent(BusChange.self, forKey: .change))
+                  changes: try values.decodeIfPresent([BusChange].self, forKey: .changes)
+                      ?? values.decodeIfPresent(BusChange.self, forKey: .change).map { [$0] } ?? [])
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -93,7 +97,7 @@ extension BusPlan: Codable {
         try values.encode(ride, forKey: .ride)
         try values.encode(lateGrace, forKey: .lateGrace)
         try values.encode(rides, forKey: .rides)
-        try values.encodeIfPresent(change, forKey: .change)
+        try values.encode(changes, forKey: .changes)
     }
 }
 
@@ -101,10 +105,39 @@ extension BusPlan {
     /// The ride on one of the kid's buses from our stop.
     public func ride(on service: String) -> Int { rides[service] ?? ride }
 
-    /// Every way the kid can go: each bus from our stop with its ride, then the bus that changes.
+    /// Every way the kid can go: each bus from our stop with its ride, then each bus that changes,
+    /// one way per first bus (its Ride 1 + Change + Ride 2).
     public var routes: [BusRoute] {
-        services.map { BusRoute(service: $0, then: nil, trip: ride(on: $0)) }
-            + (change.map { [BusRoute(service: $0.firstBus, then: $0.thenBus, trip: $0.trip)] } ?? [])
+        services.map { BusRoute(service: $0, then: nil, trip: ride(on: $0)) } + changes.flatMap(\.routes)
+    }
+
+    /// Spec "Several buses → Settings value": every bus number of the kid once, in pill order (the
+    /// direct buses, then each bus that changes by its first buses).
+    public var numbers: [String] {
+        var numbers: [String] = []
+        for route in routes where !numbers.contains(route.service) { numbers.append(route.service) }
+        return numbers
+    }
+
+    /// The route's pills in pill order (C2, S3, the A2 legend): each direct bus, then each bus that
+    /// changes by its first buses.
+    public var pills: [BusPill] {
+        services.map { BusPill(buses: [$0], then: nil) } + changes.map { BusPill(buses: $0.firstBuses, then: $0.thenBus) }
+    }
+
+    /// The A2 legend's faded plates: the pills other than `route` (the chosen way). A direct bus drops
+    /// its own pill; a way through a bus that changes drops its first bus from that pill, and the
+    /// pill once no first bus is left ("12 · 34 → 33" with 12 chosen leaves "34 → 33").
+    public func pills(besides route: BusRoute?) -> [BusPill] {
+        guard let route else { return pills }
+        guard let then = route.then else { return pills.filter { $0 != BusPill(buses: [route.service], then: nil) } }
+        let index = changes.firstIndex { $0.thenBus == then && $0.firstBuses.contains(route.service)
+            && $0.trip(from: route.service) == route.trip }
+            ?? changes.firstIndex { $0.thenBus == then && $0.firstBuses.contains(route.service) }
+        return services.map { BusPill(buses: [$0], then: nil) } + changes.enumerated().compactMap { offset, change in
+            let buses = offset == index ? change.firstBuses.filter { $0 != route.service } : change.firstBuses
+            return buses.isEmpty ? nil : BusPill(buses: buses, then: change.thenBus)
+        }
     }
 
     /// Spec "Several buses": a pill toggles its bus on or off; the buses stay in pill order (`order`,
@@ -130,6 +163,17 @@ extension BusPlan {
     }
 }
 
+/// One pill of a route: a direct bus (`then` nil), or a bus that changes by its first buses.
+public struct BusPill: Hashable, Sendable {
+    public var buses: [String]
+    public var then: String?
+
+    public init(buses: [String], then: String?) {
+        self.buses = buses
+        self.then = then
+    }
+}
+
 /// One way to the place: a bus that boards at our stop, the bus it changes to (if any) and the
 /// minutes from boarding to the place.
 public struct BusRoute: Hashable, Sendable {
@@ -144,28 +188,49 @@ public struct BusRoute: Hashable, Sendable {
     }
 }
 
-/// A bus that changes (spec "C2c"): a first bus from our stop, then a second bus. Nothing is worked
-/// out at the change stop: the trip is Ride 1 + Change + Ride 2 as set.
+/// A bus that changes (spec "C2c"): one or more first buses from our stop to the change (each with
+/// its own Ride 1), then one second bus. Nothing is worked out at the change stop: a trip is that
+/// first bus's Ride 1 + Change + Ride 2 as set.
 public struct BusChange: Hashable, Sendable {
     public static let defaultChange = 5
 
-    public var firstBus: String
+    /// The first buses, in pill order (the buses at our stop).
+    public var firstBuses: [String]
+    /// Each first bus's Ride 1; only the first buses keep one.
+    public var rides1: [String: Int]
     public var thenBus: String
-    public var ride1: Int
     /// "to change buses": the walk and the wait together.
     public var change: Int
     public var ride2: Int
 
-    public init(firstBus: String, thenBus: String, ride1: Int = BusPlan.defaultRide,
+    public init(firstBuses: [String], thenBus: String, rides1: [String: Int] = [:],
                 change: Int = BusChange.defaultChange, ride2: Int = BusPlan.defaultRide) {
-        self.firstBus = firstBus
+        self.firstBuses = firstBuses
+        self.rides1 = rides1.filter { firstBuses.contains($0.key) }
         self.thenBus = thenBus
-        self.ride1 = ride1
         self.change = change
         self.ride2 = ride2
     }
 
-    public var trip: Int { ride1 + change + ride2 }
+    /// One first bus with its Ride 1.
+    public init(firstBus: String, thenBus: String, ride1: Int = BusPlan.defaultRide,
+                change: Int = BusChange.defaultChange, ride2: Int = BusPlan.defaultRide) {
+        self.init(firstBuses: [firstBus], thenBus: thenBus, rides1: [firstBus: ride1], change: change, ride2: ride2)
+    }
+
+    /// Ride 1 on one of the first buses.
+    public func ride1(on bus: String) -> Int { rides1[bus] ?? BusPlan.defaultRide }
+
+    /// From boarding `bus` at our stop to the place.
+    public func trip(from bus: String) -> Int { ride1(on: bus) + change + ride2 }
+
+    /// One way per first bus, in pill order.
+    public var routes: [BusRoute] {
+        firstBuses.map { BusRoute(service: $0, then: thenBus, trip: trip(from: $0)) }
+    }
+
+    /// The first buses as one name ("12 · 34"), joined by `separator`.
+    public func firstBusesName(separator: String) -> String { firstBuses.joined(separator: separator) }
 
     /// A bus number as LTA writes them: digits, then at most one letter ("12", "34A").
     public static func isServiceNumber(_ text: String) -> Bool {
@@ -178,17 +243,28 @@ public struct BusChange: Hashable, Sendable {
 
 extension BusChange: Codable {
     private enum CodingKeys: String, CodingKey {
-        case firstBus, thenBus, ride1, change, ride2
+        case firstBuses, rides1, thenBus, change, ride2
+        /// Before several first buses (2026-11-21): the one first bus and its Ride 1.
+        case firstBus, ride1
         /// Before "Several buses": the walk at the change stop (now the Change minutes).
         case walk
     }
 
-    /// A change saved with a change stop keeps its buses and rides; the walk there becomes Change.
+    /// A change saved with one first bus keeps it as the only first bus with its Ride 1; one saved
+    /// with a change stop keeps its buses and rides, and the walk there becomes Change.
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        self.init(firstBus: try values.decode(String.self, forKey: .firstBus),
-                  thenBus: try values.decode(String.self, forKey: .thenBus),
-                  ride1: try values.decode(Int.self, forKey: .ride1),
+        let firstBuses: [String]
+        let rides1: [String: Int]
+        if let buses = try values.decodeIfPresent([String].self, forKey: .firstBuses) {
+            firstBuses = buses
+            rides1 = try values.decodeIfPresent([String: Int].self, forKey: .rides1) ?? [:]
+        } else {
+            let bus = try values.decode(String.self, forKey: .firstBus)
+            firstBuses = [bus]
+            rides1 = [bus: try values.decode(Int.self, forKey: .ride1)]
+        }
+        self.init(firstBuses: firstBuses, thenBus: try values.decode(String.self, forKey: .thenBus), rides1: rides1,
                   change: try values.decodeIfPresent(Int.self, forKey: .change)
                       ?? values.decodeIfPresent(Int.self, forKey: .walk) ?? BusChange.defaultChange,
                   ride2: try values.decode(Int.self, forKey: .ride2))
@@ -196,9 +272,9 @@ extension BusChange: Codable {
 
     public func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: CodingKeys.self)
-        try values.encode(firstBus, forKey: .firstBus)
+        try values.encode(firstBuses, forKey: .firstBuses)
+        try values.encode(rides1, forKey: .rides1)
         try values.encode(thenBus, forKey: .thenBus)
-        try values.encode(ride1, forKey: .ride1)
         try values.encode(change, forKey: .change)
         try values.encode(ride2, forKey: .ride2)
     }
@@ -272,8 +348,8 @@ public struct LiveMorning: Equatable, Sendable {
     /// The other buses, soonest first.
     public var others: [Bus] { buses.filter { $0 != chosen } }
 
-    /// Each arrival of a bus the kid takes, with its fastest way (a bus that is both direct and the
-    /// first bus of a change goes the faster way), soonest first.
+    /// Each arrival of a bus the kid takes, with its fastest way (a bus that is direct and the first
+    /// bus of a change, or a first bus of several changes, is one trip the faster way), soonest first.
     static func buses(arrivals: [BusArrival], plan: BusPlan) -> [Bus] {
         let routes = plan.routes
         return arrivals.sorted { $0.minutes < $1.minutes }.compactMap { arrival in

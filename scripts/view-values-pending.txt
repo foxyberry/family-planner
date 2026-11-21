@@ -2,8 +2,6 @@
 # One path per line. Shrink only: remove a line when its file is clean.
 ios/AppCore/AppView.swift
 ios/Features/Grownup/AddChildView.swift
-ios/Features/Grownup/BusSettingsView.swift
-ios/Features/Grownup/ChangeBusesView.swift
 ios/Features/Grownup/DataSourcesView.swift
 ios/Features/Grownup/ItemEditorView.swift
 ios/Features/Grownup/MissionDraftCard.swift

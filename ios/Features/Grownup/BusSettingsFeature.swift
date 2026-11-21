@@ -26,19 +26,30 @@ public struct BusSettingsFeature {
         public var lateGrace = BusPlan.defaultLateGrace
         /// Each picked bus's own ride.
         public var rides: [String: Int] = [:]
-        /// The bus that changes (C2c), one more equal bus.
-        public var change: BusChange?
+        /// The buses that change (C2c), each one more equal pill.
+        public var changes: [BusChange] = []
         /// The kid as stored: "Late" is their school's Latest − Arrive by when the school has both
         /// (spec "Latest lives on the school record"), else the plan's own value.
         public var storedKid: Kid?
+        /// The route has been read once this visit. C2 keeps it in memory from then on, so coming
+        /// back from C2c never reads an older copy over what C2c just handed back.
+        public var isLoaded = false
 
         public init(kid: Kid.ID) {
             self.kid = kid
         }
 
-        public var title: String { L10n.tr("c2.title") }
-        public var walkText: String { L10n.tr("c2.minutes", walk) }
-        public var graceText: String { L10n.tr("c2.minutes", lateGrace) }
+        public var title: String { strings.tr("c2.title") }
+        public var stopLabel: String { strings.tr("c2.stop") }
+        public var busesLabel: String { strings.tr("c2.buses") }
+        public var noBusesText: String { strings.tr("c2.buses.none") }
+        public var walkLabel: String { strings.tr("c2.walk") }
+        public var walkCaption: String { strings.tr("c2.walk.caption") }
+        public var graceLabel: String { strings.tr("c2.grace") }
+        public var graceCaption: String { strings.tr("c2.grace.caption") }
+        public var doneTitle: String { strings.tr("c2.done") }
+        public var walkText: String { strings.tr("c2.minutes", walk) }
+        public var graceText: String { strings.tr("c2.minutes", lateGrace) }
 
         /// One Ride row per picked bus, in pill order ("on 12"); the label "Ride" on the first only.
         /// With no bus picked, one Ride row ("stop to school") sets the ride a new pick starts with.
@@ -53,29 +64,63 @@ public struct BusSettingsFeature {
 
         public var rideRows: [RideRow] {
             guard !services.isEmpty else {
-                return [RideRow(service: nil, label: L10n.tr("c2.ride"), minutes: ride, text: L10n.tr("c2.minutes", ride),
-                                caption: L10n.tr("s3.ride.caption"))]
+                return [RideRow(service: nil, label: strings.tr("c2.ride"), minutes: ride, text: strings.tr("c2.minutes", ride),
+                                caption: strings.tr("s3.ride.caption"))]
             }
             return services.enumerated().map { index, service in
                 let minutes = rides[service] ?? ride
-                return RideRow(service: service, label: index == 0 ? L10n.tr("c2.ride") : "", minutes: minutes,
-                               text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service))
+                return RideRow(service: service, label: index == 0 ? strings.tr("c2.ride") : "", minutes: minutes,
+                               text: strings.tr("c2.minutes", minutes), caption: strings.tr("c2.ride.on", service))
             }
         }
 
-        /// Board C2's side column and stepper captions.
-        public var sideTitle: String { L10n.tr("c2.side.title", kidName) }
+        /// Spec "Several buses" (v61): each bus that changes is one more pill after the buses at the
+        /// stop, "12 · 34 → 33" (the arrow drawn); a tap opens its C2c.
+        public var changePills: [ChangePill] { ChangePill.pills(changes, join: strings.tr("bus.join")) }
 
+        /// Board C2's side column and stepper captions.
+        public var sideTitle: String { strings.tr("c2.side.title", kidName) }
+
+        /// The route as it stands, saved on every change. A route with no buses left is saved empty, so
+        /// taking off the last bus (or removing the only bus that changes) sticks (review of #159).
         public var plan: BusPlan? {
-            guard search.stop.count == 5, !services.isEmpty || change != nil else { return nil }
+            guard search.stop.count == 5 else { return nil }
             return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace,
-                           rides: rides.filter { services.contains($0.key) }, change: change)
+                           rides: rides.filter { services.contains($0.key) }, changes: changes)
         }
 
-        /// The link under the rows (spec "Several buses"): "+ A bus that changes…" while the kid has no
-        /// bus that changes, at a known stop; a picked one is a pill ("34 → 33") instead.
-        public var showsChangeLink: Bool { search.stop.count == 5 && !search.servicesAtStop.isEmpty && change == nil }
-        public var changeLink: String { L10n.tr("c2.change_link") }
+        /// The Buses row shows pills once the stop's buses are known (or a bus that changes exists);
+        /// before that it reads "Pick the stop first".
+        public var hasPills: Bool { !search.servicesAtStop.isEmpty || !changes.isEmpty }
+
+        /// The link under the last Ride row (spec "Several buses", v61): "+ A bus that changes…"
+        /// always shows and opens C2c for a new one.
+        public var changeLink: String { strings.tr("c2.change_link") }
+
+        /// C2c for one of the buses that change (`index`), or a new one (nil): our stop as this
+        /// screen has it, the route's buses that change and its ride.
+        public func changeEditor(index: Int?) -> ChangeBusesFeature.State {
+            ChangeBusesFeature.State(ourStop: search, changes: changes, index: index, ride: ride)
+        }
+    }
+
+    /// A bus that changes as a pill: its first buses ("12 · 34"), the drawn arrow, then its second bus.
+    public struct ChangePill: Equatable, Identifiable, Sendable {
+        public var index: Int
+        public var title: String
+        public var then: String
+        public var id: Int { index }
+
+        public init(index: Int, title: String, then: String) {
+            self.index = index
+            self.title = title
+            self.then = then
+        }
+
+        /// One pill per bus that changes, its first buses joined by `join` (" · ").
+        public static func pills(_ changes: [BusChange], join: String) -> [ChangePill] {
+            changes.enumerated().map { ChangePill(index: $0, title: $1.firstBuses.joined(separator: join), then: $1.thenBus) }
+        }
     }
 
     public enum Action: Equatable {
@@ -87,13 +132,17 @@ public struct BusSettingsFeature {
         case rideChanged(service: String?, minutes: Int)
         case graceChanged(Int)
         case changeLinkTapped
+        case changeTapped(Int)
+        /// Back from C2c: the route's buses that change as saved there.
+        case changesSaved([BusChange])
         case doneTapped
         case delegate(Delegate)
 
         @CasePathable
         public enum Delegate: Equatable {
             case finished
-            case openChange(Kid.ID)
+            /// C2c for one bus that changes (its index), or a new one (nil).
+            case openChange(index: Int?)
         }
     }
 
@@ -106,11 +155,13 @@ public struct BusSettingsFeature {
         Reduce { state, action in
             switch action {
             case .task:
+                guard !state.isLoaded else { return .none }
                 return .run { [scheduleStore] send in
                     await send(.loaded(try? await scheduleStore.load()))
                 }
 
             case let .loaded(snapshot):
+                state.isLoaded = true
                 let kid = snapshot?.kids.first { $0.id == state.kid }
                 state.kidName = kid?.name ?? ""
                 state.storedKid = kid
@@ -123,7 +174,7 @@ public struct BusSettingsFeature {
                     state.ride = plan.ride
                     state.rides = Dictionary(uniqueKeysWithValues: plan.services.map { ($0, plan.ride(on: $0)) })
                     state.lateGrace = plan.lateGrace
-                    state.change = plan.change
+                    state.changes = plan.changes
                 }
                 if let grace = kid?.school?.lateGrace { state.lateGrace = grace }
                 // The stop's buses load once per visit; a reload keeps the list it has.
@@ -159,7 +210,15 @@ public struct BusSettingsFeature {
                 return .merge(save(state), .run { [scheduleStore, kid] _ in try? await scheduleStore.saveKid(kid) })
 
             case .changeLinkTapped:
-                return .send(.delegate(.openChange(state.kid)))
+                return .send(.delegate(.openChange(index: nil)))
+
+            case let .changeTapped(index):
+                guard state.changes.indices.contains(index) else { return .none }
+                return .send(.delegate(.openChange(index: index)))
+
+            case let .changesSaved(changes):
+                state.changes = changes
+                return save(state)
 
             case .doneTapped:
                 return .send(.delegate(.finished))

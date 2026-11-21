@@ -522,13 +522,7 @@ public struct ItemEditorView: View {
                 .buttonStyle(.plain)
             } else {
                 Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
-                Button { store.send(.removeSeriesTapped) } label: {
-                    Text(store.removeSeriesTitle).crayonType(.head).foregroundStyle(CrayonColor.lateText)
-                        .frame(maxWidth: .infinity, minHeight: 88)
-                        .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: 1903)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                RemoveButton(store.removeSeriesTitle) { store.send(.removeSeriesTapped) }
             }
         }
     }

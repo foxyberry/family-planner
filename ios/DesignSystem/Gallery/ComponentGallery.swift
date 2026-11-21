@@ -45,13 +45,22 @@ public struct ComponentGallery: View {
                         RoundButton(glyph: .redo) {}.size(72).opacity(0.45)
                         PillToggle("12", isOn: true) {}
                         PillToggle("34", isOn: false) {}
-                        PillToggle("34", isOn: true, then: "33") {}
-                        PillToggle("56", isOn: false, then: "78") {}
                         CrayonSwitch(isOn: true)
                         CrayonSwitch(isOn: false)
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }
+                    // C2 / S3 (layout v61): the bus pills wrap; a bus that changes is its words + 80.
+                    PillToggleGrid(controlWidth: 616) {
+                        PillToggle("12", isOn: true) {}
+                        PillToggle("34", isOn: false) {}
+                        PillToggle("56", isOn: true) {}
+                        PillToggle("12 · 34", isOn: true, then: "33") {}
+                        PillToggle("97", isOn: true, then: "56") {}
+                    }
+                    // C2 / S3: "+ A bus that changes…"; G2 / C2c: the side column's remove button.
+                    PlusLink("A bus that changes…") {}
+                    RemoveButton("Remove this bus") {}.frame(width: 472)
                     // S1 / G6f: the kid card.
                     PaperCard(padding: FormLines.cardPadding) {
                         KidCard(words: Self.kidWords,
@@ -180,6 +189,11 @@ public struct ComponentGallery: View {
                         LiveBusTag(.bus(number: "1", then: nil, minutes: "4 min"))
                         LiveBusTag(.bus(number: "3", then: "4", minutes: "12 min"))
                     }
+                    // The legend's faded plates: a bus that changes by its first buses.
+                    HStack(spacing: Spacing.xxs) {
+                        LiveBusTag.Plate(number: "34", then: nil)
+                        LiveBusTag.Plate(number: "12 · 34", then: "33")
+                    }
                 }
                 section("F1–F4 · Form cards") {
                     VStack(alignment: .leading, spacing: Spacing.s) {
@@ -198,7 +212,9 @@ public struct ComponentGallery: View {
                                   today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {})
                     ConfirmCard(title: "Save the changes?", message: "Dinner 6:30 pm %@ 7:30 pm, this day",
                                 messageGlyph: .arrowRight, cancel: "Cancel", confirm: "Save", isDestructive: false,
-                                onCancel: {}, onConfirm: {})
+                                onCancel: {}, onConfirm: {})                    // C2c: the bus that changes in the title, the arrow drawn.
+                    ConfirmCard(title: "Remove 12 · 34 %@ 33?", titleGlyph: .arrowRight, message: nil, cancel: "Keep",
+                                confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {})
                 }
                 section("C3g · Going") {
                     ChoiceCircles([.init(id: "none", picture: nil, caption: "None", isPicked: false),

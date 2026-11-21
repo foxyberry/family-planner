@@ -1,10 +1,10 @@
 import ComposableArchitecture
 import CrayonKit
 import DesignSystem
-import Strings
 import SwiftUI
 
-/// C2c · A bus that changes (board C2c, v57): From, First bus, Then, Ride 1, Change, Ride 2.
+/// C2c · A bus that changes (board C2c, v61): From, First bus, Then, Ride 1 (one per first bus),
+/// Change, Ride 2; the side column names the bus and, for one that exists, "Remove this bus".
 public struct ChangeBusesView: View {
     @Bindable var store: StoreOf<ChangeBusesFeature>
     @Environment(\.sizing) private var sizing
@@ -16,19 +16,26 @@ public struct ChangeBusesView: View {
     public var body: some View {
         ZStack {
             screen
-            if store.isConfirmingLeave {
-                // Board C3x: the dim starts under the header, and the card points at "←".
-                CrayonColor.dim.ignoresSafeArea(edges: .bottom)
-                    .padding(.top, sizing.y(124))
-                    .onTapGesture { store.send(.leaveCancelled) }
-                ConfirmCard(title: L10n.tr("editor.confirm.leave.title"), message: nil,
-                            cancel: L10n.tr("editor.confirm.leave.cancel"), confirm: L10n.tr("editor.confirm.leave.accept"),
-                            isDestructive: true,
-                            onCancel: { store.send(.leaveCancelled) }, onConfirm: { store.send(.leaveConfirmed) })
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.leading, sizing.left(40))
-                    .padding(.top, sizing.y(140))
-                    .ignoresSafeArea(.container, edges: .top)
+            if let words = store.confirmWords {
+                let card = ConfirmCard(title: words.title, titleGlyph: words.titleGlyph,
+                                       message: nil, cancel: words.cancel, confirm: words.accept, isDestructive: true,
+                                       onCancel: { store.send(.confirmCancelled) },
+                                       onConfirm: { store.send(.confirmAccepted) })
+                if store.confirmPointsAtBack {
+                    // Board C3x: the dim starts under the header, and the card points at "←".
+                    CrayonColor.dim.ignoresSafeArea(edges: .bottom)
+                        .padding(.top, sizing.y(124))
+                        .onTapGesture { store.send(.confirmCancelled) }
+                    card.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(.leading, sizing.left(40))
+                        .padding(.top, sizing.y(140))
+                        .ignoresSafeArea(.container, edges: .top)
+                } else {
+                    // As G2's "Remove every week": the card over the dimmed screen.
+                    CrayonColor.dim.ignoresSafeArea()
+                        .onTapGesture { store.send(.confirmCancelled) }
+                    card
+                }
             }
         }
         .task { await store.send(.task).finish() }
@@ -46,32 +53,32 @@ public struct ChangeBusesView: View {
                     }
                 }
                 .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
-                Color.clear.frame(width: layout.side.width, height: 1)
+                ScrollColumn { side }
+                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                           alignment: .topLeading)
             }
         } primaryAction: { layout in
-            InkButton(L10n.tr("c2c.save")) { store.send(.saveTapped) }
+            InkButton(store.saveTitle) { store.send(.saveTapped) }
                 .disabled(!store.canSave)
                 .frame(width: layout.side.width)
         }
     }
 
-    /// Board C2c (layout v58): rows 24 apart between drawn edges; From is a text row drawn to its
+    /// Board C2c (layout v61): rows 24 apart between drawn edges; From is a text row drawn to its
     /// edge, the pills, field and steppers lay out their drawn box.
     private func rows(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: layout.sizing.formRowGap) {
-            ListRow(leading: L10n.tr("c2c.from"), minHeight: 0) {
+            ListRow(leading: store.fromLabel, minHeight: 0) {
                 HStack(alignment: .firstTextBaseline, spacing: Spacing.s) {
                     Text(store.fromName).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
-                    Text(L10n.tr("c2c.our_stop")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    Text(store.ourStopCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 }
             }
-            pills(L10n.tr("c2c.first_bus"), controlWidth: layout.controlWidth, services: store.firstBuses, picked: store.firstBus) {
-                store.send(.firstBusTapped($0))
-            }
+            firstBuses(layout)
             // Board C2c: the second bus is typed (160 × 80), checked against LTA's service list.
-            ListRow(leading: L10n.tr("c2c.then"), labelHeight: sizing.fieldHeight) {
+            ListRow(leading: store.thenLabel, labelHeight: sizing.fieldHeight) {
                 VStack(alignment: .leading, spacing: FormLines.captionGap) {
-                    CrayonField(L10n.tr("c2c.then.placeholder"),
+                    CrayonField(store.thenPlaceholder,
                                 text: Binding(get: { store.thenText }, set: { store.send(.thenChanged($0)) }))
                         .keyboardType(.asciiCapable)
                         .textInputAutocapitalization(.characters)
@@ -83,36 +90,56 @@ public struct ChangeBusesView: View {
                     }
                 }
             }
-            .captionedRow(hasCaption: store.thenCaption != nil)
-            stepper(L10n.tr("c2c.ride1"), text: store.ride1Text, caption: store.ride1Caption, value: store.ride1) {
-                store.send(.ride1Changed($0))
+            .captionedRow(hasCaption: store.thenHasProblem)
+            ForEach(store.ride1Rows) { row in
+                stepper(row.label, text: row.text, caption: row.caption, value: row.minutes) {
+                    store.send(.ride1Changed(service: row.service, minutes: $0))
+                }
             }
-            stepper(L10n.tr("c2c.change"), text: store.changeText, caption: L10n.tr("c2c.change.caption"),
-                    value: store.change) {
+            stepper(store.changeLabel, text: store.changeText, caption: store.changeCaption, value: store.change) {
                 store.send(.changeChanged($0))
             }
-            stepper(L10n.tr("c2c.ride2"), text: store.ride2Text, caption: store.ride2Caption, value: store.ride2) {
+            stepper(store.ride2Label, text: store.ride2Text, caption: store.ride2Caption, value: store.ride2) {
                 store.send(.ride2Changed($0))
             }
         }
     }
 
-    /// Bus pills (180 × 72), one picked; "No buses found" while the stop has none.
-    private func pills(_ label: String, controlWidth: CGFloat, services: [String], picked: String?,
-                       tap: @escaping (String) -> Void) -> some View {
-        ListRow(leading: label, minHeight: sizing.tabHeight(), labelHeight: sizing.tabHeight()) {
-            if services.isEmpty {
-                Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+    /// First bus: a pill (180 × 72) per bus at our stop, any number picked, as on C2; "No buses
+    /// found" while the stop has none.
+    private func firstBuses(_ layout: GrownupLayout) -> some View {
+        ListRow(leading: store.firstBusLabel, minHeight: sizing.tabHeight(), labelHeight: sizing.tabHeight()) {
+            if store.pills.isEmpty {
+                Text(store.noBusesText).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: sizing.tabHeight())
             } else {
-                PillToggleGrid(controlWidth: controlWidth) {
-                    ForEach(services, id: \.self) { service in
-                        PillToggle(service, isOn: picked == service) { tap(service) }
+                PillToggleGrid(controlWidth: layout.controlWidth) {
+                    ForEach(store.pills) { pill in
+                        PillToggle(pill.service, isOn: pill.isOn) { store.send(.firstBusTapped(pill.service)) }
                     }
                 }
             }
         }
         .drawnRow()
+    }
+
+    /// Board C2c's side column (v61): the bus as a head ("12 · 34 → 33", the arrow drawn) and, when
+    /// it exists, "Remove this bus" (472 × 88).
+    private var side: some View {
+        VStack(alignment: .leading, spacing: Spacing.s) {
+            switch store.head {
+            case let .buses(name)?:
+                Text(name).crayonType(.head).foregroundStyle(CrayonColor.ink)
+            case let .change(format)?:
+                GlyphText(format, glyph: .arrowRight, type: .head, color: CrayonColor.ink)
+            case nil:
+                EmptyView()
+            }
+            if let remove = store.removeTitle {
+                RemoveButton(remove) { store.send(.removeTapped) }
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func stepper(_ label: String, text: String, caption: String, value: Int,

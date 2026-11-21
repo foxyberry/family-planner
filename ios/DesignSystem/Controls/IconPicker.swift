@@ -2,9 +2,11 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// Picture picker: 88 pt cells, a blue ring on the chosen one (or on each chosen one in multi-pick,
-/// spec "Event form rows", Bring), and (when `drawing` is given) a final "+" that asks the
-/// child to draw a new picture. Drawings arrive in M6; until then screens leave it out.
+/// Picture picker: the 88 picture circles of `ChoiceCircles` (kit art on the picture-ground circle,
+/// drawn 76), the pick-blue ring `pickRing` outside the drawn circle (84 on the 13") on the chosen
+/// one (or on each chosen one in multi-pick, spec "Event form rows", Bring), and (when `drawing` is
+/// given) a final "+" circle that asks the child to draw a new picture. Drawings arrive in M6; until
+/// then screens leave it out.
 public struct IconPicker: View {
     /// The "+" cell: what a tap does.
     public struct Drawing {
@@ -46,9 +48,12 @@ public struct IconPicker: View {
     /// Cells in a row (board C3: 6 × 88 + 5 × 16 = 608, the form's control width).
     public static let columns = 6
 
+    /// The pick ring's diameter: `pickRing` outside the circle drawn one inset inside its cell.
+    static func ringSize(cell: CGFloat) -> CGFloat { cell - 2 * CrayonPart.inset + 2 * CrayonPart.pickRing }
+
     public var body: some View {
         // Board C3: six 88 cells, 16 apart, from the control line (232 … 840); never centred.
-        // Spec "Part floors": cells 88 × s, never under 72.
+        // Spec "Part floors": cells 88 × s, never under 72; art and ring keep their board ratio.
         let cell = sizing.pictureCircle(88)
         LazyVGrid(columns: Array(repeating: GridItem(.fixed(cell), spacing: Spacing.s), count: columns),
                   alignment: .leading, spacing: Spacing.s) {
@@ -57,21 +62,28 @@ public struct IconPicker: View {
                 Button { onTap(slot) } label: {
                     KitIcon(slot, size: cell * 64 / 88)
                         .frame(width: cell, height: cell)
-                        .background(
-                            CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.pictureGround,
-                                          markerColor: isOn ? CrayonColor.link : CrayonColor.pictureMarker.opacity(0.25),
-                                          seed: CrayonStyle.Seed.iconPicker + UInt32(index))
-                        )
+                        .partBackground(.circle, fill: CrayonStyle.pictureGround,
+                                        seed: CrayonStyle.Seed.iconPicker + UInt32(index),
+                                        markerColor: CrayonColor.pictureOutline)
+                        .overlay {
+                            if isOn {
+                                // As ChoiceCircles: the ring sits `pickRing` outside the drawn circle.
+                                Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
+                                    .frame(width: Self.ringSize(cell: cell), height: Self.ringSize(cell: cell))
+                            }
+                        }
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
             if let drawing {
-            Button(action: drawing.action) {
-                MarkerIcon(.plus, size: 40)
-                    .frame(width: 88, height: 88)
-                    .partBackground(.roundedRect(cornerRadius: 24), fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
-            }
-            .buttonStyle(.plain)
+                Button(action: drawing.action) {
+                    MarkerIcon(.plus, size: cell * 40 / 88)
+                        .frame(width: cell, height: cell)
+                        .partBackground(.circle, fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

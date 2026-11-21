@@ -154,6 +154,10 @@ public struct GoingForm: Equatable {
     public var ride = BusPlan.defaultRide
     /// Each picked bus's own ride.
     public var rides: [String: Int] = [:]
+    /// The buses that change (C2c, opened from S3), kept here until Start saves them with the plan.
+    public var changes: [BusChange] = []
+    /// The stop code the picked buses and the buses that change belong to: a new stop drops them.
+    public var busesStop = ""
     /// Walk, car or taxi: minutes before the school starts.
     public var leaveBefore = GoingForm.defaultLeave
 
@@ -165,10 +169,11 @@ public struct GoingForm: Equatable {
 
     public func ride(on service: String) -> Int { rides[service] ?? ride }
 
-    /// By bus the kid leaves the walk and the fastest ride before the start, rounded up to 5 minutes.
+    /// By bus the kid leaves the walk and the fastest trip (a direct ride, or a bus that changes)
+    /// before the start, rounded up to 5 minutes.
     public var trip: Trip {
         guard way == .bus else { return Trip(way: way, leaveBefore: leaveBefore) }
-        let fastest = services.map(ride(on:)).min() ?? ride
+        let fastest = (services.map(ride(on:)) + changes.flatMap(\.routes).map(\.trip)).min() ?? ride
         return Trip(way: .bus, leaveBefore: min((walk + fastest + 4) / 5 * 5, 90))
     }
 }

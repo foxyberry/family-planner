@@ -67,6 +67,9 @@ public struct SetupFeature {
         public var canRemoveKids: Bool { kids.count >= 2 }
         /// Data sources (spec S2), opened from the link under the school caption.
         @Presents public var dataSources: DataSourcesFeature.State?
+        /// S3 "+ A bus that changes…" or a change pill: C2c over S3, editing the going form's buses
+        /// that change in memory (nothing is saved before Start).
+        @Presents public var changeBuses: ChangeBusesFeature.State?
         /// The app's calendar, for the time wheels (minutes after midnight in its time zone).
         public var calendar: Calendar
 
@@ -183,6 +186,9 @@ public struct SetupFeature {
         case walkChanged(Int)
         case rideChanged(service: String?, minutes: Int)
         case leaveChanged(Int)
+        case changeLinkTapped
+        case changeTapped(Int)
+        case changeBuses(PresentationAction<ChangeBusesFeature.Action>)
         // S4
         case settingTapped(AppSetting)
         case lockChecked(ParentAuthOutcome)
@@ -448,12 +454,17 @@ public struct SetupFeature {
                 updateGoing(&state) { $0.way = way }
                 return .none
 
-            case .stopSearch(.textChanged):
-                // A new stop: the buses picked for the old one no longer apply.
-                updateGoing(&state) { $0.services = []; $0.rides = [:] }
-                return .none
-
             case .stopSearch:
+                // A new stop (a full code or a pick): the buses picked for the old one (and the buses
+                // that change from it) no longer apply. Typing a name, or the field sending its text
+                // again, keeps them (user review 2026-11-14).
+                updateGoing(&state) { going in
+                    guard going.search.stop != going.busesStop else { return }
+                    going.services = []
+                    going.rides = [:]
+                    going.changes = []
+                    going.busesStop = going.search.stop
+                }
                 return .none
 
             case .resultVeilTapped:
@@ -488,6 +499,28 @@ public struct SetupFeature {
 
             case let .leaveChanged(value):
                 updateGoing(&state) { $0.leaveBefore = min(max(value, 0), 90) }
+                return .none
+
+            case .changeLinkTapped:
+                state.changeBuses = state.changeEditor(index: nil)
+                return .none
+
+            case let .changeTapped(index):
+                guard let going = state.goingKid?.going, going.changes.indices.contains(index) else { return .none }
+                state.changeBuses = state.changeEditor(index: index)
+                return .none
+
+            case let .changeBuses(.presented(.delegate(.saved(changes)))):
+                // Spec "Several buses": C2c comes back to S3 with the route's buses that change.
+                updateGoing(&state) { $0.changes = changes }
+                state.changeBuses = nil
+                return .none
+
+            case .changeBuses(.presented(.delegate(.cancelled))):
+                state.changeBuses = nil
+                return .none
+
+            case .changeBuses:
                 return .none
 
             // MARK: S4
@@ -542,6 +575,7 @@ public struct SetupFeature {
             }
         }
         .ifLet(\.$dataSources, action: \.dataSources) { DataSourcesFeature() }
+        .ifLet(\.$changeBuses, action: \.changeBuses) { ChangeBusesFeature() }
     }
 
     private func updateSchool(_ state: inout State, _ change: (inout SchoolForm) -> Void) {
@@ -580,7 +614,7 @@ extension KidEntry {
         guard going.way == .bus, going.search.stop.count == 5 else { return nil }
         return BusPlan(kid: id, stop: going.search.stop, services: going.services, walk: going.walk, ride: going.ride,
                        lateGrace: kid.school?.lateGrace ?? BusPlan.defaultLateGrace,
-                       rides: going.rides.filter { going.services.contains($0.key) })
+                       rides: going.rides.filter { going.services.contains($0.key) }, changes: going.changes)
     }
 }
 

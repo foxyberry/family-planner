@@ -185,7 +185,8 @@ public struct HomeFeature {
 
         /// Live numbers for Kid A's bus outing while the answer is under 2 minutes old.
         public var live: LiveMorning? {
-            guard let outing = morningOuting, outing.trip.way == .bus, let busPlan, let arrivals, let arrivalsAt,
+            guard let outing = morningOuting, outing.trip.way == .bus, let busPlan, !busPlan.routes.isEmpty,
+                  let arrivals, let arrivalsAt,
                   let now, now.timeIntervalSince(arrivalsAt) < 120 else { return nil }
             return LiveMorning(arrivals: arrivals, plan: busPlan, minute: minute, start: outing.slot.start)
         }
@@ -201,7 +202,8 @@ public struct HomeFeature {
         }
 
         /// Live times are fetched only for Kid A's next bus outing in an open window.
-        var wantsLive: Bool { morningOuting?.trip.way == .bus && busPlan != nil }
+        /// A bus morning with a route that has buses: an empty route never calls LTA.
+        var wantsLive: Bool { morningOuting?.trip.way == .bus && !(busPlan?.routes.isEmpty ?? true) }
 
         public var kidABlock: KidABlock {
             guard let first = days.first else { return .nothing }

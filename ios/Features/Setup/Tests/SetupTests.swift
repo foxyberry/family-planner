@@ -47,6 +47,7 @@ final class SetupTests: XCTestCase {
                 [BusArrival(service: "1", minutes: 5, type: .double), BusArrival(service: "2", minutes: 7, type: .single)]
             }
             $0.bus.searchStops = { _ in [] }
+            $0.bus.isService = { _ in true }
             $0.parentAuth.biometry = { .faceID }
         }
         store.exhaustivity = .off
@@ -409,6 +410,98 @@ final class SetupTests: XCTestCase {
         await store.send(.rideChanged(service: "2", minutes: 4))
         XCTAssertEqual(store.state.goingKid?.going.ride(on: "2"), 4)
         XCTAssertEqual(store.state.goingKid?.going.trip.leaveBefore, 15, "walk 10 + the fastest ride 4, up to 5")
+    }
+
+    /// Spec "Several buses" (v61): S3's "+ A bus that changes…" opens C2c over S3 with the going form's
+    /// stop and buses; what C2c saves comes back to S3 as a pill, an edit or a removal replaces it,
+    /// and Start saves the buses that change with the plan.
+    func testS3BusesThatChangeComeBackAndSaveAtStart() async {
+        let saved = LockIsolated<[ScheduleSnapshot]>([])
+        let store = store(saved: saved)
+        await family(store)
+        await store.send(.nextTapped)
+        await kidBAtHome(store)
+        await store.send(.schoolPicked(school))
+        await store.send(.nextTapped)
+        XCTAssertEqual(store.state.changeLink, "A bus that changes…", "the link shows before a stop too")
+        await store.send(.stopSearch(.textChanged("00000")))
+        await store.receive(\.stopSearch.stopLooked)
+        await store.send(.serviceTapped("1"))
+        // A new bus that changes: C2c opens on the going form's stop and buses.
+        await store.send(.changeLinkTapped)
+        XCTAssertEqual(store.state.changeBuses?.ourStop.servicesAtStop, ["1", "2"])
+        XCTAssertEqual(store.state.changeBuses?.fromName, "Example Stop")
+        XCTAssertNil(store.state.changeBuses?.original)
+        await store.send(.changeBuses(.presented(.firstBusTapped("2"))))
+        await store.send(.changeBuses(.presented(.firstBusTapped("1"))))
+        await store.send(.changeBuses(.presented(.thenChanged("33"))))
+        await store.receive(\.changeBuses.presented.thenChecked)
+        await store.send(.changeBuses(.presented(.ride1Changed(service: "2", minutes: 2))))
+        await store.send(.changeBuses(.presented(.saveTapped)))
+        await store.receive(\.changeBuses.presented.delegate.saved)
+        XCTAssertNil(store.state.changeBuses, "back on S3")
+        let change = BusChange(firstBuses: ["1", "2"], thenBus: "33", rides1: ["1": 10, "2": 2])
+        XCTAssertEqual(store.state.goingKid?.going.changes, [change])
+        XCTAssertEqual(store.state.changePills.map(\.title), ["1 · 2"])
+        XCTAssertEqual(store.state.changePills.map(\.then), ["33"])
+        XCTAssertTrue(store.state.hasBusPills)
+        XCTAssertEqual(store.state.goingKid?.going.trip.leaveBefore, 20, "walk 10 + the fastest trip 10 (ride on 1)")
+        // A second one, then the first is opened from its pill and removed.
+        await store.send(.changeLinkTapped)
+        await store.send(.changeBuses(.presented(.firstBusTapped("2"))))
+        await store.send(.changeBuses(.presented(.thenChanged("56"))))
+        await store.receive(\.changeBuses.presented.thenChecked)
+        await store.send(.changeBuses(.presented(.saveTapped)))
+        await store.receive(\.changeBuses.presented.delegate.saved)
+        XCTAssertEqual(store.state.goingKid?.going.changes.count, 2)
+        await store.send(.changeTapped(0))
+        XCTAssertEqual(store.state.changeBuses?.original, change)
+        await store.send(.changeBuses(.presented(.removeTapped)))
+        await store.send(.changeBuses(.presented(.confirmAccepted)))
+        await store.receive(\.changeBuses.presented.delegate.saved)
+        let kept = BusChange(firstBuses: ["2"], thenBus: "56", rides1: ["2": 10])
+        XCTAssertEqual(store.state.goingKid?.going.changes, [kept])
+        // ← with nothing changed leaves the buses as they are.
+        await store.send(.changeTapped(0))
+        await store.send(.changeBuses(.presented(.backTapped)))
+        await store.receive(\.changeBuses.presented.delegate.cancelled)
+        XCTAssertNil(store.state.changeBuses)
+        XCTAssertEqual(store.state.goingKid?.going.changes, [kept])
+        await store.send(.nextTapped)
+        XCTAssertTrue(saved.value.isEmpty, "nothing is saved before Start")
+        await store.send(.nextTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.first?.busPlans.first?.changes, [kept])
+        XCTAssertEqual(saved.value.first?.busPlans.first?.services, ["1"])
+    }
+
+    /// A new stop drops the buses that change from the old one, as it drops the picked buses; the
+    /// same text again or a name search keeps them.
+    func testANewStopDropsTheBusesThatChange() async {
+        let store = store()
+        await family(store)
+        await store.send(.nextTapped)
+        await kidBAtHome(store)
+        await store.send(.schoolPicked(school))
+        await store.send(.nextTapped)
+        await store.send(.stopSearch(.textChanged("00000")))
+        await store.receive(\.stopSearch.stopLooked)
+        await store.send(.changeLinkTapped)
+        await store.send(.changeBuses(.presented(.firstBusTapped("2"))))
+        await store.send(.changeBuses(.presented(.thenChanged("56"))))
+        await store.receive(\.changeBuses.presented.thenChecked)
+        await store.send(.changeBuses(.presented(.saveTapped)))
+        await store.receive(\.changeBuses.presented.delegate.saved)
+        XCTAssertEqual(store.state.goingKid?.going.changes.count, 1)
+        await store.send(.serviceTapped("1"))
+        // The field sending its text again, or typing a name to search, keeps them.
+        await store.send(.stopSearch(.textChanged(store.state.goingSearch.text)))
+        await store.send(.stopSearch(.textChanged("exa")))
+        XCTAssertEqual(store.state.goingKid?.going.changes.count, 1)
+        XCTAssertEqual(store.state.goingKid?.going.services, ["1"])
+        await store.send(.stopSearch(.textChanged("11111")))
+        XCTAssertEqual(store.state.goingKid?.going.services, [])
+        XCTAssertEqual(store.state.goingKid?.going.changes, [])
     }
 
     func testStartSavesTheWholeFamilyOnce() async {

@@ -244,7 +244,7 @@ public struct MissionsFeature {
         /// The live look's numbers for the family's bus outing, or nil for the timetable look.
         public var live: LiveMorning? {
             guard let (owner, outing) = familyOuting, outing.trip.way == .bus,
-                  let plan = busPlans[owner.id], let arrivals, let arrivalsAt, let now,
+                  let plan = busPlans[owner.id], !plan.routes.isEmpty, let arrivals, let arrivalsAt, let now,
                   now.timeIntervalSince(arrivalsAt) < Self.liveFreshness else { return nil }
             return LiveMorning(arrivals: arrivals, plan: plan, minute: minute, start: outing.slot.start)
         }
@@ -263,15 +263,20 @@ public struct MissionsFeature {
                                         tag: bus == live.chosen ? nil
                                             : .bus(number: bus.route.service, then: bus.route.then, minutes: minutes))
             }
-            // Legend: the chosen bus's number, then the kid's other buses faded, in pill order.
+            // Legend: the chosen bus's number, then the kid's other pills faded, in pill order (a bus
+            // that changes by its first buses, "12 · 34 → 33").
             let mine = live.chosen?.route ?? plan?.routes.first
-            let others = (plan?.routes ?? []).filter { $0 != mine }.map { WayStrip.Plate($0.service, then: $0.then) }
+            let others = (plan?.pills(besides: mine) ?? []).map {
+                WayStrip.Plate($0.buses.joined(separator: strings.tr("bus.join")), then: $0.then)
+            }
+            // Up to 3, as many as fit the legend's width with the "+{n}" after them.
+            let shown = WayStrip.legendCount(others) { strings.tr("missions.legend.more", $0) }
             return WayStrip.Live(buses: buses, destination: KitSlot(iconName: outing.slot.iconName),
                                  destinationLabel: outing.slot.title, ourStopLabel: L10n.tr("missions.our_stop"),
                                  owner: KidFace.Badge(face: owner.face, colorIndex: owner.colorIndex),
                                  myBus: L10n.tr("missions.my_bus"),
-                                 myService: mine?.service ?? "", others: Array(others.prefix(3)),
-                                 moreOthers: others.count > 3 ? L10n.tr("missions.legend.more", others.count - 3) : nil)
+                                 myService: mine?.service ?? "", others: Array(others.prefix(shown)),
+                                 moreOthers: others.count > shown ? strings.tr("missions.legend.more", others.count - shown) : nil)
         }
 
         static func busPicture(_ type: BusType) -> KitSlot {
@@ -541,7 +546,7 @@ public struct MissionsFeature {
             case .refresh:
                 // S4 "Live bus times" off: no LTA call; the morning keeps the timetable look.
                 guard let (owner, outing) = state.familyOuting,
-                      outing.trip.way == .bus, let plan = state.busPlans[owner.id] else { return .none }
+                      outing.trip.way == .bus, let plan = state.busPlans[owner.id], !plan.routes.isEmpty else { return .none }
                 return .run { [bus, date] send in
                     let arrivals = try? await bus.arrivals(plan.stop)
                     await send(.arrivalsLoaded(arrivals, at: date.now))

@@ -38,6 +38,16 @@ final class PartFloorsTests: XCTestCase {
     }
 
     /// Every control keeps its floor on every iPad (scale.py: 11" s 0.790, mini s 0.714).
+    /// Layout v61: plain bus pills stay 180; the pill of a bus that changes is its words + 80 (board C2
+    /// "12 · 34 → 33" 280 on the 13").
+    func testABusThatChangesPillIsItsWordsPlus80() {
+        XCTAssertTrue(FontRegistrar.registerAll())
+        XCTAssertEqual(PillToggle.width("12", then: nil, sizing: thirteen), 180)
+        XCTAssertEqual(PillToggle.width("12 · 34", then: "33", sizing: thirteen), 280, accuracy: 24)
+        XCTAssertGreaterThan(PillToggle.width("12 · 34", then: "33", sizing: thirteen),
+                             PillToggle.width("12", then: "33", sizing: thirteen))
+    }
+
     func testFloorsHoldOnSmallerIPads() {
         for s in [twelve, eleven, mini] {
             XCTAssertGreaterThanOrEqual(s.fieldHeight, 64)

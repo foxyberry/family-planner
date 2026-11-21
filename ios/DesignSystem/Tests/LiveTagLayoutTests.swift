@@ -52,4 +52,19 @@ final class LiveTagLayoutTests: XCTestCase {
         let slots = LiveTagLayout.place(crowd, kx: 1, k: 1, bubble: nil)
         XCTAssertEqual(slots[2], .hidden)
     }
+
+    /// v61: the legend shows up to 3 faded plates, fewer when wide plates of buses that change would
+    /// run past the strip, and the "+{n}" for the rest always fits.
+    func testTheLegendShowsThePlatesThatFit() {
+        XCTAssertTrue(FontRegistrar.registerAll())
+        let more: (Int) -> String = { "+\($0)" }
+        let short = ["1", "2", "3", "4"].map { WayStrip.Plate($0) }
+        XCTAssertEqual(WayStrip.legendCount(short, more: more), 3)
+        XCTAssertEqual(WayStrip.legendCount(Array(short.prefix(2)), more: more), 2)
+        let wide = [WayStrip.Plate("34"), WayStrip.Plate("12 · 34", then: "33"), WayStrip.Plate("97", then: "56")]
+        let shown = WayStrip.legendCount(wide, more: more)
+        XCTAssertEqual(shown, 2)
+        let width = wide.prefix(shown).map { LiveBusTag.plateWidth($0.number, then: $0.then) }.reduce(0, +)
+        XCTAssertLessThanOrEqual(width, WayStrip.legendWidth)
+    }
 }

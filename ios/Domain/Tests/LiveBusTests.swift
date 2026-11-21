@@ -44,7 +44,7 @@ final class LiveBusTests: XCTestCase {
     /// bus goes the faster way.
     func testABusThatChangesCountsItsWholeTrip() {
         var changing = plan
-        changing.change = BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 5, ride2: 6)
+        changing.changes = [BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 5, ride2: 6)]
         XCTAssertEqual(changing.routes.map(\.trip), [10, 19])
         // Bus 3 in 12 reaches in 31; bus 1 in 25 reaches in 35.
         let live = LiveMorning(arrivals: [bus("1", 25), bus("3", 12)], plan: changing, minute: 400, start: start)
@@ -53,6 +53,54 @@ final class LiveBusTests: XCTestCase {
         changing.services = ["1", "3"]
         XCTAssertEqual(LiveMorning(arrivals: [bus("3", 12)], plan: changing, minute: 400, start: start)
             .chosen?.route, BusRoute(service: "3", then: nil, trip: 10))
+    }
+
+    /// Spec "Several buses" (v61): every bus that changes gives one way per first bus, after the direct
+    /// buses, each timed by its own Ride 1 + Change + Ride 2.
+    func testEveryFirstBusOfEveryChangeIsAWay() {
+        var many = plan
+        many.changes = [BusChange(firstBuses: ["2", "3"], thenBus: "8", rides1: ["2": 6, "3": 9], change: 4, ride2: 7),
+                        BusChange(firstBus: "5", thenBus: "6", ride1: 3, change: 5, ride2: 10)]
+        XCTAssertEqual(many.routes, [BusRoute(service: "1", then: nil, trip: 10),
+                                     BusRoute(service: "2", then: "8", trip: 17),
+                                     BusRoute(service: "3", then: "8", trip: 20),
+                                     BusRoute(service: "5", then: "6", trip: 18)])
+        XCTAssertEqual(many.numbers, ["1", "2", "3", "5"])
+        // Bus 3 in 12 reaches in 32, bus 5 in 15 reaches in 33, bus 1 in 25 reaches in 35.
+        let live = LiveMorning(arrivals: [bus("1", 25), bus("5", 15), bus("3", 12)], plan: many, minute: 400,
+                               start: start)
+        XCTAssertEqual(live.chosen?.route, BusRoute(service: "3", then: "8", trip: 20))
+        XCTAssertEqual(live.others.map(\.route.service), ["5", "1"])
+    }
+
+    /// Spec "Same first bus": a bus that is direct and the first bus of two changes is one arrival,
+    /// timed by the fastest of the three ways.
+    func testASharedFirstBusCountsOnceByTheFasterTrip() {
+        var shared = plan
+        shared.services = ["1", "3"]
+        shared.rides = ["3": 30]
+        shared.changes = [BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 5, ride2: 9),
+                          BusChange(firstBuses: ["2", "3"], thenBus: "6", rides1: ["2": 5, "3": 4], change: 5, ride2: 6)]
+        let live = LiveMorning(arrivals: [bus("3", 12)], plan: shared, minute: 400, start: start)
+        XCTAssertEqual(live.buses.count, 1, "one arrival, one bus on the strip")
+        XCTAssertEqual(live.chosen?.route, BusRoute(service: "3", then: "6", trip: 15))
+        XCTAssertEqual(shared.numbers, ["1", "3", "2"], "each number once")
+    }
+
+    /// The A2 legend lists the pills besides the chosen way: a direct bus drops its pill; a first bus
+    /// of a bus that changes drops out of that pill, which goes once none is left.
+    func testPillsBesidesTheChosenWay() {
+        var many = plan
+        many.services = ["1", "2"]
+        many.changes = [BusChange(firstBuses: ["2", "3"], thenBus: "8"), BusChange(firstBus: "5", thenBus: "6")]
+        XCTAssertEqual(many.pills, [BusPill(buses: ["1"], then: nil), BusPill(buses: ["2"], then: nil),
+                                    BusPill(buses: ["2", "3"], then: "8"), BusPill(buses: ["5"], then: "6")])
+        XCTAssertEqual(many.pills(besides: BusRoute(service: "2", then: nil, trip: 10)),
+                       [BusPill(buses: ["1"], then: nil), BusPill(buses: ["2", "3"], then: "8"), BusPill(buses: ["5"], then: "6")])
+        XCTAssertEqual(many.pills(besides: many.routes[3]),
+                       [BusPill(buses: ["1"], then: nil), BusPill(buses: ["2"], then: nil), BusPill(buses: ["2"], then: "8"),
+                        BusPill(buses: ["5"], then: "6")])
+        XCTAssertEqual(many.pills(besides: many.routes[4]).count, 3, "a change with one first bus goes")
     }
 
     func testPillsToggleInPillOrder() {
@@ -98,8 +146,17 @@ final class LiveBusTests: XCTestCase {
     func testAChangingSecondBecomesTheBusThatChanges() throws {
         let decoded = try decode(#"{"kid":"\#(kid)","stop":"00000","services":["1"],"walk":8,"ride":12,"#
             + #""lateGrace":15,"change":{"firstBus":"3","stop":"00001","thenBus":"4","ride1":8,"walk":3,"ride2":6}}"#)
-        XCTAssertEqual(decoded.change, BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 3, ride2: 6))
+        XCTAssertEqual(decoded.changes, [BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 3, ride2: 6)])
         XCTAssertEqual(decoded.routes.map(\.trip), [12, 17])
+    }
+
+    /// v61: a plan saved with one bus that changes (one first bus and its Ride 1) keeps it as the only
+    /// bus that changes, with that first bus.
+    func testOneBusThatChangesBecomesTheOnlyChange() throws {
+        let decoded = try decode(#"{"kid":"\#(kid)","stop":"00000","services":["1"],"walk":8,"ride":12,"#
+            + #""lateGrace":15,"rides":{"1":12},"change":{"firstBus":"3","thenBus":"4","ride1":8,"change":5,"ride2":6}}"#)
+        XCTAssertEqual(decoded.changes, [BusChange(firstBuses: ["3"], thenBus: "4", rides1: ["3": 8], change: 5, ride2: 6)])
+        XCTAssertEqual(decoded.routes, [BusRoute(service: "1", then: nil, trip: 12), BusRoute(service: "3", then: "4", trip: 19)])
     }
 
     func testOlderPlansWithMoreBusesKeepThemAll() throws {
@@ -112,8 +169,23 @@ final class LiveBusTests: XCTestCase {
         var full = plan
         full.services = ["1", "2"]
         full.rides = ["2": 20]
-        full.change = BusChange(firstBus: "3", thenBus: "4")
+        full.changes = [BusChange(firstBus: "3", thenBus: "4")]
         XCTAssertEqual(try JSONDecoder().decode(BusPlan.self, from: JSONEncoder().encode(full)), full)
+    }
+
+    /// v61: two buses that change, one with two first buses, survive a save and a load.
+    func testTwoBusesThatChangeRoundTrip() throws {
+        var full = plan
+        full.changes = [BusChange(firstBuses: ["2", "3"], thenBus: "8", rides1: ["2": 6, "3": 9], change: 4, ride2: 7),
+                        BusChange(firstBus: "5", thenBus: "6A")]
+        let decoded = try JSONDecoder().decode(BusPlan.self, from: JSONEncoder().encode(full))
+        XCTAssertEqual(decoded, full)
+        XCTAssertEqual(decoded.changes.first?.firstBuses, ["2", "3"], "pill order kept")
+    }
+
+    /// A Ride 1 kept for a bus that is no longer a first bus is dropped, so equal changes compare equal.
+    func testRidesOneKeepOnlyTheFirstBuses() {
+        XCTAssertEqual(BusChange(firstBuses: ["2"], thenBus: "8", rides1: ["2": 6, "3": 9]).rides1, ["2": 6])
     }
 
     func testLeaveNowAtZero() {

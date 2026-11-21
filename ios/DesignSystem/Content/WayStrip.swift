@@ -55,7 +55,8 @@ public struct WayStrip: View {
         public var myBus: String
         /// The chosen bus's number for the legend plate (the kid's first bus when none can be caught).
         public var myService: String
-        /// The legend's faded plates: the kid's other buses in pill order (up to 3), then "+{n}".
+        /// The legend's faded plates: the kid's other buses in pill order (up to 3, as many as fit
+        /// `legendWidth`), then "+{n}".
         public var others: [Plate]
         public var moreOthers: String?
 
@@ -128,6 +129,23 @@ public struct WayStrip: View {
     static let rightEdge: CGFloat = 1232
 
     /// A bus's x from its minutes to our stop: 30 min or more at x 60, at our stop at 0.
+    /// The legend's room on the board: from its left (946) to the strip's inner right edge (1240).
+    nonisolated public static let legendWidth: CGFloat = 1240 - 946
+
+    /// How many of the faded `plates` the legend shows (spec "A2 strip → Legend"): up to `most`, and
+    /// only as many as fit `legendWidth` on one line with the "+{n}" (`more`) after them, so wide
+    /// plates of buses that change ("12 · 34 → 33") never run past the strip.
+    nonisolated public static func legendCount(_ plates: [Plate], most: Int = 3, more: (Int) -> String) -> Int {
+        let gap = Spacing.xxs
+        for count in stride(from: min(most, plates.count), through: 0, by: -1) {
+            var width = plates.prefix(count).map { LiveBusTag.plateWidth($0.number, then: $0.then) }.reduce(0, +)
+                + gap * CGFloat(max(count - 1, 0))
+            if count < plates.count { width += (count > 0 ? gap : 0) + CrayonType.captionBoldWidth(more(plates.count - count)) }
+            if width <= legendWidth { return count }
+        }
+        return 0
+    }
+
     public static func liveX(minutes: Int) -> CGFloat { homeX - CGFloat(min(max(minutes, 0), 30)) * 800 / 30 }
 
     /// Where the mover waits once the outing has started: at the destination's side (x 1070).
