@@ -218,17 +218,6 @@
    "font": 30
   },
   {
-   "id": "main.picture.1",
-   "kind": "picture",
-   "x": 190,
-   "y": 362,
-   "w": 72,
-   "h": 72,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "main.label.colour.1",
    "kind": "label",
    "x": 78,
@@ -239,6 +228,54 @@
    "anchor": "left",
    "align": "inside",
    "text": "Colour"
+  },
+  {
+   "id": "main.row.colour.button.1",
+   "kind": "button",
+   "x": 198,
+   "y": 370,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Blue"
+  },
+  {
+   "id": "main.row.colour.button.2",
+   "kind": "button",
+   "x": 278,
+   "y": 370,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Orange"
+  },
+  {
+   "id": "main.row.colour.button.3",
+   "kind": "button",
+   "x": 358,
+   "y": 370,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Green"
+  },
+  {
+   "id": "main.row.colour.button.4",
+   "kind": "button",
+   "x": 438,
+   "y": 370,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Purple"
   },
   {
    "id": "side.line.1",
@@ -386,17 +423,6 @@
    "font": 30
   },
   {
-   "id": "main.picture.2",
-   "kind": "picture",
-   "x": 270,
-   "y": 794,
-   "w": 72,
-   "h": 72,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "main.label.colour.2",
    "kind": "label",
    "x": 78,
@@ -407,6 +433,54 @@
    "anchor": "left",
    "align": "inside",
    "text": "Colour"
+  },
+  {
+   "id": "main.row.colour.button.5",
+   "kind": "button",
+   "x": 198,
+   "y": 802,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Blue"
+  },
+  {
+   "id": "main.row.colour.button.6",
+   "kind": "button",
+   "x": 278,
+   "y": 802,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Orange"
+  },
+  {
+   "id": "main.row.colour.button.7",
+   "kind": "button",
+   "x": 358,
+   "y": 802,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Green"
+  },
+  {
+   "id": "main.row.colour.button.8",
+   "kind": "button",
+   "x": 438,
+   "y": 802,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Purple"
   },
   {
    "id": "action.button",
@@ -472,13 +546,13 @@
    "id": "main.text",
    "kind": "text",
    "x": 78,
-   "y": 1099,
+   "y": 1094,
    "w": 531,
    "h": 36,
    "region": "main",
    "anchor": "left",
    "align": "inside",
-   "baseline": 1127,
+   "baseline": 1122,
    "font": 24
   }
  ]
