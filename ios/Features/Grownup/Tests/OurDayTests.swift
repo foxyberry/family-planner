@@ -194,6 +194,25 @@ final class OurDayTests: XCTestCase {
                        .weekly([.tuesday], from: Day(year: 2026, month: 11, day: 11), until: nil))
     }
 
+    /// A new item picked again before Save still follows its tabs: All days makes it every week.
+    func testANewItemFollowsItsTabsUntilSave() async throws {
+        let writes = Writes()
+        let store = await loaded(writes: writes)
+        let plus = try XCTUnwrap(store.state.addButtons.first { $0.minute == 1155 })
+        await store.send(.addBetweenTapped(plus.knob))
+        await store.send(.newSlicePicturePicked("actPiano"))
+        await store.send(.sliceTapped(start: 0))
+        await store.send(.sliceTapped(start: 1155))
+        XCTAssertTrue(store.state.showsScopeTabs)
+        await store.send(.scopeTapped(.allDays))
+        XCTAssertEqual(store.state.selectedItem?.isRepeating, true)
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .today)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(writes.items.value.first?.recurrence, .weekly([.tuesday], from: tuesday, until: nil))
+    }
+
     /// Spec C6 "One card": Remove on All days makes a day slice free time at once (no confirm); the
     /// free paper has neither action.
     func testRemoveADaySliceOnAllDays() async throws {

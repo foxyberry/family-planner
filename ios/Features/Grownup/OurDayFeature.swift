@@ -565,9 +565,10 @@ public struct OurDayFeature {
 
             case let .scopeTapped(scope):
                 state.saveScope = scope
-                // Spec "Tapping +": the new item's card picks just once (This day) or every week (All days).
-                if let slice = state.newSlice, slice.isOnClock, let item = state.edit.item(slice.id) {
-                    state.edit.restyleItem(slice.id, title: item.title, iconName: item.iconName,
+                // Spec "Tapping +": a new item's tabs pick just once (This day) or every week (All
+                // days), while its card is open and when it is picked again before Save.
+                if let item = state.selectedItem, item.isNew {
+                    state.edit.restyleItem(item.id, title: item.title, iconName: item.iconName,
                                            isRepeating: scope == .allDays)
                 }
                 return .none
