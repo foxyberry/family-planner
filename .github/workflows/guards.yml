@@ -73,6 +73,8 @@ jobs:
         run: bash scripts/tests/check-driver-contract-test.sh
       - name: Type name check tests
         run: bash scripts/tests/check-type-names-test.sh
+      - name: Kit art check tests
+        run: bash scripts/tests/check-kit-art-test.sh
       - name: Skills check tests
         run: bash scripts/tests/check-skills-test.sh
       - name: Lessons reminder tests
@@ -86,7 +88,7 @@ jobs:
       - name: Affected-test selection tests
         run: bash scripts/tests/test-affected-test.sh
       # The checks themselves, on this commit.
-      - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, layout literals, view values, journeys, unattended tests, driver contract, type names, strings, skills, skill refs)
+      - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, layout literals, view values, journeys, unattended tests, driver contract, type names, kit art, strings, skills, skill refs)
         run: |
           bash scripts/check-kid-screens.sh
           bash scripts/check-dependencies.sh
@@ -98,6 +100,7 @@ jobs:
           bash scripts/check-unattended-tests.sh
           bash scripts/check-driver-contract.sh
           bash scripts/check-type-names.sh
+          bash scripts/check-kit-art.sh
           bash scripts/check-strings.sh
           bash scripts/check-skills.sh
           bash scripts/check-skill-refs.sh
