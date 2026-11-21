@@ -35,7 +35,7 @@ or when someone asks about orientation or multitasking. The numbers live in the 
    and bottom are paper.
 4. **Scale values, not the screen.** Multiply each size, position and font size by `s`. Never
    `scaleEffect` a whole screen: it rasterizes and blurs text. Fractional font sizes are fine.
-5. **Touch**: a tap hits only the drawn shape, the frame less the 6 pt inset (a round button: `.contentShape(Circle())` on its drawn circle); a drag that starts on a part with no drag of its own goes to the nearest handle of its named area only, the clock ring or a slider's track (spec **Sizing → Touch**, rule 2).
+5. **Touch**: a tap hits only the drawn shape: for inset parts the frame less 6 pt (a round button: `.contentShape(Circle())` on its drawn circle), for edge-drawn parts (faces, chevrons, switches, borderless rows, links, clock slices) their frame; a drag that starts on a part with no drag of its own goes to the nearest handle of its named area only, the clock ring or a slider's track (spec **Sizing → Touch**, rule 2).
 6. **Text that may wrap** (typed names, " · " value lines) wraps to at most 2 lines, then "…" for
    typed names. Measure board labels with
    `swift .claude/skills/crayon-design/scripts/measure-text.swift <size> <weight> "<text>"` at the
