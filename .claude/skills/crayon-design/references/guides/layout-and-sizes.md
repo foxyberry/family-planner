@@ -35,7 +35,7 @@ or when someone asks about orientation or multitasking. The numbers live in the 
    and bottom are paper.
 4. **Scale values, not the screen.** Multiply each size, position and font size by `s`. Never
    `scaleEffect` a whole screen: it rasterizes and blurs text. Fractional font sizes are fine.
-5. **Touch is the visible box.** No `.contentShape` or hit area larger than what is drawn.
+5. **Touch**: a tap hits only the visible box (no `.contentShape` larger than the drawing); a drag that starts on empty space goes to the nearest handle in that area (spec **Sizing → Touch**, rule 2).
 6. **Text that may wrap** (typed names, " · " value lines) wraps to at most 2 lines, then "…" for
    typed names. Measure board labels with
    `swift .claude/skills/crayon-design/scripts/measure-text.swift <size> <weight> "<text>"` at the
