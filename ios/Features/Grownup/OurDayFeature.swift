@@ -9,13 +9,14 @@ import ScheduleStore
 import SchoolDirectory
 import Strings
 
-/// G1 · The day on the clock (spec "G1"): a grown-up drags the times of a kid's day on a real date.
-/// The rules live in `TemplateEdit`; this reducer keeps the screen's state and saves the day's
-/// template for this day only or for all days from it (spec "Edit scope").
+/// G1 · The day on the clock (spec "G1"): a grown-up edits a kid's day on a real date. The day
+/// template and the items on top of it share one clock, one slice card and one Undo (spec C6 "One
+/// card for everything on the clock"); the rules live in `TemplateEdit`. Save writes the template
+/// for this day only or for all days from a date (spec "Edit scope"), and the items' changes
+/// (`ClockSave`).
 @Reducer
 public struct OurDayFeature {
-    /// A new slice being filled in over a free span ("+").
-    /// Every picture a day slice can have (user, 2026-11-09: all of them, sleep too), in day order.
+    /// Every picture a new slice can have (user, 2026-11-09: all of them, sleep too), in day order.
     public static let pictures: [KitSlot] = [
         .actSleep, .pyjamas, .teddy, .sun, .toilet, .toothbrush, .washFace, .hairBrush, .shirt, .actBreakfast,
         .milk, .backpack, .shoe, .actSchool, .homework, .actPlay, .blocks, .playground, .snack, .tv, .actStory,
@@ -23,46 +24,34 @@ public struct OurDayFeature {
         .actDinner, .actShower, .cake, .doctor,
     ]
 
-    /// The slice kind a picture gives (its colour on the clock and the night look's sleep): the
-    /// sleep pictures make sleep, dinner makes dinner, and so on; anything else is play.
-    public static func kind(forPicture name: String) -> SlotKind {
-        switch KitSlot(rawValue: name) {
-        case .actSleep?, .pyjamas?, .teddy?: .sleep
-        case .sun?, .toilet?, .toothbrush?, .washFace?, .hairBrush?, .shirt?, .actBreakfast?, .milk?, .backpack?,
-             .shoe?: .morning
-        case .actSchool?, .homework?: .school
-        case .actCCA?, .actArt?, .actMusic?, .actPiano?, .actDance?, .actFootball?, .actSwim?, .actLanguageSchool?,
-             .actChurch?: .afterSchool
-        case .actDinner?: .dinner
-        case .actShower?: .evening
-        case .cake?, .doctor?: .event
-        default: .play
-        }
-    }
-
-    /// Board G1f (layout v41): the seven pictures a new slice offers before "More".
+    /// Board G1f: the seven pictures a new slice offers before "More".
     public static let suggested: [KitSlot] = [.actPlay, .snack, .actStory, .homework, .tv, .actArt, .actMusic]
     /// Slice names keep the C5 limit (14 characters).
     static let longestName = 14
 
+    /// A new item being filled in from a "+" (board G1f): on the clock once a picture is picked.
     public struct NewSlice: Equatable, Sendable {
-        public var block: Int
+        public var id: ScheduleItem.ID
+        public var start: Int
+        public var end: Int
         public var name: String
         public var iconName: String?
-        /// Board G1e: the slice was put between two others; closing the card without adding takes it back.
-        public var isBetween: Bool
-        /// Board G1f: a picture was picked, so the slice is on the clock (Undo takes it back).
+        /// Its tabs: just once (This day) or every week (All days); the item on the clock keeps it.
+        public var scope: Scope
+        /// A picture was picked, so the item is on the clock (Undo takes it back).
         public var isOnClock = false
-        /// The grown-up typed a name; a later picture no longer renames the slice.
+        /// The grown-up typed a name; a later picture no longer renames the item.
         public var nameIsTyped = false
         /// "More" shows every day picture.
         public var isPickingMore = false
 
-        public init(block: Int, name: String = "", iconName: String? = nil, isBetween: Bool = false) {
-            self.block = block
+        public init(id: ScheduleItem.ID, start: Int, end: Int, scope: Scope, name: String = "", iconName: String? = nil) {
+            self.id = id
+            self.scope = scope
+            self.start = start
+            self.end = end
             self.name = name
             self.iconName = iconName
-            self.isBetween = isBetween
         }
     }
 
@@ -73,8 +62,26 @@ public struct OurDayFeature {
         public var bumps = 0
     }
 
-    /// "This day" or "All days" (spec "Edit scope"): a drag changes this day unless All days is picked.
-    public enum Scope: Hashable, Sendable { case thisDay, allDays }
+    /// "This day" or "All days" (spec "Edit scope"): each change carries the scope it was made in.
+    public typealias Scope = EditScope
+
+    /// A knob being dragged: what it moves and how far it may go (fixed when the drag starts).
+    public struct Drag: Equatable, Sendable {
+        public var edge: DayKnob.Edge
+        public var range: ClosedRange<Int>
+        /// The knob's minute when the drag began.
+        public var from: Int
+    }
+
+    /// The one action under the slice card's times (spec C6 "One card"): "Skip this day" on This
+    /// day, "Remove" on All days and on a just-once item.
+    public enum SliceAction: Equatable, Sendable { case skip, remove }
+
+    /// Board G1: the ConfirmCard before an every-week item, School or a just-once item is removed.
+    public enum Removing: Equatable, Sendable {
+        case series(ClockSlice.Source)
+        case once(ScheduleItem.ID)
+    }
 
     @ObservableState
     public struct State: Equatable {
@@ -82,7 +89,8 @@ public struct OurDayFeature {
         public var kid: Kid.ID
         /// The date on the clock (board G1's day button).
         public var day: Day
-        public var saveScope: Scope = .thisDay
+        /// The This day / All days tabs: the scope the next change on a slice is made in.
+        public var scope: Scope = .thisDay
         /// Board G5 on an All days save: the card's choice while it is open, and its date.
         public var fromWhen: ItemEditorFeature.FromWhen?
         public var fromWhenDate: Day
@@ -94,13 +102,14 @@ public struct OurDayFeature {
         public var kids: [Kid] = []
         public var routines: [Routine] = []
         public var edit = TemplateEdit(blocks: [])
-        public var selected: Int?
-        public var dragging: Int?
+        /// The slice the card shows: a template slice or an item.
+        public var selected: ClockSlice.Source?
+        public var drag: Drag?
         public var dragOrigin: Int?
         public var message: String?
         public var newSlice: NewSlice?
-        /// Board G1e: the knob whose "+" is showing after a tap on it.
-        public var addBetween: Int?
+        /// Board G1: "Remove {Name} every week?" / "Remove {Name}?" while it is open.
+        public var removing: Removing?
         public var haptics = Haptics()
         /// Board G1d: "Save the changes?" before leaving with unsaved drags.
         public var isConfirmingLeave = false
@@ -109,6 +118,8 @@ public struct OurDayFeature {
         /// Where to go after Save in the G1d card: another kid or day, or back.
         public var pendingSwitch: Switch?
         public var saveError: String?
+        /// A save is on its way to the store; another Save waits for it.
+        public var isSaving = false
         /// The app's calendar, for the time fields' dates (views never read `Calendar.current`).
         public var calendar: Calendar
 
@@ -119,15 +130,18 @@ public struct OurDayFeature {
             /// Board G8: the List (or back to the clock); G6: Settings.
             case list(Bool)
             case settings
+            /// "Details ›" on an item's or School's slice card (E5 / G2, G4).
+            case item(ScheduleItem.ID)
+            case school
         }
 
         /// Board G8: the kid's items as a list instead of the clock.
         public var showsList = false
-        /// Every item, for the List.
+        /// Every item, as the store has it.
         public var items: [ScheduleItem] = []
         public var nowMinute = 0
         /// Spec "No empty slice card": the minute of the slice the home hold began on; the first load
-        /// picks the template slice there, then it is used up.
+        /// picks the slice there, then it is used up.
         public var heldMinute: Int?
 
         public var kidInfo: Kid? { kids.first { $0.id == kid } }
@@ -190,33 +204,138 @@ public struct OurDayFeature {
             return stride(from: 0, to: chips.count, by: 7).map { Array(chips[$0..<min($0 + 7, chips.count)]) }
         }
 
-        /// Board G1d: the first changed slice as "Dinner 6:30 pm → 7:30 pm, this day".
+        /// Board G1d: the first changed slice as "Dinner 6:30 pm → 7:30 pm, this day" (a template
+        /// slice first, else an item).
         public var unsavedLine: String? {
-            guard edit.isChanged, let block = edit.firstChange else { return nil }
-            return L10n.tr("day.unsaved.line", block.title, TimeText.withPeriod(block.start), TimeText.withPeriod(block.end),
-                           saveScope == .thisDay ? L10n.tr("day.unsaved.this_day") : L10n.tr("day.unsaved.all_days"))
+            guard edit.isChanged else { return nil }
+            let words = { (scope: Scope) in
+                scope == .thisDay ? L10n.tr("day.unsaved.this_day") : L10n.tr("day.unsaved.all_days")
+            }
+            if let block = edit.firstChange {
+                return L10n.tr("day.unsaved.line", block.title, TimeText.withPeriod(block.start),
+                               TimeText.withPeriod(block.end), words(edit.changes.first?.scope ?? scope))
+            }
+            guard let item = edit.firstItemChange else { return nil }
+            let scope: Scope = item.isNew ? item.newScope
+                : item.isRemoved && item.isRepeating ? .allDays : item.retimeScope ?? .thisDay
+            return L10n.tr("day.unsaved.line", item.title, TimeText.withPeriod(item.start),
+                           TimeText.withPeriod(item.end), words(scope))
+        }
+
+        // MARK: The selected slice
+
+        public var selectedBlock: RoutineBlock? {
+            guard case let .block(index)? = selected, edit.blocks.indices.contains(index) else { return nil }
+            return edit.blocks[index]
+        }
+        public var selectedItem: ClockItem? {
+            guard case let .item(id)? = selected, let item = edit.item(id), !item.isRemoved else { return nil }
+            return item
+        }
+        /// The card's picture and name.
+        public var selectedTitle: String? { selectedBlock?.title ?? selectedItem?.title }
+        public var selectedPicture: KitSlot? {
+            if let block = selectedBlock { return block.kind == .free ? nil : KitSlot(iconName: block.iconName) }
+            return selectedItem.map { KitSlot(iconName: $0.iconName) }
+        }
+        private var selectedSpan: (start: Int, end: Int)? {
+            if let block = selectedBlock { return (block.start, block.end) }
+            return selectedItem.map { ($0.start, $0.end) }
         }
 
         /// The selected slice's start and end as dates for the time fields.
-        public var startDate: Date { day.date(minute: selectedBlock?.start ?? 0, calendar: calendar) }
-        public var endDate: Date { day.date(minute: selectedBlock?.end ?? 0, calendar: calendar) }
+        public var startDate: Date { day.date(minute: selectedSpan?.start ?? 0, calendar: calendar) }
+        public var endDate: Date { day.date(minute: selectedSpan?.end ?? 0, calendar: calendar) }
+        public var startLabel: String? { selectedSpan.map { TimeText.withPeriod($0.start) } }
+        public var endLabel: String? { selectedSpan.map { TimeText.withPeriod($0.end) } }
 
-        /// What Save writes: this day's own template, or the day type's template from G5's choice
-        /// (never from before today).
-        public var routineToSave: Routine {
-            switch saveScope {
-            case .thisDay:
-                Routine.day(day, kid: kid, dayType: dayType, blocks: edit.blocks)
-            case .allDays:
-                // A skip is always this day (board G1g): every day's template has none.
-                Routine(kid: kid, dayType: dayType, from: allDaysFrom,
-                        blocks: edit.blocks.map { block in
-                            var block = block
-                            block.isSkipped = false
-                            return block
-                        })
+        /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
+        public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true || selectedItem?.isSkipped == true }
+        /// A just-once item has one date, so its card has no This day / All days tabs.
+        public var showsScopeTabs: Bool { selectedItem.map { $0.isRepeating || $0.isNew } ?? true }
+        /// The tab shown: a new item's own scope (its kind), else the screen's.
+        public var shownScope: Scope {
+            if let slice = newSlice { return edit.item(slice.id)?.newScope ?? slice.scope }
+            if let item = selectedItem, item.isNew { return item.newScope }
+            return scope
+        }
+        /// An item placed after another event ("after School") follows it: its times are shown, not edited.
+        public var timesAreEditable: Bool { selectedItem?.isAnchored != true }
+
+        /// Spec C6 "One card": "Skip this day" on This day (School too), "Remove" on All days; a
+        /// just-once item and a new item only "Remove"; free time and a skipped slice neither.
+        public var sliceAction: SliceAction? {
+            if let block = selectedBlock {
+                guard block.kind != .free, !block.isSkipped else { return nil }
+                return scope == .thisDay ? .skip : .remove
+            }
+            guard let item = selectedItem, !item.isSkipped else { return nil }
+            guard item.isRepeating, !item.isNew else { return .remove }
+            return scope == .thisDay ? .skip : .remove
+        }
+        public var sliceActionTitle: String? {
+            switch sliceAction {
+            case .skip?: strings.tr("day.skip_this_day")
+            case .remove?: strings.tr("day.remove")
+            case nil: nil
             }
         }
+
+        /// "Details ›" (spec C6 "One card"): items open E5 / G2, School opens G4. A new item has no
+        /// form yet.
+        public var detailsTitle: String? {
+            let opens = selectedItem.map { !$0.isNew } ?? (selectedBlock?.kind == .school && kidInfo?.school != nil)
+            // The "›" is drawn by GlyphText at the key's "%@" (Playpen Sans has none).
+            return opens ? strings.tr("day.details", "%@") : nil
+        }
+
+        /// Board G1: the ConfirmCard's words while it is open.
+        public var removeTitle: String? {
+            switch removing {
+            case let .series(source)?: strings.tr("day.remove.series", title(of: source))
+            case let .once(id)?: strings.tr("day.remove.once", title(of: .item(id)))
+            case nil: nil
+            }
+        }
+        public var removeAccept: String { strings.tr("day.remove.accept") }
+        public var removeKeep: String { strings.tr("day.remove.keep") }
+
+        func title(of source: ClockSlice.Source) -> String {
+            switch source {
+            case let .block(index): edit.blocks.indices.contains(index) ? edit.blocks[index].title : ""
+            case let .item(id): edit.item(id)?.title ?? ""
+            }
+        }
+
+        // MARK: Saving
+
+        /// The day type's template the clock's day would have without its own one: where an All days
+        /// change goes.
+        var baseBlocks: [RoutineBlock] {
+            DayPlanner.template(for: kid, on: day, routines: routines.filter { $0.onlyOn == nil },
+                                holidays: family.daysOff(kid), calendar: calendar)?.blocks ?? []
+        }
+
+        /// What Save writes for the template, each change by its own scope: the All days changes on
+        /// the day type's template from G5's date (never before today), and, when there are This day
+        /// changes, the day's own template (with the All days changes too when they start by then).
+        public var routinesToSave: [Routine] {
+            var routines: [Routine] = []
+            let base = baseBlocks
+            let series = edit.seriesBlocks(from: base)
+            if series != base {
+                routines.append(Routine(kid: kid, dayType: dayType, from: allDaysFrom, blocks: series))
+            }
+            if edit.hasThisDayTemplateChange {
+                // All days changes reach this day only when G5's date is on or before it.
+                let blocks = allDaysFrom <= day ? edit.blocks : edit.replaying(on: edit.savedBlocks, scopes: [.thisDay])
+                routines.append(Routine.day(day, kid: kid, dayType: dayType, blocks: blocks))
+            }
+            return routines
+        }
+
+        /// G5 asks from when only when there are All days changes; its date applies only to them.
+        public var needsFromWhen: Bool { edit.hasAllDaysChange }
 
         /// Board G5's tabs: "Today", "Next Sat" (the next day of this day's type), "Date".
         public var fromWhenTabs: [(ItemEditorFeature.FromWhen, String)] {
@@ -243,82 +362,90 @@ public struct OurDayFeature {
         public var fromWhenDateLabel: String { DayText.dayMonth(max(fromWhenDate, today), calendar: calendar) }
         public var fromWhenDateValue: Date { max(fromWhenDate, today).date(calendar: calendar) }
 
+        // MARK: The clock
+
         public var sectors: [ClockSector] {
-            edit.blocks.enumerated().map { index, block in
-                ClockSector(start: block.start, end: block.end,
-                            style: ClockSlotStyle(rawValue: block.kind.rawValue) ?? .play,
-                            iconName: block.kind == .free || block.iconName.isEmpty ? nil : block.iconName,
-                            isCurrent: index == selected, showsStar: false, priority: 0, isFaded: block.isSkipped)
+            edit.slices.map { slice in
+                ClockSector(start: slice.start, end: slice.end,
+                            style: ClockSlotStyle(rawValue: slice.kind.rawValue) ?? .play,
+                            iconName: slice.kind == .free || slice.iconName.isEmpty ? nil : slice.iconName,
+                            isCurrent: slice.source == selected, showsStar: false, priority: slice.priority,
+                            isFaded: slice.isSkipped)
             }
         }
 
         public var knobs: [EditClock.Knob] {
-            edit.knobs.map { knob in
-                EditClock.Knob(minute: knob.minute, isLocked: false)
+            edit.clockKnobs.map { EditClock.Knob(minute: $0.minute, isLocked: false) }
+        }
+
+        /// The knob being dragged, by its place among the knobs now.
+        public var dragging: Int? {
+            guard let drag else { return nil }
+            return edit.clockKnobs.firstIndex { $0.edge == drag.edge }
+        }
+
+        /// Spec "Add between two slices": a "+" on every shared knob, all the time; the knob being
+        /// dragged hides its "+".
+        public var addButtons: [EditClock.AddBetween] {
+            let dragging = dragging
+            return edit.clockKnobs.enumerated().compactMap { index, knob in
+                knob.showsAdd && index != dragging ? EditClock.AddBetween(knob: index, minute: knob.minute) : nil
             }
         }
 
         /// While dragging: "Dinner ends" / "7:30 pm" / "Shower starts"; else the selected slice's name.
         public var hub: EditClock.Hub {
-            if let dragging, edit.knobs.indices.contains(dragging) {
-                let knob = edit.knobs[dragging]
-                return EditClock.Hub(above: L10n.tr("day.knob.ends", edit.blocks[knob.before].title),
+            if let dragging {
+                let knob = edit.clockKnobs[dragging]
+                return EditClock.Hub(above: L10n.tr("day.knob.ends", title(of: knob.before)),
                                      time: TimeText.withPeriod(knob.minute),
-                                     below: L10n.tr("day.knob.starts", edit.blocks[knob.after].title))
+                                     below: L10n.tr("day.knob.starts", title(of: knob.after)))
             }
-            // Board G1f: a new slice on the clock reads "New" / "7:30 pm" / "until 8:00 pm".
-            if let slice = newSlice, slice.isOnClock, edit.blocks.indices.contains(slice.block) {
-                let block = edit.blocks[slice.block]
-                return EditClock.Hub(above: L10n.tr("day.new.hub"), time: TimeText.withPeriod(block.start),
-                                     below: L10n.tr("home.hub.until", TimeText.withPeriod(block.end)))
+            // Board G1f: a new item reads "New" / "7:30 pm" / "until 8:00 pm".
+            if let slice = newSlice {
+                let span = edit.item(slice.id).map { ($0.start, $0.end) } ?? (slice.start, slice.end)
+                return EditClock.Hub(above: L10n.tr("day.new.hub"), time: TimeText.withPeriod(span.0),
+                                     below: L10n.tr("home.hub.until", TimeText.withPeriod(span.1)))
             }
             // Board G1g: "Play" / "Skipped" / "this day".
-            if let block = selectedBlock, block.isSkipped {
-                return EditClock.Hub(above: block.title, time: L10n.tr("day.skipped.hub"),
+            if isSelectedSkipped, let title = selectedTitle {
+                return EditClock.Hub(above: title, time: L10n.tr("day.skipped.hub"),
                                      below: L10n.tr("day.skipped.this_day"), timeIsMuted: true)
             }
-            return EditClock.Hub(title: selected.map { edit.blocks[$0].title })
+            return EditClock.Hub(title: selectedTitle)
         }
 
-        public var selectedBlock: RoutineBlock? { selected.map { edit.blocks[$0] } }
-        public var startLabel: String? { selectedBlock.map { TimeText.withPeriod($0.start) } }
-        public var endLabel: String? { selectedBlock.map { TimeText.withPeriod($0.end) } }
-        /// One link per slice card (spec, 2026-11-15): "Make this free time" on All days, "Skip this
-        /// day" in its place on This day; a skipped slice offers only "Bring back" (board G1g).
-        public var canMakeFree: Bool {
-            saveScope == .allDays && (selectedBlock.map { !$0.isLocked && $0.kind != .free && !$0.isSkipped } ?? false)
-        }
-        /// School is skipped on G4's This day (its card links there); free time cannot be skipped.
-        public var canSkip: Bool {
-            saveScope == .thisDay && (selectedBlock.map { $0.kind != .free && $0.kind != .school && !$0.isSkipped } ?? false)
-        }
-        /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
-        public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true }
-        /// School's slice card links to G4 (spec "School edits on G4").
-        public var canEditSchool: Bool { selectedBlock?.kind == .school && kidInfo?.school != nil }
-
-        /// Board G1e: the "+" on the tapped knob.
-        public var addBetweenButton: EditClock.AddBetween? {
-            guard let index = addBetween, edit.knobs.indices.contains(index) else { return nil }
-            return EditClock.AddBetween(knob: index, minute: edit.knobs[index].minute)
+        /// The drawn slice at `minute`: the one starting there, else the one around it.
+        func slice(at minute: Int) -> ClockSlice? {
+            let slices = edit.slices
+            return slices.first { $0.start == minute } ?? slices.first { $0.start <= minute && minute < $0.end }
         }
 
-        /// What an All days save does to the school record (layout v37): the School slice's new times
-        /// become School's hours. nil when School did not move or this is a This day save.
+        /// What an All days change does to the school record (layout v37): the School slice's new
+        /// times become School's hours. nil when School did not move on All days. "Remove School
+        /// every week" changes only the template, never the school record.
         public var schoolToSave: Kid? {
-            guard saveScope == .allDays, var kid = kidInfo, let school = kid.school,
-                  let block = edit.blocks.first(where: { $0.kind == .school }),
-                  let was = edit.savedBlocks.first(where: { $0.kind == .school }),
+            let base = baseBlocks
+            guard edit.hasAllDaysChange, var kid = kidInfo, let school = kid.school,
+                  let block = edit.seriesBlocks(from: base).first(where: { $0.kind == .school }),
+                  let was = base.first(where: { $0.kind == .school }),
                   block.start != was.start || block.end != was.end else { return nil }
             kid.school = school.moved(sliceStart: block.start, sliceEnd: block.end)
             return kid
         }
-        /// Board G1f (layout v41): seven day pictures and "More" (two rows of four), the picked one first.
+        /// Board G1f: seven day pictures and "More" (two rows of four), the picked one first.
         public var newSlicePictures: [KitSlot] {
             let picked = newSlice?.iconName.flatMap(KitSlot.init(rawValue:))
             let rest = OurDayFeature.suggested.filter { $0 != picked }
             return Array(([picked].compactMap { $0 } + rest).prefix(7))
         }
+    }
+
+    /// What a save wrote, for the screen's copy of the store.
+    public struct Saved: Equatable, Sendable {
+        public var routines: [Routine]
+        public var items: [ScheduleItem]
+        public var deleted: [ScheduleItem.ID]
     }
 
     public enum Action: Equatable, BindableAction {
@@ -342,20 +469,21 @@ public struct OurDayFeature {
         case fromWhenCancelTapped
         case knobDragged(index: Int, minute: Int)
         case knobReleased(Int)
-        /// Board G1e: a tap on a knob shows its "+"; the "+" adds a slice between.
-        case knobTapped(Int)
-        case addBetweenTapped
-        /// "Edit School ›" on School's slice card opens G4 for the day on the clock.
-        case editSchoolTapped
+        /// Board G1: the "+" on a shared knob (by the knob's place) adds an item there.
+        case addBetweenTapped(Int)
         case sliceTapped(start: Int)
         case plusTapped(start: Int)
         case startPicked(Date)
         case endPicked(Date)
-        case makeFreeTapped
-        /// Board G1g: skip the selected slice on this day, or bring it back.
-        case skipTapped
+        /// The card's "Skip this day" or "Remove".
+        case sliceActionTapped
+        case removeConfirmed
+        case removeCancelled
+        /// Board G1g: bring a skipped slice back.
         case bringBackTapped
-        /// Board G1f: a picture puts the slice on the clock (named after it); the name and times edit it.
+        /// "Details ›": the item's form (E5 / G2) or School's (G4).
+        case detailsTapped
+        /// Board G1f: a picture puts the item on the clock (named after it); the name and times edit it.
         case newSlicePicturePicked(String)
         case newSliceNameChanged(String)
         case newSliceMoreTapped
@@ -366,10 +494,10 @@ public struct OurDayFeature {
         case settingsTapped
         /// Board G8: a row (School or an item) and the side column's adds.
         case listRowTapped(ListSection.Target)
-        /// Board G8 (layout v36): one "Add"; the form opens on Every week and its Repeat tabs pick the kind.
+        /// Board G8: one "Add"; the form opens on Every week and its Repeat tabs pick the kind.
         case addTapped
         case saveTapped
-        case saved(Result<Routine, SaveError>)
+        case saved(Result<Saved, SaveError>)
         case backTapped
         /// Board G1d: Save or Cancel.
         case unsavedSaveTapped
@@ -395,6 +523,7 @@ public struct OurDayFeature {
     @Dependency(\.holidays) var holidays
     @Dependency(\.calendar) var calendar
     @Dependency(\.date) var date
+    @Dependency(\.uuid) var uuid
 
     public init() {}
 
@@ -458,7 +587,17 @@ public struct OurDayFeature {
                 return .none
 
             case let .scopeTapped(scope):
-                state.saveScope = scope
+                // Spec "Tapping +": a new item's tabs pick its kind, just once (This day) or every
+                // week (All days), as one change; the new card's tabs act on that card only.
+                if var slice = state.newSlice {
+                    slice.scope = scope
+                    state.newSlice = slice
+                    if slice.isOnClock { state.edit.setNewItemScope(slice.id, scope) }
+                } else if let item = state.selectedItem, item.isNew {
+                    state.edit.setNewItemScope(item.id, scope)
+                } else {
+                    state.scope = scope
+                }
                 return .none
 
             case let .fromWhenPicked(choice):
@@ -477,111 +616,167 @@ public struct OurDayFeature {
                 return .none
 
             case .fromWhenSaveTapped:
+                guard !state.isSaving else { return .none }
                 return save(&state)
 
             case let .knobDragged(index, minute):
-                guard state.edit.knobs.indices.contains(index) else { return .none }
-                if state.dragging != index {
-                    state.addBetween = nil
-                    state.dragging = index
-                    state.dragOrigin = state.edit.knobs[index].minute
+                if state.drag == nil {
+                    let knobs = state.edit.clockKnobs
+                    guard knobs.indices.contains(index) else { return .none }
+                    let knob = knobs[index]
+                    state.newSlice = nil
+                    state.drag = Drag(edge: knob.edge, range: state.edit.range(of: knob.edge), from: knob.minute)
+                    state.dragOrigin = knob.minute
                     state.edit.beginChange()
                 }
-                let before = state.edit.knobs[index].minute
-                let move = state.edit.moveKnob(index, to: minute)
+                // The drag keeps its knob even when the knobs around it change.
+                guard let drag = state.drag else { return .none }
+                let before = state.edit.clockKnobs.first { $0.edge == drag.edge }?.minute ?? minute
+                let move = state.edit.move(drag.edge, to: minute, within: drag.range)
                 feel(move, from: before, &state)
                 return .none
 
-            case let .knobReleased(index):
-                state.dragging = nil
+            case .knobReleased:
+                guard let drag = state.drag else { return .none }
+                state.drag = nil
                 state.dragOrigin = nil
-                state.addBetween = nil
-                guard state.edit.knobs.indices.contains(index) else { return .none }
-                state.selected = state.edit.closeShortGaps(favoring: moved(byKnob: index, state.edit))
-                    ?? state.edit.knobs[index].before
+                state.edit.retimed(drag.edge, scope: state.scope)
+                switch drag.edge {
+                case let .blocks(before):
+                    // Free time left under 15 minutes joins the slice moved on purpose ("No forced gaps").
+                    state.selected = state.edit.finishMove(before: before, from: drag.from, scope: state.scope)
+                        .map(ClockSlice.Source.block)
+                case let .itemStart(id), let .itemEnd(id):
+                    state.edit.settleItem(id)
+                    state.selected = .item(id)
+                case let .items(ending, starting):
+                    state.edit.settleItem(ending)
+                    state.edit.settleItem(starting)
+                    state.selected = .item(ending)
+                }
                 return .none
 
-            case .editSchoolTapped:
-                return .send(.delegate(.openSchool))
-
-            case let .knobTapped(index):
-                guard state.edit.knobs.indices.contains(index) else { return .none }
-                state.addBetween = state.addBetween == index ? nil : index
-                return .none
-
-            case .addBetweenTapped:
-                guard let index = state.addBetween else { return .none }
-                state.addBetween = nil
-                dropBetween(&state)
-                guard let slot = state.edit.insertBetween(knob: index) else {
+            case let .addBetweenTapped(index):
+                state.message = nil
+                guard let span = state.edit.addSpan(atKnob: index) else {
                     state.message = L10n.tr("day.add_between.no_room")
                     return .none
                 }
-                state.selected = slot
-                state.newSlice = NewSlice(block: slot, isBetween: true)
+                state.newSlice = NewSlice(id: uuid(), start: span.lowerBound, end: span.upperBound, scope: state.scope)
                 return .none
 
             case let .sliceTapped(start):
-                state.addBetween = nil
-                dropBetween(&state)
-                state.selected = state.edit.blocks.firstIndex { $0.start == start }
+                state.selected = state.slice(at: start)?.source
                 state.newSlice = nil
                 state.message = nil
                 return .none
 
             case let .plusTapped(start):
-                state.addBetween = nil
-                dropBetween(&state)
-                guard let block = state.edit.blocks.firstIndex(where: { $0.start == start && $0.kind == .free })
-                else { return .none }
-                state.selected = block
-                state.newSlice = NewSlice(block: block)
+                guard let span = state.edit.addSpan(inFreeAt: start) else { return .none }
+                state.selected = state.slice(at: span.lowerBound)?.source
+                state.message = nil
+                state.newSlice = NewSlice(id: uuid(), start: span.lowerBound, end: span.upperBound, scope: state.scope)
                 return .none
 
             case let .startPicked(date):
-                guard let block = state.selected else { return .none }
-                let before = state.edit.blocks[block].start
-                feel(state.edit.setStart(ofBlock: block, to: Day.minute(of: date, calendar: calendar)),
-                     from: before, &state)
+                let minute = Day.minute(of: date, calendar: calendar)
+                switch state.selected {
+                case let .block(block)?:
+                    let before = state.edit.blocks[block].start
+                    feel(state.edit.setStart(ofBlock: block, to: minute, scope: state.scope), from: before, &state)
+                case let .item(id)?:
+                    guard let before = state.edit.item(id)?.start else { return .none }
+                    feel(state.edit.setItemStart(id, to: minute, scope: state.scope), from: before, &state)
+                case nil:
+                    break
+                }
                 return .none
 
             case let .endPicked(date):
-                guard let block = state.selected else { return .none }
-                let before = state.edit.blocks[block].end
-                feel(state.edit.setEnd(ofBlock: block, to: Day.minute(of: date, calendar: calendar)),
-                     from: before, &state)
+                let minute = Day.minute(of: date, calendar: calendar)
+                switch state.selected {
+                case let .block(block)?:
+                    let before = state.edit.blocks[block].end
+                    feel(state.edit.setEnd(ofBlock: block, to: minute, scope: state.scope), from: before, &state)
+                case let .item(id)?:
+                    guard let before = state.edit.item(id)?.end else { return .none }
+                    feel(state.edit.setItemEnd(id, to: minute, scope: state.scope), from: before, &state)
+                case nil:
+                    break
+                }
                 return .none
 
-            case .skipTapped:
-                guard let block = state.selected, state.canSkip else { return .none }
-                state.edit.setSkipped(block, true)
+            case .sliceActionTapped:
+                guard let action = state.sliceAction, let source = state.selected else { return .none }
+                switch (action, source) {
+                case let (.skip, .block(block)):
+                    state.edit.setSkipped(block, true)
+                case let (.skip, .item(id)):
+                    state.edit.setItemSkipped(id, true)
+                case let (.remove, .block(block)):
+                    // School asks first ("Remove School every week?"); a day slice becomes free time.
+                    if state.edit.blocks[block].kind == .school {
+                        state.removing = .series(source)
+                    } else {
+                        state.selected = .block(state.edit.makeFree(block, scope: .allDays))
+                    }
+                case let (.remove, .item(id)):
+                    guard let item = state.edit.item(id) else { return .none }
+                    if item.isNew {
+                        remove(item, &state)
+                    } else {
+                        state.removing = item.isRepeating ? .series(source) : .once(id)
+                    }
+                }
+                return .none
+
+            case .removeConfirmed:
+                guard let removing = state.removing else { return .none }
+                state.removing = nil
+                switch removing {
+                case let .series(.block(block)):
+                    // "Remove School every week" is an All days change (from G5's date).
+                    state.selected = .block(state.edit.makeFree(block, scope: .allDays))
+                case let .series(.item(id)), let .once(id):
+                    if let item = state.edit.item(id) { remove(item, &state) }
+                }
+                return .none
+
+            case .removeCancelled:
+                state.removing = nil
                 return .none
 
             case .bringBackTapped:
-                guard let block = state.selected else { return .none }
-                state.edit.setSkipped(block, false)
+                switch state.selected {
+                case let .block(block)?: state.edit.setSkipped(block, false)
+                case let .item(id)?: state.edit.setItemSkipped(id, false)
+                case nil: break
+                }
                 return .none
 
-            case .makeFreeTapped:
-                guard let block = state.selected else { return .none }
-                // Freed time joins the free time beside it; the joined slice stays selected.
-                state.selected = state.edit.makeFree(block)
-                return .none
+            case .detailsTapped:
+                guard state.detailsTitle != nil else { return .none }
+                switch state.selected {
+                case let .item(id)?: return ask(.item(id), &state)
+                case .block?: return ask(.school, &state)
+                case nil: return .none
+                }
 
             case let .newSlicePicturePicked(name):
                 guard var slice = state.newSlice else { return .none }
                 let title = slice.nameIsTyped ? slice.name : String(ItemForm.label(for: name).prefix(Self.longestName))
                 if slice.isOnClock {
-                    state.edit.restyle(slice.block, title: title, iconName: name, kind: Self.kind(forPicture: name))
+                    state.edit.restyleItem(slice.id, title: title, iconName: name)
                 } else {
-                    state.edit.fill(slice.block, title: title, iconName: name, kind: Self.kind(forPicture: name))
+                    state.edit.add(ClockItem(id: slice.id, title: title, iconName: name, start: slice.start,
+                                             end: slice.end, isRepeating: slice.scope == .allDays, isNew: true))
                     slice.isOnClock = true
                 }
                 slice.iconName = name
                 slice.name = title
                 slice.isPickingMore = false
                 state.newSlice = slice
-                state.selected = slice.block
+                state.selected = .item(slice.id)
                 return .none
 
             case let .newSliceNameChanged(text):
@@ -590,8 +785,8 @@ public struct OurDayFeature {
                 slice.nameIsTyped = true
                 if slice.isOnClock, let icon = slice.iconName {
                     let trimmed = slice.name.trimmingCharacters(in: .whitespaces)
-                    state.edit.restyle(slice.block, title: trimmed.isEmpty ? ItemForm.label(for: icon) : trimmed,
-                                       iconName: icon, kind: Self.kind(forPicture: icon))
+                    state.edit.restyleItem(slice.id, title: trimmed.isEmpty ? ItemForm.label(for: icon) : trimmed,
+                                           iconName: icon)
                 }
                 state.newSlice = slice
                 return .none
@@ -601,15 +796,20 @@ public struct OurDayFeature {
                 return .none
 
             case .undoTapped:
-                // Board G1f: Undo takes a new slice back, card and all.
-                if state.newSlice?.isOnClock == true { state.newSlice = nil }
+                let minute = state.slice(of: state.selected)?.start
                 state.edit.undo()
+                // Board G1f: Undo that takes a new item back closes its card; one that takes back a
+                // later step (a typed time, its tab) keeps the card with the item.
+                if let slice = state.newSlice, slice.isOnClock, state.edit.item(slice.id) == nil { state.newSlice = nil }
                 state.message = nil
+                keepSelection(near: minute, &state)
                 return .none
 
             case .redoTapped:
+                let minute = state.slice(of: state.selected)?.start
                 state.edit.redo()
                 state.message = nil
+                keepSelection(near: minute, &state)
                 return .none
 
             case .listTapped:
@@ -628,31 +828,44 @@ public struct OurDayFeature {
                 return .send(.delegate(.add(state.kid, .weekly)))
 
             case .saveTapped:
-                // Spec "Edit scope": All days asks from when first (board G5), like every repeating item.
-                if state.saveScope == .allDays, state.fromWhen == nil {
+                guard !state.isSaving else { return .none }
+                // Spec "Edit scope": All days changes ask from when first (board G5).
+                if state.needsFromWhen, state.fromWhen == nil {
                     state.fromWhen = .today
                     state.fromWhenDate = state.today
                     return .none
                 }
                 return save(&state)
 
-            case let .saved(.success(routine)):
-                state.routines.removeAll {
-                    $0.kid == routine.kid && $0.dayType == routine.dayType && $0.from == routine.from
-                        && $0.onlyOn == routine.onlyOn
+            case let .saved(.success(saved)):
+                state.isSaving = false
+                for routine in saved.routines {
+                    state.routines.removeAll {
+                        $0.kid == routine.kid && $0.dayType == routine.dayType && $0.from == routine.from
+                            && $0.onlyOn == routine.onlyOn
+                    }
+                    state.routines.append(routine)
                 }
-                state.routines.append(routine)
-                state.edit.markSaved()
+                let written = Set(saved.items.map(\.id) + saved.deleted)
+                state.items = state.items.filter { !written.contains($0.id) } + saved.items
+                // The clock shows the day as saved (its template and items by the store's rules):
+                // nothing to undo or redo.
+                let minute = state.slice(of: state.selected)?.start
+                state.edit = TemplateEdit(blocks: template(state)?.blocks ?? [], items: clockItems(state))
+                keepSelection(near: minute, &state)
                 state.newSlice = nil
                 state.saveError = nil
                 // Grown-up mode stays on the clock after a save (board G1), unless G1d's Save asked to leave.
                 guard state.leavesAfterSave else { return .none }
                 state.leavesAfterSave = false
-                let next = state.pendingSwitch
+                var next = state.pendingSwitch
                 state.pendingSwitch = nil
+                // "Details": a series split from today on is a new item; open the one on the clock.
+                if case .item? = next, case let .item(id)? = state.selected { next = .item(id) }
                 return go(next, &state)
 
             case .saved(.failure):
+                state.isSaving = false
                 state.saveError = L10n.tr("day.save_failed")
                 state.leavesAfterSave = false
                 state.pendingSwitch = nil
@@ -684,56 +897,70 @@ public struct OurDayFeature {
         return ask(.day(day), &state)
     }
 
-    /// Writes `routineToSave`; the G5 card closes.
+    /// Writes each change by its own scope (`routinesToSave`, `ClockSave`); the G5 card closes.
     private func save(_ state: inout State) -> Effect<Action> {
-        let routine = state.routineToSave
+        let routines = state.routinesToSave
         let kid = state.schoolToSave
+        let writes = ClockSave.writes(items: state.edit.items, saved: state.edit.savedItems, originals: state.items,
+                                      kid: state.kid, day: state.day, from: state.allDaysFrom, calendar: calendar,
+                                      newID: { uuid() })
         if let kid { state.kids = state.kids.map { $0.id == kid.id ? kid : $0 } }
         state.fromWhen = nil
+        state.isSaving = true
         return .run { [scheduleStore] send in
             do {
-                try await scheduleStore.saveRoutine(routine)
+                for routine in routines { try await scheduleStore.saveRoutine(routine) }
+                if !writes.saved.isEmpty { try await scheduleStore.saveAll(writes.saved) }
+                for id in writes.deleted { try await scheduleStore.delete(id) }
                 // Layout v37: School's hours follow the slice (Arrive by, Latest's grace, the end).
                 if let kid { try await scheduleStore.saveKid(kid) }
-                await send(.saved(.success(routine)))
+                await send(.saved(.success(Saved(routines: routines, items: writes.saved, deleted: writes.deleted))))
             } catch {
                 await send(.saved(.failure(SaveError())))
             }
         }
     }
 
-    /// The template on the clock's day: the day's own one, else the day type's.
+    /// The day's template: its own one, else the day type's.
+    private func template(_ state: State) -> Routine? {
+        DayPlanner.template(for: state.kid, on: state.day, routines: state.routines,
+                            holidays: state.family.daysOff(state.kid), calendar: calendar)
+    }
+
+    /// The kid's items on the day on the clock.
+    private func clockItems(_ state: State) -> [ClockItem] {
+        DayPlanner.clockItems(on: state.day, kid: state.kid, routines: state.routines, items: state.items,
+                              holidays: state.family.daysOff(state.kid), calendar: calendar)
+    }
+
+    /// The day on the clock: its template (the day's own one, else the day type's) and its items.
     private func loadTemplate(_ state: inout State) {
-        let template = DayPlanner.template(for: state.kid, on: state.day, routines: state.routines,
-                                           holidays: state.family.daysOff(state.kid), calendar: calendar)
-        state.edit = TemplateEdit(blocks: template?.blocks ?? [])
-        state.saveScope = .thisDay
-        // Spec "G1 as built": the card is never empty: the slice now on today, else the day's first.
+        state.edit = TemplateEdit(blocks: template(state)?.blocks ?? [], items: clockItems(state))
+        state.scope = .thisDay
+        // Spec "G1 as built": the card is never empty: the slice the hold began on, the slice now on
+        // today, else the day's first.
         let now = state.heldMinute ?? (state.day == state.today ? state.nowMinute : nil)
         state.heldMinute = nil
-        state.selected = state.edit.blocks.firstIndex { block in now.map { block.start <= $0 && $0 < block.end } ?? false }
-            ?? (state.edit.blocks.isEmpty ? nil : 0)
-        state.dragging = nil
+        state.selected = (now.flatMap { minute in state.edit.slices.first { $0.start <= minute && minute < $0.end } }
+            ?? state.edit.slices.first)?.source
+        state.drag = nil
         state.dragOrigin = nil
         state.newSlice = nil
+        state.removing = nil
         state.message = nil
     }
 
-    /// The slice a knob move grew or shrank on purpose: the side that is not free time, so free time
-    /// left under 15 minutes joins it ("No forced gaps").
-    private func moved(byKnob index: Int, _ edit: TemplateEdit) -> Int {
-        let knob = edit.knobs[index]
-        return edit.blocks[knob.before].kind == .free ? knob.after : knob.before
+    /// An item off the clock (a new one goes at once); the slice underneath is picked.
+    private func remove(_ item: ClockItem, _ state: inout State) {
+        state.edit.removeItem(item.id)
+        state.selected = state.slice(at: item.start)?.source
     }
 
-    /// Board G1e: a slice put between and closed before a picture was picked is taken back.
-    private func dropBetween(_ state: inout State) {
-        guard state.newSlice?.isBetween == true, state.newSlice?.isOnClock == false else {
-            if state.newSlice?.isOnClock == true { state.newSlice = nil }
-            return
-        }
-        state.newSlice = nil
-        state.edit.dropLastChange()
+    /// After Undo, Redo or Save: the picked slice stays picked while it is on the clock, else the
+    /// slice now at its old start.
+    private func keepSelection(near minute: Int?, _ state: inout State) {
+        guard state.slice(of: state.selected) == nil else { return }
+        state.selected = (minute.flatMap { state.slice(at: $0) } ?? state.edit.slices.first)?.source
     }
 
     /// Unsaved changes ask "Save the changes?" first (board G1d).
@@ -763,6 +990,10 @@ public struct OurDayFeature {
         case .settings:
             loadTemplate(&state)
             return .send(.delegate(.openSettings(state.kid)))
+        case let .item(id):
+            return .send(.delegate(.openItem(id)))
+        case .school:
+            return .send(.delegate(.openSchool))
         case nil:
             return .none
         }
@@ -773,13 +1004,19 @@ public struct OurDayFeature {
         switch move {
         case let .moved(minute) where minute != before:
             if minute % 60 == 0 { state.haptics.hours += 1 } else { state.haptics.steps += 1 }
-        case let .stopped(minute) where minute == before:
-            state.haptics.bumps += 1
         case .stopped:
             state.haptics.bumps += 1
         default:
             break
         }
+    }
+}
+
+extension OurDayFeature.State {
+    /// The first drawn piece of a slice, or nil when it is no longer on the clock.
+    func slice(of source: ClockSlice.Source?) -> ClockSlice? {
+        guard let source else { return nil }
+        return edit.slices.first { $0.source == source }
     }
 }
 

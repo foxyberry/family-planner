@@ -162,7 +162,7 @@ public enum DayPlanner {
     }
 
     /// The parts of `range` not covered by any of `taken`.
-    private static func subtract(_ taken: [Range<Int>], from range: Range<Int>) -> [Range<Int>] {
+    static func subtract(_ taken: [Range<Int>], from range: Range<Int>) -> [Range<Int>] {
         var pieces = [range]
         for cut in taken {
             pieces = pieces.flatMap { piece -> [Range<Int>] in

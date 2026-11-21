@@ -593,18 +593,23 @@ final class ComponentSnapshotTests: XCTestCase {
         EditClock.Knob(minute: $0, isLocked: $0 == 450 || $0 == 900)
     }
 
+    /// Board G1: a "+" on every knob between two slices that are not free time; the dragged one hides it.
+    private static func editAdds(except dragging: Int?) -> [EditClock.AddBetween] {
+        [0, 1, 2, 5, 6].filter { $0 != dragging }.map { EditClock.AddBetween(knob: $0, minute: editKnobs[$0].minute) }
+    }
+
     func testEditClock() {
         snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: nil, dragOrigin: nil,
                        hub: .init(title: "Dinner"), onKnobDrag: { _, _ in }, onKnobEnd: { _ in },
-                       onKnobTap: { _ in }, onSliceTap: { _ in }, onPlusTap: { _ in })
+                       onSliceTap: { _ in }, onPlusTap: { _ in }, addButtons: Self.editAdds(except: nil))
             .padding(80))
     }
 
     func testEditClockDragging() {
         snap(EditClock(sectors: Self.editDay, knobs: Self.editKnobs, dragging: 5, dragOrigin: 1140,
                        hub: .init(above: "Dinner ends", time: "7:15 pm", below: "Shower starts"),
-                       onKnobDrag: { _, _ in }, onKnobEnd: { _ in }, onKnobTap: { _ in }, onSliceTap: { _ in },
-                       onPlusTap: { _ in })
+                       onKnobDrag: { _, _ in }, onKnobEnd: { _ in }, onSliceTap: { _ in },
+                       onPlusTap: { _ in }, addButtons: Self.editAdds(except: 5))
             .padding(80))
     }
 

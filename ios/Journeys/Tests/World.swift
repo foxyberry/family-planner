@@ -149,6 +149,15 @@ public final class World: Sendable {
                 snapshot.routines.append(routine)
             }
         }
+        values.scheduleStore.saveAll = { items in
+            family.withValue { snapshot in
+                for item in items {
+                    snapshot.items.removeAll { $0.id == item.id }
+                    snapshot.items.append(item)
+                }
+            }
+        }
+        values.scheduleStore.delete = { id in family.withValue { $0.items.removeAll { $0.id == id } } }
         values.scheduleStore.saveMissions = { kid, missions in
             family.withValue { $0.missions.removeAll { $0.kid == kid }; $0.missions += missions }
         }

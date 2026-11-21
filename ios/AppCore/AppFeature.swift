@@ -326,6 +326,11 @@ public struct AppFeature {
                 openBoard(board, kids: kids, first: first, &state)
                 return .none
 
+            case .path(.element(id: _, action: .ourDay(.saved(.success)))):
+                // Spec C6: a change on the clock (an item added, skipped or removed) is on the kid
+                // clock as soon as it is saved.
+                return .send(.home(.reload))
+
             case .path(.element(id: _, action: .ourDay(.delegate(.finished)))):
                 state.path.removeAll()
                 state.grownupIdleSeconds = nil

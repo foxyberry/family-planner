@@ -37,7 +37,8 @@ public struct EditClock: View {
         }
     }
 
-    /// Board G1e: the "+" on a tapped knob's boundary line, 64 in from the rim.
+    /// Board G1: a "+" on a shared knob's boundary line, 64 in from the rim (on every shared knob,
+    /// all the time; the feature leaves out the knob being dragged).
     public struct AddBetween: Equatable, Sendable {
         public var knob: Int
         public var minute: Int
@@ -58,9 +59,8 @@ public struct EditClock: View {
     private let hub: Hub
     private let onKnobDrag: (Int, Int) -> Void
     private let onKnobEnd: (Int) -> Void
-    private let onKnobTap: (Int) -> Void
-    private let addBetween: AddBetween?
-    private let onAddBetween: () -> Void
+    private let addButtons: [AddBetween]
+    private let onAddBetween: (Int) -> Void
     private let onSliceTap: (Int) -> Void
     private let onPlusTap: (Int) -> Void
 
@@ -68,9 +68,8 @@ public struct EditClock: View {
     /// `dragOrigin` its minute when the drag began (a dashed line stays there).
     public init(sectors: [ClockSector], knobs: [Knob], dragging: Int?, dragOrigin: Int?, hub: Hub,
                 onKnobDrag: @escaping (Int, Int) -> Void, onKnobEnd: @escaping (Int) -> Void,
-                onKnobTap: @escaping (Int) -> Void, onSliceTap: @escaping (Int) -> Void,
-                onPlusTap: @escaping (Int) -> Void,
-                addBetween: AddBetween? = nil, onAddBetween: @escaping () -> Void = {}) {
+                onSliceTap: @escaping (Int) -> Void, onPlusTap: @escaping (Int) -> Void,
+                addButtons: [AddBetween] = [], onAddBetween: @escaping (Int) -> Void = { _ in }) {
         // Sleep before and after midnight is one slice, as on the kid clock.
         self.sectors = PieClockLayout.drawable(sectors)
         self.knobs = knobs
@@ -79,8 +78,7 @@ public struct EditClock: View {
         self.hub = hub
         self.onKnobDrag = onKnobDrag
         self.onKnobEnd = onKnobEnd
-        self.onKnobTap = onKnobTap
-        self.addBetween = addBetween
+        self.addButtons = addButtons
         self.onAddBetween = onAddBetween
         self.onSliceTap = onSliceTap
         self.onPlusTap = onPlusTap
@@ -124,11 +122,11 @@ public struct EditClock: View {
             if let dragOrigin { originLine(dragOrigin) }
             hubDisc
             knobViews
-            if let addBetween {
-                // Board G1e: a RoundButton 56 on the knob's boundary line, its centre 64 in from the rim.
-                RoundButton(glyph: .plus, action: onAddBetween)
+            // Board G1: a RoundButton 56 on each shared knob's boundary line, its centre 64 in from the rim.
+            ForEach(addButtons, id: \.knob) { button in
+                RoundButton(glyph: .plus) { onAddBetween(button.knob) }
                     .size(56)
-                    .position(point(radius: r - 64 * k, minute: Double(addBetween.minute)))
+                    .position(point(radius: r - 64 * k, minute: Double(button.minute)))
             }
         }
         .frame(width: 2 * r, height: 2 * r)
@@ -232,8 +230,6 @@ public struct EditClock: View {
                 .gesture(knob.isLocked ? nil : DragGesture(minimumDistance: 2, coordinateSpace: .named(Self.space))
                     .onChanged { onKnobDrag(index, minute(at: $0.location)) }
                     .onEnded { _ in onKnobEnd(index) })
-                // A tap (not a drag): a locked knob explains itself; any other shows G1e's "+".
-                .onTapGesture { onKnobTap(index) }
         }
     }
 }
