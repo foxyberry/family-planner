@@ -1,0 +1,27 @@
+{
+  "journey": "Adding a child puts them on the home and in Settings",
+  "same as": "FamilyJourneys.testAddingAChildPutsThemOnTheHomeAndInSettings (which starts on Settings; this walks there)",
+  "world": { "now": "2026-11-10T07:30", "timeZone": "Asia/Singapore", "family": "sample", "faceID": "success" },
+  "steps": [
+    { "expect": { "screen": "home", "kids": ["Kid A", "Kid B"] } },
+    { "do": "home.clockHeld", "why": "Face ID answers success in this world" },
+    { "expect": { "screen": "ourDay" } },
+    { "do": "ourDay.settingsTapped" },
+    { "expect": { "screen": "settings", "kids": ["Kid A", "Kid B"] } },
+
+    { "do": "settings.addChildTapped" },
+    { "expect": { "screen": "addChild", "colour": 2, "canSave": false } },
+    { "do": "addChild.nameChanged", "args": { "text": "Kid C" } },
+    { "do": "addChild.ageChanged", "args": { "text": "6" } },
+    { "expect": { "canSave": false }, "why": "no face yet" },
+    { "do": "addChild.faceTapped", "args": { "face": "kidBoy" } },
+    { "expect": { "canSave": true } },
+    { "do": "addChild.saveTapped" },
+
+    { "expect": { "screen": "settings", "kids": ["Kid A", "Kid B", "Kid C"] } },
+    { "do": "settings.backTapped" },
+    { "expect": { "screen": "ourDay" } },
+    { "do": "ourDay.backTapped" },
+    { "expect": { "screen": "home", "kids": ["Kid A", "Kid B", "Kid C"] } }
+  ]
+}
