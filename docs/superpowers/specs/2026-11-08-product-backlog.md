@@ -48,6 +48,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 - 2026-11-15: ~~6d gap~~ done in PR #95 (main session, PR #94): G4 This day still needs "Skip this day" (spec E5 School rule). It is the only way to skip School, because a tap on the School slice in G1 opens G4, not the slice card. Next G4 build step; no new board (G3 This day pattern: side column "{Day d Mon} only" + "Skip this day").
 
 - 2026-11-21: cleanup: build status brought up to date (steps 3–6d done), VoiceOver out of this phase, resizable windows decided (one scale from the window); portrait stays open.
+- 2026-11-22: N15 country flags in the What picker (the kit flags were drawn but no picker showed them).
 ## Goal (the user's words)
 > **See today's schedule on this iPad, and do today's missions.**
 
@@ -127,6 +128,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 | N12 | Setup polish from the iPad (user, 2026-11-09): S3 kid tabs (one screen, no per-kid Next); Preschool search from the ECDA list (private resource), typed drop-off / pick-up, "Closed on public holidays"; family Home on the map (device only) for walk and car times | S2, S3, map picker; spec "S3 · Getting there", "Where the kid goes in the day" | setup |
 | N13 | CI builds with the private school data (user, 2026-11-09): read-only deploy key on the private data repo (private key as a secret in the public repo; fine-grained token or GitHub App as alternatives); PR checks build with `public_build=1` and no secret (fork PRs get none; never `pull_request_target` with secrets); real builds only on push to develop/main or manual dispatch, behind an approval environment; never upload the .ipa as a public Actions artifact (send it to TestFlight); no data in logs | CI | platform |
 | N14 | School data from CloudKit (user, 2026-11-09): publish every list from the private data repo to the CloudKit public DB (manifest + schema versions; validate and decode before upload) — owned by the school-data session; the app fetches newer compatible files, keeps bundled ones as fallback, follows the remote data safety rules, and shows the "School lists" refresh row on S2 and C9 — owned by the implementation side (may start its own session) | S2, C9; sketch SK5; spec "School data delivery and refresh" | platform |
+| N15 | Country flags in the What "More" picker (spec C3 "What"): the language-school picture can wear a country flag; the flags already exist in the kit (0d3) | C3 | items |
 | N9 | Taxi day: a grown-up types the ride-hailing ETA once ("taxi in 7 min"); the way strip counts down to it. No ride-hailing API: Grab has no public API for a rider's own booking (checked 2026-11-08). | A2t way strip | bus |
 
 ### N4 · Reference time zone (UX)

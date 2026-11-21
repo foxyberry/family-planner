@@ -167,6 +167,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-21: cleanup: layout JSON for the retired boards C1, E6, C6 and E5 removed (G6, G1 and G2 replace them); G1c gaps written out.
 - 2026-11-21: touching "+" on short slices use rings 64 / 120 / 176 in from the rim (the outermost free ring; hide only when none is free); live text no longer points at the retired C1, E6 and E5. The retired C1 and E6 sections are removed (G6 Settings replaces them).
 - 2026-11-22: G1c vertical gaps (month → weekday row 16, weekday row → first week 12); "+" overlap measured on the drawn circle, 44 (37 / 46 / 62 minutes per ring); a tap area is the part's drawn shape, a RoundButton's its circle (user); G1 overview points at the G1c bullet.
+- 2026-11-22: the country flags (kit 0d3) are pictures in the What "More" popover, after the item pictures, so a weekend school can wear its country's flag.
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -292,7 +293,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
   - "Swimming", Mon and Wed 15:30–16:30, after-school (sky), actSwim, skip school holidays on.
   - "Art club", Fri 15:00–16:00, actArt.
   - "Weekend school", Sat 9:00–12:00, actLanguageSchool, skip school holidays off (its breaks are not the school's).
-    - actLanguageSchool is a flag on a pole with a plain cloth. Grown-ups can swap it for a country flag in C3: flagKR, flagJP, flagCN, flagUK, flagFR, flagIN, flagTH, flagVN (kit 0d3). The seed keeps the plain flag.
+    - actLanguageSchool is a flag on a pole with a plain cloth. Grown-ups can swap it for a country flag through the What "More" popover (C3 / C4 / G2 / G1f): flagKR, flagJP, flagCN, flagUK, flagFR, flagIN, flagTH, flagVN (kit 0d3). The seed keeps the plain flag.
   - Weekend activities are **every-week items, not template slots**. A weekday holiday uses the Sun template, so anything in it would also appear on holidays. A Sunday activity (e.g. church, actChurch) is added by grown-ups as an every-week item; the seed has none, on purpose.
   - On a Monday the clock shows snack 15:00–15:30, swimming 15:30–16:30, free 16:30–17:00.
 - **Kid A, just-once item**: "Birthday", the coming Saturday 14:00–16:00, for both kids, star on.
@@ -926,7 +927,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   | 732 | — | seven `DayChip` 72, multi-select, M T W T F S S |
   | 836 | — | `CheckMark` 48 + "Skip school holidays" (body) |
 
-  - **What** (board, changed 2026-11-09): one row of 5 picture slots, then a **"More"** slot (88 circle, "More" caption bold). The 5 are the pictures this kid uses most, with the picked one first. "More" opens a `PickerPopover` pointing at it with every item picture, 6 per row (slots 88, gap 16). Picking one closes it and puts that picture, picked, in the row's first slot. The row never wraps or scrolls, so the rows below keep their lines and C3k still fits. Asking for a drawing (D1, the old "+" slot) moves into the popover in M6.
+  - **What** (board, changed 2026-11-09): one row of 5 picture slots, then a **"More"** slot (88 circle, "More" caption bold). The 5 are the pictures this kid uses most, with the picked one first. "More" opens a `PickerPopover` pointing at it with every item picture, 6 per row (slots 88, gap 16), and after them one more row group with the country flags (kit 0d3), in the same order as the kit. Picking one closes it and puts that picture, picked, in the row's first slot. The row never wraps or scrolls, so the rows below keep their lines and C3k still fits. Asking for a drawing (D1, the old "+" slot) moves into the popover in M6.
 - Side column:
   - Preview heading "{Kid}'s {weekday}" (head, h 56), e.g. "Kid A's Monday". The weekday is the first picked day. For "Both", the heading is the weekday only.
   - `TodayRow`s, 72 tall: start time (caption `ink`, w 116 fixed: the widest time, "10:00 am" at caption 24 medium, is 115.5), 48 picture, title (body; a typed title may end with "…", the time never does).
