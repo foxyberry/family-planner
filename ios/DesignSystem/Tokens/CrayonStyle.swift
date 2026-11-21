@@ -62,9 +62,29 @@ public enum CrayonStyle {
 
 extension View {
     /// A part's crayon shape, drawn `CrayonStyle.artInset` × s inside the view's box (spec "Art inset").
+    /// Taps hit only that drawn shape, the frame less the inset (spec "Sizing → Touch", rule 1; user
+    /// 2026-11-22): a round part its circle, a pill its capsule, a box its rounded rect.
     public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
                                marker: MarkerStyle = .standard, markerColor: Color? = nil) -> some View {
         background(PartSurface(kind: kind, fill: fill, seed: seed, marker: marker, markerColor: markerColor))
+            .modifier(DrawnTapShape(kind: kind))
+    }
+}
+
+/// Spec "Sizing → Touch", rule 1: the tap area of a part with a crayon outline is its drawn shape,
+/// one art inset inside its frame, × s.
+private struct DrawnTapShape: ViewModifier {
+    let kind: CrayonShapeKind
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View {
+        let inset = sizing(CrayonStyle.artInset)
+        switch kind {
+        case .circle: content.contentShape(Circle().inset(by: inset))
+        case .capsule: content.contentShape(Capsule().inset(by: inset))
+        case let .roundedRect(radius): content.contentShape(RoundedRectangle(cornerRadius: sizing(radius)).inset(by: inset))
+        case .speechBubble, .sector, .hill: content.contentShape(Rectangle().inset(by: inset))
+        }
     }
 }
 
