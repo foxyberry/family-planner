@@ -24,13 +24,3 @@ feelSad
 feelVeryHappy
 feelVerySad
 
-# Flags: kept. The spec lets the language-school cloth become a country flag through C3's "More",
-# but no picker lists flags yet (Bring's "More" shows things only), so the swap is not built.
-flagCN
-flagFR
-flagIN
-flagJP
-flagKR
-flagTH
-flagUK
-flagVN
