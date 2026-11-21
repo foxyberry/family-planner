@@ -94,7 +94,7 @@ public struct ItemEditorFeature {
         public var family = FamilyCalendar()
         /// The days off of the form's kid (for both kids: the days off for both).
         public var holidays: Set<Day> { family.daysOff(for: form.audience) }
-        /// Board C3 "What" (layout v6): the "More" popover with every picture is open.
+        /// Board C3 "What": the "More" popover with every picture is open.
         public var isPickingMorePictures = false
 
         /// The pictures offered under "What" (the kit's activity pictures), in the popover's order.
@@ -508,7 +508,7 @@ public struct ItemEditorFeature {
         case binding(BindingAction<State>)
         case audienceTapped(Audience)
         case picturePicked(String)
-        /// The "More" slot after the five pictures (board C3, layout v6): opens or closes the popover.
+        /// The "More" slot after the five pictures (board C3): opens or closes the popover.
         case morePicturesTapped
         case startPicked(Date)
         case endPicked(Date)

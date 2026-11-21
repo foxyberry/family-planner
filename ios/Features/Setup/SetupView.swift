@@ -238,7 +238,7 @@ private struct SchoolStep: View {
         .frame(width: layout.grown.form.width).frame(minHeight: layout.length(968 - 148), alignment: .topLeading)
     }
 
-    /// Board S2 (layout v60): Goes to 180, School 264 (caption 346), Days 401–473, Hours 485 (caption
+    /// Board S2: Goes to 180, School 264 (caption 346), Days 401–473, Hours 485 (caption
     /// 567), Arrive 621, terms 719; rows 24 apart between drawn edges (spec "Layout balance").
     @ViewBuilder private var rows: some View {
         if let kid = store.tabKid {
@@ -266,7 +266,7 @@ private struct SchoolStep: View {
             .captionedRow()
             .id(Self.fieldID)
             .zIndex(1)
-        // Board S2 (layout v60): the editor chips (72, they toggle) 8 apart; the row is as tall as the chips.
+        // Board S2: the editor chips (72, they toggle) 8 apart; the row is as tall as the chips.
         SetupRow(label: L10n.tr("s2.days"), height: layout.grown.sizing.tabHeight()) {
             HStack(spacing: sizing(Spacing.xs)) {
                 ForEach(Weekday.allCases.sorted(), id: \.self) { day in

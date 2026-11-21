@@ -2,7 +2,7 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// The kid card (board S1, layout v56 two columns; user 2026-11-21), shared by S1 and G6f "Add a
+/// The kid card (board S1 two columns; user 2026-11-21), shared by S1 and G6f "Add a
 /// child": two rows on the form lines, 24 apart drawn. Row 1: Name (with the kid's face inside) and
 /// Age; row 2: Colour swatches and Face pictures. Age and Face form a second column ending on the
 /// right edge (drawn 802), under the first when the card is too narrow. Put it in a `PaperCard` with

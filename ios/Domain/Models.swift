@@ -173,7 +173,7 @@ public enum Recurrence: Hashable, Codable, Sendable {
     case once(Day)
     /// Every week on `days`, from `from` up to and including `until`.
     case weekly(Set<Weekday>, from: Day, until: Day?)
-    /// Every month (board C3m, layout v39), from `from` up to and including `until`.
+    /// Every month (board C3m), from `from` up to and including `until`.
     case monthly(MonthlyRule, from: Day, until: Day?)
 
     /// A repeating item's first and last day; nil for a just-once item.

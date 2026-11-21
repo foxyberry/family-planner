@@ -6,7 +6,7 @@ import Localization
 import ScheduleStore
 import Strings
 
-/// G6f "+ Add a child" (spec "G6 · Settings", layout v44): the S1 kid card for one new kid (name,
+/// G6f "+ Add a child" (spec "G6 · Settings"): the S1 kid card for one new kid (name,
 /// age, colour, face), up to four kids. The new kid starts at home with the starter day templates
 /// and missions; a school is added later from Settings (G7).
 @Reducer

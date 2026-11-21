@@ -6,7 +6,7 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// G4 · Edit School (board G4, layout v47; first part): School, When, Days, Arrive by + latest, Going
+/// G4 · Edit School (board G4; first part): School, When, Days, Arrive by + latest, Going
 /// and Medal, one row each on the editor rows (labels 80, controls 208, to 818). The side column
 /// reads "Every school day"; Save changes sits at its foot.
 public struct SchoolEditorView: View {
@@ -31,7 +31,7 @@ public struct SchoolEditorView: View {
                 .frame(width: layout.form.width, height: layout.form.height)
                 ScrollColumn {
                     VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
-                        // Boards G2 / G4: This day / All days fill the side column (layout v42).
+                        // Boards G2 / G4: This day / All days fill the side column.
                         CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
                                    items: [(SchoolEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
                                            (.allDays, L10n.tr("editor.scope.all_days"), nil)],

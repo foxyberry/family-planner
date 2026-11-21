@@ -39,7 +39,7 @@ public enum ItemList {
     }
 
     /// Every-month items for `kid` that are still running, by start time: "2nd Sat · 9:00 – 10:00 am"
-    /// (board G8, layout v34).
+    /// (board G8).
     public static func monthly(kid: Kid, items: [ScheduleItem]) -> [ItemRow] {
         items.compactMap { item -> (ScheduleItem, MonthlyRule)? in
             guard item.audience.includes(kid.id), case let .monthly(rule, _, until) = item.recurrence, until == nil

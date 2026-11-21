@@ -17,7 +17,7 @@ public struct SetupFeature {
     public enum Step: Hashable, Sendable {
         case family
         case school
-        /// S3: every kid who goes somewhere, one tab each (layout v17).
+        /// S3: every kid who goes somewhere, one tab each.
         case gettingThere
         case almostDone
 
@@ -63,7 +63,7 @@ public struct SetupFeature {
         /// S1: the kid whose × asks "Remove {name}?" (a card with something typed asks first).
         public var removeConfirm: KidEntry.ID?
 
-        /// S1 (layout v13): every card has a × while there are two or more.
+        /// S1: every card has a × while there are two or more.
         public var canRemoveKids: Bool { kids.count >= 2 }
         /// Data sources (spec S2), opened from the link under the school caption.
         @Presents public var dataSources: DataSourcesFeature.State?

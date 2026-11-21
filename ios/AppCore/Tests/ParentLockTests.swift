@@ -185,7 +185,7 @@ final class ParentLockTests: XCTestCase {
         XCTAssertNil(store.state.grownupIdleSeconds)
     }
 
-    /// S4 lock off (layout v17): the hold opens grown-up screens with no Face ID, there is no
+    /// S4 lock off: the hold opens grown-up screens with no Face ID, there is no
     /// app-switcher cover, and the 2-minute return home still applies.
     func testLockOffOpensAfterTheHoldOnly() async {
         let asked = LockIsolated(false)

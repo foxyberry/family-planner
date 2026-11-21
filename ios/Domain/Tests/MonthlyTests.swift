@@ -1,7 +1,7 @@
 import Domain
 import XCTest
 
-/// Board C3m (layout v39): every month on the "2nd Sat" or on "Day 14"; a month without that day
+/// Board C3m: every month on the "2nd Sat" or on "Day 14"; a month without that day
 /// skips it. Made-up items only.
 final class MonthlyTests: XCTestCase {
     private let kid = UUID()

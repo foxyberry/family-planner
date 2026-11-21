@@ -21,7 +21,7 @@ public enum MarkerGlyph: String, CaseIterable, Sendable {
         case .arrowRight: [[p(10, 24), p(38, 24)], [p(26, 12), p(38, 24), p(26, 36)]]
         case .plus: [[p(24, 10), p(24, 38)], [p(10, 24), p(38, 24)]]
         case .minus: [[p(10, 24), p(38, 24)]]
-        // S1 "Remove a kid" (layout v13): two strokes corner to corner.
+        // S1 "Remove a kid": two strokes corner to corner.
         case .close: [[p(14, 14), p(34, 34)], [p(34, 14), p(14, 34)]]
         case .handle: [[p(12, 15), p(36, 15)], [p(12, 24), p(36, 24)], [p(12, 33), p(36, 33)]]
         // G1 Undo / Redo (spec "Grown-up mode"): a hook arrow, back to the left or on to the right.

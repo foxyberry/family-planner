@@ -103,7 +103,7 @@ public struct ItemEditorView: View {
     private var form: some View {
         VStack(alignment: .leading, spacing: sizing.formRowGap) {
             row(L10n.tr("editor.row.for")) { audienceTabs }
-            // Board C3 (layout v6): five pictures and "More", which opens every picture, 6 per row.
+            // Board C3: five pictures and "More", which opens every picture, 6 per row.
             row(L10n.tr("editor.row.what")) {
                 PictureRow(slots: store.whatRow.compactMap(KitSlot.init(rawValue:)),
                            selection: Binding(get: { store.form.iconName.flatMap(KitSlot.init(rawValue:)) },
@@ -291,9 +291,8 @@ public struct ItemEditorView: View {
         eventRows
     }
 
-    /// Board C3m: the date strip picks the first date, then "{nth} {weekday}" · "Day {d}" (layout v42:
-    /// they fill the controls column, 2 × 299),
-    /// then Skip school holidays.
+    /// Board C3m: the date strip picks the first date, then "{nth} {weekday}" · "Day {d}" (they
+    /// fill the controls column), then Skip school holidays.
     @ViewBuilder private var monthlyRows: some View {
         dateStrip
         row("") { monthlyRuleTabs }
@@ -313,7 +312,7 @@ public struct ItemEditorView: View {
                    fills: true, spacing: Spacing.sm)
     }
 
-    /// Board C4 (layout v6): ‹ (64) in the label column, five date chips (96) 12 apart, then ›.
+    /// Board C4: ‹ (64) in the label column, five date chips (96) 12 apart, then ›.
     private var dateStrip: some View {
         HStack(spacing: 0) {
             FormLabelColumn {
