@@ -454,13 +454,17 @@ public struct SetupFeature {
                 updateGoing(&state) { $0.way = way }
                 return .none
 
-            case .stopSearch(.textChanged):
-                // A new stop: the buses picked for the old one (and the buses that change from it) no
-                // longer apply.
-                updateGoing(&state) { $0.services = []; $0.rides = [:]; $0.changes = [] }
-                return .none
-
             case .stopSearch:
+                // A new stop (a full code or a pick): the buses picked for the old one (and the buses
+                // that change from it) no longer apply. Typing a name, or the field sending its text
+                // again, keeps them (user review 2026-11-14).
+                updateGoing(&state) { going in
+                    guard going.search.stop != going.busesStop else { return }
+                    going.services = []
+                    going.rides = [:]
+                    going.changes = []
+                    going.busesStop = going.search.stop
+                }
                 return .none
 
             case .resultVeilTapped:

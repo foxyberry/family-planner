@@ -156,6 +156,8 @@ public struct GoingForm: Equatable {
     public var rides: [String: Int] = [:]
     /// The buses that change (C2c, opened from S3), kept here until Start saves them with the plan.
     public var changes: [BusChange] = []
+    /// The stop code the picked buses and the buses that change belong to: a new stop drops them.
+    public var busesStop = ""
     /// Walk, car or taxi: minutes before the school starts.
     public var leaveBefore = GoingForm.defaultLeave
 

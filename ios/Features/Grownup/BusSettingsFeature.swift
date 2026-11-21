@@ -31,6 +31,9 @@ public struct BusSettingsFeature {
         /// The kid as stored: "Late" is their school's Latest − Arrive by when the school has both
         /// (spec "Latest lives on the school record"), else the plan's own value.
         public var storedKid: Kid?
+        /// The route has been read once this visit. C2 keeps it in memory from then on, so coming
+        /// back from C2c never reads an older copy over what C2c just handed back.
+        public var isLoaded = false
 
         public init(kid: Kid.ID) {
             self.kid = kid
@@ -150,11 +153,13 @@ public struct BusSettingsFeature {
         Reduce { state, action in
             switch action {
             case .task:
+                guard !state.isLoaded else { return .none }
                 return .run { [scheduleStore] send in
                     await send(.loaded(try? await scheduleStore.load()))
                 }
 
             case let .loaded(snapshot):
+                state.isLoaded = true
                 let kid = snapshot?.kids.first { $0.id == state.kid }
                 state.kidName = kid?.name ?? ""
                 state.storedKid = kid

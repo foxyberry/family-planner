@@ -475,7 +475,8 @@ final class SetupTests: XCTestCase {
         XCTAssertEqual(saved.value.first?.busPlans.first?.services, ["1"])
     }
 
-    /// A new stop drops the buses that change from the old one, as it drops the picked buses.
+    /// A new stop drops the buses that change from the old one, as it drops the picked buses; the
+    /// same text again or a name search keeps them.
     func testANewStopDropsTheBusesThatChange() async {
         let store = store()
         await family(store)
@@ -492,7 +493,14 @@ final class SetupTests: XCTestCase {
         await store.send(.changeBuses(.presented(.saveTapped)))
         await store.receive(\.changeBuses.presented.delegate.saved)
         XCTAssertEqual(store.state.goingKid?.going.changes.count, 1)
+        await store.send(.serviceTapped("1"))
+        // The field sending its text again, or typing a name to search, keeps them.
+        await store.send(.stopSearch(.textChanged(store.state.goingSearch.text)))
+        await store.send(.stopSearch(.textChanged("exa")))
+        XCTAssertEqual(store.state.goingKid?.going.changes.count, 1)
+        XCTAssertEqual(store.state.goingKid?.going.services, ["1"])
         await store.send(.stopSearch(.textChanged("11111")))
+        XCTAssertEqual(store.state.goingKid?.going.services, [])
         XCTAssertEqual(store.state.goingKid?.going.changes, [])
     }
 

@@ -180,19 +180,23 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
     }
 
-    /// Back from C2c the screen loads again: the stop's buses stay, with no second look-up
-    /// (user, 2026-11-21).
-    func testReloadKeepsTheStopsBuses() async {
+    /// Back from C2c the screen appears again: it keeps what it has (the stop's buses and what C2c
+    /// handed back) and reads nothing older over it (user, 2026-11-21).
+    func testComingBackKeepsWhatC2Has() async {
         let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
         await store.receive(\.search.stopLooked)
         XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+        let change = BusChange(firstBus: "2", thenBus: "4")
+        await store.send(.changesSaved([change]))
         await store.send(.task)
-        await store.receive(\.loaded)
-        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"], "kept, not cleared for a new look-up")
+        await store.finish(timeout: .seconds(1))
+        XCTAssertEqual(store.state.changes, [change], "not read back from an older copy")
+        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
         XCTAssertEqual(store.state.search.text, "Example Stop")
+        XCTAssertEqual(saved.value.last?.changes, [change])
     }
 
     /// "Late" is the school's Latest − Arrive by (spec "Latest lives on the school record").
