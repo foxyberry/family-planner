@@ -20,7 +20,8 @@ public struct AddChildFeature {
         public var name = ""
         public var ageText = ""
         public var colorIndex = 0
-        public var face = "kidGirl" // copy-ok: a KitSlot name
+        /// Board G6a: no face is picked at first (the colour dot shows in the Name field, as on S1).
+        public var face = ""
         public var today: Day
         public var isSaving = false
         public var saveError: String?

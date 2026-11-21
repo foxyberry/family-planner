@@ -22,6 +22,7 @@ final class AddChildTests: XCTestCase {
         }
         store.exhaustivity = .off
         XCTAssertEqual(store.state.colorIndex, 2, "the first colour nobody has")
+        XCTAssertEqual(store.state.face, "", "board G6a: no face picked at first")
         XCTAssertFalse(store.state.canSave)
         await store.send(.binding(.set(\.name, "Kid C")))
         await store.send(.binding(.set(\.ageText, "3")))
