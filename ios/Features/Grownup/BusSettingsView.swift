@@ -42,7 +42,7 @@ public struct BusSettingsView: View {
     /// then the link; rows 24 apart between drawn edges (spec "Layout balance").
     private func plan(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: layout.sizing.formRowGap) {
-            ListRow(leading: L10n.tr("c2.stop"), labelHeight: 80) {
+            ListRow(leading: L10n.tr("c2.stop"), labelHeight: layout.sizing.fieldHeight) {
                 StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 8,
                                 listWidth: layout.controlWidth)
             }
@@ -51,7 +51,7 @@ public struct BusSettingsView: View {
             ListRow(leading: L10n.tr("c2.buses"), minHeight: layout.sizing.tabHeight(), labelHeight: layout.sizing.tabHeight()) {
                 if store.search.servicesAtStop.isEmpty {
                     Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                        .frame(height: PillToggle.size.height)
+                        .frame(height: layout.sizing.tabHeight())
                 } else {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         PillToggleGrid(controlWidth: layout.controlWidth) {

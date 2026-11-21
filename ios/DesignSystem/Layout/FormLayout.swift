@@ -138,6 +138,12 @@ public extension View {
     /// box, the caption draws to its own edge (boards C2, S2, S3).
     func captionedRow() -> some View { padding(.top, -CrayonPart.inset) }
 
+    /// A crayon row whose caption comes and goes (C2c Then): its drawn box on both edges without a
+    /// caption, `captionedRow()` with one.
+    func captionedRow(hasCaption: Bool) -> some View {
+        padding(.top, -CrayonPart.inset).padding(.bottom, hasCaption ? 0 : -CrayonPart.inset)
+    }
+
     /// Spec "Alignment contract": a part drawn to its frame edge (faces, chevrons, switches,
     /// borderless rows) gets one crayon inset around it, so its frame sits on the lines and its
     /// drawn edge lines up with every crayon part's (802, not 808, on the 13").

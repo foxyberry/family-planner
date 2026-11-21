@@ -68,7 +68,7 @@ public struct ChangeBusesView: View {
                 store.send(.firstBusTapped($0))
             }
             // Board C2c: the second bus is typed (160 × 80), checked against LTA's service list.
-            ListRow(leading: L10n.tr("c2c.then"), labelHeight: 80) {
+            ListRow(leading: L10n.tr("c2c.then"), labelHeight: sizing.fieldHeight) {
                 VStack(alignment: .leading, spacing: FormLines.captionGap) {
                     CrayonField(L10n.tr("c2c.then.placeholder"),
                                 text: Binding(get: { store.thenText }, set: { store.send(.thenChanged($0)) }))
@@ -82,9 +82,7 @@ public struct ChangeBusesView: View {
                     }
                 }
             }
-            // Drawn on both edges without a caption; with one, the caption draws to its own edge.
-            .padding(.top, -CrayonPart.inset)
-            .padding(.bottom, store.thenCaption == nil ? -CrayonPart.inset : 0)
+            .captionedRow(hasCaption: store.thenCaption != nil)
             stepper(L10n.tr("c2c.ride1"), text: store.ride1Text, caption: store.ride1Caption, value: store.ride1) {
                 store.send(.ride1Changed($0))
             }
@@ -104,7 +102,7 @@ public struct ChangeBusesView: View {
         ListRow(leading: label, minHeight: sizing.tabHeight(), labelHeight: sizing.tabHeight()) {
             if services.isEmpty {
                 Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    .frame(height: PillToggle.size.height)
+                    .frame(height: sizing.tabHeight())
             } else {
                 PillToggleGrid(controlWidth: controlWidth) {
                     ForEach(services, id: \.self) { service in

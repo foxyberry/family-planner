@@ -296,7 +296,7 @@ private struct SchoolStep: View {
         if let kid = store.tabKid {
             let school = kid.school
             VStack(alignment: .leading, spacing: layout.grown.sizing.formRowGap) {
-                SetupRow(label: L10n.tr("s2.goes"), height: 72) {
+                SetupRow(label: L10n.tr("s2.goes"), height: layout.grown.sizing.tabHeight()) {
                     CrayonTabs(selection: Binding(get: { kid.goesTo }, set: { if let place = $0 { store.send(.goesToTapped(place)) } }),
                                items: SetupFeature.State.places.map { (Optional($0.0), $0.1, nil) },
                                // 180 on the board; three always fit the control column.
@@ -505,7 +505,7 @@ private struct GoingStep: View {
                             if going.search.servicesAtStop.isEmpty {
                                 // Board S3: the empty row keeps the pills' 72 slot.
                                 Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                                    .frame(height: PillToggle.size.height)
+                                    .frame(height: sizing.tabHeight())
                             } else {
                                 // Boards S3/C2: bus pills 180 × 72, three across.
                                 PillToggleGrid(controlWidth: GrownupLayout(sizing: sizing).controlWidth) {
