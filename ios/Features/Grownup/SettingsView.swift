@@ -47,7 +47,8 @@ public struct SettingsView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: L10n.tr("settings.title"), onBack: { store.send(.backTapped) }) {
+        GrownupHeader(title: L10n.tr("settings.title"), caption: store.headerCaption, backLabel: store.backLabel,
+                      onBack: { store.send(.backTapped) }) {
             if let tab = store.tab {
                 // Board G6: a tab per kid, then "Family".
                 CrayonTabs(selection: Binding(get: { tab }, set: { store.send(.tabTapped($0)) }),

@@ -149,11 +149,15 @@ public struct MissionCircle: View {
                 }
             }
             // The circle's column: one pitch of the row (136 s on its own, never under 112).
-            .frame(width: labelWidth ?? max(112, 136 * sizing.s))
+            .frame(width: columnWidth)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(name)
         .accessibilityAddTraits(isDone ? [.isButton, .isSelected] : .isButton)
+    }
+
+    private var columnWidth: CGFloat {
+        if let labelWidth { labelWidth } else { max(112, 136 * sizing.s) }
     }
 
     private func captionLine(_ text: String) -> some View {
@@ -172,7 +176,10 @@ public struct MissionCircle: View {
         let splits = (1..<words.count).map { cut in
             (words[..<cut].joined(separator: " "), words[cut...].joined(separator: " "))
         }
-        let best = splits.min { abs($0.0.count - $0.1.count) < abs($1.0.count - $1.1.count) } ?? splits[0]
+        // The first most even split (`splits` is never empty: there are two words or more).
+        let best = splits.dropFirst().reduce(splits[0]) { best, split in
+            abs(split.0.count - split.1.count) < abs(best.0.count - best.1.count) ? split : best
+        }
         return [best.0, best.1]
     }
 

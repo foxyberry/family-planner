@@ -19,7 +19,8 @@ public struct SchoolEditorView: View {
 
     public var body: some View {
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
+            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                          onBack: { store.send(.backTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
                 PaperCard(seed: 33) {
@@ -123,11 +124,11 @@ public struct SchoolEditorView: View {
             }
             ListRow(leading: L10n.tr("editor.row.when"), minHeight: 80) {
                 HStack(spacing: Spacing.s) {
-                    TimeField(label: store.startLabel, time: Binding(get: { store.startDate },
+                    TimeField(label: store.startLabel, pickerTitle: store.timePickerTitle, time: Binding(get: { store.startDate },
                                                                      set: { store.send(.startPicked($0)) }),
                               width: sizing.timeFieldWidth)
                     MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
-                    TimeField(label: store.endLabel, time: Binding(get: { store.endDate },
+                    TimeField(label: store.endLabel, pickerTitle: store.timePickerTitle, time: Binding(get: { store.endDate },
                                                                    set: { store.send(.endPicked($0)) }),
                               width: sizing.timeFieldWidth)
                 }
@@ -146,11 +147,11 @@ public struct SchoolEditorView: View {
             // As on S2: Arrive, then latest (the grace sets the medals).
             ListRow(leading: L10n.tr("s2.arrive_by"), minHeight: 80) {
                 HStack(spacing: Spacing.s) {
-                    TimeField(label: store.arriveByLabel,
+                    TimeField(label: store.arriveByLabel, pickerTitle: store.timePickerTitle,
                               time: Binding(get: { store.arriveByDate }, set: { store.send(.arriveByPicked($0)) }),
                               width: sizing.timeFieldWidth)
                     Text(L10n.tr("s2.latest")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    TimeField(label: store.latestLabel,
+                    TimeField(label: store.latestLabel, pickerTitle: store.timePickerTitle,
                               time: Binding(get: { store.latestDate }, set: { store.send(.latestPicked($0)) }),
                               width: sizing.timeFieldWidth)
                 }
@@ -168,6 +169,7 @@ public struct SchoolEditorView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                        .accessibilityAddTraits(store.usesMoeTerms ? .isSelected : [])
                     }
                 }
             }

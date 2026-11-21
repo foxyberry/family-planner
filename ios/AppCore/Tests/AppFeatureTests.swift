@@ -167,6 +167,28 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertEqual(missions.backLabel, "missions.back")
     }
 
+    /// The lock card's words come from State (board C0): one button while scanning or locked out.
+    func testLockCardWords() {
+        var state = AppFeature.State()
+        XCTAssertNil(state.lockCard)
+        state.lock = .scanning
+        XCTAssertEqual(state.lockCard, AppFeature.State.LockCard(title: "Grown-ups only", message: "Look at the iPad to unlock.",
+                                                                 primary: nil, cancel: "Cancel"))
+        state.lock = .notRecognised
+        XCTAssertEqual(state.lockCard?.primary, "Try again")
+        state.lock = .notAvailable(touchID: true)
+        XCTAssertEqual(state.lockCard?.primary, "Enter")
+        XCTAssertTrue(state.lockCard?.message.hasPrefix("Touch ID is off") == true)
+        state.lock = .lockedOut
+        XCTAssertNil(state.lockCard?.primary)
+        XCTAssertEqual(state.lockCard?.cancel, "OK")
+
+        var keyed = withDependencies { $0.localizer = .keys } operation: { AppFeature.State() }
+        keyed.lock = .notAvailable(touchID: false)
+        XCTAssertEqual(keyed.lockCard, AppFeature.State.LockCard(title: "lock.title", message: "lock.off.face_id",
+                                                                 primary: "lock.enter", cancel: "lock.cancel"))
+    }
+
     /// The morning screen is a kid screen: going to the background neither closes nor covers it.
     func testMissionsStayWhenTheAppGoesToTheBackground() async {
         let store = TestStore(initialState: AppFeature.State()) {

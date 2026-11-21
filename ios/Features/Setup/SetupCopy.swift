@@ -7,7 +7,7 @@ import Strings
 /// Everything S1–S4 print, decided here so the views only render (spec "S1–S4").
 extension SetupFeature.State {
     /// "Step 2 of 4" (S3's kid tabs say whose route it is).
-    public var stepText: String { L10n.tr("setup.step", step.number, 4) }
+    public var stepText: String { strings.tr("setup.step", step.number, 4) }
 
     /// One kid tab on S2 or S3: the shown name and the face in the kid's colour.
     public struct KidTab: Equatable, Sendable {

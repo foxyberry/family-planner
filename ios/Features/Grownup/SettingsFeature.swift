@@ -2,6 +2,7 @@ import AppSettings
 import ComposableArchitecture
 import Domain
 import Foundation
+import Localization
 import ParentAuthClient
 import ScheduleStore
 import SchoolDirectory
@@ -19,6 +20,7 @@ public struct SettingsFeature {
 
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var tab: Tab?
         public var snapshot: ScheduleSnapshot?
         /// The kids' school calendars (Terms).

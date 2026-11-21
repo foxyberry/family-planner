@@ -34,9 +34,9 @@ public struct AppView: View {
             if store.coversGrownupScreens || (scenePhase != .active && store.hasGrownupScreens) {
                 CrayonColor.paper.ignoresSafeArea()
             }
-            if let lock = store.lock {
-                LockOverlay(state: lock, onPrimary: { store.send(.lockPrimaryTapped) },
-                            onCancel: { store.send(.lockCancelTapped) })
+            if let card = store.lockCard {
+                LockOverlay(title: card.title, message: card.message, primary: card.primary, cancel: card.cancel,
+                            onPrimary: { store.send(.lockPrimaryTapped) }, onCancel: { store.send(.lockCancelTapped) })
             }
             #if DEBUG
             if let debugTools = DebugModel.installed {
