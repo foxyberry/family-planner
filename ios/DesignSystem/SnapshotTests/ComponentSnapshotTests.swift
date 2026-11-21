@@ -491,9 +491,11 @@ final class ComponentSnapshotTests: XCTestCase {
         }, width: 420)
     }
 
-    /// Board G1c: two weeks, today underlined, the picked day in sky.
+    /// Board G1c: the weekday header row, two weeks of number chips, today underlined, the picked
+    /// day in sky.
     func testDayPickerCard() {
-        snap(DayPickerCard(month: "November", weeks: ComponentGallery.sampleWeeks,
+        snap(DayPickerCard(month: "November", weekdays: ComponentGallery.sampleWeekdays,
+                           weeks: ComponentGallery.sampleWeeks,
                            today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {}), width: 660)
     }
 
@@ -794,12 +796,12 @@ final class ComponentSnapshotTests: XCTestCase {
         }, width: 900, dark: true)
     }
 
-    /// Board G1c: the picker's 62 × 84 chips, today underlined, the picked day in sky.
+    /// Board G1c: the picker's square 68 × 68 number chips, today underlined, the picked day in sky.
     func testCompactDateChips() {
         snap(HStack(spacing: Spacing.xs) {
-            DateChip(weekday: "Mon", day: 9, isOn: false, isToday: true, compact: true) {}
-            DateChip(weekday: "Sat", day: 14, isOn: true, compact: true) {}
-            DateChip(weekday: "Sun", day: 15, isOn: false, compact: true) {}
+            DateChip(day: 9, isOn: false, isToday: true) {}
+            DateChip(day: 14, isOn: true) {}
+            DateChip(day: 15, isOn: false) {}
         })
     }
 
