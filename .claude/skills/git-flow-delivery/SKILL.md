@@ -1,8 +1,8 @@
 ---
 name: git-flow-delivery
-description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, a branch's first push only after explicit user approval (review and CI fixes to an open PR push without asking), PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
+description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, a branch's first push only after explicit user approval (later pushes to your own draft or open PR branch need no ask), PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
 metadata:
-  version: 0.7.3
+  version: 0.8.0
   status: experimental
 ---
 
@@ -54,11 +54,14 @@ A checkout another session also works in keeps its branch: start there in a work
 
 ## Before pushing
 
-Ask the user before a branch's first push. Later pushes to an open PR's `feature/*` branch need
-no ask when they carry fixes for review comments (`pr-review-handoff`), a red CI check, or a merge
-conflict with `develop` resolved by a merge commit (never a rebase: that rewrites history) (user,
-2026-11-21): push, then reply on each thread with the fixing commit. The hooks still run, and
-force-pushes, rewritten history and pushes to any other branch still need the user's OK.
+Ask the user before a branch's first push (it opens the draft PR, `pr-review-handoff`). After
+that, every push to your own draft or open PR's `feature/*` branch needs no ask: work in progress,
+fixes for review comments, a red CI check, or a merge conflict with `develop` resolved by a merge
+commit (never a rebase: that rewrites history) (user, 2026-11-21: the board must show whether each
+queued branch is moving or stuck, and pushing on its own helps the automation). Reply on each review
+thread with the fixing commit. A draft's commits are public from the first push; the hooks still
+check every commit. Force-pushes, rewritten history and pushes to any other branch still need the
+user's OK.
 
 When you ask:
 - Name the branch and remote you will push.

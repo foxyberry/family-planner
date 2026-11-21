@@ -2,7 +2,7 @@
 name: pr-review-handoff
 description: Use when a change in this repo is ready for review (code, guards, docs or design spec), when sending work to the code review session, when another session's commits need a PR, when acting as the review session ("Family-planner iOS 코드 리뷰"), when a review or LGTM is posted on your PR, or before merging a PR.
 metadata:
-  version: 0.7.0
+  version: 0.7.1
   status: experimental
 ---
 
@@ -38,6 +38,9 @@ hook blocks shell expansion and checks the text for private terms.
    - At the start, push the branch with its first commit (an empty "start" commit is fine) and open
      a draft PR into `develop` (`gh pr create --draft`; `git-flow-delivery`). The board shows it as
      "초안: 작성 중"; the review session does not review drafts.
+   - Push as you go: after the first push, pushes to your own draft or open PR branch need no ask
+     (`git-flow-delivery`), so the board shows whether the work is moving or stuck. A draft's
+     commits are public from the first push.
    - When the work is done and checked, update the PR body with the test evidence, then
      `gh pr ready N` and ask for the review (step 3).
    - Write the body file in its own step and read it back before `gh pr create` or `gh pr edit`.
