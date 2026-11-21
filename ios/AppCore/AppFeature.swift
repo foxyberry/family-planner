@@ -56,6 +56,14 @@ public struct AppFeature {
             if hasGrownupScreens { return deviceIsDark ? .dark : .light }
             return home.look == .night ? .dark : .light
         }
+        /// Spec "Sizing → Place": the page on the window around the board frame. Paper on setup and
+        /// grown-up screens (it turns dark with the window in dark mode); the kid screen's own look
+        /// on the home and the morning screen, so the night sky runs to the window's edges.
+        public var pageLook: KidLook {
+            guard setup == nil, !hasGrownupScreens else { return .day }
+            if case let .missions(missions)? = path.last { return missions.look }
+            return home.look
+        }
         public var home = HomeFeature.State()
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
         public var lock: LockOverlay.State?

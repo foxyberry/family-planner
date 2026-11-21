@@ -1,5 +1,6 @@
 import AppCore
 import ComposableArchitecture
+import DesignSystem
 import DeviceLook
 import Domain
 import Grownup
@@ -295,5 +296,17 @@ final class AppFeatureTests: XCTestCase {
         await store.send(.scenePhaseChanged(.background)) {
             $0.scenePhase = .background
         }
+    }
+
+    /// Spec "Sizing → Place": the window around the board frame takes the top screen's page: the
+    /// home's look (the night sky at night), the morning screen's, and paper on grown-up screens.
+    func testThePageAroundTheBoardFollowsTheTopScreen() {
+        var state = AppFeature.State()
+        state.home.skyOverride = .night
+        XCTAssertEqual(state.pageLook, .night)
+        state.path.append(.missions(MissionsFeature.State(look: .night)))
+        XCTAssertEqual(state.pageLook, .night)
+        state.path.append(.settings(SettingsFeature.State()))
+        XCTAssertEqual(state.pageLook, .day, "grown-up screens are paper")
     }
 }
