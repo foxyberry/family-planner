@@ -1,8 +1,8 @@
 ---
 name: tca-feature
-description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh, check-view-values.sh or check-kid-screens.sh blocks a push.
+description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh, check-view-values.sh, check-journeys.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.11.0
+  version: 0.12.0
   status: experimental
 ---
 
@@ -34,7 +34,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
 
 ## New screen or change
 1. Write the reducer test first (TestStore, pinned `\.calendar`, `\.date`, clients). A new screen
-   or flow also adds or extends a journey (`ios/Journeys/Tests`: root store, `World` fakes).
+   or flow gets a journey (`ios/Journeys/Tests`).
 2. State holds everything the view shows: rows, titles, captions, enabled flags, tab items. Add
    computed properties or pure model functions with unit tests. Example: `State.canSave`,
    `State.confirmAcceptTitle`, `HubModel.sections(kid:routines:)`.
@@ -91,6 +91,7 @@ var stored: School?; var place: Place = .school
 | `kid screen scrolls` | cap the list with `Capped` |
 | `layout literal in a screen` / `pending count too high` | put the row on `FormRow` / `FormLines`, use a `Sizing` token or part variant, place corner controls with `cardCorner`; a row's `height:` / `minHeight:` follows its parts' scaled size (`MinutesStepper.rowHeight`, the sizing field and tab heights); lower `scripts/layout-literals-pending.txt` when a count drops |
 | `value in view code: …` | add a non-optional State computed property (copy via `strings.tr`) and a test; a ternary on `store.` or on nil becomes a State property or a part's flag (`captionedRow(hasCaption:)`); remove the file from `scripts/view-values-pending.txt` once clean |
+| `no journey reaches X` | drive it from a journey (`ios/Journeys/Tests/README.md`); unlist it in `scripts/journeys-pending.txt` |
 | `hard-coded copy in …` / `key not in the catalog` / `unused catalog key` | add the key to the catalog and use `strings.tr` in State; remove keys nothing uses; a non-copy literal (bundle name) ends with `// copy-ok: <reason>` |
 | `passes n argument(s) but its value has m placeholder(s)` | one key has two meanings: give the new screen its own key |
 | `raw text input in …` | use `CrayonField`; a raw `TextField` prompt follows the window's dark scheme |

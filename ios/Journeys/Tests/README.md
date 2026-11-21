@@ -23,7 +23,9 @@ Write it so it reads as plain steps in spec terms, and could be replayed by anot
 - **Replay round trips a person caused as actions.** For example, a text field sends its text again
   when the keyboard goes away.
 
-A new screen or flow adds or extends a journey (`tca-feature`).
+A new screen or flow adds or extends a journey (`tca-feature`). `scripts/check-journeys.sh` fails
+when journey code names neither a reducer's type nor its case (`.home`, `.changeBuses`); reducers
+not reached yet are in `scripts/journeys-pending.txt`, which only shrinks.
 
 ## Later
 Two pieces will join this folder:

@@ -1,0 +1,7 @@
+# Reducers no journey reaches yet (scripts/check-journeys.sh). This list only shrinks: when a
+# journey reaches one, remove its line.
+ChangeSchoolFeature
+DataSourcesFeature
+ItemEditorFeature
+MissionEditorFeature
+SchoolEditorFeature

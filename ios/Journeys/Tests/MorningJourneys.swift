@@ -18,7 +18,7 @@ final class MorningJourneys: XCTestCase {
         await store.receive(\.home.loaded)
         XCTAssertEqual(store.state.home.weekday, .tuesday)
 
-        let wednesday = world.calendar.date(byAdding: .day, value: 1, to: world.now)!
+        let wednesday = try XCTUnwrap(world.calendar.date(byAdding: .day, value: 1, to: world.now))
         await store.send(.home(.tick(wednesday)))
         await store.receive(\.home.reload)
         await store.receive(\.home.loaded)
