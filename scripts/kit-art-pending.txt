@@ -1,0 +1,31 @@
+# Kit pictures and assets nothing uses yet (scripts/check-kit-art.sh). This list only shrinks:
+# when a screen uses one, or make art removes it, delete its line. Pictures drawn ahead of a spec
+# feature (flags, bus fullness, feelings, energy) wait here; whether they stay is the design
+# session's call.
+busDoublePax1
+busDoublePax2
+busDoublePax3
+busMiniPax1
+busMiniPax2
+busMiniPax3
+busSinglePax1
+busSinglePax2
+busSinglePax3
+energyGood
+energyLots
+energyNone
+energyTired
+feelHappy
+feelOK
+feelSad
+feelVeryHappy
+feelVerySad
+flagCN
+flagFR
+flagIN
+flagJP
+flagKR
+flagTH
+flagUK
+flagVN
+rig-actLanguageSchool-2

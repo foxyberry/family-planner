@@ -89,6 +89,11 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   done <<< "$refs"
 fi
 
+# Kit pictures are named from Swift, JSON and the catalog; assets live in ios/KitArt.
+if printf '%s' "$changed" | grep -Eq '^ios/.*\.(swift|json|xcstrings)$|^ios/KitArt/|^scripts/kit-art-pending'; then
+  bash "$ROOT/scripts/check-kit-art.sh" </dev/null || status=1
+fi
+
 # The driver contract names Swift cases and fields; journey files name the contract.
 if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$|^ios/Journeys/Tests/Driver/'; then
   bash "$ROOT/scripts/check-driver-contract.sh" </dev/null || status=1
