@@ -290,8 +290,8 @@ private struct SchoolStep: View {
         .frame(width: layout.grown.form.width).frame(minHeight: layout.length(968 - 148), alignment: .topLeading)
     }
 
-    /// Board S2 (layout v56): Goes to 180, School 264 (caption 346), Days 401, Hours 477 (caption 559),
-    /// Arrive 613, terms 712; rows 24 apart between drawn edges (spec "Layout balance").
+    /// Board S2 (layout v60): Goes to 180, School 264 (caption 346), Days 401–457, Hours 469 (caption
+    /// 551), Arrive 605, terms 703; rows 24 apart between drawn edges (spec "Layout balance").
     @ViewBuilder private var rows: some View {
         if let kid = store.tabKid {
             let school = kid.school
