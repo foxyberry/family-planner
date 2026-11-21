@@ -201,9 +201,6 @@ public struct OurDayView: View {
         }
     }
 
-    /// Board C6 (layout v6): the tabs and the slice card from the top; "Changes start tomorrow." just
-    /// above the Save button and the hint above that, placed from the button up. When the hint would
-    /// come within 8 of the card (short iPads) it is left out.
     /// Board G1: the day button (382 × 72) over the slice card; the G1c picker opens over the card.
     private func sideColumn(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.m)) {

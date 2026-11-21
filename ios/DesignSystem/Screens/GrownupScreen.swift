@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Frame for parent screens (boards C1–C6, layout v4; C3k): the header and the primary button
-/// stay put, only the middle scrolls. When the keyboard opens, the button rides just above it and
+/// Frame for parent screens (the grown-up boards: G1–G8, C2–C5; C3k): the header and the primary
+/// button stay put, only the middle scrolls. When the keyboard opens, the button rides just above it and
 /// the focused field is scrolled into view. It also owns the paper background and hides the system
 /// navigation bar, so every grown-up screen uses the crayon Back button (`GrownupHeader`).
 /// Everything sits on `GrownupLayout`'s lines (board × s): the header at 44 and 40 … 1336, the

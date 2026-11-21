@@ -1,7 +1,7 @@
 import CoreGraphics
 
-/// The grown-up boards' shared lines (family `grown`, layout v31: G1–G8, C2, C3, C3g, C4, E5, C5,
-/// S1–S4 in docs/superpowers/layout), each board value × s (spec "Sizing: one scale, no floors").
+/// The grown-up boards' shared lines (family `grown`: G1–G8, C2, C3, C3g, C4, C5, S1–S4 in
+/// docs/superpowers/layout), each board value × s (spec "Sizing: one scale, no floors").
 /// Every grown-up screen places its
 /// frame from here: 40 side margins like home, the header band 44–124 (layout v32: ← at 40, 44, on
 /// the home pencil's row; title at 144), the form card 40–840 × 148–968 (labels at 78, controls at
