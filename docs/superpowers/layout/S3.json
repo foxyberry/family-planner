@@ -1,5 +1,5 @@
 {
- "version": "57",
+ "version": "61",
  "board": "S3",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -618,6 +618,18 @@
    "align": "inside",
    "baseline": 759,
    "font": 30
+  },
+  {
+   "id": "main.button",
+   "kind": "button",
+   "x": 192,
+   "y": 801,
+   "w": 358,
+   "h": 38,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "A bus that changes…"
   },
   {
    "id": "action.primary",

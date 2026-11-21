@@ -25,12 +25,12 @@ answer here.
 | Support both orientations (iPad 1.6) | Landscape only | Portrait for grown-up screens? |
 | Redistribute content instead of scaling (iPad 1.2–1.3) | One scale with part floors and a give-way order | On the mini, should grown-up screens reflow (fewer columns) rather than scale? Decide after the mini check. |
 | Bigger targets for toddlers | Kid floors (spec Part floors) | Larger primary targets on the youngest kid's screens? |
+| VoiceOver labels on every control | No VoiceOver work in this phase (user, 2026-11-21): no labels, spoken text or adjustable elements in specs or boards; skip the VoiceOver items in the guides and review lists | When to add VoiceOver back |
 
 ## Followed as is
 - At least 44 pt touch (ours are higher: spec Part floors).
 - Respect safe areas, and never hard-code the status bar (we read `safe.top`).
 - Dynamic Type including accessibility sizes: controls grow and rows reflow; nothing clips.
-- VoiceOver labels on every control.
 - Bold Text, Reduce Motion and Increase Contrast.
 - Contrast by the spec's **Contrast** rule (`scripts/contrast.py`).
 - Never override system gestures.

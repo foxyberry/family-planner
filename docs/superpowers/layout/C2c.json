@@ -1,5 +1,5 @@
 {
- "version": "57",
+ "version": "61",
  "board": "C2c",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -125,6 +125,19 @@
    "text": "Grown-ups only"
   },
   {
+   "id": "side.line",
+   "kind": "text",
+   "x": 864,
+   "y": 142,
+   "w": 230,
+   "h": 54,
+   "region": "side",
+   "anchor": "right",
+   "align": "start",
+   "baseline": 184,
+   "font": 36
+  },
+  {
    "id": "main.label.from",
    "kind": "label",
    "x": 78,
@@ -141,7 +154,7 @@
    "kind": "text",
    "x": 192,
    "y": 186,
-   "w": 247,
+   "w": 246,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -163,6 +176,18 @@
    "baseline": 219,
    "font": 24,
    "text": "· our stop"
+  },
+  {
+   "id": "side.button",
+   "kind": "button",
+   "x": 864,
+   "y": 207,
+   "w": 472,
+   "h": 88,
+   "region": "side",
+   "anchor": "right",
+   "align": "fill",
+   "text": "Remove this bus"
   },
   {
    "id": "main.label.first-bus",
@@ -284,7 +309,7 @@
    "kind": "text",
    "x": 496,
    "y": 438,
-   "w": 85,
+   "w": 80,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -293,19 +318,7 @@
    "font": 30
   },
   {
-   "id": "main.label.change",
-   "kind": "label",
-   "x": 78,
-   "y": 509,
-   "w": 128,
-   "h": 72,
-   "region": "main",
-   "anchor": "left",
-   "align": "inside",
-   "text": "Change"
-  },
-  {
-   "id": "main.row.change.chip.1",
+   "id": "main.chip.1",
    "kind": "chip",
    "x": 192,
    "y": 509,
@@ -316,7 +329,7 @@
    "align": "inside"
   },
   {
-   "id": "main.row.change.chip.2",
+   "id": "main.chip.2",
    "kind": "chip",
    "x": 408,
    "y": 509,
@@ -327,7 +340,7 @@
    "align": "inside"
   },
   {
-   "id": "main.row.change.text.1",
+   "id": "main.text.1",
    "kind": "text",
    "x": 294,
    "y": 522,
@@ -340,21 +353,20 @@
    "font": 30
   },
   {
-   "id": "main.row.change.text.2",
+   "id": "main.text.2",
    "kind": "text",
    "x": 496,
    "y": 522,
-   "w": 229,
+   "w": 85,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 557,
-   "font": 30,
-   "text": "to change buses"
+   "font": 30
   },
   {
-   "id": "main.label.ride-2",
+   "id": "main.label.change",
    "kind": "label",
    "x": 78,
    "y": 593,
@@ -362,10 +374,11 @@
    "h": 72,
    "region": "main",
    "anchor": "left",
-   "align": "inside"
+   "align": "inside",
+   "text": "Change"
   },
   {
-   "id": "main.row.ride-2.chip.1",
+   "id": "main.row.change.chip.1",
    "kind": "chip",
    "x": 192,
    "y": 593,
@@ -376,7 +389,7 @@
    "align": "inside"
   },
   {
-   "id": "main.row.ride-2.chip.2",
+   "id": "main.row.change.chip.2",
    "kind": "chip",
    "x": 408,
    "y": 593,
@@ -387,11 +400,11 @@
    "align": "inside"
   },
   {
-   "id": "main.row.ride-2.text.1",
+   "id": "main.row.change.text.1",
    "kind": "text",
    "x": 294,
    "y": 606,
-   "w": 85,
+   "w": 83,
    "h": 45,
    "region": "main",
    "anchor": "left",
@@ -400,16 +413,76 @@
    "font": 30
   },
   {
-   "id": "main.row.ride-2.text.2",
+   "id": "main.row.change.text.2",
    "kind": "text",
    "x": 496,
    "y": 606,
-   "w": 85,
+   "w": 229,
    "h": 45,
    "region": "main",
    "anchor": "left",
    "align": "inside",
    "baseline": 641,
+   "font": 30,
+   "text": "to change buses"
+  },
+  {
+   "id": "main.label.ride-2",
+   "kind": "label",
+   "x": 78,
+   "y": 677,
+   "w": 128,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.row.ride-2.chip.1",
+   "kind": "chip",
+   "x": 192,
+   "y": 677,
+   "w": 72,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.row.ride-2.chip.2",
+   "kind": "chip",
+   "x": 408,
+   "y": 677,
+   "w": 72,
+   "h": 72,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "main.row.ride-2.text.1",
+   "kind": "text",
+   "x": 294,
+   "y": 690,
+   "w": 85,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 725,
+   "font": 30
+  },
+  {
+   "id": "main.row.ride-2.text.2",
+   "kind": "text",
+   "x": 496,
+   "y": 690,
+   "w": 85,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 725,
    "font": 30
   },
   {
