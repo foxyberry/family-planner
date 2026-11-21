@@ -2,7 +2,7 @@
 name: screen-layout
 description: Use when placing parts on a screen in ios/Features or ios/AppCore from a board's redlines (docs/superpowers/layout/<board>.json), writing or changing a <Screen>Layout model, sizing a grown-up form card or its rows, adding a gesture to a screen, or when a screen on the iPad looks shifted, too wide, wrapped or unresponsive to a hold. Not for sizes themselves (crayon-design) or reducers and State (tca-feature).
 metadata:
-  version: 0.4.0
+  version: 0.4.1
   status: experimental
 ---
 
@@ -22,9 +22,10 @@ right on every window.
 4. Add a layout test at s = 1 against the board JSON and one small window (the mini, the Duo
    inner screen) checking every rect is the 13" rect × s, then look at the screen on the iPad
    with `GRID=1` (bazel-ios).
-5. Screens lay out in the board frame (1376 s wide, centred by the app root); full-bleed
-   backgrounds and dim layers use `fullBleed()`, so the paper runs past the frame and under the
-   status bar band (y 0–24), which stays empty.
+5. Screens lay out in the board frame (1376 s wide, centred by the app root; the navigation
+   stack spans the window and frames each screen with `boardFrame()`, so nothing clips a pushed
+   screen's sides); full-bleed backgrounds and dim layers use `fullBleed()`, so the paper runs
+   past the frame and under the status bar band (y 0–24), which stays empty.
 
 ## Common mistakes
 - A grown-up form card sized by its rows: `.frame(maxWidth: .infinity)` does not cap a wider

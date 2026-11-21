@@ -62,8 +62,8 @@ public struct AppView: View {
         .animation(.easeOut(duration: store.keyboardDuration), value: store.keyboardTop)
         // Spec "Sizing: one scale, no floors": one Sizing from the app window, again on every resize.
         .readsSizing()
-        // The page around the board frame: a NavigationStack clips its screens to the frame, so the
-        // window's sides take the top screen's page here (paper, or the night sky).
+        // The page around the board frame for screens outside the navigation stack (setup, the
+        // first paper): the top screen's page (paper, or the night sky).
         .background { store.pageLook.page.ignoresSafeArea() }
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
         // the home disappear, which would cancel its task and stop the idle relock.
@@ -105,35 +105,43 @@ public struct AppView: View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             HomeView(store: store.scope(state: \.home, action: \.home))
                 .toolbar(.hidden, for: .navigationBar)
+                .boardFrame()
         } destination: { store in
-            switch store.case {
-            case let .missions(store):
-                // Pushed over home; its own ← goes back (no system bar or edge swipe).
-                MissionsView(store: store)
-                    .toolbar(.hidden, for: .navigationBar)
-                    .navigationBarBackButtonHidden()
-            case let .settings(store):
-                SettingsView(store: store)
-            case let .editor(store):
-                ItemEditorView(store: store)
-            case let .ourDay(store):
-                OurDayView(store: store)
-            case let .missionEditor(store):
-                MissionEditorView(store: store)
-            case let .busSettings(store):
-                BusSettingsView(store: store)
-            case let .changeBuses(store):
-                ChangeBusesView(store: store)
-            case let .schoolEditor(store):
-                SchoolEditorView(store: store)
-            case let .addChild(store):
-                AddChildView(store: store)
-            case let .changeSchool(store):
-                ChangeSchoolView(store: store)
-            case let .dataSources(store):
-                DataSourcesView(store: store)
+            Group {
+                switch store.case {
+                case let .missions(store):
+                    // Pushed over home; its own ← goes back (no system bar or edge swipe).
+                    MissionsView(store: store)
+                        .toolbar(.hidden, for: .navigationBar)
+                        .navigationBarBackButtonHidden()
+                case let .settings(store):
+                    SettingsView(store: store)
+                case let .editor(store):
+                    ItemEditorView(store: store)
+                case let .ourDay(store):
+                    OurDayView(store: store)
+                case let .missionEditor(store):
+                    MissionEditorView(store: store)
+                case let .busSettings(store):
+                    BusSettingsView(store: store)
+                case let .changeBuses(store):
+                    ChangeBusesView(store: store)
+                case let .schoolEditor(store):
+                    SchoolEditorView(store: store)
+                case let .addChild(store):
+                    AddChildView(store: store)
+                case let .changeSchool(store):
+                    ChangeSchoolView(store: store)
+                case let .dataSources(store):
+                    DataSourcesView(store: store)
+                }
             }
+            .boardFrame()
         }
+        // A NavigationStack hosts each screen in its own UIKit view and clips it to the stack's width.
+        // The stack spans the window and frames its screens back to the board, so a pushed screen's
+        // dim layer or veil (`fullBleed()`) reaches the window's sides and takes their taps.
+        .spansWindow()
         // Any touch on a grown-up screen keeps it open for another 2 minutes.
         .simultaneousGesture(DragGesture(minimumDistance: 0).onEnded { _ in
             if store.hasGrownupScreens { store.send(.grownupTouched) }
