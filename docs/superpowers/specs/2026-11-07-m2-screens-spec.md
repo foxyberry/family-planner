@@ -235,7 +235,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - `RoundButton` (← 80, Undo / Redo 72, the bus steppers 72): `max(ref s, 56)`.
       - `CrayonSwitch`: `max(96 s, 72)` wide × `max(52 s, 48)` tall; knob `max(44 s, 40)`.
       - `ColourSwatch`: `max(56 s, 48)`. Faces picked in S1: `max(64 s, 56)`.
-      - `ChoiceCircles` (88 / 104 / 112), `PictureRow` 88, `IconPicker` slots 88: `max(ref s, 72)`.
+      - `ChoiceCircles` (88 slot, 112 pitch; the pick ring is derived, 4 outside the drawn circle, 84), `PictureRow` 88, `IconPicker` slots 88: `max(ref s, 72)`.
       - `DateChip` 96 × 104: `max(ref s, 72)` wide; height in proportion.
       - `SettingRow` 120: `max(120 s, 88)`, its picture `max(56 s, 48)`.
       - Rows: two-line `ResultListCard` / `PreviewRow` / `ListRow` rows are **72 fixed**; one-line rows (the keyboard-up search) are **48 fixed** (the board value).
