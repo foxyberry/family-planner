@@ -132,7 +132,11 @@ extension ScheduleStore: TestDependencyKey {
             },
             saveKid: { kid in
                 kids.withValue { list in
-                    if let index = list.firstIndex(where: { $0.id == kid.id }) { list[index] = kid }
+                    if let index = list.firstIndex(where: { $0.id == kid.id }) {
+                        list[index] = kid
+                    } else {
+                        list.append(kid)  // a new kid (board G6a), as the Live store adds one
+                    }
                 }
             },
             replaceFamily: { family in

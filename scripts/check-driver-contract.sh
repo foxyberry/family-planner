@@ -6,7 +6,8 @@
 #   - every journey file in Driver/journeys uses only the contract: `do` names `<screen>.<action>`
 #     with exactly the contract's argument names; `expect` names `screen`, an app field, or a field
 #     of the screen the journey last expected (with one of its listed values); and `same as` names
-#     a Swift journey test that exists.
+#     a Swift journey test that exists;
+#   - AgentContract.swift (the app's binding) names every screen, field and action of the contract.
 #
 # Usage: check-driver-contract.sh [repo root]   (default: this repository)
 # Exit code: 0 = the contract and the journey files hold, 1 = a broken name.
@@ -50,11 +51,17 @@ def check_bindings(owner, entry, kind_fields, kind_actions):
         kind_actions[f"{owner}.{a['name']}"] = set(a.get("args", {}))
 
 check_bindings("app", contract["app"], app_fields, {})
+mapping_path = os.path.join(root, "ios/AppCore/AgentContract.swift")
+mapping = open(mapping_path, encoding="utf-8").read() if os.path.isfile(mapping_path) else None
 screen_ids = set()
 for screen in contract["screens"]:
     screen_ids.add(screen["id"])
     fields_by_screen[screen["id"]] = set()
     check_bindings(screen["id"], screen, fields_by_screen[screen["id"]], actions)
+    if mapping is not None:
+        for name in [screen["id"]] + [f["name"] for f in screen.get("fields", [])] + [a["name"] for a in screen.get("actions", [])]:
+            if f'"{name}"' not in mapping:
+                problems.append(f"AgentContract.swift: no \"{name}\" ({screen['id']}), so ls or do can't reach it")
 tests_dir = os.path.join(root, "ios/Journeys/Tests")
 
 journeys = os.path.join(driver, "journeys")

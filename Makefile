@@ -14,7 +14,9 @@ SIM_DEVICE ?= iPad Pro 13-inch (M5)
 SIM_OS     ?= 26.5
 # Debug builds start the app clock elsewhere (time machine): make run NOW=2026-11-09T07:30 SPEED=60
 LAUNCH_ARGS = $(if $(NOW),-fpNow $(NOW)) $(if $(SPEED),-fpSpeed $(SPEED)) $(if $(GRID),-fpGrid) \
-              $(if $(SKIP_FACE_ID),-fpSkipFaceID)
+              $(if $(SKIP_FACE_ID),-fpSkipFaceID) $(if $(FAMILY),-fpFamily $(FAMILY)) $(if $(DRIVER),-fpDriver)
+# Agent driver on the simulator (ios/Journeys/Tests/Driver):
+#   make run NOW=2026-11-10T07:30 FAMILY=sample SKIP_FACE_ID=1 DRIVER=1, then python3 tools/driver/fp-driver.py ls
 # OPEN=missions opens a screen deep link (familyplanner://missions) on launch. Grown-up boards
 # (OPEN=c2, debug builds) open after the unlock; SKIP_FACE_ID=1 passes it on a simulator only.
 OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
@@ -61,7 +63,7 @@ device:
 	unzip -q bazel-bin/ios/$(APP_NAME).ipa -d bazel-device && \
 	find bazel-device -exec touch {} + && \
 	xcrun devicectl device install app --device "$$UDID" bazel-device/Payload/$(APP_NAME).app && \
-	xcrun devicectl device process launch --terminate-existing --device "$$UDID" $(OPEN_URL) $(BUNDLE_ID) $(LAUNCH_ARGS) && \
+	xcrun devicectl device process launch --terminate-existing --device "$$UDID" $(OPEN_URL) $(BUNDLE_ID) -- $(LAUNCH_ARGS) && \
 	scripts/device-check.sh $(APP_NAME) bazel-device/Payload/$(APP_NAME).app/$(APP_NAME) "$$UDID"
 
 # The shared xctestrun runner (//ios:test_runner) picks the simulator from these flags.

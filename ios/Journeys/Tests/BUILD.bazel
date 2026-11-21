@@ -19,6 +19,7 @@ fp_swift_library(
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/SchoolDirectory",
+        "//ios/DebugTools",
         "//ios/Domain",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],

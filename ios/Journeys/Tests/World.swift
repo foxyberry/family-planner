@@ -2,6 +2,7 @@ import AppCore
 import AppSettings
 import BusClient
 import ComposableArchitecture
+import DebugTools
 import DeviceLook
 import Domain
 import Foundation
@@ -15,21 +16,8 @@ import ScheduleStore
 /// journey can later be replayed from a neutral script on another platform. Fake values only
 /// (privacy rule): Kid A and Kid B, stop 12345.
 public struct WorldData: Sendable {
-    public struct Stop: Sendable {
-        public var code, name, road: String
-        public var buses: [String]
-        public init(code: String, name: String, road: String, buses: [String]) {
-            self.code = code; self.name = name; self.road = road; self.buses = buses
-        }
-    }
-    public struct School: Sendable {
-        public var id, name, area: String
-        public var start, end: Int
-        public var checked: String
-        public init(id: String, name: String, area: String, start: Int, end: Int, checked: String) {
-            self.id = id; self.name = name; self.area = area; self.start = start; self.end = end; self.checked = checked
-        }
-    }
+    public typealias Stop = FakeWorld.Stop
+    public typealias School = FakeWorld.School
     public struct Route: Sendable {
         public var kid: String
         public var stop: String
@@ -43,12 +31,10 @@ public struct WorldData: Sendable {
     /// Local time, ISO 8601 without a zone, and the zone it is in.
     public var now = "2026-11-10T07:30"
     public var timeZone = "Asia/Singapore"
-    public var stops = [Stop(code: "12345", name: "Example Stop", road: "Example Rd", buses: ["1", "2"]),
-                 Stop(code: "12346", name: "Example Interchange", road: "Example Ave", buses: ["2", "33"])]
+    public var stops = FakeWorld.stops
     /// Every bus number LTA knows.
-    public var services = ["1", "2", "33"]
-    public var schools = [School(id: "example-primary", name: "Example Primary School", area: "Example Town",
-                          start: 450, end: 810, checked: "2026-11-09")]
+    public var services = FakeWorld.services
+    public var schools = FakeWorld.schools
     /// "empty" (a new iPad) or "sample" (Kid A and Kid B with this week's items).
     public var family = "empty"
     /// Bus routes saved for the sample kids ("Kid A", "Kid B").
@@ -111,16 +97,7 @@ public final class World: Sendable {
     /// A school of the list as the app's directory entry.
     public func school(_ id: String) -> SchoolEntry? { directory.first { $0.id == id } }
 
-    private var directory: [SchoolEntry] {
-        data.schools.map { school in
-            let checked = school.checked.split(separator: "-").compactMap { Int($0) }
-            return SchoolEntry(id: school.id, name: school.name, kind: .moe(.primary), area: school.area,
-                               hasPrimary: true, followsMoeTerms: true,
-                               hours: SchoolHours(start: school.start, end: school.end,
-                                                  checked: Day(year: checked[0], month: checked[1], day: checked[2])),
-                               searchKeys: [school.name.lowercased()])
-        }
-    }
+    private var directory: [SchoolEntry] { FakeWorld.entries(data.schools) }
 
     public func install(_ values: inout DependencyValues) {
         values.calendar = calendar
@@ -181,26 +158,7 @@ public final class World: Sendable {
             }
         }
 
-        let stops = data.stops, services = data.services
-        values.bus.stop = { code in
-            stops.first { $0.code == code }.map { BusStop(code: $0.code, name: $0.name, road: $0.road) }
-        }
-        values.bus.searchStops = { text in
-            stops.filter { $0.name.localizedCaseInsensitiveContains(text) }
-                .map { BusStop(code: $0.code, name: $0.name, road: $0.road) }
-        }
-        values.bus.arrivals = { code in
-            (stops.first { $0.code == code }?.buses ?? []).enumerated().map { index, bus in
-                BusArrival(service: bus, minutes: 5 + 2 * index, type: .single)
-            }
-        }
-        values.bus.isService = { services.contains($0) }
-
-        let directory = directory
-        values.schoolDirectory.schools = { directory }
-        values.schoolDirectory.calendar = { _, _ in .none }
-        values.schoolDirectory.updated = { nil }
-        values.schoolDirectory.sources = { [] }
+        FakeWorld.install(&values, stops: data.stops, services: data.services, schools: data.schools)
         values.holidays.holidays = { _ in [] }
         values.deviceLook.isDark = { false }
 

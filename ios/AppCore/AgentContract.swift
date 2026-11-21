@@ -74,7 +74,12 @@ public enum AgentContract {
             : parts[1] == "cancelTapped" ? .lockCancelTapped : nil
         default: mapped = pathAction(parts[0], parts[1], args, state)
         }
-        guard let mapped else { return .failure(AgentRefusal(reason: "unknown action or arguments: \(name)")) }
+        guard let mapped else {
+            if name == "setup.schoolPicked", case let .string(id)? = args["school"] {
+                return .failure(AgentRefusal(reason: "no school \(id) in the directory (is the app in test mode, with FakeWorld?)"))
+            }
+            return .failure(AgentRefusal(reason: "unknown action or arguments: \(name)"))
+        }
         return .success(mapped)
     }
 
@@ -171,6 +176,7 @@ public enum AgentContract {
         case "nextTapped": return .nextTapped
         case "schoolTextChanged": return string("text").map { .schoolTextChanged($0) }
         case "schoolPicked":
+            // A missing school is a world without the journey's fixtures (FakeWorld); the refusal says so.
             return string("school").flatMap { id in setup.directory.first { $0.id == id } }.map { .schoolPicked($0) }
         case "wayPicked": return string("way").flatMap(Way.init(rawValue:)).map { .wayPicked($0) }
         case "stopTextChanged": return string("text").map { .stopSearch(.textChanged($0)) }
@@ -209,5 +215,102 @@ public enum AgentContract {
         default: element = nil
         }
         return element.map { .path(.element(id: id, action: $0)) }
+    }
+}
+
+// MARK: - JSON (the driver's wire format)
+
+extension AgentValue {
+    /// A value from `JSONSerialization` (numbers that are booleans stay booleans).
+    public init(json: Any) {
+        switch json {
+        case let number as NSNumber where CFGetTypeID(number) == CFBooleanGetTypeID(): self = .bool(number.boolValue)
+        case let number as NSNumber: self = .int(number.intValue)
+        case let text as String: self = .string(text)
+        case let list as [Any]: self = .list(list.map(AgentValue.init(json:)))
+        case let object as [String: Any]: self = .object(object.mapValues(AgentValue.init(json:)))
+        default: self = .null
+        }
+    }
+
+    /// The value for `JSONSerialization`.
+    public var json: Any {
+        switch self {
+        case .null: NSNull()
+        case let .bool(value): value
+        case let .int(value): value
+        case let .string(value): value
+        case let .list(values): values.map(\.json)
+        case let .object(values): values.mapValues(\.json)
+        }
+    }
+}
+
+/// What the driver does with one request: answer it, or send a person action to the store (and then
+/// answer with `ls`).
+public enum AgentReply {
+    case answer(status: Int, json: Data)
+    case send(AppFeature.Action)
+}
+
+extension AgentContract {
+    /// Each screen's actions with their argument types, as `ls` lists them (contract.json; the
+    /// check-driver-contract guard keeps the names in step).
+    public static let schema: [String: [String: [String: String]]] = [
+        "setup": [
+            "nameChanged": ["kid": "int", "text": "string"], "ageChanged": ["kid": "int", "text": "string"],
+            "faceTapped": ["kid": "int", "face": "string"], "addKidTapped": [:], "removeKidTapped": ["kid": "int"],
+            "removeConfirmed": [:], "removeCancelled": [:], "nextTapped": [:], "schoolTextChanged": ["text": "string"],
+            "schoolPicked": ["school": "string"], "wayPicked": ["way": "walk|bus|car|taxi|shuttle"],
+            "stopTextChanged": ["text": "string"], "busTapped": ["bus": "string"], "walkChanged": ["minutes": "int"],
+        ],
+        "home": ["clockHeld": [:], "missionsTapped": [:]],
+        "lock": ["primaryTapped": [:], "cancelTapped": [:]],
+        "ourDay": ["settingsTapped": [:], "backTapped": [:]],
+        "settings": ["addChildTapped": [:], "backTapped": [:]],
+        "addChild": [
+            "nameChanged": ["text": "string"], "ageChanged": ["text": "string"], "faceTapped": ["face": "string"],
+            "saveTapped": [:], "backTapped": [:],
+        ],
+    ]
+
+    /// One driver request: `GET /ls`, or `POST /do` with `{"action": "<screen>.<action>", "args": {…}}`.
+    public static func reply(method: String, path: String, body: Data, state: AppFeature.State) -> AgentReply {
+        switch (method, path) {
+        case ("GET", "/ls"):
+            return .answer(status: 200, json: lsJSON(state))
+        case ("POST", "/do"):
+            guard let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+                  let name = object["action"] as? String else {
+                return refused(#"send {"action": "<screen>.<action>", "args": {}}"#)
+            }
+            let args = (object["args"] as? [String: Any] ?? [:]).mapValues(AgentValue.init(json:))
+            switch action(name, args, in: state) {
+            case let .success(sent): return .send(sent)
+            case let .failure(refusal): return refused(refusal.reason)
+            }
+        default:
+            return .answer(status: 404, json: encode(["error": "use GET /ls or POST /do"]))
+        }
+    }
+
+    /// `ls` as the driver sends it.
+    public static func lsJSON(_ state: AppFeature.State) -> Data {
+        let shown = ls(state)
+        let actions = (schema[shown.screen] ?? [:]).keys.sorted().map { name -> [String: Any] in
+            ["name": "\(shown.screen).\(name)", "args": schema[shown.screen]?[name] ?? [:]]
+        }
+        return encode([
+            "screen": shown.screen, "stack": shown.stack, "fields": shown.fields.mapValues(\.json),
+            "app": shown.app.mapValues(\.json), "actions": actions,
+        ])
+    }
+
+    private static func refused(_ reason: String) -> AgentReply {
+        .answer(status: 400, json: encode(["error": reason]))
+    }
+
+    private static func encode(_ object: [String: Any]) -> Data {
+        (try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])) ?? Data("{}".utf8)
     }
 }
