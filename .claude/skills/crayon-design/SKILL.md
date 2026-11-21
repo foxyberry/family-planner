@@ -110,7 +110,7 @@ Other sessions report board problems; they don't edit layout JSON.
 |---|---|
 | Squeezing text (`minimumScaleFactor`, 70 % labels) | Reword the board label |
 | A gap, padding or size set for one screen | Board value × s, everywhere |
-| A floor, `max(…)` or fixed size in code | Board value × s |
+| A floor, a max() or a fixed size in code | Board value × s |
 | The `Spacing.m` (24) token where the spec says the 16 token | Use the token the spec names |
 | A minimum width from a rounded guess | `measure-text.swift` |
 | A number written into this skill | The number goes in the spec; the skill names the section |
