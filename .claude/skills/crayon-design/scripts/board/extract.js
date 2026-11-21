@@ -10,7 +10,7 @@ function add(e,kind,extra,keepKids){if(seen.has(e)||!vis(e)||!inClip(e))return;s
 // interactive and named parts first
 root.querySelectorAll('.bus-roll').forEach(e=>add(e,'mover',{}));
 root.querySelectorAll('.bubble').forEach(e=>add(e,'bubble',{}));
-root.querySelectorAll('div').forEach(e=>{const bg=e.style.background||'';if(bg.includes('ea501b3e'))add(e,'card',{})});
+root.querySelectorAll('div').forEach(e=>{const bg=e.style.background||'';if(bg.includes('ea501b3e'))add(e,'card',{},e.getAttribute('role')!=='listbox')});
 root.querySelectorAll('[role=tab]').forEach(e=>{if(e.closest('[role=tablist]')&&e.getBoundingClientRect().height===100){add(e,'row',{},true);const sp=e.querySelector(':scope > span');if(sp)add(sp,'ring',{})}});
 root.querySelectorAll('[role=slider]').forEach(e=>add(e,'slide',{},true));
 root.querySelectorAll('h1').forEach(e=>add(e,'title',{base:base(e),font:parseInt(getComputedStyle(e).fontSize)}));
