@@ -31,6 +31,7 @@ SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
 # =============================================================================
 
 build:
+	@bash scripts/check-disk.sh
 	$(IOS_BAZEL) build $(PUBLIC_FLAGS) $(APP_TARGET)
 
 # Build first, then boot the simulator, so Bazel and the Simulator never compete
@@ -56,6 +57,7 @@ run: build
 # install skips files whose size and time match, so a same-size new binary never reached the
 # iPad. Touching the unpacked app makes every install copy everything.
 device:
+	@bash scripts/check-disk.sh
 	@UDID=$$(scripts/connected-ipad.sh) && \
 	scripts/device-profile.sh $(BUNDLE_ID) "$$UDID" && \
 	$(IOS_BAZEL) build $(PUBLIC_FLAGS) $(APP_TARGET) --config=device && \
@@ -85,6 +87,7 @@ stop-dev-sims:
 # Extra Bazel flags: make test TEST_ARGS=--nocache_test_results (re-runs every test).
 # Run `make snapshots` whenever you change DesignSystem, KitArt or a screen.
 test: stop-dev-sims
+	@bash scripts/check-disk.sh
 	$(IOS_BAZEL) test $(PUBLIC_FLAGS) //ios/... --test_tag_filters=-snapshot,-ui $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
@@ -92,6 +95,7 @@ test: stop-dev-sims
 # One test target with the same flags as `make test` (keeps Bazel's caches warm):
 #   make test-one TARGET=//ios/AppCore/Tests:AppCoreTests
 test-one: stop-dev-sims
+	@bash scripts/check-disk.sh
 	@[ -n "$(TARGET)" ] || { echo "usage: make test-one TARGET=//ios/<Pkg>/Tests:<Target>"; exit 2; }
 	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
@@ -107,6 +111,7 @@ SNAPSHOT_TARGET := //ios/DesignSystem/SnapshotTests:ComponentSnapshotTests
 # Whole screens at journey states (ios/Journeys/Tests/Screens).
 SCREEN_SNAPSHOT_TARGET := //ios/Journeys/Tests/Screens:ScreenSnapshots
 snapshots: stop-dev-sims
+	@bash scripts/check-disk.sh
 	$(SNAPSHOT_ENV) $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) $(SCREEN_SNAPSHOT_TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
@@ -115,6 +120,7 @@ snapshots: stop-dev-sims
 # Re-record the design system snapshot baselines into the source tree (the run itself fails:
 # recording is not a pass). Compare the new pictures with the design boards before committing.
 snapshots-record: stop-dev-sims
+	@bash scripts/check-disk.sh
 	SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/DesignSystem/SnapshotTests/__Snapshots__" \
 	SCREEN_SNAPSHOT_RECORD_DIR="$(CURDIR)/ios/Journeys/Tests/Screens/__Snapshots__" \
 	$(IOS_BAZEL) test $(PUBLIC_FLAGS) $(SNAPSHOT_TARGET) $(SCREEN_SNAPSHOT_TARGET) --nocache_test_results \
