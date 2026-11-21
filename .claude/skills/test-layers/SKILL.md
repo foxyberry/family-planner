@@ -2,7 +2,7 @@
 name: test-layers
 description: Use when deciding which test should catch a bug, a review finding or something seen on the iPad or simulator while self-checking (WebDriverAgent, screenshots, taps); adding tests for a new screen or flow; a test would need Face ID, a passcode or a person to tap; choosing between a reducer test, a journey, a UI test and a snapshot; or writing a PR's test evidence.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   status: experimental
 ---
 
@@ -20,6 +20,7 @@ is only the look and feel.
 | Model / reducer | `ios/*/Tests` (`tca-feature`) | rules, copy, date maths, one reducer's flow | `make test`, pre-push (`test-affected`) |
 | Journey | `ios/Journeys/Tests` (README there) | a flow across screens through the root store: saves, reloads, locks, the clock | same |
 | Snapshot | `ios/DesignSystem/SnapshotTests` | a part's drawing, size, clipping, dark look | `make snapshots` (local, not CI) |
+| Screen snapshot | `ios/Journeys/Tests/Screens` | a whole screen at a journey state, at the 13-inch and the mini | same |
 | UI test | `ios/Journeys/Tests/UI` | what State can't show: holds, keyboard focus, sheets, scrolling | `make ui-test` (local) |
 | Self-check | simulator, or the iPad over WebDriverAgent | anything, while building | by hand, never evidence alone |
 | The user's iPad check | screen PRs (`pr-review-handoff`) | look and feel only | the user |
@@ -31,6 +32,7 @@ is only the look and feel.
 | a rule or copy wrong in one screen | a reducer or model test |
 | clipped, cramped, wrong size or colour in a part | a snapshot case (and the part's gallery entry) |
 | a value that changes with device size (11-inch vs 13-inch) | a layout-model test at both sizes (`screen-layout`) |
+| a screen that looks wrong as a whole (overlap, a row pushed off) | a screen snapshot at that state, reached by the journey's steps |
 | a gesture, focus or keyboard step that loses input | a UI test, plus a journey step that replays the round trip as actions |
 | only "it feels off" | nothing: say so in the PR for the user's iPad check |
 
@@ -48,8 +50,9 @@ No test waits for a person, and `scripts/check-unattended-tests.sh` blocks the w
 ## PR evidence
 In the PR body, for each layer you touched: the command, its result line (`PASSED`, the count), and
 the bug-back failure (file and line). Name what is not checked: snapshots not recorded, the iPad not
-seen. A screen PR also lists the journeys and UI tests that cover it, so the user's iPad check is
-look and feel only.
+seen. A screen PR also lists the journeys, UI tests and screen snapshots that cover it, so the
+user's iPad check is look and feel only. What you saw on the family's iPad (names, times, stops) stays
+out of PR text: describe it with the fake values (Kid A, stop 12345).
 
 ## Common mistakes
 - Treating a WebDriverAgent screenshot as the test: it is evidence for you, not a check that stays.

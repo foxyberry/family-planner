@@ -37,7 +37,9 @@ reducers() {
     ' 2>/dev/null | sort -u
 }
 
-code="$(find "$JOURNEYS" -name '*.swift' -print0 2>/dev/null | xargs -0 cat 2>/dev/null | grep -vE '^[[:space:]]*//')"
+# Only the journeys themselves (the top folder): the UI tests and screen snapshots below it name
+# screens too, but they are not journeys.
+code="$(find "$JOURNEYS" -maxdepth 1 -name '*.swift' -print0 2>/dev/null | xargs -0 cat 2>/dev/null | grep -vE '^[[:space:]]*//')"
 
 reached() {
   local type="$1" stem="${1%Feature}"

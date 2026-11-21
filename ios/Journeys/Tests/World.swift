@@ -14,52 +14,75 @@ import ScheduleStore
 /// school list and the family on the iPad. Nothing here is Swift-only on purpose, so the same
 /// journey can later be replayed from a neutral script on another platform. Fake values only
 /// (privacy rule): Kid A and Kid B, stop 12345.
-struct WorldData: Sendable {
-    struct Stop: Sendable { var code, name, road: String; var buses: [String] }
-    struct School: Sendable { var id, name, area: String; var start, end: Int; var checked: String }
-    struct Route: Sendable { var kid: String; var stop: String; var buses: [String]; var walk, ride: Int }
+public struct WorldData: Sendable {
+    public struct Stop: Sendable {
+        public var code, name, road: String
+        public var buses: [String]
+        public init(code: String, name: String, road: String, buses: [String]) {
+            self.code = code; self.name = name; self.road = road; self.buses = buses
+        }
+    }
+    public struct School: Sendable {
+        public var id, name, area: String
+        public var start, end: Int
+        public var checked: String
+        public init(id: String, name: String, area: String, start: Int, end: Int, checked: String) {
+            self.id = id; self.name = name; self.area = area; self.start = start; self.end = end; self.checked = checked
+        }
+    }
+    public struct Route: Sendable {
+        public var kid: String
+        public var stop: String
+        public var buses: [String]
+        public var walk, ride: Int
+        public init(kid: String, stop: String, buses: [String], walk: Int, ride: Int) {
+            self.kid = kid; self.stop = stop; self.buses = buses; self.walk = walk; self.ride = ride
+        }
+    }
 
     /// Local time, ISO 8601 without a zone, and the zone it is in.
-    var now = "2026-11-10T07:30"
-    var timeZone = "Asia/Singapore"
-    var stops = [Stop(code: "12345", name: "Example Stop", road: "Example Rd", buses: ["1", "2"]),
+    public var now = "2026-11-10T07:30"
+    public var timeZone = "Asia/Singapore"
+    public var stops = [Stop(code: "12345", name: "Example Stop", road: "Example Rd", buses: ["1", "2"]),
                  Stop(code: "12346", name: "Example Interchange", road: "Example Ave", buses: ["2", "33"])]
     /// Every bus number LTA knows.
-    var services = ["1", "2", "33"]
-    var schools = [School(id: "example-primary", name: "Example Primary School", area: "Example Town",
+    public var services = ["1", "2", "33"]
+    public var schools = [School(id: "example-primary", name: "Example Primary School", area: "Example Town",
                           start: 450, end: 810, checked: "2026-11-09")]
     /// "empty" (a new iPad) or "sample" (Kid A and Kid B with this week's items).
-    var family = "empty"
+    public var family = "empty"
     /// Bus routes saved for the sample kids ("Kid A", "Kid B").
-    var routes: [Route] = []
+    public var routes: [Route] = []
     /// What Face ID answers: "success", "notRecognised", "cancelled", "notAvailable", "lockedOut".
-    var faceID = "success"
+    public var faceID = "success"
 
     /// Tuesday 10 Nov 2026, 7:30 am in Singapore: not a holiday (Monday the 9th is Deepavali observed).
-    static let standard = WorldData()
+    public static let standard = WorldData()
+
+    public init() {}
 }
 
 /// The dependencies a journey's store runs with, built from `WorldData`. A client the world doesn't
 /// fake stays unimplemented, so any I/O a journey didn't expect fails the test, and time moves only
 /// by the test clock: no sleeps.
-final class World: Sendable {
-    let data: WorldData
-    let calendar: Calendar
-    let now: Date
+public final class World: Sendable {
+    public let data: WorldData
+    public let calendar: Calendar
+    public let now: Date
     /// What the store holds; journeys read it after a save.
-    let family: LockIsolated<ScheduleSnapshot>
-    let settings = LockIsolated(AppSettings.defaults)
+    public let family: LockIsolated<ScheduleSnapshot>
+    public let settings = LockIsolated(AppSettings.defaults)
     /// A2's ticked missions and slides.
-    let marks = LockIsolated<[WindowMissions]>([])
-    let slides = LockIsolated<[OutingSlide]>([])
+    public let marks = LockIsolated<[WindowMissions]>([])
+    public let slides = LockIsolated<[OutingSlide]>([])
     /// How many times the app has loaded the family from the store.
-    let loads = LockIsolated(0)
-    let auth: LockIsolated<ParentAuthOutcome>
-    let clock = TestClock()
+    public let loads = LockIsolated(0)
+    public let auth: LockIsolated<ParentAuthOutcome>
+    public let clock = TestClock()
 
-    var today: Day { Day(now, calendar: calendar) }
+    public var today: Day { Day(now, calendar: calendar) }
 
-    init(_ data: WorldData = .standard) {
+    public init(_ data: WorldData = .standard) {
         self.data = data
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: data.timeZone)!
@@ -86,7 +109,7 @@ final class World: Sendable {
     }
 
     /// A school of the list as the app's directory entry.
-    func school(_ id: String) -> SchoolEntry? { directory.first { $0.id == id } }
+    public func school(_ id: String) -> SchoolEntry? { directory.first { $0.id == id } }
 
     private var directory: [SchoolEntry] {
         data.schools.map { school in
@@ -99,7 +122,7 @@ final class World: Sendable {
         }
     }
 
-    func install(_ values: inout DependencyValues) {
+    public func install(_ values: inout DependencyValues) {
         values.calendar = calendar
         values.date.now = now
         values.uuid = .incrementing
@@ -184,7 +207,7 @@ final class World: Sendable {
     /// The root store in this world, starting from `state`. Journeys check the State a person
     /// would see after each step, so the store is not exhaustive about effects they don't name.
     @MainActor
-    func store(_ state: AppFeature.State = AppFeature.State()) -> TestStoreOf<AppFeature> {
+    public func store(_ state: AppFeature.State = AppFeature.State()) -> TestStoreOf<AppFeature> {
         let store = TestStore(initialState: state) { AppFeature() } withDependencies: { self.install(&$0) }
         store.exhaustivity = .off(showSkippedAssertions: false)
         return store

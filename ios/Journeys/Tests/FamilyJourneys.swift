@@ -2,6 +2,7 @@ import AppCore
 import ComposableArchitecture
 import Domain
 import Grownup
+import JourneyWorld
 import Setup
 import XCTest
 
