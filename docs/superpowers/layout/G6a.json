@@ -1,0 +1,288 @@
+{
+ "version": "62",
+ "board": "G6a",
+ "family": "grown",
+ "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
+ "global": {
+  "width": 1376,
+  "height": 1032,
+  "statusBand": [
+   0,
+   24
+  ],
+  "margin": 40,
+  "right": 1336,
+  "gutter": 24,
+  "column": 88,
+  "columnLefts": [
+   40,
+   152,
+   264,
+   376,
+   488,
+   600,
+   712,
+   824,
+   936,
+   1048,
+   1160,
+   1272
+  ],
+  "headerTop": 44,
+  "headerBottom": 124,
+  "headerBaseline": 103,
+  "contentTop": 148,
+  "contentBottom": 968
+ },
+ "lines": {
+  "margin": 40,
+  "formLeft": 40,
+  "formRight": 840,
+  "labelLeft": 78,
+  "controlLeft": 192,
+  "rightEdge": 808,
+  "sideLeft": 864,
+  "sideWidth": 472,
+  "right": 1336,
+  "headerTop": 44,
+  "headerBottom": 124,
+  "formTop": 148,
+  "formBottom": 968
+ },
+ "regions": {
+  "header": {
+   "left": 40,
+   "right": 1336,
+   "anchor": "stretch"
+  },
+  "main": {
+   "left": 40,
+   "right": 840,
+   "anchor": "left"
+  },
+  "side": {
+   "left": 864,
+   "right": 1336,
+   "anchor": "right"
+  },
+  "action": {
+   "left": 864,
+   "right": 1336,
+   "anchor": "right"
+  }
+ },
+ "elements": [
+  {
+   "id": "main.card",
+   "kind": "card",
+   "part": "PaperCard",
+   "x": 40,
+   "y": 148,
+   "w": 800,
+   "h": 232,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "header.back",
+   "kind": "back",
+   "x": 40,
+   "y": 44,
+   "w": 80,
+   "h": 80,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "start",
+   "text": "Back to Settings"
+  },
+  {
+   "id": "header.title",
+   "kind": "title",
+   "x": 144,
+   "y": 47,
+   "w": 277,
+   "h": 72,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 103,
+   "font": 48,
+   "text": "Add a child"
+  },
+  {
+   "id": "header.note",
+   "kind": "text",
+   "x": 1152,
+   "y": 65,
+   "w": 184,
+   "h": 36,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "end",
+   "baseline": 93,
+   "font": 24,
+   "text": "Grown-ups only"
+  },
+  {
+   "id": "main.label.name",
+   "kind": "label",
+   "x": 78,
+   "y": 180,
+   "w": 150,
+   "h": 80,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Name"
+  },
+  {
+   "id": "main.label.age",
+   "kind": "label",
+   "x": 590,
+   "y": 180,
+   "w": 66,
+   "h": 80,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Age"
+  },
+  {
+   "id": "main.row.name.text.1",
+   "kind": "text",
+   "x": 272,
+   "y": 197,
+   "w": 86,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 232,
+   "font": 30,
+   "text": "Name"
+  },
+  {
+   "id": "main.row.name.text.2",
+   "kind": "text",
+   "x": 704,
+   "y": 197,
+   "w": 57,
+   "h": 45,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 220,
+   "font": 30,
+   "text": "Age"
+  },
+  {
+   "id": "main.label.colour",
+   "kind": "label",
+   "x": 78,
+   "y": 278,
+   "w": 150,
+   "h": 64,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Colour"
+  },
+  {
+   "id": "main.label.face",
+   "kind": "label",
+   "x": 590,
+   "y": 278,
+   "w": 66,
+   "h": 64,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Face"
+  },
+  {
+   "id": "main.row.colour.choice.1",
+   "kind": "choice",
+   "x": 662,
+   "y": 278,
+   "w": 64,
+   "h": 64,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Girl face"
+  },
+  {
+   "id": "main.row.colour.choice.2",
+   "kind": "choice",
+   "x": 738,
+   "y": 278,
+   "w": 64,
+   "h": 64,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Boy face"
+  },
+  {
+   "id": "main.row.colour.button.1",
+   "kind": "button",
+   "x": 198,
+   "y": 282,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Blue"
+  },
+  {
+   "id": "main.row.colour.button.2",
+   "kind": "button",
+   "x": 278,
+   "y": 282,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Orange"
+  },
+  {
+   "id": "main.row.colour.button.3",
+   "kind": "button",
+   "x": 358,
+   "y": 282,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Green"
+  },
+  {
+   "id": "main.row.colour.button.4",
+   "kind": "button",
+   "x": 438,
+   "y": 282,
+   "w": 56,
+   "h": 56,
+   "region": "main",
+   "anchor": "left",
+   "align": "inside",
+   "text": "Purple"
+  },
+  {
+   "id": "action.button",
+   "kind": "button",
+   "x": 864,
+   "y": 872,
+   "w": 472,
+   "h": 96,
+   "region": "action",
+   "anchor": "right",
+   "align": "fill",
+   "text": "Add"
+  }
+ ]
+}
