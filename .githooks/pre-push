@@ -95,7 +95,7 @@ if printf '%s' "$changed" | grep -Eq '^(CLAUDE\.md|\.claude/)'; then
 fi
 
 # Names in skills and CLAUDE.md must still exist when either side changes.
-if printf '%s' "$changed" | grep -Eq '^(CLAUDE\.md|\.claude/skills/|ios/.*\.swift$|scripts/)'; then
+if printf '%s' "$changed" | grep -Eq '^(CLAUDE\.md|\.claude/|\.githooks/|ios/.*\.swift$|scripts/|tools/|docs/)'; then
   bash "$ROOT/scripts/check-skill-refs.sh" "$ROOT" </dev/null || status=1
 fi
 

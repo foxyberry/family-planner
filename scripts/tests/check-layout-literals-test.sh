@@ -35,6 +35,25 @@ test_blocks_number_in_frame_padding_spacing() {
   assert test_blocks_number_in_frame_padding_spacing $?
 }
 
+test_blocks_number_size_arguments() {
+  new_tree
+  printf 'SetupRow(label: day, height: 72) {}\n' > "$TREE/ios/Features/Home/AView.swift"
+  printf 'ListRow(leading: x, minHeight: 80, labelHeight: 80) {}\n' > "$TREE/ios/Features/Home/BView.swift"
+  printf 'CrayonTabs(itemSize: CGSize(width: tabWidth, height: 72))\n' > "$TREE/ios/AppCore/CView.swift"
+  run_check
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"AView.swift"* ]] && [[ "$ERR" == *"BView.swift"* ]] && [[ "$ERR" == *"CView.swift"* ]]
+  assert test_blocks_number_size_arguments $?
+}
+
+test_passes_scaled_size_arguments() {
+  new_tree
+  printf 'SetupRow(label: day, height: sizing.tabHeight()) {}\nListRow(leading: x, minHeight: 0) {}\n' \
+    > "$TREE/ios/Features/Home/HomeView.swift"
+  run_check
+  [ "$CODE" -eq 0 ]
+  assert test_passes_scaled_size_arguments $?
+}
+
 test_passes_tokens() {
   new_tree
   printf '.frame(width: sizing.swatch2, height: layout.row)\n.padding(.top, Spacing.m)\nHStack(spacing: Spacing.sm) {}\n' \
@@ -82,6 +101,8 @@ test_repo_passes() {
 
 test_blocks_offset
 test_blocks_number_in_frame_padding_spacing
+test_blocks_number_size_arguments
+test_passes_scaled_size_arguments
 test_passes_tokens
 test_layouts_and_tests_are_exempt
 test_pending_allows_its_count_only

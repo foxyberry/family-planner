@@ -105,13 +105,19 @@ def type_bodies(name):
 def check(token, doc_dir):
     """None when the token is fine or can't be checked, else why it fails."""
     t = re.sub(r":\d+$", "", token.strip())
-    if (not t or " " in t or t.startswith(("-", "~", "/", "@", "\\", ".", "$")) or "://" in t
-            or re.search(r"[<>{}\"'=|;,`]", t) or re.fullmatch(r"[\d.%x×·]+", t)):
-        return None
-    if t.startswith("//"):  # Bazel label
+    if re.fullmatch(r"//[\w/.-]*(:[\w.-]+)?", t):  # Bazel label (before the "/" skip below)
+        if "..." in t:
+            return None  # a pattern (//ios/...), not one package
         pkg = t[2:].split(":")[0]
         return None if os.path.isfile(os.path.join(root, pkg, "BUILD.bazel")) or os.path.isfile(
             os.path.join(root, pkg, "BUILD")) else "no such Bazel package"
+    # Dot paths (.claude/lessons.md, .githooks/pre-push) are paths; other leading dots
+    # (`.drawnRow()`, `.offset(`) are Swift.
+    dot_path = t.startswith(".") and ("/" in t or t.endswith(EXT))
+    if (not t or " " in t or t.startswith(("-", "~", "/", "@", "\\", "$")) or "://" in t
+            or (t.startswith(".") and not dot_path)
+            or re.search(r"[<>{}\"'=|;,`]", t) or re.fullmatch(r"[\d.%x×·]+", t)):
+        return None
     # A path: a known extension, or a first segment that is a top-level entry of the repo
     # (`Asia/Singapore` and branch names like `feature/*` are not paths).
     if t.endswith(EXT) or t == "Makefile" or ("/" in t and t.split("/")[0] in top):
