@@ -49,6 +49,8 @@ public struct AppView: View {
         #if DEBUG
         // "Load sample family" in the debug menu replaced the stored family.
         .onChange(of: DebugModel.installed?.familyGeneration) { store.send(.familyReplaced) }
+        // `-fpDriver`: the agent driver answers `ls` and `do` on 127.0.0.1 (Journeys/Tests/Driver).
+        .task { await serveDriver() }
         #endif
         // One colour scheme for the window, set here because a pushed screen cannot override the home
         // underneath: grown-up screens follow the iPad's dark mode through the colour tokens.
@@ -68,6 +70,27 @@ public struct AppView: View {
         .task { store.send(.checkFamily) }
         .task { await store.send(.task).finish() }
     }
+
+    #if DEBUG
+    /// The agent driver while `-fpDriver` asked for it: each request reads or acts on this store
+    /// through the contract's names only (`AgentContract`). Nothing listens otherwise.
+    private func serveDriver() async {
+        guard let port = DebugModel.installed?.driverPort else { return }
+        let store = store
+        await AgentServer.serve(port: port) { request in
+            await MainActor.run {
+                switch AgentContract.reply(method: request.method, path: request.path, body: request.body,
+                                           state: store.state) {
+                case let .answer(status, json):
+                    return AgentServer.Response(status: status, body: json)
+                case let .send(action):
+                    store.send(action)
+                    return AgentServer.Response(status: 200, body: AgentContract.lsJSON(store.state))
+                }
+            }
+        }
+    }
+    #endif
 
     /// The debug menu's "Rig scale" in debug builds; the kit data's scale otherwise.
     private static var rigScale: Double {

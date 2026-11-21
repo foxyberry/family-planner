@@ -34,6 +34,9 @@ public final class DebugModel {
     /// "Skip Face ID" exists only on a simulator: on a real iPad a forgotten switch would leave
     /// grown-up screens open for good.
     public let allowsSkipFaceID: Bool
+    /// The agent driver's port while `-fpDriver` serves it (AppView starts `AgentServer` then);
+    /// nil otherwise, so nothing listens.
+    public internal(set) var driverPort: UInt16?
 
     /// The installed model for views: a view's `@Dependency` reads the default values, not the ones
     /// `bootstrap` gave the store, so `DebugOverlay` finds the model here.
@@ -145,6 +148,7 @@ extension DebugModel {
                 core.skipsFaceID ? .success : await live.authenticate(reason)
             }
         }
+        if allowsStartFamily, options.drivesAgent { model.driverPort = AgentServer.port }
         dependencies.debugTools = model
         installed = model
     }

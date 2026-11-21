@@ -89,14 +89,5 @@ final class AgentJourneyTests: XCTestCase {
         return shown.fields[String(text.dropFirst())] ?? .null
     }
 
-    private func value(_ any: Any) -> AgentValue {
-        switch any {
-        case let number as NSNumber where CFGetTypeID(number) == CFBooleanGetTypeID(): .bool(number.boolValue)
-        case let number as NSNumber: .int(number.intValue)
-        case let text as String: .string(text)
-        case let list as [Any]: .list(list.map(value))
-        case let object as [String: Any]: .object(object.mapValues(value))
-        default: .null
-        }
-    }
+    private func value(_ any: Any) -> AgentValue { AgentValue(json: any) }
 }

@@ -96,6 +96,14 @@ test_checks_the_swift_journey_exists() {
   assert test_checks_the_swift_journey_exists $?
 }
 
+test_checks_the_app_mapping_names_everything() {
+  new_tree
+  printf 'let names = ["home", "kids", "weekday", "nameChanged", "settings", "family"]\n' > "$TREE/ios/AppCore/AgentContract.swift"
+  run_check
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *'AgentContract.swift: no "clockHeld" (home)'* ]] && [[ "$ERR" != *'"kids"'* ]]
+  assert test_checks_the_app_mapping_names_everything $?
+}
+
 test_ignores_comment_lines() {
   new_tree
   printf '// case clockHoldCompleted was here\npublic var days: [KidDay] = []\npublic var weekday: Weekday?\npublic var name = ""\ncase binding(BindingAction<State>)\n' \
@@ -111,6 +119,7 @@ test_blocks_a_journey_outside_the_contract
 test_checks_a_binding_field
 test_checks_the_swift_journey_exists
 test_checks_expect_against_the_current_screen
+test_checks_the_app_mapping_names_everything
 test_ignores_comment_lines
 
 echo "passed=$PASS failed=$FAIL"

@@ -41,6 +41,9 @@ public struct LaunchOptions: Equatable, Sendable {
     public var family: StartFamily?
 
     public enum StartFamily: String, Equatable, Sendable { case empty, sample }
+    /// `-fpDriver` (`make run DRIVER=1`): serve the agent driver (`AgentServer`) on 127.0.0.1.
+    /// Simulators only for now; a real iPad's world is the user's decision (PROTOCOL.md).
+    public var drivesAgent = false
 
     public init(now: Date?, speed: Double?, grid: Bool = false) {
         self.now = now
@@ -63,6 +66,7 @@ public struct LaunchOptions: Equatable, Sendable {
         grid = arguments.contains("-fpGrid")
         skipsFaceID = arguments.contains("-fpSkipFaceID")
         family = value(after: "-fpFamily").flatMap(StartFamily.init(rawValue:))
+        drivesAgent = arguments.contains("-fpDriver")
     }
 }
 
