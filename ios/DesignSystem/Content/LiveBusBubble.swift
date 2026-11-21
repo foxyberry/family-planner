@@ -69,7 +69,7 @@ public struct LiveBusTag: View {
         }
     }
 
-    static func plateWidth(_ number: String, then: String?) -> CGFloat {
+    nonisolated public static func plateWidth(_ number: String, then: String?) -> CGFloat {
         var words = CrayonType.captionBoldWidth(number)
         if let then { words += Spacing.xxs + arrow + Spacing.xxs + CrayonType.captionBoldWidth(then) }
         return max(plateMinWidth, words + 2 * Spacing.xs)

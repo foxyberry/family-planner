@@ -327,10 +327,28 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Boards C2/S3: bus pills, one on and one off.
     func testPillToggles() {
         snap(HStack(spacing: Spacing.sm) { PillToggle("12", isOn: true) {}; PillToggle("345", isOn: false) {} })
-        // Spec "Several buses": a bus that changes, "34 → 33" with the arrow drawn.
-        snap(HStack(spacing: Spacing.sm) { PillToggle("34", isOn: true, then: "33") {}; PillToggle("34", isOn: false, then: "33") {} },
-             named: "changes")
+        // Spec "Several buses" (v61): a bus that changes, "12 · 34 → 33" with the arrow drawn, as wide
+        // as its words + 80.
+        snap(HStack(spacing: Spacing.sm) {
+            PillToggle("12 · 34", isOn: true, then: "33") {}; PillToggle("97", isOn: false, then: "56") {}
+        }, named: "changes")
     }
+
+    /// Board C2 (v61): three plain pills, then the pill of a bus that changes wraps to the next line.
+    func testPillToggleGridWraps() {
+        snap(PillToggleGrid(controlWidth: 616) {
+            PillToggle("12", isOn: true) {}
+            PillToggle("34", isOn: true) {}
+            PillToggle("56", isOn: false) {}
+            PillToggle("12 · 34", isOn: true, then: "33") {}
+        }, width: 616 + 2 * Spacing.m)
+    }
+
+    /// Boards C2 / S3: "+ A bus that changes…".
+    func testPlusLink() { snap(PlusLink("A bus that changes…") {}) }
+
+    /// Boards G2 / C2c: the side column's remove button, 472 × 88.
+    func testRemoveButton() { snap(RemoveButton("Remove this bus") {}.frame(width: 472), width: 472 + 2 * Spacing.m) }
 
     /// Spec "Kid card" (board S1, two columns): Name with the face inside + Age, Colour + Face, rows
     /// 24 apart drawn on the form lines; made-up names only.
@@ -480,6 +498,12 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     /// Board G1d: the shared ConfirmCard with its line's arrow drawn inline.
+    func testConfirmCardGlyphTitle() {
+        // Board C2c (v61): "Remove 12 · 34 → 33?", the arrow drawn in the title.
+        snap(ConfirmCard(title: "Remove 12 · 34 %@ 33?", titleGlyph: .arrowRight, message: nil, cancel: "Keep",
+                         confirm: "Remove", isDestructive: true, onCancel: {}, onConfirm: {}), width: 620)
+    }
+
     func testConfirmCardGlyphLine() {
         snap(ConfirmCard(title: "Save the changes?", message: "Dinner 6:30 pm %@ 7:30 pm, this day",
                          messageGlyph: .arrowRight, cancel: "Cancel", confirm: "Save", isDestructive: false,
@@ -671,6 +695,15 @@ final class ComponentSnapshotTests: XCTestCase {
             owner: KidFace.Badge(face: "kidGirl", colorIndex: 0), myBus: "my bus",
             myService: "12", others: [WayStrip.Plate("34")])
         snap(WayStrip(live: live).frame(width: 1248, height: 340), width: 1300)
+        // v61: the legend lists a bus that changes by its first buses and the drawn arrow; wide plates
+        // show as many as fit the legend's width, then "+{n}".
+        var changes = live
+        let plates = [WayStrip.Plate("34"), WayStrip.Plate("12 · 34", then: "33"), WayStrip.Plate("97", then: "56"),
+                      WayStrip.Plate("7", then: "9")]
+        let shown = WayStrip.legendCount(plates) { "+\($0)" }
+        changes.others = Array(plates.prefix(shown))
+        changes.moreOthers = "+\(plates.count - shown)"
+        snap(WayStrip(live: changes).frame(width: 1248, height: 340), width: 1300, named: "changes")
     }
 
     /// Spec "A2 strip": the tags of the other buses: a plain bus and a bus that changes.

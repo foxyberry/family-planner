@@ -55,6 +55,8 @@ public enum CrayonStyle {
         static let dayPicker: UInt32 = 2901
         /// The kid card's face discs (S1 / G6f), the seed they always had.
         static let kidCardFace: UInt32 = 1650
+        /// The side column's remove button (G2 "Remove every week"), the seed it always had.
+        static let removeButton: UInt32 = 1903
     }
 }
 

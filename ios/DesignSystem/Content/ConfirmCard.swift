@@ -3,11 +3,13 @@ import SwiftUI
 
 /// A small card that asks before something is lost ("Leave without adding?", "Remove Swimming?",
 /// G1d "Save the changes?"). Every confirm in the app is this one part (spec "ConfirmCard"). The
-/// destructive choice is in `lateText`. A message can draw one marker glyph inline at text size
-/// (`messageGlyph`, at the message's `%@`), since Playpen Sans has no arrows.
+/// destructive choice is in `lateText`. A title or message can draw one marker glyph inline at text
+/// size (`titleGlyph` / `messageGlyph`, at its `%@`: "Remove 12 · 34 → 33?"), since Playpen Sans has
+/// no arrows.
 /// Place it next to the control that opened it.
 public struct ConfirmCard: View {
     private let title: String
+    private let titleGlyph: MarkerGlyph?
     private let message: String?
     private let messageGlyph: MarkerGlyph?
     private let cancel: String
@@ -16,10 +18,11 @@ public struct ConfirmCard: View {
     private let onCancel: () -> Void
     private let onConfirm: () -> Void
 
-    public init(title: String, message: String?, messageGlyph: MarkerGlyph? = nil, cancel: String, confirm: String,
-                isDestructive: Bool, onCancel: @escaping () -> Void,
+    public init(title: String, titleGlyph: MarkerGlyph? = nil, message: String?, messageGlyph: MarkerGlyph? = nil,
+                cancel: String, confirm: String, isDestructive: Bool, onCancel: @escaping () -> Void,
                 onConfirm: @escaping () -> Void) {
         self.title = title
+        self.titleGlyph = titleGlyph
         self.message = message
         self.messageGlyph = messageGlyph
         self.cancel = cancel
@@ -51,7 +54,11 @@ public struct ConfirmCard: View {
             // Spec "Layout balance": the text block, then the buttons row 24 below between drawn edges.
             VStack(alignment: .leading, spacing: sizing.formRowGap - CrayonPart.inset) {
                 VStack(alignment: .leading, spacing: Spacing.s) {
-                    Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                    if let titleGlyph {
+                        GlyphText(title, glyph: titleGlyph, type: .head, color: CrayonColor.ink)
+                    } else {
+                        Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                    }
                     if let message, let messageGlyph {
                         GlyphText(message, glyph: messageGlyph, type: .body, color: CrayonColor.softText)
                     } else if let message {
