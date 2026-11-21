@@ -54,21 +54,21 @@ public struct EditClock: View {
 
     public static let radius: CGFloat = 340
     public static let hubRadius: CGFloat = 130
-    /// Board G1: a "+" is a RoundButton 56; its tap frame is the whole 56.
+    /// Board G1: a "+" is a RoundButton 56 whose circle is drawn one part inset (6) inside its frame.
     public static let addSize: CGFloat = 56
+    static var addDrawn: CGFloat { addSize - 2 * CrayonPart.inset }
     /// Spec "Add between two slices": a "+" centre sits on one of three rings, 64, 120 and 176 in
     /// from the rim (56 apart, more than a drawn circle, so "+" on two rings never touch).
     public static let addRings: [CGFloat] = [64, 120, 176]
 
-    /// Spec "Add between two slices": two "+" on `ring` overlap when their tap frames (the whole 56,
-    /// not only the 44 drawn circle) meet, so a tap never lands on the neighbour. At board units that
-    /// is under about 47 minutes apart on the outer ring (centres 276 from the middle), 58 on the
-    /// middle one (220) and 78 on the inner one (164).
+    /// Spec "Add between two slices": two "+" on `ring` touch when their drawn circles (44) meet, at
+    /// board units: under about 37 minutes apart on the outer ring (centres 276 from the middle),
+    /// 46 on the middle one (220) and 62 on the inner one (164).
     public static func addButtonsOverlap(_ a: Int, _ b: Int, ring: Int = 0) -> Bool {
         let apart = abs(a - b) % 1440
         let minutes = Double(min(apart, 1440 - apart))
         let chord = 2 * (radius - addRings[ring]) * sin(minutes * 0.25 * .pi / 180 / 2)
-        return chord < addSize
+        return chord < addDrawn
     }
 
     /// Spec "Sizing → Touch", rule 2: a drag that starts on a slice in the clock ring grabs the
