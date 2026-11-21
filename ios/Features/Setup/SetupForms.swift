@@ -171,7 +171,7 @@ public struct GoingForm: Equatable {
 
     public init() {}
 
-    /// S3 (layout v17): a route is finished once a bus kid has a stop; walk, car and taxi need
+    /// S3: a route is finished once a bus kid has a stop; walk, car and taxi need
     /// nothing more. Bus numbers stay optional, since a build without live times cannot list them.
     public var isFinished: Bool { way != .bus || search.stop.count == 5 }
 

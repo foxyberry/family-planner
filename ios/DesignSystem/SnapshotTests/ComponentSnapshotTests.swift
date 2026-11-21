@@ -369,7 +369,7 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(MinutesStepper(value: "10 min", caption: "to the stop", minus: {}, plus: {}), width: 560)
     }
 
-    /// S4 switch list (layout v17): the switch on and off, and a row with a warning caption.
+    /// S4 switch list: the switch on and off, and a row with a warning caption.
     func testSettingRows() {
         snap(HStack(spacing: Spacing.m) { CrayonSwitch(isOn: true); CrayonSwitch(isOn: false) }, named: "switches")
         snap(VStack(spacing: 20) {

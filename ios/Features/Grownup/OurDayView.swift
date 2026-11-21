@@ -70,7 +70,7 @@ public struct OurDayView: View {
                       onSliceTap: { store.send(.sliceTapped(start: $0)) },
                       onPlusTap: { store.send(.plusTapped(start: $0)) },
                       addButtons: store.addButtons, onAddBetween: { store.send(.addBetweenTapped($0)) })
-                // Board G1 (layout v32): the clock centred at (410, 549), 30 left of and 9 above the
+                // Board G1: the clock centred at (410, 549), 30 left of and 9 above the
                 // form box's middle (440, 558), so its hour labels start at x 30 as on the home clock.
                 .offset(x: -30 * layout.sizing.s, y: -9 * layout.sizing.s)
                 .frame(width: layout.form.width, height: layout.form.height)
@@ -120,7 +120,7 @@ public struct OurDayView: View {
         .padding(.bottom, sizing(Spacing.s))
     }
 
-    /// Board G8 (layout v36): the sections in one card; one "Add" on the side. A long title or caption
+    /// Board G8: the sections in one card; one "Add" on the side. A long title or caption
     /// wraps to two lines (the row grows from 88 to 136, picture and › stay centred), then ends in "…".
     private func list(_ layout: GrownupLayout) -> some View {
         HStack(alignment: .top, spacing: layout.gap) {

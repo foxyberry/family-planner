@@ -479,7 +479,7 @@ public struct ItemForm: Equatable, Sendable {
         }
     }
 
-    /// Board C3 "What" row (layout v6): `count` pictures, the picked one first, then the ones used
+    /// Board C3 "What" row: `count` pictures, the picked one first, then the ones used
     /// most (ties keep the kit's order), then the rest of the kit's list. Never repeats a picture.
     public static func rowPictures(picked: String?, used: [String], all: [String], count: Int = 5) -> [String] {
         var row: [String] = []

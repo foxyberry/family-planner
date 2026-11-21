@@ -74,7 +74,7 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTabTapped(first))
     }
 
-    /// S3 (layout v17): one screen with a tab per going kid; Next waits for every tab.
+    /// S3: one screen with a tab per going kid; Next waits for every tab.
     func testGettingThereHasATabPerKid() async {
         let store = store()
         await family(store)
@@ -355,7 +355,7 @@ final class SetupTests: XCTestCase {
         XCTAssertEqual(saved.value.count, 1)
     }
 
-    /// S4 (layout v17): the lock goes off at once; on asks Face ID and stays off without it.
+    /// S4: the lock goes off at once; on asks Face ID and stays off without it.
     /// Start saves the switches with the family.
     func testSwitchesAndTheLockCheck() async {
         let outcome = LockIsolated(ParentAuthOutcome.notAvailable)

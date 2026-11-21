@@ -1,7 +1,7 @@
 import CrayonKit
 import SwiftUI
 
-/// Spec C2 "Result list card" (layout v14), shared by the stop and school searches: an opaque white
+/// Spec C2 "Result list card", shared by the stop and school searches: an opaque white
 /// card as wide as the control column (610 by default; 592 on the v31 grown-up form, 208–800), 12 padding top and bottom, rows 72 tall with the
 /// name (body bold, link, one line) over its caption, 2 apart with no line (layout v21). Past
 /// `visibleRows` the rows scroll inside the card.

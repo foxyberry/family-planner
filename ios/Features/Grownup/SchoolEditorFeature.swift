@@ -7,7 +7,7 @@ import ScheduleStore
 import SchoolDirectory
 import Strings
 
-/// G4 · Edit School (spec "G4", layout v47): School's hours, days, Arrive by and Latest, Terms, how
+/// G4 · Edit School (spec "G4"): School's hours, days, Arrive by and Latest, Terms, how
 /// the kid goes, Bring and the medal. **All days** writes the school record and a new weekday template
 /// from today with School's slice on the new times (as an All days save on the clock does). **This
 /// day** keeps the record and saves the day's own template with School's slice moved (a late start,

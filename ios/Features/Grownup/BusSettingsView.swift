@@ -84,7 +84,7 @@ public struct BusSettingsView: View {
         }
     }
 
-    /// Board C2's side column (layout v38, plain screens): whose route it is, nothing more.
+    /// Board C2's side column (plain screens): whose route it is, nothing more.
     private var side: some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
             Text(store.sideTitle).crayonType(.head)

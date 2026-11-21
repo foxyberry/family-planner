@@ -121,6 +121,6 @@ public struct MissionEditorView: View {
         }
     }
 
-    /// Board C5's side column: empty since layout v38 (plain screens); "Ready by" comes with N2.
+    /// Board C5's side column: empty since (plain screens); "Ready by" comes with N2.
     private var side: some View { EmptyView() }
 }

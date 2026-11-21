@@ -232,7 +232,7 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.item(id: UUID(), today: Day(year: 2026, month: 11, day: 9)).trip, nil)
     }
 
-    /// Board C3 "What" (layout v6): the picked picture first, then the most used, then the kit's order.
+    /// Board C3 "What": the picked picture first, then the most used, then the kit's order.
     func testRowPicturesPutPickedThenMostUsed() {
         let all = ["actSwim", "actArt", "actMusic", "actPiano", "actDance", "actFootball", "cake"]
         XCTAssertEqual(ItemForm.rowPictures(picked: nil, used: [], all: all),

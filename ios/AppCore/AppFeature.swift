@@ -86,7 +86,7 @@ public struct AppFeature {
         public var hasFamily: Bool?
         /// First-run setup (S1–S4) instead of the home, while the iPad has no family.
         public var setup: SetupFeature.State?
-        /// S4 "Grown-up lock" (layout v17). Off: the 2 s hold is the only gate, no Face ID and no
+        /// S4 "Grown-up lock". Off: the 2 s hold is the only gate, no Face ID and no
         /// app-switcher cover; the 2-minute return home stays.
         public var grownupLock = true
 

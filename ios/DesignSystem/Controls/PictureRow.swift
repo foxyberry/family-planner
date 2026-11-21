@@ -2,7 +2,7 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// Board C3 "What" (layout v6): one row of picture slots (88, gap 16; the picked one has a blue
+/// Board C3 "What": one row of picture slots (88, gap 16; the picked one has a blue
 /// ring), then a "More" slot (88 circle, bold caption). "More" opens a card under the row with every
 /// picture, 6 per row (`IconPicker`); the row never wraps or scrolls, so the rows below keep their
 /// lines. Callers pass the slots (the picked one first) and the words.
