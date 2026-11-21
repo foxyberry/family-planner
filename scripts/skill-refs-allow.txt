@@ -9,3 +9,6 @@ ios/Clients/XLive/XLive.swift
 # test-layers: TestStore methods from TCA, not this repo.
 finish()
 skipReceivedActions()
+# screen-layout: Sizing.callAsFunction, written as a call on the sizing value.
+sizing(board)
+sizing(180)
