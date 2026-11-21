@@ -174,6 +174,9 @@ extension SetupFeature.State {
     }
     public var leaveText: String { L10n.tr("going.leave.minutes", goingKid?.going.leaveBefore ?? 0) }
 
+    /// The Leave row's caption as shown: "before · 7:20 am", or nothing without an Arrive by.
+    public var leaveCaptionText: String { leaveCaption ?? "" }
+
     /// "before · 7:20 am", from the school's Arrive by.
     public var leaveCaption: String? {
         guard let kid = goingKid, let arrive = kid.school.arriveBy else { return nil }

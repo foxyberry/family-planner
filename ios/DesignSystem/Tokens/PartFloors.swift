@@ -47,6 +47,8 @@ public extension Sizing {
     var goesToTabWidth: CGFloat { tabWidth(180, minimum: 149) }
     /// `RoundButton`: the board diameter × s, never under 56 (or the board size when smaller).
     func roundButton(_ board: CGFloat) -> CGFloat { fluid(board, min(56, board)) }
+    /// `MinutesStepper`'s value column: 144 on the board, never under 112 ("90 min" bold fits).
+    var stepperValueWidth: CGFloat { fluid(144, 112) }
     /// `CrayonSwitch`: 96 × 52 on the board, never under 72 × 48; knob 44, never under 40.
     var switchSize: CGSize { CGSize(width: fluid(96, 72), height: fluid(52, 48)) }
     var switchKnob: CGFloat { fluid(44, 40) }

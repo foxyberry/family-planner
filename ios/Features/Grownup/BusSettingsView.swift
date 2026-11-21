@@ -48,7 +48,7 @@ public struct BusSettingsView: View {
             }
             .captionedRow()
             .zIndex(1)
-            ListRow(leading: L10n.tr("c2.buses"), minHeight: PillToggle.size.height, labelHeight: PillToggle.size.height) {
+            ListRow(leading: L10n.tr("c2.buses"), minHeight: layout.sizing.tabHeight(), labelHeight: layout.sizing.tabHeight()) {
                 if store.search.servicesAtStop.isEmpty {
                     Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .frame(height: PillToggle.size.height)
@@ -72,13 +72,15 @@ public struct BusSettingsView: View {
             }
             .drawnRow()
             stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("c2.walk.caption"), step: 1,
-                    value: store.walk) { store.send(.walkChanged($0)) }
+                    value: store.walk, sizing: layout.sizing) { store.send(.walkChanged($0)) }
             ForEach(store.rideRows) { row in
                 stepper(row.label, text: row.text, caption: row.caption, step: 1,
-                        value: row.minutes, spoken: row.spoken) { store.send(.rideChanged(service: row.service, minutes: $0)) }
+                        value: row.minutes, spoken: row.spoken, sizing: layout.sizing) {
+                    store.send(.rideChanged(service: row.service, minutes: $0))
+                }
             }
             stepper(L10n.tr("c2.grace"), text: store.graceText, caption: L10n.tr("c2.grace.caption"), step: 5,
-                    value: store.lateGrace) { store.send(.graceChanged($0)) }
+                    value: store.lateGrace, sizing: layout.sizing) { store.send(.graceChanged($0)) }
             if store.showsChangeLink { changeLink }
         }
     }
@@ -107,8 +109,8 @@ public struct BusSettingsView: View {
 
     /// A minutes row (board C2): the shared stepper, laid out by its drawn box.
     private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int,
-                         spoken: String? = nil, change: @escaping (Int) -> Void) -> some View {
-        ListRow(leading: label, minHeight: 72) {
+                         spoken: String? = nil, sizing: Sizing, change: @escaping (Int) -> Void) -> some View {
+        ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
             MinutesStepper(value: text, caption: caption, spoken: spoken ?? label,
                            minus: { change(value - step) }, plus: { change(value + step) })
         }

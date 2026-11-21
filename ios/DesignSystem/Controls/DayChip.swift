@@ -6,6 +6,8 @@ import SwiftUI
 public struct DayChip: View {
     @Environment(\.sizing) private var sizing
     private var drawn: CGFloat { size >= 72 ? sizing.tabHeight(size) : size }
+    /// The small chip (S2 Days, C1/E6 read-only rows).
+    public static let small: CGFloat = 56
     private let letter: String
     private let size: CGFloat
     @Binding private var isOn: Bool

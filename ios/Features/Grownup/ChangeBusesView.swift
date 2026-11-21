@@ -82,7 +82,9 @@ public struct ChangeBusesView: View {
                     }
                 }
             }
-            .captionedRow()
+            // Drawn on both edges without a caption; with one, the caption draws to its own edge.
+            .padding(.top, -CrayonPart.inset)
+            .padding(.bottom, store.thenCaption == nil ? -CrayonPart.inset : 0)
             stepper(L10n.tr("c2c.ride1"), text: store.ride1Text, caption: store.ride1Caption, value: store.ride1) {
                 store.send(.ride1Changed($0))
             }
@@ -99,7 +101,7 @@ public struct ChangeBusesView: View {
     /// Bus pills (180 × 72), one picked; "No buses found" while the stop has none.
     private func pills(_ label: String, controlWidth: CGFloat, services: [String], picked: String?,
                        tap: @escaping (String) -> Void) -> some View {
-        ListRow(leading: label, minHeight: PillToggle.size.height, labelHeight: PillToggle.size.height) {
+        ListRow(leading: label, minHeight: sizing.tabHeight(), labelHeight: sizing.tabHeight()) {
             if services.isEmpty {
                 Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: PillToggle.size.height)
@@ -116,7 +118,7 @@ public struct ChangeBusesView: View {
 
     private func stepper(_ label: String, text: String, caption: String, value: Int,
                          change: @escaping (Int) -> Void) -> some View {
-        ListRow(leading: label, minHeight: 72) {
+        ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
             MinutesStepper(value: text, caption: caption, spoken: label,
                            minus: { change(value - 1) }, plus: { change(value + 1) })
         }

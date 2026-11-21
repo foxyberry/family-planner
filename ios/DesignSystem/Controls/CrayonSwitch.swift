@@ -84,7 +84,8 @@ public struct SettingRow<Picture: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 CrayonSwitch(isOn: isOn)
             }
-            // A two-line caption may grow the row past 120 (spec: up to the 140 pitch).
+            // A list row is 120 and a two-line caption may grow it (up to the 140 pitch); a hugging
+            // row is as tall as its words.
             .frame(minHeight: hugs ? 0 : sizing.settingRowHeight)
             .contentShape(Rectangle())
         }

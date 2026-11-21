@@ -80,6 +80,8 @@ public struct SchoolForm: Equatable, Sendable {
     /// "From the school website, checked 9 Nov" while Hours, Arrive by and Latest are as the school
     /// website states them; editing a value removes it.
     public var hoursSource: String?
+    /// The caption under Hours: the source, or a blank line so the rows below keep their place.
+    public var hoursCaption: String { hoursSource ?? " " }
     /// The website's hours for weekdays that differ, kept while the hours are as the site states them.
     public var websiteDays: [Weekday: SchoolDayHours] = [:]
     /// The MOE terms check, or the answer to "Does your school follow the MOE term dates?".

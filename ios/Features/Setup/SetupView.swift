@@ -318,12 +318,12 @@ private struct SchoolStep: View {
             .captionedRow()
             .id(Self.fieldID)
             .zIndex(1)
-        row(L10n.tr("s2.days")) {
-            // Board S2: 56 circles on a 72 pitch.
+        // Board S2: 56 circles on a 72 pitch; the row is as tall as the chips.
+        SetupRow(label: L10n.tr("s2.days"), height: DayChip.small) {
             HStack(spacing: Spacing.s) {
                 ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                     DayChip(DayText.initial(day), isOn: Binding(get: { school.days.contains(day) },
-                                                                set: { _ in store.send(.dayToggled(day)) }), size: 56)
+                                                                set: { _ in store.send(.dayToggled(day)) }), size: DayChip.small)
                 }
             }
         }
@@ -336,7 +336,7 @@ private struct SchoolStep: View {
                     time(.end, width: 180)
                 }
                 // The caption's line is kept even when empty, so the rows below stay on their lines.
-                Text(school.hoursSource ?? " ").crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                Text(school.hoursCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
         }
         .captionedRow()
@@ -356,7 +356,7 @@ private struct SchoolStep: View {
     }
 
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
-        SetupRow(label: label, height: 80, control: control)
+        SetupRow(label: label, height: layout.grown.sizing.fieldHeight, control: control)
     }
 
     private func time(_ row: SetupFeature.TimeRow, width: CGFloat? = nil) -> some View {
@@ -526,15 +526,16 @@ private struct GoingStep: View {
                                 spoken: ride.spoken) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
                     }
                 } else {
-                    stepper(L10n.tr("going.leave"), text: store.leaveText, caption: store.leaveCaption ?? "",
+                    stepper(L10n.tr("going.leave"), text: store.leaveText, caption: store.leaveCaptionText,
                             step: 5, value: going.leaveBefore) { store.send(.leaveChanged($0)) }
                 }
             }
         }
     }
 
+    /// Board S3 rows hold 72 parts (circles, pills, steppers): 72 × s, never under 56.
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
-        SetupRow(label: label, height: 72, control: control)
+        SetupRow(label: label, height: sizing.tabHeight(), control: control)
     }
 
     private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
@@ -558,6 +559,7 @@ private struct AlmostDoneStep: View {
     /// (78) and the words 24 after it, each row as tall as its words and 24 apart (first at 186).
     /// Rows for features not built yet are not listed.
     var body: some View {
+        // The rows scroll inside the card to its edge, so the card's padding sits inside the scroll.
         PaperCard(seed: 91) {
             ScrollColumn {
                 VStack(alignment: .leading, spacing: layout.grown.sizing.formRowGap) {
@@ -569,8 +571,10 @@ private struct AlmostDoneStep: View {
                     }
                 }
                 .frame(width: layout.grown.editorRowsWidth, alignment: .leading)
+                .padding(FormLines.cardPadding)
             }
         }
+        .environment(\.cardPadding, EdgeInsets())
         .frame(width: layout.grown.form.width, height: layout.length(968 - 148), alignment: .topLeading)
     }
 
