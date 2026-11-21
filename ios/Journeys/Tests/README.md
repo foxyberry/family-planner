@@ -54,4 +54,6 @@ it.
 `contract.json` (each screen's fields and person actions, the parity contract another platform
 implements) and `journeys/*.json` (journeys as steps). `scripts/check-driver-contract.sh` keeps the
 contract's names true to the code and the journey files true to the contract. A new screen or a
-renamed action updates the contract with it. The driver itself comes next.
+renamed action updates the contract with it. `AgentContract` (AppCore) binds the contract's names
+to the app, and `AgentJourneyTests` replays every journey file through the root store with those names
+only, as a driver on any platform would. The driver's transport comes next.
