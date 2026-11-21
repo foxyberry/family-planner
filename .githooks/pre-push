@@ -72,6 +72,7 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   bash "$ROOT/scripts/check-view-values.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-journeys.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-unattended-tests.sh" </dev/null || status=1
+  bash "$ROOT/scripts/check-type-names.sh" </dev/null || status=1
   # Comments this push adds or edits must cite each board's current layout version.
   while read -r local_ref local_sha _ _; do
     case "$local_ref" in refs/heads/*) ;; *) continue ;; esac
