@@ -15,7 +15,8 @@ public struct DataSourcesView: View {
     public var body: some View {
         // Spec "Scrolling": the card stays put and its rows scroll inside it.
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: L10n.tr("sources.title"), onBack: { store.send(.backTapped) })
+            GrownupHeader(title: L10n.tr("sources.title"), caption: store.headerCaption, backLabel: store.backLabel,
+                          onBack: { store.send(.backTapped) })
         } content: { layout in
             PaperCard(seed: 41) {
                 ScrollColumn {

@@ -93,7 +93,7 @@ public struct PieClock: View {
                                           endDegrees: PieClockLayout.degrees(minute: sector.end)),
                                   fill: nil, marker: MarkerStyle(width: 9, roughness: 1.2, bowing: 1.4),
                                   seed: UInt32(3001 + sector.start))
-                        .keyframeAnimator(initialValue: 0.0, trigger: plays[sector.start] ?? 0) { view, value in
+                        .keyframeAnimator(initialValue: 0.0, trigger: plays[sector.start, default: 0]) { view, value in
                             view.opacity(value)
                         } keyframes: { _ in
                             LinearKeyframe(1.0, duration: 0.05)
@@ -164,7 +164,7 @@ public struct PieClock: View {
             if let name = sector.iconName, let slot = KitSlot(rawValue: name),
                let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: PieClock.radius,
                                                     hub: Self.hubRadius) {
-                RiggedKitIcon(slot, size: picture.size * k, playID: reduceMotion ? 0 : plays[sector.start] ?? 0,
+                RiggedKitIcon(slot, size: picture.size * k, playID: reduceMotion ? 0 : plays[sector.start, default: 0],
                               scale: rigScale)
                     .hop(sector.isCurrent && !reduceMotion ? motion.slotStart : nil)
                     .position(point(radius: picture.distance * k, degrees: middle))
@@ -212,7 +212,7 @@ public struct PieClock: View {
 
     private var hubDisc: some View {
         let title = hub.title.map { Self.hubTitleLines($0, sizing: sizing) }
-        let isTwoLines = (title?.lines.count ?? 1) > 1
+        let isTwoLines = if let title { title.lines.count > 1 } else { false }
         let titleBaselines: [CGFloat] = isTwoLines ? [512, 550] : [540]
         let untilBaseline: CGFloat = isTwoLines ? 594 : 590
         return ZStack {
@@ -237,13 +237,14 @@ public struct PieClock: View {
         // Board 0g2 "new slot": the title rises only when the slot changes while the clock is on
         // screen, never when the first slot arrives at launch (user, 2026-11-09).
         .onChange(of: motion.slotStart, initial: true) { old, new in
-            if old == nil || old == new || reduceMotion {
+            if let old, old != new, !reduceMotion {
+                // No slot now (new is nil) turns as if to midnight.
+                hubForward = if let new { PieClock.isForward(from: old, to: new) } else { PieClock.isForward(from: old, to: 0) }
+                withAnimation(.easeInOut(duration: 0.45)) { shownSlotStart = new }
+            } else {
                 var quiet = Transaction()
                 quiet.disablesAnimations = true
                 withTransaction(quiet) { shownSlotStart = new }
-            } else {
-                hubForward = PieClock.isForward(from: old ?? 0, to: new ?? 0)
-                withAnimation(.easeInOut(duration: 0.45)) { shownSlotStart = new }
             }
         }
         .frame(width: 2 * hubR, height: 2 * hubR)
@@ -287,7 +288,8 @@ public struct PieClock: View {
         if width(title, titleSize) <= titleWidth { return ([title], true) }
         if width(title, headSize) <= headWidth { return ([title], false) }
         let words = title.split(separator: " ").map(String.init)
-        var first = words.first ?? title
+        guard let firstWord = words.first else { return ([title], false) }
+        var first = firstWord
         var used = 1
         while used < words.count, width(first + " " + words[used], headSize) <= headWidth {
             first += " " + words[used]

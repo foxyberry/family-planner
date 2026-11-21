@@ -1,6 +1,7 @@
 import AppSettings
 import ComposableArchitecture
 import KeyboardClient
+import Localization
 import DesignSystem
 import DeviceLook
 import Domain
@@ -104,6 +105,41 @@ public struct AppFeature {
         /// A grown-up screen is open: the stack holds something other than the morning screen.
         public var hasGrownupScreens: Bool {
             path.contains { if case .missions = $0 { false } else { true } }
+        }
+
+        public var strings = Localizer.injected
+
+        /// The lock card's words (board C0); `primary` is nil when the state offers one button.
+        public struct LockCard: Equatable, Sendable {
+            public let title: String
+            public let message: String
+            public let primary: String?
+            public let cancel: String
+
+            public init(title: String, message: String, primary: String?, cancel: String) {
+                self.title = title
+                self.message = message
+                self.primary = primary
+                self.cancel = cancel
+            }
+        }
+
+        /// The open lock's card, nil while the lock is closed.
+        public var lockCard: LockCard? {
+            guard let lock else { return nil }
+            let message = switch lock {
+            case .scanning: strings.tr("lock.scanning")
+            case .notRecognised: strings.tr("lock.unrecognised")
+            case let .notAvailable(touchID): touchID ? strings.tr("lock.off.touch_id") : strings.tr("lock.off.face_id")
+            case .lockedOut: strings.tr("lock.locked_out")
+            }
+            let primary: String? = switch lock {
+            case .scanning, .lockedOut: nil
+            case .notRecognised: strings.tr("lock.retry")
+            case .notAvailable: strings.tr("lock.enter")
+            }
+            let cancel = lock == .lockedOut ? strings.tr("lock.ok") : strings.tr("lock.cancel")
+            return LockCard(title: strings.tr("lock.title"), message: message, primary: primary, cancel: cancel)
         }
     }
 

@@ -36,7 +36,8 @@ public struct ChangeBusesView: View {
 
     private var screen: some View {
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
+            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                          onBack: { store.send(.backTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
                 PaperCard(seed: 52) {

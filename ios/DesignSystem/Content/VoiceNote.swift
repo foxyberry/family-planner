@@ -1,5 +1,4 @@
 import CrayonKit
-import Strings
 import SwiftUI
 
 /// A recorded voice note: play button (56), a little waveform and the length.
@@ -7,11 +6,14 @@ import SwiftUI
 public struct VoiceNote: View {
     private let duration: Duration
     private let isPlaying: Bool
+    private let label: String
     private let onPlay: () -> Void
 
-    public init(duration: Duration, isPlaying: Bool, onPlay: @escaping () -> Void) {
+    /// `label`: the button's VoiceOver words, from the caller ("Play" or "Pause" as `isPlaying` says).
+    public init(duration: Duration, isPlaying: Bool, label: String, onPlay: @escaping () -> Void) {
         self.duration = duration
         self.isPlaying = isPlaying
+        self.label = label
         self.onPlay = onPlay
     }
 
@@ -25,7 +27,7 @@ public struct VoiceNote: View {
                     .crayonBackground(.circle, fill: CrayonStyle.blueCrayon, seed: CrayonStyle.Seed.voice)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(isPlaying ? L10n.tr("voice.pause") : L10n.tr("voice.play"))
+            .accessibilityLabel(label)
             HStack(spacing: Spacing.xxs) {
                 ForEach(Array([10, 22, 16, 30, 18, 26, 12, 20].enumerated()), id: \.offset) { _, h in
                     Capsule().fill(CrayonColor.ink).frame(width: 5, height: CGFloat(h))

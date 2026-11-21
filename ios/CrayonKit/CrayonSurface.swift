@@ -46,7 +46,7 @@ public struct CrayonSurface: View {
 
     public var body: some View {
         let bleed = Self.bleed(marker)
-        let lineColor = markerColor ?? outline
+        let lineColor = if let markerColor { markerColor } else { outline }
         Canvas { context, size in
             // The part's own frame, inside the bleed; positions and the cache stay as they were.
             let frame = CGSize(width: max(size.width - 2 * bleed, 0), height: max(size.height - 2 * bleed, 0))

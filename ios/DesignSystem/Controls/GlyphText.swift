@@ -13,7 +13,7 @@ public struct GlyphText: View {
 
     public init(_ format: String, glyph: MarkerGlyph, type: CrayonType = .caption, color: Color = CrayonColor.ink) {
         let parts = format.components(separatedBy: "%@")
-        before = parts.first ?? ""
+        before = parts[0] // components(separatedBy:) always returns at least one part
         after = parts.dropFirst().joined(separator: " ")
         self.glyph = glyph
         self.type = type
@@ -22,7 +22,7 @@ public struct GlyphText: View {
 
     public var body: some View {
         let size = type.size
-        let strokes = glyph.path(size: size, seed: CrayonStyle.Seed.glyph + UInt32(glyph.inlineSeed))
+        let strokes = glyph.path(size: size, seed: CrayonStyle.Seed.glyph + UInt32(glyph.seedIndex))
         let image = Image(size: CGSize(width: size, height: size)) { context in
             var path = Path()
             for stroke in strokes { path.addLines(stroke) }
@@ -34,9 +34,4 @@ public struct GlyphText: View {
             .foregroundStyle(color)
             .accessibilityLabel(Text(verbatim: before + after))
     }
-}
-
-private extension MarkerGlyph {
-    /// The same seed `MarkerIcon` uses, so the glyph looks the same inline.
-    var inlineSeed: Int { MarkerGlyph.allCases.firstIndex(of: self) ?? 0 }
 }

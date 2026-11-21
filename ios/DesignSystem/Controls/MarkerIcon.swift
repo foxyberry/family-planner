@@ -18,7 +18,7 @@ public struct MarkerIcon: View {
     public var body: some View {
         Canvas { context, _ in  // bleed-ok: glyphs keep 6 of 48 clear, more than half a line plus the wobble
             var path = Path()
-            for stroke in glyph.path(size: size, seed: CrayonStyle.Seed.glyph + UInt32(glyph.hashSeed)) {
+            for stroke in glyph.path(size: size, seed: CrayonStyle.Seed.glyph + UInt32(glyph.seedIndex)) {
                 path.addLines(stroke)
             }
             context.stroke(path, with: .color(color),
@@ -27,8 +27,4 @@ public struct MarkerIcon: View {
         .frame(width: size, height: size)
         .accessibilityHidden(true)
     }
-}
-
-private extension MarkerGlyph {
-    var hashSeed: Int { MarkerGlyph.allCases.firstIndex(of: self) ?? 0 }
 }

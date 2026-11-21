@@ -152,7 +152,7 @@ public struct HomeView: View {
                     KitIcon(picture, size: layout.kidAPicture.width)
                 }
                 .place(layout.kidAPicture)
-                timeLeft(label: left.label, minutes: left.minutes, layout: layout)
+                timeLeft(left, layout: layout)
                 if let status = store.status {
                     StatusDot(status.text, tone: status.tone, compact: true)
                         .place(left: layout.kidATextLeft, baseline: layout.kidAStatusBaseline)
@@ -163,7 +163,7 @@ public struct HomeView: View {
                 KitIcon(next.picture, size: layout.kidAPicture.width)
             }
             .place(layout.kidAPicture)
-            timeLeft(label: left.label, minutes: left.minutes, layout: layout)
+            timeLeft(left, layout: layout)
             smallRow(picture: next.picture, title: next.title, line: next.at, layout: layout)
         case let .bedTime(left, tomorrow):
             // Board A1n: the moon (64) on a 96 plate.
@@ -171,7 +171,7 @@ public struct HomeView: View {
                 KitIcon(.actSleep, size: layout.kidAPicture.width)
             }
             .place(layout.kidAPicture)
-            timeLeft(label: left.label, minutes: left.minutes, layout: layout)
+            timeLeft(left, layout: layout)
             if let tomorrow {
                 smallRow(picture: tomorrow.picture, title: tomorrow.title, line: tomorrow.line, layout: layout)
             }
@@ -183,10 +183,10 @@ public struct HomeView: View {
     }
 
     /// "Leave in" / "Bed in" / "in" (body, soft) over the time left (72), right of the picture.
-    @ViewBuilder private func timeLeft(label: String, minutes: Int, layout: HomeLayout) -> some View {
-        Text(label).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
+    @ViewBuilder private func timeLeft(_ left: HomeModel.TimeLeft, layout: HomeLayout) -> some View {
+        Text(left.label).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
             .place(left: layout.kidATextLeft, baseline: layout.kidALabelBaseline)
-        TimeLeft(minutes: minutes, look: store.look, compact: true)
+        TimeLeft(left.text, spoken: left.spoken, isLate: left.isLate, look: store.look, compact: true)
             .place(left: layout.kidATextLeft, baseline: layout.kidATimeBaseline)
     }
 

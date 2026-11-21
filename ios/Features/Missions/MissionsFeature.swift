@@ -239,7 +239,7 @@ public struct MissionsFeature {
                        owner: owner,
                        spoken: L10n.tr("missions.way.spoken", owner.name, outing.slot.title,
                                        Self.wayPhrase(outing.trip.way),
-                                       TimeLeft.spoken(minutes: max(outing.slot.start - minute, 0)), outing.slot.title, time))
+                                       TimeLeftText.spoken(minutes: max(outing.slot.start - minute, 0)), outing.slot.title, time))
         }
 
         /// Live times count while the last good answer is under 2 minutes old.
@@ -260,7 +260,7 @@ public struct MissionsFeature {
             let plan = busPlans[owner.id]
             let buses = live.buses.enumerated().map { index, bus in
                 // User, 2026-11-19: a bus too soon to catch shows its real minutes too.
-                let minutes = TimeLeft.presentation(minutes: bus.arrival.minutes).text
+                let minutes = TimeLeftText.short(minutes: bus.arrival.minutes)
                 return WayStrip.LiveBus(id: "\(index)", x: WayStrip.liveX(minutes: bus.arrival.minutes),
                                         picture: Self.busPicture(bus.arrival.type), service: bus.route.service,
                                         minutes: minutes, isMine: bus == live.chosen,
@@ -283,10 +283,10 @@ public struct MissionsFeature {
         public var liveSpoken: String? {
             guard let live, let chosen = live.chosen, let leaveIn = live.leaveIn else { return nil }
             let other = live.others.first(where: \.isCatchable).map {
-                L10n.tr("missions.live.spoken.or", $0.route.service, TimeLeft.spoken(minutes: $0.arrival.minutes))
+                L10n.tr("missions.live.spoken.or", $0.route.service, TimeLeftText.spoken(minutes: $0.arrival.minutes))
             } ?? ""
-            return L10n.tr("missions.live.spoken", chosen.route.service, TimeLeft.spoken(minutes: chosen.arrival.minutes),
-                           other, TimeLeft.spoken(minutes: max(leaveIn, 0)), live.status.map { Self.statusLine($0).text } ?? "")
+            return L10n.tr("missions.live.spoken", chosen.route.service, TimeLeftText.spoken(minutes: chosen.arrival.minutes),
+                           other, TimeLeftText.spoken(minutes: max(leaveIn, 0)), live.status.map { Self.statusLine($0).text } ?? "")
         }
 
         static func busPicture(_ type: BusType) -> KitSlot {
@@ -361,12 +361,12 @@ public struct MissionsFeature {
             guard let (_, outing) = familyOuting else { return nil }
             if let live {
                 return Header(label: live.leaveIn == nil ? nil : L10n.tr("missions.leave_in"),
-                              minutes: live.leaveIn.map { TimeLeft.presentation(minutes: max($0, 0)).text } ?? "",
+                              minutes: live.leaveIn.map { TimeLeftText.short(minutes: max($0, 0)) } ?? "",
                               status: live.status.map(Self.statusLine))
             }
             // The timetable look counts to "leave" (start − leave before) with no status.
             return Header(label: L10n.tr("missions.leave_in"),
-                          minutes: TimeLeft.presentation(minutes: max(outing.leave - minute, 0)).text, status: nil)
+                          minutes: TimeLeftText.short(minutes: max(outing.leave - minute, 0)), status: nil)
         }
 
         static func statusLine(_ status: LiveMorning.Status) -> StatusLine {
@@ -460,6 +460,17 @@ public struct MissionsFeature {
         public var backLabel: String { strings.tr("missions.back") }
         /// The slide's title once the chosen kid is ready.
         public var slideDoneTitle: String { strings.tr("missions.ready") }
+        /// The slide's VoiceOver action.
+        public var slideGoLabel: String { strings.tr("slide.go") }
+
+        /// A medal's VoiceOver name ("Gold medal").
+        public func medalLabel(_ kind: MedalKind) -> String {
+            switch kind {
+            case .gold: strings.tr("medal.gold")
+            case .silver: strings.tr("medal.silver")
+            case .bronze: strings.tr("medal.bronze")
+            }
+        }
 
         /// The name under a circle: the mission's, or the folded, more and back circles' words.
         public func name(of circle: Circle) -> String {

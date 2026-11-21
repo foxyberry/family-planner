@@ -1,6 +1,5 @@
 import CrayonKit
 import KitArt
-import Strings
 import SwiftUI
 
 /// "Slide to go": a yellow crayon track with the way picture as the handle, always on (missions
@@ -9,6 +8,7 @@ import SwiftUI
 public struct SlideToGo: View {
     private let idleTitle: String
     private let doneTitle: String
+    private let goLabel: String
     private let onGo: () -> Void
     private let onUndo: (() -> Void)?
     private let knob: KitSlot
@@ -24,10 +24,11 @@ public struct SlideToGo: View {
     /// Spec "Part floors": the thumb 80 × s and the track 96 × s, never under the kid floor 72.
     private var handleSize: CGFloat { sizing.kidTarget(80) }
 
+    /// `goLabel`: the VoiceOver action's name ("Go").
     /// `onUndo`: dragging the knob back past the middle from done (spec "After the slide").
     /// `knob`: the way picture (bus, car, shoe) or the star sticker for a kid with no outing.
     /// `doneKnob`: when done, this picture without the check (A3r: the crown with no medal).
-    public init(state: SlideToGoModel.Phase, idleTitle: String, doneTitle: String,
+    public init(state: SlideToGoModel.Phase, idleTitle: String, doneTitle: String, goLabel: String,
                 knob: KitSlot = .busDouble, doneKnob: KitSlot? = nil, onUndo: (() -> Void)? = nil,
                 onGo: @escaping () -> Void) {
         self.knob = knob
@@ -37,6 +38,7 @@ public struct SlideToGo: View {
         _model = State(initialValue: SlideToGoModel(phase: state))
         self.idleTitle = idleTitle
         self.doneTitle = doneTitle
+        self.goLabel = goLabel
         self.onGo = onGo
     }
 
@@ -101,7 +103,7 @@ public struct SlideToGo: View {
         .sensoryFeedback(.success, trigger: isDone)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
-        .accessibilityAction(named: L10n.tr("slide.go")) {
+        .accessibilityAction(named: goLabel) {
             guard !isDone else { return }
             model.phase = .done
             onGo()
@@ -112,8 +114,9 @@ public struct SlideToGo: View {
     /// (board A3r). Reduce Motion: still.
     @ViewBuilder private func handle(roll: CGFloat) -> some View {
         let prize = isDone ? doneKnob : nil
+        let picture = if let prize { prize } else { knob }
         // Board A2: the picture (60) on a white paper disc (74); the done prize keeps its own look.
-        RollingKitIcon(prize ?? knob, size: prize == nil ? 60 : handleSize, roll: roll, isHeld: isHeld)
+        RollingKitIcon(picture, size: prize == nil ? 60 : handleSize, roll: roll, isHeld: isHeld)
             .frame(width: handleSize, height: handleSize)
             .background {
                 if prize == nil {

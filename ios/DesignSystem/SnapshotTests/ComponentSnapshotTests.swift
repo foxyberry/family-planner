@@ -82,13 +82,13 @@ final class ComponentSnapshotTests: XCTestCase {
     /// S1–S4 parts: step dots, colour swatches (one picked), a placeholder time, a face not picked yet.
     func testSetupParts() {
         snap(HStack(spacing: Spacing.m) {
-            StepDots(current: 2)
+            StepDots(current: 2, label: "Step 2 of 4")
             HStack(spacing: Spacing.xs) {
                 ForEach(0..<4, id: \.self) { index in
                     ColourSwatch(colorIndex: index, isPicked: index == 0, accessibilityLabel: "Colour") {}
                 }
             }
-            TimeField(label: "7:30 am", time: .constant(Date(timeIntervalSince1970: 0)), isPlaceholder: true)
+            TimeField(label: "7:30 am", pickerTitle: "Time", time: .constant(Date(timeIntervalSince1970: 0)), isPlaceholder: true)
             KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
             LockMark(size: 56)
         })
@@ -108,7 +108,7 @@ final class ComponentSnapshotTests: XCTestCase {
     func testFields() {
         snap(HStack(spacing: Spacing.m) {
             CrayonField("Activity name", text: .constant("")).frame(width: 480)
-            TimeField(label: "7:30 am", time: .constant(Date(timeIntervalSince1970: 7 * 3600 + 30 * 60)))
+            TimeField(label: "7:30 am", pickerTitle: "Time", time: .constant(Date(timeIntervalSince1970: 7 * 3600 + 30 * 60)))
         })
     }
 
@@ -133,7 +133,8 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testIconPicker() {
         snap(IconPicker(selection: .constant(.actSwim),
-                        slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {},
+                        slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA],
+                        drawing: IconPicker.Drawing(label: "Draw a new picture") {}),
              width: Self.rowWidth)
     }
 
@@ -144,14 +145,14 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     func testTimeLeft() {
-        snap(TimeLeft(minutes: 19), named: "19")
-        snap(TimeLeft(minutes: -2), named: "minus2")
-        snap(TimeLeft(minutes: 80, compact: true), named: "compact")
+        snap(TimeLeft("19 min", spoken: "19 minutes", isLate: false), named: "19")
+        snap(TimeLeft("\u{2212}2 min", spoken: "2 minutes late", isLate: true), named: "minus2")
+        snap(TimeLeft("1h 20m", spoken: "1 hour 20 minutes", isLate: false, compact: true), named: "compact")
     }
 
     /// Board A3r: a kid ready with no medal has the crown on the done knob, no check.
     func testSlideToGoDoneWithCrown() {
-        snap(SlideToGo(state: .done, idleTitle: "Slide", doneTitle: "Ready!", knob: .star, doneKnob: .crown) {},
+        snap(SlideToGo(state: .done, idleTitle: "Slide", doneTitle: "Ready!", goLabel: "Go", knob: .star, doneKnob: .crown) {},
              width: Self.rowWidth)
     }
 
@@ -175,7 +176,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
         var body: some View {
             SlideToGo(state: phase, idleTitle: "Slide to go",
-                      doneTitle: "On our way!") {}
+                      doneTitle: "On our way!", goLabel: "Go") {}
                 .onAppear { phase = .idle }
         }
     }
@@ -232,16 +233,16 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testLeagueProgress() {
         snap(LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
-                            nextName: "Double-Decker"), width: Self.rowWidth)
+                            remaining: "12 more Go! days to the Double-Decker"), width: Self.rowWidth)
     }
 
-    func testVoiceNote() { snap(VoiceNote(duration: .seconds(12), isPlaying: false) {}) }
+    func testVoiceNote() { snap(VoiceNote(duration: .seconds(12), isPlaying: false, label: "Play") {}) }
 
     func testMedalsAndFaces() {
         snap(HStack(spacing: Spacing.m) {
-            Medal(.gold, size: 104)
-            Medal(.silver, size: 104)
-            Medal(.bronze, size: 104)
+            Medal(.gold, size: 104, label: "Gold medal")
+            Medal(.silver, size: 104, label: "Silver medal")
+            Medal(.bronze, size: 104, label: "Bronze medal")
             KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
             KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
             KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A", size: KidFace.small)
@@ -472,24 +473,29 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     func testLockOverlayStates() {
-        let states: [(String, LockOverlay.State)] = [
-            ("scanning", .scanning), ("notRecognised", .notRecognised),
-            ("notAvailable", .notAvailable(touchID: false)), ("lockedOut", .lockedOut),
+        // The English words of each state (AppFeature.State.lockCard picks them).
+        let cards: [(String, String, String?, String)] = [
+            ("scanning", "Look at the iPad to unlock.", nil, "Cancel"),
+            ("notRecognised", "That didn't unlock.", "Try again", "Cancel"),
+            ("notAvailable", "Face ID is off on this iPad, so anyone who holds the clock can come in. Turn it on in "
+                + "Settings to keep these screens for grown-ups.", "Enter", "Cancel"),
+            ("lockedOut", "Too many tries. Unlock the iPad with its passcode, then try again.", nil, "OK"),
         ]
-        for (name, state) in states {
-            snap(LockOverlay(state: state, onPrimary: {}, onCancel: {}).frame(width: 1000, height: 600), named: name)
+        for (name, message, primary, cancel) in cards {
+            snap(LockOverlay(title: "Grown-ups only", message: message, primary: primary, cancel: cancel,
+                             onPrimary: {}, onCancel: {}).frame(width: 1000, height: 600), named: name)
         }
     }
 
     /// Board 0f: the shared grown-up header (Back, title, optional tabs, "Grown-ups only" or the countdown).
     func testGrownupHeader() {
         let width = Self.grid.span(12)
-        snap(GrownupHeader(title: "Our kids", onBack: {}) {
+        snap(GrownupHeader(title: "Our kids", caption: "Grown-ups only", backLabel: "Back", onBack: {}) {
             CrayonTabs(selection: .constant(0), items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1))])
         }, width: width, named: "tabs")
-        snap(GrownupHeader(title: "Edit Swimming", caption: "Grown-ups only · behind the parent lock", onBack: {}),
+        snap(GrownupHeader(title: "Edit Swimming", caption: "Grown-ups only · behind the parent lock", backLabel: "Back", onBack: {}),
              width: width, named: "caption")
-        snap(GrownupHeader(title: "Edit Saturday language school and lunch with grandparents", onBack: {})
+        snap(GrownupHeader(title: "Edit Saturday language school and lunch with grandparents", caption: "Grown-ups only", backLabel: "Back", onBack: {})
             .environment(\.relockCaption, "Locks in 0:12"), width: width, named: "countdownLongTitle")
     }
 
@@ -497,7 +503,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
     private func slide(_ state: SlideToGoModel.Phase) -> SlideToGo {
         SlideToGo(state: state, idleTitle: "Slide to go",
-                  doneTitle: "On our way!") {}
+                  doneTitle: "On our way!", goLabel: "Go") {}
     }
 
     /// Lays the part on paper (fixed width when given, natural size otherwise) at 2x scale.
@@ -679,7 +685,7 @@ final class ComponentSnapshotTests: XCTestCase {
                     CrayonRing(progress: 1, colorIndex: 0)
                     KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A", size: 56)
                 }
-                .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76, dropsIn: false) }
+                .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76, label: "Medal", dropsIn: false) }
             }
         }
         .transaction { $0.disablesAnimations = true }, width: 420)
@@ -709,7 +715,7 @@ final class ComponentSnapshotTests: XCTestCase {
     /// night control with chalk lines, picture grounds moon paper with ink, on-states keep ink.
     func testGrownupPartsAtNight() {
         snap(VStack(alignment: .leading, spacing: Spacing.m) {
-            GrownupHeader(title: "Add to the day", onBack: {})
+            GrownupHeader(title: "Add to the day", caption: "Grown-ups only", backLabel: "Back", onBack: {})
             PaperCard(seed: 31) {
                 VStack(alignment: .leading, spacing: Spacing.m) {
                     CrayonTabs(selection: .constant(0), items: [

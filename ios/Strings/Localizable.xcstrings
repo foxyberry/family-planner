@@ -672,28 +672,6 @@
         }
       }
     },
-    "check.done" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Done"
-          }
-        }
-      }
-    },
-    "check.not_done" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not done"
-          }
-        }
-      }
-    },
     "day.add_between" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3411,17 +3389,6 @@
         }
       }
     },
-    "picker.draw" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Draw a new picture"
-          }
-        }
-      }
-    },
     "picker.more" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5332,28 +5299,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 minute"
-          }
-        }
-      }
-    },
-    "voice.pause" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pause"
-          }
-        }
-      }
-    },
-    "voice.play" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Play"
           }
         }
       }

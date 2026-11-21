@@ -93,7 +93,8 @@ public struct ItemEditorView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
+        GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                      onBack: { store.send(.backTapped) })
     }
 
     // MARK: Form
@@ -195,12 +196,12 @@ public struct ItemEditorView: View {
                     // Spec "Event form rows", From: a linked item starts when its event ends.
                     Text(linked).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 } else {
-                    TimeField(label: store.startLabel,
+                    TimeField(label: store.startLabel, pickerTitle: store.timePickerTitle,
                               time: Binding(get: { store.startTime }, set: { store.send(.startPicked($0)) }))
                 }
                 Image(systemName: "arrow.right").crayonType(.body).fontWeight(.bold)
                     .foregroundStyle(CrayonColor.softText)
-                TimeField(label: store.endLabel, time: Binding(get: { store.endTime }, set: { store.send(.endPicked($0)) }))
+                TimeField(label: store.endLabel, pickerTitle: store.timePickerTitle, time: Binding(get: { store.endTime }, set: { store.send(.endPicked($0)) }))
                 if let duration = store.form.durationCaption {
                     Text(duration).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 }
@@ -431,11 +432,11 @@ public struct ItemEditorView: View {
                 if store.form.noSchoolStart != nil {
                     VStack(alignment: .leading, spacing: Spacing.s) {
                         HStack(spacing: Spacing.m) {
-                            TimeField(label: store.noSchoolTimeLabel,
+                            TimeField(label: store.noSchoolTimeLabel, pickerTitle: store.timePickerTitle,
                                       time: Binding(get: { store.noSchoolTime }, set: { store.send(.noSchoolStartPicked($0)) }),
                                       width: 210)
                             MarkerIcon(.arrowRight, size: 32, color: CrayonColor.ink)
-                            TimeField(label: store.noSchoolEndLabel,
+                            TimeField(label: store.noSchoolEndLabel, pickerTitle: store.timePickerTitle,
                                       time: Binding(get: { store.noSchoolEndTime }, set: { store.send(.noSchoolEndPicked($0)) }),
                                       width: 210)
                         }

@@ -91,7 +91,7 @@ public struct MissionsView: View {
                 .place(layout.kidFace(index))
             if let medal = row.medal {
                 // Board A3: the medal badge on the ring's lower right, dropping in once.
-                MedalBadge(medal, ring: layout.kidRing(index).width).place(layout.kidRing(index))
+                MedalBadge(medal, ring: layout.kidRing(index).width, label: store.state.medalLabel(medal)).place(layout.kidRing(index))
             }
             Text(row.kid.name).crayonType(.body, bold: true)
                 .foregroundStyle(row.isChosen ? CrayonColor.pictureInk : CrayonColor.ink)
@@ -124,7 +124,7 @@ public struct MissionsView: View {
                 // Board A3r: the done view in place of the missions.
                 Group {
                     if let medal = done.medal {
-                        DroppingMedal(medal, size: layout.doneMedal.width)
+                        DroppingMedal(medal, size: layout.doneMedal.width, label: store.state.medalLabel(medal))
                     } else {
                         // It plays its rig once when the done view appears.
                         RiggedKitIcon(done.prize, size: layout.doneMedal.width, playID: store.confetti)
@@ -159,7 +159,7 @@ public struct MissionsView: View {
 
     @ViewBuilder private func bottomControl(_ layout: MorningLayout) -> some View {
         if let kid = store.chosenKid {
-            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: store.slideDoneTitle, knob: store.slideKnob, doneKnob: store.slideDoneKnob,
+            SlideToGo(state: store.chosenIsReady ? .done : .idle, idleTitle: store.slideTitle, doneTitle: store.slideDoneTitle, goLabel: store.slideGoLabel, knob: store.slideKnob, doneKnob: store.slideDoneKnob,
                       onUndo: { store.send(.slideUndone) }) {
                 ticks += 1
                 store.send(.slid)

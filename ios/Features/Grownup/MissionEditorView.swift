@@ -60,7 +60,8 @@ public struct MissionEditorView: View {
 
     private var header: some View {
         // Board C5: the kid tabs at the header's right end, in place of "Grown-ups only".
-        GrownupHeader(title: L10n.tr("c5.title"), onBack: { store.send(.doneTapped) }, accessory: { EmptyView() }) {
+        GrownupHeader(title: L10n.tr("c5.title"), caption: store.headerCaption, backLabel: store.backLabel,
+                      onBack: { store.send(.doneTapped) }, accessory: { EmptyView() }) {
             CrayonTabs(selection: Binding(get: { store.selectedKid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) },
                        itemSize: CGSize(width: 200, height: 72), spacing: Spacing.sm)

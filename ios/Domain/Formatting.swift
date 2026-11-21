@@ -175,3 +175,41 @@ public enum DayText {
         }
     }
 }
+
+/// The bus league's words (spec "Leagues").
+public enum LeagueText {
+    /// "12 more Go! days to the Double-Decker"; "Next stop: …" once the goal is reached.
+    public static func remaining(done: Int, goal: Int, nextName: String) -> String {
+        let left = max(goal - done, 0)
+        guard left > 0 else { return L10n.tr("league.next_stop", nextName) }
+        return left == 1 ? L10n.tr("league.left.one", left, nextName) : L10n.tr("league.left.other", left, nextName)
+    }
+}
+
+/// Minutes left as the kid screens print and speak them.
+public enum TimeLeftText {
+    /// "19 min"; at zero or below the true minus sign (U+2212), "−2 min". Over an hour: "1h 20m"
+    /// (or "2h").
+    public static func short(minutes: Int) -> String {
+        if minutes > 60 {
+            let hours = minutes / 60, rest = minutes % 60
+            return rest == 0 ? L10n.tr("time_left.h", "\(hours)") : L10n.tr("time_left.h_min", "\(hours)", "\(rest)")
+        }
+        let number = minutes < 0 ? "\u{2212}\(-minutes)" : "\(minutes)"
+        return L10n.tr("time_left.min", number)
+    }
+
+    /// What VoiceOver says (spec "Spoken times"): full words, "38 minutes", "1 hour 20 minutes",
+    /// "1 minute"; below zero, "2 minutes late".
+    public static func spoken(minutes: Int) -> String {
+        let total = abs(minutes)
+        let hours = total / 60, rest = total % 60
+        let minutePart = rest == 1 ? L10n.tr("time_left.spoken.min_one") : L10n.tr("time_left.spoken.min", rest)
+        let hourPart = hours == 1 ? L10n.tr("time_left.spoken.h_one") : L10n.tr("time_left.spoken.h", hours)
+        let words = hours == 0 ? minutePart : rest == 0 ? hourPart : L10n.tr("time_left.spoken.h_min", hourPart, minutePart)
+        return minutes < 0 ? L10n.tr("time_left.spoken.late", words) : words
+    }
+
+    /// Late red at zero or below.
+    public static func isLate(minutes: Int) -> Bool { minutes <= 0 }
+}

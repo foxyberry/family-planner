@@ -22,6 +22,11 @@ public struct ChoiceCircles: View {
             self.isPicked = isPicked
             self.word = word
         }
+
+        /// What VoiceOver reads: the word inside the circle, else the caption.
+        var spokenName: String {
+            if let word { word } else { caption }
+        }
     }
 
     private let choices: [Choice]
@@ -67,7 +72,7 @@ public struct ChoiceCircles: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(choice.word ?? choice.caption)
+                .accessibilityLabel(choice.spokenName)
                 .accessibilityAddTraits(choice.isPicked ? [.isButton, .isSelected] : .isButton)
             }
         }

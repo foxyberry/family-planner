@@ -25,11 +25,13 @@ public struct ChangeSchoolView: View {
             switch store.phase {
             case .loading:
                 GrownupScreen(scrolls: false) {
-                    GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
+                    GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                                  onBack: { store.send(.backTapped) })
                 } content: { _ in EmptyView() } primaryAction: { _ in EmptyView() }
             case .failed:
                 GrownupScreen(scrolls: false) {
-                    GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
+                    GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                                  onBack: { store.send(.backTapped) })
                 } content: { _ in
                     Text(store.loadFailedText).crayonType(.body).foregroundStyle(CrayonColor.lateText)
                 } primaryAction: { _ in EmptyView() }
@@ -43,7 +45,8 @@ public struct ChangeSchoolView: View {
 
     @ViewBuilder private func ready(_ form: ChangeSchoolFeature.Form) -> some View {
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
+            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                          onBack: { store.send(.backTapped) })
         } content: { layout in
             PaperCard(seed: 39) {
                 ScrollColumn(scrollTarget: searchFocus == 0 ? nil : GrownupScrollTarget(id: Self.searchID, request: searchFocus),
@@ -157,7 +160,7 @@ public struct ChangeSchoolView: View {
     }
 
     private func time(_ form: ChangeSchoolFeature.Form, _ minute: Int, set: @escaping (Date) -> Void) -> some View {
-        TimeField(label: form.timeLabel(minute),
+        TimeField(label: form.timeLabel(minute), pickerTitle: form.timePickerTitle,
                   time: Binding(get: { form.timeDate(minute) }, set: set), width: 180)
     }
 }

@@ -177,7 +177,8 @@ public struct OurDayView: View {
 
     private var header: some View {
         // Board G1: the kid tabs after the title; List · Settings at the right end.
-        GrownupHeader(title: L10n.tr("day.title"), onBack: { store.send(.backTapped) }) {
+        GrownupHeader(title: L10n.tr("day.title"), caption: store.headerCaption, backLabel: store.backLabel,
+                      onBack: { store.send(.backTapped) }) {
             CrayonTabs(selection: Binding(get: { store.kid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
         } trailing: {
@@ -321,13 +322,13 @@ public struct OurDayView: View {
     }
 
     private var startField: some View {
-        TimeField(label: store.startLabel ?? "",
+        TimeField(label: store.startLabel ?? "", pickerTitle: store.timePickerTitle,
                   time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
                   width: sizing.timeFieldWidth)
     }
 
     private var endField: some View {
-        TimeField(label: store.endLabel ?? "",
+        TimeField(label: store.endLabel ?? "", pickerTitle: store.timePickerTitle,
                   time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
                   width: sizing.timeFieldWidth)
     }

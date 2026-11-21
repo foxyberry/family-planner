@@ -24,7 +24,7 @@ public struct ComponentGallery: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
                 if let onBack {
-                    GrownupHeader(title: "Design gallery", onBack: onBack)
+                    GrownupHeader(title: "Design gallery", caption: "Grown-ups only", backLabel: "Back", onBack: onBack)
                 }
                 section("0b · Controls") {
                     InkButton("Missions") {}
@@ -59,19 +59,19 @@ public struct ComponentGallery: View {
                     }
                     HStack(spacing: Spacing.m) {
                         CrayonField("Activity name", text: $name).frame(width: 480)
-                        TimeField(label: "7:30 am", time: $time)
+                        TimeField(label: "7:30 am", pickerTitle: "Time", time: $time)
                         DateField(label: "9 Nov", date: $time)
                         FieldButton("End of term") {}
                     }
                     // S1–S4: setup progress, kid colour swatches, a time not chosen yet.
                     HStack(spacing: Spacing.m) {
-                        StepDots(current: 2)
+                        StepDots(current: 2, label: "Step 2 of 4")
                         HStack(spacing: Spacing.xs) {
                             ForEach(0..<4, id: \.self) { index in
                                 ColourSwatch(colorIndex: index, isPicked: index == 0, accessibilityLabel: "Colour") {}
                             }
                         }
-                        TimeField(label: "7:30 am", time: $time, isPlaceholder: true)
+                        TimeField(label: "7:30 am", pickerTitle: "Time", time: $time, isPlaceholder: true)
                         KidFace(.init(face: "", colorIndex: 2), name: "Kid C")
                         LockMark(size: 56)
                     }
@@ -79,16 +79,17 @@ public struct ComponentGallery: View {
                                itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
                     PictureRow(slots: [.actSwim, .actArt, .actMusic, .actPiano, .actDance], selection: .constant(.actSwim),
                                all: [.actSwim, .actArt], isShowingAll: false, moreTitle: "More", moreLabel: "More pictures") {}
-                    IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA]) {}
+                    IconPicker(selection: $picture, slots: [.actSwim, .actDance, .actArt, .actMusic, .actStory, .actCCA],
+                               drawing: IconPicker.Drawing(label: "Draw a new picture") {})
                     // Spec "Event form rows", Bring: several picks, up to 4.
                     IconPicker(picked: [.backpack, .waterBottle], slots: [.backpack, .lunchBox, .waterBottle]) { _ in }
                     HStack(spacing: Spacing.xl) {
-                        TimeLeft(minutes: 19)
-                        TimeLeft(minutes: -2)
+                        TimeLeft("19 min", spoken: "19 minutes", isLate: false)
+                        TimeLeft("\u{2212}2 min", spoken: "2 minutes late", isLate: true)
                     }
-                    SlideToGo(state: .idle, idleTitle: "Slide to go", doneTitle: "On our way!") {}
-                    SlideToGo(state: .done, idleTitle: "", doneTitle: "On our way!") {}
-                    SlideToGo(state: .done, idleTitle: "", doneTitle: "Ready!", knob: .star, doneKnob: .crown) {}
+                    SlideToGo(state: .idle, idleTitle: "Slide to go", doneTitle: "On our way!", goLabel: "Go") {}
+                    SlideToGo(state: .done, idleTitle: "", doneTitle: "On our way!", goLabel: "Go") {}
+                    SlideToGo(state: .done, idleTitle: "", doneTitle: "Ready!", goLabel: "Go", knob: .star, doneKnob: .crown) {}
                 }
                 section("0c · Content") {
                     ListRow(leading: "7:30") { Text("Bus to school") }
@@ -113,12 +114,12 @@ public struct ComponentGallery: View {
                     PickerPopover(title: "Repeat", items: ["Once", "Every week"], selection: $choice, anchor: 0.3)
                         .frame(width: 360)
                     LeagueProgress(level: .busSingle, levelName: "Single-Decker league", done: 18, goal: 30,
-                                   nextName: "Double-Decker")
-                    VoiceNote(duration: .seconds(12), isPlaying: false) {}
+                                   remaining: "12 more Go! days to the Double-Decker")
+                    VoiceNote(duration: .seconds(12), isPlaying: false, label: "Play") {}
                     HStack(spacing: Spacing.m) {
-                        Medal(.gold, size: 104)
-                        Medal(.silver, size: 104)
-                        Medal(.bronze, size: 104)
+                        Medal(.gold, size: 104, label: "Gold medal")
+                        Medal(.silver, size: 104, label: "Silver medal")
+                        Medal(.bronze, size: 104, label: "Bronze medal")
                         KidFace(.init(face: "kidGirl", colorIndex: 0), name: "Kid A")
                         KidFace(.init(face: "kidBoy", colorIndex: 1), name: "Kid B", size: KidFace.medium)
                     }
@@ -200,7 +201,7 @@ public struct ComponentGallery: View {
                                 CrayonRing(progress: 1, colorIndex: 0)
                                 KidFace(KidFace.Badge(face: "kidGirl", colorIndex: 0), name: "Kid A", size: 56)
                             }
-                            .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76) }
+                            .overlay(alignment: .topLeading) { MedalBadge(kind, ring: 76, label: "Medal") }
                         }
                     }
                 }

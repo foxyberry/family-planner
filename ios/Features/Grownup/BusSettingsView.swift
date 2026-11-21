@@ -15,7 +15,8 @@ public struct BusSettingsView: View {
     public var body: some View {
         // Spec "Scrolling": the card stays put and its rows scroll inside it; the side scrolls on its own.
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, onBack: { store.send(.doneTapped) })
+            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                          onBack: { store.send(.doneTapped) })
         } content: { layout in
             HStack(alignment: .top, spacing: layout.gap) {
                 // Board C2: the card runs 148–968, exactly its inner width, so a long row of buses can

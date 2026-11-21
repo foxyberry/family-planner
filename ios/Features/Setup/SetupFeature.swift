@@ -3,6 +3,7 @@ import ComposableArchitecture
 import Domain
 import Foundation
 import Grownup
+import Localization
 import ParentAuthClient
 import SchoolDirectory
 import ScheduleStore
@@ -32,7 +33,8 @@ public struct SetupFeature {
     }
 
     @ObservableState
-    public struct State: Equatable {
+    public struct State: Equatable, GrownupWords {
+        public var strings = Localizer.injected
         public static let mostKids = 4
 
         public var step: Step = .family

@@ -2,6 +2,7 @@ import BusClient
 import ComposableArchitecture
 import Domain
 import Foundation
+import Localization
 import ScheduleStore
 import Strings
 
@@ -12,6 +13,7 @@ import Strings
 public struct BusSettingsFeature {
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var kid: Kid.ID
         public var kidName = ""
         /// The stop field (shared with S3).

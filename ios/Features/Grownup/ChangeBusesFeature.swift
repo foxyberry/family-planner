@@ -2,6 +2,7 @@ import BusClient
 import ComposableArchitecture
 import Domain
 import Foundation
+import Localization
 import ScheduleStore
 import Strings
 
@@ -12,6 +13,7 @@ import Strings
 public struct ChangeBusesFeature {
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var kid: Kid.ID
         /// The route as stored; Save changes its bus that changes only.
         public var plan: BusPlan?

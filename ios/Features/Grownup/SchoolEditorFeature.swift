@@ -2,6 +2,7 @@ import ComposableArchitecture
 import Domain
 import Foundation
 import KitArt
+import Localization
 import ScheduleStore
 import SchoolDirectory
 import Strings
@@ -18,6 +19,7 @@ public struct SchoolEditorFeature {
 
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var kid: Kid.ID
         /// The date "This day" changes (the clock's day, or today from the List).
         public var day: Day

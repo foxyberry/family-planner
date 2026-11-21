@@ -8,6 +8,7 @@ fp_swift_library(
     deps = [
         "//ios/Clients/AppSettings",
         "//ios/Clients/BusClient",
+        "//ios/Clients/Localization",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/Clients/SchoolDirectory",
@@ -15,6 +16,7 @@ fp_swift_library(
         "//ios/Domain",
         "//ios/Features/Grownup",
         "//ios/Features/Setup",
+        "//ios/Strings",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )

@@ -58,6 +58,13 @@ final class SeriesEditsTests: XCTestCase {
 final class FormattingTests: XCTestCase {
     private let calendar = Fixture.calendar
 
+    func testLeagueRemainingText() {
+        XCTAssertEqual(LeagueText.remaining(done: 18, goal: 30, nextName: "Double-Decker"),
+                       "12 more Go! days to the Double-Decker")
+        XCTAssertEqual(LeagueText.remaining(done: 29, goal: 30, nextName: "Double-Decker"),
+                       "1 more Go! day to the Double-Decker")
+    }
+
     func testTimeText() {
         XCTAssertEqual(TimeText.clock(930), "3:30")
         XCTAssertEqual(TimeText.clock(0), "12:00")
