@@ -156,7 +156,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-18: TimeField keeps `max(176 s, 142)` with the widest time "10:00 am" (116) and 13 clear, so the 11" G1 times row stays one row (user); G6 "To school" → "Going", G6 values on the 192 control line (user).
 - 2026-11-19: several-buses details from the build (main session): one Ride row "stop to school" with no bus picked; C2c Then checked against LTA BusServices (placeholder "Bus", "No bus with that number"); the "+ A bus that changes…" link hides once one exists; a shared first bus counts once by the faster trip; Settings value names a bus that changes by its first bus; tag width 8 + plate + 8 + minutes + 8; leave before uses the fastest ride. A2 tags (user, on the iPad): one row above the bus or one under, else no tag (the faded bus stays), no merged listing; a bus too soon to catch shows its real minutes, not "too soon".
 - 2026-11-21: kid card (user; the Face row has room for more faces later): S1 and G6f "Add a child" share one `KidCard` with four stacked rows (Name, Age, Colour, Face) on 78 / 192 / 808; Name stretches to 808, Age fixed 152; two or more kids scroll the S1 main slot (layout v59).
-- 2026-11-21: S2 Days uses the read-only `DayChip` 56 (pitch 64) and the row is 56 tall, as built (review of #132); Hours 469, Arrive 605, terms 699 on the 13" (layout v60).
+- 2026-11-21: S2 Days toggles, so it uses the editor `DayChip` 72 (gap 8), the row 72 tall (user); Hours 485, Arrive 621, terms 719 on the 13" (layout v60).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -181,7 +181,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 
 - **Crayon part inset** (2026-11-09, drift sweep): every crayon outline (InkButton, RoundButton, CrayonTabs, TimeField, cards, chips) is drawn **6 pt inside its box on every side**, so the spill of the crayon stays inside and the touch area is the whole box. Some boards show extra side margins (InkButton ≈ 337 × 90 in 382 × 96, tabs ≈ 173 × 54 in 180 × 72): that is an artwork aspect artefact on the canvas, not intended; do not copy it.
 - **Text weights**: body and caption 500 (Playpen medium), labels and emphasis 700. The boards set 500 too; a heavier look there comes from the web font rendering, not from the spec.
-- **DayChip** sizes: 72 in editors, 56 (pitch 64) in read-only rows (C1 / E6 "Days", S2 "Days" from the school data); a read-only row is as tall as its chips (56).
+- **DayChip** sizes: 72 wherever the chips toggle (editors, S2 "Days", which starts from the school data), 56 (pitch 64) in read-only rows (C1 / E6 "Days"); a Days row is as tall as its chips.
 - **Line height is total** (boards, 2026-11-09): the type steps' line heights are the whole line box, font size × factor: title 1.15, head 1.2, body 1.25, caption 1.3 (caption 24 → 31.2 per line). Never add the factor on top of the font's own leading (that made iPad captions about 25 % taller per line than the boards).
 
 ### Grid and frame (iPad landscape 1376 × 1032 pt)
