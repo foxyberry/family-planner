@@ -34,7 +34,7 @@ public struct DebugOverlay: View {
 }
 
 /// Drag it anywhere; it settles on the nearer edge, or tucks half away when pushed into it.
-/// Tap a tucked bubble to bring it out, tap again for the menu (Face ID first on a real iPad).
+/// Tap a tucked bubble to bring it out, tap again for the menu.
 struct DebugBubble: View {
     @Bindable var model: DebugModel
     let screen: CGSize
