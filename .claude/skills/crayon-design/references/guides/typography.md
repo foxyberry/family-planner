@@ -52,8 +52,7 @@ Type**. Read them there; don't copy them here or into a view.
 ## Lines, wrapping and "…"
 - Button and tab text is one line at the default text size and may wrap to two at larger
   sizes (spec **Part floors → Text**). Switch captions take at most two lines.
-- Only typed names (kid, school, activity) may end with "…", after two lines, and VoiceOver
-  reads the whole name.
+- Only typed names (kid, school, activity) may end with "…", after two lines.
 - Prefer wrapping to truncating. Don't use `allowsTightening` or tracking to squeeze a label
   into a box: reword it.
 - Give text the full width it may use (`.frame(maxWidth: .infinity, alignment: .leading)`)

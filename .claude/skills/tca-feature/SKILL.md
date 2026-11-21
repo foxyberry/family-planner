@@ -77,9 +77,9 @@ var stored: School?; var place: Place = .school
 | a rule shared by screens (minute of day, day names) | Domain, with a unit test |
 | which kid, item or row is shown | State or a model function |
 | sizes, stacks, colours from tokens, animation progress | the view |
-| any word a person reads (labels, captions, accessibility text) | a key in `ios/Strings/Localizable.xcstrings`, read in a State computed property with `strings.tr("area.thing")`; State keeps `public var strings = Localizer.injected` (`\.localizer`, module `Localization`) |
+| any word a person reads (labels, captions) | a key in `ios/Strings/Localizable.xcstrings`, read in a State computed property with `strings.tr("area.thing")`; State keeps `public var strings = Localizer.injected` (`\.localizer`, module `Localization`) |
 | a value shown before the user picks one (7:30 am, the "now" picture) | an initial value in State (see "State shape") |
-| a DesignSystem part's words (back label, accessibility text) | arguments from the caller, which takes them from State |
+| a DesignSystem part's words (back label) | arguments from the caller, which takes them from State |
 
 ## When a guard blocks
 

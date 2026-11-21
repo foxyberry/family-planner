@@ -53,7 +53,7 @@ column** and **Text**); this guide is about the words.
   never a sad word or face (spec **Principles → Kids**).
 - Celebrate in proportion: the biggest words for the rarest moment (gold), quieter ones for
   routine (a mission done gets no words at all).
-- Times: short on screen, full words for VoiceOver (spec A2, **Spoken times**).
+- Times: short on screen ("38 min", "1h 20m").
 
 ## Values and names
 - Times follow the format in spec **Principles → Time**. Use one formatter for times,

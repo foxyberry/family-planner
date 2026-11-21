@@ -67,7 +67,7 @@ filtered for it. Read the one for the job; general skills are optional extras.
 | Job | Read | If installed |
 |---|---|---|
 | New or changed rule, token or part | `guides/reviews.md` §1 | `design:design-system` |
-| Touch, contrast, VoiceOver, accessibility settings, gestures | `guides/accessibility.md` | `ios-design-guidelines`, `ipados-design-guidelines`, `design:accessibility-review` |
+| Touch, contrast, accessibility settings, gestures | `guides/accessibility.md` | `ios-design-guidelines`, `ipados-design-guidelines`, `design:accessibility-review` |
 | Custom font, Dynamic Type | `guides/typography.md` | `apple-skills:design` (typography) |
 | Sizes, safe area, orientation, floors SwiftUI can build | `guides/layout-and-sizes.md` | `ipados-design-guidelines`, `swiftui-expert:swiftui-expert-skill` |
 | Labels, confirms, empty looks | `guides/copy.md` | `design:ux-copy`, `apple-skills:design` (ux-writing) |
