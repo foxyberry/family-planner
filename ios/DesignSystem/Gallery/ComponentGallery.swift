@@ -47,6 +47,17 @@ public struct ComponentGallery: View {
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }
+                    // S1 / G6f: the kid card.
+                    PaperCard(padding: FormLines.cardPadding) {
+                        KidCard(words: KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
+                              colour: "Colour", face: "Face", colourNames: ["Blue", "Orange", "Green", "Purple"],
+                              faces: [(.kidGirl, "Girl"), (.kidBoy, "Boy")]),
+                                name: .constant("Kid A"), age: .constant("7"),
+                                badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), shownName: "Kid A",
+                                colorIndex: 1, face: "kidGirl", onColour: { _ in }, onFace: { _ in })
+                            .formLines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)).formLines())
+                    }
+                    .frame(width: 800)
                     // C2 / C2c / S3: a minutes stepper.
                     MinutesStepper(value: "10 min", caption: "to the stop", label: "Walk", minus: {}, plus: {})
                     CrayonTabs(selection: $tab, items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Family", nil)])

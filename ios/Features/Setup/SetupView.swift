@@ -207,66 +207,15 @@ private struct FamilyStep: View {
 
     private var sizing: Sizing { layout.grown.sizing }
 
-    /// Board S1 v56: Name and Colour on the label and control lines; Age and Face on a second
-    /// column ending on the right edge, under the first column when it does not fit.
-    private var lines: FormLines {
-        layout.grown.formLines(secondLabels: [L10n.tr("s1.age"), L10n.tr("s1.face")],
-                               secondControlWidth: 2 * sizing.pickedFace + Spacing.sm,
-                               firstControlMinimum: CGFloat(KidEntry.colours) * ColourSwatch.frame(sizing)
-                                   + CGFloat(KidEntry.colours - 1) * Spacing.sm)
-    }
-
+    /// Spec "Kid card" (layout v59): the shared four-row card on the form lines.
     private func card(_ kid: KidEntry, index: Int) -> some View {
-        let badge = KidFace.Badge(face: kid.face ?? "", colorIndex: kid.colorIndex)
-        return VStack(alignment: .leading, spacing: sizing.formRowGap) {
-            FormRow(L10n.tr("s1.name"), kind: .field, second: L10n.tr("s1.age")) {
-                CrayonField(L10n.tr("s1.name.placeholder"),
-                            text: Binding(get: { kid.name }, set: { store.send(.nameChanged(kid.id, $0)) })) {
-                    KidFace(badge, name: kid.shownName(index: index), size: KidFace.medium)
-                }
-            } secondControl: {
-                CrayonField(L10n.tr("s1.age.placeholder"),
-                            text: Binding(get: { kid.ageText }, set: { store.send(.ageChanged(kid.id, $0)) }))
-                    .keyboardType(.numberPad)
-            }
-            FormRow(L10n.tr("s1.colour"), kind: .choice, second: L10n.tr("s1.face")) {
-                HStack(spacing: Spacing.sm) {
-                    ForEach(0..<KidEntry.colours, id: \.self) { colour in
-                        ColourSwatch(colorIndex: colour, isPicked: kid.colorIndex == colour,
-                                     accessibilityLabel: SetupFeature.State.colourName(colour)) {
-                            store.send(.colourTapped(kid.id, colour))
-                        }
-                    }
-                }
-            } secondControl: {
-                HStack(spacing: Spacing.sm) {
-                    face(.kidGirl, label: L10n.tr("s1.face.girl"), kid: kid)
-                    face(.kidBoy, label: L10n.tr("s1.face.boy"), kid: kid)
-                }
-                .partInset()
-            }
-        }
-        .formLines(lines)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-    }
-
-    private func face(_ slot: KitSlot, label: String, kid: KidEntry) -> some View {
-        Button { store.send(.faceTapped(kid.id, slot.rawValue)) } label: {
-            // Board S1: each face on a white disc with an ink circle; the pick adds the blue ring.
-            // Spec "Part floors": 64 × s, never under 56; the picture keeps its 56 : 64.
-            KitIcon(slot, size: layout.grown.sizing.pickedFace * 56 / 64)
-                .frame(width: layout.grown.sizing.pickedFace, height: layout.grown.sizing.pickedFace)
-                .background { CrayonSurface(.circle, fill: CrayonStyle.paper, marker: .thin, seed: 1650) }
-                .overlay {
-                    if kid.face == slot.rawValue {
-                        Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
-                            .frame(width: layout.grown.sizing.pickedFaceRing, height: layout.grown.sizing.pickedFaceRing)
-                    }
-                }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
-        .accessibilityAddTraits(kid.face == slot.rawValue ? [.isButton, .isSelected] : .isButton)
+        KidCard(words: store.kidCardWords,
+                name: Binding(get: { kid.name }, set: { store.send(.nameChanged(kid.id, $0)) }),
+                age: Binding(get: { kid.ageText }, set: { store.send(.ageChanged(kid.id, $0)) }),
+                badge: kid.badge, shownName: kid.shownName(index: index), colorIndex: kid.colorIndex,
+                face: kid.pickedFace,
+                onColour: { store.send(.colourTapped(kid.id, $0)) }, onFace: { store.send(.faceTapped(kid.id, $0)) })
+            .formLines(layout.grown.formLines())
     }
 }
 

@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import Domain
 import Foundation
 import Localization
@@ -33,16 +34,10 @@ public struct AddChildFeature {
         public var age: Int? { Int(ageText.trimmingCharacters(in: .whitespaces)).flatMap { (1...18).contains($0) ? $0 : nil } }
         public var trimmedName: String { name.trimmingCharacters(in: .whitespaces) }
         public var canSave: Bool { !trimmedName.isEmpty && age != nil && !isSaving }
-
-        /// The swatch's VoiceOver name (the S1 words).
-        public static func colourName(_ index: Int) -> String {
-            switch index {
-            case 0: L10n.tr("s1.colour.blue")
-            case 1: L10n.tr("s1.colour.orange")
-            case 2: L10n.tr("s1.colour.green")
-            default: L10n.tr("s1.colour.purple")
-            }
-        }
+        /// The shared kid card's words (S1's).
+        public var cardWords: KidCard.Words { .kid(strings) }
+        /// The face inside the Name field, in the picked colour.
+        public var badge: KidFace.Badge { KidFace.Badge(face: face, colorIndex: colorIndex) }
     }
 
     public enum Action: Equatable, BindableAction {
