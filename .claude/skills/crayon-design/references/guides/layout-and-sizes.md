@@ -13,7 +13,7 @@ or when someone asks about orientation or multitasking. The numbers live in the 
   inner screen. Since everything scales together, checking the 13" and the smallest screen is
   enough (`../size-check.md`).
 - Never design a separate layout per device and never branch on a device name. The same code
-  reads the device screen size (landscape, once at launch) and `safe.top` and computes `s`.
+  reads the app window size and `safe.top` and computes `s`, again whenever the window changes.
 
 ## Safe area and the status bar
 - Read the top inset from the system each time (`safe.top` in **Sizing → Inputs**). It differs
@@ -25,7 +25,7 @@ or when someone asks about orientation or multitasking. The numbers live in the 
 - The main button bottom stays clear of the home indicator (spec **Grid and frame → Bottom**).
 
 ## How the scale becomes SwiftUI
-1. **One `Sizing` from the device screen.** The app root builds it once and puts it in the
+1. **One `Sizing` from the app window.** The app root builds it from the window size and puts it in the
    environment. Every value is `board value × s`; a screen never computes its own size and never
    writes a `max(...)` or a floor.
 2. **Fixed regions.** Regions come from the layout JSON through the one placement modifier
@@ -47,9 +47,8 @@ or when someone asks about orientation or multitasking. The numbers live in the 
 These are **not decided**. Don't design or build them on your own; raise the question when it
 matters (`../hig-exceptions.md`, "Open").
 - **Orientation**: the app is landscape only. Question: portrait for grown-up screens?
-- **Split View, Slide Over, Stage Manager, resizable windows**: the layout keeps the device-screen
-  size; a smaller window crops it and the hidden part scrolls (spec **Supported screens and
-  windows**).
+- **Split View, Slide Over, Stage Manager, resizable windows**: decided: `s` comes from the window,
+  so a smaller window shows the whole board smaller (spec **Supported screens and windows**).
 - **The iPhone Duo outer screen** (phone width) is out of scope.
 - Until decided, still write code that would survive: read the proposed size and the safe area,
   not the screen bounds; don't cache a size; don't branch on orientation.
