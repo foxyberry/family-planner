@@ -67,6 +67,26 @@ public struct EditClock: View {
         return chord < addDrawn
     }
 
+    /// Spec "Sizing → Touch", rule 2: a drag that starts on a slice in the clock ring grabs the
+    /// knob nearest by angle (`minute` and `knobs` in minutes of the day), up to half the angle to
+    /// the next knob on that side. nil when there is no knob in reach.
+    public static func grabbedKnob(at minute: Double, knobs: [Double]) -> Int? {
+        func apart(_ a: Double, _ b: Double) -> Double {
+            let d = abs(a - b).truncatingRemainder(dividingBy: 1440)
+            return min(d, 1440 - d)
+        }
+        guard let nearest = knobs.indices.min(by: { apart(knobs[$0], minute) < apart(knobs[$1], minute) })
+        else { return nil }
+        // The next knob on the finger's side of the nearest one (itself, all the way round, when alone).
+        let ahead = (minute - knobs[nearest] + 1440).truncatingRemainder(dividingBy: 1440) < 720
+        let gap = knobs.indices.reduce(1440.0) { shortest, other in
+            guard other != nearest else { return shortest }
+            let forward = (knobs[other] - knobs[nearest] + 1440).truncatingRemainder(dividingBy: 1440)
+            return min(shortest, ahead ? forward : 1440 - forward)
+        }
+        return apart(knobs[nearest], minute) <= gap / 2 ? nearest : nil
+    }
+
     /// Where two "+" would overlap, only the earlier one in the day shows.
     public static func showing(_ buttons: [AddBetween]) -> [AddBetween] {
         var kept: [AddBetween] = []
@@ -109,6 +129,14 @@ public struct EditClock: View {
         self.onPlusTap = onPlusTap
     }
 
+    /// A drag in the clock ring: not yet decided, started off the ring (moves nothing), or holding
+    /// a knob since the finger came down at `fingerStart` (the knob was at `knobStart`).
+    private enum RingDrag: Equatable {
+        case idle, ignored
+        case grabbed(knob: Int, fingerStart: Double, knobStart: Double)
+    }
+
+    @State private var ringDrag = RingDrag.idle
     @Environment(\.sizing) private var sizing
     /// Board lengths on this screen (R 340, hub 130 on the 13"; the screen's scale elsewhere).
     private var k: CGFloat { sizing.s }
@@ -117,12 +145,20 @@ public struct EditClock: View {
 
     public var body: some View {
         ZStack {
+            // Spec "Sizing → Touch": a tap on a slice picks it; a drag that starts on a slice in the
+            // ring moves the nearest knob (rule 2). Knobs and "+" keep their own tap and drag.
             Circle().fill(CrayonColor.clockFace).frame(width: 2 * r, height: 2 * r)
                 .onTapGesture(coordinateSpace: .local) { location in
                     guard let slice = PieClockLayout.sector(at: location, in: sectors, radius: r, hub: hubR)
                     else { return }
                     slice.style == .free ? onPlusTap(slice.start) : onSliceTap(slice.start)
                 }
+                .gesture(DragGesture(minimumDistance: 8, coordinateSpace: .named(Self.space))
+                    .onChanged(ringDragged)
+                    .onEnded { _ in
+                        if case let .grabbed(knob, _, _) = ringDrag { onKnobEnd(knob) }
+                        ringDrag = .idle
+                    })
             ForEach(sectors, id: \.self) { sector in
                 CrayonSurface(.sector(startDegrees: PieClockLayout.degrees(minute: sector.start),
                                       endDegrees: PieClockLayout.degrees(minute: sector.end)),
@@ -159,6 +195,35 @@ public struct EditClock: View {
     }
 
     private static let space = "editClock"
+
+    /// Rule 2 in the ring: the knob follows the finger by the angle it turned, from where it was.
+    private func ringDragged(_ value: DragGesture.Value) {
+        if ringDrag == .idle {
+            let start = value.startLocation
+            let distance = hypot(start.x - r, start.y - r)
+            let minute = exactMinute(at: start)
+            guard distance >= hubR, distance <= r,
+                  let knob = Self.grabbedKnob(at: minute, knobs: knobs.map { Double($0.minute) }),
+                  !knobs[knob].isLocked
+            else {
+                ringDrag = .ignored
+                return
+            }
+            ringDrag = .grabbed(knob: knob, fingerStart: minute, knobStart: Double(knobs[knob].minute))
+        }
+        guard case let .grabbed(knob, fingerStart, knobStart) = ringDrag else { return }
+        var turned = exactMinute(at: value.location) - fingerStart
+        if turned > 720 { turned -= 1440 }
+        if turned < -720 { turned += 1440 }
+        onKnobDrag(knob, Int((knobStart + turned).rounded()))
+    }
+
+    /// The minute on the dial under `location`, unrounded, 0..<1440.
+    private func exactMinute(at location: CGPoint) -> Double {
+        var degrees = atan2(location.x - r, r - location.y) * 180 / .pi
+        if degrees < 0 { degrees += 360 }
+        return Double(degrees) * 4
+    }
 
     private func point(radius: CGFloat, minute: Double) -> CGPoint {
         let a = minute / 4 * .pi / 180
