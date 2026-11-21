@@ -38,6 +38,17 @@ final class AddChildTests: XCTestCase {
         XCTAssertFalse(missions.value.isEmpty)
     }
 
+    /// Board G6a starts with no face picked; as on S1, a kid needs one before Add saves.
+    func testNoFaceCannotSave() async {
+        let store = TestStore(initialState: AddChildFeature.State(today: F.monday, takenColours: [])) { AddChildFeature() }
+        store.exhaustivity = .off
+        await store.send(.binding(.set(\.name, "Kid C")))
+        await store.send(.binding(.set(\.ageText, "3")))
+        XCTAssertFalse(store.state.canSave, "no face yet")
+        await store.send(.faceTapped("kidGirl"))
+        XCTAssertTrue(store.state.canSave)
+    }
+
     func testAnAgeOutOfRangeCannotSave() async {
         let store = TestStore(initialState: AddChildFeature.State(today: F.monday, takenColours: [])) { AddChildFeature() }
         await store.send(.binding(.set(\.name, "Kid C"))) { $0.name = "Kid C" }
