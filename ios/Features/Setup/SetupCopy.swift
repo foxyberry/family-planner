@@ -162,17 +162,18 @@ extension SetupFeature.State {
         guard let going = goingKid?.going else { return [] }
         guard !going.services.isEmpty else {
             return [RideRow(service: nil, label: L10n.tr("c2.ride"), minutes: going.ride,
-                            text: L10n.tr("c2.minutes", going.ride), caption: L10n.tr("s3.ride.caption"),
-                            spoken: L10n.tr("c2.ride"))]
+                            text: L10n.tr("c2.minutes", going.ride), caption: L10n.tr("s3.ride.caption"))]
         }
         return going.services.enumerated().map { index, service in
             let minutes = going.ride(on: service)
             return RideRow(service: service, label: index == 0 ? L10n.tr("c2.ride") : "", minutes: minutes,
-                           text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service),
-                           spoken: L10n.tr("c2.ride.spoken", service))
+                           text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service))
         }
     }
     public var leaveText: String { L10n.tr("going.leave.minutes", goingKid?.going.leaveBefore ?? 0) }
+
+    /// The Leave row's caption as shown: "before · 7:20 am", or nothing without an Arrive by.
+    public var leaveCaptionText: String { leaveCaption ?? "" }
 
     /// "before · 7:20 am", from the school's Arrive by.
     public var leaveCaption: String? {
@@ -209,7 +210,5 @@ public struct RideRow: Equatable, Identifiable, Sendable {
     public var minutes: Int
     public var text: String
     public var caption: String
-    /// VoiceOver names every row ("Ride on 34"), also those without a label.
-    public var spoken: String
     public var id: String { service ?? "" }
 }

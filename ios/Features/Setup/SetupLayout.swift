@@ -23,7 +23,6 @@ public struct SetupLayout: Equatable, Sendable {
 
     /// S4 board values inside a column: the main column's origin is (40, 148), the side's (864, 148)
     /// (layout v32).
-    public func s4Main(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 40) * s, y: (y - 148) * s) }
     public func s4Side(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: (x - 864) * s, y: (y - 148) * s) }
     public func length(_ value: CGFloat) -> CGFloat { value * s }
     /// S4 side summary rows (school, way): text box tops 275 and 368, a 93 pitch.

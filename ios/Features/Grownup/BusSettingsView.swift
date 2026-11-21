@@ -22,7 +22,7 @@ public struct BusSettingsView: View {
                 // Board C2: the card runs 148–968, exactly its inner width, so a long row of buses can
                 // never widen it; a stop with many buses scrolls its rows inside the card.
                 PaperCard(seed: 51) {
-                    ScrollColumn {
+                    ScrollColumn(bleed: FormLines.drawnBleed) {
                         plan(layout).frame(width: layout.editorRowsWidth, alignment: .leading)
                     }
                 }
@@ -39,19 +39,20 @@ public struct BusSettingsView: View {
         .task { await store.send(.task).finish() }
     }
 
-    /// Board C2's rows: Stop (80 field and its caption), Buses (pills 180 × 72), then the steppers
-    /// on a 104 pitch.
+    /// Board C2 (layout v58): Stop (80 field and its caption), Buses (pills 180 × 72), the steppers,
+    /// then the link; rows 24 apart between drawn edges (spec "Layout balance").
     private func plan(_ layout: GrownupLayout) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
-            ListRow(leading: L10n.tr("c2.stop"), labelHeight: 80) {
+        VStack(alignment: .leading, spacing: layout.sizing.formRowGap) {
+            ListRow(leading: L10n.tr("c2.stop"), labelHeight: layout.sizing.fieldHeight) {
                 StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 8,
                                 listWidth: layout.controlWidth)
             }
+            .captionedRow()
             .zIndex(1)
-            ListRow(leading: L10n.tr("c2.buses"), labelHeight: PillToggle.size.height) {
+            ListRow(leading: L10n.tr("c2.buses"), minHeight: layout.sizing.tabHeight(), labelHeight: layout.sizing.tabHeight()) {
                 if store.search.servicesAtStop.isEmpty {
                     Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                        .frame(height: PillToggle.size.height)
+                        .frame(height: layout.sizing.tabHeight())
                 } else {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         PillToggleGrid(controlWidth: layout.controlWidth) {
@@ -70,14 +71,17 @@ public struct BusSettingsView: View {
                     }
                 }
             }
+            .drawnRow()
             stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("c2.walk.caption"), step: 1,
-                    value: store.walk) { store.send(.walkChanged($0)) }
+                    value: store.walk, sizing: layout.sizing) { store.send(.walkChanged($0)) }
             ForEach(store.rideRows) { row in
                 stepper(row.label, text: row.text, caption: row.caption, step: 1,
-                        value: row.minutes, spoken: row.spoken) { store.send(.rideChanged(service: row.service, minutes: $0)) }
+                        value: row.minutes, sizing: layout.sizing) {
+                    store.send(.rideChanged(service: row.service, minutes: $0))
+                }
             }
             stepper(L10n.tr("c2.grace"), text: store.graceText, caption: L10n.tr("c2.grace.caption"), step: 5,
-                    value: store.lateGrace) { store.send(.graceChanged($0)) }
+                    value: store.lateGrace, sizing: layout.sizing) { store.send(.graceChanged($0)) }
             if store.showsChangeLink { changeLink }
         }
     }
@@ -104,16 +108,13 @@ public struct BusSettingsView: View {
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// − 72, the value, + 72, then what the number means (board C2).
+    /// A minutes row (board C2): the shared stepper, laid out by its drawn box.
     private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int,
-                         spoken: String? = nil, change: @escaping (Int) -> Void) -> some View {
-        ListRow(leading: label, minHeight: 72) {
-            HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .minus, accessibilityLabel: spoken ?? label) { change(value - step) }.size(72)
-                Text(text).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink).frame(width: 112)
-                RoundButton(glyph: .plus, accessibilityLabel: spoken ?? label) { change(value + step) }.size(72)
-                Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
-            }
+                         sizing: Sizing, change: @escaping (Int) -> Void) -> some View {
+        ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
+            MinutesStepper(value: text, caption: caption, label: label,
+                           minus: { change(value - step) }, plus: { change(value + step) })
         }
+        .drawnRow()
     }
 }
