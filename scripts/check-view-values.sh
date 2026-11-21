@@ -8,6 +8,9 @@
 #   - a copy lookup: `L10n.tr(` or `.tr(` (resolve it in State: `strings.tr("key")`)
 #   - any `??` (no case is judged "safe": add a non-optional State property and a test)
 #   - a placeholder number: `placeholder: 450` (put the shown value in State)
+#   - in screens (not DesignSystem parts, which lay out their own options): a ternary on State or on
+#     nil, `store.canUndo ? 1 : 0.45`, `caption == nil ? -inset : 0` (2026-11-21: a view decided a
+#     row's trim; give State the decision, or a part the flag)
 # View code = a `*View.swift` file, a file that declares a `: View` type, and the DesignSystem part
 # folders (Clock, Content, Controls, Screens). Other DesignSystem files (Layout, Tokens, Fonts) get
 # the copy rule only. Exempt: ios/App, ios/DebugTools (debug only), ios/DesignSystem/Gallery,
@@ -25,6 +28,7 @@ ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 PENDING="$ROOT/scripts/view-values-pending.txt"
 COPY='\.tr\('
 VALUES='\?\?|placeholder:[[:space:]]*-?[0-9]'
+TERNARY='(store\.[A-Za-z_][A-Za-z0-9_.]*|(==|!=)[[:space:]]*nil)[^?]*[[:space:]]\?[[:space:]]'
 found=0
 
 is_pending() {
@@ -41,9 +45,9 @@ while IFS= read -r -d '' file; do
     ios/DesignSystem/Clock/*|ios/DesignSystem/Content/*|ios/DesignSystem/Controls/*|ios/DesignSystem/Screens/*)
        pattern="$COPY|$VALUES" ;;
     ios/DesignSystem/*) pattern="$COPY" ;;
-    *View.swift) pattern="$COPY|$VALUES" ;;
+    *View.swift) pattern="$COPY|$VALUES|$TERNARY" ;;
     *) printf '%s\n' "$code" | grep -qE ':[[:space:]]*View[[:space:]]*[{,]' || continue
-       pattern="$COPY|$VALUES" ;;
+       pattern="$COPY|$VALUES|$TERNARY" ;;
   esac
   hits="$(printf '%s\n' "$code" | grep -E "$pattern")"
   if is_pending "$rel"; then
