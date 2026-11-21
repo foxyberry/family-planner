@@ -2,7 +2,7 @@
 name: git-flow-delivery
 description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, push only after explicit user approval, PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
 metadata:
-  version: 0.7.1
+  version: 0.7.2
   status: experimental
 ---
 
@@ -80,7 +80,7 @@ A checkout another session also works in keeps its branch: start there in a work
 - `gh pr create --base develop --title "<conventional title>" --body-file <file>`
 - Body: Summary, Test evidence (commands + results), Risk. No personal data.
 - `main` only receives `release/*` and `hotfix/*` PRs.
-- Then hand the PR to the review session and merge only after its approval: `pr-review-handoff`.
+- Then hand the PR to the review session; the review and its LGTM live on the PR (`pr-review-handoff`).
 
 ## CI loop
 
@@ -92,7 +92,7 @@ A checkout another session also works in keeps its branch: start there in a work
 
 ## Merge
 
-- `feature/*` → `develop`: squash merge, after the review session approved the PR's head (`pr-review-handoff`).
+- `feature/*` → `develop`: squash merge, after an "LGTM at <sha>" on the PR for its current head (`pr-review-handoff`).
 - `release/*` → `main`: merge commit + tag `v<x.y.z>`, then merge `main` back into `develop`.
 
 ## Do not
