@@ -1,7 +1,8 @@
 #!/bin/bash
 # The mechanical part of a develop audit (`architecture-audit` skill), run on request only, in the
 # auditor's own worktree checked out at origin/develop. Prints a Markdown report skeleton:
-#   - the range: the last audited SHA (.claude/audit-last, git-ignored) to HEAD, and what changed;
+#   - the range: the last audited SHA (audit-last in the git common dir, shared by every worktree of
+#     this clone and never committed) to HEAD, and what changed;
 #   - every repo guard over the whole tree (audit mode), with its first findings;
 #   - the shrink-only pending lists: their size now and at the last audit;
 #   - dead-code candidates from the changed Swift files (grep): declarations whose name appears
@@ -14,7 +15,7 @@
 set -u
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
-LAST_FILE="$ROOT/.claude/audit-last"
+LAST_FILE="$(git rev-parse --path-format=absolute --git-common-dir)/audit-last"
 since="" mark=0
 while [ $# -gt 0 ]; do
   case "$1" in

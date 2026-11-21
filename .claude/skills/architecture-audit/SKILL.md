@@ -17,8 +17,9 @@ lessons and a short Korean report. It never edits the shared checkout.
 1. Work in your own worktree at the latest develop:
    `git fetch origin develop && git worktree add --detach <scratch>/audit origin/develop`
    (or `git checkout --detach origin/develop` in your existing one). Never the shared checkout.
-2. `bash scripts/audit.sh --mark` prints the report skeleton and records HEAD in the git-ignored
-   `.claude/audit-last`; the next audit starts there. First audit: `--since <sha>`.
+2. `bash scripts/audit.sh --mark` prints the report skeleton and records HEAD as `audit-last` in the
+   git common dir, which every worktree of this clone shares; the next audit starts there. First
+   audit: `--since <sha>`.
    - **Guards over the whole tree**: every finding is a cleanup item (`check-layout-versions.sh`
      lists stale board citations).
    - **Pending lists**: a list that did not shrink since the last audit is a cleanup item.
@@ -31,9 +32,14 @@ lessons and a short Korean report. It never edits the shared checkout.
    - comments citing retired boards (C1, C6, E5, E6): the version guard can't see boards that no
      longer have a layout file;
    - code left from a replaced spec: a type, case or copy key only the old flow used.
-4. Dead code, deeper than grep: `periphery scan --bazel --bazel-filter '//ios:FamilyPlanner'` (a dev
-   dependency in MODULE.bazel; installed with the user's OK) when Bazel is free. The first run builds
-   swift-syntax (about 8 min), later runs reuse the cache. Read it like this:
+4. Dead code, deeper than grep: Periphery (`brew install periphery`, the user's OK), when Bazel is
+   free. Its Bazel mode needs a module entry that also moves apple_support and rules_apple past the
+   CLAUDE.md pins, so it never lands in git: in the audit worktree only, append
+   `bazel_dep(name = "periphery", version = "3.8.0", dev_dependency = True)` and
+   `use_repo(use_extension("@periphery//bazel:generated.bzl", "generated", dev_dependency = True), "periphery_generated")`
+   to MODULE.bazel, run `periphery scan --bazel --bazel-filter '//ios:FamilyPlanner'`, then
+   `git checkout -- MODULE.bazel MODULE.bazel.lock`. The first run builds swift-syntax (about 8
+   min). Read it like this:
    - drop "Redundant public accessibility" (modules export on purpose) and the `Path` cases of a
      `@Reducer enum` (the macro uses them);
    - it scans the app only, so grep each finding in tests and `DesignSystem/Gallery` first;
