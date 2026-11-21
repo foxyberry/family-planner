@@ -235,7 +235,7 @@ Every board and the app follow these. Change them here and on board 00 first.
       - `RoundButton` (← 80, Undo / Redo 72, the bus steppers 72): `max(ref s, 56)`.
       - `CrayonSwitch`: `max(96 s, 72)` wide × `max(52 s, 48)` tall; knob `max(44 s, 40)`.
       - `ColourSwatch`: `max(56 s, 48)`. Faces picked in S1: `max(64 s, 56)`.
-      - `ChoiceCircles` (88 / 104 / 112), `PictureRow` 88, `IconPicker` tiles 88: `max(ref s, 72)`.
+      - `ChoiceCircles` (88 / 104 / 112), `PictureRow` 88, `IconPicker` slots 88: `max(ref s, 72)`.
       - `DateChip` 96 × 104: `max(ref s, 72)` wide; height in proportion.
       - `SettingRow` 120: `max(120 s, 88)`, its picture `max(56 s, 48)`.
       - Rows: two-line `ResultListCard` / `PreviewRow` / `ListRow` rows are **72 fixed**; one-line rows (the keyboard-up search) are **48 fixed** (the board value).
@@ -1039,7 +1039,7 @@ User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settin
   | y | label | control |
   |---|---|---|
   | 200 | For | `CrayonTabs` single-select, 3 options of 180 × 72: Kid A, Kid B (each with `KidFace` 40), "Both" |
-  | 296 | What | `IconPicker`: 5 slots 88 with gap 16, then a "More" slot. The picked one gets the pick ring 4 outside the drawn circle (84), as every `ChoiceCircles`. |
+  | 296 | What | `IconPicker`: 5 slots 88 with gap 16, then a "More" slot. Every slot is the same 88 circle as `ChoiceCircles` (the kit `slot` art, drawn 76), never a rounded square; the picked one gets the pick-blue ring 4 outside the drawn circle (84), not a link-coloured outline. The same for every `IconPicker` (C5 editor, F2 Bring). |
   | 412 | Name | `CrayonField` 610 × 80 |
   | 524 | When | `TimeField` 200 × 80, "→" (head `softText`), `TimeField` 200 × 80, then the duration caption ("1 hour", "1 hr 30 min", "45 min") |
   | 636 | Repeat | `CrayonTabs` 2 options of 220 × 72: "Just once", "Every week" (on) |
