@@ -39,19 +39,24 @@ public struct BusSettingsFeature {
         public var graceText: String { L10n.tr("c2.minutes", lateGrace) }
 
         /// One Ride row per picked bus, in pill order ("on 12"); the label "Ride" on the first only.
+        /// With no bus picked, one Ride row ("stop to school") sets the ride a new pick starts with.
         public struct RideRow: Equatable, Identifiable, Sendable {
-            public var service: String
+            public var service: String?
             public var label: String
             public var minutes: Int
             public var text: String
             public var caption: String
             /// VoiceOver names every row ("Ride on 34"), also those without a label.
             public var spoken: String
-            public var id: String { service }
+            public var id: String { service ?? "" }
         }
 
         public var rideRows: [RideRow] {
-            services.enumerated().map { index, service in
+            guard !services.isEmpty else {
+                return [RideRow(service: nil, label: L10n.tr("c2.ride"), minutes: ride, text: L10n.tr("c2.minutes", ride),
+                                caption: L10n.tr("s3.ride.caption"), spoken: L10n.tr("c2.ride"))]
+            }
+            return services.enumerated().map { index, service in
                 let minutes = rides[service] ?? ride
                 return RideRow(service: service, label: index == 0 ? L10n.tr("c2.ride") : "", minutes: minutes,
                                text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service),
@@ -80,7 +85,7 @@ public struct BusSettingsFeature {
         case search(StopSearchFeature.Action)
         case serviceTapped(String)
         case walkChanged(Int)
-        case rideChanged(service: String, minutes: Int)
+        case rideChanged(service: String?, minutes: Int)
         case graceChanged(Int)
         case changeLinkTapped
         case doneTapped
@@ -140,7 +145,8 @@ public struct BusSettingsFeature {
                 return save(state)
 
             case let .rideChanged(service, minutes):
-                state.rides[service] = min(max(minutes, 0), 90)
+                let value = min(max(minutes, 0), 90)
+                if let service { state.rides[service] = value } else { state.ride = value }
                 return save(state)
 
             case let .graceChanged(value):
