@@ -26,6 +26,7 @@ LocalConfig.*
 
 # Agent working files
 tools/board/out/
+__pycache__/
 .superpowers/
 .claude/*
 !.claude/settings.json

@@ -607,14 +607,24 @@ def build():
                 s_["mtime"] = d["activity"]
             if d["archived"]:
                 del sessions[sid]
-    links = {s_["title"]: session_link((s_["desk"] or {}).get("local")) for s_ in sessions.values()}
+    # Links by session id; a bare title links only when no other session has the same title.
+    links_by_id = {sid: session_link((s_["desk"] or {}).get("local")) for sid, s_ in sessions.items()}
+    titles = {}
+    for sid, s_ in sessions.items():
+        titles.setdefault(s_["title"], []).append(sid)
+    actor_sid = {}  # an actor's name on a card -> the session it stands for
 
-    def sess(title, label=None):
+    def sess(title, label=None, sid=None):
         """A session's name, linked to open it in the desktop app when its id is known."""
-        url = links.get(title)
+        if sid is None and len(titles.get(title, [])) == 1:
+            sid = titles[title][0]
+        url = links_by_id.get(sid) if sid else None
         text = esc(label or title)
         return f'<a class="sess" href="{esc(url)}" title="앱에서 이 세션 열기">{text}</a>' if url else text
-    reviewer = next((s["title"] for s in sessions.values() if "코드 리뷰" in s["title"] and "(fork)" not in s["title"]), "리뷰 세션")
+    rev = next((s for s in sessions.values() if "코드 리뷰" in s["title"] and "(fork)" not in s["title"]), None)
+    reviewer = rev["title"] if rev else "리뷰 세션"
+    if rev:
+        actor_sid[reviewer] = rev["id"]
     by_pr = {n: s for s in sessions.values() for n in s["prs"]}
     by_branch = {b: s for s in sessions.values() for b in s["branches"]}
 
@@ -630,11 +640,14 @@ def build():
     for pr in open_prs:
         s = by_pr.get(pr["number"]) or by_branch.get(pr["headRefName"])
         author = s["title"] if s else "작성 세션 (모름)"
+        if s:
+            actor_sid[author] = s["id"]
         lane, actor, what, since, flags, screen = classify(pr, author)
         actor = reviewer if actor == "리뷰 세션" else actor
         lane = "fixing" if lane == "draft" else lane
         files = [n["path"] for n in pr["files"]["nodes"]]
-        card = {"pr": pr, "author": author, "actor": actor, "what": what, "since": since, "flags": flags,
+        card = {"pr": pr, "author": author, "author_sid": s["id"] if s else None, "actor": actor, "what": what,
+                "since": since, "flags": flags,
                 "chips": category(pr["title"], files)}
         cards[lane].append(card)
         who.setdefault(actor, []).append(card)
@@ -645,7 +658,7 @@ def build():
         if t and t >= cutoff:
             s = by_pr.get(pr["number"]) or by_branch.get(pr["headRefName"])
             files = [n["path"] for n in pr["files"]["nodes"]]
-            cards["merged"].append({"pr": pr, "author": s["title"] if s else "", "since": t,
+            cards["merged"].append({"pr": pr, "author": s["title"] if s else "", "author_sid": s["id"] if s else None, "since": t,
                                     "chips": category(pr["title"], files), "flags": [], "actor": None})
 
     fetch_origin()
@@ -704,13 +717,13 @@ def build():
             stopped = (q and q["blocked"]) or d.get("awaiting")
             mine.append(("ask", "세션이 내 답을 기다림" + (" · 멈춰 있음" if stopped else ""),
                          "<br>".join(esc(a) for a in dict.fromkeys(asks)),
-                         f'{sess(s_["title"], s_["title"] + " 열기")}'
+                         f'{sess(s_["title"], s_["title"] + " 열기", sid=s_["id"])}'
                          + (f' · {esc(ago(parse_time(q["at"])))}' if q else "")))
     for c in cards["user"]:
         pr = c["pr"]
         mine.append(("ipad", "iPad에서 화면 확인",
                      f'<a href="{esc(pr["url"])}">#{pr["number"]} {esc(pr["title"])}</a>',
-                     f'괜찮으면 {sess(c["author"])} 세션에 "iPad OK"라고 알려 주기 · LGTM {esc(ago(c["since"]))}'))
+                     f'괜찮으면 {sess(c["author"], sid=c.get("author_sid"))} 세션에 "iPad OK"라고 알려 주기 · LGTM {esc(ago(c["since"]))}'))
     decide = [i for i in work if i["verdict"] == "decide"]
     if decide:
         mine.append(("decide", f"로컬 브랜치 {len(decide)}개: 살릴지 지울지 정하기",
@@ -732,7 +745,7 @@ def build():
     if not order:
         h.append('<div class="box soft">세션 차례인 PR이 없습니다.</div>')
     for actor, items in order:
-        h.append(f'<div class="box"><b>{sess(actor)}</b> <span class="soft">· {len(items)}건</span><ul>')
+        h.append(f'<div class="box"><b>{sess(actor, sid=actor_sid.get(actor))}</b> <span class="soft">· {len(items)}건</span><ul>')
         for c in sorted(items, key=lambda c: c["since"] or now()):
             h.append(f'<li><a href="{esc(c["pr"]["url"])}">#{c["pr"]["number"]}</a> {esc(c["what"])} '
                      f'<span class="soft">({esc(ago(c["since"]))}부터)</span></li>')
@@ -750,14 +763,14 @@ def build():
             pr = c["pr"]
             if key == "merged":  # one compact line each: what landed, from which session, when
                 h.append(f'<div class="card small"><div class="t"><a href="{esc(pr["url"])}">#{pr["number"]} {esc(pr["title"])}</a></div>'
-                         f'<div class="meta">{sess(c["author"]) if c["author"] else "세션 모름"} · {esc(ago(c["since"]))}</div></div>')
+                         f'<div class="meta">{sess(c["author"], sid=c.get("author_sid")) if c["author"] else "세션 모름"} · {esc(ago(c["since"]))}</div></div>')
                 continue
             h.append(f'<div class="card"><div class="t"><a href="{esc(pr["url"])}">#{pr["number"]} {esc(pr["title"])}</a></div>')
             h.append('<div class="chips">' + "".join(f'<span class="chip">{esc(x)}</span>' for x in c["chips"]) + "</div>")
             if c["actor"]:
-                h.append(f'<div class="blk {blocker_class(c["actor"])}"><b>{sess(c["actor"])}</b> · {esc(c["what"])} '
+                h.append(f'<div class="blk {blocker_class(c["actor"])}"><b>{sess(c["actor"], sid=actor_sid.get(c["actor"]))}</b> · {esc(c["what"])} '
                          f'<span class="soft">· {esc(ago(c["since"]))}</span></div>')
-            meta = [f'만든 세션: {sess(c["author"])}', f'<code>{esc(pr["headRefName"])}</code>']
+            meta = [f'만든 세션: {sess(c["author"], sid=c.get("author_sid"))}', f'<code>{esc(pr["headRefName"])}</code>']
             if key == "merged":
                 meta.append(f'머지 {esc(ago(c["since"]))}')
             h.append('<div class="meta">' + " · ".join(meta) + "</div>")
@@ -778,7 +791,7 @@ def build():
         d = s.get("desk") or {}
         status = f'<div class="meta">{esc(d["status"])}</div>' if d.get("status") else ""
         report = esc(d.get("report", "")[:220]) + ("…" if len(d.get("report", "")) > 220 else "")
-        h.append(f'<tr><td>{sess(s["title"])}</td><td><span class="dot {cls}"></span>{label} '
+        h.append(f'<tr><td>{sess(s["title"], sid=s["id"])}</td><td><span class="dot {cls}"></span>{label} '
                  f'<span class="soft">({esc(ago(s["mtime"]))})</span>{status}</td>'
                  f'<td class="report">{report or "<span class=soft>없음</span>"}</td>'
                  f'<td>{prs or "<span class=soft>열린 PR 없음</span>"}</td></tr>')
@@ -857,8 +870,16 @@ def serve(port):
                     except Exception as e:  # serve the last page rather than nothing
                         print("build failed:", e)
                     state["built"] = time.time()
-            with open(PAGE, "rb") as fh:
-                body = fh.read()
+            try:
+                with open(PAGE, "rb") as fh:
+                    body = fh.read()
+            except OSError:  # no page built yet (the first build failed): ask the browser to retry
+                self.send_response(503)
+                self.send_header("Retry-After", "10")
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                self.wfile.write("작업 현황판을 만드는 중입니다. 잠시 뒤 새로고침하세요.".encode())
+                return
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
