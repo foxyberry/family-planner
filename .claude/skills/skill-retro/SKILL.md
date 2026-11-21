@@ -1,8 +1,8 @@
 ---
 name: skill-retro
-description: Use when the lessons inbox (.claude/lessons.md) has 5 or more open lessons, when check-skills or the session-start note reports waiting lessons, at the end of a milestone or PR stack, when the user asks to retrospect, review or reorganise skills, or right after a mistake that another session could repeat (record it first).
+description: Use when the lessons inbox (.claude/lessons.md) has 5 or more open lessons, when check-skills or the session-start note reports waiting lessons, at the end of a milestone or PR stack, after a large refactor, when a lesson was just logged (a review finding turned into a guard lesson included), when the user asks to retrospect, review or reorganise skills, or right after a mistake that another session could repeat (record it first).
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   status: experimental
 ---
 
@@ -21,6 +21,10 @@ Append one line, no private data (public repo):
 - target: `guard`, `CLAUDE.md`, a skill name (`bazel-ios`, `git-flow-delivery`, ...) or `drop`
 
 ## Run a retro
+Run one on request, at the end of a milestone or PR stack, after a large refactor, or when 5 lessons
+wait. A lesson with target `guard` (often from a review, `pr-review-handoff`) can't wait for 5: turn
+it into its guard in the next harness PR. There is no scheduled retro (user, 2026-11-21).
+
 1. `bash scripts/check-skills.sh`: count the open lessons and catch broken frontmatter or oversized files.
 2. For each lesson, choose its target in this order and record the choice:
 
