@@ -85,7 +85,7 @@ public struct OurDayView: View {
             if store.pickerStart != nil {
                 ZStack(alignment: .topTrailing) {
                     Color.clear.contentShape(Rectangle()).onTapGesture { store.send(.pickerClosed) }
-                    DayPickerCard(month: store.pickerMonth, weeks: store.pickerWeeks,
+                    DayPickerCard(month: store.pickerMonth, weekdays: store.pickerWeekdays, weeks: store.pickerWeeks,
                                   today: L10n.tr("day.picker.today"), onPage: { store.send(.pickerPageTapped($0)) },
                                   onPick: { store.send(.pickerChipTapped($0)) }, onToday: { store.send(.pickerTodayTapped) })
                         .padding(.top, sizing(72 + Spacing.s))

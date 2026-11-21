@@ -79,7 +79,7 @@ public struct ComponentGallery: View {
                         DayChip("T", isOn: $tuesday)
                         DateChip(weekday: "Mon", day: 9, isOn: true) {}
                         DateChip(weekday: "Tue", day: 10, isOn: false) {}
-                        DateChip(weekday: "Wed", day: 11, isOn: false, isToday: true, compact: true) {}
+                        DateChip(day: 11, isOn: false, isToday: true) {}
                     }
                     HStack(spacing: Spacing.m) {
                         CrayonField("Activity name", text: $name).frame(width: 480)
@@ -209,7 +209,7 @@ public struct ComponentGallery: View {
                 }
                 section("G1 · Day button, picker, save changes") {
                     DayButton(today: "Today", date: "Tue 10 Nov") {}.frame(width: 472)
-                    DayPickerCard(month: "November", weeks: Self.sampleWeeks,
+                    DayPickerCard(month: "November", weekdays: Self.sampleWeekdays, weeks: Self.sampleWeeks,
                                   today: "Today", onPage: { _ in }, onPick: { _ in }, onToday: {})
                     ConfirmCard(title: "Save the changes?", message: "Dinner 6:30 pm %@ 7:30 pm, this day",
                                 messageGlyph: .arrowRight, cancel: "Cancel", confirm: "Save", isDestructive: false,
@@ -330,12 +330,13 @@ private struct RigPlayground: View {
 }
 
 extension ComponentGallery {
+    /// The picker's header row.
+    public static let sampleWeekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     /// Two weeks from Mon 9 Nov, today Tue 10, Sat 14 picked.
     public static let sampleWeeks: [[DayPickerCard.Chip]] = (0..<2).map { week in
         (0..<7).map { day in
             let index = 7 * week + day
-            return DayPickerCard.Chip(index: index, weekday: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][day],
-                                      day: 9 + index, isPicked: index == 5, isToday: index == 1)
+            return DayPickerCard.Chip(index: index, day: 9 + index, isPicked: index == 5, isToday: index == 1)
         }
     }
 }

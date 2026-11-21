@@ -198,11 +198,14 @@ public struct OurDayFeature {
             return (0..<14).map { start.adding(days: $0, calendar: calendar) }
         }
         public var pickerMonth: String { pickerStart.map { DayText.monthLong($0.month) } ?? "" }
+        /// The picker's header row: the first week's weekdays, "Mon" … "Sun".
+        public var pickerWeekdays: [String] {
+            pickerDays.prefix(7).map { DayText.shortName($0.weekday(calendar)) }
+        }
         /// The picker's two rows of chips (today underlined, the day on the clock picked).
         public var pickerWeeks: [[DayPickerCard.Chip]] {
             let chips = pickerDays.enumerated().map { index, date in
-                DayPickerCard.Chip(index: index, weekday: DayText.shortName(date.weekday(calendar)), day: date.day,
-                                   isPicked: date == day, isToday: date == today)
+                DayPickerCard.Chip(index: index, day: date.day, isPicked: date == day, isToday: date == today)
             }
             return stride(from: 0, to: chips.count, by: 7).map { Array(chips[$0..<min($0 + 7, chips.count)]) }
         }

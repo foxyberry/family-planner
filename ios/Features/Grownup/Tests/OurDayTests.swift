@@ -464,6 +464,9 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.pickerDays.first, Day(year: 2026, month: 11, day: 9))
         XCTAssertEqual(store.state.pickerDays.count, 14)
         XCTAssertEqual(store.state.pickerMonth, "November")
+        XCTAssertEqual(store.state.pickerWeekdays, ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                       "layout v66: the weekdays once, in a header row")
+        XCTAssertEqual(store.state.pickerWeeks.flatMap { $0 }.map(\.day).prefix(3), [9, 10, 11])
         await store.send(.pickerPageTapped(1))
         XCTAssertEqual(store.state.pickerDays.first, Day(year: 2026, month: 11, day: 23))
         await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 15)))
