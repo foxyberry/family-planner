@@ -75,6 +75,8 @@ jobs:
         run: bash scripts/tests/board-test.sh
       - name: Skill reference check tests
         run: bash scripts/tests/check-skill-refs-test.sh
+      - name: Affected-test selection tests
+        run: bash scripts/tests/test-affected-test.sh
       # The checks themselves, on this commit.
       - name: Repo checks (kid screens, dependencies, crayon canvas, debug boundary, layout literals, view values, strings, skills, skill refs)
         run: |

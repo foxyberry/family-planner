@@ -77,6 +77,11 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
     base="$(git merge-base "$remote/develop" "$local_sha" 2>/dev/null || true)"
     if [ -n "$base" ]; then
       bash "$ROOT/scripts/check-layout-versions.sh" --diff "$base" "$local_sha" </dev/null || status=1
+      # The tests this change can affect (rdeps); skipped with a note when Bazel is busy or the
+      # pushed commit is not checked out here (8 GB Mac: one Bazel at a time).
+      if [ -f "$ROOT/scripts/test-affected.sh" ]; then
+        bash "$ROOT/scripts/test-affected.sh" --skip-if-busy "$base" "$local_sha" </dev/null || status=1
+      fi
     fi
   done <<< "$refs"
 fi

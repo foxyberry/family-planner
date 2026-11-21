@@ -2,7 +2,7 @@
 name: bazel-ios
 description: Builds, tests, runs and troubleshoots the iPad app with Bazel 8 and the Makefile on an 8 GB Mac - make build/test/run/device/lint/fmt/sim-stop, signed builds on a real iPad, single-target bazel test with simulator flags, user.bazelrc memory caps, one-simulator rule, buildifier, adding Swift packages through Package.swift and MODULE.bazel, rules version bumps, and common Bazel/rules_apple errors. Use when running or fixing builds or tests, editing BUILD.bazel, .bzl, MODULE.bazel, .bazelrc or the Makefile, or when the simulator or Bazel server misbehaves.
 metadata:
-  version: 0.10.0
+  version: 0.11.0
   status: experimental
 ---
 
@@ -10,8 +10,7 @@ metadata:
 
 ## 8 GB rules
 
-- One build or test at a time; one simulator. `make run` builds first, then boots.
-- `make test`, `test-one` and `snapshots` shut down other simulators (a dev simulator next to
+- `make test`, `test-one` (and `test-affected`) and `snapshots` shut down other simulators (a dev simulator next to
   the test one makes tests fail) and keep the test one booted: the next run skips a 15-20 s boot. Look at changes on the iPad (`make device`).
 - Shut down idle Bazel servers of other projects: `cd <other repo> && bazel shutdown`.
 - "Another command is running" means wait; Bazel serializes commands in one workspace.
@@ -58,7 +57,8 @@ then once the sheet shows, `notifyutil -p com.apple.BiometricKit_Sim.pearl.match
 | Start the app clock at another time (debug builds) | `make run NOW=2026-11-09T07:30 SPEED=60` (same for `make device`), or the debug bubble's Time machine |
 | All tests except snapshots | `make test` (override `SIM_DEVICE=... SIM_OS=...`) |
 | Snapshot tests | `make snapshots` (see Snapshot tests) |
-| One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` (plain `bazel test` skips `ios/.bazelrc` and loses cache hits) |
+| One test target | `make test-one TARGET=//ios/<Pkg>/Tests:<Target>` |
+| The tests a change affects | `make test-affected [BASE=<rev>]` (rdeps); pre-push runs it unless Bazel is busy |
 | Test log | `bazel-testlogs/ios/<Pkg>/Tests/<Target>/test.log` |
 | Force a re-run | `make test TEST_ARGS=--nocache_test_results` (`(cached) PASSED` means it did not run) |
 | See what went into a test bundle | `find -L bazel-out/ios_sim_arm64-fastbuild-*/bin/ios/<Pkg>/Tests -name '*.xctest' -path '*archive-root*'` |
