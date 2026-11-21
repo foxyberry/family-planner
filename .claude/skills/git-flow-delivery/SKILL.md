@@ -1,8 +1,8 @@
 ---
 name: git-flow-delivery
-description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, push only after explicit user approval, PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
+description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, a branch's first push only after explicit user approval (review and CI fixes to an open PR push without asking), PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
 metadata:
-  version: 0.7.2
+  version: 0.7.3
   status: experimental
 ---
 
@@ -52,8 +52,14 @@ A checkout another session also works in keeps its branch: start there in a work
   A commit that never ran (blocked in a chained call) leaves its change uncommitted, and the change
   rides along into the next branch's commit.
 
-## Before pushing (ask the user every time)
+## Before pushing
 
+Ask the user before a branch's first push. Later pushes to an open PR's `feature/*` branch need
+no ask when they carry fixes for review comments (`pr-review-handoff`) or a red CI check (user,
+2026-11-21): push, then reply on each thread with the fixing commit. The hooks still run, and
+force-pushes, rewritten history and pushes to any other branch still need the user's OK.
+
+When you ask:
 - Name the branch and remote you will push.
 - Show the test command you ran and its result (`make test`, guard tests if scripts changed).
 - Mention anything the user should know is going public (new files, new docs).
@@ -90,7 +96,8 @@ A checkout another session also works in keeps its branch: start there in a work
 - `gh pr checks <n> --watch`; on failure `gh run view <run-id> --log-failed`.
 - CI runs only the Linux checks (Guards, Secret scan). There is no macOS CI (cost): run `make test`
   locally and show its output in the PR before merging.
-- Fix on the same branch, re-run the local check that covers the failure, ask before pushing again.
+- Fix on the same branch, re-run the local check that covers the failure, then push (no ask on an
+  open PR's branch; see Before pushing).
 - Never merge with red CI.
 
 ## Merge

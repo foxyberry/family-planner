@@ -79,8 +79,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 
 ## Git flow
 - `feature/*` from `develop`, PR into `develop`. `release/*` and `hotfix/*` go to `main`.
-- English conventional commits. Ask before pushing. This repo's git flow overrides generic
-  branch-finishing skills. See the `git-flow-delivery` skill.
+- English conventional commits. Ask before first pushes; open-PR fix pushes need no ask.
+  Git flow overrides generic branch-finishing skills (`git-flow-delivery`).
 
 ## Versions
 Bazel 8.8.2; rules_apple 4.3.3, rules_swift 3.6.0, apple_support 1.24.5,
