@@ -141,7 +141,10 @@ extension DebugModel {
         model.settings.apply(options, realNow: core.realDate())
         dependencies.date = DateGenerator { core.now() }
         if allowsStartFamily, let start = options.family {
-            // The first load waits for the replace, so the app never sees the old family.
+            // Only `load` waits for the replace, so the app never sees the old family. That is
+            // enough: every other store call (marks, slides, saves) comes from a screen the app
+            // opens after its first load returned. A failed replace makes every load throw, so a
+            // UI test stops at its first wait instead of running on the old family.
             let today = Day(core.now(), calendar: calendar)
             let family = start == .sample
                 ? ScheduleSnapshot.sampleFamily(today: today, calendar: calendar)
