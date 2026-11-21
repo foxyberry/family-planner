@@ -475,8 +475,6 @@ public struct MissionsFeature {
         case slid
         /// The done slide was dragged back past the middle: not ready any more, the medal goes.
         case slideUndone
-        /// 3 s after a slide: on to the next unfinished kid (board A3).
-        case readyShown
         case refresh
         case arrivalsLoaded([BusArrival]?, at: Date)
         case backTapped
@@ -597,7 +595,7 @@ public struct MissionsFeature {
                 // Tapping a ready kid's row shows their done view again (undo is on the slide).
                 state.chosen = kid
                 state.page = 0
-                return .cancel(id: CancelID.advance)
+                return .none
 
             case .slid:
                 guard let kid = state.chosen else { return .none }
@@ -607,12 +605,9 @@ public struct MissionsFeature {
                 day.medal = medal(for: kid, in: state)
                 state.days[kid] = day
                 state.confetti += 1
-                // The kid stays chosen and sees their done view; 3 s later the next kid comes up.
-                return .merge(save(day, in: state), .run { [clock] send in
-                    try await clock.sleep(for: .seconds(3))
-                    await send(.readyShown)
-                }
-                .cancellable(id: CancelID.advance, cancelInFlight: true))
+                // Board A3: the kid stays chosen with their done view; nothing switches kids by
+                // itself, only a row tap does.
+                return save(day, in: state)
 
             case .slideUndone:
                 guard let kid = state.chosen else { return .none }
@@ -621,12 +616,7 @@ public struct MissionsFeature {
                 day.readyAt = nil
                 day.medal = nil
                 state.days[kid] = day
-                return .merge(.cancel(id: CancelID.advance), save(day, in: state))
-
-            case .readyShown:
-                state.chosen = nextKid(in: state) ?? state.chosen
-                state.page = 0
-                return .none
+                return save(day, in: state)
 
             case let .missionTapped(id):
                 guard let kid = state.chosen else { return .none }
@@ -664,7 +654,7 @@ public struct MissionsFeature {
         return (leaving ?? state.kids.first)?.id
     }
 
-    private enum CancelID { case refresh, advance }
+    private enum CancelID { case refresh }
 
     /// Spec "Medal from the time only": from the live arrivals when the kid's own outing is the
     /// live one, else from the timetable.
