@@ -21,6 +21,13 @@ cat > "$STUBS/pgrep" <<'EOF'
 #!/bin/bash
 [ "${STUB_BUSY:-0}" = 1 ]
 EOF
+# xcrun simctl: the test simulator is always booted; STUB_DEV_SIM names a booted dev simulator.
+cat > "$STUBS/xcrun" <<'EOF'
+#!/bin/bash
+dev=""
+[ -n "${STUB_DEV_SIM:-}" ] && dev=", {\"name\": \"$STUB_DEV_SIM\"}"
+printf '{"devices": {"iOS-26-5": [{"name": "BAZEL_TEST_iPad Pro 13-inch (M5)_26.5"}%s]}}\n' "$dev"
+EOF
 chmod +x "$STUBS"/*
 export PATH="$STUBS:/usr/bin:/bin" STUB_LOG="$LOG"
 
@@ -68,8 +75,28 @@ STUB_BUSY=1 run --skip-if-busy HEAD
 assert "busy Bazel: skip with a note, exit 0" $?
 
 new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"; git -C "$REPO" commit -qam change
-git -C "$REPO" checkout -q HEAD~1; run --skip-if-busy HEAD~0 master
-[ "$CODE" -eq 0 ] || [[ "$OUT" == *"not the checked-out commit"* ]]; assert "a commit that isn't checked out is skipped" $?
+tip="$(git -C "$REPO" rev-parse HEAD)"; git -C "$REPO" checkout -q HEAD~1; run --skip-if-busy HEAD "$tip"
+[ "$CODE" -eq 0 ] && [[ "$OUT" == *"not the checked-out commit"* ]] && ! grep -q bazel "$LOG"
+assert "a commit that isn't checked out is skipped" $?
+
+new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"
+STUB_DEV_SIM="iPad Pro 11-inch (M5)" run --skip-if-busy HEAD
+[ "$CODE" -eq 0 ] && [[ "$OUT" == *"a dev simulator is in use (iPad Pro 11-inch (M5))"* ]] && ! grep -q bazel "$LOG"
+assert "a booted dev simulator: skip, so the user's app keeps running" $?
+
+new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"
+STUB_TARGETS="//ios/Domain/Tests:DomainTests" run --skip-if-busy HEAD
+grep -q '^make test-one' "$LOG" && [[ "$OUT" == *"finished in"* ]]
+assert "only the test simulator booted: tests run, with the time" $?
+
+new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"; git -C "$REPO" commit -qam change
+printf 'struct A { var c = 2 }\n' > "$REPO/ios/Domain/A.swift"; run --skip-if-busy HEAD~1 HEAD
+[ "$CODE" -eq 0 ] && [[ "$OUT" == *"uncommitted changes"* ]] && ! grep -q bazel "$LOG"
+assert "uncommitted ios/ changes under a pushed commit: skip" $?
+
+new_repo; printf 'x\n' > "$REPO/ios/Domain/BUILD.bazel"; git -C "$REPO" add -A; git -C "$REPO" commit -qm build
+git -C "$REPO" rm -q ios/Domain/A.swift; run HEAD~1
+grep -q 'set(//ios/Domain:all)' "$LOG"; assert "a deleted file stands for its package" $?
 
 new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"; run HEAD
 [ "$CODE" -eq 0 ] && [[ "$OUT" == *"no test target depends"* ]] && ! grep -q '^make' "$LOG"
