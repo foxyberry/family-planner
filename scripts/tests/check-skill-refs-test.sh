@@ -52,6 +52,12 @@ passes "a git-ignored path" 'Keep it in `docs/private/`.'
 passes "branch patterns and time zones are not paths" 'Branch `feature/*`, zone `Asia/Singapore`.'
 passes "commands and placeholders are skipped" 'Run `make test-one TARGET=x` on `docs/<board>.json`.'
 passes "fenced blocks are skipped" $'```\n`GrownupLayout.tabWidth`\n```'
+passes "a dot path that exists" 'Read `.claude/skills/demo/references/guide.md`.'
+blocks "a dot path that doesn't exist" 'Read `.claude/lessons.md`.' "no such file"
+passes "a leading-dot Swift call is skipped" 'Call `.drawnRow()` on the row.'
+blocks "a Bazel label without its package" 'Test `//ios/Nope/Tests:NopeTests`.' "no such Bazel package"
+new_tree; mkdir -p "$TREE/ios/Demo"; printf 'x\n' > "$TREE/ios/Demo/BUILD.bazel"; run_with 'Build `//ios/Demo:Demo` and `//ios/...`.'
+[ "$CODE" -eq 0 ]; assert "a Bazel label with its package, and a wildcard" $?
 new_tree; printf 'GrownupLayout.tabWidth\n' > "$TREE/scripts/skill-refs-allow.txt"; run_with 'Use `GrownupLayout.tabWidth`.'
 [ "$CODE" -eq 0 ]; assert "the allow-list lets a name through" $?
 
