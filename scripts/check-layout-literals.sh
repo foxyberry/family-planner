@@ -1,7 +1,10 @@
 #!/bin/bash
 # Spec "Layout model": screens fill layout slots with parts and rows; they carry no numbers and no
 # offsets. This counts, per screen file (ios/Features and ios/AppCore *View.swift), the lines with
-# `.offset(` or a non-zero number literal inside `.frame(`, `.padding(` or `spacing:`. Files that still have
+# `.offset(` or a non-zero number literal inside `.frame(`, `.padding(` or `spacing:`, or passed as a
+# size argument to a part (`height:`, `width:`, `minHeight:`, `labelHeight:` …: 2026-11-21, `SetupRow(height:
+# 72)` kept the 13" height while its parts scaled). Use the parts' scaled sizes (`sizing.fieldHeight`,
+# `sizing.tabHeight()`, `MinutesStepper.rowHeight(sizing)`). Files that still have
 # some are listed with their count in scripts/layout-literals-pending.txt; the list only shrinks:
 #   - a file not on the list must have 0;
 #   - a listed file must have exactly its count (lower the count when you remove some; delete the
@@ -13,7 +16,7 @@ set -u
 
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 PENDING="$ROOT/scripts/layout-literals-pending.txt"
-PATTERN='\.offset\(|(\.frame|\.padding|spacing:)[^"]*[^A-Za-z0-9_.]([1-9][0-9]*(\.[0-9]+)?|0\.[0-9]+)\b'
+PATTERN='\.offset\(|(\.frame|\.padding|spacing:)[^"]*[^A-Za-z0-9_.]([1-9][0-9]*(\.[0-9]+)?|0\.[0-9]+)\b|\b(height|width|minHeight|maxHeight|minWidth|maxWidth|labelHeight):[[:space:]]*[1-9][0-9]*'
 found=0
 
 pending_count() {
