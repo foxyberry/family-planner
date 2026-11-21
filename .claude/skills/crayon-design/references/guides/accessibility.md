@@ -7,7 +7,7 @@ spoken text or adjustable actions. It holds no numbers: every size and colour is
 Apple advice and this app differ, `../hig-exceptions.md` decides.
 
 ## Touch
-- One touch rule (spec **Sizing → Touch**), in this order: (1) a tap hits only what is drawn,
+- One touch rule (spec **Sizing → Touch**), in this order: (1) a tap hits only the drawn shape (frame less the 6 pt inset; a round button's circle),
   scaled by `s`, never an invisible floor; (2) a drag that starts on a part with no drag of its own
   grabs the nearest handle of its named area only: the clock ring (nearest knob by angle, up to
   half the angle to the next) or a slider's own track; the tap stays that part's; (3) draw the part bigger on the board only as the last resort.
