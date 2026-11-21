@@ -45,31 +45,20 @@ public struct CrayonTabs<ID: Hashable>: View {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 let isOn = item.0 == selection
                 Button { selection = item.0 } label: {
-                    HStack(spacing: sizing(KidFace.gap(for: KidFace.medium))) {
-                        if let badge = item.2 {
-                            KidFace(badge, size: sizing(KidFace.medium))
-                                .overlay(alignment: .topTrailing) {
-                                    if marked.contains(item.0) {
-                                        Circle().fill(CrayonColor.hurry).frame(width: sizing(14), height: sizing(14))
-                                            .offset(x: sizing(4), y: sizing(-4))
-                                    }
-                                }
-                        }
-                        // A tab label never wraps ("Mon–Fri" split over two lines on C6). In a tab of
-                        // a fixed width a long typed name ends with "…" inside the capsule (spec
-                        // "Sizing → Text that does not fit"); a hugging tab grows with its label.
-                        if !faceOnly || item.2 == nil {
-                            // Boards 0b/C1: the chosen label bold ink, the others regular soft text.
-                            if width(at: index) != nil || fills {
-                                Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).truncationMode(.tail)
-                            } else {
-                                Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
+                    Group {
+                        if width(at: index) != nil || fills {
+                            // A label that fits sits centred; a long one ends with "…" with the tab's
+                            // inset kept, so the "…" stays inside the capsule (spec "Text that does
+                            // not fit").
+                            ViewThatFits(in: .horizontal) {
+                                label(item, isOn: isOn, truncates: false)
+                                label(item, isOn: isOn, truncates: true).padding(.horizontal, sizing(inset))
                             }
+                        } else {
+                            // Text 24 from a hugging tab's edge (16 compact).
+                            label(item, isOn: isOn, truncates: false).padding(.horizontal, sizing(inset))
                         }
                     }
-                    .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
-                    // Text 24 from a hugging tab's edge (16 compact).
-                    .padding(.horizontal, itemSize == nil && widths == nil && !fills ? sizing(inset) : 0)
                     .frame(width: width(at: index))
                     .frame(maxWidth: fills ? .infinity : nil)
                     // 72 × s (or `itemSize`'s height × s).
@@ -80,6 +69,31 @@ public struct CrayonTabs<ID: Hashable>: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    /// A tab's face and label; `truncates`: a long label ends with "…" instead of growing.
+    private func label(_ item: (ID, String, KidFace.Badge?), isOn: Bool, truncates: Bool) -> some View {
+        HStack(spacing: sizing(KidFace.gap(for: KidFace.medium))) {
+            if let badge = item.2 {
+                KidFace(badge, size: sizing(KidFace.medium))
+                    .overlay(alignment: .topTrailing) {
+                        if marked.contains(item.0) {
+                            Circle().fill(CrayonColor.hurry).frame(width: sizing(14), height: sizing(14))
+                                .offset(x: sizing(4), y: sizing(-4))
+                        }
+                    }
+            }
+            // A tab label never wraps ("Mon–Fri" split over two lines on C6).
+            if !faceOnly || item.2 == nil {
+                // Boards 0b/C1: the chosen label bold ink, the others regular soft text.
+                if truncates {
+                    Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).truncationMode(.tail)
+                } else {
+                    Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
+                }
+            }
+        }
+        .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
     }
 
     /// A tab's fixed width × s: its own from `widths`, else `itemSize`'s; nil hugs the label.

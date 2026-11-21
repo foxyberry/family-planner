@@ -69,7 +69,7 @@ public struct OurDayView: View {
                 // Undo / Redo at 656 and 744 (y 880), 24 in from the form box's right edge.
                 .overlay(alignment: .bottomTrailing) { undoRedo.padding(.trailing, 24 * layout.sizing.s) }
             sideColumn(layout)
-                .frame(width: layout.side.width, height: layout.action.minY - sizing(Spacing.sm) * layout.sizing.s
+                .frame(width: layout.side.width, height: layout.action.minY - sizing(Spacing.sm)
                        - layout.side.minY, alignment: .topLeading)
         }
         // Board G1c: the picker opens under the day button, over the card; a tap outside closes it.

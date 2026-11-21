@@ -485,7 +485,7 @@ public struct ItemEditorView: View {
                           toggle: @escaping () -> Void) -> some View {
         Button(action: toggle) {
             HStack(spacing: sizing(Spacing.sm)) {
-                CheckMark(isDone: isOn, size: sizing(48))
+                CheckMark(isDone: isOn, size: 48)
                 if let picture { KitIcon(picture, size: sizing(40)) }
                 Text(title).crayonType(.body).foregroundStyle(CrayonColor.ink)
             }

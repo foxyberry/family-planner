@@ -99,6 +99,10 @@ public struct GrownupScreen<Header: View, Content: View, Action: View>: View {
         // Board = screen: the header band starts at y 48 from the top of the glass; the status bar
         // sits over the empty band above it. The bottom inset counts from the glass too.
         .ignoresSafeArea(.container, edges: [.top, .bottom])
+        // Every edge comes from one board frame (1376 s, centred), also where the screen is hosted
+        // outside the app root's frame (a `fullScreenCover`: S2 Data sources, S3 Change buses).
+        .frame(width: sizing.width)
+        .frame(maxWidth: .infinity)
         .background(CrayonColor.paper.fullBleed())
         .foregroundStyle(CrayonColor.ink)
         .navigationBarBackButtonHidden()
