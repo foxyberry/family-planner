@@ -13,6 +13,24 @@ final class AgentJourneyTests: XCTestCase {
     func testFirstRunJourneyFile() async throws { try await replay("first-run") }
     func testAddAChildJourneyFile() async throws { try await replay("add-a-child") }
 
+    /// What `ls` lists as each screen's actions (`AgentContract.schema`) is contract.json's, key by
+    /// key: names, argument names and argument types.
+    func testSchemaMatchesTheContract() throws {
+        let runfiles = ProcessInfo.processInfo.environment["TEST_SRCDIR"] ?? ""
+        let url = URL(fileURLWithPath: runfiles + "/_main/ios/Journeys/Tests/Driver/contract.json")
+        let contract = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        var expected: [String: [String: [String: String]]] = [:]
+        for screen in contract["screens"] as? [[String: Any]] ?? [] {
+            let id = try XCTUnwrap(screen["id"] as? String)
+            var actions: [String: [String: String]] = [:]
+            for action in screen["actions"] as? [[String: Any]] ?? [] {
+                actions[try XCTUnwrap(action["name"] as? String)] = action["args"] as? [String: String] ?? [:]
+            }
+            expected[id] = actions
+        }
+        XCTAssertEqual(AgentContract.schema, expected)
+    }
+
     private func replay(_ name: String) async throws {
         let journey = try load(name)
         let world = World(worldData(journey["world"] as? [String: Any] ?? [:]))

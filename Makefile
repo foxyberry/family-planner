@@ -23,7 +23,7 @@ OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one test-affected ui-test snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one test-affected ui-test driver-check snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios board
 
 # =============================================================================
@@ -130,6 +130,11 @@ ui-test: stop-dev-sims
 	$(IOS_BAZEL) test $(PUBLIC_FLAGS) $(UI_TEST_TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
+
+# The agent driver's JSON journeys on the connected iPad (test mode, throwaway world), then the app
+# back in normal mode: make driver-check [SKIP_INSTALL=1] [JOURNEYS="first-run"]. Manual, not CI.
+driver-check:
+	@SKIP_INSTALL=$(SKIP_INSTALL) bash scripts/driver-check.sh $(JOURNEYS)
 
 # Give the Simulator's memory back when you are done looking.
 sim-stop:
