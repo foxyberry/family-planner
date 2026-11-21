@@ -39,6 +39,7 @@ public struct ChoiceCircles: View {
 
     /// Spec "Part floors": the 88 circle × s, never under 72; ring and pitch keep their board ratio.
     private var k: CGFloat { sizing.pictureCircle(88) / 88 }
+    private var ringSize: CGFloat { 88 * k - 2 * CrayonPart.inset + 2 * CrayonPart.pickRing }
 
     public var body: some View {
         // Each choice is 112 wide (its caption's width), so the circles sit on the 112 pitch.
@@ -60,7 +61,10 @@ public struct ChoiceCircles: View {
                                         markerColor: CrayonColor.pictureOutline)
                         .overlay {
                             if choice.isPicked {
-                                Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: 104 * k, height: 104 * k)
+                                // Spec "Alignment contract": the ring sits `pickRing` outside the drawn
+                                // circle (one inset inside its frame), not on the 104 board box.
+                                Circle().stroke(CrayonColor.pickBlue, lineWidth: 5)
+                                    .frame(width: ringSize, height: ringSize)
                             }
                         }
                         Text(choice.caption).crayonType(.caption, bold: choice.isPicked).foregroundStyle(CrayonColor.ink)

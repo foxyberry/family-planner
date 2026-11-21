@@ -114,8 +114,10 @@ public struct StopSearchFeature {
                 return lookUp(state)
 
             case .listClosed:
+                // Closing the list stops a search; a picked stop's buses still load (S3 showed no
+                // buses until a second pick, 2026-11-21).
                 state.matches = []
-                return .merge(.cancel(id: SearchID.stops), .cancel(id: SearchID.lookUp))
+                return .cancel(id: SearchID.stops)
             }
         }
     }

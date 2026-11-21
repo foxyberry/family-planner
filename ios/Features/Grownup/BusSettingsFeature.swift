@@ -115,7 +115,9 @@ public struct BusSettingsFeature {
                 state.kidName = kid?.name ?? ""
                 state.storedKid = kid
                 if let plan = snapshot?.busPlans.route(kid: state.kid) {
-                    state.search = StopSearchFeature.State(stop: plan.stop)
+                    // Back from C2c the stop is the same: keep its name and buses instead of looking
+                    // them up again (user, 2026-11-21).
+                    if plan.stop != state.search.stop { state.search = StopSearchFeature.State(stop: plan.stop) }
                     state.services = plan.services
                     state.walk = plan.walk
                     state.ride = plan.ride
@@ -124,7 +126,8 @@ public struct BusSettingsFeature {
                     state.change = plan.change
                 }
                 if let grace = kid?.school?.lateGrace { state.lateGrace = grace }
-                return .send(.search(.lookUp))
+                // The stop's buses load once per visit; a reload keeps the list it has.
+                return state.search.servicesAtStop.isEmpty ? .send(.search(.lookUp)) : .none
 
             case .search(.stopLooked):
                 // The pills follow the stop's order once its buses are known.

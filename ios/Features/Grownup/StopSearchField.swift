@@ -25,6 +25,9 @@ public struct StopSearchField: View {
             CrayonField(L10n.tr("c2.stop.placeholder"),
                         text: Binding(get: { store.text }, set: { store.send(.textChanged($0)) }))
                 .frame(width: 400)
+                // A pick closes the keyboard, as on S2, so the field never sends back the text typed
+                // before the pick (S3 needed a second pick, 2026-11-21).
+                .keyboardHidden(when: store.showsPickedCheck)
                 .overlay(alignment: .topLeading) {
                     // Placed with padding, not offset, so the veil's hole lands on the card itself.
                     if store.isListOpen { matches.resultVeilHole().padding(.top, 80 + Spacing.l) }

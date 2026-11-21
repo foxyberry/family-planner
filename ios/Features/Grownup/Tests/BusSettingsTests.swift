@@ -135,6 +135,10 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(store.state.search.caption, "Example Rd · 00000")
         await store.receive(\.search.stopLooked)
         XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+        // Closing the list after a pick keeps the stop and its buses (S3, 2026-11-21).
+        await store.send(.search(.listClosed))
+        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+        XCTAssertEqual(store.state.search.stop, "00000")
     }
 
     /// User review 2026-11-14: focusing the field or typing does not touch the picked stop or its
@@ -161,6 +165,21 @@ final class BusSettingsTests: XCTestCase {
         await store.send(.search(.textChanged("123")))
         XCTAssertEqual(store.state.search.stop, "00000")
         XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+    }
+
+    /// Back from C2c the screen loads again: the stop's buses stay, with no second look-up
+    /// (user, 2026-11-21).
+    func testReloadKeepsTheStopsBuses() async {
+        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"])])
+        let store = store(saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.search.stopLooked)
+        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.search.servicesAtStop, ["1", "2"], "kept, not cleared for a new look-up")
+        XCTAssertEqual(store.state.search.text, "Example Stop")
     }
 
     /// "Late" is the school's Latest − Arrive by (spec "Latest lives on the school record").
