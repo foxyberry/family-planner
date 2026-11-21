@@ -2,8 +2,9 @@
 # Every kit picture is used, and every picture asset belongs to one (dead-code guard; review
 # session, 2026-11-22). grep can prove both:
 #   - a `KitSlot` case is used when its name appears in app code or data outside ios/KitArt (Swift,
-#     JSON, the String Catalog; DebugTools counts, tests and the component gallery don't). KitArt
-#     itself lists every case on purpose (`isThing`), so it never counts as a use;
+#     JSON, the String Catalog; DebugTools counts, tests and the component gallery don't), or when
+#     it is in `isThing`'s true arm: Bring's "More" shows those through `KitSlot.allCases`. KitArt's
+#     other exhaustive lists (`isThing`'s false arm) never count;
 #   - an image set in KitArt.xcassets is a `KitSlot` case, or a rig frame that KitRigs names.
 # Pictures and assets not used yet are listed in scripts/kit-art-pending.txt (one name per line).
 # The list only shrinks: a listed name that is now used (or gone) fails until its line is removed,
@@ -40,7 +41,14 @@ def counts(path):
             and not text.startswith("ios/DesignSystem/Gallery/"))
 
 sources = [p.read_text(errors="ignore") for p in (root / "ios").rglob("*") if p.is_file() and counts(p)]
-unused = {name for name in cases if not any(re.search(rf"\b{name}\b", text) for text in sources)}
+things = set()
+things_file = art / "KitSlot+Things.swift"
+if things_file.exists():
+    arm = re.search(r"var isThing.*?switch self \{(.*?):\s*true", things_file.read_text(), re.S)
+    if arm:
+        things = set(re.findall(r"\.(\w+)", arm.group(1)))
+unused = {name for name in cases
+          if name not in things and not any(re.search(rf"\b{name}\b", text) for text in sources)}
 
 catalog = art / "Resources/KitArt.xcassets"
 rig_text = "".join(p.read_text() for p in catalog.rglob("*.json") if p.parent.name.endswith(".dataset"))

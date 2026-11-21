@@ -12,7 +12,7 @@ new_tree() {
   mkdir -p "$catalog/sun.imageset" "$catalog/teddy.imageset" "$catalog/rig-teddy-0.imageset" \
     "$catalog/KitRigs.dataset" "$TREE/ios/Features/Home/Tests" "$TREE/ios/DesignSystem/Gallery" "$TREE/scripts"
   printf 'public enum KitSlot: String {\n    case sun, teddy\n}\n' > "$TREE/ios/KitArt/KitSlot.swift"
-  printf 'var isThing: Bool { switch self { case .sun, .teddy: true } }\n' > "$TREE/ios/KitArt/KitSlot+Things.swift"
+  printf 'var isThing: Bool {\n    switch self {\n    case .teddy: true\n    case .sun: false\n    }\n}\n' > "$TREE/ios/KitArt/KitSlot+Things.swift"
   printf '{"teddy": [{"image": "rig-teddy-0"}]}\n' > "$catalog/KitRigs.dataset/rigs.json"
   printf 'KitIcon(.sun)\nlet picture = "teddy"\n' > "$TREE/ios/Features/Home/HomeView.swift"
 }
@@ -32,11 +32,11 @@ test_passes_when_every_picture_is_used() {
 
 test_blocks_a_picture_only_kitart_tests_or_the_gallery_name() {
   new_tree
-  printf 'KitIcon(.sun)\n' > "$TREE/ios/Features/Home/HomeView.swift"
-  printf 'KitIcon(.teddy)\n' > "$TREE/ios/Features/Home/Tests/HomeTests.swift"
-  printf 'KitIcon(.teddy)\n' > "$TREE/ios/DesignSystem/Gallery/ComponentGallery.swift"
+  printf 'let picture = "teddy"\n' > "$TREE/ios/Features/Home/HomeView.swift"
+  printf 'KitIcon(.sun)\n' > "$TREE/ios/Features/Home/Tests/HomeTests.swift"
+  printf 'KitIcon(.sun)\n' > "$TREE/ios/DesignSystem/Gallery/ComponentGallery.swift"
   run_check
-  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"kit picture nothing uses: teddy"* ]]
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"kit picture nothing uses: sun"* ]]
   assert test_blocks_a_picture_only_kitart_tests_or_the_gallery_name $?
 }
 
@@ -48,21 +48,30 @@ test_blocks_an_orphan_asset() {
   assert test_blocks_an_orphan_asset $?
 }
 
-test_pending_list_only_shrinks() {
+test_a_thing_counts_through_bring_more() {
   new_tree
   printf 'KitIcon(.sun)\n' > "$TREE/ios/Features/Home/HomeView.swift"
-  printf '# waiting\nteddy\n' > "$TREE/scripts/kit-art-pending.txt"
+  run_check
+  [ "$CODE" -eq 0 ]
+  assert test_a_thing_counts_through_bring_more $?
+}
+
+test_pending_list_only_shrinks() {
+  new_tree
+  printf 'let picture = "teddy"\n' > "$TREE/ios/Features/Home/HomeView.swift"
+  printf '# waiting\nsun\n' > "$TREE/scripts/kit-art-pending.txt"
   run_check
   [ "$CODE" -eq 0 ] || { assert test_pending_list_only_shrinks 1; return; }
   printf 'sun\nteddy\n' > "$TREE/scripts/kit-art-pending.txt"
   run_check
-  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"pending line for a used or missing picture: sun"* ]]
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"pending line for a used or missing picture: teddy"* ]]
   assert test_pending_list_only_shrinks $?
 }
 
 test_passes_when_every_picture_is_used
 test_blocks_a_picture_only_kitart_tests_or_the_gallery_name
 test_blocks_an_orphan_asset
+test_a_thing_counts_through_bring_more
 test_pending_list_only_shrinks
 
 echo "passed=$PASS failed=$FAIL"

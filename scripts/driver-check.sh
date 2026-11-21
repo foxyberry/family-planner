@@ -22,9 +22,12 @@ fail() { echo "driver-check: FAILED at $1" >&2; exit 1; }
 
 UDID="$(scripts/connected-ipad.sh)" || fail "connect (no iPad on USB)"
 names=("$@")
+named=1
 if [ "${#names[@]}" -eq 0 ]; then
+  named=0
   for f in "$JOURNEYS"/*.json; do names+=("$(basename "$f" .json)"); done
 fi
+skipped=0
 
 if [ "${SKIP_INSTALL:-}" != "1" ]; then
   # 8 GB Mac: one Bazel command at a time.
@@ -50,12 +53,20 @@ for name in "${names[@]}"; do
 w = json.load(open(sys.argv[1])).get("world", {})
 print(w.get("now", "2026-11-10T07:30"), w.get("family", "empty"), w.get("faceID", "success"))' "$file")
   # On the iPad only "success" can be played (Skip Face ID); any other answer would wait for a real
-  # face. Such journeys run in Bazel, where World fakes Face ID's answer.
-  [ "$face" = "success" ] || fail "journey ($name: Face ID \"$face\" can't be faked on the iPad; it runs in Bazel only)"
+  # face. Such journeys run in Bazel, where World fakes Face ID's answer: skipped in a full run,
+  # refused when named.
+  if [ "$face" != "success" ]; then
+    [ "$named" = 1 ] && fail "journey ($name: Face ID \"$face\" can't be faked on the iPad; it runs in Bazel only)"
+    echo "driver-check: $name skipped (Face ID \"$face\" runs in Bazel only)"
+    skipped=$((skipped + 1))
+    continue
+  fi
   echo "driver-check: $name (family $family, $now)"
   xcrun devicectl device process launch --terminate-existing --device "$UDID" "$BUNDLE_ID" \
     -- -fpNow "$now" -fpFamily "$family" -fpSkipFaceID -fpDriver >/dev/null 2>&1 || fail "launch ($name)"
   python3 tools/driver/fp-driver.py run "$file" || fail "journey ($name)"
   passed=$((passed + 1))
 done
-echo "driver-check: ${passed} journey(s) passed on the iPad"
+extra=""
+[ "$skipped" -gt 0 ] && extra=", $skipped skipped"
+echo "driver-check: ${passed} journey(s) passed on the iPad$extra"

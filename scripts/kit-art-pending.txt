@@ -1,7 +1,8 @@
 # Kit pictures and assets nothing uses yet (scripts/check-kit-art.sh). This list only shrinks:
-# when a screen uses one, or make art removes it, delete its line. Pictures drawn ahead of a spec
-# feature (flags, bus fullness, feelings, energy) wait here; whether they stay is the design
-# session's call.
+# when a screen uses one, or make art removes it, delete its line. The design session decides which
+# stay (2026-11-22).
+
+# Bus fullness: kept, planned (backlog N1a, A2 crowding).
 busDoublePax1
 busDoublePax2
 busDoublePax3
@@ -11,6 +12,8 @@ busMiniPax3
 busSinglePax1
 busSinglePax2
 busSinglePax3
+
+# Feelings and energy: kept, planned (the diary check-in, boards B2, B3, 0e).
 energyGood
 energyLots
 energyNone
@@ -20,6 +23,9 @@ feelOK
 feelSad
 feelVeryHappy
 feelVerySad
+
+# Flags: kept. The spec lets the language-school cloth become a country flag through C3's "More",
+# but no picker lists flags yet (Bring's "More" shows things only), so the swap is not built.
 flagCN
 flagFR
 flagIN
@@ -28,4 +34,7 @@ flagKR
 flagTH
 flagUK
 flagVN
+
+# A rig frame the rig data no longer names: make art writes frames but never prunes old ones, so
+# this stays until the generator prunes and make art runs again.
 rig-actLanguageSchool-2
