@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh, check-view-values.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.9.0
+  version: 0.10.0
   status: experimental
 ---
 
@@ -50,7 +50,9 @@ reference time zone, the time machine and tests can replace any of it in one pla
 
 ## State shape (views hold no values)
 a. `init` builds a complete, renderable State: defaults known up front are initial values, never
-   view or copy fallbacks.
+   view or copy fallbacks. A field's starting value (default times) is in State from the form's
+   start, seeded in the model: a wheel set to the value it already shows sends nothing, so a value
+   that only the copy draws never reaches State. Soft placeholder looks are for truly empty inputs only.
 b. Values that arrive later (store, network) live in `enum Phase { case loading, ready(Form), failed }`;
    `.loaded` builds the whole `Form` (or `.failed`); form actions before it do nothing. The view
    switches on the phase and draws the form only in `ready` (`ChangeSchoolFeature`, or `store.scope`
