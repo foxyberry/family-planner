@@ -79,7 +79,7 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 
 ## Git flow
 - `feature/*` from `develop`, PR into `develop`. `release/*` and `hotfix/*` go to `main`.
-- English conventional commits. Ask before first pushes; open-PR fix pushes need no ask.
+- English conventional commits. Ask only before a branch's first push (`git-flow-delivery`).
   Git flow overrides generic branch-finishing skills (`git-flow-delivery`).
 
 ## Versions
