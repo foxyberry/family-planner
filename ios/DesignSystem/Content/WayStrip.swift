@@ -8,8 +8,9 @@ import SwiftUI
 /// the clock, a card with the owner's face), the live look (the buses coming to our stop with
 /// their bubbles and the "my bus" legend) and the empty look ("Home all day"). Drawn in the
 /// board's 1248 × 340 frame and scaled to fit, keeping its shape; labels, bubbles and cards are
-/// set on top at real type sizes.
+/// set on top at the screen's type sizes. Crayon shapes take board units (the surface scales them).
 public struct WayStrip: View {
+    @Environment(\.sizing) private var sizing
     /// A bus on the live look: x on the board (from its minutes, in State), its picture and its
     /// words: the kid's bus has the big bubble, every other bus a tag.
     public struct LiveBus: Equatable, Sendable, Identifiable {
@@ -214,18 +215,18 @@ public struct WayStrip: View {
             // Spec "Night mapping": the strip is a lit ground, so its art and labels read as by day.
             RoundedRectangle(cornerRadius: g.len(36)).fill(CrayonColor.litGround)
                 .frame(width: g.x(Self.size.width), height: g.y(Self.size.height))
-            CrayonSurface(.roundedRect(cornerRadius: g.len(36)),
+            CrayonSurface(.roundedRect(cornerRadius: 36),
                           fill: CrayonFill(color: CrayonColor.meadow,
                                            hachure: HachureStyle(degrees: -35, gap: 12, washOpacity: 0.22)),
                           markerColor: CrayonColor.pictureMarker, seed: CrayonStyle.Seed.way)
                 // The ground's visible edge is the strip's edge (64 and 1312 on the screen).
                 .frame(width: g.x(Self.size.width), height: g.y(Self.size.height))
             ForEach(Self.trees.indices, id: \.self) { index in
-                let tree = Self.trees[index], inset = MarkerStyle.standard.inset, r = g.len(tree.r)
+                let tree = Self.trees[index], inset = g.len(MarkerStyle.standard.inset), r = g.len(tree.r)
                 let centre = g.point(tree.x, tree.y)
                 CrayonLine([CGPoint(x: centre.x, y: centre.y + r - g.len(4)),
                             CGPoint(x: centre.x, y: centre.y + r + g.len(18))],
-                           marker: .standard.with(width: 5), color: CrayonColor.pictureMarker,
+                           marker: .standard.with(width: g.len(5)), color: CrayonColor.pictureMarker,
                            seed: CrayonStyle.Seed.way + UInt32(30 + index))
                 CrayonSurface(.circle, fill: CrayonFill(color: CrayonColor.leaf,
                                                         hachure: HachureStyle(degrees: -40, gap: 4)),
@@ -282,7 +283,8 @@ public struct WayStrip: View {
     }
 
     private func stop(_ g: Geo, x: CGFloat, radius: CGFloat, fill: CrayonFill, width: CGFloat, seed: UInt32) -> some View {
-        let marker = MarkerStyle.standard.with(width: g.len(width)), outer = g.len(radius) + marker.inset
+        // The marker is in board units (the surface scales it); the frame in screen points.
+        let marker = MarkerStyle.standard.with(width: width), outer = g.len(radius + marker.inset)
         return CrayonSurface(.circle, fill: fill, marker: marker, markerColor: CrayonColor.pictureMarker, seed: seed)
             .frame(width: 2 * outer, height: 2 * outer)
             .offset(x: g.x(x) - outer, y: g.y(Self.roadY) - outer)
@@ -323,13 +325,13 @@ public struct WayStrip: View {
             label(live.destinationLabel, x: Self.destinationX, kx: kx, k: k)
             // Legend at (946, 16): the white plate with the chosen bus's number means "my bus" (an
             // empty plate read as broken on the iPad, 2026-11-09); the kid's other buses faded under it.
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                HStack(spacing: Spacing.xs) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.xxs)) {
+                HStack(spacing: sizing(Spacing.xs)) {
                     NumberPlate(live.myService.isEmpty ? " " : live.myService, isMine: true, small: true)
                     Text(live.myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
                 }
                 if !live.others.isEmpty {
-                    HStack(spacing: Spacing.xxs) {
+                    HStack(spacing: sizing(Spacing.xxs)) {
                         ForEach(live.others, id: \.self) { plate in
                             LiveBusTag.Plate(number: plate.number, then: plate.then)
                         }
@@ -359,15 +361,16 @@ public struct WayStrip: View {
     static func bubbleX(_ x: CGFloat) -> CGFloat { min(max(x, 120), size.width - 120) }
     static let bubbleBottom: CGFloat = moverBottom - 120 - 8
 
-    /// Spec "A2 strip": every other bus's tag, placed by `LiveTagLayout` at real sizes, one row above
-    /// the buses or one under; a tag with no free row is left out.
+    /// Spec "A2 strip": every other bus's tag, placed by `LiveTagLayout` at their sizes on screen, one
+    /// row above the buses or one under; a tag with no free row is left out.
     @ViewBuilder private func tags(_ live: Live, kx: CGFloat, k: CGFloat) -> some View {
         let tagged = live.buses.compactMap { bus in bus.tag.map { (bus: bus, tag: $0) } }
+        let bubbleSize = sizing(LiveBusBubble.size.width, LiveBusBubble.size.height)
         let bubble = live.buses.first(where: \.isMine).map { mine in
-            CGRect(x: Self.bubbleX(mine.x) * kx - LiveBusBubble.size.width / 2, y: Self.bubbleBottom * k - LiveBusBubble.size.height,
-                   width: LiveBusBubble.size.width, height: LiveBusBubble.size.height)
+            CGRect(x: Self.bubbleX(mine.x) * kx - bubbleSize.width / 2, y: Self.bubbleBottom * k - bubbleSize.height,
+                   width: bubbleSize.width, height: bubbleSize.height)
         }
-        let slots = LiveTagLayout.place(tagged.map { LiveTagLayout.Tag(centreX: $0.bus.x * kx, width: LiveBusTag.width($0.tag)) },
+        let slots = LiveTagLayout.place(tagged.map { LiveTagLayout.Tag(centreX: $0.bus.x * kx, width: sizing(LiveBusTag.width($0.tag))) },
                                         kx: kx, k: k, bubble: bubble)
         ForEach(Array(tagged.enumerated()), id: \.element.bus.id) { index, item in
             if case let .shown(_, frame) = slots[index] {
@@ -391,15 +394,15 @@ public struct WayStrip: View {
     }
 
     private func card(title: String, caption: String?, owner: KidFace.Badge?) -> some View {
-        HStack(spacing: Spacing.s) {
-            if let owner { KidFace(owner, size: 40) }
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
+        HStack(spacing: sizing(Spacing.s)) {
+            if let owner { KidFace(owner, size: sizing(40)) }
+            VStack(alignment: .leading, spacing: sizing(Spacing.xxs)) {
                 Text(title).crayonType(.head).foregroundStyle(CrayonColor.pictureInk)
                 if let caption { Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText) }
             }
         }
-        .padding(.horizontal, Spacing.m)
-        .padding(.vertical, Spacing.xs)
+        .padding(.horizontal, sizing(Spacing.m))
+        .padding(.vertical, sizing(Spacing.xs))
         .background(CrayonSurface(.roundedRect(cornerRadius: 18), fill: CrayonStyle.pictureGround,
                                   markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.card + 21))
         .fixedSize()

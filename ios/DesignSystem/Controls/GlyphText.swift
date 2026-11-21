@@ -10,6 +10,7 @@ public struct GlyphText: View {
     private let glyph: MarkerGlyph
     private let type: CrayonType
     private let color: Color
+    @Environment(\.sizing) private var sizing
 
     public init(_ format: String, glyph: MarkerGlyph, type: CrayonType = .caption, color: Color = CrayonColor.ink) {
         let parts = format.components(separatedBy: "%@")
@@ -21,13 +22,14 @@ public struct GlyphText: View {
     }
 
     public var body: some View {
-        let size = type.size
+        let size = sizing.size(of: type)
         let strokes = glyph.path(size: size, seed: CrayonStyle.Seed.glyph + UInt32(glyph.seedIndex))
         let image = Image(size: CGSize(width: size, height: size)) { context in
             var path = Path()
             for stroke in strokes { path.addLines(stroke) }
             context.stroke(path, with: .color(color),
-                           style: StrokeStyle(lineWidth: max(2.5, 5 * size / 48), lineCap: .round, lineJoin: .round))
+                           style: StrokeStyle(lineWidth: max(2.5, 5 * type.size / 48) * sizing.s, lineCap: .round,
+                                              lineJoin: .round))
         }
         Text("\(Text(verbatim: before))\(Text(image).baselineOffset(-size * 0.2))\(Text(verbatim: after))")
             .crayonType(type)

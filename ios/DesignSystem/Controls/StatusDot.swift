@@ -20,12 +20,12 @@ public struct StatusDot: View {
     }
 
     public var body: some View {
-        HStack(spacing: sizing.space(compact ? Spacing.xs : Spacing.m)) {
+        HStack(spacing: sizing(compact ? Spacing.xs : Spacing.m)) {
             if let dot {
                 // The surface draws its wobble past this frame (bleed), so the frame is the dot's size.
                 CrayonSurface(.circle, fill: CrayonFill(color: dot, hachure: HachureStyle(degrees: -40)),
                               marker: .thin, seed: CrayonStyle.Seed.status)
-                    .frame(width: compact ? 24 : 28, height: compact ? 24 : 28)
+                    .frame(width: sizing(compact ? 24 : 28), height: sizing(compact ? 24 : 28))
             }
             Text(text).crayonType(compact ? .body : .head, bold: true).foregroundStyle(textColor).lineLimit(1).fixedSize()
         }

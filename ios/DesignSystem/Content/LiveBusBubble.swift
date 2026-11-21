@@ -11,6 +11,7 @@ public struct LiveBusBubble: View {
     private let minutes: String
     private let face: KidFace.Badge
     private let myBus: String
+    @Environment(\.sizing) private var sizing
 
     public init(service: String, minutes: String, face: KidFace.Badge, myBus: String) {
         self.service = service
@@ -20,20 +21,20 @@ public struct LiveBusBubble: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xxs) {
-            HStack(spacing: Spacing.xs) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.xxs)) {
+            HStack(spacing: sizing(Spacing.xs)) {
                 NumberPlate(service, isMine: true)
                 Text(minutes).crayonType(.head, bold: true).foregroundStyle(CrayonColor.pictureInk)
                     .lineLimit(1).fixedSize()
             }
-            HStack(spacing: Spacing.xs) {
-                KidFace(face, size: 32)
+            HStack(spacing: sizing(Spacing.xs)) {
+                KidFace(face, size: sizing(32))
                 Text(myBus).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk).fixedSize()
             }
         }
-        .padding(.horizontal, Spacing.s)
-        .padding(.top, Spacing.xs)
-        .padding(.bottom, Spacing.xs + 16)
+        .padding(.horizontal, sizing(Spacing.s))
+        .padding(.top, sizing(Spacing.xs))
+        .padding(.bottom, sizing(Spacing.xs + 16))
         .background {
             CrayonSurface(.speechBubble(tailX: 0.5, tailHeight: 16), fill: CrayonStyle.pictureGround,
                           markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 1)
@@ -44,7 +45,7 @@ public struct LiveBusBubble: View {
 
 /// The tag over every bus but the kid's on the live strip (spec "A2 strip"): a small cream plate
 /// (52 × 28, 24 bold; a bus that changes reads "34 → 33", the arrow drawn) and "{n} min" (also for a
-/// bus too soon to catch), caption bold, on paper, about 130 × 44.
+/// bus too soon to catch), caption bold, on paper, about 130 × 44. Board sizes, × s on screen.
 public struct LiveBusTag: View {
     public static let height: CGFloat = 44
     static let padding = Spacing.xs
@@ -56,12 +57,13 @@ public struct LiveBusTag: View {
     }
 
     private let content: Content
+    @Environment(\.sizing) private var sizing
 
     public init(_ content: Content) {
         self.content = content
     }
 
-    /// The tag's width on screen, measured in Playpen Sans (the plate and the words are 24 bold).
+    /// The tag's board width, measured in Playpen Sans (the plate and the words are 24 bold).
     public static func width(_ content: Content) -> CGFloat {
         switch content {
         case let .bus(number, then, minutes):
@@ -76,7 +78,7 @@ public struct LiveBusTag: View {
     }
 
     public var body: some View {
-        HStack(spacing: Spacing.xs) {
+        HStack(spacing: sizing(Spacing.xs)) {
             switch content {
             case let .bus(number, then, minutes):
                 Plate(number: number, then: then)
@@ -84,8 +86,8 @@ public struct LiveBusTag: View {
                     .lineLimit(1).fixedSize()
             }
         }
-        .padding(.horizontal, Self.padding)
-        .frame(width: Self.width(content), height: Self.height)
+        .padding(.horizontal, sizing(Self.padding))
+        .frame(width: sizing(Self.width(content)), height: sizing(Self.height))
         .background {
             CrayonSurface(.roundedRect(cornerRadius: 14), fill: CrayonStyle.paper, marker: .thin,
                           markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 9)
@@ -98,6 +100,7 @@ extension LiveBusTag {
     public struct Plate: View {
         let number: String
         let then: String?
+        @Environment(\.sizing) private var sizing
 
         public init(number: String, then: String?) {
             self.number = number
@@ -105,17 +108,17 @@ extension LiveBusTag {
         }
 
         public var body: some View {
-            HStack(spacing: Spacing.xxs) {
+            HStack(spacing: sizing(Spacing.xxs)) {
                 Text(number)
                 if let then {
-                    MarkerIcon(.arrowRight, size: LiveBusTag.arrow, color: CrayonColor.pictureInk)
+                    MarkerIcon(.arrowRight, size: sizing(LiveBusTag.arrow), color: CrayonColor.pictureInk)
                     Text(then)
                 }
             }
-            .font(Font(FontRegistrar.font(size: 24, weight: .bold)))
+            .font(Font(FontRegistrar.font(size: sizing(24), weight: .bold)))
             .foregroundStyle(CrayonColor.pictureInk)
             .lineLimit(1).fixedSize()
-            .frame(width: LiveBusTag.plateWidth(number, then: then), height: 28)
+            .frame(width: sizing(LiveBusTag.plateWidth(number, then: then)), height: sizing(28))
             .background {
                 CrayonSurface(.roundedRect(cornerRadius: 8), fill: CrayonFill.paper(CrayonColor.plateCream),
                               marker: .thin, markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.bubble + 8)
@@ -130,6 +133,7 @@ public struct NumberPlate: View {
     private let number: String
     private let isMine: Bool
     private let small: Bool
+    @Environment(\.sizing) private var sizing
 
     public init(_ number: String, isMine: Bool, small: Bool = false) {
         self.number = number
@@ -140,10 +144,10 @@ public struct NumberPlate: View {
     public var body: some View {
         let big = isMine && !small
         Text(number)
-            .font(Font(FontRegistrar.font(size: big ? 30 : 24, weight: .bold)))
+            .font(Font(FontRegistrar.font(size: sizing(big ? 30 : 24), weight: .bold)))
             .foregroundStyle(CrayonColor.pictureInk)
             .lineLimit(1).fixedSize()
-            .frame(minWidth: small ? 56 : big ? 76 : 64, minHeight: small ? 30 : big ? 40 : 36)
+            .frame(minWidth: sizing(small ? 56 : big ? 76 : 64), minHeight: sizing(small ? 30 : big ? 40 : 36))
             .background {
                 CrayonSurface(.roundedRect(cornerRadius: 8),
                               fill: CrayonFill.paper(isMine ? CrayonColor.pictureGround : CrayonColor.plateCream),

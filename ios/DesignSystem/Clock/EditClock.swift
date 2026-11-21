@@ -127,7 +127,7 @@ public struct EditClock: View {
             if let addBetween {
                 // Board G1e: a RoundButton 56 on the knob's boundary line, its centre 64 in from the rim.
                 RoundButton(glyph: .plus, action: onAddBetween)
-                    .size(56).floor(48)
+                    .size(56)
                     .position(point(radius: r - 64 * k, minute: Double(addBetween.minute)))
             }
         }
@@ -157,13 +157,12 @@ public struct EditClock: View {
                     path.move(to: point(radius: r + 4 * k, minute: Double(hour * 60)))
                     path.addLine(to: point(radius: r + 16 * k, minute: Double(hour * 60)))
                 }
-                context.stroke(path, with: .color(CrayonColor.marker), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                context.stroke(path, with: .color(CrayonColor.marker), style: StrokeStyle(lineWidth: 3 * k, lineCap: .round))
             }
             ForEach(0..<24, id: \.self) { hour in
                 let major = hour % 6 == 0
                 Text("\(hour % 12 == 0 ? 12 : hour % 12)")
-                    .font(Font(FontRegistrar.font(size: major ? CrayonType.body.size : CrayonType.caption.size,
-                                                  weight: .semibold)))
+                    .font(Font(FontRegistrar.font(size: sizing.size(of: major ? .body : .caption), weight: .semibold)))
                     .foregroundStyle(major ? CrayonColor.ink : CrayonColor.softText)
                     .position(point(radius: r + 40 * k, minute: Double(hour * 60)))
             }
@@ -176,7 +175,7 @@ public struct EditClock: View {
         ForEach(sectors, id: \.self) { sector in
             let middle = Double(sector.start + sector.end) / 2
             if sector.style == .free {
-                PlusGlyph(size: sizing.clockPlus) // board C6: a 56 ring, at least 48 (part floors)
+                PlusGlyph(size: sizing.clockPlus) // board C6: a 56 ring, × s
                     .position(point(radius: (hubR + r) / 2, minute: middle))
                     .onTapGesture { onPlusTap(sector.start) }
             } else if let name = sector.iconName, let slot = KitSlot(rawValue: name),
@@ -196,12 +195,12 @@ public struct EditClock: View {
             path.move(to: point(radius: hubR, minute: Double(minute)))
             path.addLine(to: point(radius: r, minute: Double(minute)))
         }
-        .stroke(CrayonColor.pictureMarker, style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [8, 8]))
+        .stroke(CrayonColor.pictureMarker, style: StrokeStyle(lineWidth: 3 * k, lineCap: .round, dash: [8 * k, 8 * k]))
         .allowsHitTesting(false)
     }
 
     private var hubDisc: some View {
-        VStack(spacing: Spacing.xxs) {
+        VStack(spacing: sizing(Spacing.xxs)) {
             if let above = hub.above {
                 Text(above).crayonType(.caption).foregroundStyle(CrayonColor.pictureSoftText)
             }
@@ -220,7 +219,7 @@ public struct EditClock: View {
             }
         }
         .multilineTextAlignment(.center)
-        .frame(width: 2 * hubR - Spacing.m)
+        .frame(width: 2 * hubR - sizing(Spacing.m))
         .frame(width: 2 * hubR, height: 2 * hubR)
         .background(CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline, seed: 3003))
         .allowsHitTesting(false)
@@ -239,11 +238,12 @@ public struct EditClock: View {
     }
 }
 
-/// A crayon "+" (board 0b marker glyphs): two marker strokes, for filling free time.
+/// A crayon "+" (board 0b marker glyphs): two marker strokes, for filling free time. `size` is in
+/// screen points.
 public struct PlusGlyph: View {
     private let size: CGFloat
 
-    public init(size: CGFloat = 40) {
+    public init(size: CGFloat) {
         self.size = size
     }
 

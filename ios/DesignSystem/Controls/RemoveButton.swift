@@ -8,6 +8,7 @@ public struct RemoveButton: View {
     public static let height: CGFloat = 88
     private let title: String
     private let action: () -> Void
+    @Environment(\.sizing) private var sizing
 
     public init(_ title: String, action: @escaping () -> Void) {
         self.title = title
@@ -17,7 +18,7 @@ public struct RemoveButton: View {
     public var body: some View {
         Button(action: action) {
             Text(title).crayonType(.head).foregroundStyle(CrayonColor.lateText)
-                .frame(maxWidth: .infinity, minHeight: Self.height)
+                .frame(maxWidth: .infinity, minHeight: sizing(Self.height))
                 .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.removeButton)
                 .contentShape(Rectangle())
         }

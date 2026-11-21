@@ -24,12 +24,12 @@ public struct GrownupHeader<Accessory: View, Trailing: View>: View {
     }
 
     public var body: some View {
-        // ← at 64, the title 24 after it (168), the right side ending on 1312 (GrownupLayout).
+        // ← at 40, the title 24 after it, the right side ending on 1336 (GrownupLayout), × s.
         HStack(spacing: GrownupLayout(sizing: sizing).titleGap) {
             RoundButton(glyph: .chevronLeft, action: onBack)
             Text(title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1).layoutPriority(1)
             accessory
-            Spacer(minLength: Spacing.m)
+            Spacer(minLength: sizing(Spacing.m))
             if let relockCaption {
                 captionText(relockCaption, color: CrayonColor.hurry)
             } else if Trailing.self != EmptyView.self {
@@ -38,7 +38,6 @@ public struct GrownupHeader<Accessory: View, Trailing: View>: View {
                 captionText(caption, color: CrayonColor.softText)
             }
         }
-        .environment(\.isHeaderRow, true)
     }
 
     private func captionText(_ text: String, color: Color) -> some View {

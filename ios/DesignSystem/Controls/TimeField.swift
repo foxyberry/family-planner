@@ -24,6 +24,7 @@ public struct TimeField: View {
             DatePicker(selection: $time, displayedComponents: .hourAndMinute) { EmptyView() }
                 .datePickerStyle(.wheel)
                 .labelsHidden()
+                // A system picker in a popover keeps its own size (it is not a board part).
                 .padding(Spacing.m)
         }
     }

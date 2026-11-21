@@ -12,7 +12,7 @@ public struct GridMetrics: Equatable, Sendable {
     public static let contentBottomInset: CGFloat = 64
 
     public let width: CGFloat
-    /// This screen's margin and gutter (board 64 and 24; smaller iPads use `Sizing`'s floors).
+    /// This screen's margin and gutter (board 64 and 24).
     public let screenMargin: CGFloat
     public let screenGutter: CGFloat
 
@@ -22,10 +22,6 @@ public struct GridMetrics: Equatable, Sendable {
         screenGutter = gutter
     }
 
-    /// The grid for a screen as wide as `width`, with the margin and gutter of `sizing`.
-    public init(width: CGFloat, sizing: Sizing) {
-        self.init(width: width, margin: sizing.margin, gutter: sizing.gutter)
-    }
 
     public var columnWidth: CGFloat {
         (width - 2 * screenMargin - CGFloat(Self.columns - 1) * screenGutter) / CGFloat(Self.columns)

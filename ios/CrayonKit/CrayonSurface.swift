@@ -18,7 +18,9 @@ public struct CrayonFill: Hashable, Sendable {
 }
 
 /// A shape drawn like the design's crayon parts: light wash, crayon hatching, then a marker
-/// line on top. Line widths are points, so they look the same at any size.
+/// line on top. The shape is built in board units (the frame ÷ `crayonScale`) and drawn scaled, so
+/// lines, hatching and wobble scale with the part (one picture at every size) and look the same at
+/// scale 1. Shape lengths a caller passes (corner radius, tail height) are board units too.
 public struct CrayonSurface: View {
     let kind: CrayonShapeKind
     let fill: CrayonFill?
@@ -26,6 +28,7 @@ public struct CrayonSurface: View {
     let markerColor: Color?
     let seed: UInt32
     @Environment(\.crayonOutline) private var outline
+    @Environment(\.crayonScale) private var scale
 
     /// `markerColor`: the line's colour; nil takes the environment's `crayonOutline`.
     public init(_ kind: CrayonShapeKind, fill: CrayonFill?, marker: MarkerStyle = .standard,
@@ -45,12 +48,16 @@ public struct CrayonSurface: View {
     }
 
     public var body: some View {
-        let bleed = Self.bleed(marker)
+        let scale = max(self.scale, 0.01)
+        let bleed = Self.bleed(marker) * scale
         let lineColor = if let markerColor { markerColor } else { outline }
         Canvas { context, size in
-            // The part's own frame, inside the bleed; positions and the cache stay as they were.
-            let frame = CGSize(width: max(size.width - 2 * bleed, 0), height: max(size.height - 2 * bleed, 0))
+            // The part's own frame, inside the bleed, in board units; positions and the cache stay as
+            // they were at scale 1.
+            let frame = CGSize(width: max(size.width - 2 * bleed, 0) / scale,
+                               height: max(size.height - 2 * bleed, 0) / scale)
             context.translateBy(x: bleed, y: bleed)
+            context.scaleBy(x: scale, y: scale)
             let g = Self.geometry(kind: kind, size: frame, fill: fill, marker: marker, seed: seed,
                                   cache: .shared)
             if let fill {
@@ -107,4 +114,7 @@ extension EnvironmentValues {
     /// The default colour of crayon outlines: the marker grey. The design system sets one that
     /// turns chalk in dark mode.
     @Entry public var crayonOutline: Color = .init(white: 0.12)
+    /// The screen's one scale (spec "Sizing: one scale, no floors"): crayon shapes are built at their
+    /// board size and drawn this much bigger or smaller. The design system sets it with its sizing.
+    @Entry public var crayonScale: CGFloat = 1
 }

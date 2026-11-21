@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// One way to put a part on a screen (spec "Sizing formulas", "Fixed regions"): every screen is
-/// a `ZStack(alignment: .topLeading)` the size of the window, and every part is placed at a rect
-/// worked out from board values by `Sizing`. Parts carry no outer padding, so a rect's edge is the
+/// One way to put a part on a screen (spec "Sizing: one scale, no floors", "Fixed regions"): every
+/// screen is a `ZStack(alignment: .topLeading)` the size of the board frame, and every part is placed
+/// at a board rect × s (`Sizing.rect`). Parts carry no outer padding, so a rect's edge is the
 /// part's visible edge and parts on the same board line line up.
 extension View {
     /// The part fills `rect` (screen points, top-left origin).
@@ -31,24 +31,5 @@ extension View {
         Color.clear.frame(width: 0, height: 0)
             .overlay(alignment: Alignment(horizontal: .trailing, vertical: .firstTextBaseline)) { fixedSize() }
             .offset(x: x, y: baseline)
-    }
-}
-
-extension Sizing {
-    /// A board rect anchored left: x and widths scale by s.
-    public func left(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> CGRect {
-        CGRect(x: left(x), y: self.y(y), width: w * s, height: h * s)
-    }
-
-    /// A board rect anchored right: its right edge keeps its distance from the window's right.
-    public func right(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> CGRect {
-        CGRect(x: right(x + w) - w * s, y: self.y(y), width: w * s, height: h * s)
-    }
-
-    /// A board rect that stretches between two board lines: `from` left-anchored, `to`
-    /// right-anchored (a region spanning both sides grows with the window).
-    public func stretch(from: CGFloat, to: CGFloat, _ y: CGFloat, _ h: CGFloat) -> CGRect {
-        let minX = left(from), maxX = right(to)
-        return CGRect(x: minX, y: self.y(y), width: maxX - minX, height: h * s)
     }
 }

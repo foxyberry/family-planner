@@ -5,15 +5,17 @@ import SwiftUI
 /// fills the label column (`formLabelWidth`) and the content starts on the control line.
 public struct ListRow<Content: View>: View {
     private let leading: String
-    private let minHeight: CGFloat
+    private let minHeight: CGFloat?
     private let labelHeight: CGFloat?
     private let content: Content
     @Environment(\.formLabelWidth) private var formLabelWidth
+    @Environment(\.sizing) private var sizing
 
-    /// `minHeight`: 80 for form rows; 60 for the read-only rows of C1/E6.
+    /// `minHeight` (screen points): nil is the field row, 80 × s; 60 × s for the read-only rows of
+    /// C1/E6.
     /// `labelHeight`: top-align the row and centre the label on the control's first line of that
     /// height (C2 "Stop": the 80 field, not the field plus its caption).
-    public init(leading: String, minHeight: CGFloat = 80, labelHeight: CGFloat? = nil,
+    public init(leading: String, minHeight: CGFloat? = nil, labelHeight: CGFloat? = nil,
                 @ViewBuilder content: () -> Content) {
         self.leading = leading
         self.minHeight = minHeight
@@ -22,22 +24,25 @@ public struct ListRow<Content: View>: View {
     }
 
     public var body: some View {
-        HStack(alignment: labelHeight == nil ? .center : .top, spacing: formLabelWidth == nil ? Spacing.m : 0) {
-            // Boards C1–C4: row labels are caption bold in soft text.
-            // Spec "Part floors": one line, never shrunk; the card's label column fits its longest
-            // label (spec "Label column").
+        HStack(alignment: labelHeight == nil ? .center : .top, spacing: formLabelWidth == nil ? sizing(Spacing.m) : 0) {
+            // Boards C1–C4: row labels are caption bold in soft text, one line; the card's label
+            // column fits its longest label (spec "Label column").
             Text(leading).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText)
                 .lineLimit(1)
                 .frame(width: labelWidth, height: labelHeight, alignment: .leading)
             content.crayonType(.body).frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(minHeight: minHeight)
-        .padding(.horizontal, formLabelWidth == nil ? Spacing.m : 0)
+        .frame(minHeight: rowHeight)
+        .padding(.horizontal, formLabelWidth == nil ? sizing(Spacing.m) : 0)
     }
 
-    /// The form's label column; outside a grown-up form, 120.
+    private var rowHeight: CGFloat {
+        if let minHeight { minHeight } else { sizing.fieldHeight }
+    }
+
+    /// The form's label column; outside a grown-up form, 120 × s.
     private var labelWidth: CGFloat {
-        if let formLabelWidth { formLabelWidth } else { 120 }
+        if let formLabelWidth { formLabelWidth } else { sizing(120) }
     }
 }
 
@@ -45,6 +50,7 @@ public struct ListRow<Content: View>: View {
 public struct TodayRow<Content: View>: View {
     private let leading: String
     private let content: Content
+    @Environment(\.sizing) private var sizing
 
     public init(leading: String, @ViewBuilder content: () -> Content) {
         self.leading = leading
@@ -52,13 +58,13 @@ public struct TodayRow<Content: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: Spacing.m) {
-            Text(leading).crayonType(.caption).bold().frame(width: 120, alignment: .leading)
+        HStack(spacing: sizing(Spacing.m)) {
+            Text(leading).crayonType(.caption).bold().frame(width: sizing(120), alignment: .leading)
             content.crayonType(.head).frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(CrayonColor.ink)
-        .frame(minHeight: 80)
-        .padding(.horizontal, Spacing.m)
+        .frame(minHeight: sizing(80))
+        .padding(.horizontal, sizing(Spacing.m))
         .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
     }
 }
@@ -70,6 +76,7 @@ public struct PreviewRow<Content: View>: View {
     private let time: String
     private let isNew: Bool
     private let content: Content
+    @Environment(\.sizing) private var sizing
 
     public init(time: String, isNew: Bool, @ViewBuilder content: () -> Content) {
         self.time = time
@@ -79,19 +86,21 @@ public struct PreviewRow<Content: View>: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            // Spec "Part floors": the time column is 116 on every iPad (the widest time "10:00 am" is
-            // 115.5); a time never gets "…", only a typed title may. The new row's bold time shrinks.
-            Text(time).crayonType(.caption, bold: isNew).lineLimit(1).minimumScaleFactor(0.85)
-                .frame(width: Self.timeColumn, alignment: .leading)
+            // The time column is 116 × s (the widest time "10:00 am" is 115.5 on the board); a time
+            // never gets "…", only a typed title may. It is never squeezed (spec "Sizing → Text").
+            // The new row's bold time may need a few points more: the column grows, never the text
+            // shrinks.
+            Text(time).crayonType(.caption, bold: isNew).lineLimit(1).fixedSize()
+                .frame(minWidth: sizing(Self.timeColumn), alignment: .leading)
             content.frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(CrayonColor.ink)
-        .padding(.leading, Spacing.m)
-        .frame(height: 72)
+        .padding(.leading, sizing(Spacing.m))
+        .frame(height: sizing(72))
         .background {
             if isNew {
                 CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.card + 50)
-                    .padding(CrayonStyle.artInset)
+                    .padding(sizing(CrayonStyle.artInset))
             }
         }
     }
@@ -122,6 +131,7 @@ public struct FormLabel: View {
 public struct FormLabelColumn<Content: View>: View {
     private let content: Content
     @Environment(\.formLabelWidth) private var formLabelWidth
+    @Environment(\.sizing) private var sizing
 
     public init(@ViewBuilder content: () -> Content) {
         self.content = content()
@@ -131,8 +141,8 @@ public struct FormLabelColumn<Content: View>: View {
         content.frame(width: columnWidth, alignment: .leading)
     }
 
-    /// The form's label column; outside a grown-up form, 120 plus the 24 gap.
+    /// The form's label column; outside a grown-up form, 120 plus the 24 gap, × s.
     private var columnWidth: CGFloat {
-        if let formLabelWidth { formLabelWidth } else { 120 + Spacing.m }
+        if let formLabelWidth { formLabelWidth } else { sizing(120 + Spacing.m) }
     }
 }

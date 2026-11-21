@@ -24,20 +24,16 @@ public struct FormLines: Equatable, Sendable {
         public let dropsUnder: Bool
     }
 
+    // Board values (× s on screen).
     /// Spec "Label column": the longest grown-up label ("Off days", caption 24 bold, 104) + 10 to the
-    /// control's frame (16 to its drawn box). Captions are fixed at 24, so it does not scale.
+    /// control's frame (16 to its drawn box).
     public static let labelColumn: CGFloat = 114
-    /// The widest label that fits the column; a longer one is reworded.
+    /// The widest label that fits the column on the board; a longer one is reworded.
     public static let labelMaximum: CGFloat = 104
-    /// Spec "Layout balance": the column gap, drawn edge to drawn edge, fixed.
+    /// Spec "Layout balance": the column gap, drawn edge to drawn edge.
     public static let columnGap: CGFloat = Spacing.l
     /// A second-column label's room past its longest label, to its control's frame (16 drawn).
     public static let secondLabelGap: CGFloat = labelColumn - labelMaximum
-    /// A caption under a crayon field: 8 below the field's drawn edge (boards C2, S2, S3).
-    public static let captionGap: CGFloat = Spacing.xs - CrayonPart.inset
-    /// A form's rows lay out their drawn box, so their frames reach one inset past the scroll column;
-    /// `ScrollColumn(bleed: FormLines.drawnBleed)` lets them draw there instead of clipping.
-    public static let drawnBleed = EdgeInsets(all: CrayonPart.inset)
     /// Board C2c "Then": a bus number field, 160 wide.
     public static let busNumberField: CGFloat = 160
 
@@ -45,9 +41,12 @@ public struct FormLines: Equatable, Sendable {
     public let width: CGFloat
     /// The control line, measured from the label line (the label column's width).
     public let controlX: CGFloat
+    /// The column gap on this screen.
+    public let columnGap: CGFloat
     public let second: SecondColumn?
 
     /// - Parameters:
+    ///   - sizing: the screen's sizing; every board value here is × its s.
     ///   - width: label line to right-edge line (`GrownupLayout.formRowsWidth`).
     ///   - secondLabels: the second column's labels; empty for one column.
     ///   - secondControlWidth: the second column's widest control, drawn, from its parts (S1: two
@@ -55,42 +54,36 @@ public struct FormLines: Equatable, Sendable {
     ///     edge's drawn line (802 on the 13", spec "Alignment contract").
     ///   - firstControlMinimum: the narrowest the first column's controls may be, as frames from the
     ///     control line, for the drop rule (S1: four swatches).
-    public init(width: CGFloat, secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
+    public init(sizing: Sizing, width: CGFloat, secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
                 firstControlMinimum: CGFloat = 0) {
         self.width = width
-        controlX = Self.labelColumn
+        inset = sizing.inset
+        controlX = Self.labelColumn * sizing.s
+        columnGap = Self.columnGap * sizing.s
         guard !secondLabels.isEmpty else {
             second = nil
             return
         }
-        let labelWidth = (secondLabels.map { CrayonType.captionBoldWidth($0) }.max() ?? 0) + Self.secondLabelGap
-        let frameWidth = secondControlWidth + 2 * CrayonPart.inset
+        let labelWidth = ((secondLabels.map { CrayonType.captionBoldWidth($0) }.max() ?? 0) + Self.secondLabelGap) * sizing.s
+        let frameWidth = secondControlWidth + 2 * sizing.inset
         let besideControlX = width - frameWidth
         let besideLabelX = besideControlX - labelWidth
-        let firstDrawnEnd = controlX + firstControlMinimum - CrayonPart.inset
-        let drops = besideLabelX - firstDrawnEnd < Self.columnGap
+        let firstDrawnEnd = controlX + firstControlMinimum - sizing.inset
+        let drops = besideLabelX - firstDrawnEnd < columnGap
         second = drops
             ? SecondColumn(labelX: 0, controlX: controlX, controlWidth: frameWidth, dropsUnder: true)
             : SecondColumn(labelX: besideLabelX, controlX: besideControlX, controlWidth: frameWidth,
                            dropsUnder: false)
     }
 
+    private let inset: CGFloat
+
     /// The first column's control width: to the right edge, or to its drawn end 40 before a second
     /// column that stands beside it.
     public var firstControlWidth: CGFloat {
         guard let second, !second.dropsUnder else { return width - controlX }
-        return second.labelX - Self.columnGap + CrayonPart.inset - controlX
+        return second.labelX - columnGap + inset - controlX
     }
-
-    /// Spec "Layout balance": the main form card's padding, 32 from its drawn edge on all four sides.
-    /// `FormRow` lays out its drawn box, so top and bottom are 32 + the card's inset; the left reaches
-    /// the label line (text has no inset); the right reaches the right-edge line (a control's frame).
-    public static let cardPadding = EdgeInsets(top: Spacing.card + CrayonPart.inset,
-                                               leading: Spacing.card + CrayonPart.inset,
-                                               bottom: Spacing.card + CrayonPart.inset,
-                                               trailing: Spacing.card)
-    /// Card → card 40 between drawn edges, fixed: frames sit 28 apart.
-    public static let cardGap: CGFloat = Spacing.l - 2 * CrayonPart.inset
 }
 
 public extension GrownupLayout {
@@ -100,24 +93,43 @@ public extension GrownupLayout {
 
     func formLines(secondLabels: [String] = [], secondControlWidth: CGFloat = 0,
                    firstControlMinimum: CGFloat = 0) -> FormLines {
-        FormLines(width: formRowsWidth, secondLabels: secondLabels, secondControlWidth: secondControlWidth,
-                  firstControlMinimum: firstControlMinimum)
+        FormLines(sizing: sizing, width: formRowsWidth, secondLabels: secondLabels,
+                  secondControlWidth: secondControlWidth, firstControlMinimum: firstControlMinimum)
     }
 }
 
 public extension Sizing {
-    /// Spec "Layout balance": row → row 24 between drawn edges (`fluid(24, 16)`).
-    var formRowGap: CGFloat { space(Spacing.m) }
+    /// Spec "Alignment contract": every part draws its crayon outline this far inside its frame (6).
+    var inset: CGFloat { CrayonPart.inset * s }
+    /// A pick ring draws this far outside the part (4), as an overlay; it never moves layout.
+    var pickRing: CGFloat { CrayonPart.pickRing * s }
+    /// Spec "Layout balance": row → row 24 between drawn edges.
+    var formRowGap: CGFloat { Spacing.m * s }
+    /// Spec "Layout balance": the main form card's padding, 32 from its drawn edge on all four sides.
+    /// `FormRow` lays out its drawn box, so top and bottom are 32 + the card's inset; the left reaches
+    /// the label line (text has no inset); the right reaches the right-edge line (a control's frame).
+    var cardPadding: EdgeInsets {
+        EdgeInsets(top: (Spacing.card + CrayonPart.inset) * s, leading: (Spacing.card + CrayonPart.inset) * s,
+                   bottom: (Spacing.card + CrayonPart.inset) * s, trailing: Spacing.card * s)
+    }
+    /// Card → card 40 between drawn edges: frames sit 28 apart.
+    var cardGap: CGFloat { (Spacing.l - 2 * CrayonPart.inset) * s }
+    /// A caption under a crayon field: 8 below the field's drawn edge (boards C2, S2, S3).
+    var captionGap: CGFloat { (Spacing.xs - CrayonPart.inset) * s }
+    /// A form's rows lay out their drawn box, so their frames reach one inset past the scroll column;
+    /// `ScrollColumn(bleed: sizing.drawnBleed)` lets them draw there instead of clipping.
+    var drawnBleed: EdgeInsets { EdgeInsets(all: inset) }
     /// Spec "Layout model" row heights, as frames: a field row 80 (the field's height); a picture
     /// choice row (faces in `partInset()`, swatches) as tall as its tallest frame. Rows grow with
     /// their content.
     var fieldRowHeight: CGFloat { fieldHeight }
-    var choiceRowHeight: CGFloat { max(pickedFace + 2 * CrayonPart.inset, ColourSwatch.frame(self)) }
+    var choiceRowHeight: CGFloat { max(pickedFace + 2 * inset, ColourSwatch.frame(self)) }
     /// A picked face's ring (an overlay; it never moves layout).
-    var pickedFaceRing: CGFloat { pickedFace + 2 * CrayonPart.pickRing }
+    var pickedFaceRing: CGFloat { pickedFace + 2 * pickRing }
 }
 
-/// The alignment contract's shared numbers (spec "Layout model").
+/// The alignment contract's shared numbers (spec "Layout model"), board values (× s on screen:
+/// `Sizing.inset`, `Sizing.pickRing`).
 public enum CrayonPart {
     /// Every part draws its crayon outline this far inside its frame.
     public static let inset: CGFloat = 6
@@ -134,23 +146,32 @@ public extension EdgeInsets {
 public extension View {
     /// Spec "Layout balance": a row of crayon parts (fields, tabs, pills, chips, time fields) lays out
     /// its drawn box, one inset inside its frames top and bottom, so a card's rows sit
-    /// `formRowGap` apart and `FormLines.cardPadding` from its edge, between drawn edges.
-    func drawnRow() -> some View { padding(.vertical, -CrayonPart.inset) }
+    /// `formRowGap` apart and `cardPadding` from its edge, between drawn edges.
+    func drawnRow() -> some View { modifier(InsetPadding(edges: .vertical, sign: -1)) }
 
     /// A crayon row with a caption under it (a field and its caption): the top lays out the drawn
     /// box, the caption draws to its own edge (boards C2, S2, S3).
-    func captionedRow() -> some View { padding(.top, -CrayonPart.inset) }
+    func captionedRow() -> some View { modifier(InsetPadding(edges: .top, sign: -1)) }
 
     /// A crayon row whose caption comes and goes (C2c Then): its drawn box on both edges without a
     /// caption, `captionedRow()` with one.
     func captionedRow(hasCaption: Bool) -> some View {
-        padding(.top, -CrayonPart.inset).padding(.bottom, hasCaption ? 0 : -CrayonPart.inset)
+        modifier(InsetPadding(edges: hasCaption ? .top : .vertical, sign: -1))
     }
 
     /// Spec "Alignment contract": a part drawn to its frame edge (faces, chevrons, switches,
     /// borderless rows) gets one crayon inset around it, so its frame sits on the lines and its
     /// drawn edge lines up with every crayon part's (802, not 808, on the 13").
-    func partInset() -> some View { padding(CrayonPart.inset) }
+    func partInset() -> some View { modifier(InsetPadding(edges: .all, sign: 1)) }
+}
+
+/// One crayon inset (× s) of padding on `edges`, outward (`sign` 1) or inward (−1).
+private struct InsetPadding: ViewModifier {
+    let edges: Edge.Set
+    let sign: CGFloat
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View { content.padding(edges, sign * sizing.inset) }
 }
 
 public extension EnvironmentValues {
@@ -185,7 +206,7 @@ public enum FormRowKind: Sendable {
 
     func drawnInset(_ sizing: Sizing) -> CGFloat {
         switch self {
-        case .field: CrayonPart.inset
+        case .field: sizing.inset
         case .choice: (sizing.choiceRowHeight - max(sizing.pickedFace, sizing.swatch)) / 2
         }
     }
@@ -228,7 +249,7 @@ public struct FormRow<Control: View, Second: View>: View {
                         cell(secondLabel, labelWidth: lines.controlX, width: second.controlWidth) { secondControl }
                     }
                 } else {
-                    HStack(alignment: .center, spacing: FormLines.columnGap) {
+                    HStack(alignment: .center, spacing: lines.columnGap) {
                         cell(label, labelWidth: lines.controlX, width: lines.firstControlWidth) { control }
                         cell(secondLabel, labelWidth: second.controlX - second.labelX,
                              width: second.controlWidth) { secondControl }
@@ -259,25 +280,35 @@ public extension View {
     /// `popover` hangs under it, right-aligned. Placement lives here so screens carry no offsets.
     func cardCorner<Corner: View, Popover: View>(size: CGFloat, @ViewBuilder _ corner: () -> Corner,
                                                  @ViewBuilder popover: () -> Popover) -> some View {
-        let corner = corner()
-        let popover = popover()
-        return overlay(alignment: .topTrailing) {
+        modifier(CardCorner(size: size, corner: corner(), popover: popover()))
+    }
+}
+
+private struct CardCorner<Corner: View, Popover: View>: ViewModifier {
+    let size: CGFloat
+    let corner: Corner
+    let popover: Popover
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View {
+        let inset = sizing.inset
+        return content.overlay(alignment: .topTrailing) {
             corner
                 .frame(width: size, height: size)
                 .overlay(alignment: .topTrailing) {
                     popover.alignmentGuide(.top) { $0[.top] - size }
                 }
-                .alignmentGuide(.trailing) { $0[.trailing] - size / 2 + CrayonPart.inset }
-                .alignmentGuide(.top) { $0[.top] + size / 2 - CrayonPart.inset }
+                .alignmentGuide(.trailing) { $0[.trailing] - size / 2 + inset }
+                .alignmentGuide(.top) { $0[.top] + size / 2 - inset }
         }
     }
 }
 
 public extension EdgeInsets {
-    /// How far `cardCorner(size:)` and its touch area reach past the card's top and right edges,
-    /// plus one inset for crayon wobble, for a scroll column's `bleed`: a scroll view neither draws
-    /// nor takes touches outside its frame.
-    static func cardCorner(touch: CGFloat) -> EdgeInsets {
-        EdgeInsets(top: touch / 2, leading: 0, bottom: 0, trailing: touch / 2)
+    /// How far `cardCorner(size:)` reaches past the card's top and right edges, for a scroll
+    /// column's `bleed`: a scroll view neither draws nor takes touches outside its frame. Its touch
+    /// area is the drawn circle.
+    static func cardCorner(size: CGFloat) -> EdgeInsets {
+        EdgeInsets(top: size / 2, leading: 0, bottom: 0, trailing: size / 2)
     }
 }

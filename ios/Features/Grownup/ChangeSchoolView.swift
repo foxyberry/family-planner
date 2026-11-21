@@ -8,6 +8,7 @@ import SwiftUI
 /// G7 card, "Starts on" (Next term / Date) with Save / Cancel. While a change waits for its day,
 /// the pending line with "Cancel the change".
 public struct ChangeSchoolView: View {
+    @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<ChangeSchoolFeature>
     /// The search comes to the card's top once the keyboard is up (spec "Keyboard").
     @State private var searchFocus = 0
@@ -70,8 +71,8 @@ public struct ChangeSchoolView: View {
         }
         if form.isShowingStartsOn {
             // Board G7: the card over the screen; tap outside = Cancel.
-            CrayonColor.dim.ignoresSafeArea().onTapGesture { store.send(.cardCancelled) }
-            VStack(spacing: Spacing.xs) {
+            CrayonColor.dim.fullBleed().onTapGesture { store.send(.cardCancelled) }
+            VStack(spacing: sizing(Spacing.xs)) {
                 FromWhenCard(title: form.cardTitle, tabs: form.startsOnTabs,
                              selection: Binding(get: { form.startsOn }, set: { store.send(.startsOnTapped($0)) }),
                              dateChoice: ChangeSchoolFeature.StartsOn.date, dateLabel: form.startLabel,
@@ -85,7 +86,7 @@ public struct ChangeSchoolView: View {
             }
         }
         if form.isConfirmingCancel {
-            CrayonColor.dim.ignoresSafeArea().onTapGesture { store.send(.cancelKept) }
+            CrayonColor.dim.fullBleed().onTapGesture { store.send(.cancelKept) }
             ConfirmCard(title: form.cancelTitle, message: nil, cancel: form.keepTitle,
                         confirm: form.stayTitle, isDestructive: true,
                         onCancel: { store.send(.cancelKept) }, onConfirm: { store.send(.cancelConfirmed) })
@@ -95,12 +96,12 @@ public struct ChangeSchoolView: View {
     /// S2's top rows (design session 2026-11-15): Goes to (tabs 180 × 72, gap 12), then the place's
     /// rows where S2 has them: the school search, or the preschool's name and hours; At home has none.
     private func rows(_ form: ChangeSchoolFeature.Form, _ layout: GrownupLayout) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
-            ListRow(leading: form.goesToLabel, minHeight: 72) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
+            ListRow(leading: form.goesToLabel, minHeight: sizing.tabHeight()) {
                 CrayonTabs(selection: Binding(get: { Optional(form.place) },
                                               set: { if let place = $0 { store.send(.placeTapped(place)) } }),
                            items: form.placeTabs.map { (Optional($0.0), $0.1, nil) },
-                           itemSize: CGSize(width: layout.sizing.goesToTabWidth, height: 72),
+                           itemSize: CGSize(width: 180, height: 72),
                            spacing: Spacing.sm)
             }
             switch form.place {
@@ -109,8 +110,8 @@ public struct ChangeSchoolView: View {
             case .home: EmptyView()
             }
             if let pending = form.pendingLine {
-                ListRow(leading: "", minHeight: 72) {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                ListRow(leading: "", minHeight: sizing.tabHeight()) {
+                    VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                         Text(pending).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(2)
                         Button { store.send(.cancelChangeTapped) } label: {
                             Text(form.cancelChangeTitle).crayonType(.body, bold: true)
@@ -124,11 +125,11 @@ public struct ChangeSchoolView: View {
     }
 
     private func schoolSearch(_ form: ChangeSchoolFeature.Form, _ layout: GrownupLayout) -> some View {
-        ListRow(leading: form.schoolLabel, minHeight: 80) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
+        ListRow(leading: form.schoolLabel, minHeight: sizing.fieldHeight) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                 CrayonField(form.schoolPlaceholder,
                             text: Binding(get: { form.text }, set: { store.send(.textChanged($0)) }))
-                    .frame(width: 400)
+                    .frame(width: sizing(400))
                 if !form.matches.isEmpty {
                     ResultListCard(rows: form.matches.map { entry in
                         .init(id: entry.id, title: entry.name,
@@ -142,18 +143,18 @@ public struct ChangeSchoolView: View {
 
     /// S2's preschool rows: the typed name, then drop-off and pick-up.
     @ViewBuilder private func preschoolRows(_ form: ChangeSchoolFeature.Form) -> some View {
-        ListRow(leading: form.preschoolLabel, minHeight: 80) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
+        ListRow(leading: form.preschoolLabel, minHeight: sizing.fieldHeight) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                 CrayonField(form.preschoolPlaceholder,
                             text: Binding(get: { form.preschoolName }, set: { store.send(.preschoolNameChanged($0)) }))
-                    .frame(width: 400)
+                    .frame(width: sizing(400))
                 Text(form.preschoolHint).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
         }
-        ListRow(leading: form.hoursLabel, minHeight: 80) {
-            HStack(spacing: Spacing.s) {
+        ListRow(leading: form.hoursLabel, minHeight: sizing.fieldHeight) {
+            HStack(spacing: sizing(Spacing.s)) {
                 time(form, form.dropOff) { store.send(.dropOffPicked($0)) }
-                MarkerIcon(.arrowRight, size: 40, color: CrayonColor.softText)
+                MarkerIcon(.arrowRight, size: sizing(40), color: CrayonColor.softText)
                 time(form, form.pickUp) { store.send(.pickUpPicked($0)) }
             }
         }
@@ -161,6 +162,6 @@ public struct ChangeSchoolView: View {
 
     private func time(_ form: ChangeSchoolFeature.Form, _ minute: Int, set: @escaping (Date) -> Void) -> some View {
         TimeField(label: form.timeLabel(minute),
-                  time: Binding(get: { form.timeDate(minute) }, set: set), width: 180)
+                  time: Binding(get: { form.timeDate(minute) }, set: set), width: sizing(180))
     }
 }

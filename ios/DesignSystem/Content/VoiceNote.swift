@@ -7,6 +7,7 @@ public struct VoiceNote: View {
     private let duration: Duration
     private let isPlaying: Bool
     private let onPlay: () -> Void
+    @Environment(\.sizing) private var sizing
 
     public init(duration: Duration, isPlaying: Bool, onPlay: @escaping () -> Void) {
         self.duration = duration
@@ -15,18 +16,18 @@ public struct VoiceNote: View {
     }
 
     public var body: some View {
-        HStack(spacing: Spacing.s) {
+        HStack(spacing: sizing(Spacing.s)) {
             Button(action: onPlay) {
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: sizing(24), weight: .bold))
                     .foregroundStyle(CrayonColor.card)
-                    .frame(width: 56, height: 56)
+                    .frame(width: sizing(56), height: sizing(56))
                     .crayonBackground(.circle, fill: CrayonStyle.blueCrayon, seed: CrayonStyle.Seed.voice)
             }
             .buttonStyle(.plain)
-            HStack(spacing: Spacing.xxs) {
+            HStack(spacing: sizing(Spacing.xxs)) {
                 ForEach(Array([10, 22, 16, 30, 18, 26, 12, 20].enumerated()), id: \.offset) { _, h in
-                    Capsule().fill(CrayonColor.ink).frame(width: 5, height: CGFloat(h))
+                    Capsule().fill(CrayonColor.ink).frame(width: sizing(5), height: sizing(CGFloat(h)))
                 }
             }
             Text(duration.formatted(.time(pattern: .minuteSecond)))

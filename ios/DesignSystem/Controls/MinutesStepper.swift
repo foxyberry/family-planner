@@ -3,7 +3,7 @@ import SwiftUI
 
 /// A minutes stepper on a grown-up form (boards C2, C2c, S3): − 72, the value centred in 144, + 72,
 /// then what the number means 16 after it (control 192: − 192–264, value 264–408, + 408–480, caption
-/// 496 on the 13"). Every size follows the iPad (spec "Part floors"). The buttons draw one inset
+/// 496 on the 13"), each × s. The buttons draw one inset
 /// inside their frames, so a row of steppers takes `drawnRow()` like the other crayon rows.
 public struct MinutesStepper: View {
     @Environment(\.sizing) private var sizing
@@ -26,13 +26,13 @@ public struct MinutesStepper: View {
                 .frame(width: sizing.stepperValueWidth)
             RoundButton(glyph: .plus, action: plus).size(Self.button)
             Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
-                .padding(.leading, sizing.space(Spacing.s))
+                .padding(.leading, sizing(Spacing.s))
         }
     }
 
-    /// The buttons' board size; on screen `Sizing.roundButton(72)` (72 × s, never under 56).
+    /// The buttons' board size (72 × s on screen).
     static let button: CGFloat = 72
 
-    /// A stepper row's frame height on this iPad: its buttons' height.
-    public static func rowHeight(_ sizing: Sizing) -> CGFloat { sizing.roundButton(button) }
+    /// A stepper row's frame height on this screen: its buttons' height.
+    public static func rowHeight(_ sizing: Sizing) -> CGFloat { sizing(button) }
 }

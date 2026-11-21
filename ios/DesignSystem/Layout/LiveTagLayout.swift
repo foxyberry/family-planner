@@ -25,7 +25,7 @@ public enum LiveTagLayout {
     /// The strip's lines on screen: `kx` and `k` its two scales (board units to points), `bubble`
     /// the my-bus bubble's frame (nil when no bus can be caught).
     public static func place(_ tags: [Tag], kx: CGFloat, k: CGFloat, bubble: CGRect?) -> [Slot] {
-        let height = LiveBusTag.height
+        let height = LiveBusTag.height * k
         let rowTops = [busTop * k - 8 * k - height, busBottom * k + 8 * k]
         var slots: [Slot] = []
         var shown: [CGRect] = []
@@ -33,7 +33,7 @@ public enum LiveTagLayout {
             let x = min(max(tag.centreX - tag.width / 2, 8 * kx), 1240 * kx - tag.width)
             let free = rowTops.indices.lazy.map { row in (row, CGRect(x: x, y: rowTops[row], width: tag.width, height: height)) }
                 .first { _, frame in
-                    !shown.contains { $0.insetBy(dx: -2, dy: 0).intersects(frame) }
+                    !shown.contains { $0.insetBy(dx: -2 * k, dy: 0).intersects(frame) }
                         && !(bubble?.intersects(frame) ?? false)
                 }
             if let (row, frame) = free {

@@ -23,7 +23,7 @@ public struct CrayonField<Leading: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: Spacing.sm) {
+        HStack(spacing: sizing(Spacing.sm)) {
             leading
             field.focused($isFocused)
                 // Board C3k: Return puts the keyboard away; it never submits the form.
@@ -32,15 +32,14 @@ public struct CrayonField<Leading: View>: View {
         }
         .preference(key: FieldFocusKey.self, value: isFocused)
         .crayonType(.body)
-        .padding(.horizontal, Spacing.m)
-        // Spec "Part floors": 80 × s, never under 64; the 16 padding stays.
+        .padding(.horizontal, sizing(Spacing.m))
         .frame(minHeight: sizing.fieldHeight)
         .background(
             CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
                           marker: isFocused || hasProblem ? .standard : .thin,
                           markerColor: isFocused ? CrayonColor.pickBlue : hasProblem ? CrayonColor.lateText : CrayonColor.marker,
                           seed: CrayonStyle.Seed.field)
-                .padding(CrayonStyle.artInset)
+                .padding(sizing(CrayonStyle.artInset))
         )
     }
 

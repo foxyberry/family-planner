@@ -7,9 +7,10 @@ public struct PaperCard<Content: View>: View {
     private let seed: UInt32
     private let padding: EdgeInsets?
     @Environment(\.cardPadding) private var environmentPadding
+    @Environment(\.sizing) private var sizing
 
     /// `padding` replaces the environment's `cardPadding` (spec "Layout balance": a nested card
-    /// pads `max(24 s, 16)`).
+    /// pads 24 × s).
     public init(seed: UInt32 = 0, padding: EdgeInsets? = nil, @ViewBuilder content: () -> Content) {
         self.content = content()
         self.seed = seed
@@ -24,6 +25,6 @@ public struct PaperCard<Content: View>: View {
     }
 
     private var insets: EdgeInsets {
-        if let padding { padding } else { environmentPadding }
+        if let padding { padding } else if let environmentPadding { environmentPadding } else { EdgeInsets(all: sizing(Spacing.m)) }
     }
 }

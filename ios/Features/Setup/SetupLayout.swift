@@ -1,7 +1,7 @@
 import CoreGraphics
 import DesignSystem
 
-/// Boards S1–S4 (layout v10) on the grown-up lines (`GrownupLayout`) through "Sizing formulas":
+/// Boards S1–S4 on the grown-up lines (`GrownupLayout`), every board value × s:
 /// the header ends on 1336 like every grown-up header (layout v31); S1 kid cards follow `FormLines`
 /// (layout v55); S4 rows are 120 tall on a 140 pitch from 188.
 public struct SetupLayout: Equatable, Sendable {
@@ -17,9 +17,10 @@ public struct SetupLayout: Equatable, Sendable {
     /// S2 and S3: the school field 610 wide, the stop field 400.
     public var schoolFieldWidth: CGFloat { 610 * s }
 
-    /// S2 and S3 kid tabs (layout v17): 200 × 72 with the name, 88 × 72 face only; gap 12.
-    public func kidTab(faceOnly: Bool) -> CGSize { CGSize(width: (faceOnly ? 88 : 200) * s, height: 72 * s) }
-    public var kidTabGap: CGFloat { 12 * s }
+    /// S2 and S3 kid tabs, board sizes (`CrayonTabs` scales them): 200 × 72 with the
+    /// name, 88 × 72 face only; gap 12.
+    public static func kidTab(faceOnly: Bool) -> CGSize { CGSize(width: faceOnly ? 88 : 200, height: 72) }
+    public static let kidTabGap: CGFloat = 12
 
     /// S4 board values inside a column: the main column's origin is (40, 148), the side's (864, 148)
     /// (layout v32).

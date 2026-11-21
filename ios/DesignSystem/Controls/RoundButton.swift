@@ -2,24 +2,18 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// An 80 pt paper circle holding a symbol, a short text, a glyph (back, close, +) or a kit picture
-/// (G0's pencil); 64 for C4's date paging.
+/// An 80 paper circle holding a symbol, a short text, a glyph (back, close, +) or a kit picture
+/// (G0's pencil); 64 for C4's date paging. Board sizes, × s on screen; the touch area is the circle's
+/// box.
 public struct RoundButton: View {
     private enum Content { case symbol(String), text(String), glyph(MarkerGlyph), picture(KitSlot) }
     private let content: Content
     private let action: () -> Void
     private var size: CGFloat = 80
-    private var floor: CGFloat?
-    private var touch: CGFloat?
     private var look: KidLook = .day
     @Environment(\.sizing) private var sizing
-    @Environment(\.isKidScreen) private var isKidScreen
-    /// Spec "Part floors": the board diameter × s, never under 56 (72 on kid screens), or under
-    /// `floor` when one is set (the clock "+": 48).
-    private var drawn: CGFloat {
-        if let floor { return max(size * sizing.s, floor) }
-        return isKidScreen ? sizing.kidTarget(size) : sizing.roundButton(size)
-    }
+    /// The board diameter × s.
+    private var drawn: CGFloat { sizing(size) }
 
     public init(systemImage: String, action: @escaping () -> Void) {
         content = .symbol(systemImage)
@@ -43,25 +37,10 @@ public struct RoundButton: View {
         self.action = action
     }
 
-    /// The same button at another diameter (board C4 paging: 64); the glyph keeps half of it.
+    /// The same button at another board diameter (board C4 paging: 64); the glyph keeps half of it.
     public func size(_ size: CGFloat) -> RoundButton {
         var copy = self
         copy.size = size
-        return copy
-    }
-
-    /// The smallest this button may be drawn on a smaller iPad, when its part has its own floor.
-    public func floor(_ floor: CGFloat) -> RoundButton {
-        var copy = self
-        copy.floor = floor
-        return copy
-    }
-
-    /// A touch area larger than the circle (S1's × : 48 drawn, touch 64). It reaches outside the
-    /// frame, so the frame stays on its line (spec "Layout model": touch outside, invisible).
-    public func touch(_ touch: CGFloat) -> RoundButton {
-        var copy = self
-        copy.touch = touch
         return copy
     }
 
@@ -77,7 +56,7 @@ public struct RoundButton: View {
         Button(action: action) {
             Group {
                 switch content {
-                case let .symbol(name): Image(systemName: name).font(CrayonType.head.font.weight(.bold))
+                case let .symbol(name): Image(systemName: name).font(CrayonType.head.font(sizing).weight(.bold))
                 case let .text(text): Text(text).crayonType(.head)
                 case let .glyph(glyph): MarkerIcon(glyph, size: drawn / 2)
                 // A picture follows its circle by the board's ratio (G0: the pencil, 56 in 80).
@@ -89,14 +68,7 @@ public struct RoundButton: View {
             .partBackground(.circle, fill: look == .day ? CrayonStyle.paper : .paper(CrayonColor.nightControl),
                             seed: CrayonStyle.Seed.roundButton,
                             markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)
-            .contentShape(Rectangle().inset(by: -touchOutset(drawn: drawn)))
         }
         .buttonStyle(.plain)
-    }
-
-    /// How far the touch area reaches past the drawn circle on each side (0 without `touch(_:)`).
-    private func touchOutset(drawn: CGFloat) -> CGFloat {
-        guard let touch else { return 0 }
-        return max(0, (touch - drawn) / 2)
     }
 }

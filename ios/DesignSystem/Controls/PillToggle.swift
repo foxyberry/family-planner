@@ -27,30 +27,31 @@ public struct PillToggle: View {
     public static let textMargin: CGFloat = 80
     public static let arrow: CGFloat = 24
 
+    /// The pill's width on `sizing`: worked out on the board, × s.
     public static func width(_ title: String, then: String?, sizing: Sizing) -> CGFloat {
-        guard let then else { return size.width }
-        let words = CrayonType.head.width(title, sizing: sizing, bold: true) + CrayonType.head.width(then, sizing: sizing, bold: true)
-        return words + 2 * Spacing.xs + arrow + textMargin
+        guard let then else { return sizing(size.width) }
+        let board = Sizing.thirteenInch
+        let words = CrayonType.head.width(title, sizing: board, bold: true) + CrayonType.head.width(then, sizing: board, bold: true)
+        return sizing(words + 2 * Spacing.xs + arrow + textMargin)
     }
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: Spacing.xs) {
+            HStack(spacing: sizing(Spacing.xs)) {
                 Text(title)
                     .crayonType(.head, bold: isOn)
                     .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
                     .lineLimit(1)
                 if let then {
                     // Playpen Sans has no arrows: the arrow is drawn.
-                    MarkerIcon(.arrowRight, size: Self.arrow, color: isOn ? CrayonColor.pictureInk : CrayonColor.ink)
+                    MarkerIcon(.arrowRight, size: sizing(Self.arrow), color: isOn ? CrayonColor.pictureInk : CrayonColor.ink)
                     Text(then)
                         .crayonType(.head, bold: isOn)
                         .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
                         .lineLimit(1)
                 }
             }
-            // Spec "Part floors": 72 × s tall, never under 56; the width stays 180 (a bus that
-            // changes: its words + 80).
+            // 180 × 72, × s (a bus that changes: its words + 80).
             .frame(width: Self.width(title, then: then, sizing: sizing)).frame(minHeight: sizing.tabHeight(Self.size.height))
             .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                             seed: CrayonStyle.Seed.tabs + 50)
@@ -65,6 +66,7 @@ public struct PillToggle: View {
 public struct PillToggleGrid<Content: View>: View {
     private let controlWidth: CGFloat
     private let content: Content
+    @Environment(\.sizing) private var sizing
 
     public init(controlWidth: CGFloat, @ViewBuilder content: () -> Content) {
         self.controlWidth = controlWidth
@@ -72,7 +74,7 @@ public struct PillToggleGrid<Content: View>: View {
     }
 
     public var body: some View {
-        TabFlow(spacing: Spacing.sm) { content }
+        TabFlow(spacing: sizing(Spacing.sm)) { content }
             .frame(width: controlWidth, alignment: .leading)
     }
 }

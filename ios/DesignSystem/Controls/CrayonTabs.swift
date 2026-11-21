@@ -5,7 +5,6 @@ import SwiftUI
 /// beside the body 30 label).
 public struct CrayonTabs<ID: Hashable>: View {
     @Environment(\.sizing) private var sizing
-    @Environment(\.isHeaderRow) private var isHeaderRow
     @Binding private var selection: ID
     private let items: [(ID, String, KidFace.Badge?)]
     private let inset: CGFloat
@@ -20,7 +19,7 @@ public struct CrayonTabs<ID: Hashable>: View {
     /// `itemSize`: every tab the same size, `spacing` apart (S2 "Goes to" 180 × 72 gap 12; the MOE
     /// question's pills 140 × 64).
     /// `widths`: each tab its own width, 72 tall. `fills` (layout v42 fill rule): equal tabs alone on
-    /// a row share its width, `spacing` apart, on every iPad size.
+    /// a row share its width, `spacing` apart. Sizes and `spacing` are board values (× s on screen).
     /// `faceOnly`: the kid's face without the name (S2/S3 with 3–4 kids, 88 × 72). `marked`: tabs that
     /// show a small hurry dot on the face (S3: route not finished).
     public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)], compact: Bool = false,
@@ -38,36 +37,32 @@ public struct CrayonTabs<ID: Hashable>: View {
     }
 
     public var body: some View {
-        // Spec "Give-way" step 5: a row of tabs that does not fit its column wraps; tabs never shrink
-        // under their content. Filling tabs share one row.
+        // A row of tabs that does not fit its column wraps (the same way at every s, since everything
+        // scales together). Filling tabs share one row.
+        let spacing = sizing(spacing)
         let row = fills ? AnyLayout(HStackLayout(spacing: spacing)) : AnyLayout(TabFlow(spacing: spacing))
         row {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 let isOn = item.0 == selection
                 Button { selection = item.0 } label: {
-                    HStack(spacing: KidFace.gap(for: KidFace.medium)) {
-                        if let badge = item.2 {
-                            KidFace(badge, size: KidFace.medium)
-                                .overlay(alignment: .topTrailing) {
-                                    if marked.contains(item.0) {
-                                        Circle().fill(CrayonColor.hurry).frame(width: 14, height: 14)
-                                            .offset(x: 4, y: -4)
-                                    }
-                                }
-                        }
-                        // A tab label never wraps ("Mon–Fri" split over two lines on C6).
-                        if !faceOnly || item.2 == nil {
-                            // Boards 0b/C1: the chosen label bold ink, the others regular soft text.
-                            Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
+                    Group {
+                        if width(at: index) != nil || fills {
+                            // A label that fits sits centred; a long one ends with "…" with the tab's
+                            // inset kept, so the "…" stays inside the capsule (spec "Text that does
+                            // not fit").
+                            ViewThatFits(in: .horizontal) {
+                                label(item, isOn: isOn, truncates: false)
+                                label(item, isOn: isOn, truncates: true).padding(.horizontal, sizing(inset))
+                            }
+                        } else {
+                            // Text 24 from a hugging tab's edge (16 compact).
+                            label(item, isOn: isOn, truncates: false).padding(.horizontal, sizing(inset))
                         }
                     }
-                    .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
-                    // Spec "Part floors": text 24 from a tab's edge, never under 16.
-                    .padding(.horizontal, itemSize == nil && widths == nil && !fills ? min(inset, sizing.textPadding) : 0)
                     .frame(width: width(at: index))
                     .frame(maxWidth: fills ? .infinity : nil)
-                    // Spec "Part floors": 72 × s, never under 56.
-                    .frame(minHeight: isHeaderRow ? Sizing.headerControlHeight : sizing.tabHeight(baseHeight))
+                    // 72 × s (or `itemSize`'s height × s).
+                    .frame(minHeight: sizing.tabHeight(baseHeight))
                     .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }
@@ -76,10 +71,35 @@ public struct CrayonTabs<ID: Hashable>: View {
         }
     }
 
-    /// A tab's fixed width: its own from `widths`, else `itemSize`'s; nil hugs the label.
+    /// A tab's face and label; `truncates`: a long label ends with "…" instead of growing.
+    private func label(_ item: (ID, String, KidFace.Badge?), isOn: Bool, truncates: Bool) -> some View {
+        HStack(spacing: sizing(KidFace.gap(for: KidFace.medium))) {
+            if let badge = item.2 {
+                KidFace(badge, size: sizing(KidFace.medium))
+                    .overlay(alignment: .topTrailing) {
+                        if marked.contains(item.0) {
+                            Circle().fill(CrayonColor.hurry).frame(width: sizing(14), height: sizing(14))
+                                .offset(x: sizing(4), y: sizing(-4))
+                        }
+                    }
+            }
+            // A tab label never wraps ("Mon–Fri" split over two lines on C6).
+            if !faceOnly || item.2 == nil {
+                // Boards 0b/C1: the chosen label bold ink, the others regular soft text.
+                if truncates {
+                    Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).truncationMode(.tail)
+                } else {
+                    Text(item.1).crayonType(.body, bold: isOn).lineLimit(1).fixedSize()
+                }
+            }
+        }
+        .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.softText)
+    }
+
+    /// A tab's fixed width × s: its own from `widths`, else `itemSize`'s; nil hugs the label.
     private func width(at index: Int) -> CGFloat? {
-        if let widths, widths.indices.contains(index) { return widths[index] }
-        return itemSize?.width
+        if let widths, widths.indices.contains(index) { return sizing(widths[index]) }
+        return itemSize.map { sizing($0.width) }
     }
 
     /// The tab height before `Sizing` scales it: `itemSize`'s, else the board's 72.

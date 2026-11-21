@@ -3,8 +3,8 @@ import SwiftUI
 
 /// A form row's card (boards F1–F4): centred over a dim layer, a head title, the row's choices 16
 /// below, then Done (`InkButton` 200 × 80) and Cancel (body bold, soft) at the bottom left. A tap on
-/// the dim layer is Cancel. Padding 40 at the sides, 36 at the top; the card is at least `size` and
-/// grows with its content (Bring's "More").
+/// the dim layer is Cancel. Padding 40 at the sides, 36 at the top; the card is at least `size` (a
+/// board size, × s) and grows with its content (Bring's "More").
 public struct FormCard<Content: View>: View {
     private let title: String
     private let size: CGSize
@@ -13,6 +13,7 @@ public struct FormCard<Content: View>: View {
     private let onDone: () -> Void
     private let onCancel: () -> Void
     private let content: Content
+    @Environment(\.sizing) private var sizing
 
     public init(title: String, size: CGSize, done: String, cancel: String, onDone: @escaping () -> Void,
                 onCancel: @escaping () -> Void, @ViewBuilder content: () -> Content) {
@@ -27,28 +28,28 @@ public struct FormCard<Content: View>: View {
 
     public var body: some View {
         ZStack {
-            CrayonColor.dim.ignoresSafeArea()
+            CrayonColor.dim.fullBleed()
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onCancel)
             // Layout v43: the card hugs its content, centred; the buttons sit 8 under it.
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                VStack(alignment: .leading, spacing: Spacing.s) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
+                VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                     Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
                     content
                 }
-                HStack(spacing: Spacing.l) {
-                    InkButton(done, height: 80, action: onDone).frame(width: 200)
+                HStack(spacing: sizing(Spacing.l)) {
+                    InkButton(done, height: 80, action: onDone).frame(width: sizing(200))
                     Button(action: onCancel) {
                         Text(cancel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
-                            .frame(minHeight: 80)
+                            .frame(minHeight: sizing(80))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
             }
             // Spec "Layout balance": an overlay card pads 32 from its drawn edge.
-            .padding(ConfirmCard.padding)
-            .frame(width: size.width, alignment: .topLeading)
+            .padding(ConfirmCard.padding(sizing))
+            .frame(width: sizing(size.width), alignment: .topLeading)
             .fixedSize(horizontal: false, vertical: true)
             .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.formCard)
         }
@@ -63,6 +64,7 @@ public struct PickRow: View {
     private let caption: String?
     private let isPicked: Bool
     private let action: () -> Void
+    @Environment(\.sizing) private var sizing
 
     public init(_ title: String, caption: String? = nil, isPicked: Bool, action: @escaping () -> Void) {
         self.title = title
@@ -73,7 +75,7 @@ public struct PickRow: View {
 
     public var body: some View {
         Button(action: action) {
-            HStack(alignment: .center, spacing: Spacing.s) {
+            HStack(alignment: .center, spacing: sizing(Spacing.s)) {
                 CheckMark(isDone: isPicked, size: 40)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(title).crayonType(.body, bold: isPicked).foregroundStyle(CrayonColor.ink)
@@ -83,7 +85,7 @@ public struct PickRow: View {
                 }
                 Spacer(minLength: 0)
             }
-            .frame(minHeight: 56)
+            .frame(minHeight: sizing(56))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

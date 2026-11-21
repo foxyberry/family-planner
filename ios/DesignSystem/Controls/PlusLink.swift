@@ -7,6 +7,7 @@ public struct PlusLink: View {
     public static let height: CGFloat = 72
     private let title: String
     private let action: () -> Void
+    @Environment(\.sizing) private var sizing
 
     public init(_ title: String, action: @escaping () -> Void) {
         self.title = title
@@ -15,11 +16,11 @@ public struct PlusLink: View {
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: Spacing.s) {
-                MarkerIcon(.plus, size: 28, color: CrayonColor.ink)
+            HStack(spacing: sizing(Spacing.s)) {
+                MarkerIcon(.plus, size: sizing(28), color: CrayonColor.ink)
                 Text(title).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
             }
-            .frame(minHeight: Self.height)
+            .frame(minHeight: sizing(Self.height))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

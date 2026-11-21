@@ -10,7 +10,7 @@ public struct ColourSwatch: View {
     private let isPicked: Bool
     private let action: () -> Void
     @Environment(\.sizing) private var sizing
-    /// Spec "Part floors": 56 × s, never under 48.
+    /// 56 × s.
     private var size: CGFloat { sizing.swatch }
 
     public init(colorIndex: Int, isPicked: Bool, action: @escaping () -> Void) {
@@ -20,7 +20,7 @@ public struct ColourSwatch: View {
     }
 
     /// The swatch's frame on `sizing` (its row lays out four of these, 12 apart).
-    public static func frame(_ sizing: Sizing) -> CGFloat { sizing.swatch + 2 * CrayonPart.inset }
+    public static func frame(_ sizing: Sizing) -> CGFloat { sizing.swatch + 2 * sizing.inset }
 
     public var body: some View {
         Button(action: action) {
@@ -30,7 +30,7 @@ public struct ColourSwatch: View {
                 .overlay {
                     if isPicked {
                         // Board S1: the pick ring hugs the swatch.
-                        Circle().stroke(CrayonColor.pickBlue, lineWidth: 5).frame(width: size + 10, height: size + 10)
+                        Circle().stroke(CrayonColor.pickBlue, lineWidth: sizing(5)).frame(width: size + sizing(10), height: size + sizing(10))
                     }
                 }
                 .frame(width: Self.frame(sizing), height: Self.frame(sizing))

@@ -7,6 +7,7 @@ public struct DayButton: View {
     private let today: String?
     private let date: String
     private let action: () -> Void
+    @Environment(\.sizing) private var sizing
 
     public init(today: String?, date: String, action: @escaping () -> Void) {
         self.today = today
@@ -16,7 +17,7 @@ public struct DayButton: View {
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: Spacing.sm) {
+            HStack(spacing: sizing(Spacing.sm)) {
                 if let today {
                     Text(today).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                     Text(date).crayonType(.body).foregroundStyle(CrayonColor.softText)
@@ -24,10 +25,10 @@ public struct DayButton: View {
                     Text(date).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                 }
                 Spacer(minLength: 0)
-                MarkerIcon(.chevronDown, size: 28, color: CrayonColor.softText)
+                MarkerIcon(.chevronDown, size: sizing(28), color: CrayonColor.softText)
             }
-            .padding(.horizontal, Spacing.m)
-            .frame(maxWidth: .infinity, minHeight: 72)
+            .padding(.horizontal, sizing(Spacing.m))
+            .frame(maxWidth: .infinity, minHeight: sizing(72))
             .partBackground(.capsule, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.dayButton)
         }
         .buttonStyle(.plain)
@@ -61,6 +62,7 @@ public struct DayPickerCard: View {
     private let onPage: (Int) -> Void
     private let onPick: (Int) -> Void
     private let onToday: () -> Void
+    @Environment(\.sizing) private var sizing
 
     public init(month: String, weeks: [[Chip]], today: String,
                 onPage: @escaping (Int) -> Void, onPick: @escaping (Int) -> Void, onToday: @escaping () -> Void) {
@@ -74,7 +76,7 @@ public struct DayPickerCard: View {
 
     public var body: some View {
         PaperCard(seed: CrayonStyle.Seed.dayPicker) {
-            VStack(alignment: .leading, spacing: Spacing.m) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
                 HStack {
                     Text(month).crayonType(.head).foregroundStyle(CrayonColor.ink)
                     Spacer()
@@ -82,7 +84,7 @@ public struct DayPickerCard: View {
                     RoundButton(glyph: .chevronRight) { onPage(1) }.size(64)
                 }
                 ForEach(weeks.indices, id: \.self) { week in
-                    HStack(spacing: Spacing.xxs) {
+                    HStack(spacing: sizing(Spacing.xxs)) {
                         ForEach(weeks[week]) { chip in
                             DateChip(weekday: chip.weekday, day: chip.day, isOn: chip.isPicked, isToday: chip.isToday,
                                      compact: true) { onPick(chip.index) }
@@ -96,6 +98,6 @@ public struct DayPickerCard: View {
             }
         }
         // Seven 74-wide chips 4 apart fit inside; "Wed" needs the 74 at the 24 caption size.
-        .frame(width: 600)
+        .frame(width: sizing(600))
     }
 }

@@ -13,6 +13,7 @@ fp_swift_library(
         "//ios/Clients/Localization",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
+        "//ios/DesignSystem",
         "//ios/Domain",
         "//ios/Features/Grownup",
         "//ios/Features/Home",

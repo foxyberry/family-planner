@@ -58,8 +58,11 @@ public struct AppView: View {
         // Spec "Keyboard": the keyboard client's one decision reaches every screen.
         .environment(\.keyboardTop, store.keyboardTop)
         .animation(.easeOut(duration: store.keyboardDuration), value: store.keyboardTop)
-        // Spec "Supported screens and windows": one Sizing from the device screen, read once.
-        .readsSizing(screen: store.screen)
+        // Spec "Sizing: one scale, no floors": one Sizing from the app window, again on every resize.
+        .readsSizing()
+        // The page around the board frame: a NavigationStack clips its screens to the frame, so the
+        // window's sides take the top screen's page here (paper, or the night sky).
+        .background { store.pageLook.page.ignoresSafeArea() }
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
         // the home disappear, which would cancel its task and stop the idle relock.
         .task { store.send(.checkFamily) }

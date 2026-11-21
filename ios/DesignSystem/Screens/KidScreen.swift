@@ -14,6 +14,7 @@ public struct KidFullScreen<Body: View>: View {
     /// The page colour under a running wipe; `nil` when no wipe runs.
     @State private var under: KidLook?
     @State private var wipe: CGFloat = 0
+    @Environment(\.sizing) private var sizing
 
     /// `nightTokens`: at night the colour tokens take their night values (A2's night board); the kid
     /// home keeps the light ones and draws its night from `KidLook`.
@@ -28,7 +29,7 @@ public struct KidFullScreen<Body: View>: View {
     public var body: some View {
         content()
             .modifier(FullScreenFrame())
-            .background { page.ignoresSafeArea() }
+            .background { page.fullBleed() }
             .foregroundStyle(look.ink)
             // Kid screens take their night look from `KidLook`, never from the colour tokens.
             .environment(\.colorScheme, nightTokens && look == .night ? .dark : .light)
@@ -47,7 +48,8 @@ public struct KidFullScreen<Body: View>: View {
                 under.page
                 Circle().fill(look.page)
                     .frame(width: 3200 * wipe, height: 3200 * wipe)
-                    .position(origin)
+                    // The page reaches `bleed` past the board frame's left edge.
+                    .position(x: origin.x + sizing.bleed, y: origin.y)
             }
         } else {
             look.page.animation(reduceMotion ? .easeInOut(duration: 0.3) : KidLook.crossfade, value: look)
@@ -55,9 +57,9 @@ public struct KidFullScreen<Body: View>: View {
     }
 }
 
-/// Kid full screens are laid out in full-screen space (spec "Sizing formulas"): y 0 is the top of
-/// the glass, the window's whole size, top-leading, clipped. Screens place their regions with
-/// `Sizing` (`y`, `left`, `right`, `stretch`), so content never grows or centres the frame.
+/// Kid full screens are laid out in the board frame (spec "Sizing: one scale, no floors"): y 0 is the
+/// top of the glass, 1376 s wide and the window's height, top-leading, clipped. Screens place their
+/// regions with `Sizing` (`x`, `y`, `rect`), so content never grows or centres the frame.
 struct FullScreenFrame: ViewModifier {
     @Environment(\.sizing) private var sizing
 
@@ -66,8 +68,6 @@ struct FullScreenFrame: ViewModifier {
             .frame(width: sizing.width, height: sizing.height, alignment: .topLeading)
             .clipped()
             .ignoresSafeArea()
-            // Spec "Part floors": controls on kid screens take the kid touch floor (72).
-            .environment(\.isKidScreen, true)
     }
 }
 

@@ -48,9 +48,6 @@ public struct AppFeature {
 
         /// The iPad's own light or dark setting, read every second (`deviceLook`).
         public var deviceIsDark = false
-        /// The device screen in landscape, read once when the root appears (spec "Supported screens
-        /// and windows"): every size comes from it, not from the window.
-        public var screen: CGSize?
         /// The window's colour scheme (spec "Night mapping"): the iPad's own while grown-up screens
         /// are open, light for setup, else the home's look (the kid home and A2). Always a value:
         /// going from dark back to nil (follow the system) kept the window dark on the iPad.
@@ -58,6 +55,14 @@ public struct AppFeature {
             guard setup == nil else { return .light }
             if hasGrownupScreens { return deviceIsDark ? .dark : .light }
             return home.look == .night ? .dark : .light
+        }
+        /// Spec "Sizing → Place": the page on the window around the board frame. Paper on setup and
+        /// grown-up screens (it turns dark with the window in dark mode); the kid screen's own look
+        /// on the home and the morning screen, so the night sky runs to the window's edges.
+        public var pageLook: KidLook {
+            guard setup == nil, !hasGrownupScreens else { return .day }
+            if case let .missions(missions)? = path.last { return missions.look }
+            return home.look
         }
         public var home = HomeFeature.State()
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
@@ -246,7 +251,6 @@ public struct AppFeature {
                 return .send(.home(.reload))
 
             case .task:
-                if state.screen == nil { state.screen = deviceLook.screen() }
                 return .merge(
                     .run { [clock, date] send in
                         for await _ in clock.timer(interval: .seconds(1)) {

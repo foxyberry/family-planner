@@ -42,11 +42,11 @@ public struct ItemEditorView: View {
                             }
                         }
                     }
-                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                    .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - sizing(Spacing.s),
                            alignment: .topLeading)
                 }
             } primaryAction: { layout in
-                VStack(alignment: .leading, spacing: Spacing.xs) {
+                VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                     InkButton(store.primaryTitle) { store.send(.saveTapped) }
                         .frame(width: layout.side.width)
                         .disabled(!store.canSave)
@@ -64,7 +64,7 @@ public struct ItemEditorView: View {
                 }
             }
             if store.fromWhen != nil {
-                CrayonColor.dim.ignoresSafeArea()
+                CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.fromWhenCancelTapped) }
                 fromWhenCard
             }
@@ -76,15 +76,15 @@ public struct ItemEditorView: View {
                                        onConfirm: { store.send(.confirmAccepted) })
                 if store.confirmPointsAtBack {
                     // Board C3x: the dim starts under the header, so "←" stays in sight above it.
-                    CrayonColor.dim.ignoresSafeArea(edges: .bottom)
+                    CrayonColor.dim.padding(.horizontal, -sizing.bleed).ignoresSafeArea(edges: .bottom)
                         .padding(.top, sizing.y(124))
                         .onTapGesture { store.send(.confirmCancelled) }
                     card.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .padding(.leading, sizing.left(40))
+                        .padding(.leading, sizing.x(40))
                         .padding(.top, sizing.y(140))
                         .ignoresSafeArea(.container, edges: .top)
                 } else {
-                    CrayonColor.dim.ignoresSafeArea()
+                    CrayonColor.dim.fullBleed()
                     card
                 }
             }
@@ -124,12 +124,12 @@ public struct ItemEditorView: View {
             row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
             if !store.isEditingWeekly {
                 row(L10n.tr("editor.row.repeat")) {
-                    // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12; never under the words + 32.
+                    // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12.
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
                                items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
                                        (.weekly, L10n.tr("editor.repeat.weekly"), nil),
                                        (.monthly, L10n.tr("editor.repeat.monthly"), nil)],
-                               widths: Array(repeating: repeatTabWidth, count: 3), spacing: Spacing.sm)
+                               widths: Array(repeating: 180, count: 3), spacing: Spacing.sm)
                 }
             }
             // Board G3: This day keeps the item's own rows only (no Days, Runs or event rows).
@@ -146,7 +146,7 @@ public struct ItemEditorView: View {
             if case .editOnce = store.mode {
                 Button { store.send(.removeTapped) } label: {
                     Text(store.removeTitle).crayonType(.head).foregroundStyle(CrayonColor.lateText)
-                        .frame(height: 88)
+                        .frame(height: sizing(88))
                 }
                 .buttonStyle(.plain)
             }
@@ -161,7 +161,7 @@ public struct ItemEditorView: View {
         // the field, taking its own line.
         return HStack(alignment: .controlMiddle, spacing: 0) {
             FormLabel(label, isActive: isActive).alignmentGuide(.controlMiddle) { $0[VerticalAlignment.center] }
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.xxs)) {
                 control().fieldProblem(shown != nil)
                     .alignmentGuide(.controlMiddle) { $0[VerticalAlignment.center] }
                 if let shown {
@@ -174,24 +174,18 @@ public struct ItemEditorView: View {
         .id(row?.rawValue)
     }
 
-    private var repeatTabWidth: CGFloat {
-        sizing.choiceTabWidth(180, labels: [L10n.tr("editor.repeat.once"), L10n.tr("editor.repeat.weekly"),
-                                            L10n.tr("editor.repeat.monthly")])
-    }
 
     private var audienceTabs: some View {
-        // Board C3: three tabs 180 × 72, gap 12; never under a face and name + 32. They wrap if
+        // Board C3: three tabs 180 × 72, gap 12. They wrap if
         // the column is too narrow.
         CrayonTabs(selection: Binding(get: { store.form.audience }, set: { store.send(.audienceTapped($0)) }),
                    items: store.audienceTabs.map { ($0.audience, $0.title, $0.badge) },
-                   itemSize: CGSize(width: sizing.choiceTabWidth(180, labels: store.audienceTabs.map(\.title),
-                                                                 faces: store.audienceTabs.contains { $0.badge != nil }),
-                                     height: 72), spacing: Spacing.sm)
+                   itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm)
     }
 
     private var whenRow: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            HStack(spacing: Spacing.s) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
+            HStack(spacing: sizing(Spacing.s)) {
                 if let linked = store.linkedStartText {
                     // Spec "Event form rows", From: a linked item starts when its event ends.
                     Text(linked).crayonType(.body).foregroundStyle(CrayonColor.softText)
@@ -219,7 +213,7 @@ public struct ItemEditorView: View {
                 // Board G2m: the Days row holds the rule tabs, made from the series' start.
                 monthlyRuleTabs
             } else {
-                HStack(spacing: Spacing.sm) {
+                HStack(spacing: sizing(Spacing.sm)) {
                     ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                         DayChip(DayText.initial(day), isOn: Binding(get: { store.form.days.contains(day) },
                                                                     set: { _ in store.send(.dayToggled(day)) }))
@@ -229,10 +223,10 @@ public struct ItemEditorView: View {
         }
         // Board G2: Runs, "{start}" → "End of term", then Skip school holidays.
         row(L10n.tr("editor.row.runs")) {
-            HStack(spacing: Spacing.s) {
+            HStack(spacing: sizing(Spacing.s)) {
                 DateField(label: store.runsStartText,
                           date: Binding(get: { store.runsStart }, set: { store.send(.runsStartPicked($0)) }))
-                MarkerIcon(.arrowRight, size: 32, color: CrayonColor.softText)
+                MarkerIcon(.arrowRight, size: sizing(32), color: CrayonColor.softText)
                 FieldButton(store.runsEndText) { store.send(.runsEndTapped) }
             }
         }
@@ -260,7 +254,7 @@ public struct ItemEditorView: View {
                     PickRow(row.title, caption: row.caption, isPicked: row.isPicked) {
                         store.send(.runsEndKindPicked(row.kind))
                     }
-                    if row.isPicked { runsEndDetail(row.kind).padding(.leading, 56) }
+                    if row.isPicked { runsEndDetail(row.kind).padding(.leading, sizing(56)) }
                 }
             }
         }
@@ -272,17 +266,17 @@ public struct ItemEditorView: View {
         case .date:
             DateField(label: store.runsEndText,
                       date: Binding(get: { store.runsUntil }, set: { store.send(.runsUntilPicked($0)) }))
-                .padding(.vertical, Spacing.xs)
+                .padding(.vertical, sizing(Spacing.xs))
         case .count:
-            HStack(spacing: Spacing.m) {
+            HStack(spacing: sizing(Spacing.m)) {
                 RoundButton(glyph: .minus) { store.send(.runsTimesStepped(-1)) }
                     .size(64)
                 Text(L10n.tr("runs.count.value", store.form.times)).crayonType(.body, bold: true)
-                    .foregroundStyle(CrayonColor.ink).frame(width: 140)
+                    .foregroundStyle(CrayonColor.ink).frame(width: sizing(140))
                 RoundButton(glyph: .plus) { store.send(.runsTimesStepped(1)) }
                     .size(64)
             }
-            .padding(.vertical, Spacing.xs)
+            .padding(.vertical, sizing(Spacing.xs))
         case .term, .none:
             EmptyView()
         }
@@ -327,7 +321,7 @@ public struct ItemEditorView: View {
                     .size(64)
                     .opacity(store.canPageEarlier ? 1 : 0.3)
             }
-            HStack(spacing: Spacing.sm) {
+            HStack(spacing: sizing(Spacing.sm)) {
                 ForEach(store.dateChips, id: \.day) { chip in
                     DateChip(weekday: chip.weekday, day: chip.day.day, isOn: chip.isOn) {
                         store.send(.dateTapped(chip.day))
@@ -353,8 +347,8 @@ public struct ItemEditorView: View {
         if store.showsGoing { goingRows }
         linkRow(L10n.tr("editor.row.bring"), action: .bringRowTapped) {
             if let first = store.form.bring.first, let text = store.form.bringText {
-                HStack(spacing: Spacing.sm) {
-                    KitIcon(KitSlot(iconName: first.picture), size: 48)
+                HStack(spacing: sizing(Spacing.sm)) {
+                    KitIcon(KitSlot(iconName: first.picture), size: sizing(48))
                     Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
             } else {
@@ -366,7 +360,7 @@ public struct ItemEditorView: View {
                 .buttonStyle(.plain)
                 .opacity(store.form.canSwitchMedal ? 1 : 0.45)
                 .disabled(!store.form.canSwitchMedal)
-                .frame(height: 72)
+                .frame(height: sizing(72))
         }
     }
 
@@ -379,14 +373,14 @@ public struct ItemEditorView: View {
                          @ViewBuilder value: () -> some View) -> some View {
         row(label) {
             Button { store.send(action) } label: {
-                HStack(spacing: Spacing.sm) {
+                HStack(spacing: sizing(Spacing.sm)) {
                     value()
                     Spacer(minLength: 0)
-                    MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                    MarkerIcon(.chevronRight, size: sizing(28), color: CrayonColor.softText)
                 }
                 // Spec "Alignment contract": a borderless value row ends drawn on 802.
-                .padding(.trailing, CrayonPart.inset)
-                .frame(maxWidth: .infinity, minHeight: 72)
+                .padding(.trailing, sizing.inset)
+                .frame(maxWidth: .infinity, minHeight: sizing(72))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -398,16 +392,16 @@ public struct ItemEditorView: View {
     /// Board F1 From: Home or an event to follow; after an event, "Starts − {n} min after +".
     private var fromCard: some View {
         formCard(L10n.tr("editor.row.from"), width: 640) {
-            VStack(alignment: .leading, spacing: Spacing.s) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 ChoiceCircles(store.fromCircles) { store.send(.fromPicked($0)) }
                 if store.form.after != nil {
-                    HStack(spacing: Spacing.m) {
+                    HStack(spacing: sizing(Spacing.m)) {
                         Text(L10n.tr("from.starts")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
-                            .frame(width: 140, alignment: .leading)
+                            .frame(width: sizing(140), alignment: .leading)
                         RoundButton(glyph: .minus) { store.send(.fromGapStepped(-1)) }
                             .size(64)
                         Text(store.gapText).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
-                            .frame(width: 200)
+                            .frame(width: sizing(200))
                         RoundButton(glyph: .plus) { store.send(.fromGapStepped(1)) }
                             .size(64)
                     }
@@ -428,20 +422,20 @@ public struct ItemEditorView: View {
                     store.send(.noSchoolSetTime(true))
                 }
                 if store.form.noSchoolStart != nil {
-                    VStack(alignment: .leading, spacing: Spacing.s) {
-                        HStack(spacing: Spacing.m) {
+                    VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
+                        HStack(spacing: sizing(Spacing.m)) {
                             TimeField(label: store.noSchoolTimeLabel,
                                       time: Binding(get: { store.noSchoolTime }, set: { store.send(.noSchoolStartPicked($0)) }),
-                                      width: 210)
-                            MarkerIcon(.arrowRight, size: 32, color: CrayonColor.ink)
+                                      width: sizing(210))
+                            MarkerIcon(.arrowRight, size: sizing(32), color: CrayonColor.ink)
                             TimeField(label: store.noSchoolEndLabel,
                                       time: Binding(get: { store.noSchoolEndTime }, set: { store.send(.noSchoolEndPicked($0)) }),
-                                      width: 210)
+                                      width: sizing(210))
                         }
                         ChoiceCircles(store.noSchoolGoing) { id in store.send(.noSchoolGoingTapped(Domain.Way(rawValue: id))) }
                     }
-                    .padding(.leading, 56)
-                    .padding(.top, Spacing.xs)
+                    .padding(.leading, sizing(56))
+                    .padding(.top, sizing(Spacing.xs))
                 }
             }
         }
@@ -450,13 +444,13 @@ public struct ItemEditorView: View {
     /// Board F2 Bring: up to four things in one row and "More", which opens every object picture.
     private var bringCard: some View {
         formCard(L10n.tr("editor.row.bring"), width: 640) {
-            VStack(alignment: .leading, spacing: Spacing.s) {
+            VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 ChoiceCircles(store.bringRow) { store.send(.bringCircleTapped($0)) }
                 if store.isPickingMoreBring {
                     ScrollView {
                         IconPicker(picked: store.bringPicked, slots: store.bringSlots, columns: 5) { store.send(.bringToggled($0)) }
                     }
-                    .frame(maxHeight: 320)
+                    .frame(maxHeight: sizing(320))
                 }
             }
         }
@@ -475,10 +469,10 @@ public struct ItemEditorView: View {
                     }
                     .buttonStyle(.plain)
                 } else {
-                    HStack(spacing: Spacing.m) {
+                    HStack(spacing: sizing(Spacing.m)) {
                         RoundButton(glyph: .minus) { store.send(.leaveStepped(-1)) }
                         Text(store.form.leaveText ?? "").crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
-                            .frame(width: 112)
+                            .frame(width: sizing(112))
                         RoundButton(glyph: .plus) { store.send(.leaveStepped(1)) }
                         Text(store.form.leaveCaption ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
                     }
@@ -490,9 +484,9 @@ public struct ItemEditorView: View {
     private func checkbox(_ title: String, isOn: Bool, picture: KitSlot? = nil,
                           toggle: @escaping () -> Void) -> some View {
         Button(action: toggle) {
-            HStack(spacing: Spacing.sm) {
+            HStack(spacing: sizing(Spacing.sm)) {
                 CheckMark(isDone: isOn, size: 48)
-                if let picture { KitIcon(picture, size: 40) }
+                if let picture { KitIcon(picture, size: sizing(40)) }
                 Text(title).crayonType(.body).foregroundStyle(CrayonColor.ink)
             }
         }
@@ -502,7 +496,7 @@ public struct ItemEditorView: View {
     // MARK: Side column (every-week item, board E5)
 
     private var weeklySide: some View {
-        VStack(alignment: .leading, spacing: Spacing.s) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
             if store.showsScopeTabs {
                 // Boards G2 / G3: This day / All days at the top of the side column.
                 // Layout v42 fill rule: the two tabs share the side column (2 × 230, gap 12).
@@ -515,7 +509,7 @@ public struct ItemEditorView: View {
                 Text(store.thisDayTitle ?? "").crayonType(.head).foregroundStyle(CrayonColor.ink)
                 Button { store.send(.skipRowTapped) } label: {
                     Text(store.skipTitle).crayonType(.body).foregroundStyle(CrayonColor.ink)
-                        .frame(maxWidth: .infinity, minHeight: 88)
+                        .frame(maxWidth: .infinity, minHeight: sizing(88))
                         .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: 1901)
                         .contentShape(Rectangle())
                 }
@@ -541,7 +535,7 @@ public struct ItemEditorView: View {
     // MARK: Side column (preview)
 
     private func sideColumn(_ preview: FormPreview, headingOnly: Bool) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
             Text(preview.heading).crayonType(.head).foregroundStyle(CrayonColor.ink)
             if !headingOnly { previewBody(preview) }
         }
@@ -570,8 +564,8 @@ public struct ItemEditorView: View {
     }
 
     private func previewLabel(_ row: FormPreview.Row) -> some View {
-        HStack(spacing: Spacing.sm) {
-            KitIcon(KitSlot(iconName: row.slot.iconName), size: 48)
+        HStack(spacing: sizing(Spacing.sm)) {
+            KitIcon(KitSlot(iconName: row.slot.iconName), size: sizing(48))
             Text(row.title).crayonType(row.isNew ? .head : .body)
                 .foregroundStyle(row.isUnnamed ? CrayonColor.softText : CrayonColor.ink).lineLimit(1)
         }

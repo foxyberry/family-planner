@@ -17,8 +17,8 @@ public struct MissionsView: View {
     }
 
     public var body: some View {
-        // Spec "A2 redlines" through "Sizing formulas": every part sits on the board's lines
-        // (64, 448, 1312; baselines 107, 584, 757). No part's place comes from its content.
+        // Spec "A2 redlines", board × s: every part sits on the board's lines (64, 448, 1312;
+        // baselines 107, 584, 757). No part's place comes from its content.
         let layout = MorningLayout(sizing: sizing)
         KidFullScreen(look: store.look, nightTokens: true) {
             ZStack(alignment: .topLeading) {
@@ -52,14 +52,14 @@ public struct MissionsView: View {
         Text(store.title).crayonType(.title).foregroundStyle(CrayonColor.ink).lineLimit(1)
             .place(left: layout.titleLeft, baseline: layout.headerBaseline)
         if let header = store.header {
-            HStack(alignment: .firstTextBaseline, spacing: sizing.space(Spacing.sm)) {
+            HStack(alignment: .firstTextBaseline, spacing: sizing(Spacing.sm)) {
                 if let label = header.label {
                     Text(label).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 }
                 Text(header.minutes).crayonType(.title).foregroundStyle(CrayonColor.ink)
                 if let status = header.status {
                     // Board A2: the status 40 after the minutes (the stack's 12 plus 28).
-                    StatusDot(status.text, tone: Self.tone(status.tone)).padding(.leading, sizing.space(28))
+                    StatusDot(status.text, tone: Self.tone(status.tone)).padding(.leading, sizing(28))
                 }
             }
             .place(right: layout.headerRight, baseline: layout.headerBaseline)
@@ -103,11 +103,11 @@ public struct MissionsView: View {
         }
     }
 
-    // MARK: Missions column (448 s … W − 64 s): name line at baseline 584, circles 612–724.
+    // MARK: Missions column (448–1312): name line at baseline 584, circles 612–724.
 
     @ViewBuilder private func missions(_ layout: MorningLayout) -> some View {
         if let kid = store.chosenKid {
-            HStack(alignment: .firstTextBaseline, spacing: sizing.space(Spacing.sm)) {
+            HStack(alignment: .firstTextBaseline, spacing: sizing(Spacing.sm)) {
                 Text(kid.name).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 if let leaveAt = store.leaveAt {
                     Text(leaveAt).crayonType(.caption).foregroundStyle(CrayonColor.softText)

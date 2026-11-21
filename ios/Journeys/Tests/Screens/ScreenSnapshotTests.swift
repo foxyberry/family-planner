@@ -5,6 +5,7 @@ import Domain
 import Grownup
 import JourneyWorld
 import KitArt
+import SchoolDirectory
 import SnapshotTesting
 import SwiftUI
 import XCTest
@@ -50,6 +51,44 @@ final class ScreenSnapshotTests: XCTestCase {
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
     }
 
+    /// The Setup covers (S2 Data sources, S3 Change buses) are hosted outside AppView's board
+    /// frame, with only `sizing` from the environment: at the mini their header, form and action
+    /// must still sit on one centred board frame (review of PR 168).
+    func testCoversAtTheMini() async {
+        let mini = Self.sizes[1].size
+        // The covers' own tasks (sources, the stop's buses) run in the journey World, never live.
+        let world = World(sample)
+        var sources = DataSourcesFeature.State()
+        sources.sources = [DataSource(name: "Example open data", attribution: "Example attribution",
+                                      licenceURL: "https://example.com/licence")]
+        snapCover(DataSourcesView(store: Store(initialState: sources) { DataSourcesFeature() } withDependencies: { world.install(&$0) }),
+                  size: mini, named: "dataSources.mini")
+        let change = ChangeBusesFeature.State(ourStop: StopSearchFeature.State(stop: "12345"), changes: [], index: nil)
+        snapCover(ChangeBusesView(store: Store(initialState: change) { ChangeBusesFeature() } withDependencies: { world.install(&$0) }),
+                  size: mini, named: "changeBuses.mini")
+    }
+
+    /// A screen as a `fullScreenCover` gets it: the window's sizing, the window's whole width.
+    private func snapCover(_ screen: some View, size: CGSize, named name: String,
+                           file: StaticString = #filePath, testName: String = #function, line: UInt = #line) {
+        let view = screen
+            .withSizing(Sizing(width: size.width, height: size.height))
+            .environment(\.kitArt, BundledKitArt(includePrivate: false))
+            .environment(\.locale, Locale(identifier: "en_US_POSIX"))
+            .frame(width: size.width, height: size.height)
+        let traits = UITraitCollection(traitsFrom: [UITraitCollection(displayScale: 2),
+                                                    UITraitCollection(userInterfaceStyle: .light)])
+        let failure = verifySnapshot(
+            of: view,
+            as: .image(layout: .fixed(width: size.width, height: size.height), traits: traits),
+            named: name,
+            record: ScreenSnapshotLocation.recordDirectory == nil ? .never : .all,
+            snapshotDirectory: ScreenSnapshotLocation.directory,
+            file: file, testName: testName, line: line
+        )
+        if let failure { XCTFail(failure, file: file, line: line) }
+    }
+
     /// Launch as the app does: the store is read once (the home stays paper until then), then the
     /// home loads its day.
     private func opened(_ store: TestStoreOf<AppFeature>) async {
@@ -69,7 +108,6 @@ final class ScreenSnapshotTests: XCTestCase {
     private func snap(_ state: AppFeature.State, _ world: World, size: CGSize, named name: String,
                       file: StaticString = #filePath, testName: String = #function, line: UInt = #line) {
         var state = state
-        state.screen = size
         state.scenePhase = .active  // the app is in front, as on the iPad
         let store = Store(initialState: state) { AppFeature() } withDependencies: { world.install(&$0) }
         let view = AppView(store: store)

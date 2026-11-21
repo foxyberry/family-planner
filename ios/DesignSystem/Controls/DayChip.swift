@@ -5,7 +5,7 @@ import SwiftUI
 /// `size` 56 for the read-only rows of C1/E6 (letters at caption size).
 public struct DayChip: View {
     @Environment(\.sizing) private var sizing
-    private var drawn: CGFloat { size >= 72 ? sizing.tabHeight(size) : size }
+    private var drawn: CGFloat { sizing(size) }
     private let letter: String
     private let size: CGFloat
     @Binding private var isOn: Bool
@@ -21,7 +21,6 @@ public struct DayChip: View {
             Text(letter)
                 .crayonType(size < 72 ? .caption : .head, bold: isOn)
                 .foregroundStyle(isOn ? CrayonColor.pictureInk : CrayonColor.ink)
-                // Spec "Part floors": the 72 chip is 72 × s, never under 56.
                 .frame(width: drawn, height: drawn)
                 .partBackground(.circle, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
                                   seed: CrayonStyle.Seed.dayChip)

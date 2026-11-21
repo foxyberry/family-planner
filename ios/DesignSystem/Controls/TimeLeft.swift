@@ -20,7 +20,6 @@ public struct TimeLeft: View {
     }
 
     public var body: some View {
-        // Compact: 72 on the board, never under 56 (spec "Part floors").
         let size = compact ? sizing.timeLeftCompact : sizing.size(of: .display)
         Text(text)
             .font(Font(FontRegistrar.font(size: size, weight: .bold)))

@@ -9,6 +9,7 @@ import SwiftUI
 /// C5 · Morning missions (board C5): the kid's missions in circle order, drag ≡ to reorder, tap a
 /// row to rename it or change its picture.
 public struct MissionEditorView: View {
+    @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<MissionEditorFeature>
 
     public init(store: StoreOf<MissionEditorFeature>) {
@@ -28,11 +29,11 @@ public struct MissionEditorView: View {
                     }
                     .frame(width: layout.form.width, height: layout.form.height)
                     ScrollColumn { side }
-                        .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - Spacing.s,
+                        .frame(width: layout.side.width, height: layout.action.minY - layout.side.minY - sizing(Spacing.s),
                                alignment: .topLeading)
                 }
             } primaryAction: { layout in
-                VStack(alignment: .trailing, spacing: Spacing.xs) {
+                VStack(alignment: .trailing, spacing: sizing(Spacing.xs)) {
                     InkButton(L10n.tr("c5.done")) { store.send(.doneTapped) }
                         .frame(width: layout.side.width)
                     if let error = store.saveError {
@@ -41,7 +42,7 @@ public struct MissionEditorView: View {
                 }
             }
             if let draft = store.draft {
-                CrayonColor.dim.ignoresSafeArea()
+                CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.draftClosed) }
                 if let title = store.removeTitle {
                     ConfirmCard(title: title, message: nil, cancel: L10n.tr("c5.remove.keep"),
@@ -76,19 +77,19 @@ public struct MissionEditorView: View {
             }
             if store.canAdd {
                 Button { store.send(.addTapped) } label: {
-                    HStack(spacing: Spacing.s) {
-                        MarkerIcon(.plus, size: 28, color: CrayonColor.link)
-                            .frame(width: 56, height: 56)
+                    HStack(spacing: sizing(Spacing.s)) {
+                        MarkerIcon(.plus, size: sizing(28), color: CrayonColor.link)
+                            .frame(width: sizing(56), height: sizing(56))
                             .crayonBackground(.circle, fill: nil, seed: 1801)
                         Text(store.addTitle).crayonType(.body).foregroundStyle(CrayonColor.link)
                     }
-                    .frame(height: 72)
+                    .frame(height: sizing(72))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else {
                 Text(L10n.tr("c5.most")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                    .frame(height: 72)
+                    .frame(height: sizing(72))
             }
         }
     }
@@ -96,9 +97,9 @@ public struct MissionEditorView: View {
     private func row(_ mission: Mission, index: Int) -> some View {
         Button { store.send(.rowTapped(mission.id)) } label: {
             // Board C5: rows 88 tall; the handle, the picture, then the name on about 240.
-            HStack(spacing: Spacing.m) {
-                MarkerIcon(.handle, size: 32, color: CrayonColor.softText)
-                KitIcon(KitSlot(iconName: mission.picture), size: 48)
+            HStack(spacing: sizing(Spacing.m)) {
+                MarkerIcon(.handle, size: sizing(32), color: CrayonColor.softText)
+                KitIcon(KitSlot(iconName: mission.picture), size: sizing(48))
                 VStack(alignment: .leading, spacing: 0) {
                     Text(mission.name).crayonType(.body).foregroundStyle(CrayonColor.ink)
                     if let days = store.state.daysCaption(mission) {
@@ -106,9 +107,9 @@ public struct MissionEditorView: View {
                     }
                 }
                 Spacer()
-                MarkerIcon(.chevronRight, size: 28, color: CrayonColor.softText)
+                MarkerIcon(.chevronRight, size: sizing(28), color: CrayonColor.softText)
             }
-            .frame(height: 88)
+            .frame(height: sizing(88))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

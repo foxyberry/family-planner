@@ -5,7 +5,7 @@ import XCTest
 /// Spec "A2 redlines": the shared lines hold on every iPad, and nothing leaves its region.
 final class MorningLayoutTests: XCTestCase {
     private let iPads = [Sizing(width: 1376, height: 1032), Sizing(width: 1366, height: 1024),
-                         Sizing(width: 1180, height: 820), Sizing(width: 1133, height: 744)]
+                         Sizing(width: 1180, height: 820), Sizing(width: 1133, height: 744), Sizing(width: 890, height: 626)]
 
     func testSharedLinesOnEveryIPad() {
         for sizing in iPads {
@@ -38,5 +38,30 @@ final class MorningLayoutTests: XCTestCase {
         XCTAssertEqual(layout.circleRect(2).minX, 448 + 2 * 150.4, accuracy: 0.01)
         XCTAssertEqual(layout.kidFace(0), CGRect(x: 85, y: 553, width: 66, height: 66))
         XCTAssertEqual(layout.slide, CGRect(x: 448, y: 872, width: 864, height: 96))
+    }
+
+    /// Spec "Sizing: one scale, no floors": on every window each part is its 13" rect × s.
+    func testEveryPartIsTheBoardTimesS() {
+        let l = MorningLayout(sizing: .thirteenInch)
+        let board = [l.back, l.strip, l.kidRow(1), l.kidRing(0), l.circleRect(3), l.captionRect(2), l.doneMedal, l.slide]
+        for sizing in iPads {
+            let l = MorningLayout(sizing: sizing)
+            assertScaled([l.back, l.strip, l.kidRow(1), l.kidRing(0), l.circleRect(3), l.captionRect(2), l.doneMedal, l.slide], board, sizing)
+        }
+    }
+
+    /// A 13" rect on `sizing`: x and sizes × s, y from the safe top.
+    private func scaled(_ rect: CGRect, _ sizing: Sizing) -> CGRect {
+        CGRect(x: rect.minX * sizing.s, y: sizing.y(rect.minY), width: rect.width * sizing.s,
+               height: rect.height * sizing.s)
+    }
+
+    private func assertScaled(_ rects: [CGRect], _ board: [CGRect], _ sizing: Sizing) {
+        for (a, b) in zip(rects, board).map({ ($0, scaled($1, sizing)) }) {
+            XCTAssertEqual(a.minX, b.minX, accuracy: 0.01, "\(sizing.window)")
+            XCTAssertEqual(a.minY, b.minY, accuracy: 0.01, "\(sizing.window)")
+            XCTAssertEqual(a.width, b.width, accuracy: 0.01, "\(sizing.window)")
+            XCTAssertEqual(a.height, b.height, accuracy: 0.01, "\(sizing.window)")
+        }
     }
 }

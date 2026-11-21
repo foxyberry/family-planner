@@ -2,74 +2,80 @@ import DesignSystem
 import SwiftUI
 import XCTest
 
-/// Spec "Sizing formulas": one scale per landscape iPad, floors for type and spacing, and the
-/// status bar band left empty.
+/// Spec "Sizing: one scale, no floors": one scale from the app window, every size board × s, the
+/// board frame centred, and the status bar band left empty.
 @MainActor
 final class SizingTests: XCTestCase {
-    /// Spec "Supported screens and windows": the screen sets the sizing, never the window.
-    func testSizingComesFromTheScreenNotTheWindow() {
-        let mini = Sizing.forScreen(Sizing.miniScreen, window: CGSize(width: 700, height: 744), safeTop: 24)
-        XCTAssertEqual(mini, Sizing(width: 1133, height: 744, safeTop: 24))
-        XCTAssertEqual(Sizing.forScreen(nil, window: CGSize(width: 1180, height: 820), safeTop: 24),
-                       Sizing(width: 1180, height: 820, safeTop: 24), "before the screen is known the window stands in")
-        XCTAssertEqual(Sizing.forScreen(nil, window: .zero, safeTop: 24), .thirteenInch)
-    }
-
-    func testOnlyASmallerWindowCrops() {
-        let screen = CGSize(width: 1180, height: 820)
-        XCTAssertFalse(Sizing.crops(window: screen, screen: screen))
-        XCTAssertTrue(Sizing.crops(window: CGSize(width: 780, height: 820), screen: screen), "Split View")
-        XCTAssertTrue(Sizing.crops(window: CGSize(width: 1180, height: 700), screen: screen))
-        XCTAssertFalse(Sizing.crops(window: CGSize(width: 780, height: 820), screen: nil))
-        XCTAssertFalse(Sizing.crops(window: .zero, screen: screen))
-    }
-
     private let thirteen = Sizing(width: 1376, height: 1032)
-    private let family = Sizing(width: 1366, height: 1024)
+    private let family = Sizing(width: 1366, height: 1024, safeTop: 32)
     private let air = Sizing(width: 1180, height: 820)
     private let mini = Sizing(width: 1133, height: 744)
+    /// The iPhone Duo inner screen (spec "Supported screens and windows").
+    private let duo = Sizing(width: 890, height: 626)
 
-    func testScalePerIPad() {
+    /// Spec "Sizing → One scale": s = min(W / 1376, (H − safe.top) / 1008), from the app window, with
+    /// no lower limit.
+    func testScalePerWindow() {
         XCTAssertEqual(thirteen.s, 1)
-        XCTAssertEqual(family.s, 0.992, accuracy: 0.001)
+        XCTAssertEqual(family.s, 0.984, accuracy: 0.001)
         XCTAssertEqual(Sizing(width: 1210, height: 834).s, 0.804, accuracy: 0.001)
         XCTAssertEqual(air.s, 0.790, accuracy: 0.001)
         XCTAssertEqual(mini.s, 0.714, accuracy: 0.001)
-        XCTAssertEqual(Sizing(width: 600, height: 500).s, Sizing.minimumScale)
+        XCTAssertEqual(duo.s, 0.597, accuracy: 0.001)
+        XCTAssertEqual(Sizing(width: 600, height: 500).s, 0.4365, accuracy: 0.001, "a small window: smaller still")
+        XCTAssertEqual(Sizing(width: 688, height: 1032).s, 0.5, "a narrow window: the width sets s")
+    }
+
+    /// The window sets the sizing; before it is known the 13" stands in.
+    func testSizingComesFromTheWindow() {
+        XCTAssertEqual(Sizing.forWindow(CGSize(width: 1133, height: 744), safeTop: 24), mini)
+        XCTAssertEqual(Sizing.forWindow(CGSize(width: 700, height: 744), safeTop: 24).s, 700 / 1376,
+                       "Split View: the whole board, smaller")
+        XCTAssertEqual(Sizing.forWindow(.zero, safeTop: 24), .thirteenInch)
+    }
+
+    /// Spec "Sizing → Place": the board frame is 1376 s wide and centred; the rest is paper.
+    func testTheBoardFrameIsCentred() {
+        XCTAssertEqual(thirteen.width, 1376)
+        XCTAssertEqual(thirteen.bleed, 0)
+        XCTAssertEqual(mini.width, 1376 * mini.s, accuracy: 0.01)
+        XCTAssertEqual(2 * mini.bleed + mini.width, 1133, accuracy: 0.01)
+        XCTAssertEqual(mini.height, 744, "the frame keeps the window's height; the board sits on safe.top")
+        XCTAssertEqual(Sizing(width: 688, height: 1032).bleed, 0, "a width-set scale leaves paper only below")
     }
 
     func testThirteenInchGivesTheBoardBack() {
         for type in CrayonType.allCases { XCTAssertEqual(thirteen.size(of: type), type.size) }
-        for gap in [4, 8, 12, 16, 24, 40, 64] as [CGFloat] { XCTAssertEqual(thirteen.space(gap), gap) }
+        for gap in [4, 8, 12, 16, 24, 32, 40, 64] as [CGFloat] { XCTAssertEqual(thirteen(gap), gap) }
         XCTAssertEqual(thirteen.y(48), 48)
         XCTAssertEqual(thirteen.y(968), 968)
-        XCTAssertEqual(thirteen.right(1312), 1312)
-        XCTAssertEqual(thirteen.columnWidth, 82)
+        XCTAssertEqual(thirteen.x(1312), 1312)
+        XCTAssertEqual(thirteen.rect(864, 872, 472, 96), CGRect(x: 864, y: 872, width: 472, height: 96))
     }
 
-    func testMiniKeepsTheFloors() {
-        XCTAssertEqual(mini.size(of: .hero), 102.9, accuracy: 0.1)
-        XCTAssertEqual(mini.size(of: .display), 68.6, accuracy: 0.1)
-        XCTAssertEqual(mini.size(of: .title), 36)
-        XCTAssertEqual(mini.size(of: .head), 30)
-        XCTAssertEqual(mini.size(of: .body), 24)
-        XCTAssertEqual(mini.size(of: .caption), 24)
-        XCTAssertEqual(mini.space(12), 12)
-        XCTAssertEqual(mini.space(24), 17.1, accuracy: 0.1)
-        XCTAssertEqual(mini.space(64), 45.7, accuracy: 0.1)
-        XCTAssertEqual(mini.y(48), 41.1, accuracy: 0.1)
-        XCTAssertEqual(mini.y(968), 698.3, accuracy: 0.1)
-        for type in CrayonType.allCases { XCTAssertGreaterThanOrEqual(mini.size(of: type), 24) }
+    /// No floors: type, gaps and positions are the board's × s on the mini and the Duo alike.
+    func testEverySizeIsTheBoardTimesS() {
+        for sizing in [family, air, mini, duo] {
+            let s = sizing.s
+            for type in CrayonType.allCases {
+                XCTAssertEqual(sizing.size(of: type), type.size * s, accuracy: 0.001, "\(type)")
+            }
+            for gap in [4, 8, 12, 16, 24, 32, 40, 64] as [CGFloat] { XCTAssertEqual(sizing(gap), gap * s, accuracy: 0.001) }
+            XCTAssertEqual(sizing.x(1336), 1336 * s, accuracy: 0.001)
+            XCTAssertEqual(sizing.y(968), sizing.safeTop + 944 * s, accuracy: 0.001)
+        }
+        XCTAssertEqual(mini.size(of: .caption), 17.1, accuracy: 0.1, "caption 24 × s: fractional, no floor")
+        XCTAssertEqual(duo.size(of: .caption), 14.3, accuracy: 0.1)
     }
 
-    /// Kid full screens fill the window from the top of the glass; nothing but the page runs
-    /// under the status bar band, on the largest and smallest iPads.
+    /// Kid full screens fill the board frame from the top of the glass; nothing but the page runs
+    /// under the status bar band, on the largest and smallest windows.
     func testStatusBandStaysEmpty() throws {
-        for sizing in [thirteen, family, air, mini] {
+        for sizing in [thirteen, family, air, mini, duo] {
             let view = KidFullScreen {
                 Color.black.frame(width: 200, height: 2000).offset(y: sizing.y(36))
             }
-            .environment(\.sizing, sizing)
+            .withSizing(sizing)
             let rows = try inkRows(of: view, size: CGSize(width: sizing.width, height: sizing.height))
             XCTAssertTrue(rows.prefix(Int(Sizing.statusBand)).allSatisfy { !$0 }, "ink in the band at \(sizing.width)")
             let first = try XCTUnwrap(rows.firstIndex(of: true))

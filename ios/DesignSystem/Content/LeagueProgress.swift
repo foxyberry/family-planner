@@ -9,6 +9,7 @@ public struct LeagueProgress: View {
     private let done: Int
     private let goal: Int
     private let remaining: String
+    @Environment(\.sizing) private var sizing
 
     /// `remaining`: the words under the bar (`LeagueText.remaining` in Domain).
     public init(level: KitSlot, levelName: String, done: Int, goal: Int, remaining: String) {
@@ -26,18 +27,18 @@ public struct LeagueProgress: View {
     }
 
     public var body: some View {
-        HStack(spacing: Spacing.m) {
-            KitIcon(level, size: 88)
-            VStack(alignment: .leading, spacing: Spacing.xs) {
+        HStack(spacing: sizing(Spacing.m)) {
+            KitIcon(level, size: sizing(88))
+            VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                 Text(levelName).crayonType(.head)
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         CrayonSurface(.capsule, fill: CrayonStyle.paper, seed: CrayonStyle.Seed.league)
                         CrayonSurface(.capsule, fill: CrayonStyle.yellowSlider, seed: CrayonStyle.Seed.league + 1)
-                            .frame(width: max(geometry.size.width * Self.fraction(done: done, goal: goal), 40))
+                            .frame(width: max(geometry.size.width * Self.fraction(done: done, goal: goal), sizing(40)))
                     }
                 }
-                .frame(height: 40)
+                .frame(height: sizing(40))
                 Text(remaining)
                     .crayonType(.caption)
                     .foregroundStyle(CrayonColor.softText)
