@@ -2,7 +2,7 @@
 name: pr-review-handoff
 description: Use when a change in this repo is ready for review (code, guards, docs or design spec), when sending work to the code review session, when another session's commits need a PR, when acting as the review session ("Family-planner iOS 코드 리뷰"), when a review or LGTM is posted on your PR, or before merging a PR.
 metadata:
-  version: 0.7.1
+  version: 0.8.0
   status: experimental
 ---
 
@@ -52,6 +52,8 @@ hook blocks shell expansion and checks the text for private terms.
    - the PR number;
    - what to look at;
    - what is checked, and what isn't yet (the iPad check).
+   - for a screen PR, the journeys, UI tests and snapshots that cover it (`test-layers`), so the
+     iPad check is look and feel only.
 4. When the review is posted, read every comment: `gh api repos/{owner}/{repo}/pulls/N/comments`.
    - Fix each one, or decide not to.
    - Reply on its thread with the fixing commit or your reason: `gh api repos/{owner}/{repo}/pulls/N/comments/<id>/replies --method POST --input <file>`.
