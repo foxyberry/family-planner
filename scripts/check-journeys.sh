@@ -4,7 +4,8 @@
 # `XFeature` counts as reached when journey code (comment lines aside) names the type `XFeature` or
 # sends or receives through its case: `.x(` (an action), `\.x` or `].x` (a key path,
 # `\.path[id: id].changeBuses.loaded`). The case is how the root store reaches a pushed or scoped
-# screen; a property read (`store.state.setup?`, `world.settings`) is not a step.
+# screen; a property read (`store.state.setup?`, `world.settings`) is not a step. Only a key path's
+# first segment after `\.` or `]` counts: `\.grownup.settings` does not reach SettingsFeature.
 #
 # Reducers no journey reaches yet are listed in scripts/journeys-pending.txt (one type per line).
 # The list only shrinks: a listed reducer that a journey reaches fails until its line is removed,
