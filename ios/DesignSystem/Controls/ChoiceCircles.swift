@@ -3,8 +3,8 @@ import KitArt
 import SwiftUI
 
 /// A row of 88 picture circles on a 112 pitch with a caption (up to 112 wide, so "Backpack" stays one
-/// word) under each; picked ones get a 104 pick-blue ring and a bold caption (boards C3g "Going",
-/// F1–F4). A choice without a picture shows its `word` inside (Bring's "More") or "–".
+/// word) under each; picked ones get a pick-blue ring `pickRing` outside the drawn circle (84 on the
+/// 13") and a bold caption (boards C3g "Going", F1–F4). A choice without a picture shows its `word` inside (Bring's "More") or "–".
 public struct ChoiceCircles: View {
     @Environment(\.sizing) private var sizing
     public struct Choice: Equatable, Sendable, Identifiable {
