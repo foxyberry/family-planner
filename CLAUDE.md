@@ -84,7 +84,7 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 
 ## Versions
 Bazel 8.8.2; rules_apple 4.3.3, rules_swift 3.6.0, apple_support 1.24.5,
-rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bumps here.
+rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2; Periphery 3.8.0. Record bumps here.
 
 ## Known gotchas
 1. `repo_name` is mandatory for apple/swift deps in MODULE.bazel.
@@ -102,7 +102,7 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 ## Agent harness
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
 - Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `tca-feature`, `screen-layout`,
-  `test-layers`, `skill-retro`, `crayon-design` (sizes, copy), `pr-review-handoff` (review starts from a PR).
+  `test-layers`, `architecture-audit`, `skill-retro`, `crayon-design` (sizes, copy), `pr-review-handoff` (review starts from a PR).
 - Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known; the
   `skill-retro` skill moves them into guards, this file or skills (a session-start note says when 5+ wait).
   `bash scripts/check-skills.sh` checks skills, this file's length and the inbox.

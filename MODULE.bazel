@@ -55,3 +55,8 @@ use_repo(
     "swiftpkg_swift_composable_architecture",
     "swiftpkg_swift_snapshot_testing",
 )
+
+# Periphery (dead code, `architecture-audit` only): `periphery scan --bazel` builds through these.
+bazel_dep(name = "periphery", version = "3.8.0", dev_dependency = True)
+
+use_repo(use_extension("@periphery//bazel:generated.bzl", "generated", dev_dependency = True), "periphery_generated")
