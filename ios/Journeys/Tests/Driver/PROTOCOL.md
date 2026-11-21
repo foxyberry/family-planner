@@ -68,8 +68,8 @@ Sends one person action, named `<screen>.<action>`, with arguments as the contra
 - **The real hold and keyboard**: `home.clockHeld` is the hold's outcome; the hold itself, focus and
   scrolling stay in the UI tests (`../UI`).
 
-## On a real iPad (step 3, not built)
-The driver is debug-only and starts only with its launch flag, listening on 127.0.0.1 (reached over
-USB by port forwarding, as WebDriverAgent is). On the family's iPad `ls` would show the real family
-and `do` could change it. Proposed (the user decides before step 3): the driver there runs only in a
-throwaway world, never on the stored family.
+## On a real iPad
+The driver is debug-only and starts only with `-fpDriver`, listening on 127.0.0.1 (reached over USB
+by port forwarding, as WebDriverAgent is). `-fpDriver` and `-fpFamily` put the app in test mode
+(user, 2026-11-21): the family and settings live in memory, so `ls` never shows the real family and
+`do` never changes it, and Face ID may be skipped. A normal launch keeps the stored family and Face ID.

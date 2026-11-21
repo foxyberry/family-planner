@@ -1,4 +1,5 @@
 #if DEBUG
+import AppSettings
 import ComposableArchitecture
 import Domain
 import Foundation
@@ -112,45 +113,62 @@ extension DebugModel {
     public static func install(into dependencies: inout DependencyValues,
                                arguments: [String] = ProcessInfo.processInfo.arguments,
                                defaults: UserDefaults = .standard,
-                               allowsSkipFaceID: Bool = isSimulator,
-                               allowsStartFamily: Bool = isSimulator) {
+                               allowsSkipFaceID: Bool = isSimulator) {
         let core = DebugCore(settings: DebugSettings())
         let live = dependencies.parentAuth
-        let store = dependencies.scheduleStore
         let calendar = dependencies.calendar
+        let options = LaunchOptions(arguments: arguments, calendar: calendar)
+        // Test mode (user, 2026-11-21): a UI test or the agent driver runs in a throwaway world, on a
+        // simulator or the iPad alike. The family and settings live in memory, so the stored
+        // family is never read or changed, and Face ID may be skipped. A normal launch is unchanged.
+        let testMode = options.family != nil || options.drivesAgent
+        if testMode { installThrowawayWorld(&dependencies, family: options.family ?? .empty, now: core.now) }
+        let store = dependencies.scheduleStore
+        let skips = allowsSkipFaceID || testMode
         let model = DebugModel(core: core, defaults: defaults, calendar: calendar,
-                               allowsSkipFaceID: allowsSkipFaceID,
+                               allowsSkipFaceID: skips,
                                replaceWithSample: {
                                    // Around the app's day, so the time machine sees the sample week.
                                    let today = Day(core.now(), calendar: calendar)
                                    try await store.replaceFamily(.sampleFamily(today: today, calendar: calendar))
                                })
-        let options = LaunchOptions(arguments: arguments, calendar: dependencies.calendar)
         model.settings.apply(options, realNow: core.realDate())
         dependencies.date = DateGenerator { core.now() }
-        if allowsStartFamily, let start = options.family {
-            // Only `load` waits for the replace, so the app never sees the old family. That is
-            // enough: every other store call (marks, slides, saves) comes from a screen the app
-            // opens after its first load returned. A failed replace makes every load throw, so a
-            // UI test stops at its first wait instead of running on the old family.
-            let today = Day(core.now(), calendar: calendar)
-            let family = start == .sample
-                ? ScheduleSnapshot.sampleFamily(today: today, calendar: calendar)
-                : ScheduleSnapshot(kids: [], routines: [], items: [])
-            let replaced = Task { try await store.replaceFamily(family) }
-            dependencies.scheduleStore.load = {
-                try await replaced.value
-                return try await store.load()
-            }
-        }
-        if allowsSkipFaceID {
+        if skips {
             dependencies.parentAuth.authenticate = { reason in
                 core.skipsFaceID ? .success : await live.authenticate(reason)
             }
         }
-        if allowsStartFamily, options.drivesAgent { model.driverPort = AgentServer.port }
+        if options.drivesAgent { model.driverPort = AgentServer.port }
         dependencies.debugTools = model
         installed = model
+    }
+
+    /// The test-mode world: a fresh in-memory family store holding `family`, and in-memory
+    /// settings. Only `load` waits for the family to be written, so the app never sees the store's
+    /// preview seed. That is enough: every other store call (marks, slides, saves) comes from a
+    /// screen the app opens after its first load returned. A failed write makes every load throw,
+    /// so a UI test stops at its first wait.
+    private static func installThrowawayWorld(_ dependencies: inout DependencyValues,
+                                              family start: LaunchOptions.StartFamily,
+                                              now: @escaping @Sendable () -> Date) {
+        let calendar = dependencies.calendar
+        var memory = ScheduleStore.previewValue
+        let replace = memory.replaceFamily, load = memory.load
+        // Written once install has finished, so the sample week sits around the `-fpNow` day.
+        let written = Task {
+            let today = Day(now(), calendar: calendar)
+            try await replace(start == .sample
+                ? ScheduleSnapshot.sampleFamily(today: today, calendar: calendar)
+                : ScheduleSnapshot(kids: [], routines: [], items: []))
+        }
+        memory.load = {
+            try await written.value
+            return try await load()
+        }
+        dependencies.scheduleStore = memory
+        let settings = LockIsolated(AppSettings.defaults)
+        dependencies.appSettings = AppSettingsClient(load: { settings.value }, save: { settings.setValue($0) })
     }
 }
 

@@ -34,7 +34,8 @@ pre-push and CI). They drive the debug app on the simulator, only for what State
 real 2 s hold, the keyboard moving between fields. Each test starts the app the way `WorldData`
 starts a journey, with DebugTools launch flags (`TestApp.launch`):
 - `-fpNow 2026-11-10T07:30`: the same pinned time;
-- `-fpFamily empty|sample`: the family the store starts with (simulators only);
+- `-fpFamily empty|sample`: test mode, with this family in memory; the stored family is never read
+  or changed, on a simulator or the iPad;
 - `-fpSkipFaceID`: the hold alone opens the grown-up screens.
 
 Find parts by the words a person sees (`app.buttons["Next"]`) or a picture's slot name

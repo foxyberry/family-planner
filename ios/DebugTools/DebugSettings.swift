@@ -33,16 +33,16 @@ public struct LaunchOptions: Equatable, Sendable {
     public var speed: Double?
     /// `-fpGrid` (`make device GRID=1`): show the board lines over every screen.
     public var grid = false
-    /// `-fpSkipFaceID` (`make run SKIP_FACE_ID=1`): turn "Skip Face ID" on. It only works where the
-    /// switch exists (a simulator); a real iPad still asks for Face ID.
+    /// `-fpSkipFaceID` (`make run SKIP_FACE_ID=1`): turn "Skip Face ID" on. It works on a simulator,
+    /// and on the iPad only in test mode (`-fpFamily` or `-fpDriver`, a throwaway world).
     public var skipsFaceID = false
-    /// `-fpFamily empty|sample` (UI tests): the family the app starts with, replacing what the
-    /// simulator's store holds, as the menu's "Load sample family" does. Simulators only.
+    /// `-fpFamily empty|sample` (UI tests): test mode with this family in memory; the stored family
+    /// is never read or changed (`DebugModel.install`).
     public var family: StartFamily?
 
     public enum StartFamily: String, Equatable, Sendable { case empty, sample }
     /// `-fpDriver` (`make run DRIVER=1`): serve the agent driver (`AgentServer`) on 127.0.0.1.
-    /// Simulators only for now; a real iPad's world is the user's decision (PROTOCOL.md).
+    /// Test mode, so the iPad too: the family lives in memory there (user, 2026-11-21).
     public var drivesAgent = false
 
     public init(now: Date?, speed: Double?, grid: Bool = false) {

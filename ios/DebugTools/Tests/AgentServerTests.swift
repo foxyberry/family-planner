@@ -19,11 +19,13 @@ final class AgentServerTests: XCTestCase {
         XCTAssertFalse(LaunchOptions(arguments: ["App"], calendar: calendar).drivesAgent)
     }
 
-    /// Nothing listens without the flag, or on a real iPad.
-    func testDriverPortOnlyWithTheFlagOnASimulator() throws {
+    /// Nothing listens without the flag. With it the driver serves on the iPad too: test mode keeps
+    /// the family in memory there (user, 2026-11-21).
+    func testDriverPortOnlyWithTheFlag() throws {
         XCTAssertEqual(try installed(["App", "-fpDriver"], simulator: true).driverPort, AgentServer.port)
+        XCTAssertEqual(try installed(["App", "-fpDriver"], simulator: false).driverPort, AgentServer.port)
         XCTAssertNil(try installed(["App"], simulator: true).driverPort)
-        XCTAssertNil(try installed(["App", "-fpDriver"], simulator: false).driverPort)
+        XCTAssertNil(try installed(["App"], simulator: false).driverPort)
     }
 
     func testRequestNeedsItsWholeBody() {
@@ -66,7 +68,7 @@ final class AgentServerTests: XCTestCase {
         var dependencies = DependencyValues()
         dependencies.calendar = calendar
         DebugModel.install(into: &dependencies, arguments: arguments, defaults: defaults,
-                           allowsSkipFaceID: simulator, allowsStartFamily: simulator)
+                           allowsSkipFaceID: simulator)
         return try XCTUnwrap(dependencies.debugTools)
     }
 }

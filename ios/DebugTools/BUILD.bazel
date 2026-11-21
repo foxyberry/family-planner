@@ -10,6 +10,7 @@ fp_swift_library(
         "//ios/DebugTools/Tests:__pkg__",
     ],
     deps = [
+        "//ios/Clients/AppSettings",
         "//ios/Clients/ParentAuthClient",
         "//ios/Clients/ScheduleStore",
         "//ios/DesignSystem",

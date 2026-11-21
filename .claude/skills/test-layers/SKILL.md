@@ -43,7 +43,8 @@ test that already passed with the bug proves nothing. Then remove the bug again 
 No test waits for a person, and `scripts/check-unattended-tests.sh` blocks the ways in:
 - journeys fake Face ID through `WorldData.faceID`; unit tests fake the `parentAuth` client;
 - UI tests start the app only through `TestApp.launch`, which pins `-fpNow`, sets `-fpFamily
-  empty|sample` and passes `-fpSkipFaceID` (simulator only);
+  empty|sample` and passes `-fpSkipFaceID`. `-fpFamily` or `-fpDriver` is test mode: the family and
+  settings live in memory and Face ID may be skipped, on the iPad too (user, 2026-11-21);
 - a step only a person can do (Face ID on the real iPad, a passcode) belongs in self-checking,
   never in a test. Never type a passcode or password through automation.
 

@@ -4,6 +4,7 @@ import CoreGraphics
 import Foundation
 import Domain
 import ParentAuthClient
+import AppSettings
 import ScheduleStore
 import XCTest
 
@@ -241,8 +242,8 @@ final class DebugInstallTests: XCTestCase {
     }
 
     private func installed(outcome: ParentAuthOutcome, arguments: [String] = ["App"],
-                           allowsSkipFaceID: Bool = true, allowsStartFamily: Bool = true,
-                           store: ScheduleStore? = nil) throws -> DependencyValues {
+                           allowsSkipFaceID: Bool = true, store: ScheduleStore? = nil,
+                           settings: AppSettingsClient? = nil) throws -> DependencyValues {
         let suite = "fp.debug.tests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
@@ -250,8 +251,9 @@ final class DebugInstallTests: XCTestCase {
         dependencies.calendar = Calendar(identifier: .gregorian)
         dependencies.parentAuth.authenticate = { _ in outcome }
         if let store { dependencies.scheduleStore = store }
+        if let settings { dependencies.appSettings = settings }
         DebugModel.install(into: &dependencies, arguments: arguments, defaults: defaults,
-                           allowsSkipFaceID: allowsSkipFaceID, allowsStartFamily: allowsStartFamily)
+                           allowsSkipFaceID: allowsSkipFaceID)
         return dependencies
     }
 
@@ -271,27 +273,53 @@ final class DebugInstallTests: XCTestCase {
         XCTAssertNil(LaunchOptions(arguments: ["App"], calendar: calendar).family)
     }
 
-    /// UI tests start from a known family: the first load already sees it.
-    func testStartFamilyReplacesTheStoreBeforeTheFirstLoad() async throws {
-        let (store, _) = memoryStore(ScheduleSnapshot(kids: [], routines: [], items: []))
+    /// Test mode starts from a known family in memory: the first load already sees it, and the
+    /// stored family is never read or written (user, 2026-11-21).
+    func testTestModeStartsFromAFamilyInMemory() async throws {
+        let (store, stored) = memoryStore(ScheduleSnapshot(kids: [], routines: [], items: []))
         let sample = try installed(outcome: .success, arguments: ["App", "-fpFamily", "sample"], store: store)
         let loaded = try await sample.scheduleStore.load()
         XCTAssertEqual(loaded.kids.map(\.name), ["Kid A", "Kid B"])
+        XCTAssertTrue(stored.value.kids.isEmpty, "the stored family is untouched")
 
-        let (full, _) = memoryStore(.sampleFamily(today: Day(year: 2026, month: 11, day: 10), calendar: calendar))
+        let (full, kept) = memoryStore(.sampleFamily(today: Day(year: 2026, month: 11, day: 10), calendar: calendar))
         let empty = try installed(outcome: .success, arguments: ["App", "-fpFamily", "empty"], store: full)
         let none = try await empty.scheduleStore.load()
         XCTAssertTrue(none.kids.isEmpty)
+        XCTAssertEqual(kept.value.kids.count, 2, "the stored family is untouched")
     }
 
-    /// On a real iPad the flag would wipe the family, so it does nothing there.
-    func testStartFamilyIsIgnoredOnADevice() async throws {
-        let (store, family) = memoryStore(.sampleFamily(today: Day(year: 2026, month: 11, day: 10), calendar: calendar))
-        let dependencies = try installed(outcome: .success, arguments: ["App", "-fpFamily", "empty"],
-                                         allowsStartFamily: false, store: store)
-        let loaded = try await dependencies.scheduleStore.load()
+    /// On the iPad too, test mode (-fpFamily or -fpDriver) runs in memory and may skip Face ID;
+    /// the stored family and settings stay as they were.
+    func testTestModeOnADeviceSkipsFaceIDInMemoryOnly() async throws {
+        let (store, stored) = memoryStore(.sampleFamily(today: Day(year: 2026, month: 11, day: 10), calendar: calendar))
+        let savedSettings = LockIsolated<[AppSettings]>([])
+        let realSettings = AppSettingsClient(load: { .defaults }, save: { new in savedSettings.withValue { $0.append(new) } })
+        let device = try installed(outcome: .notRecognised, arguments: ["App", "-fpDriver", "-fpSkipFaceID"],
+                                   allowsSkipFaceID: false, store: store, settings: realSettings)
+        XCTAssertEqual(device.debugTools?.allowsSkipFaceID, true)
+        let outcome = await device.parentAuth.authenticate("Open grown-up screens")
+        XCTAssertEqual(outcome, .success)
+        let loaded = try await device.scheduleStore.load()
+        XCTAssertTrue(loaded.kids.isEmpty, "-fpDriver alone starts empty")
+        var changed = AppSettings.defaults
+        changed.grownupLock = false
+        device.appSettings.save(changed)
+        XCTAssertEqual(device.appSettings.load().grownupLock, false, "settings kept in memory")
+        XCTAssertTrue(savedSettings.value.isEmpty, "the stored settings are untouched")
+        XCTAssertEqual(stored.value.kids.count, 2)
+    }
+
+    /// A normal launch on the iPad keeps the stored family and Face ID.
+    func testNormalLaunchOnADeviceIsUnchanged() async throws {
+        let (store, _) = memoryStore(.sampleFamily(today: Day(year: 2026, month: 11, day: 10), calendar: calendar))
+        let device = try installed(outcome: .notRecognised, arguments: ["App", "-fpSkipFaceID"],
+                                   allowsSkipFaceID: false, store: store)
+        XCTAssertEqual(device.debugTools?.allowsSkipFaceID, false)
+        let outcome = await device.parentAuth.authenticate("Open grown-up screens")
+        XCTAssertEqual(outcome, .notRecognised)
+        let loaded = try await device.scheduleStore.load()
         XCTAssertEqual(loaded.kids.count, 2)
-        XCTAssertEqual(family.value.kids.count, 2)
     }
 
     func testSkipFlagOpensWithoutFaceID() async throws {
