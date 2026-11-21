@@ -86,6 +86,7 @@ final class SetupTests: XCTestCase {
         await store.send(.nextTapped)
         XCTAssertEqual(store.state.step, .gettingThere)
         XCTAssertEqual(store.state.stepText, "Step 3 of 4")
+        XCTAssertEqual(store.state.timePickerTitle, "Time")
         XCTAssertEqual(store.state.unfinishedGoingTabs, [first, kidB])
         await store.send(.wayPicked(.car))
         XCTAssertEqual(store.state.unfinishedGoingTabs, [kidB], "the car route is finished")

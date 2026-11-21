@@ -16,7 +16,8 @@ public struct AddChildView: View {
 
     public var body: some View {
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, onBack: { store.send(.backTapped) })
+            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                          onBack: { store.send(.backTapped) })
         } content: { layout in
             PaperCard(seed: 37) {
                 VStack(alignment: .leading, spacing: Spacing.m) {

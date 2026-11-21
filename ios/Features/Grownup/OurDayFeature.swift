@@ -1,9 +1,10 @@
 import ComposableArchitecture
 import DesignSystem
 import Domain
-import KitArt
 import Foundation
 import HolidayProvider
+import KitArt
+import Localization
 import ScheduleStore
 import SchoolDirectory
 import Strings
@@ -77,6 +78,7 @@ public struct OurDayFeature {
 
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var kid: Kid.ID
         /// The date on the clock (board G1's day button).
         public var day: Day

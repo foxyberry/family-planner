@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Domain
 import Foundation
+import Localization
 import ScheduleStore
 import Strings
 
@@ -35,6 +36,7 @@ public struct MissionEditorFeature {
 
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var kids: [Kid] = []
         public var selectedKid: Kid.ID
         public var missions: [Mission] = []

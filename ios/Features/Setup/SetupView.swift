@@ -88,7 +88,7 @@ public struct SetupView: View {
             headerAccessory(layout)
             Spacer(minLength: Spacing.m)
             Text(store.stepText).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1).fixedSize()
-            StepDots(current: store.step.number)
+            StepDots(current: store.step.number, label: store.stepText)
         }
         // Spec "Header row": the kid tabs stay 72 on every iPad.
         .environment(\.isHeaderRow, true)
@@ -355,7 +355,7 @@ private struct SchoolStep: View {
 
     private func time(_ row: SetupFeature.TimeRow, width: CGFloat? = nil) -> some View {
         let label = store.state.timeLabel(row)
-        return TimeField(label: label.text,
+        return TimeField(label: label.text, pickerTitle: store.timePickerTitle,
                          time: Binding(get: { store.state.timeDate(row) }, set: { store.send(.timePicked(row, $0)) }),
                          isPlaceholder: label.isPlaceholder, width: width)
     }
@@ -411,6 +411,7 @@ private struct SchoolStep: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityAddTraits(isOn ? .isSelected : [])
         case .ownDates:
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(L10n.tr("s2.terms.own")).crayonType(.body).foregroundStyle(CrayonColor.ink)

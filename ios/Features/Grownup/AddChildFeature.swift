@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Domain
 import Foundation
+import Localization
 import ScheduleStore
 import Strings
 
@@ -14,6 +15,7 @@ public struct AddChildFeature {
 
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var name = ""
         public var ageText = ""
         public var colorIndex = 0

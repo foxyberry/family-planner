@@ -1,8 +1,8 @@
 import CrayonKit
-import Strings
 import SwiftUI
 
 /// Done state of a step: a blue crayon circle with a white tick, or an empty marker circle.
+/// A picture only: the row or button around it says the state to VoiceOver (`.isSelected`).
 public struct CheckMark: View {
     private let isDone: Bool
     private let size: CGFloat
@@ -22,6 +22,6 @@ public struct CheckMark: View {
             }
         }
         .frame(width: size, height: size)
-        .accessibilityLabel(isDone ? L10n.tr("check.done") : L10n.tr("check.not_done"))
+        .accessibilityHidden(true)
     }
 }

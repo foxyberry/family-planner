@@ -1,5 +1,7 @@
 import ComposableArchitecture
+import Localization
 import SchoolDirectory
+import Strings
 
 /// Data sources (spec S2): the notices the Singapore Open Data Licence asks for, for the school
 /// list (data.gov.sg) and its map positions (OneMap). Opened from Settings.
@@ -7,6 +9,7 @@ import SchoolDirectory
 public struct DataSourcesFeature {
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var sources: [DataSource] = []
 
         public init() {}

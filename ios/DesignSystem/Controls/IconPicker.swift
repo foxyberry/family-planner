@@ -1,27 +1,37 @@
 import CrayonKit
 import KitArt
-import Strings
 import SwiftUI
 
 /// Picture picker: 88 pt cells, a blue ring on the chosen one (or on each chosen one in multi-pick,
-/// spec "Event form rows", Bring), and (when `onRequestDrawing` is given) a final "+" that asks the
+/// spec "Event form rows", Bring), and (when `drawing` is given) a final "+" that asks the
 /// child to draw a new picture. Drawings arrive in M6; until then screens leave it out.
 public struct IconPicker: View {
+    /// The "+" cell: its VoiceOver words (from the caller) and what a tap does.
+    public struct Drawing {
+        public let label: String
+        public let action: () -> Void
+
+        public init(label: String, action: @escaping () -> Void) {
+            self.label = label
+            self.action = action
+        }
+    }
+
     @Environment(\.sizing) private var sizing
     private let isOn: (KitSlot) -> Bool
     private let onTap: (KitSlot) -> Void
     private let slots: [KitSlot]
-    private let onRequestDrawing: (() -> Void)?
+    private let drawing: Drawing?
     private let columns: Int
 
     /// One pick. `columns`: 6 under a form's control line; 3 in a 382 side column (C6's new slice).
     public init(selection: Binding<KitSlot?>, slots: [KitSlot], columns: Int = IconPicker.columns,
-                onRequestDrawing: (() -> Void)? = nil) {
+                drawing: Drawing? = nil) {
         isOn = { $0 == selection.wrappedValue }
         onTap = { selection.wrappedValue = $0 }
         self.slots = slots
         self.columns = columns
-        self.onRequestDrawing = onRequestDrawing
+        self.drawing = drawing
     }
 
     /// Several picks: every picked slot has the ring; a tap asks to add or take away that slot (the
@@ -32,7 +42,7 @@ public struct IconPicker: View {
         onTap = onToggle
         self.slots = slots
         self.columns = columns
-        onRequestDrawing = nil
+        drawing = nil
     }
 
     /// Cells in a row (board C3: 6 × 88 + 5 × 16 = 608, the form's control width).
@@ -59,14 +69,14 @@ public struct IconPicker: View {
                 .accessibilityLabel(slot.rawValue)
                 .accessibilityAddTraits(isOn ? .isSelected : [])
             }
-            if let onRequestDrawing {
-            Button(action: onRequestDrawing) {
+            if let drawing {
+            Button(action: drawing.action) {
                 MarkerIcon(.plus, size: 40)
                     .frame(width: 88, height: 88)
                     .partBackground(.roundedRect(cornerRadius: 24), fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(L10n.tr("picker.draw"))
+            .accessibilityLabel(drawing.label)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

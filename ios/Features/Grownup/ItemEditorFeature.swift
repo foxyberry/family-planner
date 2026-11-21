@@ -1,9 +1,10 @@
 import ComposableArchitecture
 import DesignSystem
 import Domain
-import KitArt
 import Foundation
 import HolidayProvider
+import KitArt
+import Localization
 import ScheduleStore
 import SchoolDirectory
 import Strings
@@ -65,6 +66,7 @@ public struct ItemEditorFeature {
 
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         public var mode: Mode
         public var form: ItemForm
         public var original: ItemForm

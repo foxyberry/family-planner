@@ -1,16 +1,17 @@
 import CrayonKit
-import Strings
 import SwiftUI
 
 /// First-run setup's progress (boards S1–S4): four 28 dots 8 apart, filled up to the current step.
 public struct StepDots: View {
     private let current: Int
     private let total: Int
+    private let label: String
 
-    /// `current` is 1-based.
-    public init(current: Int, total: Int = 4) {
+    /// `current` is 1-based. `label`: what VoiceOver reads ("Step 1 of 4"), from the caller.
+    public init(current: Int, total: Int = 4, label: String) {
         self.current = current
         self.total = total
+        self.label = label
     }
 
     public var body: some View {
@@ -25,6 +26,6 @@ public struct StepDots: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(L10n.tr("setup.step", current, total))
+        .accessibilityLabel(label)
     }
 }

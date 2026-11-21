@@ -84,6 +84,12 @@ public enum HomeModel {
             self.label = label
             self.minutes = minutes
         }
+
+        /// "38 min", "1h 20m", "−2 min".
+        public var text: String { TimeLeftText.short(minutes: minutes) }
+        /// What VoiceOver says: "38 minutes".
+        public var spoken: String { TimeLeftText.spoken(minutes: minutes) }
+        public var isLate: Bool { TimeLeftText.isLate(minutes: minutes) }
     }
 
     public static func timeLeft(to next: NextRow?, minute: Int) -> TimeLeft? {

@@ -373,10 +373,15 @@ final class MissionsTests: XCTestCase {
                        .actPlay)
         XCTAssertEqual(state.stripLabel, "No more trips today")
         XCTAssertEqual(state.backLabel, "Back to the clock")
+        XCTAssertEqual(state.slideGoLabel, "Go")
+        XCTAssertEqual(state.medalLabel(.gold), "Gold medal")
+        XCTAssertEqual(state.medalLabel(.bronze), "Bronze medal")
 
         let keys = withDependencies { $0.localizer = .keys } operation: { MissionsFeature.State() }
         XCTAssertEqual(keys.name(of: .folded(count: 3)), "missions.folded|3")
         XCTAssertEqual(keys.slideDoneTitle, "missions.ready")
+        XCTAssertEqual(keys.slideGoLabel, "slide.go")
+        XCTAssertEqual(keys.medalLabel(.silver), "medal.silver")
     }
 
     /// Spec "Mission windows": after school, Kid A's list is swimming's Bring checks; the slide

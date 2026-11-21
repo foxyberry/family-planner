@@ -672,28 +672,6 @@
         }
       }
     },
-    "check.done" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Done"
-          }
-        }
-      }
-    },
-    "check.not_done" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not done"
-          }
-        }
-      }
-    },
     "day.add_between" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3407,17 +3385,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lldth"
-          }
-        }
-      }
-    },
-    "picker.draw" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Draw a new picture"
           }
         }
       }

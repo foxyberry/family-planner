@@ -1,15 +1,6 @@
 # View code not migrated to "views hold no values" yet (scripts/check-view-values.sh).
 # One path per line. Shrink only: remove a line when its file is clean.
 ios/AppCore/AppView.swift
-ios/DesignSystem/Content/Medal.swift
-ios/DesignSystem/Controls/CheckMark.swift
-ios/DesignSystem/Controls/IconPicker.swift
-ios/DesignSystem/Controls/SlideToGo.swift
-ios/DesignSystem/Controls/StepDots.swift
-ios/DesignSystem/Controls/TimeField.swift
-ios/DesignSystem/Controls/TimeLeft.swift
-ios/DesignSystem/Screens/GrownupHeader.swift
-ios/DesignSystem/Screens/LockOverlay.swift
 ios/Features/Grownup/AddChildView.swift
 ios/Features/Grownup/BusSettingsView.swift
 ios/Features/Grownup/ChangeBusesView.swift
