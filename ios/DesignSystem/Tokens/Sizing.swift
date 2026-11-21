@@ -7,7 +7,8 @@ import SwiftUI
 /// type. Nothing is floored or kept fixed, so at s = 1 every value is the board value.
 ///
 /// Screens lay out inside the board frame, `width` (1376 s) wide and the window's height, which the
-/// app root centres in the window; the leftover on each side (`bleed`) is paper (night sky at night).
+/// app root centres in the window (the navigation stack spans the window and frames each screen
+/// with `boardFrame()`); the leftover on each side (`bleed`) is paper (night sky at night).
 public struct Sizing: Equatable, Sendable {
     public static let board = CGSize(width: 1376, height: 1032)
     /// The 13" safe-area height the scale is measured against (1032 − the 24 pt status bar).
@@ -87,6 +88,36 @@ extension View {
     /// frame's sides and under the status bar.
     public func fullBleed() -> some View {
         modifier(FullBleed())
+    }
+
+    /// A container in the board frame that hosts its screens in their own UIKit views (the app's
+    /// `NavigationStack`) spans the whole window instead: such a host clips each screen to its own
+    /// width, so a pushed screen's `fullBleed()` dim would stop at the board frame's sides. Put
+    /// `boardFrame()` on every screen it hosts to lay them out in the board frame again.
+    public func spansWindow() -> some View {
+        modifier(SpansWindow())
+    }
+
+    /// The board frame (1376 s wide) centred in the space given: for screens hosted in a container
+    /// that `spansWindow()`.
+    public func boardFrame() -> some View {
+        modifier(BoardFrame())
+    }
+}
+
+private struct SpansWindow: ViewModifier {
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View {
+        content.padding(.horizontal, -sizing.bleed)
+    }
+}
+
+private struct BoardFrame: ViewModifier {
+    @Environment(\.sizing) private var sizing
+
+    func body(content: Content) -> some View {
+        content.frame(width: sizing.width).frame(maxWidth: .infinity)
     }
 }
 
