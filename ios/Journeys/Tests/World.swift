@@ -49,6 +49,11 @@ final class World: Sendable {
     /// What the store holds; journeys read it after a save.
     let family: LockIsolated<ScheduleSnapshot>
     let settings = LockIsolated(AppSettings.defaults)
+    /// A2's ticked missions and slides.
+    let marks = LockIsolated<[WindowMissions]>([])
+    let slides = LockIsolated<[OutingSlide]>([])
+    /// How many times the app has loaded the family from the store.
+    let loads = LockIsolated(0)
     let auth: LockIsolated<ParentAuthOutcome>
     let clock = TestClock()
 
@@ -100,8 +105,8 @@ final class World: Sendable {
         values.uuid = .incrementing
         values.continuousClock = clock
 
-        let family = family
-        values.scheduleStore.load = { family.value }
+        let family = family, loads = loads
+        values.scheduleStore.load = { loads.withValue { $0 += 1 }; return family.value }
         values.scheduleStore.replaceFamily = { new in family.setValue(new) }
         values.scheduleStore.saveBusPlan = { plan in
             family.withValue { $0.busPlans.removeAll { $0.kid == plan.kid && $0.event == plan.event }; $0.busPlans.append(plan) }
@@ -123,6 +128,25 @@ final class World: Sendable {
         }
         values.scheduleStore.saveMissions = { kid, missions in
             family.withValue { $0.missions.removeAll { $0.kid == kid }; $0.missions += missions }
+        }
+        // A2's marks and slides, kept like the store keeps them.
+        let marks = marks, slides = slides
+        values.scheduleStore.windowMissions = { kid, date, window in
+            marks.value.first { $0.kid == kid && $0.date == date && $0.window == window }
+                ?? WindowMissions(kid: kid, date: date, window: window)
+        }
+        values.scheduleStore.saveWindowMissions = { new in
+            marks.withValue { list in
+                list.removeAll { $0.kid == new.kid && $0.date == new.date && $0.window == new.window }
+                list.append(new)
+            }
+        }
+        values.scheduleStore.slides = { kid, date in slides.value.filter { $0.kid == kid && $0.date == date } }
+        values.scheduleStore.saveSlide = { new in
+            slides.withValue { list in
+                list.removeAll { $0.kid == new.kid && $0.date == new.date && $0.outing == new.outing }
+                list.append(new)
+            }
         }
 
         let stops = data.stops, services = data.services

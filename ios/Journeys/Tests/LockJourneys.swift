@@ -74,7 +74,9 @@ final class LockJourneys: XCTestCase {
         await store.receive(\.parentAuthResponse)
         XCTAssertEqual(store.state.path.count, 1)
 
-        for _ in 0..<90 { await store.send(.tick(world.now)) }
+        for _ in 0..<89 { await store.send(.tick(world.now)) }
+        XCTAssertNil(store.state.relockCaption, "no countdown before 90 s")
+        await store.send(.tick(world.now))
         XCTAssertNotNil(store.state.relockCaption, "the countdown shows from 90 s")
         XCTAssertEqual(store.state.path.count, 1)
         for _ in 0..<30 { await store.send(.tick(world.now)) }
