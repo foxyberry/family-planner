@@ -81,8 +81,10 @@ public struct BusSettingsFeature {
         /// Board C2's side column and stepper captions.
         public var sideTitle: String { strings.tr("c2.side.title", kidName) }
 
+        /// The route as it stands, saved on every change. A route with no buses left is saved empty, so
+        /// taking off the last bus (or removing the only bus that changes) sticks (review of #159).
         public var plan: BusPlan? {
-            guard search.stop.count == 5, !services.isEmpty || !changes.isEmpty else { return nil }
+            guard search.stop.count == 5 else { return nil }
             return BusPlan(kid: kid, stop: search.stop, services: services, walk: walk, ride: ride, lateGrace: lateGrace,
                            rides: rides.filter { services.contains($0.key) }, changes: changes)
         }

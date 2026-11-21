@@ -244,7 +244,7 @@ public struct MissionsFeature {
         /// The live look's numbers for the family's bus outing, or nil for the timetable look.
         public var live: LiveMorning? {
             guard let (owner, outing) = familyOuting, outing.trip.way == .bus,
-                  let plan = busPlans[owner.id], let arrivals, let arrivalsAt, let now,
+                  let plan = busPlans[owner.id], !plan.routes.isEmpty, let arrivals, let arrivalsAt, let now,
                   now.timeIntervalSince(arrivalsAt) < Self.liveFreshness else { return nil }
             return LiveMorning(arrivals: arrivals, plan: plan, minute: minute, start: outing.slot.start)
         }

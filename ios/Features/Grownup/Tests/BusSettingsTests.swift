@@ -94,6 +94,29 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(saved.value.last?.services, ["1", "2"])
     }
 
+    /// Review of #159: removing the route's only bus (a bus that changes) is saved, so it stays gone
+    /// when C2 opens again; taking off the last direct bus sticks the same way.
+    func testRemovingTheOnlyBusSticks() async {
+        let only = BusChange(firstBus: "2", thenBus: "5")
+        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: [], changes: [only])])
+        let store = store(saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.changesSaved([]))
+        await store.finish(timeout: .seconds(1))
+        XCTAssertEqual(saved.value.last?.changes, [], "the empty route is saved")
+        XCTAssertEqual(saved.value.last?.stop, "00000", "the stop stays")
+
+        let reopened = self.store(saved: saved)
+        await reopened.send(.task)
+        await reopened.receive(\.loaded)
+        XCTAssertEqual(reopened.state.changes, [], "it stays gone")
+        await reopened.send(.serviceTapped("1"))
+        await reopened.send(.serviceTapped("1"))
+        await reopened.finish(timeout: .seconds(1))
+        XCTAssertEqual(saved.value.last?.services, [], "taking off the last bus sticks too")
+    }
+
     /// Spec "Several buses": pills toggle on their own, in pill order, each with its own Ride row
     /// ("Ride" on the first only).
     func testEveryBusGetsItsOwnRide() async {
