@@ -1,6 +1,6 @@
 ---
 name: crayon-design
-description: The design standard for this crayon iPad family planner. Use before choosing or changing any size, floor, padding, gap, type size, touch target, colour pair, contrast or copy on a board, in the M2 spec, in layout JSON / redlines (layout vN) or in ios/DesignSystem. Also use when another session asks a design question ("board or app?", "what floor?", "does this fit on the 11-inch / mini?"), when a screen looks cramped, clipped, truncated or overlapping, when an app screen and its board disagree, for the night look, Dynamic Type or kid vs grown-up rules, and before handing a board over. Use it even for one button or label. It says which general design skills to load for each job and which of their advice this app overrides. Not for reducers, TCA wiring, Bazel or git.
+description: The design standard for this crayon iPad family planner. Use before choosing or changing any size, padding, gap, type size, touch target, colour pair, contrast or copy on a board, in the M2 spec, in layout JSON / redlines (layout vN) or in ios/DesignSystem. Also use when another session asks a design question ("board or app?", "does this fit on the mini?"), when a screen looks cramped, clipped, truncated or overlapping, when an app screen and its board disagree, for the night look, scaling or kid vs grown-up rules, and before handing a board over. Use it even for one button or label. It says which general design skills to load for each job and which of their advice this app overrides. Not for reducers, TCA wiring, Bazel or git.
 metadata:
   version: 0.2.0
   status: experimental
@@ -10,7 +10,7 @@ metadata:
 
 ## Overview
 This app has one design language: hand-drawn boards at the 13" iPad size, shown on smaller
-iPads through one scale and a set of floors. The rules live in the M2 spec; this skill says how
+screens through one scale with no floors. The rules live in the M2 spec; this skill says how
 to use them, how to check a value before writing it, which general skills to load for which job,
 and what to do when general Apple advice conflicts with this app.
 
@@ -22,11 +22,9 @@ Read these in `docs/superpowers/specs/2026-11-07-m2-screens-spec.md`:
 - **Section 0 "Shared rules":**
   - **Principles** (board 00): time, kids, who is who, type and space, drawing, privacy.
   - **Text weights**, **Line height is total**, **Crayon rounded boxes**, **Crayon part inset**.
-  - **Grid and frame**: Fixed regions, Layout contract, Status bar, and **Sizing formulas**. The
-    formulas cover the scale, the type ramp, the spacing tokens and **Part floors**, which holds
-    the three kinds of value, the touch floors, the floors per part, padding, the label column,
-    text, Dynamic Type and the give-way order. The **Check** bullet says what the snapshot tests
-    enforce.
+  - **Grid and frame**: Fixed regions, Layout contract, Status bar, and **Sizing: one scale, no
+    floors** (every size is board × s; touch is the visible box; leftover space is paper). The
+    **Check** bullet says what the snapshot tests enforce.
   - **Grown-up form layout** and the **Fill rule**.
   - "One colour per kid" and the colour tokens (`kidA`, `kidB`, `pickBlue`, `softText`,
     `lateText` …).
@@ -37,23 +35,21 @@ Layout geometry per board is in `docs/superpowers/layout/*.json`; its README log
 version.
 
 Rules for reading the spec:
-- The **Part floors** body overrides older change-log lines and older bullets on the same subject.
-- If **Part floors** is missing, the repo copy of the spec is behind the design session's copy.
+- The **Sizing** body overrides older change-log lines and older bullets on the same subject.
+- If **Sizing: one scale, no floors** is missing, the repo copy of the spec is behind the design session's copy.
   Stop and ask the design session. Never rebuild the rules from memory or from this skill.
 - If this skill and the spec disagree, the spec wins. Fix this skill in the same change.
 
 ## Before you write a value
-1. **Find the part's rule** in Part floors. If the part has none, adding a rule is the job, not a
-   one-off value for this screen.
+1. **Find the part's board size** on its board and in the layout JSON. On screen it is that
+   size × s; a part never gets its own size per screen.
 2. **Measure text-driven minimums.** Run this from the repo:
    `swift .claude/skills/crayon-design/scripts/measure-text.swift 24 bold "Preschool"`.
-   - Use the size of the type floor.
+   - Use the board size of the text.
    - Use the weight the text shows in (bold when picked; semibold for hour labels).
-3. **Try the formula on every iPad at once:**
-   `python3 .claude/skills/crayon-design/scripts/scale.py "max(176*s,142)"`.
-   - The 13" column must equal the board value: a floor never changes the 13" look.
-   - Then add up the row's parts on the 11" and the mini. If they don't fit, name the
-     give-way step that applies.
+3. **See the value on every screen at once:**
+   `python3 .claude/skills/crayon-design/scripts/scale.py "176*s"`.
+   - It must fit on the board (s = 1); then it fits everywhere, since everything scales together.
 4. **Check colour pairs** before naming one:
    `python3 .claude/skills/crayon-design/scripts/contrast.py 625D6E FFFFFF`.
    The pass marks are the spec's **Contrast** rule (by text size), on day and night grounds.
@@ -68,8 +64,8 @@ filtered for it. Read the one for the job; general skills are optional extras.
 |---|---|---|
 | New or changed rule, token or part | `guides/reviews.md` §1 | `design:design-system` |
 | Touch, contrast, accessibility settings, gestures | `guides/accessibility.md` | `ios-design-guidelines`, `ipados-design-guidelines`, `design:accessibility-review` |
-| Custom font, Dynamic Type | `guides/typography.md` | `apple-skills:design` (typography) |
-| Sizes, safe area, orientation, floors SwiftUI can build | `guides/layout-and-sizes.md` | `ipados-design-guidelines`, `swiftui-expert:swiftui-expert-skill` |
+| Custom font, type ramp | `guides/typography.md` | `apple-skills:design` (typography) |
+| Sizes, scale, safe area, orientation in SwiftUI | `guides/layout-and-sizes.md` | `ipados-design-guidelines`, `swiftui-expert:swiftui-expert-skill` |
 | Labels, confirms, empty looks | `guides/copy.md` | `design:ux-copy`, `apple-skills:design` (ux-writing) |
 | Kid moments (slide, medal, checks, picture rigs) | `guides/kid-feedback.md` | `apple-skills:design` (game-feel) |
 | Board → build handover | `guides/reviews.md` §2 | `design:design-handoff` |
@@ -82,7 +78,7 @@ memory. To add the optional HIG skills:
 ## Kid screens
 - Kid screens follow the kid rules in the Principles and the screen sections.
 - `scripts/check-kid-screens.sh` blocks some kid-screen mistakes at push.
-- Kid touch floors are in Part floors. Never take a grown-up floor for a kid control.
+- Kid targets are big on the board (spec Principles and the screen sections); they scale like everything else.
 
 ## When the app and its board disagree
 1. The building session reports: board id · what it sees · measured pt vs expected · a crop.
@@ -93,9 +89,9 @@ memory. To add the optional HIG skills:
    proves it.
 4. Neither side quietly copies the other: a silent copy hides a rule that was missing.
 
-## Size check: 13 → 11 → mini
-Follow `references/size-check.md`: screens and states to capture, known risks, and the report
-format. Fix rules first, then code. A per-screen workaround means a rule is missing.
+## Size check
+Follow `references/size-check.md`: what to check at s = 1 and on the smallest screen, the known
+risks and the report format. A per-screen size means something didn't scale.
 
 ## Handover contract
 The spec, the layout JSON and this skill have one copy each, in this repo. The **design session**
@@ -112,12 +108,11 @@ Other sessions report board problems; they don't edit layout JSON.
 ## Common mistakes
 | Mistake | Instead |
 |---|---|
-| Squeezing text (`minimumScaleFactor`, 70 % labels) | Reword, or use the give-way order |
-| A gap or padding cut for one screen | The part's floor in Part floors |
-| A kid control given a grown-up floor | Use the kid floors |
+| Squeezing text (`minimumScaleFactor`, 70 % labels) | Reword the board label |
+| A gap, padding or size set for one screen | Board value × s, everywhere |
+| A floor, `max(…)` or fixed size in code | Board value × s |
 | The `Spacing.m` (24) token where the spec says the 16 token | Use the token the spec names |
 | A minimum width from a rounded guess | `measure-text.swift` |
-| A floor that changes the 13" look | The 13" column of `scale.py` must equal the board |
 | A number written into this skill | The number goes in the spec; the skill names the section |
 
 ## Public repo

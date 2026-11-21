@@ -1,9 +1,8 @@
 # Typography: Playpen Sans
 
-Use this when you set a text style, pick a weight, set line height, or make text work with
-Dynamic Type. The sizes, floors, weights and line-height factors are in the spec
+Use this when you set a text style, pick a weight or set line height. The sizes, weights and line-height factors are in the spec
 (`docs/superpowers/specs/2026-11-07-m2-screens-spec.md`, section 0): **Principles → Type and
-space**, **Text weights**, **Line height is total**, and the type ramp in **Sizing formulas →
+space**, **Text weights**, **Line height is total**, and the type ramp in **Sizing →
 Type**. Read them there; don't copy them here or into a view.
 
 ## One font, one ramp
@@ -12,8 +11,7 @@ Type**. Read them there; don't copy them here or into a view.
 - Use only the ramp steps, through the one modifier in `ios/DesignSystem` (`crayonType`).
   No raw font sizes, weights or line spacing at a call site.
 - Hierarchy comes from the ramp step and the weight, not from colour.
-- Nothing draws under the smallest step. If text doesn't fit, reword it or give way
-  (`layout-and-sizes.md`); never shrink it.
+- If text doesn't fit on the board, reword it there; never shrink it.
 
 ## Weights
 - Use the weights the spec gives per role (**Text weights**). The font file is variable and
@@ -26,32 +24,22 @@ Type**. Read them there; don't copy them here or into a view.
   ExtraBold), via `@Environment(\.legibilityWeight)` in the style modifier, not at call sites.
   Re-measure widths that were sized from the normal weight.
 
-## Dynamic Type with a custom font
-- Build each style as `Font.custom("<instance name>", size: <scaled ramp size>, relativeTo:
-  <text style>)`. The size is the ramp step after `s` and its floor; `relativeTo:` then lets the
-  user's text size scale it further.
-- Which text style each ramp step is `relativeTo:` is a spec question (the styles scale by
-  different amounts); record it in **Sizing formulas → Type**. Until then keep the mapping in
-  the type modifier only, never at call sites.
-- `Font(UIFont)` made from a fixed descriptor does **not** follow Dynamic Type. If a style must
-  come from a `UIFont` (for a variation axis value), scale it with
-  `UIFontMetrics(forTextStyle:).scaledFont(for:)` and rebuild it when
-  `@Environment(\.dynamicTypeSize)` changes.
-- Don't add `@ScaledMetric` on top of a scaled font size (spec **Sizing formulas → Type**).
+## Size
+- Build each style as `Font.custom("<instance name>", size: <ramp size × s>)`. The size may be
+  fractional; fonts are vectors and stay crisp. Text sizes come from `s` only: no
+  `relativeTo:` scaling and no `@ScaledMetric` in this phase (spec **Sizing → Type**).
 - In debug builds, assert at launch that each instance name resolves (`UIFont(name:size:)`
   not nil). A missing font falls back to the system font silently.
 
 ## Line height
 - The spec's line height is the **whole line box**: size × factor. It is not added on top of the
   font's own leading (**Line height is total**).
-- Compute the line box from the size the text is **rendered** at, after Dynamic Type, not from
-  the ramp size. A line height fixed to the unscaled size clips large text.
+- Compute the line box from the size the text is rendered at (ramp size × s).
 - Line pitch inside a text block (two-line hub, row title over caption) is type, not spacing:
   take it from the ramp, not from the spacing tokens.
 
 ## Lines, wrapping and "…"
-- Button and tab text is one line at the default text size and may wrap to two at larger
-  sizes (spec **Part floors → Text**). Switch captions take at most two lines.
+- Button and tab text is one line (spec **Sizing → Text that does not fit**). Switch captions take at most two lines.
 - Only typed names (kid, school, activity) may end with "…", after two lines.
 - Prefer wrapping to truncating. Don't use `allowsTightening` or tracking to squeeze a label
   into a box: reword it.
@@ -61,15 +49,14 @@ Type**. Read them there; don't copy them here or into a view.
 ## Measuring
 - Minimum widths come from measured text, never a rounded guess:
   `swift .claude/skills/crayon-design/scripts/measure-text.swift <size> <weight> "<text>"`.
-  Use the type floor's size and the shown weight; add both paddings from Part floors.
+  Use the board size and the shown weight; add both paddings from the board.
 - Measure the longest label that can appear there, including picked and Bold Text weights.
 - Write the measured minimum into the spec with its formula (SKILL.md, step 5).
 
 ## Checks before handing over
 - Every text uses `crayonType`; no `.font(.system…)`, no raw sizes.
-- Default size, a mid accessibility size and the largest accessibility size: nothing clips,
-  overlaps, or draws under its floor.
-- Bold Text on: picked tabs and label columns still fit, or give way.
+- At s = 1 and on the smallest screen: nothing clips or overlaps.
+- Bold Text on: picked tabs and label columns still fit.
 - Night look (A1n, B2n): weights and sizes match the day look.
 
 Source: distilled from apple-skills design → typography and design-system (MIT),

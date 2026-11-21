@@ -84,24 +84,6 @@ INSET = {'field': SIX, 'time': SIX, 'tab': SIX, 'daychip': SIX, 'datechip': SIX,
          'picture': SIX, 'row': SIX, 'daybutton': SIX, 'card': SIX, 'swatch': (0, 0, 0, 0), 'face': (0, 0, 0, 0),
          'tile': (0, 0, 0, 0), 'switch': (2, 12, 2, 12), 'link': (0, 0, 0, 0), 'dot': (0, 0, 0, 0), 'part': SIX,
          'title': (0, 0, 0, 0), 'label': (0, 0, 0, 0)}
-# Part floors (spec "Sizing formulas"): scaled drawn-box height of a control whose board height is h.
-def scaled_h(kind, h, s):
-    f = {'field': 64, 'time': 64, 'tab': 56, 'daychip': 56, 'daybutton': 56, 'round': 56, 'swatch': 48, 'face': 56,
-         'picture': 72, 'tile': 72, 'switch': 48, 'datechip': 72}.get(kind)
-    if kind == 'ink': f = {96: 72, 80: 64, 72: 56}.get(round(h), 56)
-    if kind == 'row': return h                         # two-line rows 72 fixed, one-line 48 fixed
-    if kind == 'datechip': return h * max(96 * s, 72) / 96 if h > 90 else h   # compact G1c chips: fixed (app)
-    if kind == 'link' or f is None: return h * s
-    return max(h * s, f)
-
-def scaled_drawn(e, s):
-    """Drawn height at scale s: the floor applies to the frame (board box), the outline sits inside it."""
-    H = scaled_h(e['kind'], e['h'], s)
-    if e.get('reg') == 'header' and e['kind'] == 'tab': H = e['h']   # spec 2026-11-15: header text controls 72 fixed
-    if e['kind'] == 'switch': return H * 28 / 52
-    _, t, _, b = INSET.get(e['kind'], SIX)
-    return H - t - b
-
 def kind_of(o):
     cls, role, w, h = o['cls'], o['role'], o['w'], o['h']
     if o['cat'] == 'card': return 'card'
