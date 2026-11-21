@@ -54,8 +54,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   gets an "Enter" button (the hold is the gate).
 - `ios/DebugTools`: debug builds only (`#if DEBUG` in every file). Floating bubble + menu: time
   machine (feeds `\.date`; `make run NOW=2026-11-09T07:30 SPEED=60`), layout grid, gallery, Skip
-  Face ID (simulator only), "Load sample family". Debug links `familyplanner://s1`…`s4`. On a real
-  iPad the menu opens only after Face ID. Debug values reach features only as dependencies that
+  Face ID (simulator only), "Load sample family". Debug links `familyplanner://s1`…`s4`. The menu
+  opens at once, no Face ID. Debug values reach features only as dependencies that
   `DebugModel.install` swaps; debug UI only through AppView's overlay. No `#if DEBUG` in features
   (`check-debug-boundary.sh`). System UI is fine there; product screens use only `DesignSystem`.
 

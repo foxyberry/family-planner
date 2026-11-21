@@ -15,10 +15,6 @@ public final class DebugModel {
     public let core: DebugCore
     public let calendar: Calendar
     @ObservationIgnored private let defaults: UserDefaults
-    /// On a real iPad the bubble sits over the kids' screens, so the menu asks for the grown-up unlock.
-    @ObservationIgnored private let requiresUnlock: Bool
-    /// The real Face ID check, never the "Skip Face ID" wrapper.
-    @ObservationIgnored private let unlock: @Sendable (String) async -> ParentAuthOutcome
     /// Writes the sample family over the stored one ("Load sample family").
     @ObservationIgnored private let replaceWithSample: @Sendable () async throws -> Void
 
@@ -43,17 +39,13 @@ public final class DebugModel {
     /// `bootstrap` gave the store, so `DebugOverlay` finds the model here.
     public private(set) static var installed: DebugModel?
 
-    public init(core: DebugCore, defaults: UserDefaults, calendar: Calendar, requiresUnlock: Bool = false,
-                allowsSkipFaceID: Bool = true,
-                unlock: @escaping @Sendable (String) async -> ParentAuthOutcome = { _ in .success },
+    public init(core: DebugCore, defaults: UserDefaults, calendar: Calendar, allowsSkipFaceID: Bool = true,
                 replaceWithSample: @escaping @Sendable () async throws -> Void = {}) {
         self.replaceWithSample = replaceWithSample
         self.allowsSkipFaceID = allowsSkipFaceID
         self.core = core
         self.defaults = defaults
         self.calendar = calendar
-        self.requiresUnlock = requiresUnlock
-        self.unlock = unlock
         settings = DebugSettings.load(from: defaults)
         core.update(settings)
     }
@@ -63,15 +55,9 @@ public final class DebugModel {
     /// The rig scale the kid screens use: the slider's value, else the kit data's.
     public var rigScale: Double { settings.rigScale ?? KitRigs.shared.scale }
 
-    /// Opens the menu: at once on a simulator, after Face ID on a device (no Face ID set up opens it,
-    /// like the grown-up lock).
+    /// Opens the menu at once, on a simulator and on a device (user, 2026-11-21: no Face ID for the
+    /// debug menu; debug builds only).
     public func menuTapped() async {
-        if requiresUnlock {
-            switch await unlock("Open the debug menu") {
-            case .success, .notAvailable: break
-            case .notRecognised, .cancelled, .lockedOut: return
-            }
-        }
         isMenuShown = true
     }
 
@@ -130,8 +116,7 @@ extension DebugModel {
         let store = dependencies.scheduleStore
         let calendar = dependencies.calendar
         let model = DebugModel(core: core, defaults: defaults, calendar: calendar,
-                               requiresUnlock: !isSimulator, allowsSkipFaceID: allowsSkipFaceID,
-                               unlock: live.authenticate,
+                               allowsSkipFaceID: allowsSkipFaceID,
                                replaceWithSample: {
                                    // Around the app's day, so the time machine sees the sample week.
                                    let today = Day(core.now(), calendar: calendar)
