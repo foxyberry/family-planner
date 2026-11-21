@@ -70,7 +70,8 @@ test_blocks_a_journey_outside_the_contract() {
 
 test_checks_a_binding_field() {
   new_tree
-  sed -i '' 's/public var name = ""//' "$TREE/ios/Features/Home/HomeFeature.swift"
+  printf 'public var days: [KidDay] = []\npublic var weekday: Weekday?\ncase clockHoldCompleted\ncase binding(BindingAction<State>)\n' \
+    > "$TREE/ios/Features/Home/HomeFeature.swift"
   run_check
   [ "$CODE" -eq 1 ] && [[ "$ERR" == *"home.nameChanged: no var or let name"* ]]
   assert test_checks_a_binding_field $?
