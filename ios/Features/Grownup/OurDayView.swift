@@ -316,12 +316,12 @@ public struct OurDayView: View {
     private var startField: some View {
         TimeField(label: store.startLabel ?? "",
                   time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
-                  width: sizing.timeFieldWidth)
+                  width: sizing.timeFieldWidth, isActive: store.isStartDragged)
     }
 
     private var endField: some View {
         TimeField(label: store.endLabel ?? "",
                   time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
-                  width: sizing.timeFieldWidth)
+                  width: sizing.timeFieldWidth, isActive: store.isEndDragged)
     }
 }

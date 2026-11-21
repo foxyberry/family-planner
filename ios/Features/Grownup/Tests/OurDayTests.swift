@@ -93,6 +93,27 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.selectedBlock?.title, "Dinner")
     }
 
+    /// Board G1: the dragged knob's time field on the slice card is outlined in pickBlue.
+    func testDraggedKnobOutlinesItsTimeField() async {
+        let store = await loaded()
+        await store.send(.sliceTapped(start: 1110))
+        XCTAssertEqual(store.state.selectedBlock?.title, "Dinner")
+        XCTAssertFalse(store.state.isStartDragged)
+        XCTAssertFalse(store.state.isEndDragged)
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1160))
+        XCTAssertFalse(store.state.isStartDragged)
+        XCTAssertTrue(store.state.isEndDragged, "Dinner | Shower is Dinner's end")
+        await store.send(.knobReleased(0))
+        XCTAssertFalse(store.state.isEndDragged)
+        await store.send(.knobDragged(index: knob(store, at: 1110), minute: 1100))
+        XCTAssertTrue(store.state.isStartDragged, "the knob before Dinner is its start")
+        XCTAssertFalse(store.state.isEndDragged)
+        await store.send(.knobReleased(0))
+        await store.send(.knobDragged(index: knob(store, at: 450), minute: 460))
+        XCTAssertFalse(store.state.isStartDragged, "a knob away from the selected slice outlines neither")
+        XCTAssertFalse(store.state.isEndDragged)
+    }
+
     func testLimitsBump() async {
         let store = await loaded()
         await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1250))

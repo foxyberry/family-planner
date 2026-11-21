@@ -6,20 +6,25 @@ public struct TimeField: View {
     private let label: String
     private let isPlaceholder: Bool
     private let width: CGFloat?
+    private let isActive: Bool
     @Binding private var time: Date
     @State private var isPicking = false
 
     /// `isPlaceholder`: no time chosen yet; `label` is an example time in `softText` (S2).
     /// `width`: a fixed width (S2 Arrive by and latest, 180); otherwise at least 200.
-    public init(label: String, time: Binding<Date>, isPlaceholder: Bool = false, width: CGFloat? = nil) {
+    /// `isActive`: the time is being changed elsewhere (G1: its knob is being dragged), so the
+    /// outline is `pickBlue` as while its wheel is open.
+    public init(label: String, time: Binding<Date>, isPlaceholder: Bool = false, width: CGFloat? = nil,
+                isActive: Bool = false) {
         self.label = label
         self.isPlaceholder = isPlaceholder
         self.width = width
+        self.isActive = isActive
         _time = time
     }
 
     public var body: some View {
-        FieldButton(label, isPlaceholder: isPlaceholder, width: width, isActive: isPicking) { isPicking = true }
+        FieldButton(label, isPlaceholder: isPlaceholder, width: width, isActive: isActive || isPicking) { isPicking = true }
         .popover(isPresented: $isPicking) {
             DatePicker(selection: $time, displayedComponents: .hourAndMinute) { EmptyView() }
                 .datePickerStyle(.wheel)

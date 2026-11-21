@@ -251,6 +251,11 @@ public struct OurDayFeature {
         public var endDate: Date { day.date(minute: selectedSpan?.end ?? 0, calendar: calendar) }
         public var startLabel: String? { selectedSpan.map { TimeText.withPeriod($0.start) } }
         public var endLabel: String? { selectedSpan.map { TimeText.withPeriod($0.end) } }
+        /// Board G1: the time field of the knob being dragged is outlined in `pickBlue`: the
+        /// selected slice's start when the knob begins it, its end when the knob ends it.
+        public var isStartDragged: Bool { draggedKnob.map { $0.after == selected } ?? false }
+        public var isEndDragged: Bool { draggedKnob.map { $0.before == selected } ?? false }
+        private var draggedKnob: DayKnob? { dragging.map { edit.clockKnobs[$0] } }
 
         /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
         public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true || selectedItem?.isSkipped == true }
