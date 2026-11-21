@@ -1,7 +1,8 @@
 # Accessibility for the crayon app
 
-Use this for touch, Dynamic Type, contrast, VoiceOver, the system accessibility settings and
-gestures. It holds no numbers: every size, floor and colour is in the spec
+Use this for touch, Dynamic Type, contrast, the system accessibility settings and gestures.
+VoiceOver is not in this phase (user, 2026-11-21; `../hig-exceptions.md`): add no labels,
+spoken text or adjustable actions. It holds no numbers: every size, floor and colour is in the spec
 (`docs/superpowers/specs/2026-11-07-m2-screens-spec.md`, section 0 "Shared rules"). Where general
 Apple advice and this app differ, `../hig-exceptions.md` decides.
 
@@ -13,7 +14,7 @@ Apple advice and this app differ, `../hig-exceptions.md` decides.
 - Only bare glyphs (›, ✕, a text link) may have a hit area bigger than what is drawn. Grow it
   invisibly to the floor, and check that two grown hit areas never overlap.
 - Use `Button` (or a custom `ButtonStyle`) for anything tappable, not `onTapGesture`: it brings
-  the button trait, focus and VoiceOver activation for free.
+  the button trait and focus for free.
 - Neighbouring targets are spaced only by the spec's tokens; never close a gap below its floor
   to fit a row (give way instead).
 
@@ -45,22 +46,6 @@ Apple advice and this app differ, `../hig-exceptions.md` decides.
   filled state. Late shows as no medal, never as a red-only cue and never a sad face.
 - Disabled parts look dimmed **and** are announced as dimmed (`.disabled`), not only faded.
 
-## VoiceOver
-- Every control has a label in plain words. Pictures from `KitIcon` that only decorate are
-  hidden (`accessibilityHidden(true)`); pictures that carry meaning get a label.
-- Speak what the screen means, not what it draws. Times speak in full words (spec A2,
-  **Spoken times**); a typed name that is cut on screen is read in full.
-- Group what belongs together: a kid row reads as one element (face, name, state). Use
-  `accessibilityElement(children: .combine)` or `.ignore` plus one label.
-- Give state as traits and values: kid rows are tabs (`.isSelected` on the chosen kid);
-  missions are toggles; the medal and "Ready!" are announced when they appear
-  (`AccessibilityNotification.Announcement`).
-- Steppers and the clock knobs get `accessibilityAdjustableAction`, so a swipe up or down
-  changes the value without dragging.
-- Reading order follows the board: header, then regions top-left to bottom-right. Fix it with
-  `accessibilitySortPriority` only where the drawing order differs.
-- Give every control an `accessibilityIdentifier` too, so tests don't match visible words.
-
 ## System settings
 - **Bold Text**: read `@Environment(\.legibilityWeight)`. When it is `.bold`, step each text
   weight up one named instance of the font (`typography.md`). Strokes of crayon parts stay
@@ -80,12 +65,10 @@ Apple advice and this app differ, `../hig-exceptions.md` decides.
 - Kid screens have no edge swipe back; the way out is the header "←" (spec A2,
   **Presentation**).
 - Every custom drag has another way to do it, by tap or by typing:
-  - clock knobs: the time field in the slice card, plus the adjustable action above;
+  - clock knobs: the time field in the slice card;
   - drag to reorder or resize anything new: a tap path, decided before the board is final.
 - **Accepted exception: kid `SlideToGo` is slide-only.** The slide is part of the fun; this is a
-  user decision recorded in `../hig-exceptions.md`. It still needs a VoiceOver label and an
-  activate action (`accessibilityAction(.default)`), so a VoiceOver user can finish it with a
-  double tap. Don't add a visible button next to it.
+  user decision recorded in `../hig-exceptions.md`. Don't add a visible button next to it.
 - Long press is never the only way to anything a kid needs. The grown-up "hold the clock" way
   in is a gate on purpose (spec **C0**), and the pencil button is the other way in.
 

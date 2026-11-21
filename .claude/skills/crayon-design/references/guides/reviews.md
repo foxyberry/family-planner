@@ -28,7 +28,8 @@ Coverage
 - [ ] The part has a rule in **Part floors** (touch, drawn box, padding, text).
 - [ ] Its states are drawn and specified: default, picked, focus, disabled, done, night look,
       and the empty look if it holds content.
-- [ ] It has a VoiceOver label, trait and value; Reduce Motion and Bold Text behaviour.
+- [ ] Reduce Motion and Bold Text behaviour.
+- [ ] Every control has an `accessibilityIdentifier`: a test hook for the UI tests (not VoiceOver work), so tests never match visible words.
 - [ ] Snapshot tests cover each state on the test sizes the spec's **Check** names.
 Conflicts
 - [ ] The rule doesn't contradict an older bullet without the change log saying which wins.
@@ -48,7 +49,6 @@ The build reads the layout JSON, so anything missing there is a guess in code.
 - [ ] States the board shows only once are listed: picked, disabled, keyboard up, error,
       loading, night.
 - [ ] Motion: each moment is a row in the spec's **Motion** table, with its reduced look.
-- [ ] VoiceOver: labels, grouping and reading order for anything not a plain button.
 - [ ] Copy follows `copy.md`: no explanatory sentences; confirms use `ConfirmCard`.
 - [ ] A spec change-log line exists, and the building session has been told the layout version.
 
