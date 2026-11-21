@@ -23,5 +23,7 @@ fi
 check bazelisk "brew install bazelisk (setup-ios installs it)" 0
 check buildifier "brew install buildifier (setup-ios installs it)" 0
 check gitleaks "brew install gitleaks (setup-ios installs it)" 0
+check pymobiledevice3 "uv tool install pymobiledevice3; iPad screenshots, crash checks and make driver-check" 0
+check periphery "brew install periphery; architecture-audit dead code only" 0
 
 [ "$fail" -eq 0 ] || exit 1
