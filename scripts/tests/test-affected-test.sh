@@ -30,6 +30,8 @@ printf '{"devices": {"iOS-26-5": [{"name": "BAZEL_TEST_iPad Pro 13-inch (M5)_26.
 EOF
 chmod +x "$STUBS"/*
 export PATH="$STUBS:/usr/bin:/bin" STUB_LOG="$LOG"
+# The disk check passes unless a case asks for more room than any disk has.
+export FP_MIN_FREE_GB=0
 
 new_repo() { # a repo with one commit; the change under test comes after it
   : > "$LOG"
@@ -38,7 +40,7 @@ new_repo() { # a repo with one commit; the change under test comes after it
   git -C "$REPO" config user.email t@example.com
   git -C "$REPO" config user.name t
   mkdir -p "$REPO/scripts" "$REPO/ios/Domain/Tests"
-  cp "$SRC/scripts/test-affected.sh" "$REPO/scripts/"
+  cp "$SRC/scripts/test-affected.sh" "$SRC/scripts/check-disk.sh" "$REPO/scripts/"
   printf 'struct A {}\n' > "$REPO/ios/Domain/A.swift"
   printf 'x\n' > "$REPO/README.md"
   git -C "$REPO" add -A && git -C "$REPO" commit -q -m base
@@ -88,6 +90,11 @@ new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"
 STUB_TARGETS="//ios/Domain/Tests:DomainTests" run --skip-if-busy HEAD
 grep -q '^make test-one' "$LOG" && [[ "$OUT" == *"finished in"* ]]
 assert "only the test simulator booted: tests run, with the time" $?
+
+new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"
+CI= FP_MIN_FREE_GB=1000000 STUB_TARGETS="//ios/Domain/Tests:DomainTests" run --skip-if-busy HEAD
+[ "$CODE" -eq 0 ] && [[ "$OUT" == *"the disk is nearly full"* ]] && ! grep -q '^make' "$LOG"
+assert "a nearly full disk: skip with the hint, so the push still goes" $?
 
 new_repo; printf 'struct A { var b = 1 }\n' > "$REPO/ios/Domain/A.swift"; git -C "$REPO" commit -qam change
 printf 'struct A { var c = 2 }\n' > "$REPO/ios/Domain/A.swift"; run --skip-if-busy HEAD~1 HEAD
