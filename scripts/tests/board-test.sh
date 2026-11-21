@@ -79,6 +79,26 @@ for name, args, want in verdicts:
     else:
         failed += 1
         print(f"FAIL {name}: got {got} ({why}), want {want}")
+# Deep links open only well-formed desktop session ids.
+for value, want in [("local_5a2bb023-eff5-4f72-b7db-356a241b64c3",
+                     "claude://code/continue?session=local_5a2bb023-eff5-4f72-b7db-356a241b64c3"),
+                    ("local_x&y=1", None), ("8e36d840-0433", None), (None, None)]:
+    got = board.session_link(value)
+    if got == want:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL session_link({value!r}): got {got}, want {want}")
+# A question waits only when it came after the user's last turn; missing times never crash.
+for args, want in [(("2026-11-21T03:00:00Z", "2026-11-21T02:00:00Z"), True),
+                   (("2026-11-21T02:00:00Z", "2026-11-21T03:00:00Z"), False),
+                   (("2026-11-21T02:00:00Z", None), True), ((None, "2026-11-21T03:00:00Z"), False),
+                   ((None, None), False)]:
+    if board.is_waiting(*args) == want:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL is_waiting{args}: want {want}")
 print(f"board: {passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 EOF
