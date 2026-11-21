@@ -16,7 +16,7 @@ final class GrownupWordsTests: XCTestCase {
         return [
             AddChildFeature.State(today: tuesday, takenColours: []),
             BusSettingsFeature.State(kid: kid),
-            ChangeBusesFeature.State(kid: kid),
+            ChangeBusesFeature.State(ourStop: StopSearchFeature.State(), changes: [], index: nil),
             DataSourcesFeature.State(),
             MissionEditorFeature.State(kid: kid),
             OurDayFeature.State(kid: kid, today: tuesday, calendar: calendar),

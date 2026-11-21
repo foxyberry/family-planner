@@ -1,7 +1,6 @@
 # Screens still carrying layout numbers (scripts/check-layout-literals.sh). Shrink only.
 # <file> <lines>
-ios/Features/Grownup/BusSettingsView.swift 2
-ios/Features/Grownup/ChangeBusesView.swift 4
+ios/Features/Grownup/ChangeBusesView.swift 3
 ios/Features/Grownup/ChangeSchoolView.swift 9
 ios/Features/Grownup/ItemEditorView.swift 21
 ios/Features/Grownup/MissionEditorView.swift 5

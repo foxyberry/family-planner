@@ -60,23 +60,37 @@ final class BusSettingsTests: XCTestCase {
         XCTAssertEqual(saved.value, [BusPlan(kid: kid, stop: "00000", services: ["1"], walk: 8, rides: ["1": 10])])
     }
 
-    /// Spec "Several buses": the bus that changes is one more pill; the link shows until there is
-    /// one, and both open C2c.
-    func testABusThatChangesIsOneMorePill() async {
-        let change = BusChange(firstBus: "2", thenBus: "4")
-        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"], change: change)])
+    /// Spec "Several buses" (v61): each bus that changes is one more pill ("12 · 34 → 33"); a tap opens
+    /// its C2c, the link (always there) opens a new one, and what C2c hands back is saved.
+    func testEveryBusThatChangesIsOneMorePill() async {
+        let first = BusChange(firstBuses: ["1", "2"], thenBus: "4")
+        let second = BusChange(firstBus: "2", thenBus: "5")
+        let saved = LockIsolated([BusPlan(kid: SeedData.kidA.id, stop: "00000", services: ["1"], changes: [first, second])])
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
         await store.receive(\.search.stopLooked)
-        XCTAssertEqual(store.state.change, change)
-        XCTAssertFalse(store.state.showsChangeLink)
+        XCTAssertEqual(store.state.changes, [first, second])
+        XCTAssertEqual(store.state.changePills.map(\.title), ["1 · 2", "2"])
+        XCTAssertEqual(store.state.changePills.map(\.then), ["4", "5"])
+        XCTAssertEqual(store.state.changeLink, "A bus that changes…", "the link shows with buses that change too")
+        await store.send(.changeTapped(1))
+        await store.receive(.delegate(.openChange(index: 1)))
+        let editor = store.state.changeEditor(index: 1)
+        XCTAssertEqual(editor.original, second)
+        XCTAssertEqual(editor.ourStop.servicesAtStop, ["1", "2"], "C2c gets our stop's buses")
+        XCTAssertNil(store.state.changeEditor(index: nil).original)
         await store.send(.changeLinkTapped)
-        await store.receive(\.delegate.openChange)
-        // A direct 2 sits next to the bus that changes; both stay.
+        await store.receive(.delegate(.openChange(index: nil)))
+        // C2c saved: the route keeps its direct bus and takes the new list.
+        await store.send(.changesSaved([second]))
+        await store.finish(timeout: .seconds(1))
+        XCTAssertEqual(saved.value.last?.changes, [second])
+        XCTAssertEqual(saved.value.last?.services, ["1"])
+        // A direct 2 sits next to the bus that changes from 2; both stay.
         await store.send(.serviceTapped("2"))
         await store.finish(timeout: .seconds(1))
-        XCTAssertEqual(saved.value.last?.change, change)
+        XCTAssertEqual(saved.value.last?.changes, [second])
         XCTAssertEqual(saved.value.last?.services, ["1", "2"])
     }
 
@@ -89,7 +103,6 @@ final class BusSettingsTests: XCTestCase {
         await store.receive(\.loaded)
         await store.send(.search(.textChanged("00000")))
         await store.receive(\.search.stopLooked)
-        XCTAssertTrue(store.state.showsChangeLink)
         XCTAssertEqual(store.state.changeLink, "A bus that changes…")
         // Spec "Several buses": with no bus picked, one Ride row sets the ride a new pick starts with.
         XCTAssertEqual(store.state.rideRows.map(\.service), [nil])

@@ -26,10 +26,10 @@ final class MissionsTests: XCTestCase {
     private func store(on day: Day, minute: Int, missions: [Mission] = SeedData.missions, items: [ScheduleItem]? = nil,
                        saved: LockIsolated<[MissionDay]> = LockIsolated([]),
                        arrivals: [BusArrival]? = nil, services: [String] = ["1"], rides: [String: Int] = [:],
-                       change: BusChange? = nil) -> TestStoreOf<MissionsFeature> {
+                       changes: [BusChange] = []) -> TestStoreOf<MissionsFeature> {
         // Made-up stop and bus numbers (privacy rule).
         let plans = arrivals == nil ? [] : [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: services,
-                                                    rides: rides, change: change)]
+                                                    rides: rides, changes: changes)]
         let snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines,
                                         items: items ?? SeedData.items(today: tuesday, calendar: calendar), missions: missions,
                                         busPlans: plans)
@@ -211,7 +211,7 @@ final class MissionsTests: XCTestCase {
                                      BusArrival(service: "3", minutes: 14, type: .single),
                                      BusArrival(service: "2", minutes: 40, type: .single)],
                           services: ["1", "2"], rides: ["2": 25],
-                          change: BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 5, ride2: 6))
+                          changes: [BusChange(firstBus: "3", thenBus: "4", ride1: 8, change: 5, ride2: 6)])
         await store.send(.task)
         await store.receive(\.loaded)
         await store.receive(\.refresh)
@@ -224,6 +224,51 @@ final class MissionsTests: XCTestCase {
                                                  .bus(number: "3", then: "4", minutes: "14 min"), nil])
         XCTAssertEqual(strip?.myService, "1")
         XCTAssertEqual(strip?.others, [WayStrip.Plate("2"), WayStrip.Plate("3", then: "4")])
+        await store.send(.backTapped)
+    }
+
+    /// v61: an arrival of any first bus of a bus that changes counts, timed by its own Ride 1; its tag
+    /// reads "{that bus} → {then}". The legend lists the other pills in pill order: the direct buses,
+    /// then each bus that changes by its first buses ("2 · 3 → 8"), up to 3, then "+{n}".
+    func testEveryFirstBusOfABusThatChangesCountsAndTheLegendNamesThePills() async {
+        let store = store(on: tuesday, minute: 412,
+                          arrivals: [BusArrival(service: "1", minutes: 18, type: .double),
+                                     BusArrival(service: "2", minutes: 12, type: .single),
+                                     BusArrival(service: "3", minutes: 14, type: .single)],
+                          services: ["1"], rides: ["1": 30],
+                          changes: [BusChange(firstBuses: ["2", "3"], thenBus: "8", rides1: ["2": 20, "3": 4],
+                                              change: 5, ride2: 6),
+                                    BusChange(firstBus: "5", thenBus: "6"),
+                                    BusChange(firstBus: "7", thenBus: "9"),
+                                    BusChange(firstBus: "1", thenBus: "4")])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.refresh)
+        await store.receive(\.arrivalsLoaded)
+        // Bus 3 → 8 reaches in 14 + 15 = 29, bus 2 → 8 in 12 + 31 = 43, bus 1 in 18 + 25 (via 4) = 43.
+        XCTAssertEqual(store.state.live?.chosen?.route, BusRoute(service: "3", then: "8", trip: 15))
+        let strip = store.state.liveStrip
+        XCTAssertEqual(strip?.buses.map(\.tag), [.bus(number: "2", then: "8", minutes: "12 min"), nil,
+                                                 .bus(number: "1", then: "4", minutes: "18 min")])
+        XCTAssertEqual(strip?.myService, "3")
+        // The chosen 3 leaves its pill "2 · 3 → 8" as "2 → 8".
+        XCTAssertEqual(strip?.others, [WayStrip.Plate("1"), WayStrip.Plate("2", then: "8"), WayStrip.Plate("5", then: "6")])
+        XCTAssertEqual(strip?.moreOthers, "+2")
+        await store.send(.backTapped)
+    }
+
+    /// The legend names a bus that changes by all its first buses when another bus is mine.
+    func testTheLegendJoinsTheFirstBuses() async {
+        let store = store(on: tuesday, minute: 412,
+                          arrivals: [BusArrival(service: "1", minutes: 12, type: .double)],
+                          services: ["1"],
+                          changes: [BusChange(firstBuses: ["2", "3"], thenBus: "8")])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.refresh)
+        await store.receive(\.arrivalsLoaded)
+        XCTAssertEqual(store.state.liveStrip?.myService, "1")
+        XCTAssertEqual(store.state.liveStrip?.others, [WayStrip.Plate("2 · 3", then: "8")])
         await store.send(.backTapped)
     }
 

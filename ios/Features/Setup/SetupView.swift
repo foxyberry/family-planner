@@ -74,6 +74,9 @@ public struct SetupView: View {
         .fullScreenCover(item: $store.scope(state: \.dataSources, action: \.dataSources)) { sources in
             DataSourcesView(store: sources)
         }
+        .fullScreenCover(item: $store.scope(state: \.changeBuses, action: \.changeBuses)) { change in
+            ChangeBusesView(store: change)
+        }
         .task { await store.send(.task).finish() }
     }
 
@@ -429,8 +432,8 @@ private struct GoingStep: View {
         .frame(width: grown.form.width, height: grown.form.height, alignment: .topLeading)
     }
 
-    /// Board S3 (layout v57): Going 180, Stop 323 (caption 405), Buses 459, Walk 543, Ride 627 (one
-    /// per bus); rows 24 apart between drawn edges (spec "Layout balance").
+    /// Board S3 (layout v61): Going 180, Stop 323 (caption 405), Buses 459, Walk 543, Ride 627 (one
+    /// per bus), the link 801; rows 24 apart between drawn edges (spec "Layout balance").
     @ViewBuilder private var rows: some View {
         if let kid = store.goingKid {
             let going = kid.going
@@ -451,19 +454,25 @@ private struct GoingStep: View {
                     .zIndex(1)
                     row(L10n.tr("s3.buses")) {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
-                            if going.search.servicesAtStop.isEmpty {
-                                // Board S3: the empty row keeps the pills' 72 slot.
-                                Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                                    .frame(height: sizing.tabHeight())
-                            } else {
-                                // Boards S3/C2: bus pills 180 × 72, three across.
+                            if store.hasBusPills {
+                                // Boards S3/C2: bus pills 180 × 72, three across, then one pill per bus
+                                // that changes ("12 · 34 → 33"), wrapping.
                                 PillToggleGrid(controlWidth: GrownupLayout(sizing: sizing).controlWidth) {
                                     ForEach(going.search.servicesAtStop, id: \.self) { service in
                                         PillToggle(service, isOn: going.services.contains(service)) {
                                             store.send(.serviceTapped(service))
                                         }
                                     }
+                                    ForEach(store.changePills) { pill in
+                                        PillToggle(pill.title, isOn: true, then: pill.then) {
+                                            store.send(.changeTapped(pill.index))
+                                        }
+                                    }
                                 }
+                            } else {
+                                // Board S3: the empty row keeps the pills' 72 slot.
+                                Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                                    .frame(height: sizing.tabHeight())
                             }
                         }
                     }
@@ -473,6 +482,8 @@ private struct GoingStep: View {
                     ForEach(store.rideRows) { ride in
                         stepper(ride.label, text: ride.text, caption: ride.caption, value: ride.minutes) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
                     }
+                    // Board S3 (v61, y 801): "+ A bus that changes…" → C2c, back to S3.
+                    row("") { PlusLink(store.changeLink) { store.send(.changeLinkTapped) } }
                 } else {
                     stepper(L10n.tr("going.leave"), text: store.leaveText, caption: store.leaveCaptionText,
                             step: 5, value: going.leaveBefore) { store.send(.leaveChanged($0)) }

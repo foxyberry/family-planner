@@ -222,6 +222,48 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.path.count, 1)
     }
 
+    /// Spec "Several buses" (v61): a change pill on C2 opens its C2c with C2's stop and buses; what
+    /// C2c saves goes back to C2, which saves the route. ← on C2c just closes it.
+    func testC2OpensC2cAndSavesWhatComesBack() async {
+        var c2 = BusSettingsFeature.State(kid: SeedData.kidA.id)
+        c2.search = StopSearchFeature.State(stop: "00000")
+        c2.search.servicesAtStop = ["1", "2"]
+        c2.services = ["1"]
+        let first = BusChange(firstBuses: ["1", "2"], thenBus: "4")
+        c2.changes = [first]
+        var state = AppFeature.State()
+        state.path.append(.settings(SettingsFeature.State()))
+        state.path.append(.busSettings(c2))
+        let saved = LockIsolated<[BusPlan]>([])
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = self.fixedDate
+            $0.scheduleStore.saveBusPlan = { plan in saved.withValue { $0.append(plan) } }
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 1].busSettings.changeTapped, 0)
+        await store.receive(\.path[id: 1].busSettings.delegate.openChange)
+        guard case let .changeBuses(c2c) = store.state.path.last else { return XCTFail("\(store.state.path)") }
+        XCTAssertEqual(c2c.original, first)
+        XCTAssertEqual(c2c.ourStop.servicesAtStop, ["1", "2"])
+        let edited = BusChange(firstBus: "2", thenBus: "4")
+        await store.send(\.path[id: 2].changeBuses.delegate.saved, [edited])
+        await store.receive(\.path[id: 1].busSettings.changesSaved)
+        XCTAssertEqual(store.state.path.count, 2, "back on C2")
+        guard case let .busSettings(back) = store.state.path.last else { return XCTFail("\(store.state.path)") }
+        XCTAssertEqual(back.changes, [edited])
+        await store.finish()
+        XCTAssertEqual(saved.value.last?.changes, [edited])
+        // A new one, left with ←: C2 stays as it was.
+        await store.send(\.path[id: 1].busSettings.changeLinkTapped)
+        await store.receive(\.path[id: 1].busSettings.delegate.openChange)
+        guard case let .changeBuses(fresh) = store.state.path.last else { return XCTFail("\(store.state.path)") }
+        XCTAssertNil(fresh.original)
+        await store.send(\.path[id: 3].changeBuses.delegate.cancelled)
+        XCTAssertEqual(store.state.path.count, 2)
+    }
+
     func testEditorFinishedPopsBack() async {
         var state = AppFeature.State()
         state.path.append(.settings(SettingsFeature.State()))

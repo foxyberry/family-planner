@@ -165,6 +165,26 @@ extension SetupFeature.State {
                            text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service))
         }
     }
+    /// Spec "Several buses" (v61): each bus that changes is one more pill in the Buses row, as on C2.
+    public var changePills: [BusSettingsFeature.ChangePill] {
+        BusSettingsFeature.ChangePill.pills(goingKid?.going.changes ?? [], join: strings.tr("bus.join"))
+    }
+
+    /// The Buses row shows pills once the stop's buses are known (or a bus that changes exists).
+    public var hasBusPills: Bool {
+        guard let going = goingKid?.going else { return false }
+        return !going.search.servicesAtStop.isEmpty || !going.changes.isEmpty
+    }
+
+    /// The link under the last Ride row (v61, always shown): "+ A bus that changes…".
+    public var changeLink: String { strings.tr("c2.change_link") }
+
+    /// C2c over S3 for one of the going kid's buses that change (`index`), or a new one (nil).
+    func changeEditor(index: Int?) -> ChangeBusesFeature.State? {
+        guard let going = goingKid?.going else { return nil }
+        return ChangeBusesFeature.State(ourStop: going.search, changes: going.changes, index: index, ride: going.ride)
+    }
+
     public var leaveText: String { L10n.tr("going.leave.minutes", goingKid?.going.leaveBefore ?? 0) }
 
     /// The Leave row's caption as shown: "before · 7:20 am", or nothing without an Arrive by.

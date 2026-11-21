@@ -90,11 +90,23 @@ final class SettingsTests: XCTestCase {
         var kid = SeedData.kidA
         kid.school?.arriveBy = 445
         let plan = BusPlan(kid: kid.id, stop: "00000", services: ["12", "34"], walk: 10, ride: 10, rides: ["34": 20],
-                           change: BusChange(firstBus: "56", thenBus: "78"))
+                           changes: [BusChange(firstBus: "56", thenBus: "78")])
         let rows = SettingsModel.sections(kid: kid, missions: [], busPlan: plan, schoolYear: .none,
                                           today: Day(year: 2026, month: 11, day: 10), calendar: Fixture.calendar)
             .flatMap(\.rows)
         XCTAssertEqual(rows.first { $0.key == "To school" }?.value, "Bus 12 · 34 · 56 · leave 7:05")
+    }
+
+    /// v61: every bus that changes is named by its first buses, each number once, in pill order; the
+    /// leave time uses the fastest trip (34 → 33 via Ride 1 3 + Change 2 + Ride 2 3 = 8, walk 10).
+    func testToSchoolNamesEveryFirstBusOnceAndLeavesForTheFastest() {
+        var kid = SeedData.kidA
+        kid.school?.arriveBy = 445
+        let plan = BusPlan(kid: kid.id, stop: "00000", services: ["12", "34"], walk: 10, ride: 10,
+                           changes: [BusChange(firstBuses: ["34", "56"], thenBus: "33", rides1: ["34": 3, "56": 9],
+                                               change: 2, ride2: 3),
+                                     BusChange(firstBus: "97", thenBus: "56")])
+        XCTAssertEqual(SettingsModel.toSchool(plan, school: kid.school!), "Bus 12 · 34 · 56 · 97 · leave 7:07")
     }
 
     /// An iPad with Touch ID names it on the lock row.

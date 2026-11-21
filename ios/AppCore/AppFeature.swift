@@ -474,16 +474,21 @@ public struct AppFeature {
                 state.path.pop(from: id)
                 return .none
 
-            case let .path(.element(id: _, action: .busSettings(.delegate(.openChange(kid))))):
-                state.path.append(.changeBuses(ChangeBusesFeature.State(kid: kid)))
+            case let .path(.element(id: id, action: .busSettings(.delegate(.openChange(index))))):
+                // C2c edits the bus in memory, from C2's stop and buses; C2 saves what comes back.
+                guard case let .busSettings(c2) = state.path[id: id] else { return .none }
+                state.path.append(.changeBuses(c2.changeEditor(index: index)))
                 return .none
 
-            case let .path(.element(id: id, action: .changeBuses(.delegate(.finished)))):
+            case let .path(.element(id: id, action: .changeBuses(.delegate(.saved(changes))))):
                 state.path.pop(from: id)
-                // C2 shows the saved 2nd choice.
                 guard let c2 = state.path.ids.last(where: { if case .busSettings = state.path[id: $0] { true } else { false } })
                 else { return .none }
-                return .send(.path(.element(id: c2, action: .busSettings(.task))))
+                return .send(.path(.element(id: c2, action: .busSettings(.changesSaved(changes)))))
+
+            case let .path(.element(id: id, action: .changeBuses(.delegate(.cancelled)))):
+                state.path.pop(from: id)
+                return .none
 
             case let .path(.element(id: _, action: .editor(.delegate(.openBuses(kid))))),
                  let .path(.element(id: _, action: .schoolEditor(.delegate(.openBuses(kid))))):

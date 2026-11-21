@@ -1,7 +1,6 @@
 import ComposableArchitecture
 import CrayonKit
 import DesignSystem
-import Strings
 import SwiftUI
 
 /// C2 · Our buses (board C2, first cut): plan A for one kid.
@@ -32,47 +31,44 @@ public struct BusSettingsView: View {
                            alignment: .topLeading)
             }
         } primaryAction: { layout in
-            InkButton(L10n.tr("c2.done")) { store.send(.doneTapped) }
+            InkButton(store.doneTitle) { store.send(.doneTapped) }
                 .frame(width: layout.side.width)
         }
         .resultVeil(isOpen: store.search.isListOpen) { store.send(.search(.listClosed)) }
         .task { await store.send(.task).finish() }
     }
 
-    /// Board C2 (layout v58): Stop (80 field and its caption), Buses (pills 180 × 72), the steppers,
-    /// then the link; rows 24 apart between drawn edges (spec "Layout balance").
+    /// Board C2 (layout v61): Stop (80 field and its caption), Buses (pills 180 × 72, then one pill per
+    /// bus that changes, wrapping), the steppers, then the link; rows 24 apart between drawn edges
+    /// (spec "Layout balance").
     private func plan(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: layout.sizing.formRowGap) {
-            ListRow(leading: L10n.tr("c2.stop"), labelHeight: layout.sizing.fieldHeight) {
+            ListRow(leading: store.stopLabel, labelHeight: layout.sizing.fieldHeight) {
                 StopSearchField(store: store.scope(state: \.search, action: \.search), visibleRows: 8,
                                 listWidth: layout.controlWidth)
             }
             .captionedRow()
             .zIndex(1)
-            ListRow(leading: L10n.tr("c2.buses"), minHeight: layout.sizing.tabHeight(), labelHeight: layout.sizing.tabHeight()) {
-                if store.search.servicesAtStop.isEmpty {
-                    Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
-                        .frame(height: layout.sizing.tabHeight())
-                } else {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        PillToggleGrid(controlWidth: layout.controlWidth) {
-                            ForEach(store.search.servicesAtStop, id: \.self) { service in
-                                PillToggle(service, isOn: store.services.contains(service)) {
-                                    store.send(.serviceTapped(service))
-                                }
-                            }
-                            // Spec "Several buses": the bus that changes is one more pill; a tap reopens C2c.
-                            if let change = store.change {
-                                PillToggle(change.firstBus, isOn: true, then: change.thenBus) {
-                                    store.send(.changeLinkTapped)
-                                }
+            ListRow(leading: store.busesLabel, minHeight: layout.sizing.tabHeight(), labelHeight: layout.sizing.tabHeight()) {
+                if store.hasPills {
+                    PillToggleGrid(controlWidth: layout.controlWidth) {
+                        ForEach(store.search.servicesAtStop, id: \.self) { service in
+                            PillToggle(service, isOn: store.services.contains(service)) {
+                                store.send(.serviceTapped(service))
                             }
                         }
+                        // Spec "Several buses": each bus that changes is one more pill; a tap opens its C2c.
+                        ForEach(store.changePills) { pill in
+                            PillToggle(pill.title, isOn: true, then: pill.then) { store.send(.changeTapped(pill.index)) }
+                        }
                     }
+                } else {
+                    Text(store.noBusesText).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                        .frame(height: layout.sizing.tabHeight())
                 }
             }
             .drawnRow()
-            stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("c2.walk.caption"), step: 1,
+            stepper(store.walkLabel, text: store.walkText, caption: store.walkCaption, step: 1,
                     value: store.walk, sizing: layout.sizing) { store.send(.walkChanged($0)) }
             ForEach(store.rideRows) { row in
                 stepper(row.label, text: row.text, caption: row.caption, step: 1,
@@ -80,23 +76,11 @@ public struct BusSettingsView: View {
                     store.send(.rideChanged(service: row.service, minutes: $0))
                 }
             }
-            stepper(L10n.tr("c2.grace"), text: store.graceText, caption: L10n.tr("c2.grace.caption"), step: 5,
+            stepper(store.graceLabel, text: store.graceText, caption: store.graceCaption, step: 5,
                     value: store.lateGrace, sizing: layout.sizing) { store.send(.graceChanged($0)) }
-            if store.showsChangeLink { changeLink }
+            // Board C2 (v61, y 826): "+ A bus that changes…" → C2c for a new one, always shown.
+            ListRow(leading: "", minHeight: PlusLink.height) { PlusLink(store.changeLink) { store.send(.changeLinkTapped) } }
         }
-    }
-
-    /// Board C2 (v57, y 742): "+ A bus that changes…" → C2c.
-    private var changeLink: some View {
-        ListRow(leading: "", minHeight: 72) { Button { store.send(.changeLinkTapped) } label: {
-            HStack(spacing: Spacing.s) {
-                MarkerIcon(.plus, size: 28, color: CrayonColor.ink)
-                Text(store.changeLink).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
-            }
-            .frame(minHeight: 72)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain) }
     }
 
     /// Board C2's side column (layout v38, plain screens): whose route it is, nothing more.
