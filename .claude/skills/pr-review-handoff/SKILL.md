@@ -2,7 +2,7 @@
 name: pr-review-handoff
 description: Use when a change in this repo is ready for review (code, guards, docs or design spec), when sending work to the code review session, when another session's commits need a PR, when acting as the review session ("Family-planner iOS 코드 리뷰"), when a review or LGTM is posted on your PR, or before merging a PR.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   status: experimental
 ---
 
@@ -24,7 +24,7 @@ record, so the review lives on the PR as inline review comments, and messages on
 | 5. Ask for a re-review | author | message with the old and new head SHAs |
 | 6. Resolve fixed threads, answer replies, review what is left | reviewer | PR |
 | 7. Repeat 3–6, then "LGTM at <sha>" | reviewer | PR comment, then a message |
-| 8. Merge | author | `gh pr merge N --squash --match-head-commit <sha>` |
+| 8. Merge on LGTM + green CI (+ the user's iPad check for a screen change) | author | `gh pr merge N --squash --match-head-commit <sha>` |
 
 The user approved posting reviews, thread replies and LGTM comments on this repo's PRs without a
 per-post OK (2026-11-21). Post from a file (`--body-file`, or `--input` for JSON): the public-text
@@ -44,9 +44,18 @@ hook blocks shell expansion and checks the text for private terms.
 4. When the review is posted, read every comment: `gh api repos/{owner}/{repo}/pulls/N/comments`.
    - Fix each one, or decide not to.
    - Reply on its thread with the fixing commit or your reason: `gh api repos/{owner}/{repo}/pulls/N/comments/<id>/replies --method POST --input <file>`.
-   - A board-vs-app finding goes to the design session; don't pick a value yourself.
+   - A board-vs-app finding goes to the design session; don't pick a value yourself. The user hears
+     about it from the design session.
 5. Ask for a re-review with the old and new head SHAs.
-6. Merge only when an "LGTM at <sha>" comment names the current head. A push after it needs a new look.
+6. Merge when all of these hold (a push after the LGTM needs a new look):
+   - an "LGTM at <sha>" comment names the current head;
+   - CI is green;
+   - a PR that changes a screen has the user's iPad check. Ask for it in your own session: it is
+     the only time a merge waits for the user (user, 2026-11-21). Any other PR merges by itself.
+7. Bind every PR you open to the app's PR monitor with Auto-fix on (`ccd_pr` get_status, bind_pr,
+   set_monitor). Your session then wakes on review comments, CI failures and conflicts.
+8. When a step needs a human decision, tell the user in your own session. Never leave it only in a
+   message to another session.
 
 ## Review session
 - Read only from the PR, never from a shared checkout:
