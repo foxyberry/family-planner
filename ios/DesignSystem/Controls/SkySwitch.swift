@@ -9,7 +9,6 @@ public struct SkySwitch: View {
 
     private let look: KidLook
     private let isAnimating: Bool
-    private let label: String
     private let action: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// On the screen's scale, like the pencil across from it (160 × 96 on the 13").
@@ -18,10 +17,9 @@ public struct SkySwitch: View {
     private var width: CGFloat { sizing.kidCornerControl * Self.size.width / Self.size.height }
     @State private var showsDusk = false
 
-    public init(look: KidLook, isAnimating: Bool, label: String, action: @escaping () -> Void) {
+    public init(look: KidLook, isAnimating: Bool, action: @escaping () -> Void) {
         self.look = look
         self.isAnimating = isAnimating
-        self.label = label
         self.action = action
     }
 
@@ -32,7 +30,6 @@ public struct SkySwitch: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(label)
         .sensoryFeedback(.impact(flexibility: .soft), trigger: isAnimating) { _, new in new }
         .sensoryFeedback(.success, trigger: isAnimating) { old, new in old && !new }
         .task(id: isAnimating) {

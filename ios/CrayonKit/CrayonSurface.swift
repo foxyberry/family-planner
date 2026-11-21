@@ -70,7 +70,6 @@ public struct CrayonSurface: View {
                            style: StrokeStyle(lineWidth: marker.width, lineCap: .round, lineJoin: .round))
         }
         .padding(-bleed)
-        .accessibilityHidden(true)
     }
 
     /// Geometry for a surface of `size`, inset by half the line width so the line's outer edge runs

@@ -35,6 +35,5 @@ public struct DateChip: View {
                               seed: CrayonStyle.Seed.dateChip)
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }

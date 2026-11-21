@@ -8,8 +8,6 @@ extension KidCard.Words {
         Self(name: strings.tr("s1.name"), namePlaceholder: strings.tr("s1.name.placeholder"),
              age: strings.tr("s1.age"), agePlaceholder: strings.tr("s1.age.placeholder"),
              colour: strings.tr("s1.colour"), face: strings.tr("s1.face"),
-             colourNames: [strings.tr("s1.colour.blue"), strings.tr("s1.colour.orange"), strings.tr("s1.colour.green"),
-                           strings.tr("s1.colour.purple")],
-             faces: [(.kidGirl, strings.tr("s1.face.girl")), (.kidBoy, strings.tr("s1.face.boy"))])
+             colourCount: 4, faces: [.kidGirl, .kidBoy])
     }
 }

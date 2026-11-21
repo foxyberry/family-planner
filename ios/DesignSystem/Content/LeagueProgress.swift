@@ -44,6 +44,5 @@ public struct LeagueProgress: View {
             }
         }
         .foregroundStyle(CrayonColor.ink)
-        .accessibilityElement(children: .combine)
     }
 }

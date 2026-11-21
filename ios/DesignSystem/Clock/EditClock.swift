@@ -9,13 +9,10 @@ public struct EditClock: View {
     public struct Knob: Equatable, Sendable {
         public var minute: Int
         public var isLocked: Bool
-        /// VoiceOver: "Dinner ends, 7:15 pm".
-        public var label: String
 
-        public init(minute: Int, isLocked: Bool, label: String) {
+        public init(minute: Int, isLocked: Bool) {
             self.minute = minute
             self.isLocked = isLocked
-            self.label = label
         }
     }
 
@@ -44,13 +41,10 @@ public struct EditClock: View {
     public struct AddBetween: Equatable, Sendable {
         public var knob: Int
         public var minute: Int
-        /// VoiceOver: "Add between Dinner and Shower".
-        public var label: String
 
-        public init(knob: Int, minute: Int, label: String) {
+        public init(knob: Int, minute: Int) {
             self.knob = knob
             self.minute = minute
-            self.label = label
         }
     }
 
@@ -69,14 +63,13 @@ public struct EditClock: View {
     private let onAddBetween: () -> Void
     private let onSliceTap: (Int) -> Void
     private let onPlusTap: (Int) -> Void
-    private let onKnobAdjust: (Int, Int) -> Void
 
     /// `sectors` marks the selected slice with `isCurrent`; `dragging` is the knob being dragged and
     /// `dragOrigin` its minute when the drag began (a dashed line stays there).
     public init(sectors: [ClockSector], knobs: [Knob], dragging: Int?, dragOrigin: Int?, hub: Hub,
                 onKnobDrag: @escaping (Int, Int) -> Void, onKnobEnd: @escaping (Int) -> Void,
                 onKnobTap: @escaping (Int) -> Void, onSliceTap: @escaping (Int) -> Void,
-                onPlusTap: @escaping (Int) -> Void, onKnobAdjust: @escaping (Int, Int) -> Void,
+                onPlusTap: @escaping (Int) -> Void,
                 addBetween: AddBetween? = nil, onAddBetween: @escaping () -> Void = {}) {
         // Sleep before and after midnight is one slice, as on the kid clock.
         self.sectors = PieClockLayout.drawable(sectors)
@@ -91,7 +84,6 @@ public struct EditClock: View {
         self.onAddBetween = onAddBetween
         self.onSliceTap = onSliceTap
         self.onPlusTap = onPlusTap
-        self.onKnobAdjust = onKnobAdjust
     }
 
     @Environment(\.sizing) private var sizing
@@ -134,7 +126,7 @@ public struct EditClock: View {
             knobViews
             if let addBetween {
                 // Board G1e: a RoundButton 56 on the knob's boundary line, its centre 64 in from the rim.
-                RoundButton(glyph: .plus, accessibilityLabel: addBetween.label, action: onAddBetween)
+                RoundButton(glyph: .plus, action: onAddBetween)
                     .size(56).floor(48)
                     .position(point(radius: r - 64 * k, minute: Double(addBetween.minute)))
             }
@@ -187,8 +179,6 @@ public struct EditClock: View {
                 PlusGlyph(size: sizing.clockPlus) // board C6: a 56 ring, at least 48 (part floors)
                     .position(point(radius: (hubR + r) / 2, minute: middle))
                     .onTapGesture { onPlusTap(sector.start) }
-                    .accessibilityElement()
-                    .accessibilityAddTraits(.isButton)
             } else if let name = sector.iconName, let slot = KitSlot(rawValue: name),
                       let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: EditClock.radius,
                                                            hub: EditClock.hubRadius) {
@@ -245,15 +235,6 @@ public struct EditClock: View {
                     .onEnded { _ in onKnobEnd(index) })
                 // A tap (not a drag): a locked knob explains itself; any other shows G1e's "+".
                 .onTapGesture { onKnobTap(index) }
-                .accessibilityElement()
-                .accessibilityLabel(knob.label)
-                .accessibilityAdjustableAction { direction in
-                    switch direction {
-                    case .increment: onKnobAdjust(index, 5)
-                    case .decrement: onKnobAdjust(index, -5)
-                    @unknown default: break
-                    }
-                }
         }
     }
 }

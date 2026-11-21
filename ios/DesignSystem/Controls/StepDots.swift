@@ -5,13 +5,11 @@ import SwiftUI
 public struct StepDots: View {
     private let current: Int
     private let total: Int
-    private let label: String
 
-    /// `current` is 1-based. `label`: what VoiceOver reads ("Step 1 of 4"), from the caller.
-    public init(current: Int, total: Int = 4, label: String) {
+    /// `current` is 1-based.
+    public init(current: Int, total: Int = 4) {
         self.current = current
         self.total = total
-        self.label = label
     }
 
     public var body: some View {
@@ -25,7 +23,5 @@ public struct StepDots: View {
                     .frame(width: 28, height: 28)
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(label)
     }
 }

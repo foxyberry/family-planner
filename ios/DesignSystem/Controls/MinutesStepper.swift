@@ -9,33 +9,26 @@ public struct MinutesStepper: View {
     @Environment(\.sizing) private var sizing
     private let value: String
     private let caption: String
-    private let label: String
     private let minus: () -> Void
     private let plus: () -> Void
 
-    /// `label`: the row's label, which the buttons carry; a row without one (the second Ride row)
-    /// names its buttons by the caption ("on 34").
-    public init(value: String, caption: String, label: String, minus: @escaping () -> Void,
-                plus: @escaping () -> Void) {
+    public init(value: String, caption: String, minus: @escaping () -> Void, plus: @escaping () -> Void) {
         self.value = value
         self.caption = caption
-        self.label = label
         self.minus = minus
         self.plus = plus
     }
 
     public var body: some View {
         HStack(spacing: 0) {
-            RoundButton(glyph: .minus, accessibilityLabel: buttonName, action: minus).size(Self.button)
+            RoundButton(glyph: .minus, action: minus).size(Self.button)
             Text(value).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                 .frame(width: sizing.stepperValueWidth)
-            RoundButton(glyph: .plus, accessibilityLabel: buttonName, action: plus).size(Self.button)
+            RoundButton(glyph: .plus, action: plus).size(Self.button)
             Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
                 .padding(.leading, sizing.space(Spacing.s))
         }
     }
-
-    private var buttonName: String { label.isEmpty ? caption : label }
 
     /// The buttons' board size; on screen `Sizing.roundButton(72)` (72 × s, never under 56).
     static let button: CGFloat = 72

@@ -441,28 +441,6 @@
         }
       }
     },
-    "c5.move_down" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Move down"
-          }
-        }
-      }
-    },
-    "c5.move_up" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Move up"
-          }
-        }
-      }
-    },
     "c5.name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -661,17 +639,6 @@
         }
       }
     },
-    "day.add_between" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add between %1$@ and %2$@"
-          }
-        }
-      }
-    },
     "day.add_between.no_room" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -716,17 +683,6 @@
         }
       }
     },
-    "day.hint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drag a dot to move a time. Tap a slice to edit it."
-          }
-        }
-      }
-    },
     "day.knob.ends" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -734,17 +690,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ ends"
-          }
-        }
-      }
-    },
-    "day.knob.label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ ends, %2$@"
           }
         }
       }
@@ -804,28 +749,6 @@
         }
       }
     },
-    "day.picker.earlier" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Earlier days"
-          }
-        }
-      }
-    },
-    "day.picker.later" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later days"
-          }
-        }
-      }
-    },
     "day.picker.today" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -833,17 +756,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Today"
-          }
-        }
-      }
-    },
-    "day.redo" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Redo"
           }
         }
       }
@@ -943,17 +855,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Our day"
-          }
-        }
-      }
-    },
-    "day.undo" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Undo"
           }
         }
       }
@@ -1251,28 +1152,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove %@ every week?"
-          }
-        }
-      }
-    },
-    "editor.dates.earlier" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Earlier"
-          }
-        }
-      }
-    },
-    "editor.dates.later" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later"
           }
         }
       }
@@ -1992,17 +1871,6 @@
         }
       }
     },
-    "grownup.back" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back"
-          }
-        }
-      }
-    },
     "grownup.caption" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2014,17 +1882,6 @@
         }
       }
     },
-    "home.clock.label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@'s day as a 24-hour clock. Midnight at the top, noon at the bottom. %2$@ %3$@, %4$@."
-          }
-        }
-      }
-    },
     "home.day.holiday" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2032,17 +1889,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ · Holiday"
-          }
-        }
-      }
-    },
-    "home.grownup" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grown-up mode"
           }
         }
       }
@@ -2142,28 +1988,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "in"
-          }
-        }
-      }
-    },
-    "home.sky.day" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Day. Tap for night."
-          }
-        }
-      }
-    },
-    "home.sky.night" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Night. Tap for day."
           }
         }
       }
@@ -2487,50 +2311,6 @@
         }
       }
     },
-    "medal.bronze" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bronze medal"
-          }
-        }
-      }
-    },
-    "medal.gold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gold medal"
-          }
-        }
-      }
-    },
-    "medal.silver" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Silver medal"
-          }
-        }
-      }
-    },
-    "missions.back" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back to the clock"
-          }
-        }
-      }
-    },
     "missions.card.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2670,28 +2450,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%d"
-          }
-        }
-      }
-    },
-    "missions.live.spoken" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live bus map. Bus %1$@ in %2$@, your bus.%3$@ Leave in %4$@, %5$@."
-          }
-        }
-      }
-    },
-    "missions.live.spoken.or" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " Or bus %1$@ in %2$@."
           }
         }
       }
@@ -2890,28 +2648,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ · no live times"
-          }
-        }
-      }
-    },
-    "missions.way.none" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No more trips today"
-          }
-        }
-      }
-    },
-    "missions.way.spoken" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@'s way to %2$@, %3$@, %4$@, %5$@ starts at %6$@."
           }
         }
       }
@@ -3389,17 +3125,6 @@
         }
       }
     },
-    "picker.more.label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More pictures"
-          }
-        }
-      }
-    },
     "preview.bring_only" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3686,28 +3411,6 @@
         }
       }
     },
-    "s1.face.boy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boy face"
-          }
-        }
-      }
-    },
-    "s1.face.girl" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Girl face"
-          }
-        }
-      }
-    },
     "s1.name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3770,28 +3473,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep"
-          }
-        }
-      }
-    },
-    "s1.remove.label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove %@"
-          }
-        }
-      }
-    },
-    "s1.remove.label.empty" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove this child"
           }
         }
       }
@@ -4929,17 +4610,6 @@
         }
       }
     },
-    "slide.go" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Go"
-          }
-        }
-      }
-    },
     "sources.intro" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5171,17 +4841,6 @@
         }
       }
     },
-    "time.field" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Time"
-          }
-        }
-      }
-    },
     "time.pm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5222,72 +4881,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ min"
-          }
-        }
-      }
-    },
-    "time_left.spoken.h" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld hours"
-          }
-        }
-      }
-    },
-    "time_left.spoken.h_min" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ %2$@"
-          }
-        }
-      }
-    },
-    "time_left.spoken.h_one" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 hour"
-          }
-        }
-      }
-    },
-    "time_left.spoken.late" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ late"
-          }
-        }
-      }
-    },
-    "time_left.spoken.min" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld minutes"
-          }
-        }
-      }
-    },
-    "time_left.spoken.min_one" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 minute"
           }
         }
       }

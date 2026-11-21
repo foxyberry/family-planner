@@ -61,7 +61,6 @@ public struct OurDayView: View {
                       onKnobTap: { store.send(.knobTapped($0)) },
                       onSliceTap: { store.send(.sliceTapped(start: $0)) },
                       onPlusTap: { store.send(.plusTapped(start: $0)) },
-                      onKnobAdjust: { store.send(.knobAdjusted(index: $0, by: $1)) },
                       addBetween: store.addBetweenButton, onAddBetween: { store.send(.addBetweenTapped) })
                 // Board G1 (layout v32): the clock centred at (410, 549), 30 left of and 9 above the
                 // form box's middle (440, 558), so its hour labels start at x 30 as on the home clock.
@@ -69,7 +68,6 @@ public struct OurDayView: View {
                 .frame(width: layout.form.width, height: layout.form.height)
                 // Undo / Redo at 656 and 744 (y 880), 24 in from the form box's right edge.
                 .overlay(alignment: .bottomTrailing) { undoRedo.padding(.trailing, 24 * layout.sizing.s) }
-                .accessibilityHint(L10n.tr("day.hint"))
             sideColumn(layout)
                 .frame(width: layout.side.width, height: layout.action.minY - Spacing.sm * layout.sizing.s
                        - layout.side.minY, alignment: .topLeading)
@@ -80,7 +78,6 @@ public struct OurDayView: View {
                 ZStack(alignment: .topTrailing) {
                     Color.clear.contentShape(Rectangle()).onTapGesture { store.send(.pickerClosed) }
                     DayPickerCard(month: store.pickerMonth, weeks: store.pickerWeeks,
-                                  earlier: L10n.tr("day.picker.earlier"), later: L10n.tr("day.picker.later"),
                                   today: L10n.tr("day.picker.today"), onPage: { store.send(.pickerPageTapped($0)) },
                                   onPick: { store.send(.pickerChipTapped($0)) }, onToday: { store.send(.pickerTodayTapped) })
                         .padding(.top, 72 + Spacing.s)
@@ -103,11 +100,11 @@ public struct OurDayView: View {
     /// off at 45 % when there is nothing to take back or put back.
     private var undoRedo: some View {
         HStack(spacing: Spacing.s) {
-            RoundButton(glyph: .undo, accessibilityLabel: L10n.tr("day.undo")) { store.send(.undoTapped) }
+            RoundButton(glyph: .undo) { store.send(.undoTapped) }
                 .size(72)
                 .opacity(store.canUndo ? 1 : 0.45)
                 .disabled(!store.canUndo)
-            RoundButton(glyph: .redo, accessibilityLabel: L10n.tr("day.redo")) { store.send(.redoTapped) }
+            RoundButton(glyph: .redo) { store.send(.redoTapped) }
                 .size(72)
                 .opacity(store.canRedo ? 1 : 0.45)
                 .disabled(!store.canRedo)
@@ -177,7 +174,7 @@ public struct OurDayView: View {
 
     private var header: some View {
         // Board G1: the kid tabs after the title; List · Settings at the right end.
-        GrownupHeader(title: L10n.tr("day.title"), caption: store.headerCaption, backLabel: store.backLabel,
+        GrownupHeader(title: L10n.tr("day.title"), caption: store.headerCaption,
                       onBack: { store.send(.backTapped) }) {
             CrayonTabs(selection: Binding(get: { store.kid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
@@ -198,7 +195,7 @@ public struct OurDayView: View {
 
     /// Board C6 (layout v6): the tabs and the slice card from the top; "Changes start tomorrow." just
     /// above the Save button and the hint above that, placed from the button up. When the hint would
-    /// come within 8 of the card (short iPads) it is left out and stays the clock's VoiceOver hint.
+    /// come within 8 of the card (short iPads) it is left out.
     /// Board G1: the day button (382 × 72) over the slice card; the G1c picker opens over the card.
     private func sideColumn(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
@@ -223,7 +220,7 @@ public struct OurDayView: View {
                            selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
                            all: OurDayFeature.pictures, isShowingAll: slice.isPickingMore,
-                           moreTitle: L10n.tr("picker.more"), moreLabel: L10n.tr("picker.more.label"), columns: 4) {
+                           moreTitle: L10n.tr("picker.more"), columns: 4) {
                     store.send(.newSliceMoreTapped)
                 }
                 .zIndex(1)
@@ -322,13 +319,13 @@ public struct OurDayView: View {
     }
 
     private var startField: some View {
-        TimeField(label: store.startLabel ?? "", pickerTitle: store.timePickerTitle,
+        TimeField(label: store.startLabel ?? "",
                   time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
                   width: sizing.timeFieldWidth)
     }
 
     private var endField: some View {
-        TimeField(label: store.endLabel ?? "", pickerTitle: store.timePickerTitle,
+        TimeField(label: store.endLabel ?? "",
                   time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
                   width: sizing.timeFieldWidth)
     }

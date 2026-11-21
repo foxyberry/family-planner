@@ -251,7 +251,6 @@ public struct PieClock: View {
         // The swipe stays inside the hub disc.
         .clipShape(Circle())
         .crayonBackground(.circle, fill: look.surface, seed: 3003)
-        .accessibilityHidden(true)
     }
 
     /// One centred line whose baseline sits at `baseline` on the board (hub centre y 528).

@@ -25,12 +25,12 @@ public struct ChangeSchoolView: View {
             switch store.phase {
             case .loading:
                 GrownupScreen(scrolls: false) {
-                    GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                    GrownupHeader(title: store.title, caption: store.headerCaption,
                                   onBack: { store.send(.backTapped) })
                 } content: { _ in EmptyView() } primaryAction: { _ in EmptyView() }
             case .failed:
                 GrownupScreen(scrolls: false) {
-                    GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+                    GrownupHeader(title: store.title, caption: store.headerCaption,
                                   onBack: { store.send(.backTapped) })
                 } content: { _ in
                     Text(store.loadFailedText).crayonType(.body).foregroundStyle(CrayonColor.lateText)
@@ -45,7 +45,7 @@ public struct ChangeSchoolView: View {
 
     @ViewBuilder private func ready(_ form: ChangeSchoolFeature.Form) -> some View {
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+            GrownupHeader(title: store.title, caption: store.headerCaption,
                           onBack: { store.send(.backTapped) })
         } content: { layout in
             PaperCard(seed: 39) {
@@ -160,7 +160,7 @@ public struct ChangeSchoolView: View {
     }
 
     private func time(_ form: ChangeSchoolFeature.Form, _ minute: Int, set: @escaping (Date) -> Void) -> some View {
-        TimeField(label: form.timeLabel(minute), pickerTitle: form.timePickerTitle,
+        TimeField(label: form.timeLabel(minute),
                   time: Binding(get: { form.timeDate(minute) }, set: set), width: 180)
     }
 }

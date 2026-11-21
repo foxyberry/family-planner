@@ -47,7 +47,7 @@ public struct SettingsView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: L10n.tr("settings.title"), caption: store.headerCaption, backLabel: store.backLabel,
+        GrownupHeader(title: L10n.tr("settings.title"), caption: store.headerCaption,
                       onBack: { store.send(.backTapped) }) {
             if let tab = store.tab {
                 // Board G6: a tab per kid, then "Family".
@@ -108,7 +108,7 @@ public struct SettingsView: View {
             ForEach(store.childRows, id: \.kid.id) { row in
                 Button { store.send(.childTapped(row.kid.id)) } label: {
                     HStack(spacing: Spacing.s) {
-                        KidFace(KidFace.Badge(face: row.kid.face, colorIndex: row.kid.colorIndex), name: row.kid.name,
+                        KidFace(KidFace.Badge(face: row.kid.face, colorIndex: row.kid.colorIndex),
                                 size: KidFace.medium)
                         Text(row.kid.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                         Text(row.detail).crayonType(.body).foregroundStyle(CrayonColor.softText).lineLimit(1)
@@ -157,6 +157,5 @@ public struct SettingsView: View {
             if let picture = row.picture { KitIcon(KitSlot(iconName: picture), size: 40) }
             Text(row.value).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
         }
-        .accessibilityElement(children: .combine)
     }
 }

@@ -93,7 +93,7 @@ public struct ItemEditorView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+        GrownupHeader(title: store.title, caption: store.headerCaption,
                       onBack: { store.send(.backTapped) })
     }
 
@@ -109,7 +109,7 @@ public struct ItemEditorView: View {
                            selection: Binding(get: { store.form.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.picturePicked(slot.rawValue)) } }),
                            all: ItemEditorFeature.State.pictures, isShowingAll: store.isPickingMorePictures,
-                           moreTitle: L10n.tr("picker.more"), moreLabel: L10n.tr("picker.more.label")) {
+                           moreTitle: L10n.tr("picker.more")) {
                     store.send(.morePicturesTapped)
                 }
             }
@@ -196,12 +196,12 @@ public struct ItemEditorView: View {
                     // Spec "Event form rows", From: a linked item starts when its event ends.
                     Text(linked).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 } else {
-                    TimeField(label: store.startLabel, pickerTitle: store.timePickerTitle,
+                    TimeField(label: store.startLabel,
                               time: Binding(get: { store.startTime }, set: { store.send(.startPicked($0)) }))
                 }
                 Image(systemName: "arrow.right").crayonType(.body).fontWeight(.bold)
                     .foregroundStyle(CrayonColor.softText)
-                TimeField(label: store.endLabel, pickerTitle: store.timePickerTitle, time: Binding(get: { store.endTime }, set: { store.send(.endPicked($0)) }))
+                TimeField(label: store.endLabel, time: Binding(get: { store.endTime }, set: { store.send(.endPicked($0)) }))
                 if let duration = store.form.durationCaption {
                     Text(duration).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 }
@@ -275,11 +275,11 @@ public struct ItemEditorView: View {
                 .padding(.vertical, Spacing.xs)
         case .count:
             HStack(spacing: Spacing.m) {
-                RoundButton(glyph: .minus, accessibilityLabel: L10n.tr("runs.pick.count")) { store.send(.runsTimesStepped(-1)) }
+                RoundButton(glyph: .minus) { store.send(.runsTimesStepped(-1)) }
                     .size(64)
                 Text(L10n.tr("runs.count.value", store.form.times)).crayonType(.body, bold: true)
                     .foregroundStyle(CrayonColor.ink).frame(width: 140)
-                RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("runs.pick.count")) { store.send(.runsTimesStepped(1)) }
+                RoundButton(glyph: .plus) { store.send(.runsTimesStepped(1)) }
                     .size(64)
             }
             .padding(.vertical, Spacing.xs)
@@ -323,7 +323,7 @@ public struct ItemEditorView: View {
     private var dateStrip: some View {
         HStack(spacing: 0) {
             FormLabelColumn {
-                RoundButton(glyph: .chevronLeft, accessibilityLabel: L10n.tr("editor.dates.earlier")) { store.send(.datePageTapped(-1)) }
+                RoundButton(glyph: .chevronLeft) { store.send(.datePageTapped(-1)) }
                     .size(64)
                     .opacity(store.canPageEarlier ? 1 : 0.3)
             }
@@ -333,7 +333,7 @@ public struct ItemEditorView: View {
                         store.send(.dateTapped(chip.day))
                     }
                 }
-                RoundButton(glyph: .chevronRight, accessibilityLabel: L10n.tr("editor.dates.later")) { store.send(.datePageTapped(1)) }
+                RoundButton(glyph: .chevronRight) { store.send(.datePageTapped(1)) }
                     .size(64)
             }
         }
@@ -366,8 +366,6 @@ public struct ItemEditorView: View {
                 .buttonStyle(.plain)
                 .opacity(store.form.canSwitchMedal ? 1 : 0.45)
                 .disabled(!store.form.canSwitchMedal)
-                .accessibilityLabel(L10n.tr("editor.row.medal"))
-                .accessibilityAddTraits(store.form.medalIsOn ? .isSelected : [])
                 .frame(height: 72)
         }
     }
@@ -406,11 +404,11 @@ public struct ItemEditorView: View {
                     HStack(spacing: Spacing.m) {
                         Text(L10n.tr("from.starts")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
                             .frame(width: 140, alignment: .leading)
-                        RoundButton(glyph: .minus, accessibilityLabel: store.gapText) { store.send(.fromGapStepped(-1)) }
+                        RoundButton(glyph: .minus) { store.send(.fromGapStepped(-1)) }
                             .size(64)
                         Text(store.gapText).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                             .frame(width: 200)
-                        RoundButton(glyph: .plus, accessibilityLabel: store.gapText) { store.send(.fromGapStepped(1)) }
+                        RoundButton(glyph: .plus) { store.send(.fromGapStepped(1)) }
                             .size(64)
                     }
                 }
@@ -432,11 +430,11 @@ public struct ItemEditorView: View {
                 if store.form.noSchoolStart != nil {
                     VStack(alignment: .leading, spacing: Spacing.s) {
                         HStack(spacing: Spacing.m) {
-                            TimeField(label: store.noSchoolTimeLabel, pickerTitle: store.timePickerTitle,
+                            TimeField(label: store.noSchoolTimeLabel,
                                       time: Binding(get: { store.noSchoolTime }, set: { store.send(.noSchoolStartPicked($0)) }),
                                       width: 210)
                             MarkerIcon(.arrowRight, size: 32, color: CrayonColor.ink)
-                            TimeField(label: store.noSchoolEndLabel, pickerTitle: store.timePickerTitle,
+                            TimeField(label: store.noSchoolEndLabel,
                                       time: Binding(get: { store.noSchoolEndTime }, set: { store.send(.noSchoolEndPicked($0)) }),
                                       width: 210)
                         }
@@ -478,10 +476,10 @@ public struct ItemEditorView: View {
                     .buttonStyle(.plain)
                 } else {
                     HStack(spacing: Spacing.m) {
-                        RoundButton(glyph: .minus, accessibilityLabel: L10n.tr("going.leave")) { store.send(.leaveStepped(-1)) }
+                        RoundButton(glyph: .minus) { store.send(.leaveStepped(-1)) }
                         Text(store.form.leaveText ?? "").crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                             .frame(width: 112)
-                        RoundButton(glyph: .plus, accessibilityLabel: L10n.tr("going.leave")) { store.send(.leaveStepped(1)) }
+                        RoundButton(glyph: .plus) { store.send(.leaveStepped(1)) }
                         Text(store.form.leaveCaption ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
                     }
                 }
@@ -499,7 +497,6 @@ public struct ItemEditorView: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 
     // MARK: Side column (every-week item, board E5)

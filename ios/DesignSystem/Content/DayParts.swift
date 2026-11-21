@@ -57,16 +57,16 @@ public struct DayPickerCard: View {
 
     private let month: String
     private let weeks: [[Chip]]
-    private let labels: (earlier: String, later: String, today: String)
+    private let today: String
     private let onPage: (Int) -> Void
     private let onPick: (Int) -> Void
     private let onToday: () -> Void
 
-    public init(month: String, weeks: [[Chip]], earlier: String, later: String, today: String,
+    public init(month: String, weeks: [[Chip]], today: String,
                 onPage: @escaping (Int) -> Void, onPick: @escaping (Int) -> Void, onToday: @escaping () -> Void) {
         self.month = month
         self.weeks = weeks
-        labels = (earlier, later, today)
+        self.today = today
         self.onPage = onPage
         self.onPick = onPick
         self.onToday = onToday
@@ -78,8 +78,8 @@ public struct DayPickerCard: View {
                 HStack {
                     Text(month).crayonType(.head).foregroundStyle(CrayonColor.ink)
                     Spacer()
-                    RoundButton(glyph: .chevronLeft, accessibilityLabel: labels.earlier) { onPage(-1) }.size(64)
-                    RoundButton(glyph: .chevronRight, accessibilityLabel: labels.later) { onPage(1) }.size(64)
+                    RoundButton(glyph: .chevronLeft) { onPage(-1) }.size(64)
+                    RoundButton(glyph: .chevronRight) { onPage(1) }.size(64)
                 }
                 ForEach(weeks.indices, id: \.self) { week in
                     HStack(spacing: Spacing.xxs) {
@@ -90,7 +90,7 @@ public struct DayPickerCard: View {
                     }
                 }
                 Button(action: onToday) {
-                    Text(labels.today).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
+                    Text(today).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
                 }
                 .buttonStyle(.plain)
             }

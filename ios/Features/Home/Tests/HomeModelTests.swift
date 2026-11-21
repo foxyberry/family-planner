@@ -117,22 +117,13 @@ final class HomeModelTests: XCTestCase {
         XCTAssertNil(HomeModel.timeLeft(to: HomeModel.next(day, minute: 100), minute: 100))
     }
 
-    /// The time left part shows and speaks what this model says.
+    /// The time left part shows what this model says.
     func testTimeLeftWords() {
         let soon = HomeModel.TimeLeft(label: "in", minutes: 80)
         XCTAssertEqual(soon.text, "1h 20m")
-        XCTAssertEqual(soon.spoken, "1 hour 20 minutes")
         XCTAssertFalse(soon.isLate)
         let late = HomeModel.TimeLeft(label: "Leave in", minutes: -2)
         XCTAssertEqual(late.text, "\u{2212}2 min")
-        XCTAssertEqual(late.spoken, "2 minutes late")
         XCTAssertTrue(late.isLate)
-    }
-
-    func testAccessibilityLabel() {
-        XCTAssertEqual(HomeModel.accessibilityLabel(kidName: "Kid A", day: "Tuesday", slots: day, minute: 945),
-                       "Kid A's day as a 24-hour clock. Midnight at the top, noon at the bottom. Tuesday 3:45 pm, Swimming.")
-        XCTAssertEqual(HomeModel.accessibilityLabel(kidName: "Kid A", day: "Tuesday", slots: day, minute: 470),
-                       "Kid A's day as a 24-hour clock. Midnight at the top, noon at the bottom. Tuesday 7:50 am, Free time.")
     }
 }

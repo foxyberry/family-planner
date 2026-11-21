@@ -254,9 +254,7 @@ public struct OurDayFeature {
 
         public var knobs: [EditClock.Knob] {
             edit.knobs.map { knob in
-                EditClock.Knob(minute: knob.minute, isLocked: false,
-                               label: L10n.tr("day.knob.label", edit.blocks[knob.before].title,
-                                              TimeText.withPeriod(knob.minute)))
+                EditClock.Knob(minute: knob.minute, isLocked: false)
             }
         }
 
@@ -299,13 +297,10 @@ public struct OurDayFeature {
         /// School's slice card links to G4 (spec "School edits on G4").
         public var canEditSchool: Bool { selectedBlock?.kind == .school && kidInfo?.school != nil }
 
-        /// Board G1e: the "+" on the tapped knob and its VoiceOver label "Add between Dinner and Shower".
+        /// Board G1e: the "+" on the tapped knob.
         public var addBetweenButton: EditClock.AddBetween? {
             guard let index = addBetween, edit.knobs.indices.contains(index) else { return nil }
-            let knob = edit.knobs[index]
-            return EditClock.AddBetween(knob: index, minute: knob.minute,
-                                        label: L10n.tr("day.add_between", edit.blocks[knob.before].title,
-                                                       edit.blocks[knob.after].title))
+            return EditClock.AddBetween(knob: index, minute: edit.knobs[index].minute)
         }
 
         /// What an All days save does to the school record (layout v37): the School slice's new times
@@ -347,7 +342,6 @@ public struct OurDayFeature {
         case fromWhenCancelTapped
         case knobDragged(index: Int, minute: Int)
         case knobReleased(Int)
-        case knobAdjusted(index: Int, by: Int)
         /// Board G1e: a tap on a knob shows its "+"; the "+" adds a slice between.
         case knobTapped(Int)
         case addBetweenTapped
@@ -505,14 +499,6 @@ public struct OurDayFeature {
                 guard state.edit.knobs.indices.contains(index) else { return .none }
                 state.selected = state.edit.closeShortGaps(favoring: moved(byKnob: index, state.edit))
                     ?? state.edit.knobs[index].before
-                return .none
-
-            case let .knobAdjusted(index, delta):
-                guard state.edit.knobs.indices.contains(index) else { return .none }
-                state.edit.beginChange()
-                let before = state.edit.knobs[index].minute
-                feel(state.edit.moveKnob(index, to: before + delta), from: before, &state)
-                state.edit.closeShortGaps(favoring: moved(byKnob: index, state.edit))
                 return .none
 
             case .editSchoolTapped:

@@ -199,17 +199,6 @@ public enum TimeLeftText {
         return L10n.tr("time_left.min", number)
     }
 
-    /// What VoiceOver says (spec "Spoken times"): full words, "38 minutes", "1 hour 20 minutes",
-    /// "1 minute"; below zero, "2 minutes late".
-    public static func spoken(minutes: Int) -> String {
-        let total = abs(minutes)
-        let hours = total / 60, rest = total % 60
-        let minutePart = rest == 1 ? L10n.tr("time_left.spoken.min_one") : L10n.tr("time_left.spoken.min", rest)
-        let hourPart = hours == 1 ? L10n.tr("time_left.spoken.h_one") : L10n.tr("time_left.spoken.h", hours)
-        let words = hours == 0 ? minutePart : rest == 0 ? hourPart : L10n.tr("time_left.spoken.h_min", hourPart, minutePart)
-        return minutes < 0 ? L10n.tr("time_left.spoken.late", words) : words
-    }
-
     /// Late red at zero or below.
     public static func isLate(minutes: Int) -> Bool { minutes <= 0 }
 }

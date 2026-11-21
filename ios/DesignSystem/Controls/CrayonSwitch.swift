@@ -35,13 +35,12 @@ public struct CrayonSwitch: View {
         }
         .frame(width: box.width, height: box.height)
         .animation(.easeInOut(duration: 0.2), value: isOn)
-        .accessibilityHidden(true)
     }
 }
 
 /// Spec "S4 · Almost done": one row of the feature-switch list, 120 tall: the picture 56, the title
 /// (body bold) over one caption line, and the control at the right end of the row. The whole row is
-/// the touch area; VoiceOver reads it as a switch with the title.
+/// the touch area.
 public struct SettingRow<Picture: View>: View {
     @Environment(\.sizing) private var sizing
     public static var height: CGFloat { 120 }
@@ -90,10 +89,5 @@ public struct SettingRow<Picture: View>: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(title)
-        .accessibilityValue(caption)
-        .accessibilityAddTraits(.isToggle)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }

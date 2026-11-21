@@ -16,13 +16,13 @@ public struct AddChildView: View {
 
     public var body: some View {
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
+            GrownupHeader(title: store.title, caption: store.headerCaption,
                           onBack: { store.send(.backTapped) })
         } content: { layout in
             // Spec "Kid card": the S1 card (two rows), hugging its rows at the top of the main slot.
             PaperCard(seed: 37, padding: FormLines.cardPadding) {
                 KidCard(words: store.cardWords, name: $store.name, age: $store.ageText, badge: store.badge,
-                        shownName: store.trimmedName, colorIndex: store.colorIndex, face: store.face,
+                        colorIndex: store.colorIndex, face: store.face,
                         onColour: { store.send(.colourTapped($0)) }, onFace: { store.send(.faceTapped($0)) })
                     .formLines(KidCard.lines(layout, words: store.cardWords))
             }

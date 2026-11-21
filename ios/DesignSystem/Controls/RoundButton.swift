@@ -7,7 +7,6 @@ import SwiftUI
 public struct RoundButton: View {
     private enum Content { case symbol(String), text(String), glyph(MarkerGlyph), picture(KitSlot) }
     private let content: Content
-    private let label: String
     private let action: () -> Void
     private var size: CGFloat = 80
     private var floor: CGFloat?
@@ -22,29 +21,25 @@ public struct RoundButton: View {
         return isKidScreen ? sizing.kidTarget(size) : sizing.roundButton(size)
     }
 
-    public init(systemImage: String, accessibilityLabel: String, action: @escaping () -> Void) {
+    public init(systemImage: String, action: @escaping () -> Void) {
         content = .symbol(systemImage)
-        label = accessibilityLabel
         self.action = action
     }
 
     /// A marker glyph at 40 (back chevron, plus, minus).
-    public init(glyph: MarkerGlyph, accessibilityLabel: String, action: @escaping () -> Void) {
+    public init(glyph: MarkerGlyph, action: @escaping () -> Void) {
         content = .glyph(glyph)
-        label = accessibilityLabel
         self.action = action
     }
 
     /// A kit picture at 70 % of the circle (board G0: the pencil, 56 in 80).
-    public init(picture: KitSlot, accessibilityLabel: String, action: @escaping () -> Void) {
+    public init(picture: KitSlot, action: @escaping () -> Void) {
         content = .picture(picture)
-        label = accessibilityLabel
         self.action = action
     }
 
-    public init(text: String, accessibilityLabel: String, action: @escaping () -> Void) {
+    public init(text: String, action: @escaping () -> Void) {
         content = .text(text)
-        label = accessibilityLabel
         self.action = action
     }
 
@@ -97,7 +92,6 @@ public struct RoundButton: View {
             .contentShape(Rectangle().inset(by: -touchOutset(drawn: drawn)))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(label)
     }
 
     /// How far the touch area reaches past the drawn circle on each side (0 without `touch(_:)`).

@@ -27,6 +27,5 @@ public struct DayChip: View {
                                   seed: CrayonStyle.Seed.dayChip)
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }

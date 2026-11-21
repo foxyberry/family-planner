@@ -12,7 +12,6 @@ public struct PictureRow: View {
     private let all: [KitSlot]
     private let isShowingAll: Bool
     private let moreTitle: String
-    private let moreLabel: String
     private let onMore: () -> Void
     /// Board G1f: in a narrow card the slots wrap, this many per row (88, gap 16); nil keeps one row.
     private let columns: Int?
@@ -21,14 +20,13 @@ public struct PictureRow: View {
     private var d: CGFloat { sizing.pictureCircle(88) }
 
     public init(slots: [KitSlot], selection: Binding<KitSlot?>, all: [KitSlot], isShowingAll: Bool,
-                moreTitle: String, moreLabel: String, columns: Int? = nil, onMore: @escaping () -> Void) {
+                moreTitle: String, columns: Int? = nil, onMore: @escaping () -> Void) {
         self.columns = columns
         self.slots = slots
         _selection = selection
         self.all = all
         self.isShowingAll = isShowingAll
         self.moreTitle = moreTitle
-        self.moreLabel = moreLabel
         self.onMore = onMore
     }
 
@@ -66,8 +64,6 @@ public struct PictureRow: View {
                         }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(slot.rawValue)
-                .accessibilityAddTraits(isOn ? .isSelected : [])
             }
             Button(action: onMore) {
                 Text(moreTitle).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.pictureInk)
@@ -76,8 +72,6 @@ public struct PictureRow: View {
                                               seed: CrayonStyle.Seed.iconPicker + 998))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(moreLabel)
-            .accessibilityAddTraits(isShowingAll ? .isSelected : [])
             .overlay(alignment: .topTrailing) {
                 if isShowingAll {
                     // Under the "More" slot, its right edge on the slot's: every picture, 6 per row.

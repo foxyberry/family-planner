@@ -87,8 +87,6 @@ public enum HomeModel {
 
         /// "38 min", "1h 20m", "−2 min".
         public var text: String { TimeLeftText.short(minutes: minutes) }
-        /// What VoiceOver says: "38 minutes".
-        public var spoken: String { TimeLeftText.spoken(minutes: minutes) }
         public var isLate: Bool { TimeLeftText.isLate(minutes: minutes) }
     }
 
@@ -104,12 +102,6 @@ public enum HomeModel {
         guard slot.source == .routine,
               let item = slots.first(where: { $0.end == slot.start && $0.source != .routine }) else { return false }
         return slots.contains { $0.source == .routine && $0.title == slot.title && $0.kind == slot.kind && $0.end == item.start }
-    }
-
-    public static func accessibilityLabel(kidName: String, day: String, slots: [Slot], minute: Int) -> String {
-        let now = DayPlanner.now(at: minute, in: slots).current
-        let current = now.map { $0.kind == .free ? L10n.tr("home.hub.free") : $0.title } ?? L10n.tr("home.hub.free")
-        return L10n.tr("home.clock.label", kidName, day, TimeText.withPeriod(minute), current)
     }
 
     /// A slot that ends at midnight continues into the same kind of slot that starts the day.

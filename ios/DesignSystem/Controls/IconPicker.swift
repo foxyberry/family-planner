@@ -6,13 +6,11 @@ import SwiftUI
 /// spec "Event form rows", Bring), and (when `drawing` is given) a final "+" that asks the
 /// child to draw a new picture. Drawings arrive in M6; until then screens leave it out.
 public struct IconPicker: View {
-    /// The "+" cell: its VoiceOver words (from the caller) and what a tap does.
+    /// The "+" cell: what a tap does.
     public struct Drawing {
-        public let label: String
         public let action: () -> Void
 
-        public init(label: String, action: @escaping () -> Void) {
-            self.label = label
+        public init(action: @escaping () -> Void) {
             self.action = action
         }
     }
@@ -66,8 +64,6 @@ public struct IconPicker: View {
                         )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(slot.rawValue)
-                .accessibilityAddTraits(isOn ? .isSelected : [])
             }
             if let drawing {
             Button(action: drawing.action) {
@@ -76,7 +72,6 @@ public struct IconPicker: View {
                     .partBackground(.roundedRect(cornerRadius: 24), fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(drawing.label)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -6,7 +6,7 @@ import Localization
 import Strings
 import XCTest
 
-/// The shared grown-up parts (header, time wheel) get their words from each screen's State.
+/// The shared grown-up header gets its words from each screen's State.
 final class GrownupWordsTests: XCTestCase {
     private let kid = SeedData.kidA.id
     private let tuesday = Day(year: 2026, month: 11, day: 10)
@@ -25,11 +25,9 @@ final class GrownupWordsTests: XCTestCase {
         ]
     }
 
-    func testEveryScreenGivesTheHeaderAndWheelWords() {
+    func testEveryScreenGivesTheHeaderWords() {
         for state in states() {
             XCTAssertEqual(state.headerCaption, "Grown-ups only")
-            XCTAssertEqual(state.backLabel, "Back")
-            XCTAssertEqual(state.timePickerTitle, "Time")
         }
     }
 
@@ -37,8 +35,6 @@ final class GrownupWordsTests: XCTestCase {
         let keyed = withDependencies { $0.localizer = .keys } operation: { states() }
         for state in keyed {
             XCTAssertEqual(state.headerCaption, "grownup.caption")
-            XCTAssertEqual(state.backLabel, "grownup.back")
-            XCTAssertEqual(state.timePickerTitle, "time.field")
         }
     }
 }

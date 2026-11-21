@@ -28,13 +28,13 @@ public struct HomeView: View {
             ZStack(alignment: .topLeading) {
                 clockArea
                     .position(layout.clockCentre)
-                SkySwitch(look: store.look, isAnimating: store.isSkyAnimating, label: store.skySwitchLabel) {
+                SkySwitch(look: store.look, isAnimating: store.isSkyAnimating) {
                     store.send(.skySwitchTapped)
                 }
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
                 // Board G0: the way into grown-up mode, the same by day and night.
-                RoundButton(picture: .pencil, accessibilityLabel: store.grownupLabel) {
+                RoundButton(picture: .pencil) {
                     store.send(.pencilTapped)
                 }
                 .size(96)
@@ -99,8 +99,6 @@ public struct HomeView: View {
                     withAnimation(.easeOut(duration: 0.2)) { holdProgress = 0 }
                 }
             }
-            .accessibilityElement()
-            .accessibilityLabel(store.clockAccessibilityLabel)
     }
 
     // MARK: Right panel (928 s … W − 64 s)
@@ -131,9 +129,8 @@ public struct HomeView: View {
 
     private func kidHeader(_ kid: Kid, top: CGFloat, layout: HomeLayout) -> some View {
         ZStack(alignment: .topLeading) {
-            KidFace(KidFace.Badge(face: kid.face, colorIndex: kid.colorIndex), name: kid.name,
+            KidFace(KidFace.Badge(face: kid.face, colorIndex: kid.colorIndex),
                     size: layout.kidBadge(top: top).width)
-                .accessibilityHidden(true)
                 .place(layout.kidBadge(top: top))
             Text(kid.name).crayonType(.head).foregroundStyle(store.look.ink).lineLimit(1)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -186,7 +183,7 @@ public struct HomeView: View {
     @ViewBuilder private func timeLeft(_ left: HomeModel.TimeLeft, layout: HomeLayout) -> some View {
         Text(left.label).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
             .place(left: layout.kidATextLeft, baseline: layout.kidALabelBaseline)
-        TimeLeft(left.text, spoken: left.spoken, isLate: left.isLate, look: store.look, compact: true)
+        TimeLeft(left.text, isLate: left.isLate, look: store.look, compact: true)
             .place(left: layout.kidATextLeft, baseline: layout.kidATimeBaseline)
     }
 

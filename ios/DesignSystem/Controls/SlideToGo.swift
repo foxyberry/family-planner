@@ -8,7 +8,6 @@ import SwiftUI
 public struct SlideToGo: View {
     private let idleTitle: String
     private let doneTitle: String
-    private let goLabel: String
     private let onGo: () -> Void
     private let onUndo: (() -> Void)?
     private let knob: KitSlot
@@ -24,11 +23,10 @@ public struct SlideToGo: View {
     /// Spec "Part floors": the thumb 80 × s and the track 96 × s, never under the kid floor 72.
     private var handleSize: CGFloat { sizing.kidTarget(80) }
 
-    /// `goLabel`: the VoiceOver action's name ("Go").
     /// `onUndo`: dragging the knob back past the middle from done (spec "After the slide").
     /// `knob`: the way picture (bus, car, shoe) or the star sticker for a kid with no outing.
     /// `doneKnob`: when done, this picture without the check (A3r: the crown with no medal).
-    public init(state: SlideToGoModel.Phase, idleTitle: String, doneTitle: String, goLabel: String,
+    public init(state: SlideToGoModel.Phase, idleTitle: String, doneTitle: String,
                 knob: KitSlot = .busDouble, doneKnob: KitSlot? = nil, onUndo: (() -> Void)? = nil,
                 onGo: @escaping () -> Void) {
         self.knob = knob
@@ -38,7 +36,6 @@ public struct SlideToGo: View {
         _model = State(initialValue: SlideToGoModel(phase: state))
         self.idleTitle = idleTitle
         self.doneTitle = doneTitle
-        self.goLabel = goLabel
         self.onGo = onGo
     }
 
@@ -101,13 +98,6 @@ public struct SlideToGo: View {
         // @State keeps its first value, so a new phase from the parent has to be copied in.
         .onChange(of: state) { _, newState in model.phase = newState }
         .sensoryFeedback(.success, trigger: isDone)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(title)
-        .accessibilityAction(named: goLabel) {
-            guard !isDone else { return }
-            model.phase = .done
-            onGo()
-        }
     }
 
     /// The knob: rolls and rocks while held; at the end it hops once and keeps a check badge

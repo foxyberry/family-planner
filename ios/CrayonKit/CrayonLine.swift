@@ -24,6 +24,5 @@ public struct CrayonLine: View {
             context.stroke(path, with: .color(color),
                            style: StrokeStyle(lineWidth: marker.width, lineCap: .round, lineJoin: .round))
         }
-        .accessibilityHidden(true)
     }
 }

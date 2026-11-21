@@ -29,7 +29,6 @@ public struct DrivingKitIcon: View {
                     .rotationEffect(.degrees(phase), anchor: .bottom)
                     .offset(y: -2 * abs(phase))
             } animation: { _ in .easeInOut(duration: Self.loop / 4) }
-            .accessibilityHidden(true)
     }
 
     @ViewBuilder private var picture: some View {

@@ -33,7 +33,6 @@ public struct RiggedKitIcon: View {
                 }
             }
             .frame(width: size, height: size)
-            .accessibilityHidden(true)
         } else if let whole = rigs.fallback.parts["all"] {
             moving(KitIcon(slot, size: size), part: whole)
                 .frame(width: size, height: size)

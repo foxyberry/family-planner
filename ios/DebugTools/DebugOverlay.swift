@@ -83,8 +83,6 @@ struct DebugBubble: View {
         }
         .frame(width: screen.width, height: screen.height)
         .coordinateSpace(.named(Self.space))
-        .accessibilityLabel("Debug menu")
-        .accessibilityAddTraits(.isButton)
     }
 
     static let space = "debug-bubble"

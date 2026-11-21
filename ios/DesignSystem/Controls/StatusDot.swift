@@ -29,7 +29,6 @@ public struct StatusDot: View {
             }
             Text(text).crayonType(compact ? .body : .head, bold: true).foregroundStyle(textColor).lineLimit(1).fixedSize()
         }
-        .accessibilityElement(children: .combine)
     }
 
     private var dot: Color? {

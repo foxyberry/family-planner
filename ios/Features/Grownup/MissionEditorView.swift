@@ -60,7 +60,7 @@ public struct MissionEditorView: View {
 
     private var header: some View {
         // Board C5: the kid tabs at the header's right end, in place of "Grown-ups only".
-        GrownupHeader(title: L10n.tr("c5.title"), caption: store.headerCaption, backLabel: store.backLabel,
+        GrownupHeader(title: L10n.tr("c5.title"), caption: store.headerCaption,
                       onBack: { store.send(.doneTapped) }, accessory: { EmptyView() }) {
             CrayonTabs(selection: Binding(get: { store.selectedKid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) },
@@ -118,8 +118,6 @@ public struct MissionEditorView: View {
             store.send(.moved(id, to: index))
             return true
         }
-        .accessibilityAction(named: L10n.tr("c5.move_up")) { store.send(.moved(mission.id, to: index - 1)) }
-        .accessibilityAction(named: L10n.tr("c5.move_down")) { store.send(.moved(mission.id, to: index + 1)) }
     }
 
     /// Board C5's side column: empty since layout v38 (plain screens); "Ready by" comes with N2.

@@ -8,16 +8,14 @@ import SwiftUI
 public struct ColourSwatch: View {
     private let colorIndex: Int
     private let isPicked: Bool
-    private let accessibilityLabel: String
     private let action: () -> Void
     @Environment(\.sizing) private var sizing
     /// Spec "Part floors": 56 × s, never under 48.
     private var size: CGFloat { sizing.swatch }
 
-    public init(colorIndex: Int, isPicked: Bool, accessibilityLabel: String, action: @escaping () -> Void) {
+    public init(colorIndex: Int, isPicked: Bool, action: @escaping () -> Void) {
         self.colorIndex = colorIndex
         self.isPicked = isPicked
-        self.accessibilityLabel = accessibilityLabel
         self.action = action
     }
 
@@ -39,7 +37,5 @@ public struct ColourSwatch: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityAddTraits(isPicked ? [.isButton, .isSelected] : .isButton)
     }
 }

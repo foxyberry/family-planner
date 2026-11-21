@@ -21,6 +21,5 @@ public struct LockMark: View {
             MarkerIcon(.lock, size: size)
         }
         .frame(width: size, height: size)
-        .accessibilityHidden(true)
     }
 }

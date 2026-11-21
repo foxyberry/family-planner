@@ -17,6 +17,5 @@ public struct KitIcon: View {
             .resizable()
             .scaledToFit()
             .frame(width: size, height: size)
-            .accessibilityHidden(true)
     }
 }

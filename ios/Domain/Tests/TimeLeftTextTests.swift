@@ -20,12 +20,4 @@ final class TimeLeftTextTests: XCTestCase {
         XCTAssertEqual(TimeLeftText.short(minutes: -2), "\u{2212}2 min")
         XCTAssertFalse(TimeLeftText.short(minutes: -2).contains("-"))
     }
-
-    func testSpokenTimesUseFullWords() {
-        XCTAssertEqual(TimeLeftText.spoken(minutes: 38), "38 minutes")
-        XCTAssertEqual(TimeLeftText.spoken(minutes: 1), "1 minute")
-        XCTAssertEqual(TimeLeftText.spoken(minutes: 80), "1 hour 20 minutes")
-        XCTAssertEqual(TimeLeftText.spoken(minutes: 120), "2 hours")
-        XCTAssertEqual(TimeLeftText.spoken(minutes: -2), "2 minutes late")
-    }
 }
