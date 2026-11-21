@@ -79,6 +79,10 @@ except ValueError:
     devs = {}
 print(", ".join(d["name"] for ds in devs.values() for d in ds if not d["name"].startswith("BAZEL_TEST_")))' 2>/dev/null)"
   [ -n "$dev_sims" ] && later "a dev simulator is in use ($dev_sims)"
+  # A run that hits a full disk halfway breaks the output tree; skip instead of failing the push.
+  if [ "$PRINT" = 0 ] && ! bash "$ROOT/scripts/check-disk.sh" >/dev/null 2>&1; then
+    later "the disk is nearly full (bash scripts/check-disk.sh says what to clear)"
+  fi
 fi
 
 targets="$("${BAZEL[@]}" query --keep_going --noshow_progress "$query" 2>/dev/null | sort)"

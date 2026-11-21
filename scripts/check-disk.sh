@@ -18,7 +18,8 @@ free_gb=$(( free_kb / 1024 / 1024 ))
 
 if (( free_gb < min )); then
   echo "check-disk: only ${free_gb} GB free on ${path} (a build needs ${min})." >&2
-  echo "  Clear the shared Bazel disk cache: rm -rf ~/.cache/bazel-disk/cas ~/.cache/bazel-disk/ac" >&2
-  echo "  and run bazel clean in worktrees whose work is merged." >&2
+  echo "  First check that no Bazel build is running (it writes to the cache). Then free space:" >&2
+  echo "  the shared Bazel disk cache's cas and ac folders under ~/.cache/bazel-disk can be deleted" >&2
+  echo "  (a cache; builds refill it), and worktrees whose work is merged can run bazel clean." >&2
   exit 1
 fi

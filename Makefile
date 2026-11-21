@@ -133,6 +133,7 @@ snapshots-record: stop-dev-sims
 # Slow, so not in make test, pre-push or CI.
 UI_TEST_TARGET := //ios/Journeys/Tests/UI:UITests
 ui-test: stop-dev-sims
+	@bash scripts/check-disk.sh
 	$(IOS_BAZEL) test $(PUBLIC_FLAGS) $(UI_TEST_TARGET) $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)"
