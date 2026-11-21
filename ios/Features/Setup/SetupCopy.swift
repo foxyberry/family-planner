@@ -123,16 +123,6 @@ extension SetupFeature.State {
     /// Any fixed day: the wheel picks a clock time only.
     static let wheelDay = Day(year: 2026, month: 1, day: 1)
 
-    /// S1 swatch names for VoiceOver.
-    public static func colourName(_ index: Int) -> String {
-        switch index {
-        case 0: L10n.tr("s1.colour.blue")
-        case 1: L10n.tr("s1.colour.orange")
-        case 2: L10n.tr("s1.colour.green")
-        default: L10n.tr("s1.colour.purple")
-        }
-    }
-
     /// S3 "Going" captions.
     public static func wayCaption(_ way: Way) -> String {
         switch way {
