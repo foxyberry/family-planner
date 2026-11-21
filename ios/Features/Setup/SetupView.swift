@@ -385,13 +385,14 @@ private struct SchoolStep: View {
             // Shown as the "Terms" text row above.
             EmptyView()
         case let .ask(answer):
-            // Spec S2 Terms row: the question, then "Yes" / "Not sure" pills 140 × 64, 12 apart.
+            // Spec S2 Terms row: the question, then "Yes" / "Not sure" pills 64 tall, 12 apart. They
+            // stay 180 wide: "Not sure" in body 30 runs over a 140 pill's outline (13" check).
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                 Text(store.termsQuestion).crayonType(.caption).foregroundStyle(CrayonColor.ink)
                 CrayonTabs(selection: Binding(get: { answer }, set: { if let yes = $0 { store.send(.moeAnswered(yes)) } }),
                            items: [(Optional(true), store.termsYes, nil),
                                    (Optional(false), store.termsNotSure, nil)],
-                           itemSize: CGSize(width: 140, height: 64), spacing: Spacing.sm)
+                           itemSize: CGSize(width: 180, height: 64), spacing: Spacing.sm)
             }
         }
     }
