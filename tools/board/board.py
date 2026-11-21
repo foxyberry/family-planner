@@ -189,7 +189,51 @@ def scan_sessions(repo_root, slug):
     return sessions
 
 
+DESKTOP = os.path.expanduser("~/Library/Application Support/Claude/claude-code-sessions")
+LOCAL_ID = re.compile(r"^local_[A-Za-z0-9-]{1,64}$")
+
+
+def session_link(local_id):
+    """The Claude desktop app opens a Code session from claude://code/continue?session=local_<id>."""
+    return f"claude://code/continue?session={local_id}" if local_id and LOCAL_ID.match(local_id) else None
+
+
+def ms(value):
+    try:
+        return dt.datetime.fromtimestamp(int(value) / 1000, dt.timezone.utc)
+    except (TypeError, ValueError):
+        return None
+
+
+def desktop_sessions():
+    """The desktop app's own record of each Code session: its local id (for the deep link), title,
+    archived flag, turn times, last report and its post-turn summary (status and needs_action),
+    keyed by the Claude Code session id that names the transcript."""
+    out = {}
+    for path in glob.glob(os.path.join(DESKTOP, "*", "*", "local_*.json")):
+        try:
+            with open(path) as fh:
+                d = json.load(fh)
+        except (OSError, ValueError):
+            continue
+        summary = d.get("postTurnSummary") if isinstance(d.get("postTurnSummary"), dict) else {}
+        rec = {"local": d.get("sessionId"), "title": d.get("title"), "archived": bool(d.get("isArchived")),
+               "activity": ms(d.get("lastActivityAt")), "edge": ms(d.get("lastTurnEdgeAt")),
+               "report": d.get("lastTurnReport") or "", "status": summary.get("status_detail") or "",
+               "needs": summary.get("needs_action") or "", "awaiting": bool(d.get("interruptedAwaitingPerson"))}
+        for key in (d.get("cliSessionId"), d.get("lastAssistantCliSessionId")):
+            if key:
+                out.setdefault(key, rec)
+    return out
+
+
 def session_state(s):
+    """busy: inside a turn now; recent: a turn ended in the last 30 minutes; idle otherwise."""
+    d = s.get("desk") or {}
+    if d.get("activity") and d.get("edge"):
+        if d["activity"] > d["edge"] + dt.timedelta(seconds=3) and (now() - d["activity"]).total_seconds() < 900:
+            return "busy", "작업 중"
+        return ("recent", "방금 턴을 마침") if (now() - d["edge"]).total_seconds() < 1800 else ("idle", "쉬는 중")
     idle = (now() - s["mtime"]).total_seconds()
     if idle < 120:
         return "busy", "작업 중"
@@ -506,7 +550,8 @@ details.fold>summary{list-style:none;cursor:pointer}details.fold>summary::-webki
 details.fold>summary h2::before{content:"▾";color:var(--soft);margin-right:6px;display:inline-block;width:10px}
 details.fold:not([open])>summary h2::before{content:"▸"}details.fold:not([open])>summary h2{margin-bottom:0}
 .lane.fold>summary h2{justify-content:flex-start;gap:6px}.lane.fold>summary h2 .soft{margin-left:auto}
-.box.wide{grid-column:1/-1}
+.box.wide{grid-column:1/-1}a.sess{color:var(--info);text-decoration:none;border-bottom:1px dotted var(--info)}
+a.sess::after{content:" ↗";font-size:11px}td.report{font-size:12px;color:var(--soft);max-width:520px}
 .mine{background:var(--card);border:2px solid var(--user);border-radius:14px;padding:14px 16px;display:grid;gap:10px}
 .mine.calm{border-color:var(--line)}.mine h2{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
 .mine .count{background:var(--user);color:var(--card);border-radius:999px;padding:0 10px;font-size:14px}
@@ -541,6 +586,23 @@ def build():
     m = re.search(r"github\.com[:/]([^/]+/[^/.]+)", remote)
     slug = m.group(1) if m else ""
     sessions = scan_sessions(repo_root, slug)
+    desk = desktop_sessions()
+    for sid, s_ in list(sessions.items()):
+        d = desk.get(sid)
+        s_["desk"] = d
+        if d:
+            s_["title"] = d["title"] or s_["title"]
+            if d["activity"]:
+                s_["mtime"] = d["activity"]
+            if d["archived"]:
+                del sessions[sid]
+    links = {s_["title"]: session_link((s_["desk"] or {}).get("local")) for s_ in sessions.values()}
+
+    def sess(title, label=None):
+        """A session's name, linked to open it in the desktop app when its id is known."""
+        url = links.get(title)
+        text = esc(label or title)
+        return f'<a class="sess" href="{esc(url)}" title="앱에서 이 세션 열기">{text}</a>' if url else text
     reviewer = next((s["title"] for s in sessions.values() if "코드 리뷰" in s["title"] and "(fork)" not in s["title"]), "리뷰 세션")
     by_pr = {n: s for s in sessions.values() for n in s["prs"]}
     by_branch = {b: s for s in sessions.values() for b in s["branches"]}
@@ -603,15 +665,21 @@ def build():
     work = local_work(wts, pr_by_branch, ended, by_branch, owner_of, repo_root)
     mine = []
     for s_ in sorted(sessions.values(), key=lambda s_: (s_["waiting"] or {}).get("at") or ""):
-        q = s_["waiting"]
-        if q:
-            mine.append(("ask", "질문에 답하기" + (" · 세션이 멈춰 있음" if q["blocked"] else ""),
-                         esc(q["text"]), f'{esc(s_["title"])} 세션에서 답하기 · {esc(ago(parse_time(q["at"])))}'))
+        q, d = s_["waiting"], s_["desk"] or {}
+        asks = [x for x in (q and q["text"], d.get("needs")) if x]
+        if d.get("awaiting") and not asks:
+            asks.append(d.get("report") or "세션이 멈춰 사람을 기다립니다")
+        if asks:
+            stopped = (q and q["blocked"]) or d.get("awaiting")
+            mine.append(("ask", "세션이 내 답을 기다림" + (" · 멈춰 있음" if stopped else ""),
+                         "<br>".join(esc(a) for a in dict.fromkeys(asks)),
+                         f'{sess(s_["title"], s_["title"] + " 열기")}'
+                         + (f' · {esc(ago(parse_time(q["at"])))}' if q else "")))
     for c in cards["user"]:
         pr = c["pr"]
         mine.append(("ipad", "iPad에서 화면 확인",
                      f'<a href="{esc(pr["url"])}">#{pr["number"]} {esc(pr["title"])}</a>',
-                     f'괜찮으면 {esc(c["author"])} 세션에 "iPad OK"라고 알려 주기 · LGTM {esc(ago(c["since"]))}'))
+                     f'괜찮으면 {sess(c["author"])} 세션에 "iPad OK"라고 알려 주기 · LGTM {esc(ago(c["since"]))}'))
     decide = [i for i in work if i["verdict"] == "decide"]
     if decide:
         mine.append(("decide", f"로컬 브랜치 {len(decide)}개: 살릴지 지울지 정하기",
@@ -633,7 +701,7 @@ def build():
     if not order:
         h.append('<div class="box soft">세션 차례인 PR이 없습니다.</div>')
     for actor, items in order:
-        h.append(f'<div class="box"><b>{esc(actor)}</b> <span class="soft">· {len(items)}건</span><ul>')
+        h.append(f'<div class="box"><b>{sess(actor)}</b> <span class="soft">· {len(items)}건</span><ul>')
         for c in sorted(items, key=lambda c: c["since"] or now()):
             h.append(f'<li><a href="{esc(c["pr"]["url"])}">#{c["pr"]["number"]}</a> {esc(c["what"])} '
                      f'<span class="soft">({esc(ago(c["since"]))}부터)</span></li>')
@@ -651,14 +719,14 @@ def build():
             pr = c["pr"]
             if key == "merged":  # one compact line each: what landed, from which session, when
                 h.append(f'<div class="card small"><div class="t"><a href="{esc(pr["url"])}">#{pr["number"]} {esc(pr["title"])}</a></div>'
-                         f'<div class="meta">{esc(c["author"]) or "세션 모름"} · {esc(ago(c["since"]))}</div></div>')
+                         f'<div class="meta">{sess(c["author"]) if c["author"] else "세션 모름"} · {esc(ago(c["since"]))}</div></div>')
                 continue
             h.append(f'<div class="card"><div class="t"><a href="{esc(pr["url"])}">#{pr["number"]} {esc(pr["title"])}</a></div>')
             h.append('<div class="chips">' + "".join(f'<span class="chip">{esc(x)}</span>' for x in c["chips"]) + "</div>")
             if c["actor"]:
-                h.append(f'<div class="blk {blocker_class(c["actor"])}"><b>{esc(c["actor"])}</b> · {esc(c["what"])} '
+                h.append(f'<div class="blk {blocker_class(c["actor"])}"><b>{sess(c["actor"])}</b> · {esc(c["what"])} '
                          f'<span class="soft">· {esc(ago(c["since"]))}</span></div>')
-            meta = [f'만든 세션: {esc(c["author"]) or "모름"}', f'<code>{esc(pr["headRefName"])}</code>']
+            meta = [f'만든 세션: {sess(c["author"])}', f'<code>{esc(pr["headRefName"])}</code>']
             if key == "merged":
                 meta.append(f'머지 {esc(ago(c["since"]))}')
             h.append('<div class="meta">' + " · ".join(meta) + "</div>")
@@ -671,13 +739,18 @@ def build():
     # Sessions, local-only work, machine
     h.append('<section class="grid2">')
     h.append('<div class="box wide"><details class="fold" data-id="sessions" open><summary><h2>세션</h2></summary>'
-             '<table><tr><th>세션</th><th>상태</th><th>만든 PR</th></tr>')
+             '<table><tr><th>세션</th><th>상태</th><th>마지막 보고</th><th>만든 PR</th></tr>')
     open_numbers = {p["number"]: p for p in open_prs}
     for s in sorted(sessions.values(), key=lambda s: s["mtime"], reverse=True):
         cls, label = session_state(s)
         prs = " ".join(f'<a href="{esc(open_numbers[n]["url"])}">#{n}</a>' for n in s["prs"] if n in open_numbers)
-        h.append(f'<tr><td>{esc(s["title"])}</td><td><span class="dot {cls}"></span>{label} '
-                 f'<span class="soft">({esc(ago(s["mtime"]))})</span></td><td>{prs or "<span class=soft>열린 PR 없음</span>"}</td></tr>')
+        d = s.get("desk") or {}
+        status = f'<div class="meta">{esc(d["status"])}</div>' if d.get("status") else ""
+        report = esc(d.get("report", "")[:220]) + ("…" if len(d.get("report", "")) > 220 else "")
+        h.append(f'<tr><td>{sess(s["title"])}</td><td><span class="dot {cls}"></span>{label} '
+                 f'<span class="soft">({esc(ago(s["mtime"]))})</span>{status}</td>'
+                 f'<td class="report">{report or "<span class=soft>없음</span>"}</td>'
+                 f'<td>{prs or "<span class=soft>열린 PR 없음</span>"}</td></tr>')
     h.append("</table></details></div>")
 
     # Local work: each branch's story and a verdict; safe deletes fold away with their commands
@@ -698,7 +771,7 @@ def build():
         return (f'<tr><td>{where}</td><td>{what}<div class="meta">{esc(detail)}</div>'
                 f'{"<div class=chips>" + chips + "</div>" if chips else ""}</td>'
                 f'<td><b class="{cls}">{label}</b>{link}<div class="meta">{esc(i["why"])}</div></td>'
-                f'<td class="soft">{esc(i["who"])}</td></tr>')
+                f'<td class="soft">{sess(i["who"]) if i["who"] else ""}</td></tr>')
 
     keep = [i for i in work if i["verdict"] != "delete"]
     drop = [i for i in work if i["verdict"] == "delete"]
@@ -737,7 +810,8 @@ def build():
     os.makedirs(OUT, exist_ok=True)
     tmp = PAGE + ".tmp"
     with open(tmp, "w") as fh:
-        fh.write("\n".join(h))
+        # GitHub pages open in a new window; session links stay as they are (the app opens them).
+        fh.write("\n".join(h).replace('<a href="https://github.com/', '<a target="_blank" rel="noopener" href="https://github.com/'))
     os.replace(tmp, PAGE)
 
 
