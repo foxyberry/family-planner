@@ -19,12 +19,12 @@ public struct AddChildView: View {
             GrownupHeader(title: store.title, caption: store.headerCaption, backLabel: store.backLabel,
                           onBack: { store.send(.backTapped) })
         } content: { layout in
-            // Spec "Kid card" (layout v59): the S1 card, hugging its four rows at the top of the main slot.
+            // Spec "Kid card": the S1 card (two rows), hugging its rows at the top of the main slot.
             PaperCard(seed: 37, padding: FormLines.cardPadding) {
                 KidCard(words: store.cardWords, name: $store.name, age: $store.ageText, badge: store.badge,
                         shownName: store.trimmedName, colorIndex: store.colorIndex, face: store.face,
                         onColour: { store.send(.colourTapped($0)) }, onFace: { store.send(.faceTapped($0)) })
-                    .formLines(layout.formLines())
+                    .formLines(KidCard.lines(layout, words: store.cardWords))
             }
             .frame(width: layout.form.width)
             .frame(height: layout.form.height, alignment: .top)

@@ -6,6 +6,11 @@ import SwiftUI
 /// Every design-system part on one screen, grouped like the design boards (0b controls,
 /// 0c content, 0f frames). New parts are added here first. Reached from parent mode in debug builds.
 public struct ComponentGallery: View {
+    /// The kid card's words (made up, gallery only).
+    static let kidWords = KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
+                                        colour: "Colour", face: "Face", colourNames: ["Blue", "Orange", "Green", "Purple"],
+                                        faces: [(.kidGirl, "Girl"), (.kidBoy, "Boy")])
+
     @State private var tab = 0
     @State private var monday = true
     @State private var tuesday = false
@@ -49,13 +54,11 @@ public struct ComponentGallery: View {
                     }
                     // S1 / G6f: the kid card.
                     PaperCard(padding: FormLines.cardPadding) {
-                        KidCard(words: KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
-                              colour: "Colour", face: "Face", colourNames: ["Blue", "Orange", "Green", "Purple"],
-                              faces: [(.kidGirl, "Girl"), (.kidBoy, "Boy")]),
+                        KidCard(words: Self.kidWords,
                                 name: .constant("Kid A"), age: .constant("7"),
                                 badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), shownName: "Kid A",
                                 colorIndex: 1, face: "kidGirl", onColour: { _ in }, onFace: { _ in })
-                            .formLines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)).formLines())
+                            .formLines(KidCard.lines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)), words: Self.kidWords))
                     }
                     .frame(width: 800)
                     // C2 / C2c / S3: a minutes stepper.

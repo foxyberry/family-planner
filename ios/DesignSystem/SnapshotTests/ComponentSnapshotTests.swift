@@ -332,8 +332,8 @@ final class ComponentSnapshotTests: XCTestCase {
              named: "changes")
     }
 
-    /// Spec "Kid card" (board S1, layout v59): Name with the face inside, Age 152, Colour, Face,
-    /// stacked 24 apart drawn on the form lines; made-up names only.
+    /// Spec "Kid card" (board S1, two columns): Name with the face inside + Age, Colour + Face, rows
+    /// 24 apart drawn on the form lines; made-up names only.
     func testKidCard() {
         let words = KidCard.Words(name: "Name", namePlaceholder: "Child's name", age: "Age", agePlaceholder: "Age",
                               colour: "Colour", face: "Face", colourNames: ["Blue", "Orange", "Green", "Purple"],
@@ -342,7 +342,7 @@ final class ComponentSnapshotTests: XCTestCase {
             KidCard(words: words, name: .constant("Kid A"), age: .constant("7"),
                     badge: KidFace.Badge(face: "kidGirl", colorIndex: 1), shownName: "Kid A", colorIndex: 1,
                     face: "kidGirl", onColour: { _ in }, onFace: { _ in })
-                .formLines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)).formLines())
+                .formLines(KidCard.lines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)), words: words))
         }.frame(width: 800), width: 840)
     }
 

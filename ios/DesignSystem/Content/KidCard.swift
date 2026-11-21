@@ -2,10 +2,11 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// The kid card (board S1, layout v59), shared by S1 and G6f "Add a child": four rows stacked on the
-/// form lines (label 78, control 192, right edge 808), 24 apart drawn. Name stretches to the right
-/// edge with the kid's face inside; Age is a fixed 152 field; Colour holds the swatches and Face the
-/// kid pictures, both starting on the drawn line 198. Put it in a `PaperCard` with `formLines`.
+/// The kid card (board S1, layout v56 two columns; user 2026-11-21), shared by S1 and G6f "Add a
+/// child": two rows on the form lines, 24 apart drawn. Row 1: Name (with the kid's face inside) and
+/// Age; row 2: Colour swatches and Face pictures. Age and Face form a second column ending on the
+/// right edge (drawn 802), under the first when the card is too narrow. Put it in a `PaperCard` with
+/// `.formLines(KidCard.lines(layout, words:))`.
 public struct KidCard: View {
     /// Every word the card shows, from the caller's State.
     public struct Words: Equatable, Sendable {
@@ -40,8 +41,16 @@ public struct KidCard: View {
         }
     }
 
-    /// Board S1: the Age field, 152 wide (drawn 140).
-    public static let ageWidth: CGFloat = 152
+    /// The card's lines: the second column fits the two faces; the first column keeps room for the
+    /// four swatches.
+    public static func lines(_ layout: GrownupLayout, words: Words) -> FormLines {
+        let sizing = layout.sizing, swatches = CGFloat(words.colourNames.count)
+        return layout.formLines(secondLabels: [words.age, words.face],
+                                secondControlWidth: CGFloat(words.faces.count) * sizing.pickedFace
+                                    + CGFloat(max(words.faces.count - 1, 0)) * Spacing.sm,
+                                firstControlMinimum: swatches * ColourSwatch.frame(sizing)
+                                    + max(swatches - 1, 0) * Spacing.sm)
+    }
 
     @Environment(\.sizing) private var sizing
     private let words: Words
@@ -70,25 +79,22 @@ public struct KidCard: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: sizing.formRowGap) {
-            FormRow(words.name, kind: .field) {
+            FormRow(words.name, kind: .field, second: words.age) {
                 CrayonField(words.namePlaceholder, text: $name) {
                     KidFace(badge, name: shownName, size: KidFace.medium)
                 }
-            }
-            FormRow(words.age, kind: .field) {
+            } secondControl: {
                 CrayonField(words.agePlaceholder, text: $age)
                     .keyboardType(.numberPad)
-                    .frame(width: Self.ageWidth)
             }
-            FormRow(words.colour, kind: .choice) {
+            FormRow(words.colour, kind: .choice, second: words.face) {
                 HStack(spacing: Spacing.sm) {
                     ForEach(Array(words.colourNames.enumerated()), id: \.offset) { colour, colourName in
                         ColourSwatch(colorIndex: colour, isPicked: colorIndex == colour,
                                      accessibilityLabel: colourName) { onColour(colour) }
                     }
                 }
-            }
-            FormRow(words.face, kind: .choice) {
+            } secondControl: {
                 HStack(spacing: Spacing.sm) {
                     ForEach(words.faces, id: \.slot) { choice in
                         faceButton(choice.slot, name: choice.name)

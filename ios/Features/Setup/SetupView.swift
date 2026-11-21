@@ -207,7 +207,7 @@ private struct FamilyStep: View {
 
     private var sizing: Sizing { layout.grown.sizing }
 
-    /// Spec "Kid card" (layout v59): the shared four-row card on the form lines.
+    /// Spec "Kid card": the shared two-row card on the form lines (user, 2026-11-21).
     private func card(_ kid: KidEntry, index: Int) -> some View {
         KidCard(words: store.kidCardWords,
                 name: Binding(get: { kid.name }, set: { store.send(.nameChanged(kid.id, $0)) }),
@@ -215,7 +215,7 @@ private struct FamilyStep: View {
                 badge: kid.badge, shownName: kid.shownName(index: index), colorIndex: kid.colorIndex,
                 face: kid.pickedFace,
                 onColour: { store.send(.colourTapped(kid.id, $0)) }, onFace: { store.send(.faceTapped(kid.id, $0)) })
-            .formLines(layout.grown.formLines())
+            .formLines(KidCard.lines(layout.grown, words: store.kidCardWords))
     }
 }
 
