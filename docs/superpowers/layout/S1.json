@@ -194,7 +194,7 @@
    "font": 30
   },
   {
-   "id": "main.row.name.text.2",
+   "id": "main.row.age.text.1",
    "kind": "text",
    "x": 723,
    "y": 197,
@@ -242,7 +242,7 @@
    "text": "Face"
   },
   {
-   "id": "main.row.colour.choice.1",
+   "id": "main.row.face.choice.1",
    "kind": "choice",
    "x": 662,
    "y": 278,
@@ -254,7 +254,7 @@
    "text": "Girl face"
   },
   {
-   "id": "main.row.colour.choice.2",
+   "id": "main.row.face.choice.2",
    "kind": "choice",
    "x": 738,
    "y": 278,
@@ -373,7 +373,7 @@
    "align": "inside"
   },
   {
-   "id": "main.row.name.text.3",
+   "id": "main.row.name.text.2",
    "kind": "text",
    "x": 216,
    "y": 456,
@@ -386,7 +386,7 @@
    "font": 30
   },
   {
-   "id": "main.row.name.text.4",
+   "id": "main.row.age.text.2",
    "kind": "text",
    "x": 721,
    "y": 457,
@@ -434,7 +434,7 @@
    "text": "Face"
   },
   {
-   "id": "main.row.colour.choice.3",
+   "id": "main.row.face.choice.3",
    "kind": "choice",
    "x": 662,
    "y": 538,
@@ -446,7 +446,7 @@
    "text": "Girl face"
   },
   {
-   "id": "main.row.colour.choice.4",
+   "id": "main.row.face.choice.4",
    "kind": "choice",
    "x": 738,
    "y": 538,

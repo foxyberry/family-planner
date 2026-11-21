@@ -149,7 +149,7 @@
    "text": "Age"
   },
   {
-   "id": "main.row.name.text.1",
+   "id": "main.row.name.text",
    "kind": "text",
    "x": 272,
    "y": 197,
@@ -163,7 +163,7 @@
    "text": "Name"
   },
   {
-   "id": "main.row.name.text.2",
+   "id": "main.row.age.text",
    "kind": "text",
    "x": 704,
    "y": 197,
@@ -201,7 +201,7 @@
    "text": "Face"
   },
   {
-   "id": "main.row.colour.choice.1",
+   "id": "main.row.face.choice.1",
    "kind": "choice",
    "x": 662,
    "y": 278,
@@ -213,7 +213,7 @@
    "text": "Girl face"
   },
   {
-   "id": "main.row.colour.choice.2",
+   "id": "main.row.face.choice.2",
    "kind": "choice",
    "x": 738,
    "y": 278,
