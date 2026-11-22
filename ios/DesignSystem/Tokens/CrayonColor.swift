@@ -64,21 +64,36 @@ public enum CrayonColor {
     /// The layer behind a card: ink 35 % by day, black 45 % in dark mode.
     public static let dim = adaptiveDim()
 
-    /// Spec K1 "Marks": a public holiday's light red cell (a dark red one in dark mode).
+    /// Spec K1 "Marks" (layout v74): a public holiday's light red cell and chip (dark red at night).
+    /// Its numeral is `lateText` (#C62F35 / #FF8A8E), drawn only on this colour.
     public static let holidayGround = adaptive(CrayonPalette.holidayGround, night: CrayonPalette.nightHolidayGround)
-    /// Spec K1 "Marks": today's disc, ink by day and paper (moon paper) by night, with its numeral.
-    public static let todayDisc = adaptive(CrayonPalette.ink, night: CrayonPalette.moonPaper)
+    /// Spec K1 "Marks": today's pill (disc when open) and its numeral.
+    public static let todayDisc = adaptive(CrayonPalette.ink, night: CrayonPalette.nightToday)
     public static let todayText = adaptive(CrayonPalette.card, night: CrayonPalette.night)
-    /// Red text on a crayon ground (a kid's day off): day red in both looks, as labels on crayon
-    /// on-states stay ink at night (spec "Night mapping").
-    public static let pictureLate = CrayonPalette.lateText.color
+    /// Spec K1: an unpicked year tab; the weekend columns.
+    public static let yearTab = adaptive(CrayonPalette.yearTab, night: CrayonPalette.nightYearTab)
+    public static let weekendShade = adaptive(CrayonPalette.weekendShade, night: CrayonPalette.nightWeekendShade)
 
-    /// Spec K1 "Marks": a kid's school day off in the kid's colour, as crayon (Kid A sky, Kid B
-    /// apricot, then green and lilac); more kids than colours wrap around, as `kid(_:)` does.
+    /// Spec K1 "Marks": a kid's school day off in the kid's colour (Kid A sky, Kid B apricot, then
+    /// green and lilac; darker at night); more kids than colours wrap around, as `kid(_:)` does.
     public static func kidOff(_ colorIndex: Int) -> Color {
-        let fills = [CrayonPalette.nowSky, CrayonPalette.kidApricot, CrayonPalette.doneGreen, CrayonPalette.lilac]
-        return fills[((colorIndex % fills.count) + fills.count) % fills.count].color
+        let fill = kidOffFills[((colorIndex % kidOffFills.count) + kidOffFills.count) % kidOffFills.count]
+        return adaptive(fill.day, night: fill.night)
     }
+
+    /// A day numeral on a kid's day off: ink by day; at night whichever of the night page colour and
+    /// `nightText` reads better on that fill (dark on sky, apricot and green; light on lilac).
+    public static func kidOffText(_ colorIndex: Int) -> Color {
+        let fill = kidOffFills[((colorIndex % kidOffFills.count) + kidOffFills.count) % kidOffFills.count]
+        return adaptive(CrayonPalette.ink, night: fill.nightText)
+    }
+
+    private static let kidOffFills: [(day: RGB, night: RGB, nightText: RGB)] = [
+        (CrayonPalette.nowSky, CrayonPalette.nightSky, CrayonPalette.night),
+        (CrayonPalette.kidApricot, CrayonPalette.nightApricot, CrayonPalette.night),
+        (CrayonPalette.doneGreen, CrayonPalette.nightGreen, CrayonPalette.night),
+        (CrayonPalette.lilac, CrayonPalette.nightLilac, CrayonPalette.nightText),
+    ]
 
     /// Colours a parent can pick for a child (blue, orange, green, purple).
     public static let kidPalette: [Color] = [

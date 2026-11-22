@@ -49,6 +49,6 @@ final class MonthGridTests: XCTestCase {
     }
 
     func testWeekdayLettersRunMondayFirst() {
-        XCTAssertEqual(DayText.mondayFirst.map(DayText.twoLetter), ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"])
+        XCTAssertEqual(DayText.mondayFirst.map(DayText.initial), ["M", "T", "W", "T", "F", "S", "S"])
     }
 }

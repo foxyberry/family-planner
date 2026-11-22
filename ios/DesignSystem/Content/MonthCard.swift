@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// A month on the school calendar (board K1, spec K1 "Layout"): white paper with a marker edge, the
+/// A month on the school calendar (board K1, spec K1 "Layout", layout v74): white paper with a marker edge, the
 /// month's name, the weekday row and six rows of day cells (`CalendarCell`), Saturday and Sunday
 /// lightly shaded. `.card` is one of the year's twelve (312 × 268); `.open` is the month opened over
 /// the year (860 × 800, board K1o), whose "×" the screen places on it.
 public struct MonthCard: View {
-    /// Board lines inside the card, measured from boards K1 and K1o (layout v71).
+    /// Board lines inside the card, measured from boards K1 and K1o (layout v74).
     public enum Size: Sendable {
         case card, open
 
@@ -22,12 +22,13 @@ public struct MonthCard: View {
         public var titleLeft: CGFloat { self == .card ? 20 : 40 }
         public var titleBaseline: CGFloat { self == .card ? 43 : 80 }
         public var titleType: CrayonType { self == .card ? .body : .title }
-        /// The weekday row's baseline and size (card 17 soft; open 24).
-        public var weekdayBaseline: CGFloat { self == .card ? 72 : 140 }
-        public var weekdaySize: CGFloat { self == .card ? 17 : 24 }
-        /// The first cell's top-left and the pitch: card 36 × 28 on 40 / 30 from (18, 78); open
-        /// 104 × 96 on 112 / 104 from (40, 148).
-        public var gridOrigin: CGPoint { self == .card ? CGPoint(x: 18, y: 78) : CGPoint(x: 40, y: 148) }
+        /// The weekday row's baseline (layout v74: card "M T W T F S S" 24 on 76; open "Mon … Sun" 24
+        /// on 140). Nothing on the card is under 24.
+        public var weekdayBaseline: CGFloat { self == .card ? 76 : 140 }
+        public var weekdaySize: CGFloat { 24 }
+        /// The first cell's top-left and the pitch: card 36 × 28 on 40 / 30 from (18, 82), numerals on
+        /// the cell's middle (first baseline 254 − 148 = 106); open 104 × 96 on 112 / 104 from (40, 148).
+        public var gridOrigin: CGPoint { self == .card ? CGPoint(x: 18, y: 82) : CGPoint(x: 40, y: 148) }
         public var pitch: CGSize { self == .card ? CGSize(width: 40, height: 30) : CGSize(width: 112, height: 104) }
     }
 
@@ -78,7 +79,7 @@ public struct MonthCard: View {
         ForEach([5, 6], id: \.self) { column in
             let top = cellRect(row: 0, column: column), bottom = cellRect(row: MonthCard.rows - 1, column: column)
             RoundedRectangle(cornerRadius: sizing(size.cell.corner))
-                .fill(CrayonColor.paper)
+                .fill(CrayonColor.weekendShade)
                 .place(CGRect(x: top.minX, y: top.minY, width: top.width, height: bottom.maxY - top.minY))
         }
     }

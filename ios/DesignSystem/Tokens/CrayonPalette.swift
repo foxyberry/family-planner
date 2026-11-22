@@ -76,10 +76,24 @@ public enum CrayonPalette {
     public static let nightLate = RGB(hex: 0xFF8A8E)
     /// Links at night.
     public static let nightLink = RGB(hex: 0x56B4E9)
-    // School calendar (spec K1 "Marks"). The spec names no values yet; these pass its Contrast rule
-    // for the red numeral (lateText 4.57 : 1 by day, nightLate 5.74 : 1 at night).
-    /// A public holiday's light red cell.
-    public static let holidayGround = RGB(hex: 0xFDE6E6)
-    /// The same cell at night, dark so `nightLate` reads on it.
-    public static let nightHolidayGround = RGB(hex: 0x3F2A40)
+    // School calendar (spec K1 "Marks", layout v74), day / night. Red sits only on the holiday colour
+    // (lateText 4.36 : 1 by day, nightLate 4.59 : 1 at night, both 24 bold and up).
+    /// A public holiday's cell, and the chip under its numeral inside a kid's colour.
+    public static let holidayGround = RGB(hex: 0xFBE0DE)
+    public static let nightHolidayGround = RGB(hex: 0x5C3347)
+    /// A kid's days off at night: the kid's day fill (sky, apricot, green, lilac) with its HSL
+    /// saturation × 0.483 and lightness × 0.643, as the spec's sky #8FD3F4 → #4F8FB3 and apricot
+    /// #FBC97A → #A8823F; green and lilac are derived the same way.
+    public static let nightSky = RGB(hex: 0x4F8FB3)
+    public static let nightApricot = RGB(hex: 0xA8823F)
+    public static let nightGreen = RGB(hex: 0x628C5F)
+    public static let nightLilac = RGB(hex: 0x6F56AD)
+    /// An unpicked year tab.
+    public static let yearTab = RGB(hex: 0xEDE7DC)
+    public static let nightYearTab = RGB(hex: 0x3E3B5E)
+    /// Saturday and Sunday columns.
+    public static let weekendShade = RGB(hex: 0xF1ECE2)
+    public static let nightWeekendShade = RGB(hex: 0x353352)
+    /// Today's pill: ink #2B2833 with a white numeral by day, paper #F6F2EA with #22213A at night.
+    public static let nightToday = RGB(hex: 0xF6F2EA)
 }

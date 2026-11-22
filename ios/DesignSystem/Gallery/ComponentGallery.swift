@@ -285,7 +285,7 @@ public struct ComponentGallery: View {
                         .init(swatch: .init(number: "22", isToday: true), label: "Today"),
                     ])
                     HStack(alignment: .top, spacing: Spacing.m) {
-                        MonthCard(title: "November", weekdays: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+                        MonthCard(title: "November", weekdays: ["M", "T", "W", "T", "F", "S", "S"],
                                   weeks: Self.november, size: .card)
                         MonthCard(title: "November 2026", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
                                   weeks: Self.november, size: .open)

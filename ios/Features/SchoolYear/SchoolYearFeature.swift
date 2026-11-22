@@ -8,7 +8,7 @@ import ScheduleStore
 import SchoolDirectory
 import Strings
 
-/// K1 · School calendar (spec K1, boards K1, K1o, K1n; layout v71): a read-only year of each kid's
+/// K1 · School calendar (spec K1, boards K1, K1o, K1n; layout v74): a read-only year of each kid's
 /// school days off and the public holidays, opened from the calendar button on the kid home without
 /// the lock. Twelve month cards; a tapped card opens over the year.
 @Reducer
@@ -69,7 +69,7 @@ public struct SchoolYearFeature {
             public var tabs: [(Int, String, KidFace.Badge?)]
             public var pickedYear: Int
             public var legend: [CalendarLegend.Item]
-            /// "Mo" … "Su" on the cards; "Mon" … "Sun" on the open month.
+            /// "M" … "S" on the cards (layout v74); "Mon" … "Sun" on the open month.
             public var weekdays: [String]
             public var openWeekdays: [String]
             public var months: [Month]
@@ -91,7 +91,7 @@ public struct SchoolYearFeature {
                       weeks: month.weeks)
             }
             return Screen(tabs: year.years.map { ($0, "\($0)", nil) }, pickedYear: year.picked,
-                          legend: legend(year), weekdays: DayText.mondayFirst.map(DayText.twoLetter),
+                          legend: legend(year), weekdays: DayText.mondayFirst.map(DayText.initial),
                           openWeekdays: DayText.mondayFirst.map(DayText.shortName), months: months, open: open)
         }
 
@@ -101,8 +101,9 @@ public struct SchoolYearFeature {
                               isHoliday: year.family.publicHolidays.contains(day), isToday: day == year.today)
         }
 
-        /// The key (board K1): each kid at school with their face, "Both off" for two of them, then
-        /// "Public holiday" and "Today". A kid at home has no school days off, so is not listed.
+        /// The key (board K1): each kid at school with their face, "Both off" when the family has
+        /// exactly two kids and both are at school (spec v74), then "Public holiday" and "Today". A kid
+        /// at home has no school days off, so is not listed.
         private func legend(_ year: Year) -> [CalendarLegend.Item] {
             let atSchool = year.kids.filter { $0.school != nil }
             var items = atSchool.map { kid in
@@ -110,7 +111,7 @@ public struct SchoolYearFeature {
                                     swatch: CalendarCell.Mark(number: "", kids: [kid.colorIndex]),
                                     label: strings.tr("calendar.kid_off", kid.name))
             }
-            if atSchool.count == 2 {
+            if year.kids.count == 2, atSchool.count == 2 {
                 items.append(CalendarLegend.Item(swatch: CalendarCell.Mark(number: "", kids: atSchool.map(\.colorIndex)),
                                                  label: strings.tr("calendar.both_off")))
             }

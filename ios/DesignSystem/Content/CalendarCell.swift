@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// One day on the school calendar (spec K1 "Marks"): each kid's school day off as a diagonal band in
-/// the kid's colour (one kid fills the cell; two or more split it), a public holiday as a red
-/// numeral on a light red cell (inside a break the kid colour stays and the numeral is red), and
-/// today as a dark disc behind the numeral. The cell keeps its colour under the disc.
+/// One day on the school calendar (spec K1 "Marks", layout v74): each kid's school day off as a
+/// diagonal band in the kid's colour (one kid fills the cell; two or more split it); a public holiday
+/// as a red numeral (24 bold and up) on the light red holiday colour: the whole cell, or inside a kid's
+/// colour a chip under the numeral, so red never sits on a kid colour; today as a dark pill (a disc
+/// when open) behind the numeral. The cell keeps its colour under the pill.
 ///
 /// Flat fills, not crayon outlines: a year has about 500 cells, and the month card around them
 /// carries the crayon line.
@@ -24,45 +25,54 @@ public struct CalendarCell: View {
         }
     }
 
-    /// Board sizes: a month card's cell 36 × 28 (numeral 18, disc 24), an open month's 104 × 96
-    /// (numeral 32 bold, disc 70).
+    /// Board sizes (layout v74): a month card's cell 36 × 28 (numeral 24, today pill 38 × 28, holiday
+    /// chip 32 × 24); an open month's 104 × 96 (numeral 32 bold, today disc 70, chip 76 × 64); a key
+    /// swatch 48 × 36 (numeral 24 bold, the pill fills it).
     public enum Size: Sendable {
-        case card, open
+        case card, open, legend
 
         public var board: CGSize {
             switch self {
             case .card: CGSize(width: 36, height: 28)
             case .open: CGSize(width: 104, height: 96)
+            case .legend: CGSize(width: 48, height: 36)
             }
         }
 
-        var numeral: CGFloat {
+        public var numeral: CGFloat {
             switch self {
-            case .card: 18
+            case .card, .legend: 24
             case .open: 32
             }
         }
 
-        var weight: UIFont.Weight {
+        /// Today's mark: a pill on a card and in the key, a disc when open.
+        public var today: CGSize {
             switch self {
-            case .card: .medium
-            case .open: .bold
+            case .card: CGSize(width: 38, height: 28)
+            case .open: CGSize(width: 70, height: 70)
+            case .legend: CGSize(width: 48, height: 36)
             }
         }
 
-        var disc: CGFloat {
+        /// The light red chip under a holiday's numeral inside a kid's colour.
+        public var chip: CGSize {
             switch self {
-            case .card: 24
-            case .open: 70
+            case .card: CGSize(width: 32, height: 24)
+            case .open: CGSize(width: 76, height: 64)
+            case .legend: CGSize(width: 42, height: 32)
             }
         }
 
         var corner: CGFloat {
             switch self {
-            case .card: 6
+            case .card, .legend: 6
             case .open: 16
             }
         }
+
+        /// Plain numerals: regular on cards, bold when open and in the key.
+        var bold: Bool { self != .card }
     }
 
     private let mark: Mark
@@ -76,18 +86,24 @@ public struct CalendarCell: View {
 
     public var body: some View {
         ZStack {
-            ground
+            ground.clipShape(RoundedRectangle(cornerRadius: sizing(size.corner)))
+            if mark.isHoliday && !mark.kids.isEmpty && !mark.isToday {
+                RoundedRectangle(cornerRadius: sizing(size.corner))
+                    .fill(CrayonColor.holidayGround)
+                    .frame(width: sizing(size.chip.width), height: sizing(size.chip.height))
+            }
             if mark.isToday {
-                Circle().fill(CrayonColor.todayDisc).frame(width: sizing(size.disc), height: sizing(size.disc))
+                // A pill as tall as the cell (it may stand a little past a card cell's sides).
+                Capsule().fill(CrayonColor.todayDisc)
+                    .frame(width: sizing(size.today.width), height: sizing(size.today.height))
             }
             Text(mark.number)
-                .font(Font(FontRegistrar.font(size: sizing(size.numeral), weight: size.weight)))
+                .font(Font(FontRegistrar.font(size: sizing(size.numeral), weight: isBold ? .bold : .medium)))
                 .foregroundStyle(numeralColor)
                 .lineLimit(1)
                 .fixedSize()
         }
         .frame(width: sizing(size.board.width), height: sizing(size.board.height))
-        .clipShape(RoundedRectangle(cornerRadius: sizing(size.corner)))
     }
 
     @ViewBuilder private var ground: some View {
@@ -104,12 +120,14 @@ public struct CalendarCell: View {
         }
     }
 
-    /// Today: the disc's numeral. On a kid's colour (a crayon ground) the day colours stay at night,
-    /// as labels on crayon on-states do (spec "Night mapping").
+    /// Red numerals are bold everywhere (spec: 24 bold and up, so the large-text 3 : 1 applies).
+    private var isBold: Bool { size.bold || (mark.isHoliday && !mark.isToday) }
+
     private var numeralColor: Color {
         if mark.isToday { return CrayonColor.todayText }
-        if !mark.kids.isEmpty { return mark.isHoliday ? CrayonColor.pictureLate : CrayonColor.pictureInk }
-        return mark.isHoliday ? CrayonColor.lateText : CrayonColor.ink
+        if mark.isHoliday { return CrayonColor.lateText }
+        if let first = mark.kids.first { return CrayonColor.kidOffText(first) }
+        return CrayonColor.ink
     }
 }
 

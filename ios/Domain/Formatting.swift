@@ -67,19 +67,6 @@ public enum DayText {
     }
 
 
-    /// "Mo": the weekday row on the school calendar's month cards (board K1).
-    public static func twoLetter(_ weekday: Weekday) -> String {
-        switch weekday {
-        case .sunday: L10n.tr("weekday.two.sunday")
-        case .monday: L10n.tr("weekday.two.monday")
-        case .tuesday: L10n.tr("weekday.two.tuesday")
-        case .wednesday: L10n.tr("weekday.two.wednesday")
-        case .thursday: L10n.tr("weekday.two.thursday")
-        case .friday: L10n.tr("weekday.two.friday")
-        case .saturday: L10n.tr("weekday.two.saturday")
-        }
-    }
-
     /// Monday … Sunday, the order the calendar's columns read.
     public static let mondayFirst: [Weekday] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
 

@@ -2,7 +2,7 @@ import DesignSystem
 import SchoolYear
 import XCTest
 
-/// Boards K1 and K1o (layout v71): the school calendar's parts at s = 1, and the board × s on every
+/// Boards K1 and K1o (layout v74): the school calendar's parts at s = 1, and the board × s on every
 /// iPad (spec "Sizing: one scale, no floors").
 final class SchoolYearLayoutTests: XCTestCase {
     private let iPads = [Sizing(width: 1366, height: 1024), Sizing(width: 1180, height: 820),

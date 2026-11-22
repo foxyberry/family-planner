@@ -6,7 +6,7 @@ import JourneyWorld
 import SchoolYear
 import XCTest
 
-/// K1 · School calendar (spec K1, layout v71): from the kids' home, without the lock.
+/// K1 · School calendar (spec K1, layout v74): from the kids' home, without the lock.
 @MainActor
 final class SchoolYearJourneys: XCTestCase {
     /// A kid taps the calendar on home, sees the year with Kid A's year-end break and Deepavali,

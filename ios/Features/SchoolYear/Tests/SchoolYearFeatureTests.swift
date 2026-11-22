@@ -8,7 +8,7 @@ import SchoolDirectory
 import SchoolYear
 import XCTest
 
-/// Spec K1 · School calendar (boards K1, K1o, K1n; layout v71). Today is Tuesday 10 Nov 2026 in
+/// Spec K1 · School calendar (boards K1, K1o, K1n; layout v74). Today is Tuesday 10 Nov 2026 in
 /// Singapore, no holiday. Holidays and breaks come from the bundled 2026–2027 lists: Hari Raya Puasa
 /// 21 Mar inside the March holidays (14–22 Mar), Labour Day 1 May, Deepavali 8 Nov and its observed
 /// day 9 Nov, the year-end break from 21 Nov, Christmas 25 Dec inside it.
@@ -86,7 +86,7 @@ final class SchoolYearFeatureTests: XCTestCase {
         XCTAssertEqual(screen.tabs.map(\.1), ["2026", "2027"])
         XCTAssertEqual(screen.months.map(\.title).prefix(3), ["January", "February", "March"])
         XCTAssertEqual(screen.months.count, 12)
-        XCTAssertEqual(screen.weekdays, ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"])
+        XCTAssertEqual(screen.weekdays, ["M", "T", "W", "T", "F", "S", "S"], "one letter at 24 (layout v74)")
         let a = SeedData.kidA.colorIndex
         XCTAssertEqual(mark(screen, today), CalendarCell.Mark(number: "10", isToday: true))
         XCTAssertEqual(mark(screen, Day(year: 2026, month: 11, day: 9)), CalendarCell.Mark(number: "9", isHoliday: true))
@@ -125,6 +125,17 @@ final class SchoolYearFeatureTests: XCTestCase {
         XCTAssertEqual(screen.legend[2].swatch.kids, [SeedData.kidA.colorIndex, SeedData.kidB.colorIndex])
         XCTAssertEqual(mark(screen, Day(year: 2026, month: 11, day: 23))?.kids,
                        [SeedData.kidA.colorIndex, SeedData.kidB.colorIndex], "both off: the cell splits")
+
+        // Spec v74: "Both off" only when the family has exactly two kids (a third kid at home here).
+        var kidC = SeedData.kidB
+        kidC.id = UUID(uuidString: "00000000-0000-0000-0000-0000000000C1")!
+        kidC.name = "Kid C"
+        kidC.school = nil
+        kidC.colorIndex = 2
+        let three = store(kids: kids(bothAtSchool: true) + [kidC])
+        await three.send(.task)
+        await three.receive(\.loaded)
+        XCTAssertEqual(try XCTUnwrap(three.state.screen).legend.map(\.label), ["Kid A off", "Kid B off", "Public holiday", "Today"])
     }
 
     func testAYearWithoutDataHasNoTab() async throws {

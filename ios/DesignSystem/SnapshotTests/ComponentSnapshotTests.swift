@@ -87,13 +87,15 @@ final class ComponentSnapshotTests: XCTestCase {
 
     // MARK: - K1 School calendar
 
-    /// Spec K1 "Marks": plain, Kid A off, Kid B off, both, three kids, a public holiday, a public
-    /// holiday inside a break, today, today on a day off; then the open month's size.
+    /// Spec K1 "Marks" (layout v74): plain, Kid A off, Kid B off, both, three kids, a public holiday,
+    /// a public holiday inside a break (red on a chip), today's pill, today on a day off; then the open
+    /// month's and the key's sizes.
     func testCalendarCells() {
         for dark in [false, true] {
             snap(HStack(spacing: 8) {
                 ForEach(Array(Self.cellMarks.enumerated()), id: \.offset) { _, mark in CalendarCell(mark, size: .card) }
                 ForEach(Array(Self.cellMarks.suffix(4).enumerated()), id: \.offset) { _, mark in CalendarCell(mark, size: .open) }
+                ForEach(Array(Self.cellMarks.suffix(4).enumerated()), id: \.offset) { _, mark in CalendarCell(mark, size: .legend) }
             }
             .padding(Spacing.s)
             .background(CrayonColor.card), named: dark ? "night" : nil, dark: dark)
@@ -116,7 +118,7 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(CalendarLegend(items: Self.legend).frame(width: 856, alignment: .leading), width: 856 + 2 * Spacing.m)
     }
 
-    static let letters = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    static let letters = ["M", "T", "W", "T", "F", "S", "S"]
 
     static let cellMarks: [CalendarCell.Mark] = [
         .init(number: "3"), .init(number: "4", kids: [0]), .init(number: "5", kids: [1]),

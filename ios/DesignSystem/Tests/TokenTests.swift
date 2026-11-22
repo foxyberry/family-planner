@@ -47,15 +47,23 @@ final class TokenTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.kidB, CrayonPalette.night), 3)
     }
 
-    /// Spec K1 "Marks": the numerals on the school calendar's grounds, by day and at night.
+    /// Spec K1 "Marks" (layout v74): red numerals (24 bold, large text) on the holiday colour pass 3 : 1
+    /// (the spec's 4.36 by day, 4.59 at night); today's numeral and the day-off numerals by day pass 4.5.
+    /// At night the day-off numerals reach about 4.0–4.4 (dark on sky, apricot, green; light on lilac).
     func testCalendarNumeralsPassContrast() {
-        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.lateText, CrayonPalette.holidayGround), 4.5)
-        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightLate, CrayonPalette.nightHolidayGround), 4.5)
+        XCTAssertEqual(Contrast.ratio(CrayonPalette.lateText, CrayonPalette.holidayGround), 4.36, accuracy: 0.01)
+        XCTAssertEqual(Contrast.ratio(CrayonPalette.nightLate, CrayonPalette.nightHolidayGround), 4.59, accuracy: 0.01)
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.card, CrayonPalette.ink), 4.5, "today by day")
-        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.night, CrayonPalette.moonPaper), 4.5, "today at night")
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.night, CrayonPalette.nightToday), 4.5, "today at night")
         for ground in [CrayonPalette.nowSky, CrayonPalette.kidApricot, CrayonPalette.doneGreen, CrayonPalette.lilac] {
             XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, ground), 4.5, "ink on a day off")
         }
+        for (ground, text) in [(CrayonPalette.nightSky, CrayonPalette.night), (CrayonPalette.nightApricot, CrayonPalette.night),
+                               (CrayonPalette.nightGreen, CrayonPalette.night), (CrayonPalette.nightLilac, CrayonPalette.nightText)] {
+            XCTAssertGreaterThanOrEqual(Contrast.ratio(text, ground), 3.9, "a day off at night")
+        }
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, CrayonPalette.weekendShade), 4.5)
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightText, CrayonPalette.nightWeekendShade), 4.5)
     }
 
     func testContrastKnownValues() {
