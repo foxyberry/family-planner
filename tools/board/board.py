@@ -10,7 +10,7 @@ It reads three things on this Mac and writes one HTML page (tools/board/out/inde
   - local issues: .claude/issues/*.md in the main checkout (git-ignored; scripts/issue.sh).
 
   python3 tools/board/board.py            # write the page once
-  python3 tools/board/board.py --serve    # http://127.0.0.1:8765, rebuilt at most every 25 s
+  python3 tools/board/board.py --serve    # http://127.0.0.1:8765, rebuilt in the background while open
 
 Nothing leaves the Mac: the server listens on 127.0.0.1 only and the page stays git-ignored.
 """
@@ -898,11 +898,36 @@ def build():
     os.replace(tmp, PAGE)
 
 
+REBUILD_GAP = 10  # seconds; below the page's 15 s refresh
+
+
 def serve(port):
     """Serve the page alone on 127.0.0.1. Other paths get 404 (the session cache stays private), and
     a Host other than this address is refused, so a web page can't reach it by DNS rebinding."""
-    lock, state = threading.Lock(), {"built": 0.0}
+    lock, state = threading.Lock(), {"built": 0.0, "building": False}
     hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
+
+    def rebuild():
+        try:
+            build()
+        except Exception as e:  # keep serving the last page rather than nothing
+            print("build failed:", e)
+        with lock:
+            state["built"], state["building"] = time.time(), False
+
+    # A build takes several seconds (gh, git, the session files). A reload gets the last page at
+    # once and starts the next build when that page is older than REBUILD_GAP, so with the page's
+    # 15 s refresh every reload starts one and the page shown is at most one reload behind.
+    # Builds run only while someone has the board open.
+    def maybe_rebuild(wait):
+        with lock:
+            due = not state["building"] and time.time() - state["built"] > REBUILD_GAP
+            if due:
+                state["building"] = True
+        if due and wait:
+            rebuild()
+        elif due:
+            threading.Thread(target=rebuild, daemon=True).start()
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
@@ -912,13 +937,7 @@ def serve(port):
             if self.path.split("?")[0] not in ("/", "/index.html"):
                 self.send_error(404)
                 return
-            with lock:
-                if time.time() - state["built"] > 25:
-                    try:
-                        build()
-                    except Exception as e:  # serve the last page rather than nothing
-                        print("build failed:", e)
-                    state["built"] = time.time()
+            maybe_rebuild(wait=not os.path.exists(PAGE))
             try:
                 with open(PAGE, "rb") as fh:
                     body = fh.read()
