@@ -3,7 +3,8 @@ import KitArt
 import SwiftUI
 
 /// Board C3 "What": one row of picture slots (88, gap 16; the picked one has a blue
-/// ring), then a "More" slot (88 circle, bold caption). "More" opens a card under the row with every
+/// ring), then a "More" slot (88 circle, bold caption); in G1f's narrow card the slots wrap, 4 per
+/// row and 24 apart. "More" opens a card under the row with every
 /// picture, 6 per row (`IconPicker`), and after them, starting on a row of their own, the country
 /// flags (spec C3 "What", N15); the row never wraps or scrolls, so the rows below keep their lines.
 /// Callers pass the slots (the picked one first), the lists and the words.
@@ -36,11 +37,18 @@ public struct PictureRow: View {
 
     public var body: some View {
         if let columns {
-            // Layout v43: the rows spread edge to edge (the first slot on the left edge, the last on the right).
-            LazyVGrid(columns: (0..<columns).map { column in
-                GridItem(.flexible(minimum: d), spacing: sizing(Spacing.s),
-                         alignment: column == 0 ? .leading : column == columns - 1 ? .trailing : .center)
-            }, alignment: .leading, spacing: sizing(Spacing.s)) { items }
+            // Spec G1f: 88 slots spread edge to edge across the 424 card, 24 apart (4 × 88 + 3 × 24),
+            // rows 16 apart.
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(d), spacing: sizing(Self.narrowColumnGap)), count: columns),
+                      alignment: .leading, spacing: sizing(Spacing.s)) { items }
+                // Spec G1f "More": the card spans the side column (the grid ± its 24 inset), its top 8
+                // under the "More" slot in the last row; it covers the rows below while open.
+                .overlay(alignment: .top) {
+                    if isShowingAll {
+                        narrowMoreCard(columns: columns)
+                            .offset(y: sizing(Self.gridHeight(slots: slots.count + 1, columns: columns) + Self.narrowMoreTop))
+                    }
+                }
         } else {
             HStack(spacing: sizing(Spacing.s)) { items }
         }
@@ -77,40 +85,43 @@ public struct PictureRow: View {
             }
             .buttonStyle(.plain)
             .overlay(alignment: .topTrailing) {
-                if isShowingAll {
+                if isShowingAll && columns == nil {
                     // Under the "More" slot, its right edge on the slot's: every picture, 6 per row,
-                    // then the flags from a new row (the rows' own 16 apart). In a narrow card (G1f)
-                    // it shows 3 per row and scrolls inside, so with its own padding it stays inside
-                    // the side column and above the action button; two rows and a peek of the third
-                    // show, so more is visibly there.
-                    PaperCard(seed: 97) {
-                        if columns != nil {
-                            // The pick ring draws a little outside a slot, so the list keeps a margin.
-                            ScrollView { morePictures(columns: Self.narrowMoreColumns).padding(sizing(Spacing.xs)) }
-                                .scrollIndicators(.hidden)
-                                .frame(width: sizing(CGFloat(Self.narrowMoreColumns) * 88
-                                                     + CGFloat(Self.narrowMoreColumns - 1) * Spacing.s + 2 * Spacing.xs),
-                                       height: sizing(Self.narrowMoreHeight))
-                        } else {
-                            morePictures(columns: IconPicker.columns)
-                        }
-                    }
-                    .fixedSize()
-                    .offset(y: d + sizing(Spacing.sm))
+                    // then the flags from a new row (the rows' own 16 apart).
+                    PaperCard(seed: 97) { morePictures(columns: IconPicker.columns, gap: Spacing.s) }
+                        .fixedSize()
+                        .offset(y: d + sizing(Spacing.sm))
                 }
             }
     }
 
-    /// Board units: a narrow card's More list shows two rows of 88 slots (16 apart) and a peek of the
-    /// third, inside the list's margin.
-    static let narrowMoreHeight: CGFloat = 2 * (88 + Spacing.s) + 28 + 2 * Spacing.xs
-    /// A narrow card's More list: 3 per row (`IconPicker`'s side-column count).
-    static let narrowMoreColumns = 3
+    /// Spec G1f: the board gap between the 4 slots across the 424 card.
+    static let narrowColumnGap: CGFloat = 24
+    /// Spec G1f "More": the card's top 8 under the "More" slot, its size 472 × 300 with a 24 inset,
+    /// and a scroll area 424 × 252: two rows (88 + 16 + 88), 16, then 44 of the third as a peek.
+    static let narrowMoreTop: CGFloat = 8
+    static let narrowMoreCard = CGSize(width: 472, height: 300)
+    static let narrowMoreList = CGSize(width: 424, height: 252)
 
-    private func morePictures(columns: Int) -> some View {
+    /// The narrow grid's board height: rows of 88, 16 apart.
+    static func gridHeight(slots: Int, columns: Int) -> CGFloat {
+        let rows = (slots + columns - 1) / max(columns, 1)
+        return CGFloat(rows) * 88 + CGFloat(max(rows - 1, 0)) * Spacing.s
+    }
+
+    /// Spec G1f "More": every picture and then the flags, 4 per row like the grid, scrolling inside.
+    private func narrowMoreCard(columns: Int) -> some View {
+        ScrollView { morePictures(columns: columns, gap: Self.narrowColumnGap) }
+            .scrollIndicators(.hidden)
+            .frame(width: sizing(Self.narrowMoreList.width), height: sizing(Self.narrowMoreList.height), alignment: .top)
+            .frame(width: sizing(Self.narrowMoreCard.width), height: sizing(Self.narrowMoreCard.height))
+            .background(PaperCard(seed: 97) { Color.clear })
+    }
+
+    private func morePictures(columns: Int, gap: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
-            IconPicker(selection: $selection, slots: all, columns: columns)
-            if !flags.isEmpty { IconPicker(selection: $selection, slots: flags, columns: columns) }
+            IconPicker(selection: $selection, slots: all, columns: columns).columnGap(gap)
+            if !flags.isEmpty { IconPicker(selection: $selection, slots: flags, columns: columns).columnGap(gap) }
         }
     }
 }
