@@ -12,7 +12,7 @@ public struct DateChip: View {
     private let isToday: Bool
     private let action: () -> Void
 
-    /// The weekday over the number (E5's dates).
+    /// The weekday over the number (G2's dates).
     public init(weekday: String, day: Int, isOn: Bool, isToday: Bool = false, action: @escaping () -> Void) {
         self.weekday = weekday
         self.day = day

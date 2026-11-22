@@ -5,7 +5,7 @@ import Grownup
 import ScheduleStore
 import XCTest
 
-/// C6 · Our day: dragging, limits, School's edges, the "+" adds, one slice card for day slices,
+/// G1 · Our day: dragging, limits, School's edges, the "+" adds, one slice card for day slices,
 /// items and School, undo, leaving and saving.
 @MainActor
 final class OurDayTests: XCTestCase {
@@ -523,7 +523,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(count.value, 1)
     }
 
-    /// Spec C6 "One card": Remove on All days makes a day slice free time at once (no confirm); the
+    /// Spec G1 "One card": Remove on All days makes a day slice free time at once (no confirm); the
     /// free paper has neither action.
     func testRemoveADaySliceOnAllDays() async throws {
         let store = await loaded()
@@ -718,7 +718,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertFalse(store.state.edit.isChanged)
     }
 
-    // MARK: One card for everything on the clock (spec C6, 2026-11-21)
+    // MARK: One card for everything on the clock (spec G1, 2026-11-21)
 
     /// Swimming every Tuesday 5:00–6:00 pm, on top of Play.
     private let swimID = UUID(uuidString: "00000000-0000-0000-0000-00000000C001")!
@@ -799,7 +799,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.items.isEmpty)
     }
 
-    /// School: Skip this day in one tap; Remove on All days opens G7 with At home picked (spec C6
+    /// School: Skip this day in one tap; Remove on All days opens G7 with At home picked (spec G1
     /// "One card", e39b24d), never a template-only removal.
     func testSchoolSkipsInOneTapAndRemoveOpensG7() async throws {
         let store = await loaded()
@@ -818,7 +818,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertFalse(store.state.canUndo)
     }
 
-    /// Every-month items confirm "every month" (spec C6 "One card").
+    /// Every-month items confirm "every month" (spec G1 "One card").
     func testAMonthlyItemAsksEveryMonth() async {
         let club = ScheduleItem(id: swimID, title: "Book club", iconName: "actStory", audience: .kid(SeedData.kidA.id),
                                 start: 1020, end: 1080,

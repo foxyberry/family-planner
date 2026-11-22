@@ -165,7 +165,7 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.end, 780)
     }
 
-    /// Spec "E5 School rule": This day shows "{Day d Mon} only" and skips School on that day (a sick
+    /// Spec G2 "School is an event": This day shows "{Day d Mon} only" and skips School on that day (a sick
     /// day), saved at once; "Bring back" undoes it.
     func testThisDaySkipsSchoolAndBringsItBack() async {
         let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])

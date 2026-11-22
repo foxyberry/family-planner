@@ -676,7 +676,7 @@ final class ComponentSnapshotTests: XCTestCase {
         .background(CrayonColor.night))
     }
 
-    /// Board C6: Kid A's school day on the edit clock; Dinner selected, Play made free.
+    /// Board G1: Kid A's school day on the edit clock; Dinner selected, Play made free.
     private static let editDay: [ClockSector] = [
         ClockSector(start: 0, end: 390, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
         ClockSector(start: 390, end: 450, style: .morning, iconName: "actBreakfast", isCurrent: false, showsStar: false, priority: 0),

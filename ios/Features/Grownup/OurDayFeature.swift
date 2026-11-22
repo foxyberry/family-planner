@@ -10,7 +10,7 @@ import SchoolDirectory
 import Strings
 
 /// G1 · The day on the clock (spec "G1"): a grown-up edits a kid's day on a real date. The day
-/// template and the items on top of it share one clock, one slice card and one Undo (spec C6 "One
+/// template and the items on top of it share one clock, one slice card and one Undo (spec G1 "One
 /// card for everything on the clock"); the rules live in `TemplateEdit`. Save writes the template
 /// for this day only or for all days from a date (spec "Edit scope"), and the items' changes
 /// (`ClockSave`).
@@ -55,7 +55,7 @@ public struct OurDayFeature {
         }
     }
 
-    /// Haptic moments for the view (board C6): a 5-minute step, a step onto the hour, a stop at a limit.
+    /// Haptic moments for the view (board G1): a 5-minute step, a step onto the hour, a stop at a limit.
     public struct Haptics: Equatable, Sendable {
         public var steps = 0
         public var hours = 0
@@ -73,7 +73,7 @@ public struct OurDayFeature {
         public var from: Int
     }
 
-    /// The one action under the slice card's times (spec C6 "One card"): "Skip this day" on This
+    /// The one action under the slice card's times (spec G1 "One card"): "Skip this day" on This
     /// day, "Remove" on All days and on a just-once item.
     public enum SliceAction: Equatable, Sendable { case skip, remove }
 
@@ -131,7 +131,7 @@ public struct OurDayFeature {
             /// Board G8: the List (or back to the clock); G6: Settings.
             case list(Bool)
             case settings
-            /// "Details ›" on an item's or School's slice card (E5 / G2, G4).
+            /// "Details ›" on an item's or School's slice card (G2, G4).
             case item(ScheduleItem.ID)
             case school
             /// School's "Remove" on All days: G7 with "At home" picked.
@@ -288,7 +288,7 @@ public struct OurDayFeature {
         /// An item placed after another event ("after School") follows it: its times are shown, not edited.
         public var timesAreEditable: Bool { selectedItem?.isAnchored != true }
 
-        /// Spec C6 "One card": "Skip this day" on This day (School too), "Remove" on All days; a
+        /// Spec G1 "One card": "Skip this day" on This day (School too), "Remove" on All days; a
         /// just-once item and a new item only "Remove"; free time and a skipped slice neither.
         public var sliceAction: SliceAction? {
             if let block = selectedBlock {
@@ -307,7 +307,7 @@ public struct OurDayFeature {
             }
         }
 
-        /// "Details ›" (spec C6 "One card"): items open E5 / G2, School opens G4. A new item has no
+        /// "Details ›" (spec G1 "One card"): items open G2, School opens G4. A new item has no
         /// form yet.
         public var detailsTitle: String? {
             let opens = selectedItem.map { !$0.isNew } ?? (selectedBlock?.kind == .school && kidInfo?.school != nil)
@@ -534,7 +534,7 @@ public struct OurDayFeature {
         case removeCancelled
         /// Board G1g: bring a skipped slice back.
         case bringBackTapped
-        /// "Details ›": the item's form (E5 / G2) or School's (G4).
+        /// "Details ›": the item's form (G2) or School's (G4).
         case detailsTapped
         /// Board G1f: a picture puts the item on the clock (named after it); the name and times edit it.
         case newSlicePicturePicked(String)
@@ -566,7 +566,7 @@ public struct OurDayFeature {
             case add(Kid.ID, ItemForm.Repeat)
             /// Board G8: the School row opens G4.
             case openSchool
-            /// School's "Remove" on All days (spec C6 "One card"): G7 with "At home" picked, so where
+            /// School's "Remove" on All days (spec G1 "One card"): G7 with "At home" picked, so where
             /// the kid goes changes the one way it always does.
             case removeSchool(Kid.ID)
         }

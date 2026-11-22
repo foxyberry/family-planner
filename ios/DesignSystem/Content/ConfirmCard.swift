@@ -93,7 +93,7 @@ public struct ConfirmCard: View {
     }
 }
 
-/// The 240 × 72 paper buttons of confirm cards and the grown-up lock (boards C0, E5).
+/// The 240 × 72 paper buttons of confirm cards and the grown-up lock (boards C0, G2).
 struct CardButton: View {
     static let width: CGFloat = 240
     private let title: String

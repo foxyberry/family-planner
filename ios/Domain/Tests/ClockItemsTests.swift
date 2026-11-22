@@ -2,7 +2,7 @@ import Domain
 import Foundation
 import XCTest
 
-/// Spec C6 "One card for everything on the clock": items sit on top of the day template on the G1
+/// Spec G1 "One card for everything on the clock": items sit on top of the day template on the G1
 /// clock, their edges are knobs, and skips, removes and adds wait for Save under one Undo.
 final class ClockItemsTests: XCTestCase {
     private typealias F = Fixture

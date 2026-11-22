@@ -1,7 +1,7 @@
 import Foundation
 import Strings
 
-/// Editing one day on the G1 clock (spec "C6 · Our day", Drag rules): the day template and the
+/// Editing one day on the G1 clock (spec "G1 · Our day: the clock and its rules", Drag rules): the day template and the
 /// items on top of it. Every boundary between two drawn slices is a knob; moving a template knob
 /// moves the end of one slice and the start of the next together, moving an item's edge moves only
 /// the item (the template underneath stays). Times snap to 5 minutes, no slice is shorter than 15

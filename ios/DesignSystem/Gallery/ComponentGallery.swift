@@ -291,7 +291,7 @@ public struct ComponentGallery: View {
                                   weeks: Self.november, size: .open)
                     }
                 }
-                section("C6 · Edit clock parts") {
+                section("G1 · Edit clock parts") {
                     HStack(spacing: Spacing.m) {
                         ClockKnob(.idle)
                         ClockKnob(.dragging)

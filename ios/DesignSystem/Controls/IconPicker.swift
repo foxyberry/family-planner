@@ -27,7 +27,7 @@ public struct IconPicker: View {
     /// four slots spread across a 424 card (spec G1f).
     private var columnGap: CGFloat = Spacing.s
 
-    /// One pick. `columns`: 6 under a form's control line; 3 in a 382 side column (C6's new slice).
+    /// One pick. `columns`: 6 under a form's control line; 3 in a 382 side column (G1's new slice).
     public init(selection: Binding<KitSlot?>, slots: [KitSlot], columns: Int = IconPicker.columns,
                 drawing: Drawing? = nil) {
         isOn = { $0 == selection.wrappedValue }

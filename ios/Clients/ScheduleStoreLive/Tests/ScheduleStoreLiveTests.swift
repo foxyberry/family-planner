@@ -202,7 +202,7 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertFalse(items.contains { $0.id == pottery.id })
     }
 
-    /// C6 "Save the day": a template saved from tomorrow leaves today on the old one.
+    /// G1 "Save": a template saved from tomorrow leaves today on the old one.
     func testSavedTemplateStartsOnItsDay() async throws {
         let store = try await seeded()
         let old = try await store.load().routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!

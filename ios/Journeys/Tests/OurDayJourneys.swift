@@ -6,7 +6,7 @@ import Home
 import JourneyWorld
 import XCTest
 
-/// Our day (board G1, spec C6 "One card for everything on the clock"): a grown-up adds and removes
+/// Our day (board G1, spec G1 "One card for everything on the clock"): a grown-up adds and removes
 /// things on the clock; after Save the kid's home clock shows it.
 @MainActor
 final class OurDayJourneys: XCTestCase {
@@ -57,7 +57,7 @@ final class OurDayJourneys: XCTestCase {
         XCTAssertNil(kidA(store)?.slots.first { $0.title == "Piano" })
     }
 
-    /// School's "Remove" on All days opens G7 with "At home" picked (spec C6, e39b24d); Save from
+    /// School's "Remove" on All days opens G7 with "At home" picked (spec G1, e39b24d); Save from
     /// today makes Kid A a kid at home, and Our day shows the day without School.
     func testSchoolRemoveGoesThroughG7AtHome() async throws {
         var data = WorldData.standard

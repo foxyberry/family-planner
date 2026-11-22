@@ -52,6 +52,6 @@ public enum GrownupBoard: String, CaseIterable, Equatable, Sendable {
     case c4
     /// C5 · Morning missions.
     case c5
-    /// C6 · Our day.
+    /// G1 · Our day.
     case c6
 }

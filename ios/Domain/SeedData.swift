@@ -24,7 +24,7 @@ public enum SeedData {
         RoutineBlock(title: title, iconName: icon, kind: kind, start: start, end: end, isLocked: locked, trip: trip)
     }
 
-    /// Kid A at school on Mon–Fri (boards A1, E1, C6).
+    /// Kid A at school on Mon–Fri (boards A1, E1, G1).
     private static let kidAWeekday = [
         block("Sleep", "actSleep", .sleep, 0, 390), block("Breakfast", "actBreakfast", .morning, 390, 450),
         block("School", "wolfie", .school, 450, 900, locked: true, trip: Trip(way: .bus, leaveBefore: 5)), block("Snack", "snack", .play, 900, 960),

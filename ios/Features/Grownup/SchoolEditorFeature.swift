@@ -210,7 +210,7 @@ public struct SchoolEditorFeature {
         }
         /// Board G4's side line: "Every school day", or the days as chips.
         public var everyTitle: String { DayText.chips(school?.days ?? []) }
-        /// Spec "E5 School rule": This day's side column as G3, "{Day d Mon} only" then "Skip this day".
+        /// Spec G2 "School is an event": This day's side column as G3, "{Day d Mon} only" then "Skip this day".
         public var isThisDay: Bool { editScope == .thisDay }
         public var thisDayTitle: String { L10n.tr("editor.this_day.only", DayText.short(day, calendar: calendar)) }
         /// The day's template (its own one when it has it), as that date reads it.

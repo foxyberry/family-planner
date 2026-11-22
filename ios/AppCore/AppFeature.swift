@@ -304,7 +304,7 @@ public struct AppFeature {
                 return .none
 
             case .path(.element(id: _, action: .ourDay(.saved(.success)))):
-                // Spec C6: a change on the clock (an item added, skipped or removed) is on the kid
+                // Spec G1: a change on the clock (an item added, skipped or removed) is on the kid
                 // clock as soon as it is saved.
                 return .send(.home(.reload))
 
@@ -525,7 +525,7 @@ public struct AppFeature {
                 return .merge(reloadSchoolEditor(state), reloadSettings(state), reloadOurDay(state), .send(.home(.reload)))
 
             case let .path(.element(id: _, action: .ourDay(.delegate(.removeSchool(kid))))):
-                // Spec C6 "One card": School's Remove on All days is G7 with "At home" picked.
+                // Spec G1 "One card": School's Remove on All days is G7 with "At home" picked.
                 state.path.append(.changeSchool(ChangeSchoolFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
                                                                           calendar: calendar, opensAt: .home)))
                 return .none
