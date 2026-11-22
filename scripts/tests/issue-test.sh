@@ -51,9 +51,9 @@ print("blank status renders" if "Blank" in board.issue_list("main", blank) else 
 many = [dict(blank[0], number=f"00{n}", title=f"Issue {n}") for n in range(1, 6)]
 html = board.issue_list("main", many)
 shown = html.split("<details")[0]
-print("three shown, two folded" if shown.count("<li>") == 3 and "2건 더 보기" in html and html.count("<li>") == 5
+print("two shown, three folded" if shown.count("<li>") == 2 and "3건 더 보기" in html and html.count("<li>") == 5
       else "fold wrong")
-print("no fold for three" if "<details" not in board.issue_list("main", many[:3]) else "fold for three")
+print("no fold for two" if "<details" not in board.issue_list("main", many[:2]) else "fold for two")
 EOF
 )"
 check "board reads every issue with its fields" "$(printf '%s\n' "$board" | head -3 | cut -d' ' -f1-3 | tr '\n' ',')" \
@@ -61,8 +61,8 @@ check "board reads every issue with its fields" "$(printf '%s\n' "$board" | head
 check "board reads no folder as no issues" "$(printf '%s\n' "$board" | tail -5 | head -1)" "0"
 check "the board leads each issue with its number" "$(printf '%s\n' "$board" | tail -4 | head -1)" "number shown"
 check "a blank status still renders" "$(printf '%s\n' "$board" | tail -3 | head -1)" "blank status renders"
-check "a card shows three issues and folds the rest" "$(printf '%s\n' "$board" | tail -2 | head -1)" "three shown, two folded"
-check "three issues need no fold" "$(printf '%s\n' "$board" | tail -1)" "no fold for three"
+check "a card shows two issues and folds the rest" "$(printf '%s\n' "$board" | tail -2 | head -1)" "two shown, three folded"
+check "two issues need no fold" "$(printf '%s\n' "$board" | tail -1)" "no fold for two"
 
 [ "$failed" = 0 ] && echo "issue: all passed"
 exit "$failed"

@@ -18,7 +18,7 @@ What it shows:
 - **Sessions and issues**: one card per issue owner, two to a row: main and design, then review and harness.
   Each card shows its newest session's state, what it has in hand (issues it marked `doing` with
   `scripts/issue.sh start`, and its open PRs), its last status (three lines), then its issues
-  waiting: three, and the rest behind "N건 더 보기". An owner with issues but no session gets a card
+  waiting: two, and the rest behind "N건 더 보기". An owner with issues but no session gets a card
   too. A session belongs to the owner whose word comes first in its title: 구현 main, 리뷰 review,
   디자인 design, 하네스 harness (`OWNER_WORDS` in `board.py`). Rename a session so its own word
   comes first. When an owner's sessions all rest with nothing in hand and issues left, "Who has to
