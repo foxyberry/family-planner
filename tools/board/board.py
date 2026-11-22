@@ -588,28 +588,22 @@ def idle_with_issues(owners):
     return out
 
 
-def issues_section(repo_root):
-    """The open local issues fold (scripts/issue.sh, CLAUDE.md "Agent harness"), grouped by owner."""
-    h = []
-    open_issues = [i for i in read_issues(repo_root) if is_open(i)]
-    h.append(f'<details class="fold" data-id="issues" open><summary><h2>열린 이슈 '
-             f'<span class="count">{len(open_issues)}</span> <span class="soft">(.claude/issues, 담당 세션이 집어 감)</span>'
-             '</h2></summary><div class="who">')
-    if not open_issues:
-        h.append('<div class="box soft">열린 이슈가 없습니다.</div>')
-    owners = {}
-    for i in open_issues:
-        owners.setdefault(i["owner"] or "담당 없음", []).append(i)
-    for owner, items in sorted(owners.items()):
-        h.append(f'<div class="box"><b>{esc(owner)}</b> <span class="soft">· {len(items)}건</span><ul>')
-        for i in items:
-            # Sessions and the user name issues by number (scripts/issue.sh close <n>), so it leads.
-            number = f'<b>이슈 {esc(i["number"])}</b> ' if i["number"] else ""
-            doing = '<span class="f-info">진행 중</span> ' if is_doing(i) else ""
-            h.append(f'<li>{doing}{number}{esc(i["title"])} <span class="soft">({esc(i["status"])}'
-                     f'{" · " + esc(i["opened"]) if i["opened"] else ""})</span></li>')
-        h.append("</ul></div>")
-    h.append("</div></details>")
+def issue_line(i):
+    # Sessions and the user name issues by number (scripts/issue.sh close <n>), so it leads.
+    number = f'<b>이슈 {esc(i["number"])}</b> ' if i["number"] else ""
+    return (f'<li>{number}{esc(i["title"])} <span class="soft">({esc(i["status"])}'
+            f'{" · " + esc(i["opened"]) if i["opened"] else ""})</span></li>')
+
+
+def issue_list(owner, items, shown=3):
+    """One owner's waiting issues: the first `shown`, the rest behind "N건 더 보기" (a fold that
+    keeps its state over the reload, like every fold)."""
+    if not items:
+        return '<div class="meta soft">남은 이슈 없음</div>'
+    h = [f'<ul class="issues">{"".join(issue_line(i) for i in items[:shown])}</ul>']
+    if len(items) > shown:
+        h.append(f'<details data-id="issues-{esc(owner)}"><summary class="soft">{len(items) - shown}건 더 보기</summary>'
+                 f'<ul class="issues">{"".join(issue_line(i) for i in items[shown:])}</ul></details>')
     return "".join(h)
 
 
@@ -653,6 +647,9 @@ h1{font-size:20px;margin:0}h2{font-size:15px;margin:0 0 8px}.soft{color:var(--so
 .wrap{padding:8px 20px 28px;display:grid;gap:16px}
 .banner{background:var(--card);border:1px solid var(--bad);color:var(--bad);border-radius:10px;padding:10px 14px}
 .who{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media (max-width:760px){.pair{grid-template-columns:1fr}}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.issues{margin:8px 0 0;padding-left:18px}.box details summary{cursor:pointer;margin-top:4px}
 .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .box ul{margin:0;padding-left:18px}.box li{margin:3px 0}
 .lanes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
@@ -928,35 +925,47 @@ def build():
         h.append("</details>")
     h.append("</section>")
 
-    # The working sessions, one card per issue owner, then their issues: what each has in hand
-    # (its doing issues and open PRs), how it is, and what it said last. Older or side sessions that
-    # own no issues stay off the board (the app's sidebar has them).
-    h.append('<details class="fold" data-id="sessions" open><summary><h2>세션이 하는 일</h2></summary><div class="who">')
-    if not owners:
-        h.append('<div class="box soft">이슈 담당 세션을 찾지 못했습니다.</div>')
-    for owner in sorted(owners, key=lambda o: ["main", "review", "design", "harness"].index(o)
-                        if o in ("main", "review", "design", "harness") else 9):
-        o = owners[owner]
-        newest = max(o["sessions"], key=lambda x: x["mtime"])
-        busy = [x for x in o["sessions"] if session_state(x)[0] == "busy"]
-        cls, label = session_state(busy[0] if busy else newest)
-        doing = [i for i in o["issues"] if is_doing(i)]
-        waiting = [i for i in o["issues"] if is_open(i) and not is_doing(i)]
-        prs = [n for x in o["sessions"] for n in held.get(x["id"], [])]
-        hand = [f'<li><span class="f-info">이슈 {esc(i["number"])}</span> {esc(i["title"])}</li>' for i in doing]
+    # One card per issue owner (main, review, design, harness), two to a row: its newest session and
+    # state, what it has in hand (doing issues, open PRs), its last status, then its issues waiting
+    # (scripts/issue.sh). An owner with issues but no session (an empty or unknown owner) gets a card
+    # too. Older or side sessions that own no issues stay off the board (the app's sidebar has them).
+    rank = {"main": 0, "review": 1, "design": 2, "harness": 3}
+    by_owner = {}
+    for i in issues:
+        if is_open(i):
+            by_owner.setdefault((i["owner"].split() or ["담당 없음"])[0], []).append(i)
+    names = sorted(set(owners) | set(by_owner), key=lambda o: (rank.get(o, 9), o))
+    waiting_all = sum(1 for items in by_owner.values() for i in items if not is_doing(i))
+    h.append(f'<details class="fold" data-id="sessions" open><summary><h2>세션과 이슈 '
+             f'<span class="soft">(남은 이슈 {waiting_all}건 · scripts/issue.sh)</span></h2></summary><div class="pair">')
+    if not names:
+        h.append('<div class="box soft">이슈 담당 세션도 열린 이슈도 없습니다.</div>')
+    for owner in names:
+        o = owners.get(owner)
+        items = by_owner.get(owner, [])
+        doing = [i for i in items if is_doing(i)]
+        waiting = [i for i in items if not is_doing(i)]
+        if o:
+            newest = max(o["sessions"], key=lambda x: x["mtime"])
+            busy = [x for x in o["sessions"] if session_state(x)[0] == "busy"]
+            cls, label = session_state(busy[0] if busy else newest)
+            prs = [n for x in o["sessions"] for n in held.get(x["id"], [])]
+            d = newest.get("desk") or {}
+            report = d.get("status") or d.get("report", "")
+            head = (f'<b>{esc(owner)}</b> · {sess(newest["title"], newest["title"] + " 열기", sid=newest["id"])}'
+                    f'<div class="meta"><span class="dot {cls}"></span>{label} '
+                    f'<span class="soft">({esc(ago(newest["mtime"]))})</span> · 남은 이슈 {len(waiting)}건</div>')
+        else:
+            prs, report = [], ""
+            head = (f'<b>{esc(owner)}</b> <span class="soft">· 담당 세션 없음</span>'
+                    f'<div class="meta">남은 이슈 {len(waiting)}건</div>')
+        hand = [f'<li><span class="f-info">이슈 {esc(i["number"])} 진행 중</span> {esc(i["title"])}</li>' for i in doing]
         hand += [f'<li><a href="{esc(open_numbers[n]["url"])}">#{n}</a> {esc(open_numbers[n]["title"])}</li>' for n in prs]
-        d = newest.get("desk") or {}
-        report = d.get("status") or d.get("report", "")
-        report = esc(report[:160]) + ("…" if len(report) > 160 else "")
-        h.append(f'<div class="box"><b>{esc(owner)}</b> · {sess(newest["title"], newest["title"] + " 열기", sid=newest["id"])}'
-                 f'<div class="meta"><span class="dot {cls}"></span>{label} <span class="soft">({esc(ago(newest["mtime"]))})</span>'
-                 f' · 남은 이슈 {len(waiting)}건</div>'
+        h.append('<div class="box">' + head
                  + (f'<ul>{"".join(hand)}</ul>' if hand else '<div class="meta f-wait">집은 이슈도 열린 PR도 없음</div>')
-                 + (f'<div class="meta report">{report}</div>' if report else "") + "</div>")
+                 + (f'<div class="meta report clamp">{esc(report)}</div>' if report else "")
+                 + issue_list(owner, waiting) + "</div>")
     h.append("</div></details>")
-
-    # Local issues sit between the sessions' cards and the local work
-    h.append(issues_section(repo_root))
 
     # Local-only work, machine
     h.append('<section class="grid2">')
