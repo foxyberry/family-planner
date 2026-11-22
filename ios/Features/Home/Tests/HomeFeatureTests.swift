@@ -403,7 +403,7 @@ final class HomeFeatureTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         XCTAssertEqual(store.state.kidABlock, .leave)
-        // v70: the Next row names the thing after the outing's item, never the item again.
+        // v70: the Next row names the next thing other than the outing's item, never the item again.
         let outing = store.state.morningOuting?.slot
         XCTAssertNotNil(store.state.leaveNext)
         XCTAssertNotEqual(store.state.leaveNext?.start, outing?.start)

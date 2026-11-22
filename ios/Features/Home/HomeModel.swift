@@ -81,10 +81,10 @@ public enum HomeModel {
 
     /// Spec "Now and next on home": the next thing after the current one, of any kind, after the
     /// priority rule. Free time is skipped, and so is a slot that only continues after an item ends
-    /// (Play after Weekend school). `skipping` (board E1, under the Leave row) passes over the
-    /// outing's item to the thing after it. With `tomorrow` (Kid B, board A1n) Next looks into
-    /// tomorrow only while the slot on now runs to midnight (spec "States", v70): then it is the
-    /// first thing after the night's sleep ("Breakfast"); otherwise it stays within today.
+    /// (Play after Weekend school). `skipping` (board E1, under the Leave row) gives the next thing
+    /// other than the outing's item. With `tomorrow` (Kid B, board A1n) Next looks into tomorrow
+    /// only while the slot on now runs to midnight (spec "States", v70): then it is the first thing
+    /// after the night's sleep ("Breakfast"); otherwise it stays within today.
     public static func next(_ slots: [Slot], minute: Int, tomorrow: [Slot] = [], skipping skipped: Slot? = nil) -> NextItem? {
         let current = DayPlanner.now(at: minute, in: slots).current
         let after = current?.end ?? minute
