@@ -89,9 +89,13 @@ public enum HomeModel {
         if let slot = slots.first(where: { $0.start >= after && $0.start > minute && shows($0, in: slots) }) {
             return item(slot, in: slots, minutesAway: slot.start - minute)
         }
-        // Tonight's slot runs on past midnight into tomorrow's first slot of the same kind.
-        let carried = current.flatMap { now in tomorrow.first { $0.start == 0 && $0.kind == now.kind && now.end == 1440 } }
-        let wake = carried?.end ?? 0
+        // Tomorrow's night is skipped: its opening Sleep, whatever is on now (with nothing left today,
+        // or a gap after the last item), or tonight's slot running on past midnight into
+        // tomorrow's first slot of the same kind.
+        let night = tomorrow.first { slot in
+            slot.start == 0 && (slot.kind == .sleep || current.map { $0.kind == slot.kind && $0.end == 1440 } == true)
+        }
+        let wake = night?.end ?? 0
         return tomorrow.first { $0.start >= wake && shows($0, in: tomorrow) }
             .map { item($0, in: tomorrow, minutesAway: $0.start + 1440 - minute) }
     }

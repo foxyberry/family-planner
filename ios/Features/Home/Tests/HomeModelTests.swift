@@ -137,6 +137,18 @@ final class HomeModelTests: XCTestCase {
         XCTAssertNil(HomeModel.next(tonight, minute: 1180))
     }
 
+    /// Review of #226: with nothing on now and nothing left today, tomorrow's opening Sleep is still
+    /// the night, so Next is the first thing after waking, never "Sleep · at 12:00 am".
+    func testNextSkipsTomorrowsOpeningSleepWithNothingOnNow() {
+        let tomorrow = [slot("Sleep", .sleep, 0, 420), slot("Breakfast", .morning, 420, 450)]
+        let next = HomeModel.next([], minute: 600, tomorrow: tomorrow)
+        XCTAssertEqual(next?.title, "Breakfast")
+        XCTAssertEqual(next?.line, "at 7:00 am")
+        // A gap after the last item today works the same.
+        let today = [slot("Swim", .event, 540, 600)]
+        XCTAssertEqual(HomeModel.next(today, minute: 660, tomorrow: tomorrow)?.title, "Breakfast")
+    }
+
     /// Kid B's Now row: the slot "until" its end; free time or a gap is "Free time" with play.
     func testNowRowSaysUntilTheEnd() {
         XCTAssertEqual(HomeModel.now(day, minute: 945),
