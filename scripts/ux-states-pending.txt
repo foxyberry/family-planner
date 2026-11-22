@@ -1,0 +1,4 @@
+# States the UX state list finds with no board yet (scripts/ux-states.sh --check), one per line
+# as Enum.case. Shrink only: remove a line when its board exists and the case's doc comment names it.
+KidABlock.nothing
+KidAEnd.name
