@@ -55,3 +55,12 @@ use_repo(
     "swiftpkg_swift_composable_architecture",
     "swiftpkg_swift_snapshot_testing",
 )
+
+# SwiftLint with this repo's native rules (tools/swiftlint; `make swiftlint`). A dev dependency
+# still joins version resolution, so it moves the app's resolved versions too: with 0.65.1,
+# platforms 1.0.0 -> 1.1.0, rules_cc 0.2.20 -> 0.2.22, rules_shell 0.6.1 -> 0.8.0 and
+# swift_argument_parser 1.3.1.2 -> 1.7.1 (MODULE.bazel.lock). Check the lockfile when it moves.
+bazel_dep(name = "swiftlint", version = "0.65.1", dev_dependency = True, repo_name = "SwiftLint")
+
+extra_rules = use_extension("@SwiftLint//bazel:extensions.bzl", "extra_rules", dev_dependency = True)
+extra_rules.setup(srcs = "@family_planner//tools/swiftlint:extra_rules")

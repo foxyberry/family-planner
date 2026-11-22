@@ -1,0 +1,25 @@
+# SwiftLint native rules for this repo (user, 2026-11-22: structural regex guards move to SwiftSyntax).
+# @SwiftLint builds them in through `extra_rules` (MODULE.bazel); each file holds one rule named like
+# the file, and `extra_rules_func` lists them for SwiftLint.
+filegroup(
+    name = "extra_rules",
+    srcs = glob(["*.swift"]) + ["extra_rules.swift"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "extra_rules_func",
+    srcs = glob(["*.swift"]),
+    outs = ["extra_rules.swift"],
+    cmd = """
+set -euo pipefail
+echo "public func extraRules() -> [any Rule.Type] {" >> $(OUTS)
+echo "  [" >> $(OUTS)
+for file in $(SRCS); do
+  filename=$$(basename -- "$$file")
+  echo "    $${filename%.*}.self," >> $(OUTS)
+done
+echo "  ]" >> $(OUTS)
+echo "}" >> $(OUTS)
+""",
+)
