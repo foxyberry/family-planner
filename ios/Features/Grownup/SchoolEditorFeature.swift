@@ -95,9 +95,20 @@ public struct SchoolEditorFeature {
 
         /// The medal School wins on the weekday template in use from `day` (today, or the next weekday).
         func templateMedal(on day: Day, routines: [Routine]) -> Bool {
+            schoolTrip(on: day, routines: routines)?.medal ?? true
+        }
+
+        /// School's trip on the weekday template in use from `day`; none when School has no way there.
+        func schoolTrip(on day: Day, routines: [Routine]) -> Trip? {
             let template = DayPlanner.template(for: kid, on: weekday(from: day), routines: routines, holidays: [],
                                                calendar: calendar)
-            return template?.blocks.first { $0.kind == .school }?.trip?.medal ?? true
+            return template?.blocks.first { $0.kind == .school }?.trip
+        }
+
+        /// The Medal switch is off (the 40 % look) while School has no trip: the medal lives on the
+        /// trip, so there is nothing to switch (design decision, 2026-11-22).
+        public var canSwitchMedal: Bool {
+            schoolTrip(on: (editsWaiting ? waiting?.from : nil) ?? today, routines: shown) != nil
         }
 
         // MARK: The waiting hours change (spec G5 "What Settings shows meanwhile")
@@ -495,6 +506,7 @@ public struct SchoolEditorFeature {
                 return .none
 
             case .medalToggled:
+                guard state.canSwitchMedal else { return .none }
                 state.medal.toggle()
                 return .none
 

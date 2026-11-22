@@ -487,18 +487,18 @@ public struct SetupFeature {
                 return .none
 
             case let .walkChanged(value):
-                updateGoing(&state) { $0.walk = min(max(value, 0), 60) }
+                updateGoing(&state) { $0.walk = StepRange.walk.clamp(value) }
                 return .none
 
             case let .rideChanged(service, value):
                 updateGoing(&state) { going in
-                    let minutes = min(max(value, 0), 90)
+                    let minutes = StepRange.ride.clamp(value)
                     if let service { going.rides[service] = minutes } else { going.ride = minutes }
                 }
                 return .none
 
             case let .leaveChanged(value):
-                updateGoing(&state) { $0.leaveBefore = min(max(value, 0), 90) }
+                updateGoing(&state) { $0.leaveBefore = StepRange.leave.clamp(value) }
                 return .none
 
             case .changeLinkTapped:

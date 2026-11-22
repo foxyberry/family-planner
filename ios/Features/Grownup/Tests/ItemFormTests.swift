@@ -226,11 +226,29 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.leaveLine, "Leave 4:15 pm by car.")
         form.setGoing(.taxi)
         XCTAssertEqual(form.trip?.leaveBefore, 15)
+        XCTAssertEqual(form.leaveEnds, StepEnds(canLower: true, canRaise: true))
         for _ in 0..<30 { form.stepLeave(1) }
         XCTAssertEqual(form.trip?.leaveBefore, 90)
+        XCTAssertEqual(form.leaveEnds, StepEnds(canLower: true, canRaise: false), "+ is off at 90")
         form.setGoing(nil)
         XCTAssertNil(form.leaveLine)
         XCTAssertEqual(form.item(id: UUID(), today: Day(year: 2026, month: 11, day: 9)).trip, nil)
+    }
+
+    /// Design 2026-11-22: Runs for {n} times (1–40) and Starts after (0–60) turn an end off at its limit.
+    func testTimesAndGapEndsTurnOffAtTheLimits() {
+        var form = form()
+        form.times = 2
+        form.stepTimes(-1)
+        XCTAssertEqual(form.times, 1)
+        XCTAssertEqual(form.timesEnds, StepEnds(canLower: false, canRaise: true))
+        for _ in 0..<50 { form.stepTimes(1) }
+        XCTAssertEqual(form.timesEnds, StepEnds(canLower: true, canRaise: false))
+        form.afterGap = 0
+        XCTAssertEqual(form.gapEnds, StepEnds(canLower: false, canRaise: true))
+        for _ in 0..<20 { form.stepGap(1) }
+        XCTAssertEqual(form.afterGap, 60)
+        XCTAssertEqual(form.gapEnds, StepEnds(canLower: true, canRaise: false))
     }
 
     /// Board C3 "What": the picked picture first, then the most used, then the kit's order.

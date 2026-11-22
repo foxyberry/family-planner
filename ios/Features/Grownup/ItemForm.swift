@@ -212,9 +212,11 @@ public struct ItemForm: Equatable, Sendable {
     /// −/+ on the Leave row: 0–90 in steps of 5.
     public mutating func stepLeave(_ step: Int) {
         guard var trip else { return }
-        trip.leaveBefore = min(max(trip.leaveBefore + 5 * step, 0), 90)
+        trip.leaveBefore = StepRange.leave.clamp(trip.leaveBefore + 5 * step)
         self.trip = trip
     }
+    /// Which of the Leave row's −/+ can still be pressed.
+    public var leaveEnds: StepEnds { StepRange.leave.ends(trip?.leaveBefore ?? 0) }
 
     // MARK: Event form rows (spec "Event form rows for 6b", board G2b)
 
@@ -243,7 +245,7 @@ public struct ItemForm: Equatable, Sendable {
 
     /// −/+ for the minutes after the event (0–60, step 5); a linked item's times move with it.
     public mutating func stepGap(_ step: Int) {
-        let gap = min(max(afterGap + 5 * step, 0), 60)
+        let gap = StepRange.afterGap.clamp(afterGap + 5 * step)
         guard after != nil else { afterGap = gap; return }
         let length = end - start
         start = min(max(start + gap - afterGap, 0), 1435)
@@ -312,7 +314,10 @@ public struct ItemForm: Equatable, Sendable {
     }
 
     /// −/+ in the Runs card: 1–40 times.
-    public mutating func stepTimes(_ step: Int) { times = min(max(times + step, 1), 40) }
+    public mutating func stepTimes(_ step: Int) { times = StepRange.times.clamp(times + step) }
+    /// Which of the Starts-after and Runs-for −/+ can still be pressed.
+    public var gapEnds: StepEnds { StepRange.afterGap.ends(afterGap) }
+    public var timesEnds: StepEnds { StepRange.times.ends(times) }
 
     /// The Bring row's words: "Swimsuit · Goggles"; nil when nothing is picked.
     public var bringText: String? { bring.isEmpty ? nil : bring.map(\.name).joined(separator: " · ") }

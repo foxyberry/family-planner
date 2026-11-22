@@ -217,8 +217,11 @@ public struct SchoolEditorView: View {
                 }
             }
             ListRow(leading: store.medalLabel, minHeight: sizing.fieldHeight) {
-                Button { store.send(.medalToggled) } label: { CrayonSwitch(isOn: store.medal) }
-                    .buttonStyle(.plain)
+                Button { store.send(.medalToggled) } label: {
+                    CrayonSwitch(isOn: store.medal, isEnabled: store.canSwitchMedal)
+                }
+                .buttonStyle(.plain)
+                .allowsHitTesting(store.canSwitchMedal)
             }
         }
     }

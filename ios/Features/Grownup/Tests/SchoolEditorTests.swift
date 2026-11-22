@@ -127,10 +127,27 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertTrue(store.state.isDayOn(.monday))
         await store.send(.arriveByPicked(tuesday.date(minute: 440, calendar: F.calendar)))
         XCTAssertEqual(store.state.latest, 450, "Latest keeps the 10-minute grace")
+        XCTAssertTrue(store.state.canSwitchMedal, "School has a trip")
         await store.send(.medalToggled)
         XCTAssertFalse(store.state.medal)
         await store.send(.goingTapped)
         await store.receive(\.delegate.openBuses)
+    }
+
+    /// Design 2026-11-22: the medal lives on School's trip, so without a way to school the Medal
+    /// switch is off (40 %) and a tap changes nothing.
+    func testMedalSwitchNeedsSchoolsTrip() async {
+        var noTrip = SeedData.routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!
+        if let index = noTrip.blocks.firstIndex(where: { $0.kind == .school }) { noTrip.blocks[index].trip = nil }
+        noTrip.from = tuesday
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, routines: [noTrip])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertFalse(store.state.canSwitchMedal)
+        let medal = store.state.medal
+        await store.send(.medalToggled)
+        XCTAssertEqual(store.state.medal, medal, "an off switch changes nothing")
     }
 
     /// Board G4 Bring (F2): up to four things, named as the thing; Cancel puts them back.

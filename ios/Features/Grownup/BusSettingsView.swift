@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import CrayonKit
 import DesignSystem
+import Domain
 import SwiftUI
 
 /// C2 · Our buses (board C2, first cut): plan A for one kid.
@@ -70,15 +71,15 @@ public struct BusSettingsView: View {
             }
             .drawnRow()
             stepper(store.walkLabel, text: store.walkText, caption: store.walkCaption, step: 1,
-                    value: store.walk, sizing: layout.sizing) { store.send(.walkChanged($0)) }
+                    value: store.walk, ends: store.walkEnds, sizing: layout.sizing) { store.send(.walkChanged($0)) }
             ForEach(store.rideRows) { row in
                 stepper(row.label, text: row.text, caption: row.caption, step: 1,
-                        value: row.minutes, sizing: layout.sizing) {
+                        value: row.minutes, ends: row.ends, sizing: layout.sizing) {
                     store.send(.rideChanged(service: row.service, minutes: $0))
                 }
             }
             stepper(store.graceLabel, text: store.graceText, caption: store.graceCaption, step: 5,
-                    value: store.lateGrace, sizing: layout.sizing) { store.send(.graceChanged($0)) }
+                    value: store.lateGrace, ends: store.graceEnds, sizing: layout.sizing) { store.send(.graceChanged($0)) }
             // Board C2 (v61, y 826): "+ A bus that changes…" → C2c for a new one, always shown.
             ListRow(leading: "", minHeight: layout.sizing(PlusLink.height)) { PlusLink(store.changeLink) { store.send(.changeLinkTapped) } }
         }
@@ -94,10 +95,10 @@ public struct BusSettingsView: View {
     }
 
     /// A minutes row (board C2): the shared stepper, laid out by its drawn box.
-    private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int,
+    private func stepper(_ label: String, text: String, caption: String, step: Int, value: Int, ends: StepEnds,
                          sizing: Sizing, change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
-            MinutesStepper(value: text, caption: caption,
+            MinutesStepper(value: text, caption: caption, canMinus: ends.canLower, canPlus: ends.canRaise,
                            minus: { change(value - step) }, plus: { change(value + step) })
         }
         .drawnRow()

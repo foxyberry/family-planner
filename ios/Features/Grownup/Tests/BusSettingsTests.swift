@@ -223,6 +223,25 @@ final class BusSettingsTests: XCTestCase {
     }
 
     /// "Late" is the school's Latest − Arrive by (spec "Latest lives on the school record").
+    /// Design 2026-11-22: a − or + at its limit takes the off look (walk 0–60, ride 0–90, grace 0–30).
+    func testStepperEndsTurnOffAtTheLimits() async {
+        let store = store()
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.walkChanged(-1))
+        XCTAssertEqual(store.state.walk, 0)
+        XCTAssertEqual(store.state.walkEnds, StepEnds(canLower: false, canRaise: true))
+        await store.send(.walkChanged(61))
+        XCTAssertEqual(store.state.walk, 60)
+        XCTAssertEqual(store.state.walkEnds, StepEnds(canLower: true, canRaise: false))
+        await store.send(.rideChanged(service: nil, minutes: 0))
+        XCTAssertEqual(store.state.rideRows.map(\.ends), [StepEnds(canLower: false, canRaise: true)])
+        await store.send(.graceChanged(35))
+        XCTAssertEqual(store.state.lateGrace, 30)
+        XCTAssertEqual(store.state.graceEnds, StepEnds(canLower: true, canRaise: false))
+        await store.finish(timeout: .seconds(1))
+    }
+
     func testLateUpToEditsTheSchoolsLatest() async {
         var kidA = SeedData.kidA
         kidA.school?.arriveBy = 450

@@ -59,6 +59,21 @@ final class ChangeBusesTests: XCTestCase {
                                                                change: 3, ride2: BusPlan.defaultRide)])))
     }
 
+    /// Design 2026-11-22: a − or + at its limit takes the off look (change 0–30, rides 0–90).
+    func testStepperEndsTurnOffAtTheLimits() async {
+        let store = store()
+        XCTAssertEqual(store.state.changeEnds, StepEnds(canLower: true, canRaise: true))
+        await store.send(.changeChanged(-1))
+        XCTAssertEqual(store.state.changeEnds, StepEnds(canLower: false, canRaise: true))
+        await store.send(.changeChanged(31))
+        XCTAssertEqual(store.state.change, 30)
+        XCTAssertEqual(store.state.changeEnds, StepEnds(canLower: true, canRaise: false))
+        await store.send(.ride2Changed(91))
+        XCTAssertEqual(store.state.ride2Ends, StepEnds(canLower: true, canRaise: false))
+        await store.send(.ride1Changed(service: nil, minutes: 0))
+        XCTAssertEqual(store.state.ride1Rows.map(\.ends), [StepEnds(canLower: false, canRaise: true)])
+    }
+
     /// v61: First bus picks any number of the stop's buses, in pill order, each with its own Ride 1
     /// row ("on 1", "on 3"), the label "Ride 1" on the first only.
     func testSeveralFirstBusesEachGetARideOne() async {
