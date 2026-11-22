@@ -132,7 +132,8 @@ public struct ItemEditorFeature {
         public var fromWhen: FromWhen?
         public var fromWhenDate: Day
         /// The day G1 showed when "Details ›" opened this form; nil from the List or an add. This day
-        /// means it, and G5 opens on it when it is after today (spec G5).
+        /// means it (moved on when the series is not on it), and G5 opens on that day when it is after
+        /// today (spec G5).
         public let shownDay: Day?
         /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
         public var draftID: ScheduleItem.ID?
@@ -696,8 +697,9 @@ public struct ItemEditorFeature {
                 }
                 if state.showsScopeTabs, let weekly = state.weeklyItem {
                     guard state.editScope == .thisDay, let day = state.thisDay else {
-                        // All days asks from when first (board G5), on the day G1 showed.
-                        let opening = FromWhenTabs.opening(shown: state.shownDay, next: state.nextDay, today: state.today)
+                        // All days asks from when first (board G5), on the day carried from G1 as This day
+                        // moved it (spec G5, #250); from the List none, so Today.
+                        let opening = FromWhenTabs.opening(shown: state.carriedDay, next: state.nextDay, today: state.today)
                         state.fromWhen = opening.choice
                         state.fromWhenDate = opening.date
                         return .none

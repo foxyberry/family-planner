@@ -287,6 +287,20 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(saturday, "Mon 16 Nov only", "no School on the shown day: the next school day after it")
     }
 
+    /// Spec G5 (#250): G5 opens on the moved This day: a carried Saturday without School opens on
+    /// Monday (Date 16, since the middle day is Wed 11).
+    func testFromWhenOpensOnTheMovedThisDay() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, shownDay: day(14))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.familyLoaded)
+        await store.send(.endPicked(tuesday.date(minute: 870, calendar: F.calendar)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .date)
+        XCTAssertEqual(store.state.splitDay, day(16))
+    }
+
     /// A carried day that is a day off (a public holiday) moves to the next school day.
     func testAShownDayOffMovesThisDayToTheNextSchoolDay() async {
         let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])

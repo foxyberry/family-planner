@@ -81,6 +81,10 @@ public struct SchoolEditorFeature {
                 .blocks.contains { $0.kind == .school } == true
         }
 
+        /// The day carried from G1 as This day moved it (G5 opens on it, spec G5 #250); nil from the
+        /// List or Settings, so G5 opens on Today.
+        var carriedDay: Day? { shownDay == nil ? nil : day }
+
         /// The first day from `start` that has School (a year ahead at most); today counts only until
         /// School is over.
         func schoolDay(onOrAfter start: Day) -> Day? {
@@ -442,8 +446,9 @@ public struct SchoolEditorFeature {
             case .saveTapped:
                 guard state.canSave, state.stored != nil else { return .none }
                 if state.editScope == .allDays {
-                    // Spec G5: All days asks from when first, on the day G1 showed.
-                    let opening = FromWhenTabs.opening(shown: state.shownDay, next: state.nextDay, today: state.today)
+                    // Spec G5: All days asks from when first, on the day carried from G1 as This day moved
+                    // it (#250); from the List or Settings none, so Today.
+                    let opening = FromWhenTabs.opening(shown: state.carriedDay, next: state.nextDay, today: state.today)
                     state.fromWhen = opening.choice
                     state.fromWhenDate = opening.date
                     return .none

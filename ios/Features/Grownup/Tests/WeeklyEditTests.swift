@@ -138,7 +138,8 @@ final class WeeklyEditTests: XCTestCase {
         await next.send(.saveTapped)
         XCTAssertEqual(next.state.fromWhen, .next, "the middle tab is that day")
 
-        let today = store(on: tuesday, shownDay: tuesday)
+        // Today, a swimming day before it starts: This day stays today, so G5 opens on Today.
+        let today = store(on: F.monday, shownDay: F.monday)
         await today.send(.task)
         await today.receive(\.loaded)
         await today.send(.scopeTapped(.allDays))
@@ -282,6 +283,27 @@ final class WeeklyEditTests: XCTestCase {
             year == 2026 ? [Day(year: 2026, month: 12, day: 30)] : year == 2027 ? [Day(year: 2027, month: 1, day: 4)] : []
         }
         XCTAssertEqual(newYear, ["Today", "Wed 6 Jan", "Date"], "January's holidays are read too")
+    }
+
+    /// Spec G5 (#250): G5 opens on the moved This day, not the raw shown day. Thu 12 has no swimming,
+    /// so This day is Mon 16 and G5 opens on Date 16; Tue 10 (today, none) moves to Wed 11, the middle
+    /// tab.
+    func testFromWhenOpensOnTheMovedThisDay() async {
+        func open(_ shown: Day) async -> (ItemEditorFeature.FromWhen?, Day) {
+            let store = store(on: tuesday, shownDay: shown)
+            await store.send(.task)
+            await store.receive(\.loaded)
+            await store.send(.scopeTapped(.allDays))
+            await store.send(.binding(.set(\.form.end, 1020)))
+            await store.send(.saveTapped)
+            return (store.state.fromWhen, store.state.splitDay)
+        }
+        let thursday = await open(Day(year: 2026, month: 11, day: 12))
+        XCTAssertEqual(thursday.0, .date)
+        XCTAssertEqual(thursday.1, Day(year: 2026, month: 11, day: 16))
+        let today = await open(tuesday)
+        XCTAssertEqual(today.0, .next)
+        XCTAssertEqual(today.1, Day(year: 2026, month: 11, day: 11))
     }
 
     /// Spec G5: a This day change from G1 saves on the day shown there.
