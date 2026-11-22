@@ -40,7 +40,7 @@ LINES = {
           'hub': {'face': [424, 440, 48], 'weekdayBaseline': 524, 'timeBaseline': 574, 'withNameLine': {'weekday': 494, 'time': 544, 'name': 580}, 'weekday': 28, 'time': 44, 'ampm': 24},
           'panelLeft': 928, 'right': 1336, 'topButtons': [36, 132], 'panelBottom': 968, 'order': 'bottom-up: kid chips at the bottom, the next card above them, later rows climb above it',
           'kidChips': {'top': 872, 'height': 96, 'gap': 12, 'face': 56, 'picture': 60},
-          'nextCard': {'gapAboveChips': 24, 'bleedLeft': 12, 'width': 420, 'paddingLeft': 12, 'paddingRight': 10, 'paddingY': 16, 'time': 36, 'picture': 72, 'title': 36, 'faces': 36},
+          'nextCard': {'gapAboveChips': 24, 'bleedLeft': 12, 'width': 420, 'paddingLeft': 12, 'paddingRight': 10, 'paddingY': 16, 'gap': 8, 'time': 36, 'picture': 72, 'title': 36, 'faces': 36},
           'rows': {'gap': 16, 'timeCell': [928, 1040], 'picture': [1052, 56], 'titleLeft': 1120, 'title': 30, 'faces': 32, 'faceOverlap': 8, 'missionBleedLeft': 12, 'missionPadding': [12, 10]},
           'timeLeftDots': {'count': 6, 'minutesEach': 10, 'size': 11, 'gap': 5}},
  'grown': {'margin': 40, 'formLeft': 40, 'formRight': 840, 'labelLeft': 78, 'controlLeft': 192, 'rightEdge': 808, 'sideLeft': 864, 'sideWidth': 472, 'right': 1336, 'headerTop': 44, 'headerBottom': 124, 'formTop': 148, 'formBottom': 968},

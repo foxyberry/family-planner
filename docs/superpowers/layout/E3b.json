@@ -88,6 +88,7 @@
    "paddingLeft": 12,
    "paddingRight": 10,
    "paddingY": 16,
+   "gap": 8,
    "time": 36,
    "picture": 72,
    "title": 36,
@@ -242,10 +243,10 @@
   {
    "id": "clock.slotPicture.5",
    "kind": "picture",
-   "x": 157,
-   "y": 360,
-   "w": 56,
-   "h": 56,
+   "x": 530,
+   "y": 261,
+   "w": 104,
+   "h": 104,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -275,10 +276,10 @@
   {
    "id": "clock.slotPicture.8",
    "kind": "picture",
-   "x": 162,
-   "y": 421,
-   "w": 84,
-   "h": 84,
+   "x": 157,
+   "y": 360,
+   "w": 56,
+   "h": 56,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -286,10 +287,10 @@
   {
    "id": "clock.slotPicture.9",
    "kind": "picture",
-   "x": 162,
-   "y": 421,
-   "w": 84,
-   "h": 84,
+   "x": 157,
+   "y": 360,
+   "w": 56,
+   "h": 56,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -308,10 +309,10 @@
   {
    "id": "clock.slotPicture.11",
    "kind": "picture",
-   "x": 424,
-   "y": 440,
-   "w": 48,
-   "h": 48,
+   "x": 162,
+   "y": 421,
+   "w": 84,
+   "h": 84,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -319,10 +320,10 @@
   {
    "id": "clock.slotPicture.12",
    "kind": "picture",
-   "x": 424,
-   "y": 440,
-   "w": 48,
-   "h": 48,
+   "x": 162,
+   "y": 421,
+   "w": 84,
+   "h": 84,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -330,6 +331,17 @@
   {
    "id": "clock.slotPicture.13",
    "kind": "picture",
+   "x": 162,
+   "y": 421,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.14",
+   "kind": "picture",
    "x": 424,
    "y": 440,
    "w": 48,
@@ -339,23 +351,12 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.14",
-   "kind": "picture",
-   "x": 428,
-   "y": 444,
-   "w": 41,
-   "h": 41,
-   "region": "clock",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "clock.slotPicture.15",
    "kind": "picture",
-   "x": 428,
-   "y": 444,
-   "w": 41,
-   "h": 41,
+   "x": 424,
+   "y": 440,
+   "w": 48,
+   "h": 48,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -363,6 +364,28 @@
   {
    "id": "clock.slotPicture.16",
    "kind": "picture",
+   "x": 424,
+   "y": 440,
+   "w": 48,
+   "h": 48,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.17",
+   "kind": "picture",
+   "x": 424,
+   "y": 440,
+   "w": 48,
+   "h": 48,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.18",
+   "kind": "picture",
    "x": 428,
    "y": 444,
    "w": 41,
@@ -372,34 +395,12 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.17",
-   "kind": "picture",
-   "x": 154,
-   "y": 503,
-   "w": 84,
-   "h": 84,
-   "region": "clock",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
-   "id": "clock.slotPicture.18",
-   "kind": "picture",
-   "x": 154,
-   "y": 503,
-   "w": 84,
-   "h": 84,
-   "region": "clock",
-   "anchor": "left",
-   "align": "inside"
-  },
-  {
    "id": "clock.slotPicture.19",
    "kind": "picture",
-   "x": 154,
-   "y": 503,
-   "w": 84,
-   "h": 84,
+   "x": 428,
+   "y": 444,
+   "w": 41,
+   "h": 41,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -407,10 +408,10 @@
   {
    "id": "clock.slotPicture.20",
    "kind": "picture",
-   "x": 172,
-   "y": 583,
-   "w": 84,
-   "h": 84,
+   "x": 428,
+   "y": 444,
+   "w": 41,
+   "h": 41,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -418,10 +419,10 @@
   {
    "id": "clock.slotPicture.21",
    "kind": "picture",
-   "x": 172,
-   "y": 583,
-   "w": 84,
-   "h": 84,
+   "x": 428,
+   "y": 444,
+   "w": 41,
+   "h": 41,
    "region": "clock",
    "anchor": "left",
    "align": "inside"
@@ -429,8 +430,8 @@
   {
    "id": "clock.slotPicture.22",
    "kind": "picture",
-   "x": 172,
-   "y": 583,
+   "x": 154,
+   "y": 503,
    "w": 84,
    "h": 84,
    "region": "clock",
@@ -440,8 +441,8 @@
   {
    "id": "clock.slotPicture.23",
    "kind": "picture",
-   "x": 625,
-   "y": 612,
+   "x": 154,
+   "y": 503,
    "w": 84,
    "h": 84,
    "region": "clock",
@@ -450,6 +451,72 @@
   },
   {
    "id": "clock.slotPicture.24",
+   "kind": "picture",
+   "x": 154,
+   "y": 503,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.25",
+   "kind": "picture",
+   "x": 154,
+   "y": 503,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.26",
+   "kind": "picture",
+   "x": 172,
+   "y": 583,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.27",
+   "kind": "picture",
+   "x": 172,
+   "y": 583,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.28",
+   "kind": "picture",
+   "x": 172,
+   "y": 583,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.29",
+   "kind": "picture",
+   "x": 172,
+   "y": 583,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.30",
    "kind": "picture",
    "x": 625,
    "y": 612,
@@ -460,7 +527,29 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.25",
+   "id": "clock.slotPicture.31",
+   "kind": "picture",
+   "x": 625,
+   "y": 612,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.32",
+   "kind": "picture",
+   "x": 625,
+   "y": 612,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.33",
    "kind": "picture",
    "x": 625,
    "y": 612,
@@ -509,7 +598,7 @@
    "font": 24
   },
   {
-   "id": "clock.slotPicture.26",
+   "id": "clock.slotPicture.34",
    "kind": "picture",
    "x": 585,
    "y": 665,
@@ -520,7 +609,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.27",
+   "id": "clock.slotPicture.35",
    "kind": "picture",
    "x": 585,
    "y": 665,
@@ -531,7 +620,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.28",
+   "id": "clock.slotPicture.36",
    "kind": "picture",
    "x": 585,
    "y": 665,
@@ -542,7 +631,18 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.29",
+   "id": "clock.slotPicture.37",
+   "kind": "picture",
+   "x": 585,
+   "y": 665,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.38",
    "kind": "picture",
    "x": 242,
    "y": 677,
@@ -553,7 +653,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.30",
+   "id": "clock.slotPicture.39",
    "kind": "picture",
    "x": 242,
    "y": 677,
@@ -564,7 +664,18 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.31",
+   "id": "clock.slotPicture.40",
+   "kind": "picture",
+   "x": 242,
+   "y": 677,
+   "w": 104,
+   "h": 104,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.41",
    "kind": "picture",
    "x": 242,
    "y": 677,
@@ -597,7 +708,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.32",
+   "id": "clock.slotPicture.42",
    "kind": "picture",
    "x": 518,
    "y": 713,
@@ -608,7 +719,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.33",
+   "id": "clock.slotPicture.43",
    "kind": "picture",
    "x": 518,
    "y": 713,
@@ -619,7 +730,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.34",
+   "id": "clock.slotPicture.44",
    "kind": "picture",
    "x": 518,
    "y": 713,
@@ -630,7 +741,18 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.35",
+   "id": "clock.slotPicture.45",
+   "kind": "picture",
+   "x": 518,
+   "y": 713,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.46",
    "kind": "picture",
    "x": 373,
    "y": 737,
@@ -641,7 +763,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.36",
+   "id": "clock.slotPicture.47",
    "kind": "picture",
    "x": 373,
    "y": 737,
@@ -652,7 +774,18 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.37",
+   "id": "clock.slotPicture.48",
+   "kind": "picture",
+   "x": 373,
+   "y": 737,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.49",
    "kind": "picture",
    "x": 373,
    "y": 737,
@@ -701,7 +834,7 @@
    "font": 36
   },
   {
-   "id": "clock.slotPicture.38",
+   "id": "clock.slotPicture.50",
    "kind": "picture",
    "x": 459,
    "y": 795,
@@ -712,7 +845,7 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.39",
+   "id": "clock.slotPicture.51",
    "kind": "picture",
    "x": 459,
    "y": 795,
@@ -723,7 +856,18 @@
    "align": "inside"
   },
   {
-   "id": "clock.slotPicture.40",
+   "id": "clock.slotPicture.52",
+   "kind": "picture",
+   "x": 459,
+   "y": 795,
+   "w": 56,
+   "h": 56,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.53",
    "kind": "picture",
    "x": 459,
    "y": 795,
@@ -800,7 +944,7 @@
    "align": "end"
   },
   {
-   "id": "clock.slotPicture.41",
+   "id": "clock.slotPicture.54",
    "kind": "picture",
    "x": 426,
    "y": 964,

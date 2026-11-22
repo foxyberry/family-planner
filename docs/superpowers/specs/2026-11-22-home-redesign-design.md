@@ -36,7 +36,7 @@ A screen-only UX review of the home's main button found that it changed by itsel
 - **Designer's calls:**
   - the 10 s return for chips;
   - the 30 % fade for other kids;
-  - a shared outing's hatch in alternating kid colours;
+  - a shared outing's hatch in one warm neutral (alternating kid colours looked too busy, user);
   - a public holiday without its own scene shows none;
   - the row geometry (time cell to 1040, picture at 1052, title at 1120; hatch bleed 12, padding 12 / 10).
 
