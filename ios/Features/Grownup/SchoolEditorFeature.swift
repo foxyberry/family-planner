@@ -25,9 +25,13 @@ public struct SchoolEditorFeature {
         /// The day G1 showed when "Details ›" opened G4; nil from the List or Settings (spec G5 "Which
         /// screens and days").
         public let shownDay: Day?
-        /// The date "This day" changes: the day G1 showed, else School's next day (today until School
-        /// is over, then the next school day).
-        public var day: Day { shownDay ?? nextOccurrence ?? today }
+        /// The date "This day" changes: School's next day from the day G1 showed (that day when School
+        /// is on it), else from today (today until School is over, then the next school day). Spec G5
+        /// "More G5 edges": a carried day that has passed or has no School moves on.
+        public var day: Day {
+            let from = max(shownDay ?? today, today)
+            return schoolDay(onOrAfter: from) ?? from
+        }
         public var editScope: Scope = .allDays
         /// Board G5: the "Change from when?" card is open, with its choice and date.
         public var fromWhen: FromWhenTabs.Choice?
@@ -77,11 +81,11 @@ public struct SchoolEditorFeature {
                 .blocks.contains { $0.kind == .school } == true
         }
 
-        /// From the List or Settings, "This day" is School's next day: today until School is over,
-        /// else the next school day (a year ahead at most).
-        var nextOccurrence: Day? {
-            (0..<366).lazy.filter { $0 > 0 || self.nowMinute < (self.original?.end ?? 0) }
-                .map { self.today.adding(days: $0, calendar: self.calendar) }
+        /// The first day from `start` that has School (a year ahead at most); today counts only until
+        /// School is over.
+        func schoolDay(onOrAfter start: Day) -> Day? {
+            (0..<366).lazy.map { start.adding(days: $0, calendar: self.calendar) }
+                .filter { $0 != self.today || self.nowMinute < (self.original?.end ?? 0) }
                 .first { self.hasSchool(on: $0) }
         }
 
@@ -294,11 +298,13 @@ public struct SchoolEditorFeature {
             switch action {
             case .task:
                 let kid = state.kid
-                let year = state.today.year
+                // Spec G5: every year the 14-day window touches (late December reads January too).
+                let years = FromWhenTabs.years(from: state.today, calendar: state.calendar)
                 return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
-                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    var publicHolidays: [Day] = []
+                    for year in years { publicHolidays += await holidays.holidays(year).map(\.day) }
+                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [], publicHolidays: publicHolidays)
                     let directoryID = snapshot?.kids.first { $0.id == kid }?.school?.directoryID
                     let known = if let directoryID {
                         await schoolDirectory.schools().first { $0.id == directoryID }?.followsMoeTerms != nil

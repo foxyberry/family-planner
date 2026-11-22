@@ -44,7 +44,9 @@ final class FromWhenTabsTests: XCTestCase {
     /// start or after its end; every week its weekdays, every month its day of the month.
     func testTheNextDayOfASeriesStaysWithinItsRuns() {
         func next(_ recurrence: Recurrence) -> Day? {
-            FromWhenTabs.nextDay(of: recurrence, after: tuesday, calendar: F.calendar)
+            var item = F.weekly()
+            item.recurrence = recurrence
+            return FromWhenTabs.nextDay(of: item, after: tuesday, holidays: [], calendar: F.calendar)
         }
         let start = day(1)
         XCTAssertEqual(next(.weekly([.monday, .wednesday], from: start, until: nil)), day(11))
@@ -55,6 +57,29 @@ final class FromWhenTabsTests: XCTestCase {
         XCTAssertEqual(next(.monthly(.dayOfMonth(14), from: start, until: nil)), day(14), "Day 14")
         XCTAssertNil(next(.monthly(.dayOfMonth(14), from: start, until: day(13))))
         XCTAssertNil(next(.monthly(.dayOfMonth(30), from: start, until: nil)), "more than 14 days away")
+    }
+
+    /// Spec G5 "More G5 edges": the middle tab counts only days the item really happens: not a skipped
+    /// day, and not a school holiday when "Skip school holidays" is on.
+    func testTheNextDayIsADayTheItemReallyHappens() {
+        let holidays: Set<Day> = [day(11)]
+        var item = F.weekly()   // Mon · Wed, skips school holidays
+        XCTAssertEqual(FromWhenTabs.nextDay(of: item, after: tuesday, holidays: holidays, calendar: F.calendar),
+                       day(16), "Wed 11 is a holiday")
+        item.skipsHolidays = false
+        XCTAssertEqual(FromWhenTabs.nextDay(of: item, after: tuesday, holidays: holidays, calendar: F.calendar),
+                       day(11), "it runs on holidays")
+        item.skippedDays = [day(11)]
+        XCTAssertEqual(FromWhenTabs.nextDay(of: item, after: tuesday, holidays: holidays, calendar: F.calendar),
+                       day(16), "Wed 11 is skipped")
+    }
+
+    /// Spec G5 "More G5 edges": holidays are read for every year the 14-day window touches.
+    func testTheWindowsYears() {
+        XCTAssertEqual(FromWhenTabs.years(from: tuesday, calendar: F.calendar), [2026])
+        XCTAssertEqual(FromWhenTabs.years(from: Day(year: 2026, month: 12, day: 17), calendar: F.calendar), [2026])
+        XCTAssertEqual(FromWhenTabs.years(from: Day(year: 2026, month: 12, day: 18), calendar: F.calendar),
+                       [2026, 2027], "18 Dec + 14 days is 1 Jan")
     }
 
     /// Spec G5 "It opens on the day being looked at": a later day opens on the middle tab when it is

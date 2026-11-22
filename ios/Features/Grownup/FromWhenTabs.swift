@@ -17,16 +17,23 @@ public enum FromWhenTabs {
         (1...reach).lazy.map { today.adding(days: $0, calendar: calendar) }.first(where: isDay)
     }
 
-    /// The first day after today, at most `reach` days ahead, that a repeating item has within its Runs
-    /// (spec G5 "The middle tab's day"): one of its weekdays every week, its day of the month ("2nd Sat",
-    /// "Day 14") every month; never before its start or after its end. Give the recurrence with its end
-    /// worked out (`FamilyCalendar.resolving`): an "End of term" or "After n times" run keeps none.
-    public static func nextDay(of recurrence: Recurrence, after today: Day, calendar: Calendar) -> Day? {
-        nextDay(after: today, calendar: calendar) { day in
-            guard recurrence.pattern(on: day, calendar: calendar) else { return false }
-            guard let range = recurrence.range else { return true }
-            return day >= range.from && range.until.map { day <= $0 } ?? true
+    /// The first day after today, at most `reach` days ahead, that a repeating item really happens
+    /// (spec G5 "The middle tab's day", "More G5 edges"), by the planner's own day rule: one of its
+    /// weekdays every week, its day of the month ("2nd Sat", "Day 14") every month, within its Runs,
+    /// not a skipped day, and not a school holiday when it skips them. Give the item with its end worked
+    /// out (`FamilyCalendar.resolving`): an "End of term" or "After n times" run keeps none.
+    public static func nextDay(of item: ScheduleItem, after today: Day, holidays: Set<Day>,
+                               calendar: Calendar) -> Day? {
+        nextDay(after: today, calendar: calendar) {
+            DayPlanner.matches(item, on: $0, holidays: holidays, calendar: calendar)
         }
+    }
+
+    /// The years today and the next `reach` days touch: the holidays to read (a late-December window
+    /// reads January too).
+    public static func years(from today: Day, calendar: Calendar) -> [Int] {
+        let last = today.adding(days: reach, calendar: calendar).year
+        return last == today.year ? [today.year] : [today.year, last]
     }
 
     /// "Today", then the next day when there is one, then "Date".

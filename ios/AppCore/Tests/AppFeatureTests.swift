@@ -164,7 +164,6 @@ final class AppFeatureTests: XCTestCase {
         await store.send(\.path[id: 0].ourDay.delegate.openSchool)
         guard case let .schoolEditor(fromClock) = store.state.path.last else { return XCTFail("no G4") }
         XCTAssertEqual(fromClock.shownDay, later)
-        XCTAssertEqual(fromClock.day, later)
         await store.send(\.path[id: 1].schoolEditor.delegate.finished)
         await store.send(\.path[id: 0].ourDay.listTapped)
         await store.send(\.path[id: 0].ourDay.delegate.openSchool)

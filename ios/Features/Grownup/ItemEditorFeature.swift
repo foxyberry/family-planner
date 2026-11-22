@@ -441,16 +441,18 @@ public struct ItemEditorFeature {
             }
         }
 
-        /// Board G3: the day "This day" changes: the one just skipped, else the day G1 showed when the
-        /// series has it (spec G5 "Which screens and days"), else the next one.
-        public var thisDay: Day? { skippedDay ?? shownOccurrence ?? skipCandidate }
+        /// Board G3: the day "This day" changes: the one just skipped, else the day G1 showed (spec G5
+        /// "Which screens and days"), else the next one.
+        public var thisDay: Day? { skippedDay ?? carriedDay ?? skipCandidate }
 
-        /// The day G1 showed, when it is one of the series' days that has not passed yet (never before
-        /// the next one, so This day never lands on a day that is over).
-        var shownOccurrence: Day? {
-            guard let shownDay, let weekly = weeklyItem, let next = skipCandidate, shownDay >= next,
-                  DayPlanner.matches(weekly, on: shownDay, holidays: holidays, calendar: calendar) else { return nil }
-            return shownDay
+        /// From G1 (spec G5 "More G5 edges"): the day shown there when the series happens on it and it
+        /// is not over; a day that has passed, or one without the series, moves on to the next day it
+        /// happens after it (never before today).
+        var carriedDay: Day? {
+            guard let shownDay, let weekly = weeklyItem else { return nil }
+            let from = max(shownDay, today)
+            return SeriesEdits.nextOccurrence(of: weekly, from: from, nowMinute: from == today ? nowMinute : 0,
+                                              holidays: holidays, calendar: calendar)
         }
 
         /// The side column's tabs show for an every-week item that still has a day ahead.
@@ -473,11 +475,12 @@ public struct ItemEditorFeature {
             FromWhenTabs.tabs(next: nextDay, today: today, calendar: calendar)
         }
 
-        /// The first day after today, within 14 days, on the changed series' repeat (every week or
-        /// every month) and within its Runs, its end worked out ("End of term", "After n times").
+        /// The first day after today, within 14 days, that the changed series really happens: on its
+        /// repeat (every week or every month), within its Runs (its end worked out: "End of term",
+        /// "After n times"), not skipped, and not a school holiday when it skips them.
         var nextDay: Day? {
             let series = family.resolving([seriesEdit], calendar: calendar).first ?? seriesEdit
-            return FromWhenTabs.nextDay(of: series.recurrence, after: today, calendar: calendar)
+            return FromWhenTabs.nextDay(of: series, after: today, holidays: holidays, calendar: calendar)
         }
 
         /// Where the series splits for the card's choice.
@@ -608,11 +611,13 @@ public struct ItemEditorFeature {
             switch action {
             case .task:
                 if state.isAdding, state.draftID == nil { state.draftID = uuid() }
-                let year = state.today.year
+                // Spec G5: every year the 14-day window touches (late December reads January too).
+                let years = FromWhenTabs.years(from: state.today, calendar: state.calendar)
                 return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
-                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    var publicHolidays: [Day] = []
+                    for year in years { publicHolidays += await holidays.holidays(year).map(\.day) }
+                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [], publicHolidays: publicHolidays)
                     await send(.loaded(snapshot, family: family))
                 }
 

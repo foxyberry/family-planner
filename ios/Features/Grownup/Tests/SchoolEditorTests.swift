@@ -30,7 +30,7 @@ final class SchoolEditorTests: XCTestCase {
             SchoolEditorFeature()
         } withDependencies: {
             $0.calendar = F.calendar
-            $0.holidays.holidays = { _ in holidays }
+            $0.holidays.holidays = { year in holidays.filter { $0.day.year == year } }
             $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: SeedData.routines, items: []) }
             $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.scheduleStore.saveRoutine = { routine in savedRoutines.withValue { $0.append(routine) } }
@@ -278,6 +278,40 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(afterSchool, "Wed 11 Nov only")
         let weekend = await thisDay(today: day(14))
         XCTAssertEqual(weekend, "Mon 16 Nov only")
+        // Spec G5 "More G5 edges": a carried day that has passed, is over or has no School moves on.
+        let past = await thisDay(shownDay: day(9))
+        XCTAssertEqual(past, "Tue 10 Nov only", "a day before today: School's next day")
+        let over = await thisDay(nowMinute: 900, shownDay: tuesday)
+        XCTAssertEqual(over, "Wed 11 Nov only", "today once School is over")
+        let saturday = await thisDay(shownDay: day(14))
+        XCTAssertEqual(saturday, "Mon 16 Nov only", "no School on the shown day: the next school day after it")
+    }
+
+    /// A carried day that is a day off (a public holiday) moves to the next school day.
+    func testAShownDayOffMovesThisDayToTheNextSchoolDay() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, shownDay: day(16),
+                          holidays: [Holiday(day: day(16), name: "Example Day")])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.familyLoaded)
+        XCTAssertEqual(store.state.thisDayTitle, "Tue 17 Nov only")
+    }
+
+    /// Spec G5 "More G5 edges": the middle tab reads the next year's holidays when the window crosses it.
+    func testTheMiddleTabReadsNextYearsHolidays() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let dec29 = Day(year: 2026, month: 12, day: 29)
+        let holidays = [Day(year: 2026, month: 12, day: 30), Day(year: 2026, month: 12, day: 31),
+                        Day(year: 2027, month: 1, day: 1), Day(year: 2027, month: 1, day: 4)]
+            .map { Holiday(day: $0, name: "Example Day") }
+        let store = store(savedKids: kids, savedRoutines: routines, today: dec29, holidays: holidays)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.familyLoaded)
+        await store.send(.endPicked(dec29.date(minute: 870, calendar: F.calendar)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Tue 5 Jan", "Date"])
     }
 
     /// From Settings on a Saturday, This day's skip lands on Monday and stays there once skipped.

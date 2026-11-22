@@ -16,7 +16,7 @@ final class WeeklyEditTests: XCTestCase {
     private let tuesday = Day(year: 2026, month: 11, day: 10)
 
     private func store(_ item: ScheduleItem? = nil, minute: Int = 600, on day: Day = F.monday, shownDay: Day? = nil,
-                       school: SchoolCalendar = .none,
+                       school: SchoolCalendar = .none, holidays: @escaping @Sendable (Int) -> [Day] = { _ in [] },
                        saved: LockIsolated<[[ScheduleItem]]> = .init([])) -> TestStoreOf<ItemEditorFeature> {
         let item = item ?? swim
         let now = day.date(minute: minute, calendar: F.calendar)
@@ -31,7 +31,7 @@ final class WeeklyEditTests: XCTestCase {
             $0.scheduleStore.load = { snapshot }
             $0.scheduleStore.save = { item in saved.withValue { $0.append([item]) } }
             $0.scheduleStore.saveAll = { items in saved.withValue { $0.append(items) } }
-            $0.holidays.holidays = { _ in [] }
+            $0.holidays.holidays = { year in holidays(year).map { Holiday(day: $0, name: "Example Day") } }
             $0.schoolDirectory.calendar = { _, _ in school }
         }
         store.exhaustivity = .off
@@ -235,12 +235,53 @@ final class WeeklyEditTests: XCTestCase {
 
         XCTAssertEqual(store(on: tuesday).state.thisDayTitle, "Wed 11 Nov only", "from the List: the next day")
         XCTAssertEqual(store(on: tuesday, shownDay: Day(year: 2026, month: 11, day: 12)).state.thisDayTitle,
-                       "Wed 11 Nov only", "a shown day without the item: its next day")
+                       "Mon 16 Nov only", "a shown day without the item: the next day it happens after it")
         XCTAssertEqual(store(on: tuesday, shownDay: F.monday).state.thisDayTitle, "Wed 11 Nov only",
                        "a day before today is never This day")
         XCTAssertEqual(store(minute: 1000, on: F.monday, shownDay: F.monday).state.thisDayTitle, "Wed 11 Nov only",
                        "nor today once the item is over")
         XCTAssertEqual(store(minute: 900, on: F.monday, shownDay: F.monday).state.thisDayTitle, "Mon 9 Nov only")
+    }
+
+    /// Spec G5 "More G5 edges": a shown day that is a school holiday (the item skips them) moves on to
+    /// the item's next day.
+    func testAShownHolidayMovesThisDayToTheNextDay() async {
+        let wed18 = Day(year: 2026, month: 11, day: 18)
+        let store = store(on: tuesday, shownDay: wed18, holidays: { _ in [wed18] })
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.thisDayTitle, "Mon 23 Nov only")
+    }
+
+    /// Spec G5 "More G5 edges": the middle tab skips a skipped day and, for an item that skips school
+    /// holidays, a holiday; holidays are read for the next year too when the window crosses it.
+    func testTheMiddleTabSkipsSkippedDaysAndHolidays() async {
+        func middle(_ item: ScheduleItem, on day: Day, holidays: @escaping @Sendable (Int) -> [Day]) async -> [String] {
+            let store = store(item, on: day, holidays: holidays)
+            await store.send(.task)
+            await store.receive(\.loaded)
+            await store.send(.scopeTapped(.allDays))
+            await store.send(.binding(.set(\.form.end, 1020)))
+            await store.send(.saveTapped)
+            return store.state.fromWhenTabs.map(\.1)
+        }
+        let wed11 = Day(year: 2026, month: 11, day: 11)
+        var skipped = swim
+        skipped.skippedDays = [wed11]
+        let afterSkip = await middle(skipped, on: tuesday) { _ in [] }
+        XCTAssertEqual(afterSkip, ["Today", "Mon 16 Nov", "Date"], "Wed 11 is skipped")
+        let afterHoliday = await middle(swim, on: tuesday) { _ in [wed11] }
+        XCTAssertEqual(afterHoliday, ["Today", "Mon 16 Nov", "Date"], "Wed 11 is a holiday")
+        var onHolidays = swim
+        onHolidays.skipsHolidays = false
+        let onHoliday = await middle(onHolidays, on: tuesday) { _ in [wed11] }
+        XCTAssertEqual(onHoliday, ["Today", "Tomorrow", "Date"], "it runs on holidays")
+
+        // Tue 29 Dec: Wed 30 Dec (2026) and Mon 4 Jan (2027) are holidays.
+        let newYear = await middle(swim, on: Day(year: 2026, month: 12, day: 29)) { year in
+            year == 2026 ? [Day(year: 2026, month: 12, day: 30)] : year == 2027 ? [Day(year: 2027, month: 1, day: 4)] : []
+        }
+        XCTAssertEqual(newYear, ["Today", "Wed 6 Jan", "Date"], "January's holidays are read too")
     }
 
     /// Spec G5: a This day change from G1 saves on the day shown there.
