@@ -38,7 +38,7 @@ LINES = {
  'home': {'clockCentre': [448, 528], 'clockRadius': 372, 'clockArea': [0, 900], 'panelLeft': 928, 'panelTop': 96, 'right': 1336, 'mainButtonWidth': 408, 'mainButtonBottom': 968,
           'baselines': {'weekday': 132, 'kidAName': 187, 'kidALabel': 265, 'timeLeft72': 337, 'status': 374, 'nextLabel': 259, 'nextTitle': 300, 'nextAt': 338},
           'kidARow': {'pictureLeft': 928, 'picture': 96, 'pictureTop': 241, 'nextPicture': 104, 'nextPictureTop': 238, 'textLeft': 1040, 'nextTextLeft': 1048, 'gap': 16},
-          'kidBRule': {'gapBelowKidA': 40, 'lowestNameBaseline': 584, 'note': 'Kid B block (name, now/next circles, captions) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584'}},
+          'kidBRule': {'gapBelowKidA': 40, 'lowestNameBaseline': 584, 'note': 'Kid B block (name, Now row, Next row) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584'}},
  'grown': {'margin': 40, 'formLeft': 40, 'formRight': 840, 'labelLeft': 78, 'controlLeft': 192, 'rightEdge': 808, 'sideLeft': 864, 'sideWidth': 472, 'right': 1336, 'headerTop': 44, 'headerBottom': 124, 'formTop': 148, 'formBottom': 968},
  'grown64': {'note': 'superseded board (C1 -> G6, C6 -> G1), kept on the old 64 grid', 'formLeft': 64, 'formRight': 882, 'labelLeft': 104, 'controlLeft': 232, 'sideLeft': 930, 'right': 1312, 'formTop': 176, 'formBottom': 968},
 }

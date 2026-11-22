@@ -1,5 +1,5 @@
 {
- "version": "32",
+ "version": "68",
  "board": "E1",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -72,7 +72,7 @@
   "kidBRule": {
    "gapBelowKidA": 40,
    "lowestNameBaseline": 584,
-   "note": "Kid B block (name, now/next circles, captions) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584"
+   "note": "Kid B block (name, Now row, Next row) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584"
   }
  },
  "regions": {
@@ -315,7 +315,7 @@
    "kind": "text",
    "x": 1048,
    "y": 501,
-   "w": 165,
+   "w": 139,
    "h": 45,
    "region": "panel",
    "anchor": "stretch",
