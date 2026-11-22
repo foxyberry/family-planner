@@ -34,6 +34,8 @@ public struct AddChildFeature {
         public var title: String { L10n.tr("add_child.title") }
         public var age: Int? { Int(ageText.trimmingCharacters(in: .whitespaces)).flatMap { (1...18).contains($0) ? $0 : nil } }
         public var trimmedName: String { name.trimmingCharacters(in: .whitespaces) }
+        /// The side column's button.
+        public var addTitle: String { strings.tr("add_child.add") }
         /// As on S1, every kid needs a name, an age and a face (user, 2026-11-09).
         public var canSave: Bool { !trimmedName.isEmpty && age != nil && !face.isEmpty && !isSaving }
         /// The shared kid card's words (S1's).

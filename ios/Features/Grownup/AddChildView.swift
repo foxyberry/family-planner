@@ -31,7 +31,7 @@ public struct AddChildView: View {
             .frame(height: layout.form.height, alignment: .top)
         } primaryAction: { layout in
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
-                InkButton(L10n.tr("add_child.add")) { store.send(.saveTapped) }
+                InkButton(store.addTitle) { store.send(.saveTapped) }
                     .frame(width: layout.side.width)
                     .disabled(!store.canSave)
                 if let error = store.saveError {

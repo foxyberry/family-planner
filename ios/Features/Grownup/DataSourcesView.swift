@@ -16,25 +16,25 @@ public struct DataSourcesView: View {
     public var body: some View {
         // Spec "Scrolling": the card stays put and its rows scroll inside it.
         GrownupScreen(scrolls: false) {
-            GrownupHeader(title: L10n.tr("sources.title"), caption: store.headerCaption,
+            GrownupHeader(title: store.title, caption: store.headerCaption,
                           onBack: { store.send(.backTapped) })
         } content: { layout in
             PaperCard(seed: 41) {
                 ScrollColumn {
                 VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
-                    Text(L10n.tr("sources.intro")).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                    Text(store.intro).crayonType(.body).foregroundStyle(CrayonColor.ink)
                     ForEach(store.sources) { source in
                         VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                             Text(source.name).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                             Text(source.attribution).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                                 .fixedSize(horizontal: false, vertical: true)
                             if let url = URL(string: source.licenceURL) {
-                                Link(L10n.tr("sources.licence"), destination: url)
+                                Link(store.licenceTitle, destination: url)
                                     .crayonType(.caption).foregroundStyle(CrayonColor.link)
                             }
                         }
                     }
-                    Text(L10n.tr("sources.no_endorsement")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    Text(store.noEndorsement).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(width: layout.editorRowsWidth, alignment: .leading)
