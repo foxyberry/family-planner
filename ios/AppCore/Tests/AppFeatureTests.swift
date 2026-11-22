@@ -10,6 +10,7 @@ import Missions
 import ScheduleStore
 import ParentAuthClient
 import SchoolYear
+import Setup
 import SwiftUI
 import XCTest
 
@@ -426,6 +427,23 @@ final class AppFeatureTests: XCTestCase {
 
     /// Spec "Sizing → Place": the window around the board frame takes the top screen's page: the
     /// home's look (the night sky at night), the morning screen's, and paper on grown-up screens.
+    /// The debug grid follows the board family on top: setup and grown-up screens (the school
+    /// calendar too) share the grown-up frame, the morning screen has its own, the home its own.
+    func testTheScreenFamilyFollowsTheTopScreen() {
+        var state = AppFeature.State()
+        XCTAssertEqual(state.screenFamily, .home)
+        state.path.append(.missions(MissionsFeature.State(look: .day)))
+        XCTAssertEqual(state.screenFamily, .morning)
+        state.path.append(.settings(SettingsFeature.State()))
+        XCTAssertEqual(state.screenFamily, .morning, "the morning screen is the stack's first")
+        state.path.removeAll()
+        state.path.append(.schoolYear(SchoolYearFeature.State()))
+        XCTAssertEqual(state.screenFamily, .grownup)
+        state.path.removeAll()
+        state.setup = SetupFeature.State(firstKid: UUID(), calendar: Calendar(identifier: .gregorian))
+        XCTAssertEqual(state.screenFamily, .grownup)
+    }
+
     func testThePageAroundTheBoardFollowsTheTopScreen() {
         var state = AppFeature.State()
         state.home.skyOverride = .night

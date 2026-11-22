@@ -41,9 +41,7 @@ public struct AppView: View {
             }
             #if DEBUG
             if let debugTools = DebugModel.installed {
-                DebugOverlay(model: debugTools,
-                             lines: store.setup != nil ? .grownup
-                                 : store.isShowingMissions ? .morning : store.path.isEmpty ? .home : .grownup)
+                DebugOverlay(model: debugTools, lines: Self.gridLines(store.screenFamily))
             }
             #endif
         }
@@ -96,11 +94,22 @@ public struct AppView: View {
     /// The debug menu's "Rig scale" in debug builds; the kit data's scale otherwise.
     private static var rigScale: Double {
         #if DEBUG
-        DebugModel.installed?.rigScale ?? KitRigs.shared.scale
+        DebugModel.rigScale
         #else
         KitRigs.shared.scale
         #endif
     }
+
+    #if DEBUG
+    /// The layout grid for the board family on top.
+    private static func gridLines(_ family: AppFeature.State.ScreenFamily) -> GridLines {
+        switch family {
+        case .home: .home
+        case .morning: .morning
+        case .grownup: .grownup
+        }
+    }
+    #endif
 
     private var navigation: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {

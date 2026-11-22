@@ -59,6 +59,9 @@ public final class DebugModel {
     /// The rig scale the kid screens use: the slider's value, else the kit data's.
     public var rigScale: Double { settings.rigScale ?? KitRigs.shared.scale }
 
+    /// The installed model's rig scale, or the kit data's before one is installed (for AppView).
+    public static var rigScale: Double { installed?.rigScale ?? KitRigs.shared.scale }
+
     /// Opens the menu at once, on a simulator and on a device (user, 2026-11-21: no Face ID for the
     /// debug menu; debug builds only).
     public func menuTapped() async {
