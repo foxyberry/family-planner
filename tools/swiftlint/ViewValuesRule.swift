@@ -49,14 +49,21 @@ enum ViewScope {
             self = .viewTypes  // SwiftLint's own examples have no file
             return
         }
-        let skipped = ["/ios/App/", "/ios/DebugTools/", "/ios/DesignSystem/Gallery/", "/Tests/", "/SnapshotTests/"]
-        if skipped.contains(where: path.contains) {
+        // Judge the path from its last `/ios/` on, so the folders above the checkout (a `Tests`
+        // folder in the home directory, say) never change the answer.
+        guard let ios = path.range(of: "/ios/", options: .backwards) else {
             self = .none
-        } else if ["Clock", "Content", "Controls", "Screens"].contains(where: { path.contains("/ios/DesignSystem/\($0)/") }) {
+            return
+        }
+        let file = "ios/" + path[ios.upperBound...]
+        let skipped = ["ios/App/", "ios/DebugTools/", "ios/DesignSystem/Gallery/"]
+        if skipped.contains(where: file.hasPrefix) || file.contains("/Tests/") || file.contains("/SnapshotTests/") {
+            self = .none
+        } else if ["Clock", "Content", "Controls", "Screens"].contains(where: { file.hasPrefix("ios/DesignSystem/\($0)/") }) {
             self = .wholeFile(ternaries: false)
-        } else if path.contains("/ios/DesignSystem/") {
+        } else if file.hasPrefix("ios/DesignSystem/") {
             self = .none
-        } else if path.hasSuffix("View.swift") {
+        } else if file.hasSuffix("View.swift") {
             self = .wholeFile(ternaries: true)
         } else {
             self = .viewTypes
