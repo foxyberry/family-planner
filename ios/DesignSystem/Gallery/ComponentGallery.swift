@@ -161,7 +161,8 @@ public struct ComponentGallery: View {
                     ], now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30 pm"))
                     .scaleEffect(0.5)
                     .frame(width: 480, height: 480)
-                    KidNowNext(now: .teddy, next: .actPlay, nowCaption: "now", nextCaption: "next")
+                    NextRow(picture: .actPlay, caption: "Now", title: "Play", line: "until 4:00 pm")
+                    NextRow(picture: .cake, caption: "Next", title: "Birthday", line: "in 45 min", showsStar: true)
                     ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",
                                 isDestructive: false, onCancel: {}, onConfirm: {})
                     FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Next Mon"), (2, "Date")],

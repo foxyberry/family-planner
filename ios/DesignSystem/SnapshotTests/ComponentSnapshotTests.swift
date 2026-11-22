@@ -318,13 +318,21 @@ final class ComponentSnapshotTests: XCTestCase {
             .padding(110))
     }
 
-    func testKidNowNext() {
-        snap(HStack(spacing: Spacing.xl) {
-            KidNowNext(now: .teddy, next: .actPlay, nowCaption: "now", nextCaption: "next")
-            KidNowNext(now: .actPlay, next: nil, nowCaption: "now", nextCaption: "next")
-            KidNowNext(now: .actShower, next: .actSleep, nowCaption: "now", nextCaption: "next", look: .night)
-                .padding(Spacing.s)
-                .background(CrayonColor.night)
+    /// Layout v68 "Next shape": Kid A's Next row and Kid B's Now and Next rows (126 apart on the
+    /// boards); a just-once star; a long title ending with "…" inside the panel; no time line; the
+    /// night plates (board A1n).
+    func testNextRow() {
+        snap(VStack(alignment: .leading, spacing: 22) {
+            NextRow(picture: .actPlay, caption: "Now", title: "Play", line: "until 4:00 pm")
+            NextRow(picture: .cake, caption: "Next", title: "Birthday", line: "in 45 min", showsStar: true)
+            NextRow(picture: .actSwim, caption: "Next", title: "Swimming with the whole class", line: "at 3:30 pm")
+            NextRow(picture: .actPlay, caption: "Now", title: "Free time", line: nil)
+            VStack(alignment: .leading, spacing: 22) {
+                NextRow(picture: .actSleep, caption: "Now", title: "Sleep", line: "until 7:00 am", look: .night)
+                NextRow(picture: .actBreakfast, caption: "Next", title: "Breakfast", line: "at 7:00 am", look: .night)
+            }
+            .padding(Spacing.s)
+            .background(CrayonColor.night)
         })
     }
 
