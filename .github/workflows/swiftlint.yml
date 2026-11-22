@@ -42,8 +42,14 @@ jobs:
             ~/.cache/family-planner/swiftlint
           key: swiftlint-${{ runner.os }}-${{ hashFiles('MODULE.bazel.lock', 'tools/swiftlint/*.swift', 'tools/swiftlint/BUILD.bazel') }}
           restore-keys: swiftlint-${{ runner.os }}-
+      # rules_swift looks for swift-autolink-extract and friends next to the `swift` it finds on
+      # PATH; on the runner that is a launcher in /usr/local/bin, so put the real toolchain first.
       - name: Toolchain
         run: |
+          resources="$(swift -print-target-info | python3 -c 'import json, sys; print(json.load(sys.stdin)["paths"]["runtimeResourcePath"])')"
+          bin="$(cd "$resources/../../bin" && pwd)"
+          ls "$bin/swift-autolink-extract"
+          echo "$bin" >> "$GITHUB_PATH"
           swift --version
           bazel --version
       # The whole Bazel output, so a toolchain or rule failure shows its reason here.
