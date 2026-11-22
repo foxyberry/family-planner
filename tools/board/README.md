@@ -29,7 +29,9 @@ What it shows:
 Every section and lane folds (recently merged starts folded), and the folds survive the 15 s reload.
 
 Where the facts come from:
-- `gh api graphql` for the PRs.
+- `gh api graphql` for the PRs: open and recently merged ones at most once a minute, the merged and
+  closed history every 10 minutes, whatever the reload rate (the account's GitHub limits are shared
+  by every session). When GitHub refuses, the board keeps the last answer and says how old it is.
 - `~/.claude/projects/*/*.jsonl` for the sessions. Claude Code records each PR a session opened
   (`gitOperation.pr`, action `created`), its title and its working folder. The board reads only the
   bytes added since the last run (`out/sessions-cache.json`, kept in full only for this repo's sessions).
