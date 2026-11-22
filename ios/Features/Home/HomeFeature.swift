@@ -228,10 +228,12 @@ public struct HomeFeature {
             }
         }
 
-        /// E1 (one kid): the Next row stays under "On time" on a leaving morning.
+        /// E1 (one kid): the Next row stays under "On time" on a leaving morning and names the next
+        /// thing other than the outing's item (a Breakfast before leaving stays), so the item shows
+        /// once (layout v70).
         public var leaveNext: NextItem? {
             guard days.count == 1, kidABlock == .leave, let first = days.first else { return nil }
-            return HomeModel.next(first.slots, minute: minute)
+            return HomeModel.next(first.slots, minute: minute, skipping: morningOuting?.slot)
         }
 
         // MARK: What the view shows (it holds no values of its own)

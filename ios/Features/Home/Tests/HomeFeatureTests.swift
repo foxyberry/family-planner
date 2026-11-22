@@ -96,15 +96,18 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertNil(empty.leavePicture)
     }
 
-    /// Kid B with nothing on now shows the play picture and "Free time"; with nothing next the Next
-    /// row is left out (spec "States").
-    func testKidBWithNothingNowShowsPlay() {
+    /// Spec "States" (v70): Kid B with an empty day reads "Nothing planned" with the play picture and
+    /// no time line, and the Next row is left out even with tomorrow planned.
+    func testKidBWithAnEmptyDaySaysNothingPlanned() {
         var state = HomeFeature.State()
+        state.minute = 600
         let kid = SeedData.kidB
+        let tomorrow = [Slot(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 0, end: 420, source: .routine, showsStar: false),
+                        Slot(title: "Breakfast", iconName: "actBreakfast", kind: .morning, start: 420, end: 450, source: .routine, showsStar: false)]
         state.days = [HomeFeature.KidDay(kid: SeedData.kidA, dayType: .weekday, slots: []),
-                      HomeFeature.KidDay(kid: kid, dayType: .weekday, slots: [])]
+                      HomeFeature.KidDay(kid: kid, dayType: .weekday, slots: [], tomorrowSlots: tomorrow)]
         XCTAssertEqual(state.kidB?.kid, kid)
-        XCTAssertEqual(state.kidB?.now, NowItem(picture: .actPlay, title: "Free time", line: nil, showsStar: false))
+        XCTAssertEqual(state.kidB?.now, NowItem(picture: .actPlay, title: "Nothing planned", line: nil, showsStar: false))
         XCTAssertNil(state.kidB?.next)
     }
 
@@ -400,7 +403,11 @@ final class HomeFeatureTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         XCTAssertEqual(store.state.kidABlock, .leave)
+        // v70: the Next row names the next thing other than the outing's item, never the item again.
+        let outing = store.state.morningOuting?.slot
         XCTAssertNotNil(store.state.leaveNext)
+        XCTAssertNotEqual(store.state.leaveNext?.start, outing?.start)
+        XCTAssertGreaterThanOrEqual(store.state.leaveNext?.start ?? 0, outing?.end ?? .max)
 
         let two = self.store(on: tuesday, minute: 412)
         await two.send(.task)

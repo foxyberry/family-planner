@@ -81,19 +81,26 @@ public enum HomeModel {
 
     /// Spec "Now and next on home": the next thing after the current one, of any kind, after the
     /// priority rule. Free time is skipped, and so is a slot that only continues after an item ends
-    /// (Play after Weekend school). With `tomorrow` (Kid B at night, board A1n) a day with nothing
-    /// left goes on into tomorrow's first thing after the night's sleep ("Breakfast").
-    public static func next(_ slots: [Slot], minute: Int, tomorrow: [Slot] = []) -> NextItem? {
+    /// (Play after Weekend school). `skipping` (board E1, under the Leave row) gives the next thing
+    /// other than the outing's item. With `tomorrow` (Kid B, board A1n) Next looks into tomorrow
+    /// only while the slot on now runs to midnight (spec "States", v70): then it is the first thing
+    /// after the night's sleep ("Breakfast"); otherwise it stays within today.
+    public static func next(_ slots: [Slot], minute: Int, tomorrow: [Slot] = [], skipping skipped: Slot? = nil) -> NextItem? {
         let current = DayPlanner.now(at: minute, in: slots).current
         let after = current?.end ?? minute
-        if let slot = slots.first(where: { $0.start >= after && $0.start > minute && shows($0, in: slots) }) {
+        let first = { (after: Int) in slots.first { $0.start >= after && $0.start > minute && shows($0, in: slots) } }
+        if var slot = first(after) {
+            if slot == skipped {
+                guard let later = first(slot.end) else { return nil }
+                slot = later
+            }
             return item(slot, in: slots, minutesAway: slot.start - minute)
         }
-        // Tomorrow's night is skipped: its opening Sleep, whatever is on now (with nothing left today,
-        // or a gap after the last item), or tonight's slot running on past midnight into
-        // tomorrow's first slot of the same kind.
+        guard let current, current.kind != .free, current.end == 1440 else { return nil }
+        // Tomorrow's night is skipped: its opening Sleep, or tonight's slot running on past
+        // midnight into tomorrow's first slot of the same kind.
         let night = tomorrow.first { slot in
-            slot.start == 0 && (slot.kind == .sleep || current.map { $0.kind == slot.kind && $0.end == 1440 } == true)
+            slot.start == 0 && (slot.kind == .sleep || slot.kind == current.kind)
         }
         let wake = night?.end ?? 0
         return tomorrow.first { $0.start >= wake && shows($0, in: tomorrow) }
@@ -107,9 +114,13 @@ public enum HomeModel {
     }
 
     /// Kid B's Now row (spec "Kid B block"): the slot on now "until" its end; with nothing on now (or
-    /// free time) the play picture and "Free time" until the next slot starts (spec "States"). With
-    /// `tomorrow`, a slot running past midnight ends at tomorrow's wake-up (the Next row's day).
+    /// free time) the play picture and "Free time" until the next slot starts, with no time line when
+    /// nothing is later; an empty day reads "Nothing planned" as the hub does (spec "States", v70).
+    /// With `tomorrow`, a slot running past midnight ends at tomorrow's wake-up (the Next row's day).
     public static func now(_ slots: [Slot], minute: Int, tomorrow: [Slot] = []) -> NowItem {
+        guard !slots.isEmpty else {
+            return NowItem(picture: .actPlay, title: L10n.tr("home.hub.nothing"), line: nil, showsStar: false)
+        }
         let now = DayPlanner.now(at: minute, in: slots)
         let until = { (minute: Int) in L10n.tr("home.hub.until", TimeText.withPeriod(minute)) }
         let nextDay = tomorrow.isEmpty ? slots : tomorrow
