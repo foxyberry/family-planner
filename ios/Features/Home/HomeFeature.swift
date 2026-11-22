@@ -21,7 +21,7 @@ public struct HomeFeature {
         case leave
         /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
         case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
-        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v68).
+        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v71).
         case next(NextItem)
         /// Nothing next today: the row is left out (spec E3 "No item left today").
         case nothing

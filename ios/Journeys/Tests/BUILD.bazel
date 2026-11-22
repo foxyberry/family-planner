@@ -46,7 +46,9 @@ fp_swift_library(
         "//ios/Features/Grownup",
         "//ios/Features/Home",
         "//ios/Features/Missions",
+        "//ios/Features/SchoolYear",
         "//ios/Features/Setup",
+        "//ios/DesignSystem",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],
 )

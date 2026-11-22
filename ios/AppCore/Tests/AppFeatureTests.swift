@@ -9,6 +9,7 @@ import Localization
 import Missions
 import ScheduleStore
 import ParentAuthClient
+import SchoolYear
 import SwiftUI
 import XCTest
 
@@ -199,6 +200,61 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertFalse(store.state.hasGrownupScreens, "a kid screen: no grown-up rules")
         await store.send(.path(.element(id: 0, action: .missions(.delegate(.finished)))))
         XCTAssertTrue(store.state.path.isEmpty)
+    }
+
+    /// Spec K1: the calendar button opens the school calendar over home with no lock (a kid screen,
+    /// as A2); "‹" closes it. While it is open the grown-up rules skip it: no cover, no relock on
+    /// backgrounding, the window keeps the home's look (not the iPad's dark mode).
+    func testTheSchoolCalendarOpensOverHomeWithoutTheLock() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+            $0.continuousClock = TestClock()
+        }
+        store.exhaustivity = .off
+        await store.send(.home(.calendarTapped))
+        guard case let .schoolYear(year)? = store.state.path.first else { return XCTFail("K1 not open") }
+        XCTAssertEqual(year.look, .day)
+        XCTAssertNil(store.state.lock, "no Face ID")
+        XCTAssertTrue(store.state.isShowingSchoolYear)
+        XCTAssertFalse(store.state.hasGrownupScreens, "a kid screen: no grown-up rules")
+        await store.send(.home(.calendarTapped))
+        XCTAssertEqual(store.state.path.count, 1, "a second tap does not push it twice")
+        // The iPad's own dark mode does not reach a kid screen.
+        var dark = store.state
+        dark.deviceIsDark = true
+        XCTAssertEqual(dark.colorScheme, .light)
+        XCTAssertEqual(dark.pageLook, .day)
+        await store.send(.scenePhaseChanged(.background))
+        XCTAssertTrue(store.state.isShowingSchoolYear, "kept when the app goes to the background")
+        XCTAssertFalse(store.state.coversGrownupScreens)
+        await store.send(.path(.element(id: 0, action: .schoolYear(.delegate(.finished)))))
+        XCTAssertTrue(store.state.path.isEmpty)
+    }
+
+    /// Board K1n: the calendar takes the home's look when it opens and follows it while open.
+    func testTheSchoolCalendarFollowsTheHomesLook() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+            $0.continuousClock = TestClock()
+        }
+        store.exhaustivity = .off
+        await store.send(.home(.calendarTapped))
+        await store.send(.home(.skySwitchTapped))
+        XCTAssertEqual(store.state.home.look, .night)
+        guard case let .schoolYear(year)? = store.state.path.first else { return XCTFail("K1 not open") }
+        XCTAssertEqual(year.look, .night)
+        XCTAssertEqual(store.state.pageLook, .night)
+        XCTAssertEqual(store.state.colorScheme, .dark)
+        await store.send(.path(.element(id: 0, action: .schoolYear(.delegate(.finished)))))
+        await store.send(.home(.calendarTapped))
+        guard case let .schoolYear(again)? = store.state.path.first else { return XCTFail("K1 not open") }
+        XCTAssertEqual(again.look, .night, "opens in the home's look")
     }
 
     /// Views hold no values: the root's home State and a child State the reducer builds both keep

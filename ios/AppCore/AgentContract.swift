@@ -142,6 +142,7 @@ public enum AgentContract {
         case .changeSchool: "changeSchool"
         case .dataSources: "dataSources"
         case .missions: "missions"
+        case .schoolYear: "schoolYear"
         }
     }
 

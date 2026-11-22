@@ -6,6 +6,7 @@ import Grownup
 import JourneyWorld
 import KitArt
 import SchoolDirectory
+import SchoolYear
 import SnapshotTesting
 import SwiftUI
 import XCTest
@@ -36,6 +37,60 @@ final class ScreenSnapshotTests: XCTestCase {
         let store = world.store()
         await opened(store)
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
+    }
+
+    /// Board E3h (layout v71): home on a public holiday, the weekday red with the holiday's name
+    /// under it and the panel 32 lower (Monday 9 Nov 2026, Deepavali observed, 10 am).
+    func testHomeOnAPublicHoliday() async throws {
+        var data = sample
+        data.now = "2026-11-09T10:00"
+        data.holidays = ["2026-11-09": "Deepavali (observed)"]
+        let world = World(data)
+        let store = world.store()
+        await opened(store)
+        for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
+    }
+
+    /// Board K1: the school calendar's year, opened from home (Kid A's year-end break, Deepavali,
+    /// Christmas inside the break, today the 10th).
+    func testSchoolYear() async throws {
+        let (store, world) = await schoolYear()
+        for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
+    }
+
+    /// Board K1o: November open over the year.
+    func testSchoolYearOpenMonth() async throws {
+        let (store, world) = await schoolYear()
+        await store.send(.path(.element(id: store.state.path.ids[0], action: .schoolYear(.monthTapped(11)))))
+        for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
+    }
+
+    /// Board K1n: the calendar at night (the sky switch turned the home to night first), December open.
+    func testSchoolYearNight() async throws {
+        let (store, world) = await schoolYear(night: true)
+        snap(store.state, world, size: Self.sizes[0].size, named: "13")
+        await store.send(.path(.element(id: store.state.path.ids[0], action: .schoolYear(.monthTapped(12)))))
+        snap(store.state, world, size: Self.sizes[0].size, named: "13-open")
+    }
+
+    /// The journey's steps to the loaded school calendar, in a world with holidays and a break.
+    private func schoolYear(night: Bool = false) async -> (TestStoreOf<AppFeature>, World) {
+        var data = sample
+        data.holidays = ["2026-03-21": "Hari Raya Puasa", "2026-05-01": "Labour Day", "2026-11-08": "Deepavali",
+                         "2026-11-09": "Deepavali (observed)", "2026-12-25": "Christmas Day",
+                         "2027-01-01": "New Year's Day"]
+        data.breaks = [WorldData.Break(name: "March holidays", from: "2026-03-14", to: "2026-03-22"),
+                       WorldData.Break(name: "June holidays", from: "2026-05-30", to: "2026-06-28"),
+                       WorldData.Break(name: "End-of-year holidays", from: "2026-11-21", to: "2026-12-31")]
+        let world = World(data)
+        let store = world.store()
+        await opened(store)
+        if night { await store.send(.home(.skySwitchTapped)) }
+        await store.send(.home(.calendarTapped))
+        let calendar = store.state.path.ids[0]
+        await store.send(.path(.element(id: calendar, action: .schoolYear(.task))))
+        await store.receive(\.path[id: calendar].schoolYear.loaded)
+        return (store, world)
     }
 
     /// Settings for Kid A, pushed over the home.

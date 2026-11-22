@@ -12,7 +12,7 @@ set -u
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 found=0
 # Folders that hold only kid-facing screens. Add each new kid feature here.
-KID_DIRS='ios/Features/Home/'
+KID_DIRS='ios/Features/Home/ ios/Features/SchoolYear/'
 
 while IFS= read -r -d '' file; do
   case "$file" in

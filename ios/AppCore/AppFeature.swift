@@ -11,6 +11,7 @@ import Home
 import Missions
 import ParentAuthClient
 import ScheduleStore
+import SchoolYear
 import Setup
 import Strings
 import SwiftUI
@@ -38,6 +39,8 @@ public struct AppFeature {
         /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
         /// grown-up rules (relock on backgrounding, app-switcher cover) skip it.
         case missions(MissionsFeature)
+        /// K1 · School calendar, pushed over home from the calendar button. A kid screen, as A2.
+        case schoolYear(SchoolYearFeature)
     }
 
     @ObservableState
@@ -62,6 +65,7 @@ public struct AppFeature {
         public var pageLook: KidLook {
             guard setup == nil, !hasGrownupScreens else { return .day }
             if case let .missions(missions)? = path.last { return missions.look }
+            if case let .schoolYear(year)? = path.last { return year.look }
             return home.look
         }
         public var home = HomeFeature.State()
@@ -101,9 +105,15 @@ public struct AppFeature {
             if case .missions? = path.first { true } else { false }
         }
 
-        /// A grown-up screen is open: the stack holds something other than the morning screen.
+        /// A grown-up screen is open: the stack holds something other than the kid screens (the
+        /// morning screen, the school calendar).
         public var hasGrownupScreens: Bool {
-            path.contains { if case .missions = $0 { false } else { true } }
+            path.contains { !$0.isKidScreen }
+        }
+
+        /// The school calendar is on the stack.
+        public var isShowingSchoolYear: Bool {
+            path.contains { if case .schoolYear = $0 { true } else { false } }
         }
 
         public var strings = Localizer.injected
@@ -325,6 +335,15 @@ public struct AppFeature {
                 if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State(look: state.home.look))) }
                 return .none
 
+            case .home(.calendarTapped):
+                // Spec K1: a kid screen, so no lock; the home's look (board K1n at night).
+                if !state.isShowingSchoolYear { state.path.append(.schoolYear(SchoolYearFeature.State(look: state.home.look))) }
+                return .none
+
+            case let .path(.element(id: id, action: .schoolYear(.delegate(.finished)))):
+                state.path.pop(from: id)
+                return .none
+
             case let .path(.element(id: id, action: .missions(.delegate(.finished)))):
                 state.path.pop(from: id)
                 return .none
@@ -338,6 +357,11 @@ public struct AppFeature {
                     if case var .missions(missions) = state.path[id: id], missions.look != state.home.look {
                         missions.look = state.home.look
                         state.path[id: id] = .missions(missions)
+                    }
+                    // K1 follows the home's look too (board K1n).
+                    if case var .schoolYear(year) = state.path[id: id], year.look != state.home.look {
+                        year.look = state.home.look
+                        state.path[id: id] = .schoolYear(year)
                     }
                 }
                 return .none
@@ -623,4 +647,14 @@ public struct AppFeature {
     }
 }
 
-extension AppFeature.Path.State: Equatable {}
+extension AppFeature.Path.State: Equatable {
+    /// A kid screen (A2, K1): the grown-up rules (relock on backgrounding, the app-switcher cover,
+    /// the iPad's dark mode) skip it.
+    public var isKidScreen: Bool {
+        switch self {
+        case .missions, .schoolYear: true
+        case .settings, .editor, .ourDay, .missionEditor, .busSettings, .changeBuses, .schoolEditor, .addChild,
+             .changeSchool, .dataSources: false
+        }
+    }
+}
