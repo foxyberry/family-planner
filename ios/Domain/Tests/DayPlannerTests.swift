@@ -184,6 +184,8 @@ final class DayPlannerTests: XCTestCase {
         let slots = F.slots(items: [F.weekly()])
         let atSwim = DayPlanner.now(at: 945, in: slots)
         XCTAssertEqual(atSwim.current?.title, "Swimming")
+        let atStart = DayPlanner.now(at: 930, in: slots)   // 15:30, the minute Swimming starts
+        XCTAssertEqual(atStart.current?.title, "Swimming", "an item is now from its first minute")
         XCTAssertEqual(atSwim.next?.title, "Play")
         let inGap = DayPlanner.now(at: 1040, in: slots)   // 17:20, between Play and Dinner
         XCTAssertNil(inGap.current)

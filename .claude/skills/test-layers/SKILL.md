@@ -2,7 +2,7 @@
 name: test-layers
 description: Use when deciding which test should catch a bug, a review finding or something seen on the iPad or simulator while self-checking (WebDriverAgent, screenshots, taps); adding tests for a new screen or flow; a test would need Face ID, a passcode or a person to tap; choosing between a reducer test, a journey, a UI test and a snapshot; or writing a PR's test evidence.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   status: experimental
 ---
 
@@ -38,6 +38,11 @@ is only the look and feel.
 
 Before calling a test done, check that it catches the bug: put the bug back and see the test fail. A
 test that already passed with the bug proves nothing. Then remove the bug again and see it pass.
+
+When a PR changes a rule (a boundary, a comparison, a call that must happen), try two or three
+mutants of it by hand the same way: `<` for `<=`, the call left out. List in the PR any mutant the
+tests let through and the test you added for it. A boundary is the usual gap (2026-11-22: nothing
+checked that an item is "now" from its first minute).
 
 ## Nobody waits
 No test waits for a person, and `scripts/check-unattended-tests.sh` blocks the ways in:
