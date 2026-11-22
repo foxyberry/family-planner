@@ -2,10 +2,10 @@ import Domain
 import Foundation
 import Strings
 
-/// Board G5 "Change from when?" (spec G5 and "Edit scope", layout v69), for G1 (Our day) and G2 (the
-/// item editor): the middle tab names the changed series' next day itself ("Tomorrow", or its short
-/// date "Wed 18 Nov"; never "Next Wed", which reads as next week), is hidden when the series has no
-/// day in the next 14 days, and the card opens on the day being looked at.
+/// Board G5 "Change from when?" (spec G5 and "Edit scope", layout v69), for G1 (Our day), G2 (the
+/// item editor) and G4 (Edit School): the middle tab names the changed series' next day itself
+/// ("Tomorrow", or its short date "Wed 18 Nov"; never "Next Wed", which reads as next week), is hidden
+/// when the series has no day in the next 14 days, and the card opens on the day being looked at.
 public enum FromWhenTabs {
     public typealias Choice = ItemEditorFeature.FromWhen
 
@@ -15,6 +15,25 @@ public enum FromWhenTabs {
     /// The first day after today, at most `reach` days ahead, that `isDay` takes; nil hides the tab.
     public static func nextDay(after today: Day, calendar: Calendar, isDay: (Day) -> Bool) -> Day? {
         (1...reach).lazy.map { today.adding(days: $0, calendar: calendar) }.first(where: isDay)
+    }
+
+    /// The first day after today, at most `reach` days ahead, that a repeating item really happens
+    /// (spec G5 "The middle tab's day", "More G5 edges"), by the planner's own day rule: one of its
+    /// weekdays every week, its day of the month ("2nd Sat", "Day 14") every month, within its Runs,
+    /// not a skipped day, and not a school holiday when it skips them. Give the item with its end worked
+    /// out (`FamilyCalendar.resolving`): an "End of term" or "After n times" run keeps none.
+    public static func nextDay(of item: ScheduleItem, after today: Day, holidays: Set<Day>,
+                               calendar: Calendar) -> Day? {
+        nextDay(after: today, calendar: calendar) {
+            DayPlanner.matches(item, on: $0, holidays: holidays, calendar: calendar)
+        }
+    }
+
+    /// The years today and the next `reach` days touch: the holidays to read (a late-December window
+    /// reads January too).
+    public static func years(from today: Day, calendar: Calendar) -> [Int] {
+        let last = today.adding(days: reach, calendar: calendar).year
+        return last == today.year ? [today.year] : [today.year, last]
     }
 
     /// "Today", then the next day when there is one, then "Date".

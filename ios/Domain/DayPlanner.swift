@@ -52,7 +52,7 @@ public enum DayPlanner {
     }
 
     /// Whether `item` falls on `day` for whoever it is for.
-    static func matches(_ item: ScheduleItem, on day: Day, holidays: Set<Day>, calendar: Calendar) -> Bool {
+    public static func matches(_ item: ScheduleItem, on day: Day, holidays: Set<Day>, calendar: Calendar) -> Bool {
         if item.skippedDays.contains(day) { return false }
         // An item after School follows School's days: its "No school days" decides a day off.
         if item.skipsHolidays && item.after != .school && holidays.contains(day) { return false }

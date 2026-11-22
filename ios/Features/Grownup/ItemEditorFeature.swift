@@ -131,8 +131,9 @@ public struct ItemEditorFeature {
         /// Board G5: the "Change from when?" card is open, with its choice and date.
         public var fromWhen: FromWhen?
         public var fromWhenDate: Day
-        /// The day G1 showed when "Details ›" opened this form; nil from the List or an add. G5 opens on
-        /// it when it is after today (spec G5).
+        /// The day G1 showed when "Details ›" opened this form; nil from the List or an add. This day
+        /// means it (moved on when the series is not on it), and G5 opens on that day when it is after
+        /// today (spec G5).
         public let shownDay: Day?
         /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
         public var draftID: ScheduleItem.ID?
@@ -441,8 +442,19 @@ public struct ItemEditorFeature {
             }
         }
 
-        /// Board G3: the day "This day" changes: the next one, or the one just skipped.
-        public var thisDay: Day? { skippedDay ?? skipCandidate }
+        /// Board G3: the day "This day" changes: the one just skipped, else the day G1 showed (spec G5
+        /// "Which screens and days"), else the next one.
+        public var thisDay: Day? { skippedDay ?? carriedDay ?? skipCandidate }
+
+        /// From G1 (spec G5 "More G5 edges"): the day shown there when the series happens on it and it
+        /// is not over; a day that has passed, or one without the series, moves on to the next day it
+        /// happens after it (never before today).
+        var carriedDay: Day? {
+            guard let shownDay, let weekly = weeklyItem else { return nil }
+            let from = max(shownDay, today)
+            return SeriesEdits.nextOccurrence(of: weekly, from: from, nowMinute: from == today ? nowMinute : 0,
+                                              holidays: holidays, calendar: calendar)
+        }
 
         /// The side column's tabs show for an every-week item that still has a day ahead.
         public var showsScopeTabs: Bool { isEditingWeekly && thisDay != nil }
@@ -464,11 +476,12 @@ public struct ItemEditorFeature {
             FromWhenTabs.tabs(next: nextDay, today: today, calendar: calendar)
         }
 
-        /// The first day after today, within 14 days, on the changed series' repeat (every week or
-        /// every month).
+        /// The first day after today, within 14 days, that the changed series really happens: on its
+        /// repeat (every week or every month), within its Runs (its end worked out: "End of term",
+        /// "After n times"), not skipped, and not a school holiday when it skips them.
         var nextDay: Day? {
-            let recurrence = seriesEdit.recurrence
-            return FromWhenTabs.nextDay(after: today, calendar: calendar) { recurrence.pattern(on: $0, calendar: calendar) }
+            let series = family.resolving([seriesEdit], calendar: calendar).first ?? seriesEdit
+            return FromWhenTabs.nextDay(of: series, after: today, holidays: holidays, calendar: calendar)
         }
 
         /// Where the series splits for the card's choice.
@@ -599,11 +612,13 @@ public struct ItemEditorFeature {
             switch action {
             case .task:
                 if state.isAdding, state.draftID == nil { state.draftID = uuid() }
-                let year = state.today.year
+                // Spec G5: every year the 14-day window touches (late December reads January too).
+                let years = FromWhenTabs.years(from: state.today, calendar: state.calendar)
                 return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
-                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    var publicHolidays: [Day] = []
+                    for year in years { publicHolidays += await holidays.holidays(year).map(\.day) }
+                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [], publicHolidays: publicHolidays)
                     await send(.loaded(snapshot, family: family))
                 }
 
@@ -682,8 +697,9 @@ public struct ItemEditorFeature {
                 }
                 if state.showsScopeTabs, let weekly = state.weeklyItem {
                     guard state.editScope == .thisDay, let day = state.thisDay else {
-                        // All days asks from when first (board G5), on the day G1 showed.
-                        let opening = FromWhenTabs.opening(shown: state.shownDay, next: state.nextDay, today: state.today)
+                        // All days asks from when first (board G5), on the day carried from G1 as This day
+                        // moved it (spec G5, #250); from the List none, so Today.
+                        let opening = FromWhenTabs.opening(shown: state.carriedDay, next: state.nextDay, today: state.today)
                         state.fromWhen = opening.choice
                         state.fromWhenDate = opening.date
                         return .none
