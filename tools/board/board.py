@@ -595,7 +595,7 @@ def issue_line(i):
             f'{" · " + esc(i["opened"]) if i["opened"] else ""})</span></li>')
 
 
-def issue_list(owner, items, shown=3):
+def issue_list(owner, items, shown=2):
     """One owner's waiting issues: the first `shown`, the rest behind "N건 더 보기" (a fold that
     keeps its state over the reload, like every fold)."""
     if not items:
@@ -926,10 +926,10 @@ def build():
     h.append("</section>")
 
     # One card per issue owner (main, review, design, harness), two to a row: its newest session and
-    # state, what it has in hand (doing issues, open PRs), its last status, then its issues waiting
+    # state, what it has in hand (doing issues, open PRs), its last status, then its issues waiting (two shown)
     # (scripts/issue.sh). An owner with issues but no session (an empty or unknown owner) gets a card
     # too. Older or side sessions that own no issues stay off the board (the app's sidebar has them).
-    rank = {"main": 0, "review": 1, "design": 2, "harness": 3}
+    rank = {"main": 0, "design": 1, "review": 2, "harness": 3}  # two to a row: main · design, review · harness (user)
     by_owner = {}
     for i in issues:
         if is_open(i):
