@@ -190,6 +190,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: waiting School change, from the #257 build: the medal waits in the change; one-day versions and later versions read School by date (a "Today" save reaches them); cancel card centred, "Cancel it" / "Keep"; G5 carried day never before today.
 - 2026-11-22: from the #259 build: K1 text 24 and up (numerals, M T W T F S S, today pill 38 × 28), calendar colours and rules written down; the Tomorrow row names the next day's first outing, else its first thing, and shows whenever today has nothing left; Kid B block ends at least 40 above the main button. Layout v74 (K1 boards in their own `calendar` family; home lines at v73 values).
 - 2026-11-22: K1 night numerals dark on every kid fill (night lilac #8E7BC4), the picked year tab is the filled one, "Both off" needs two school kids, Tomorrow caption becomes the weekday 2–6 days away and the short date from 7 days.
+- 2026-11-22: home redesigned (user, design note 2026-11-22-home-redesign-design.md): the clock shows the picked kid's day (kid-colour rim, hub r 104 with face, weekday and time; weekday leaves the panel), the right panel is one family list of next things in time order climbing from the bottom (next card above the kid chips), time cell with six time-left dots within the hour, mission rows replace the main button, faces under titles, no "Leave in" / "On time" / "Now ·" / "Next ·" on home, kid chips pick the clock and dim other kids for 10 s, holiday scene behind the clock; disabled look 40 % everywhere (Undo / Redo off, steppers at a limit, Medal without a trip). Boards A1 … G0 redrawn, new E3s, E3x, A1k; layout v75.
 - 2026-11-22: K1 month cards and the open month draw their outline on the box (inset 0), an exception to the crayon part inset, so six-row months fit (#259 build).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
@@ -211,6 +212,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Drawing**: UI shapes are CrayonKit Shapes; pictures come from the kit only (`KitIcon`); the kid's own drawings swap into the same slot later. Motion 1.2 s, rigid parts; reduced motion = still.
 - **Privacy**: public repo uses Kid A / Kid B; no home, stops, routes, school names or keys; real family times stay on the canvas. Wolfie is public; the home drawing is not.
 - Parts: board 0b (controls), 0c (content), 0c2 (kid parts: `KidFace`, `MissionCircle`, `KidList`/`KidBand`, `NextRow`, `WayCard`, `DonePill`).
+- **Disabled look** (one rule, 2026-11-22): any control that cannot be tapped (`InkButton`, `RoundButton`, `CrayonSwitch`, the crayon "›") draws at **40 %** opacity, day and night, and does not respond. This includes a stepper's − / + at its limit (ItemEditor, `MinutesStepper`) and the School editor's Medal switch when School has no trip. A clock slice skipped for a day (G1g) is a state, not a disabled control, and keeps its own look.
 
 - **Crayon rounded boxes** (main session, 2026-11-09): every rounded rect keeps at least 6 outline samples per corner so corners draw round (at 12 pt sampling a 24 pt corner had only 3 and looked cut off). Small circles such as the 28 step dots use a calmer line: width 3, roughness 0.4.
 
@@ -249,7 +251,7 @@ Every board and the app follow these. Change them here and on board 00 first.
   - **Text that does not fit**: a label is reworded on the board. Typed names wrap to 2 lines, then end with "…", in rows, fields and cards; in a one-line control (a tab, a pill, a button) they stay on one line and end with "…". Value lines joined by " · " wrap at a " · " onto at most 2 lines. No `minimumScaleFactor`.
   - **Rows grow** only for wrapped text (a typed name, a value line), by the same amount on every screen, since everything scales together; the card scrolls if its content is taller than the card.
   - **Supported screens and windows**: landscape on iPads from the mini up to the 13", and the iPhone Duo inner screen. The Duo outer screen (phone width) is out of scope. W and H are the window (user, 2026-11-21), so a smaller window (Split View, Stage Manager) shows the whole board smaller, with paper around it; nothing is cropped and no screen scrolls because of the window. Portrait comes later.
-- **Bottom**: the main button bottom (968 on the board) stays above the home indicator area.
+- **Bottom**: the lowest control's bottom (968 on the board: the kid chips on home, the main button on other screens) stays above the home indicator area.
 - **Check**: snapshot tests render with a 24 pt status bar band and fail if any part other than a full-bleed background starts above y 24 (in board coordinates, after scaling). Layout tests run at s = 1 against the layout JSON; one more size (the mini) checks that everything scales by the same s.
 - Colour never carries meaning alone. **One colour per kid, day and night** (changed 2026-11-08): Kid A `kidA` #56B4E9, Kid B `kidB` #E69F00 (the `KidFace` ring, the `KidBand` edge; fills use sky #8FD3F4 / apricot #FBC97A crayon), always with the face and name (`KidFace`). `pickBlue` #2E8FE0 (was `kidABlue`) marks ✓ done, picked and focus for any kid; it is not a kid colour. #F28C28 (`kidBOrange`) is dropped.
 - **Contrast**: body and caption text 4.5 : 1 on its ground, day and night; title size and up 3 : 1 (WCAG large text); UI parts and outlines 3 : 1. No extra colour tokens just to pass: change the size class or use ink.
@@ -340,7 +342,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
   - Sleep 20:45–7:30, Breakfast 7:30–8:30, Play 8:30–19:00, Dinner 19:00–20:15, Shower 20:15–20:45.
   - On the seed Saturday, Weekend school (9:00–12:00) and the Birthday (14:00–16:00) sit on top. At 9:15 the hub says "Weekend / school" (head 36 on two lines, because it does not fit 260 on one) / "until 12:00 pm", as on E3.
   - Real Sunday activity times are not in the repo; grown-ups add a Sunday every-week item in C3 (e.g. with `actChurch`).
-- Debug time machine: at 6:52 on a Monday, A1 shows "Breakfast" / "until 7:30 am" and Kid A "Leave in 34 min" (live look, build step 5), as on the board.
+- Debug time machine: at 6:52 on a Monday, A1 shows Kid A's clock at breakfast and the next card "34 min · School" (live look, build step 5), as on the board.
 
 ### Schedule model the screens assume [proposed]
 - Each kid has **three day templates**, one per day type, plus **every-week items** and **just-once items**. A template covers sleep, routines, the school or nursery block, dinner, evening and bedtime.
@@ -354,27 +356,29 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 
 ---
 
-## A1 · Home, two kids (Kid A's 24-hour clock) [board]
+## A1 · Home: the picked kid's 24-hour clock and the family's next things [boards A1, A1m, A1b, A1n, A1z, A1k, E1, E3, E3b, E3h, E3s, E3x, G0; layout v75; design note 2026-11-22-home-redesign-design.md]
 
 ### Layout
 - Screen: `KidScreen` with an **empty header**. The clock uses the full height.
 - Clock area: x 0–900, y 0–1032 in full-screen coordinates (see "Grid and frame": the status bar band y 0–24 stays empty; the labels start near y 100). It is not on the grid; the disc centre is at (448, 528).
-- Right panel: x 928–1336 (w 408), y 132–968 (2026-11-22: 36 lower, so the weekday line passes under the two buttons at the top right), one vertical stack (user, 2026-11-10: the right margin is 40, the same as the left (sky switch at x 40), and the panel uses the space by widening, not moving; its left line stays 928). The main button (Missions / Diary) fills the panel width: 408 × 96, its art drawn at that width.
+- Right panel: x 928–1336 (w 408), from under the two top buttons (y 132) to 968. It stacks **from the bottom up** (user, 2026-11-22): the kid chips at the bottom, the next card above them, then the later rows climbing above it. The space a short day leaves sits at the top, under the buttons.
 - Long-press anywhere on the clock disc for 2 s → C0.
 
-### Pie clock
+### Pie clock: one kid's day
+- The clock shows **the picked kid's day** (the kid chips below pick it). It opens on the kid of the next card (the most urgent thing); a kid picked by a tap goes back to that kid after 10 s without a touch, and at once when the next card's kid changes.
 - Disc radius R = 372 (diameter 744), centre (448, 528).
+- **Rim**: a 12 pt crayon ring in the picked kid's colour on the disc edge, a 2.5 pt marker ring 7 outside it.
 - **Angle**: 0:00 at the top (12 o'clock position), clockwise, 15° per hour. angle(h) = h × 15° measured from straight up; x = cx + r·sin, y = cy − r·cos. Noon is at the bottom.
 - **Hour ticks**: every hour, a marker line from r 378 to r 392, 3 pt.
 - **Hour labels**: 24 labels around the rim, reading 12, 1 … 11, 12, 1 … 11 (12-hour numbers on a 24-hour face).
   - Label radius about 410; use the label positions on the board.
   - 12 (midnight, top), 6 (right, 6 am), 12 (noon, bottom) and 6 (left, 6 pm) are 30 pt semibold `ink`. The rest are 24 pt semibold `softText`.
   - A 40 pt moon picture sits above the top 12, and a 44 pt sun below the bottom 12.
-- **Slots**: one sector per schedule slot, from its start angle to its end angle. Touching slots of the same kind (the two halves of sleep) are merged into one sector first.
-  - Fill (matched to the boards, 2026-11-09): a light wash plus long parallel hachure strokes at about −50° with paper showing between them (the boards' look), in the slot colour; not a dense wash with short flicks. **Free time has no fill**: plain paper with the normal radial edges, and no picture.
+- **Slots**: one sector per schedule slot of the picked kid, from its start angle to its end angle. Touching slots of the same kind (the two halves of sleep) are merged into one sector first.
+  - Fill: a light wash plus long parallel hachure strokes in the slot colour with paper showing between them. **Free time has no fill**: plain paper with the normal radial edges, and no picture.
   - Edges: radial marker line 2.5 pt between slots, outer ring 4.5 pt.
   - The **current slot** gets a 6 pt outline.
-- **Slot colours** (new token group `ClockSlot`; hex from the board):
+- **Slot colours** (token group `ClockSlot`):
 
   | kind | colour | hatch angle |
   |---|---|---|
@@ -387,77 +391,58 @@ How far apart things sit, in board points (every value × s on screen). Every ga
   | evening routine | lilac #B9A3F0 | −60° |
   | just-once event | pink #F7A8CF | 50° |
 
-  - Snack and play share the green; sky is kept for after-school every-week items (2026-11-08).
-  - Free time has no colour (paper).
-
-  - mint, orange, green, coral, lilac and pink are new palette entries.
+  - Snack and play share the green; sky is kept for after-school every-week items. Free time has no colour (paper).
   - Text is never placed on these fills, so contrast rules do not apply to them.
-- **Slot pictures**: each slot's kit picture (`KitIcon`, from the item's slot) at the slot's middle angle. Keep it between the hub (r 160) and the rim (r R − 8).
-  - Size by slot length: ≥ 3 h → 104; 1–3 h → 84; 30–60 min → 56; under 30 min → no picture. (Board A1, 2026-11-08: 68 overflowed a 45-minute slice.)
-  - Radius: 0.68R (about 253) for 104 and 84; 0.8R (about 298) for 56, where the slice is wider.
-- **Hub**: white disc r 152, 4 pt marker outline, on top of the slots.
-- **Hand**: the "lollipop" in `handRed` #E5484D.
-  - Line 9 pt from r 154 to r 312 at the current time's angle.
-  - Disc r 24 at r 336, crayon-filled red with a 4 pt outline.
-  - Moves once a minute (`TimelineView(.everyMinute)` / `@Dependency(\.date)`).
-- Accessibility label for the whole clock: "Kid A's day as a 24-hour clock. Midnight at the top, noon at the bottom. {weekday} {h:mm}, {slot}." On a school morning, M3 appends " Leave at {h:mm}.".
+- **Slot pictures**: each slot's kit picture (`KitIcon`) at the slot's middle angle, between the hub (r 112) and the rim (r R − 8).
+  - Size by slot length: ≥ 3 h → 104; 1–3 h → 84; 30–60 min → 56; under 30 min → no picture.
+  - Radius: 0.68R (about 253) for 104 and 84; 0.8R (about 298) for 56.
+- **Hub**: white disc r **104** (by night `moonPaper`), 4 pt marker outline, on top of the slots.
+- **Hand**: the "lollipop" in `handRed` #E5484D: line 9 pt from r 106 to r 312 at the current time's angle; disc r 24 at r 336, crayon-filled red with a 4 pt outline. Moves once a minute (`TimelineView(.everyMinute)` / `@Dependency(\.date)`).
+- Art: `pie-clock.js` (crayon-design skill) draws the disc with `hub` and `rim` in its config.
 
-### Hub text (changed 2026-11-08: the weekday moved to the right panel)
-- The hub has two parts only: the slot title and "until {end h:mm am/pm}" (body 30 `softText`).
-  - One line: title 48 `ink`, baseline 540; "until" baseline 590.
-  - Two lines (title fitting below): head 36, lines at 512 and 550 (pitch 38); "until" at 594.
-- **Weekday**: the first line of the right panel on every kid home screen (A1, A1n, E1, E3, E3b): head 36 (ink by day, `nightText` at night), then 24 to the Kid A name row. The weekday is always the full name. **On a public holiday** the weekday is red (`lateText`, by night `nightLate`) and the holiday's name sits under it as a caption ("Deepavali", caption 24 `softText`, baseline 32 below the weekday line; board E3h). **On a school holiday that is not a public holiday** (vacation, school holiday, day off in lieu) the weekday stays ink and the break's name sits under it the same way ("June holidays"). The break's name shows on weekdays only and follows Kid A's school; a long name ends with "…" on one line. The name line pushes the rest of the panel down by its 32 (user, 2026-11-22: red reads as "holiday", as on the calendar; there is no "· Holiday" suffix). It replaced "NOW" in the hub (2026-11-08) and moved out of the hub the same day so a two-line title has room.
-- Slot title = the item's name (e.g. "Breakfast", "School", "Swimming", "Sleep").
-- Title fitting (user decision, 2026-11-08; replaces "never wrap"):
-  1. Title 48 on one line if it fits in 260 pt.
-  2. Otherwise head 36, up to **two lines** in 284 pt, broken at a word.
-  3. Still too long: the second line ends with "…".
-  - **Two-line spacing** (checked on iPad 2026-11-08; Playpen Sans has tall built-in ascent and descent, so the default 1.2 line height looks loose):
-    - The two title lines are 38 pt apart, baseline to baseline (1.05 × 36). Build them as two `Text` lines in a 38-pt-tall box each (or a font with line height 38), not as one wrapped `Text` with the default leading.
-    - Last title line → "until": 44, baseline to baseline. Baselines: see the hub layout above (one line 540 / 590; two lines 512 / 550 / 594).
-- **Gap (no slot covers now)** [proposed]: title "Free time", second line "until {next start}". If nothing else is planned today: "Free time" with no second line.
-- **No schedule at all** [proposed]: the disc is plain paper with ticks and labels, no slots and no hand change. Hub: "{weekday}" / "Nothing planned". No instruction to the child.
+### Hub: whose clock, which day, what time
+- Three parts, centred on x 448: the picked kid's face 48 (top at y 440), the weekday (28 bold, baseline 524) and the time ("6:52" 44 bold + "am" 24 `softText`, baseline 574). The weekday is the full name.
+- **Public holiday**: the weekday is red (`lateText`; at night `nightLate`), the holiday's name sits under the time (24 `softText`), and the face is left out to make room: weekday 494 / time 544 / name 580. A name that does not fit the hub (about 176 wide at that line) ends with "…".
+- School holidays have no words in the hub: they show as the holiday scene (below) when every school kid is off.
+- **No schedule at all** for the picked kid: the disc is plain paper with ticks and labels; the hub keeps face, weekday and time.
+
+### Holiday scene
+- A crayon picture behind the clock area (900 × 1032), under a paper disc of the clock's size so it never shows through the slots; it fades out over its right 20 % so the right panel stays plain.
+- Which scene: a public holiday's own scene first (one per holiday, drawn one at a time: issue 023); else the school-holiday scene (beach, `holiday-scene.js`) when **every** kid who goes to a school or preschool is off for a school break (vacation, school holiday, day off in lieu, preschool closure); else none. A public holiday without its own scene shows none.
+- Hidden in the night look (the sky switch's night, by time or by a tap).
 
 ### Overlap and short slots [proposed]
 - Overlaps resolve by the priority in section 0 before drawing, so sectors never overlap.
 - A slot shorter than 10 minutes (2.5°) is drawn with 10 minutes' width, centred on its real time. It still shows no picture.
 - Two short slots next to each other keep their order and push apart by up to 5 minutes each. If they still collide, the lower-priority one is dropped from the drawing; it stays in the data and in the side lists.
 
-### Now and next on home: one rule (2026-11-08)
-- Every kid shows **now once and next once**, each as one row of the same shape (user, 2026-11-22: one rule for "next", and Kid B in rows like Kid A).
-  - Kid A, the kid whose clock is shown: now is the hub. The right panel shows one row for Kid A: **Leave**, **Bed** or **Next** (below).
-  - Kid B (and any other kid without the clock): a **Now** row, then a **Next** row.
-- **Next** = the next thing on that kid's clock after the current one, of any kind (template slot, every-week, just-once), after the priority rule. Skip free time (no picture) and a slot that only continues after an item ends (Play after Weekend school). On E3 at 9:15 that gives "Birthday" / "at 2:00 pm".
-- **The row** (the "Row shape" in "Home panel lines"): picture 80, then to its right two lines: "{Now|Next|Tomorrow} · {title}" (body 30 bold, one line, a long title ends with "…") over one time line (caption 24 `softText`, one line). A just-once item keeps its star sticker on the picture.
-  - **Now** row: the time line is "until {h:mm am/pm}" (the end of what is on now).
-  - **Next** row: the time line is **"in {n} min"** while the start is **60 minutes or less** away, otherwise "at {h:mm am/pm}" (user, 2026-11-22: a kid reads "in 45 min" more easily; past an hour the time of day is enough). So the Next row never shows "1h 20m"; that format stays for "Leave in" and "Bed in".
-  - The thing a row names shows once: no second row, picture or time left for the same item anywhere in that kid's block.
-- A grown-up's saved change shows on home when the grown-up comes back; there is no reload to do. A change from a later day shows from that day (the clock's day changes at midnight).
-- **Kid A, which row**: on a bus or outing morning the **Leave** row ("Leave in" + time left to the leave time, + "On time" with live bus times; boards A1, A1m, A1b), at night the **Bed** row and the Tomorrow row (A1n), **after bedtime** (Sleep has started), or whenever today has nothing left (an empty day, a day that does not end in Sleep), one **Tomorrow** row for the next day: its first **outing** ("leave {h:mm}"), or, with no outing that day, its first thing after the opening Sleep ("at {h:mm}"); until midnight the caption is "Tomorrow" (when the next thing is 2 to 6 days away, the weekday name instead: "Saturday"; 7 or more days away, the short date: "Tue 1 Dec", so a weekday never reads as this week's); after midnight it is the ordinary **Next** row (caption "Next", the "in {n} min" / "at {h:mm}" rule) (board A1z, user 2026-11-22: today has ended, so home shows the next day), otherwise the **Next** row (E3, E3b). With the Leave row, A1 (two kids) shows no Next for Kid A; E1 (one kid) adds its Next row under the Leave row, and that row names the next thing **other than** the Leave row's item (a Breakfast still before leaving keeps its place), so the outing's item shows once (board E1 at 6:52 on a school day, Breakfast now: Leave in 34 min for School, then Next "Snack" / "at 3:00 pm").
-- **Night** (A1n look): the Bed row comes first ("Bed in" + time left to Sleep). Then the Tomorrow row in the row shape: "Tomorrow · {title}" over "leave {h:mm}" (an outing) or "at {h:mm}". It names the same thing as the after-bedtime row: the next day's first outing, else its first thing. When nothing happens in the next 14 days, Kid A shows the name only, with no row (board: A1z without the row). Kid B has no Tomorrow row; at night Kid B's Next row names the first thing after the wake-up, and by day it stays within today (see States). There is no Next row for Kid A at night: Next would be Sleep, which the time left already says. At night every row picture sits on an 80 night plate (picture 56).
+### Next things: one family list (2026-11-22)
+- The right panel lists **what comes next for the whole family, in time order**, nearest at the bottom (user, 2026-11-22; why: design note). What is on **now** lives in the kid chips and on the clock.
+- **Items**: every kid's next things of any kind (template slot, every-week, just-once), after the priority rule, from now to the end of the day; skip free time and a slot that only continues after an item ends. After bedtime, or when the day has nothing left, the next day's first things. As many rows as fit above the next card; the farthest drop off the top.
+- **Same thing, one row**: two kids doing the same thing at the same time show one row with both faces. Same thing = the same `ScheduleItem` id (`audience == .both`, slot `source` .weekly / .once), or template blocks whose kind, title, start and end all match. Same name at another time is a different thing.
+- **The time cell** says when the kid must act: the start, or for an outing its **leave time** (start − leave before). Within 60 minutes: "{n} min" (30 bold `ink`, "min" 24) over the **time-left dots**; past an hour: "{h:mm am}" (24 bold `softText`); another day: "Tomorrow" / weekday (2–6 days) / "Tue 1 Dec" (7 days and more) over the time, both 24 bold `softText`.
+- **Time-left dots**: six dots 11 pt, gap 5; one dot is 10 minutes. Red (`handRed`) dots are the time left (rounded up), the rest are empty: paper with a `softText` 2 pt ring at 40 % (night: `nightControl`). They go out from the right. When an item comes within the hour the dots pop in one by one (0.6 s); each dot goes out with a small pop; on the next card only, the last red dot breathes (opacity 100 → 60 %, 2 s). Reduce Motion: no pop, no breathing.
+- **The row**: time cell (right edge at 1040), picture 56 at 1052 (`opacity` 75 %; night: on a 56 night plate), then the title (30 bold, `laterText` #6F6980, by night `nightSoft`; a long title ends with "…") at 1120 with the kids' faces under it (32, overlapping by 8). Rows 16 apart. Later rows are never tappable and carry no "›".
+- **Mission rows**: a row whose outing has something to check before leaving (that morning's routine missions for the kid, and the outing's Bring) becomes a button: the kid's colour as a crayon hatch behind the whole row (an outing for two or more kids: one warm neutral hatch, `sand` #E3D5B8; the faces say whose), title in `ink`, and a crayon "›" (ink, 6.5 pt) at the right. The hatch bleeds 12 left of the panel; inside, padding is 12 left and 10 right, so every column and every "›" lines up with the other rows. Tap → A2 for that kid (and that outing). Mission progress is not shown on home.
+- **The next card**: the nearest item, 24 above the chips, in the same columns at a larger size: time 36 bold over the dots, picture 72, title 36 bold, faces 36 under it; gap 8 between them, padding 16 top and bottom. It is a mission row (hatch and "›") when its outing has something to check, else plain. Nothing next at all: no card.
+- **No "Leave in", "On time", "Now ·" or "Next ·" words** on home: the bus picture and the time cell say it. Live bus times stay on A2.
+- A grown-up's saved change shows on home when the grown-up comes back; there is no reload to do.
 
-### Right panel
-- **Home panel lines** (all home boards A1, A1m, A1n, E1, E3, E3b; fixed 2026-11-09, Kid B rule changed the same day after the user's iPad check: the fixed Kid B line left about 140 empty under a short Kid A block): panel x 928 … 1312, top 132.
-  - **Kid A block, look ①** (user, 2026-11-09, board "Home right panel: every look side by side"; replaces the label line with the way picture at the far right): weekday baseline **168**, Kid A name **223** (face 48 at y 199), then one row, 24 below the name: the picture on the left, the words stacked to its right.
-    - Every row has picture **80** at x 928 and text left **1024** (928 + 80 + 16); a row's picture top is the name baseline + **48**, and the next row's picture top is **96** lower (user, 2026-11-22: small rows, two lines, look B).
-    - **Leave / Bed shape**: the way picture (bus, car, taxi, shoe); at night the moon on the night plate. "Leave in" / "Bed in" (caption, `softText`) baseline = picture top + **26**, the time left (**48 bold**, line height 1.0) picture top + **75**. Status "On time" (caption bold, `onTimeText`, dot 24) at x 1024, picture top + **99**. On A1 at 271: 297 / 346 / 370.
-    - **Row shape** (Now, Next, Tomorrow): "{caption} · {title}" (body bold) baseline = picture top + **37**, the time line (caption, `softText`; see the row rule) picture top + **68**. On E3 at 271: 308 / 339.
-    - A1n: the Tomorrow row's picture top is the Bed row's + **104**.
-  - **Kid B block, one rule**: the Kid B block (name, Now row, Next row) moves as one unit. Its name box top = the bottom of Kid A's last box + **40**, and its name baseline is never lower than **620**. Inside the block both rows use the row shape: the Now picture top = name baseline + **48**, the Next picture top = the Now picture top + **96**. Board values (layout v73, name baseline / Now picture top / Next picture top): A1 and G0 456 / 504 / 600, A1m and A1b 429 / 477 / 573, A1n 522 / 570 / 666, E3, E3b and A1z 418 / 466 / 562, E3h (holiday name line) 449 / 497 / 593 (±1 from text boxes rounding). The block ends at least **40** above the main button (872): by 746 on these boards; a holiday name line plus a Tomorrow row can take it to 778.
-  - Main button 872–968 stays pinned; the space a short Kid A block leaves now sits above the button, not between the kids. On E1 (one child) the Next row's picture top is the bottom of the Leave row's last box ("On time") + **37** (425 on the board).
-- **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2. Shows only in the mission morning (below).
-- **Mission morning (board A1m)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
-  - "Missions →" shows at the bottom of the panel (E3's "Diary →" is M5, so there is no clash).
-  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: the Leave row (Leave / Bed shape above) with the time left to the leave time (start − "leave before") ("38 min", "1h 20m"); the "On time" line shows only with live bus times. Otherwise: the Next row.
-  - Kid B block unchanged.
-  - **Panel fit** (board A1m): the panel is the column x 928–1336, y 132–968; the stack is the one in "Home panel lines" and ends by about y 660. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 210 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 40 → 24. The clock never moves.
-  - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. On a bus morning with live times the Kid A block shows "Leave in" + "On time" instead (see "A2 live look").
+### Kid chips
+- One chip per kid at the bottom: y 872–968 (96 tall), equal widths across 928–1336, gap 12, radius 48. Inside: the kid's face 56 and the picture of what the kid is doing now 60 (sleep at night: the moon).
+- The picked kid's chip: the kid's colour at 40 % with a 4 pt ink outline (night: chalk); the others `chip` #EFE9DD (night `nightControl`).
+- **Tap a chip**: the clock turns to that kid's day, and for 10 s the rows and card of the other kids drop to 30 % so the kid sees "now" (the chip) and "my next" (the rows left strong); then everything goes back to the family view.
+- One kid (E1): one full-width chip that also shows the kid's name; tapping it does nothing.
+
+### Right panel numbers (layout v75)
+- Panel x 928–1336; top buttons 36–132; chips 872–968; next card bottom 848 (24 above the chips); rows above it, 16 apart. Row columns: time cell 928–1040 (right-aligned), picture 1052, title 1120. Card and mission rows: hatch x 916–1336.
+- Text sizes: card time and title 36, row title and minutes 30, everything else 24 (nothing under 24).
+- Contrast (day on `paper`): `laterText` 4.7 : 1, `softText` 5.7 : 1; night `nightSoft` 6.3 : 1. Fading is done with colour, not opacity, except the 30 % of a tapped-away kid (10 s).
 
 ### States
-- Weekend or holiday → E3 layout. One child → E1 layout.
-- Kid B has no slot now: the Now row shows the play picture, "Free time" and "until {next start}". With nothing later today it is "Free time" with no time line, and the Next row is left out.
-- Kid B with an empty day (nothing planned at all): the Now row reads "Nothing planned" (the play picture, no time line), as Kid A's hub does on an empty day, and the Next row is left out.
-- Kid B's Next follows the same **Next** rule as Kid A: it skips free time and a slot that only continues the current one, and it looks into tomorrow **only when the Now item runs past midnight** (Sleep at night): then Next is the first thing after the wake-up (board A1n: "Breakfast" / "at 6:30 am"). Otherwise Next stays within today, so with nothing left today, or on an empty day, the Next row is left out.
+- One child → E1 (one chip with the name). Three kids → A1k (three chips; the list is the same).
+- A kid with nothing planned now: their chip shows the play picture.
+- Nothing left today and nothing tomorrow within 14 days: no rows, no card; the chips stay.
 
 ---
 
@@ -511,7 +496,7 @@ Every part sits on these lines; on other iPads apply "Sizing formulas" (y = safe
   - Seed: Kid A School slot (Mon–Fri) bus, 5 → "leave at 7:25 am". Kid A Weekend school (Sat) car, 25 → "leave at 8:35 am". Kid A Swimming car, 10. Art club, Birthday and all of Kid B: no trip.
   - Editing trips: G6 "Going" → C2 for the bus, and the "Going" row on C3 / C4 / G2 (below); an item without a trip shows no strip.
 - **Done state**: per kid **per date**: `{ kid, date, doneMissionIds, ready: Bool }`, in the local store. A new date starts at **midnight**, like the clock, so every morning starts empty. Keep 14 days (the medal fields come with the live look; the M5 diary can read it later); drop older ones. Renaming a mission keeps its done state (it is keyed by id); removing it drops it.
-- **Entry**: home "Missions →" in the mission morning (A1 above). Grown-ups reach C5 from G6 Settings → Routines → Missions.
+- **Entry**: the mission row (or next card) of the outing on home (A1, "Next things"). Grown-ups reach C5 from G6 Settings → Routines → Missions.
 
 ### A2 live look: the bus with live times (new 2026-11-08) [board A2; A3 for the done state; C2 for settings]
 The same screen with live bus arrivals: same fixed regions, same kids-and-missions block; only the strip region, the header right and the bottom control change. Shuttle (A2s), crowding, the plan B buses (A2b) and the plan B screen come later (backlog).
@@ -536,7 +521,7 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - Gold: slid at or before L1 − 5 min. Silver: at or before L1. Bronze: at or before L2. After L2: "Ready!" with no medal, never a sad face.
   - Timetable fallback: L1 = start − leave before; L2 = L1 + late grace.
 - **Done state** gains `readyAt` and `medal: gold | silver | bronze | none` (per kid per date, as in "Morning data").
-- **Home (A1)** on a live bus morning: the Kid A block adds the status line under `TimeLeft` (the A1 board look), and "Leave in" counts to the chosen bus; the timetable look counts to start − "leave before" with no status.
+- **Home (A1)** on a live bus morning: the outing's time cell counts to the chosen bus's leave time; the timetable look counts to start − "leave before". The status ("On time", "Leave now!") shows on A2 only.
 
 ### Bus settings (C2 "Our buses") [board C2, redrawn 2026-11-09 to the built screen]
 - One route per kid with a bus outing. No route heading and no "For {kid}" line (built, PR 38). The Plan B card and "+ Add a route" are hidden (plan B comes later). The Buses row label reads "Buses".
@@ -588,8 +573,8 @@ School is no longer special in the model. Every item that can sit on a kid's clo
   - Evening routine: dinner → bed (C5, later), including "Pack for tomorrow" with tomorrow's Bring things.
 - **Slide to go and done state are per window and per outing**, not per day. Two records: missions done per window `{ kid, date, windowId, doneMissionIds }` (windowId = morning · before:{outingId} · evening), and the slide per outing `{ kid, date, outingId, ready, medal }`. A day with no outing keeps its slide ("All done? Slide!") on the morning window: `{ kid, date, windowId: morning, ready }`, no medal. Each outing with a trip has its own slide; the A2 screen shows the next one.
   - **Migration** of today's per-day records (kept only 14 days): `doneMissionIds` → the morning window of that date; `ready` + `medal` → that day's first outing for the kid (School when there is one); a day with no outing → `ready` on the morning window.
-- **Board A1b** (2026-11-14): the kid home in a before-an-outing window — Saturday 1:15 pm, Birthday at 2:00 by car: the Kid A row reads "Leave in {n} min" with the outing's way picture, the main button reads "Before Birthday →" (→ the A2 screen for that outing: its Bring checks and slide to go); the hub shows the current slot.
-- **Home "Missions →"** shows whenever a window with missions is open (not only wake–12:00 pm); its label names the window ("Missions →", "Before swimming →").
+- **Board A1b**: the kid home in a before-an-outing window — Saturday 1:15 pm, Birthday at 2:00 by car, leave 1:30: the next card "15 min · Birthday" with the car picture and both kids' faces is a mission row (→ the A2 screen for that outing: its Bring checks and slide to go).
+- **Home** shows a window as its outing's row turned into a button (A1, "Mission rows"); a window only opens for an outing, and only when the outing has something to check.
 - **C5** keeps only the day routines (morning, evening) with days per mission (Library bag: Thursdays). Event missions and Bring are edited on the event (C3/C4/G2 and the School event).
 - Build order: the model first (From, `homeAfter`, route per event, done per outing, medal switch), keeping today's screens working; then the event form rows (From, Bring, Before/After, Medal), then the windows and home button. Nothing here is a cut-down version: today's school morning is the first case of the same rules.
 
@@ -628,8 +613,8 @@ At the end of the C3 / C4 / G2 form (the card scrolls, as C3g), one line each, o
 - **From** → a centred `ConfirmCard` (like the C5 editor, tap outside = cancel) with `ChoiceCircles`: **Home** (`home` picture) first, then each of the kid's items that ends at or before this item's start on every one of its days (School first, then by end time), up to 5. Picking "After {item}" sets the start to that item's end, hides the Going / Leave rows (same place, no trip) and makes the start field read-only ("after {item}"). Picking Home shows Going / Leave as C3g. Row value: "Home" or "After {item}".
 - **Bring** → a centred `ConfirmCard` with an `IconPicker` in multi-pick mode (up to 4): one row of 4 (Backpack, Lunch box, Water bottle, Shoes, as the F2 built rule) and a "More" slot that swaps a pick into the row. More lists backpack, lunchBox, waterBottle, then the bring kit batch drawn 2026-11-14 (swimsuit, goggles, towel, rollerblades, helmet, libraryBag; board 0d4, art in handover/crayon-art-out), then the rest of the kit. The name stored with a pick is the slot's label, so bring slots are named as the thing ("Swimsuit", "Library bag"), not the activity; names keep the C5 limit of 14 characters. Row value: the first picture 48 + names joined by " · "; "Nothing" (soft) when empty.
 - ~~Missions~~ row and its sub-page (board F5): dropped 2026-11-14 with the event missions; F5 and the F5a / F5b sketches are archived.
-- **Medal** → a `CrayonSwitch` 96 × 52 on the row itself (x 232, centred on the row), no sub-page. Off and at 45 % (not tappable) when the item has no trip (From = After, or Going = None).
-- **Home button label per window**: morning "Missions →"; before an outing "Before {item} →"; evening (later) "Pack for tomorrow →". {item} is the item's name as typed; if the label does not fit on one line, it is "Missions →".
+- **Medal** → a `CrayonSwitch` 96 × 52 on the row itself (x 232, centred on the row), no sub-page. Off and at 40 % (not tappable, the disabled look) when the item has no trip (From = After, or Going = None).
+- **Home**: no label per window; the outing's row is the button (its picture and name say which). The evening routine (later) prepares tomorrow's outing and will hang on that row.
 - **C5 days per mission**: the C5 editor `ConfirmCard` gets a **Days** row: seven `DayChip` 56 (all on by default). A mission with fewer days shows them as the caption under its name in the C5 list ("Thu", "Mon · Wed"); every day shows no caption.
 
 - **Form cards, built rules** (main session, 2026-11-10; boards F1–F4): every card closes only on Done (keeps) or Cancel / a tap outside (puts the whole form back as it was when the card opened); picking a choice never closes it. Off days "At a set time" has a start → end (without an end the item keeps its length; moving the start moves the end) and Going offers Walk / Bus / Car, Walk picked first. Bring shows the kit's bring group in one row of 4 (Backpack, Lunch box, Water bottle, Shoes); a "More" pick takes the place of an unpicked slot so all picks always fit. Ends shows the date field or the − n times + stepper under its picked row, indented 56; "End of this term" has the short date as caption.
@@ -729,23 +714,15 @@ At the end of the C3 / C4 / G2 form (the card scrolls, as C3g), one line each, o
 - "Start →" saves everything, turns the lock on and opens the home (A1, or E1 with one kid).
 
 ## E1 · Home, one child [board]
-- Same clock and hub as A1.
-- Right panel: Kid A block, then **Next**:
-  - The Leave row as A1, then the Next row (the row rule in "Now and next on home"). One row only.
-- No Kid B block. Main button as A1 (hidden in M2).
-- Empty Next [proposed]: "Next" + "Nothing else today" (body, `softText`).
+- A1 with one kid: the same clock, hub and next list; **one chip** across the panel width with the kid's face 56, name (36 bold) and now picture 60 at the right (user, 2026-11-22: the one kid still sees "this is mine").
 
 ## E3 · Home, weekend or holiday [board]
-- Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
-- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (the Next row, "Now and next on home"), then the Kid B block. The weekday is the panel's first line, as on A1. No "No bus today" (the line only appeared on weekends and read oddly).
-  - **Weekday school holiday**: the weekday line with the break's or holiday's name under it (see Hub text; red on a public holiday). That is the only holiday sign on the kid screen; the clock already uses the Sun template.
-  - Kid B block as A1.
-- Main button "Diary →" → B2. **[later M5]**: hidden in M2.
-- No item left today [proposed]: leave out the item row.
+- Same home as A1. Slots come from the **Sat** or **Sun** template; a weekday school holiday uses the **Sun** template.
+- The holiday signs are the hub (public holiday: red weekday and name) and the holiday scene (school holiday, every school kid off): boards E3h, E3s, E3x.
+- No item left today [proposed]: no rows.
 
-## E3b · Home, Sunday (new 2026-11-08) [board]
-- Same layout as E3, with the **Sun** template; a Sunday every-week item (the board's example uses `actChurch`) sits on top in sky. The board's real times stay on the canvas only.
-- Example on the board: during that item the hub shows its name / "until {end}". Kid A's Next is "Dinner · at 7:00 pm" (Play only continues after the item, so it is skipped); over 3 h away, so no time left is shown.
+## E3b · Home, Sunday [board]
+- Same home as E3, with the **Sun** template; a Sunday every-week item (the board's example uses `actChurch`) sits on top in sky.
 - The seed has no Sunday item (see Seed data), so in the app the seed Sunday shows the plain Sun template until a grown-up adds one.
 
 ## A1n · Home at night: the night look (new 2026-11-08) [board + proposed]
@@ -774,11 +751,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 
   - The clock's hour ticks and numbers use `nightText` for 12/6 and `nightSoft` for the rest. The red hand is unchanged.
   - Grown-up screens follow the iPad's own dark mode with the same table: boards **G1, G6, C3, G2 night** on the "Grown-up mode" page (2026-11-10). A2 after dusk uses it too (board **A2 night**). The status bar follows the page: light content on `night`. No text may fall back to a system colour; every text colour comes from a token.
-- **Right panel at night** (board):
-  - Kid A: the Bed row ("Bed in", time left "20 min" until bedtime).
-  - Then the Tomorrow row: "Tomorrow · School" over "leave {h:mm}".
-  - Kid B: the Now and Next rows as by day, pictures on night plates (Now "Sleep" until the wake-up time, Next the first thing after it).
-  - Button "Diary →". **[later M5]**: hidden in M2, as by day.
+- **Right panel at night** (boards A1n, A1z): the same list and chips as by day in night colours; pictures on night plates. At 7:40 pm the next card is "20 min · Bed" (both kids' faces) with "Tomorrow 7:25 am · School" above it; after bedtime the next day's first things (A1z). The holiday scene is hidden. The diary (M5) will hang on the Bed row.
 
 ## K1 · School calendar (new 2026-11-22) [boards K1, K1o, K1n; design note 2026-11-22-school-calendar-design.md]
 A read-only year of each kid's school days off and the public holidays, opened from the calendar button on every kid home (see G0), without the lock. Kids and grown-ups both use it.
@@ -868,7 +841,7 @@ A read-only year of each kid's school days off and the public holidays, opened f
 ## Grown-up mode (final design 2026-11-09; boards G0–G8 on page "Grown-up mode (next to build)") [board, ahead of build]
 User decisions, 2026-11-09: C6 is absorbed into grown-up mode; C1 becomes Settings; a List view is kept. Screens are as plain as the built ones (values, pictures, short labels; no explanatory sentences; no lines in cards).
 - **G0 · Way in**: the pencil `RoundButton` **96** (user, 2026-11-15, built: as tall as the sky switch, on its centre line, 40 from the glass: x 1240–1336, y 36–132; was 80 at 1260, 44) on every kid home → C0 Face ID → G1. **Left of it, 16 apart, the calendar button**: `RoundButton` 96 with the kit picture `calendar` (x 1128–1224, y 36–132) → K1, no lock. The 2 s clock hold stays; a hold on a slice opens G1 with that slice picked.
-- **G1 · The day on the clock** (boards G1, G1c): the clock, drag rules and slice card of "G1 · Our day: the clock and its rules", on a real date. Header: "←" (back to the kid home; locks again), "Our day", kid tabs, then `CrayonTabs` **List** 110 · **Settings** 160 at the right (always these two; Undo / Redo live by the clock, below). Right column: one **day button** (382 × 72, `CrayonTabs` off look): "Today" (body bold) + "Mon 9 Nov" (body soft) + a down chevron; on another day it reads "Sat 14 Nov". Tap → **G1c** day picker (user, 2026-11-09: look ahead, e.g. at the weekend): a small card with the month (head) and ‹ › round buttons, a weekday row and two weeks of date chips (see the G1c bullet below), and a "Today" link. Picking a day closes the card and shows that day on the clock. Any slice (a template slot, an item, School) opens the one slice card with "This day" / "All days" under the title (**G1 · Slice card**); items and School reach their full form through "Details ›" (G2 / G4). Every "+" adds on the clock (**Add between two slices**, **Free time**). "Save" (InkButton). **Undo / Redo** (user, 2026-11-09): two `RoundButton` 72 at the bottom right of the clock area (x 722 and 810, y 880), with the new marker glyphs `undo` / `redo` (36, ink). Always shown; **off** = the button at 45 % with the soft glyph (nothing to undo / redo), **on** = full ink. One tap = one step: Undo takes back the last change (one finished drag, one time typed in the slice card, one skip, one remove, one add), Redo puts it back; they only reach back to the last Save, and Save clears them. To throw changes away, Undo back to the last Save ("Don't save" was dropped 2026-11-14, user). The header right end is always List · Settings. **Leaving with unsaved changes** (List, Settings, ←, a kid tab, another day) asks first (G1d), with the shared `ConfirmCard`: "Save the changes?" (head), one line naming the change (body soft), then two buttons, Save (ink) · Cancel (stay on G1). Never a third button.
+- **G1 · The day on the clock** (boards G1, G1c): the clock, drag rules and slice card of "G1 · Our day: the clock and its rules", on a real date. Header: "←" (back to the kid home; locks again), "Our day", kid tabs, then `CrayonTabs` **List** 110 · **Settings** 160 at the right (always these two; Undo / Redo live by the clock, below). Right column: one **day button** (382 × 72, `CrayonTabs` off look): "Today" (body bold) + "Mon 9 Nov" (body soft) + a down chevron; on another day it reads "Sat 14 Nov". Tap → **G1c** day picker (user, 2026-11-09: look ahead, e.g. at the weekend): a small card with the month (head) and ‹ › round buttons, a weekday row and two weeks of date chips (see the G1c bullet below), and a "Today" link. Picking a day closes the card and shows that day on the clock. Any slice (a template slot, an item, School) opens the one slice card with "This day" / "All days" under the title (**G1 · Slice card**); items and School reach their full form through "Details ›" (G2 / G4). Every "+" adds on the clock (**Add between two slices**, **Free time**). "Save" (InkButton). **Undo / Redo** (user, 2026-11-09): two `RoundButton` 72 at the bottom right of the clock area (x 722 and 810, y 880), with the new marker glyphs `undo` / `redo` (36, ink). Always shown; **off** = the one disabled look (40 %, not tappable; nothing to undo / redo), **on** = full ink. One tap = one step: Undo takes back the last change (one finished drag, one time typed in the slice card, one skip, one remove, one add), Redo puts it back; they only reach back to the last Save, and Save clears them. To throw changes away, Undo back to the last Save ("Don't save" was dropped 2026-11-14, user). The header right end is always List · Settings. **Leaving with unsaved changes** (List, Settings, ←, a kid tab, another day) asks first (G1d), with the shared `ConfirmCard`: "Save the changes?" (head), one line naming the change (body soft), then two buttons, Save (ink) · Cancel (stay on G1). Never a third button.
 - **G1 as built (PR 60) and the calls on it** (2026-11-10):
   - Template slots follow the one scope rule fully: Save on **All days** shows **G5 "Change from when?"** too (Today / the next day / Date); the day type's template changes from that day, never before today.
   - **This day** on a template slot is stored as that date's own template; it wins on that date and is kept when All days changes later (its date always still exists).
@@ -1055,7 +1028,7 @@ any grown-up screen --app backgrounded--> home
   - now
   - hold progress 0–1 for C0
 - `ClockSlot` colour tokens (table above). They extend `CrayonPalette`.
-- `NextRow` (picture 80 + "{caption} · {title}" / time line): every Now, Next and Tomorrow row on home.
+- `NextRow` (time cell + picture 56 + title over faces; mission rows add the kid-colour hatch and "›") and `NextCard` (the same at 36 / 72): home's next list. `KidChip` (face 56 + now picture 60): the kid picker at the bottom of home.
 - `KidFace` (2026-11-08, replaces `KidDot` everywhere a kid is named; the only colour-only circles left are the S1 colour swatches):
   - Layers: a `CrayonKit` crayon ring in the kid's colour (the same Shape as the progress ring at 100 %, stroke about 9 % of the box, fixed seed per kid), then the kid's face `KitIcon` centred at **86 %** of the box (the face drawing fills about 68 % of its own box, so it nearly fills the ring without touching it). The ring is a UI shape, so it is drawn in code like every other crayon UI part (roadmap rule); only the face is a kit picture.
   - Face source: a new `Kid.face: KitSlot`, seed Kid A = `kidGirl`, Kid B = `kidBoy`. S1 (M4) sets it ("Girl face" / "Boy face"); M6 can swap in the kid's own drawing later, same slot.
@@ -1128,7 +1101,7 @@ Edits a kid's day on the clock: the **day template** (wake-up, routines, school 
   - **Tapping "+"** (on free paper or between two slices) opens a new slice in the card. **What it becomes** (user, 2026-11-21): on **This day** a just-once item for that date; on **All days** an every-week item on that weekday (it shows in the List too), never a change to the day template. The free-paper "+" covers the **first hour** of that free span (all of it when it is an hour or less). The rest stays free; a leftover shorter than 15 minutes joins the new slice instead. The time is prefilled; you pick a picture and a name (user review PR #24, 2026-11-09).
   - The new-slice card shows the day pictures in a grid, **4 per row** (slots 88, gap 24: 4 × 88 + 3 × 24 fills the 424 card inside; changed from 3 per row 2026-11-14, user). **Board G1f** (2026-11-14): the right-column card 472 × 572 holds, top to bottom with gap 16: This day / All days tabs (the scope rule), the picture grid (4 × 2; the last slot is "More" for the whole kit; the picked one has the ring), a Name field 424 × 72 (filled with the picture's name, editable, max 14), and the times "{start} → {end}" (two time fields 176 × 80, the times row of the slice card). The times row shows once a picture is picked, because the slice exists only then; before that the hub already shows the times. The hub reads "New" / "{start}" / "until {end}". The slice shows on the clock as soon as a picture is picked; Undo takes it back. Every day picture can be picked, sleep included, and **the picture sets the slice kind** (sleep picture = a sleep slot, and so on). **G1f "More" card** (2026-11-22): the same `PickerPopover` content as C3 "What" (item pictures, then the flags from a new row), sized for the side column: a card **472 × 300** at the side column's x (864–1336 on the 13"), its top **8 under the More slot** (13": 556) and its bottom 16 above Save (13": 856). Inside 24 on every side. The pictures sit **4 per row** (88, gap 24: 4 × 88 + 3 × 24 = 424, the same columns as the grid under it) in a scroll area **424 × 252**: two rows (88 + 16 + 88), 16, and a **44 peek** of the third row, so the card shows there is more. The scroll indicator stays hidden. The pick ring sits inside the 88 slot, so the scroll area needs no extra margin. It covers the Name and times rows while open; picking one closes it and puts that picture, picked, in the grid's first slot.
   - Making a slice free joins it with free time on either side, so the number of slices on a template is not fixed.
-  - Free time on the real clock shows as "Free time" in the hub (A1 day rule).
+  - Free time on the home clock is plain paper with no picture; the hub shows only the face, weekday and time, and the kid's chip shows the play picture.
 - **Undo** steps back one change at a time (drag, typed time, skip, remove, add), back to the last save. Every change on the clock waits for Save, Skip and Remove included; Undo takes each back, one step per tap.
 - **Save**: This day changes save for that date; All days changes ask **G5 "Change from when?"** first. Leaving with unsaved changes asks first with G1d ("Save the changes?", Save · Cancel).
 

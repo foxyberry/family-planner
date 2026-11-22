@@ -1,0 +1,600 @@
+{
+ "version": "75",
+ "board": "E3s",
+ "family": "home",
+ "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
+ "global": {
+  "width": 1376,
+  "height": 1032,
+  "statusBand": [
+   0,
+   24
+  ],
+  "margin": 40,
+  "right": 1336,
+  "gutter": 24,
+  "column": 88,
+  "columnLefts": [
+   40,
+   152,
+   264,
+   376,
+   488,
+   600,
+   712,
+   824,
+   936,
+   1048,
+   1160,
+   1272
+  ],
+  "headerTop": 48,
+  "headerBottom": 128,
+  "headerBaseline": 107,
+  "contentTop": 176,
+  "contentBottom": 968
+ },
+ "lines": {
+  "clockCentre": [
+   448,
+   528
+  ],
+  "clockRadius": 372,
+  "clockArea": [
+   0,
+   900
+  ],
+  "hubRadius": 104,
+  "rim": {
+   "width": 12,
+   "colour": "picked kid"
+  },
+  "hub": {
+   "face": [
+    424,
+    440,
+    48
+   ],
+   "weekdayBaseline": 524,
+   "timeBaseline": 574,
+   "withNameLine": {
+    "weekday": 494,
+    "time": 544,
+    "name": 580
+   },
+   "weekday": 28,
+   "time": 44,
+   "ampm": 24
+  },
+  "panelLeft": 928,
+  "right": 1336,
+  "topButtons": [
+   36,
+   132
+  ],
+  "panelBottom": 968,
+  "order": "bottom-up: kid chips at the bottom, the next card above them, later rows climb above it",
+  "kidChips": {
+   "top": 872,
+   "height": 96,
+   "gap": 12,
+   "face": 56,
+   "picture": 60
+  },
+  "nextCard": {
+   "gapAboveChips": 24,
+   "bleedLeft": 12,
+   "width": 420,
+   "paddingLeft": 12,
+   "paddingRight": 10,
+   "paddingY": 16,
+   "gap": 8,
+   "time": 36,
+   "picture": 72,
+   "title": 36,
+   "faces": 36
+  },
+  "rows": {
+   "gap": 16,
+   "timeCell": [
+    928,
+    1040
+   ],
+   "picture": [
+    1052,
+    56
+   ],
+   "titleLeft": 1120,
+   "title": 30,
+   "faces": 32,
+   "faceOverlap": 8,
+   "missionBleedLeft": 12,
+   "missionPadding": [
+    12,
+    10
+   ]
+  },
+  "timeLeftDots": {
+   "count": 6,
+   "minutesEach": 10,
+   "size": 11,
+   "gap": 5
+  }
+ },
+ "regions": {
+  "skySwitch": {
+   "left": 40,
+   "right": 200,
+   "anchor": "left"
+  },
+  "clock": {
+   "left": 0,
+   "right": 900,
+   "anchor": "left"
+  },
+  "panel": {
+   "left": 928,
+   "right": 1336,
+   "anchor": "stretch"
+  }
+ },
+ "elements": [
+  {
+   "id": "clock.clock",
+   "kind": "drawing",
+   "x": 0,
+   "y": 0,
+   "w": 900,
+   "h": 1032,
+   "region": "clock",
+   "anchor": "left",
+   "align": "fill"
+  },
+  {
+   "id": "clock.clockArt",
+   "kind": "picture",
+   "x": 0,
+   "y": 0,
+   "w": 900,
+   "h": 1032,
+   "region": "clock",
+   "anchor": "left",
+   "align": "fill"
+  },
+  {
+   "id": "skySwitch.skySwitch",
+   "kind": "button",
+   "x": 40,
+   "y": 36,
+   "w": 160,
+   "h": 96,
+   "region": "skySwitch",
+   "anchor": "left",
+   "align": "fill"
+  },
+  {
+   "id": "panel.topButton.1",
+   "kind": "button",
+   "x": 1128,
+   "y": 36,
+   "w": 96,
+   "h": 96,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "text": "Calendar"
+  },
+  {
+   "id": "panel.topButton.2",
+   "kind": "button",
+   "x": 1240,
+   "y": 36,
+   "w": 96,
+   "h": 96,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "end",
+   "text": "Grown-up mode"
+  },
+  {
+   "id": "clock.slotPicture.1",
+   "kind": "picture",
+   "x": 428,
+   "y": 48,
+   "w": 40,
+   "h": 40,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.2",
+   "kind": "picture",
+   "x": 530,
+   "y": 261,
+   "w": 104,
+   "h": 104,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.3",
+   "kind": "picture",
+   "x": 179,
+   "y": 374,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.4",
+   "kind": "picture",
+   "x": 424,
+   "y": 440,
+   "w": 48,
+   "h": 48,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.5",
+   "kind": "picture",
+   "x": 424,
+   "y": 440,
+   "w": 48,
+   "h": 48,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.6",
+   "kind": "picture",
+   "x": 424,
+   "y": 440,
+   "w": 48,
+   "h": 48,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.7",
+   "kind": "picture",
+   "x": 424,
+   "y": 440,
+   "w": 48,
+   "h": 48,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.8",
+   "kind": "picture",
+   "x": 428,
+   "y": 444,
+   "w": 41,
+   "h": 41,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.9",
+   "kind": "picture",
+   "x": 428,
+   "y": 444,
+   "w": 41,
+   "h": 41,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.10",
+   "kind": "picture",
+   "x": 428,
+   "y": 444,
+   "w": 41,
+   "h": 41,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.11",
+   "kind": "picture",
+   "x": 428,
+   "y": 444,
+   "w": 41,
+   "h": 41,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.12",
+   "kind": "picture",
+   "x": 156,
+   "y": 445,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "panel.rowTitle.1",
+   "kind": "text",
+   "x": 1120,
+   "y": 556,
+   "w": 153,
+   "h": 45,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 591,
+   "font": 30,
+   "text": "Book time"
+  },
+  {
+   "id": "panel.rowPicture.1",
+   "kind": "picture",
+   "x": 1052,
+   "y": 569,
+   "w": 56,
+   "h": 56,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.13",
+   "kind": "picture",
+   "x": 162,
+   "y": 573,
+   "w": 104,
+   "h": 104,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "panel.rowTime.1",
+   "kind": "text",
+   "x": 938,
+   "y": 578,
+   "w": 102,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 606,
+   "font": 24
+  },
+  {
+   "id": "panel.face.1",
+   "kind": "picture",
+   "x": 1120,
+   "y": 599,
+   "w": 32,
+   "h": 32,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.face.2",
+   "kind": "picture",
+   "x": 1144,
+   "y": 599,
+   "w": 32,
+   "h": 32,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.14",
+   "kind": "picture",
+   "x": 625,
+   "y": 612,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "panel.rowTitle.2",
+   "kind": "text",
+   "x": 1120,
+   "y": 641,
+   "w": 89,
+   "h": 45,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 676,
+   "font": 30,
+   "text": "Lunch"
+  },
+  {
+   "id": "panel.rowPicture.2",
+   "kind": "picture",
+   "x": 1052,
+   "y": 654,
+   "w": 56,
+   "h": 56,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.rowTime.2",
+   "kind": "text",
+   "x": 925,
+   "y": 663,
+   "w": 115,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 691,
+   "font": 24
+  },
+  {
+   "id": "panel.face.3",
+   "kind": "picture",
+   "x": 1120,
+   "y": 684,
+   "w": 32,
+   "h": 32,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.face.4",
+   "kind": "picture",
+   "x": 1144,
+   "y": 684,
+   "w": 32,
+   "h": 32,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.15",
+   "kind": "picture",
+   "x": 508,
+   "y": 703,
+   "w": 104,
+   "h": 104,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.16",
+   "kind": "picture",
+   "x": 280,
+   "y": 705,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "clock.slotPicture.17",
+   "kind": "picture",
+   "x": 373,
+   "y": 737,
+   "w": 84,
+   "h": 84,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "panel.rowTitle.3",
+   "kind": "text",
+   "x": 1136,
+   "y": 746,
+   "w": 80,
+   "h": 54,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 788,
+   "font": 36,
+   "text": "Milk"
+  },
+  {
+   "id": "panel.rowPicture.3",
+   "kind": "picture",
+   "x": 1052,
+   "y": 758,
+   "w": 72,
+   "h": 72,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.rowTime.3",
+   "kind": "text",
+   "x": 941,
+   "y": 760,
+   "w": 99,
+   "h": 54,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 802,
+   "font": 36
+  },
+  {
+   "id": "panel.face.5",
+   "kind": "picture",
+   "x": 1136,
+   "y": 798,
+   "w": 36,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.face.6",
+   "kind": "picture",
+   "x": 1139,
+   "y": 801,
+   "w": 31,
+   "h": 31,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "panel.kidChip.1",
+   "kind": "button",
+   "x": 928,
+   "y": 872,
+   "w": 198,
+   "h": 96,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.kidChip.2",
+   "kind": "button",
+   "x": 1138,
+   "y": 872,
+   "w": 198,
+   "h": 96,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "end"
+  },
+  {
+   "id": "clock.slotPicture.18",
+   "kind": "picture",
+   "x": 426,
+   "y": 964,
+   "w": 44,
+   "h": 44,
+   "region": "clock",
+   "anchor": "left",
+   "align": "inside"
+  }
+ ]
+}

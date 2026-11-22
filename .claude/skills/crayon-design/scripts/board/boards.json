@@ -196,6 +196,18 @@
   "A1z": [
    "HomeAfterBed",
    "home"
+  ],
+  "E3s": [
+   "HomeBreak",
+   "home"
+  ],
+  "E3x": [
+   "HomeXmas",
+   "home"
+  ],
+  "A1k": [
+   "HomeThreeKids",
+   "home"
   ]
  },
  "handover": {

@@ -1,6 +1,6 @@
 // Crayon 24h pie clock (home screen, 900 x 1032) + small UI pieces (dots, ink button, circles, milk cup).
 // Usage: [PIE_ONLY=1] node pie-clock.js <deps-dir> <out-dir> [config.json]
-// config: {out, secs:[[from,to,colour|null,hatchAngle]], now:h, current:[from,to], night:bool}  (hours 0-24, decimals)
+// config: {out, secs:[[from,to,colour|null,hatchAngle]], now:h, current:[from,to]|null, night:bool, hub:radius (default 104), rim:colour (the picked kid's)}  (hours 0-24, decimals)
 // Without a config it draws the built-in school-day example to pie-crayon.svg. PIE_ONLY=1 skips the UI pieces.
 const path = require('path');
 const fs = require('fs');
@@ -47,10 +47,12 @@ for (const [a] of SECS) { const [x, y] = pt(a, R); pie += marker(`M${cx} ${cy}L$
 pie += marker(circ(cx, cy, R), 4.5);
 { const CUR = CFG ? CFG.current : [6.5, 7.5]; if (CUR) pie += marker(sector(CUR[0], CUR[1]), 6); }   // current slot outlined
 for (let h = 0; h < 24; h += 1) { const [x1, y1] = pt(h, R + 6); const [x2, y2] = pt(h, R + 20); pie += toSvg(gen.path(`M${x1} ${y1}L${x2} ${y2}`, { seed: ns(), roughness: 1.2, bowing: 1.4, stroke: TICK, strokeWidth: 3, disableMultiStroke: true })); }
-pie += marker(circ(cx, cy, 152), 4, '#FFFFFF');
+const HUB = (CFG && CFG.hub) || 104;   // home v75: the hub holds only the face, weekday and time
+if (CFG && CFG.rim) pie += toSvg(gen.path(circ(cx, cy, R), { seed: ns(), roughness: 1.4, bowing: 1.4, stroke: CFG.rim, strokeWidth: 12, disableMultiStroke: true })) + marker(circ(cx, cy, R + 7), 2.5);
+pie += marker(circ(cx, cy, HUB), 4, CFG && CFG.night ? '#D8D2E8' : '#FFFFFF');
 { // lollipop "now" hand: long red line from the hub to a red disc near the rim
   const RED = '#E5484D';
-  const [x1, y1] = pt(NOW, 154); const [x2, y2] = pt(NOW, 312); const [cx2, cy2] = pt(NOW, 336);
+  const [x1, y1] = pt(NOW, HUB + 2); const [x2, y2] = pt(NOW, 312); const [cx2, cy2] = pt(NOW, 336);
   pie += toSvg(gen.path(`M${x1} ${y1}L${x2} ${y2}`, { seed: ns(), roughness: 1.1, bowing: 1.2, stroke: RED, strokeWidth: 9, disableMultiStroke: true }));
   pie += crayon(circ(cx2, cy2, 24), RED, -45, 3.2) + marker(circ(cx2, cy2, 24), 4);
 }
