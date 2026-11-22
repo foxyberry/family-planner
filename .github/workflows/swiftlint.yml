@@ -1,0 +1,56 @@
+name: SwiftLint
+
+# This repo's SwiftLint native rules (tools/swiftlint) on a Linux runner: the rules' self-tests,
+# view_values over ios/ and the UX state check (scripts/swiftlint.sh, scripts/ux-states.sh). Runs
+# only when Swift under ios/, the rules or what they read change. Experimental (local issue 004):
+# measuring a cold and a cached run before it becomes a required check.
+on:
+  pull_request:
+    paths:
+      - "ios/**/*.swift"
+      - "tools/swiftlint/**"
+      - ".swiftlint.yml"
+      - "scripts/swiftlint.sh"
+      - "scripts/ux-states*"
+      - "scripts/view-values-pending.txt"
+      - "docs/superpowers/layout/*.json"
+      - "MODULE.bazel"
+      - "MODULE.bazel.lock"
+      - ".github/workflows/swiftlint.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  swiftlint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      SWIFTLINT_BAZEL: bazel
+    steps:
+      - uses: actions/checkout@v4
+      # Bazel's disk and repository caches, and the built SwiftLint binary (keyed on the rules and
+      # the lockfile, as scripts/swiftlint.sh keys it).
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/family-planner/swiftlint
+          key: swiftlint-${{ runner.os }}-${{ hashFiles('MODULE.bazel.lock', 'tools/swiftlint/*.swift', 'tools/swiftlint/BUILD.bazel') }}
+          restore-keys: swiftlint-${{ runner.os }}-
+      - name: Toolchain
+        run: |
+          swift --version
+          bazel --version
+      - name: Build SwiftLint with our rules
+        run: time bash scripts/swiftlint.sh --binary
+      - name: Rule self-tests
+        run: |
+          bash scripts/swiftlint.sh --self-test
+          bash scripts/ux-states.sh --self-test
+      - name: view_values over ios/
+        run: bash scripts/swiftlint.sh
+      - name: Every screen state has a board
+        run: bash scripts/ux-states.sh --check
