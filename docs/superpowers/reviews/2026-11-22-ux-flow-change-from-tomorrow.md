@@ -74,13 +74,11 @@ G1d ("Save the changes?") covers leaving with "←", not the relock.
 
 *Needs the user's call.*
 
-### 4. G2 and G5 boards still say "Back to Our kids" and "Grown-ups only"
-"Our kids" was the C1 hub, which G6 Settings and G1 replaced. The header rule for grown-up screens is
-"←" plus the screen title, with no caption. A grown-up arriving from G8 sees a back label naming a
-screen that no longer exists.
-
-**Proposal**: fix the boards to "←" + "Edit Swimming" (back to where they came from, G8 or G1), then
-re-export the layout. This is a board cleanup, no decision.
+### 4. (Checked, nothing visible) the G2 / G5 back button's hidden label names "Our kids"
+On the boards, "Back to Our kids" is only the back button's `aria-label` (and its link to the retired
+KidProfile board). On screen it is the "←" `RoundButton`. "Grown-ups only" is the built header caption
+(`GrownupHeader`, with the "Locks in 0:30" countdown in its place). Nothing visible is wrong. The label
+is spoken text, which is out of this phase, so no change now.
 
 ### 5. The C0 section contradicts G0 and G1
 C0 still places the pencil as a `RoundButton` 80 at x 1260, y 44, and gives the grown-up header as
@@ -139,7 +137,7 @@ Kids' understanding and preference are judged from watching them use the app, no
 
 ## Done here, and left
 - This note is the flow and the review (proposal output 1).
-- Findings 4 and 5 are mechanical and go in a follow-up design PR. Finding 6 goes with issue 015.
+- Finding 5 is mechanical and goes in a follow-up design PR. Finding 4 needs nothing now. Finding 6 goes with issue 015.
   Findings 1–3 wait for the user's call.
 - Finding 7 is one spec line, in the same follow-up.
 - The Swift journey (proposal output 2: the past stays, the new times appear from the split day on
