@@ -97,4 +97,5 @@ Every board change: re-run `tools/layout-export.py <transcript> <this dir> <next
 - v66 (2026-11-21): G1c day picker card 600 wide (698–1298): weekday header row ("Mon" … "Sun", caption 24), then two weeks of date chips 68 × 68 with the number only, gap 8.
 - v67 (2026-11-21): retired boards C1, E6, C6 and E5 removed (superseded by G6, G6, G1 and G2; nothing reads them).
 - v68 (2026-11-22): home "next" as one row, Kid B in rows. Kid B: a Now row and a Next row (picture 104 at 928, text 1048) replace the now / next circles; Now picture top = name baseline + 50, Next = Now + 126 (A1 514 / 640, A1m and A1b 479 / 604, A1n 565 / 690 on night plates, E3 and E3b 466 / 592). E1: the Next row reads "in 38 min". G0 follows A1. Other JSON files unchanged.
+- v69 (2026-11-22): G5 card 620 wide (378–998), middle tab names the day ("Wed 18 Nov", 232, 9-slice art) instead of "Next Mon". Other JSON files unchanged.
 - v70 (2026-11-22): E1 Next row under the Leave row names the thing after the outing (Snack, at 3:00 pm), not School again. Other JSON files unchanged.

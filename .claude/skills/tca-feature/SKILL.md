@@ -74,7 +74,7 @@ var stored: School?; var place: Place = .school
 | It is... | Put it in |
 |---|---|
 | the current time, today, weekday, minute of day | the reducer via `\.date`/`\.calendar`, stored in State |
-| text that depends on state ("Edit Swimming", "Locks in 0:30") | a State computed property or a Domain formatter |
+| text that depends on state ("Edit Swimming", "Every Wed") | a State computed property or a Domain formatter |
 | a rule shared by screens (minute of day, day names) | Domain, with a unit test |
 | which kid, item or row is shown | State or a model function |
 | sizes, stacks, colours from tokens, animation progress | the view |

@@ -505,7 +505,9 @@ def read_issues(repo_root):
     for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
         if not name.endswith(".md"):
             continue
-        issue = {"file": name, "title": name[:-3], "owner": "", "status": "open", "opened": "", "area": ""}
+        number = re.match(r"(\d+)-", name)
+        issue = {"file": name, "number": number.group(1) if number else "", "title": name[:-3], "owner": "",
+                 "status": "open", "opened": "", "area": ""}
         with open(os.path.join(folder, name), encoding="utf-8") as f:
             for line in f:
                 if line.startswith("## "):
@@ -535,7 +537,9 @@ def issues_section(repo_root):
     for owner, items in sorted(owners.items()):
         h.append(f'<div class="box"><b>{esc(owner)}</b> <span class="soft">· {len(items)}건</span><ul>')
         for i in items:
-            h.append(f'<li>{esc(i["title"])} <span class="soft">({esc(i["file"])} · {esc(i["status"])}'
+            # Sessions and the user name issues by number (scripts/issue.sh close <n>), so it leads.
+            number = f'<b>이슈 {esc(i["number"])}</b> ' if i["number"] else ""
+            h.append(f'<li>{number}{esc(i["title"])} <span class="soft">({esc(i["status"])}'
                      f'{" · " + esc(i["opened"]) if i["opened"] else ""})</span></li>')
         h.append("</ul></div>")
     h.append("</div></details>")

@@ -79,11 +79,13 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.leaveTimeLeft, HomeModel.TimeLeft(label: "Leave in", minutes: 33))
         let kidB = store.state.kidB
         XCTAssertEqual(kidB?.kid, store.state.days[1].kid)
-        let now = DayPlanner.now(at: 412, in: store.state.days[1].slots)
-        XCTAssertEqual(kidB?.now, now.current.map { KitSlot(iconName: $0.iconName) } ?? .actPlay)
-        XCTAssertEqual(kidB?.next, now.next.map { KitSlot(iconName: $0.iconName) })
+        // 6:52 am: Kid B has Breakfast until 7:30 am, then Play "in 38 min".
+        XCTAssertEqual(kidB?.now, NowItem(picture: .actBreakfast, title: "Breakfast", line: "until 7:30 am", showsStar: false))
+        XCTAssertEqual(kidB?.next?.title, "Play")
+        XCTAssertEqual(kidB?.next?.line, "in 38 min")
         XCTAssertEqual(store.state.leavePicture, .busDouble)
-        XCTAssertEqual(store.state.kidNowCaption, "now")
+        XCTAssertEqual(store.state.nowLabel, "Now")
+        XCTAssertEqual(store.state.nextLabel, "Next")
         XCTAssertEqual(store.state.clockHand, 412)
         XCTAssertFalse(store.state.clockSectors.isEmpty)
 
@@ -94,21 +96,62 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertNil(empty.leavePicture)
     }
 
-    /// Kid B with nothing on now shows the play picture.
+    /// Kid B with nothing on now shows the play picture and "Free time"; with nothing next the Next
+    /// row is left out (spec "States").
     func testKidBWithNothingNowShowsPlay() {
         var state = HomeFeature.State()
         let kid = SeedData.kidB
         state.days = [HomeFeature.KidDay(kid: SeedData.kidA, dayType: .weekday, slots: []),
                       HomeFeature.KidDay(kid: kid, dayType: .weekday, slots: [])]
         XCTAssertEqual(state.kidB?.kid, kid)
-        XCTAssertEqual(state.kidB?.now, .actPlay)
+        XCTAssertEqual(state.kidB?.now, NowItem(picture: .actPlay, title: "Free time", line: nil, showsStar: false))
         XCTAssertNil(state.kidB?.next)
+    }
+
+    /// Spec "Now and next on home" (layout v68): every kid shows now once and next once. Kid A's block
+    /// is one Next row ("in 38 min"), never a time left block over a second row for the same item;
+    /// Kid B's Next row never repeats what is on now.
+    func testEachItemShowsOncePerKid() async {
+        let store = store(on: tuesday, minute: 862)   // 2:22 pm: Kid A at school, Kid B napping
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .next(item) = store.state.kidABlock else { return XCTFail("\(store.state.kidABlock)") }
+        XCTAssertEqual(item.title, "Snack")
+        XCTAssertEqual(item.line, "in 38 min")
+        XCTAssertEqual(store.state.kidAEnd, .nextRow)
+        XCTAssertNil(store.state.leaveNext)
+        let kidB = store.state.kidB
+        XCTAssertEqual(kidB?.now.title, "Nap")
+        XCTAssertEqual(kidB?.now.line, "until 3:00 pm")
+        XCTAssertEqual(kidB?.next?.title, "Snack")
+        XCTAssertEqual(kidB?.next?.line, "in 38 min")
+        // Every minute of the day: Kid B's Next row is a later thing than its Now row.
+        var state = store.state
+        for minute in stride(from: 0, to: 1440, by: 5) {
+            state.minute = minute
+            guard let rows = state.kidB, let next = rows.next else { continue }
+            let now = DayPlanner.now(at: minute, in: state.days[1].slots).current
+            XCTAssertNotEqual(now.map { $0.start }, next.start, "\(minute)")
+            XCTAssertGreaterThanOrEqual(next.start + (next.start <= minute ? 1440 : 0), now?.end ?? minute, "\(minute)")
+        }
+    }
+
+    /// Board A1n at 7:40 pm: Kid B asleep "until 6:30 am", Next is tomorrow's Breakfast.
+    func testKidBAtNightShowsSleepThenTomorrowsBreakfast() async {
+        let store = store(on: tuesday, minute: 1180)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.kidB?.now, NowItem(picture: .actSleep, title: "Sleep", line: "until 6:30 am",
+                                                      showsStar: false))
+        XCTAssertEqual(store.state.kidB?.next?.title, "Breakfast")
+        XCTAssertEqual(store.state.kidB?.next?.line, "at 6:30 am")
     }
 
     /// The copy comes from the injected localizer: a test can check the keys.
     func testCopyComesFromTheInjectedLocalizer() {
         let state = withDependencies { $0.localizer = .keys } operation: { HomeFeature.State() }
         XCTAssertEqual(state.nextLabel, "home.next")
+        XCTAssertEqual(state.nowLabel, "home.now")
         XCTAssertEqual(state.missionsTitle, "home.missions")
     }
 
@@ -337,6 +380,7 @@ final class HomeFeatureTests: XCTestCase {
         await school.receive(\.loaded)
         guard case let .next(row) = school.state.kidABlock else { return XCTFail("\(school.state.kidABlock)") }
         XCTAssertGreaterThan(row.start, 630)
+        XCTAssertEqual(row.line, "at 3:00 pm")   // over an hour away: the time of day
 
         let evening = store(on: tuesday, minute: 1170)  // 7:30 pm: bed within 3 hours
         await evening.send(.task)
