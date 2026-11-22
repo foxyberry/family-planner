@@ -772,7 +772,8 @@ final class ComponentSnapshotTests: XCTestCase {
             ClockKnob(.idle)
             ClockKnob(.dragging)
             ClockKnob(.locked)
-            PlusGlyph(size: 40)
+            // Spec G1 (#213): every clock "+" is a RoundButton 56, on paper as on a boundary.
+            RoundButton(glyph: .plus) {}.size(56)
         })
     }
 

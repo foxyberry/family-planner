@@ -272,9 +272,12 @@ public struct EditClock: View {
         ForEach(sectors, id: \.self) { sector in
             let middle = Double(sector.start + sector.end) / 2
             if sector.style == .free {
-                PlusGlyph(size: sizing.clockPlus) // board C6: a 56 ring, × s
+                // Spec G1 (#213): the same RoundButton 56 (drawn 44) as a boundary "+", at the
+                // paper's middle angle halfway between hub and rim. A tap anywhere on the paper
+                // still adds there (the sector's own tap).
+                RoundButton(glyph: .plus) { onPlusTap(sector.start) }
+                    .size(EditClock.addSize)
                     .position(point(radius: (hubR + r) / 2, minute: middle))
-                    .onTapGesture { onPlusTap(sector.start) }
             } else if let name = sector.iconName, let slot = KitSlot(rawValue: name),
                       let picture = PieClockLayout.picture(minutes: sector.end - sector.start, radius: EditClock.radius,
                                                            hub: EditClock.hubRadius) {
@@ -330,25 +333,5 @@ public struct EditClock: View {
                     .onChanged { onKnobDrag(index, minute(at: $0.location)) }
                     .onEnded { _ in onKnobEnd(index) })
         }
-    }
-}
-
-/// A crayon "+" (board 0b marker glyphs): two marker strokes, for filling free time. `size` is in
-/// screen points.
-public struct PlusGlyph: View {
-    private let size: CGFloat
-
-    public init(size: CGFloat) {
-        self.size = size
-    }
-
-    public var body: some View {
-        ZStack {
-            CrayonSurface(.circle, fill: CrayonStyle.pictureGround, markerColor: CrayonColor.pictureOutline,
-                          seed: CrayonStyle.Seed.plus)
-            MarkerIcon(.plus, size: size * 0.7, color: CrayonColor.pictureInk)
-        }
-        .frame(width: size, height: size)
-        .contentShape(Circle())
     }
 }
