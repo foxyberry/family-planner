@@ -5,15 +5,34 @@
 # that state looks. Read by the SwiftLint rule ux_states (tools/swiftlint), with the cached binary.
 #
 # Usage: scripts/ux-states.sh [path…]      inventory of ios/ (or the paths), one tab-separated line
-#                                           per state: screen, state, boards, verdict; exit 0
+#                                           per state: screen, state, boards, verdict; exit 0, or 1
+#                                           if SwiftLint could not run (its message is printed)
 #        scripts/ux-states.sh --self-test   the fixtures in tools/swiftlint/ux-fixtures give expected.txt
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 cd "$ROOT"
 binary="$(bash scripts/swiftlint.sh --binary)" || exit 1
+errors="$(mktemp -t ux-states)"
+trap 'rm -f "$errors"' EXIT
+
+# SwiftLint's report, or exit 1 with its own message: a run that couldn't lint (bad config, crash)
+# must not read as "no states".
+report() {
+  local out code
+  out="$("$binary" lint --quiet --config tools/swiftlint/ux-states.yml "$@" 2>"$errors")"
+  code=$?
+  if [ "$code" != 0 ] && [ "$code" != 2 ]; then
+    tail -15 "$errors" >&2
+    echo "ux-states: SwiftLint exited $code without listing" >&2
+    return 1
+  fi
+  printf '%s\n' "$out"
+}
 
 inventory() {
-  "$binary" lint --quiet --config tools/swiftlint/ux-states.yml "$@" 2>/dev/null \
+  local out
+  out="$(report "$@")" || exit 1
+  printf '%s\n' "$out" \
     | sed -n 's/.*ux-states \(.*\) (ux_states)$/\1/p' \
     | while IFS='|' read -r screen state boards; do
         screen="$(echo "$screen" | xargs)"; state="$(echo "$state" | xargs)"; boards="$(echo "$boards" | xargs)"
@@ -30,7 +49,7 @@ inventory() {
 }
 
 if [ "${1:-}" = "--self-test" ]; then
-  got="$(inventory "$ROOT/tools/swiftlint/ux-fixtures")"
+  got="$(inventory "$ROOT/tools/swiftlint/ux-fixtures")" || exit 1
   if [ "$got" = "$(cat tools/swiftlint/ux-fixtures/expected.txt)" ]; then
     echo "ux-states self-test: the fixture inventory matches expected.txt"
     exit 0
@@ -41,4 +60,5 @@ if [ "${1:-}" = "--self-test" ]; then
 fi
 
 if [ $# -eq 0 ]; then set -- "$ROOT/ios"; fi
-inventory "$@"
+list="$(inventory "$@")" || exit 1
+printf '%s\n' "$list"
