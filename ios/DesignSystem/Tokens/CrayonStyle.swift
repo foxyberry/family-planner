@@ -77,11 +77,12 @@ public enum PartTap: Equatable, Sendable {
 extension View {
     /// A part's crayon shape, drawn `CrayonStyle.artInset` × s inside the view's box (spec "Art inset").
     /// `tap`: a control takes taps only on that drawn shape (user, 2026-11-22); a container passes
-    /// `.frame`.
+    /// `.frame`. `inset`: the board inset the line is drawn at (`artInset`, or 0 for a part whose board
+    /// box is its visible edge, as K1's month cards).
     public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
                                marker: MarkerStyle = .standard, markerColor: Color? = nil,
-                               tap: PartTap = .drawn) -> some View {
-        background(PartSurface(kind: kind, fill: fill, seed: seed, marker: marker, markerColor: markerColor))
+                               tap: PartTap = .drawn, inset: CGFloat = CrayonStyle.artInset) -> some View {
+        background(PartSurface(kind: kind, fill: fill, seed: seed, marker: marker, markerColor: markerColor, inset: inset))
             .modifier(DrawnTapShape(kind: kind, tap: tap))
     }
 }
@@ -119,10 +120,11 @@ private struct PartSurface: View {
     let seed: UInt32
     let marker: MarkerStyle
     let markerColor: Color?
+    let inset: CGFloat
     @Environment(\.sizing) private var sizing
 
     var body: some View {
         CrayonSurface(kind, fill: fill, marker: marker, markerColor: markerColor, seed: seed)
-            .padding(sizing(CrayonStyle.artInset))
+            .padding(sizing(inset))
     }
 }

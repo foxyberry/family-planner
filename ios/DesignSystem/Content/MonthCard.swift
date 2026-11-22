@@ -71,7 +71,7 @@ public struct MonthCard: View {
         }
         .frame(width: sizing(size.board.width), height: sizing(size.board.height), alignment: .topLeading)
         .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.month + seed,
-                        tap: .frame)
+                        tap: .frame, inset: MonthCard.outlineInset)
     }
 
     /// Saturday and Sunday: one light band per column, under all six rows.
@@ -84,7 +84,13 @@ public struct MonthCard: View {
         }
     }
 
-    static let rows = 6
+    /// Six week rows on every card (`MonthGrid` lays every month out in six).
+    public static let rows = 6
+
+    /// The card's crayon line runs on its box, the board's visible edge (layout README), not the
+    /// usual 6 inside (spec "Crayon part inset"): board K1 (v74) fits six week rows only to its box
+    /// (the sixth row ends 8 above it).
+    public static let outlineInset: CGFloat = 0
 
     /// A day's cell in screen points inside the card.
     private func cellRect(row: Int, column: Int) -> CGRect {

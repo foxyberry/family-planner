@@ -31,6 +31,20 @@ final class MonthCardLinesTests: XCTestCase {
         XCTAssertLessThanOrEqual(card.gridOrigin.y + 5 * card.pitch.height + card.cell.board.height, 268)
     }
 
+    /// PR #259 simulator check: a month that needs six week rows (March, August, November 2026) kept
+    /// its last row on the card's crayon line. Board K1 (v74): the sixth row's cells end at 408 (card
+    /// + 260) and the card's box, its visible edge (layout README), at 416. The card draws its line on
+    /// that box, so the last row stays at least a 4 pt crayon line clear of it.
+    func testASixRowMonthEndsInsideTheCard() {
+        let card = MonthCard.Size.card
+        let lastRowBottom = card.gridOrigin.y + CGFloat(MonthCard.rows - 1) * card.pitch.height + card.cell.board.height
+        XCTAssertEqual(lastRowBottom, 260, "board K1: 408 − 148")
+        XCTAssertGreaterThanOrEqual(card.board.height - MonthCard.outlineInset - lastRowBottom, 4)
+        let open = MonthCard.Size.open
+        let openBottom = open.gridOrigin.y + CGFloat(MonthCard.rows - 1) * open.pitch.height + open.cell.board.height
+        XCTAssertGreaterThanOrEqual(open.board.height - MonthCard.outlineInset - openBottom, 4)
+    }
+
     func testOpenLines() {
         let open = MonthCard.Size.open
         XCTAssertEqual(open.board, CGSize(width: 860, height: 800))
