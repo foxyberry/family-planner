@@ -637,6 +637,16 @@ const ITEMS = {
     S('M125.9 71.6L141.5 56.1L183.9 98.5L168.4 114.1Z', '#B9B4C4', 45),
     S('M141.5 56.1L164.1 33.5L175.4 33.5L206.5 64.6L206.5 75.9L183.9 98.5Z', '#F7A1B5', 45),
   ],
+  // School calendar way in (K1, layout v71): a placeholder until the design session's crayon picture
+  // comes with the next art batch. A wall calendar page: red top band, two rings, a grid of days with
+  // one sky day off and one red holiday.
+  calendar: [
+    S(rr(34, 56, 172, 156, 20), K.white, 0),
+    S(rr(34, 56, 172, 48, 20), '#E5484D', -40),
+    Ln('M82 38V70', 10), Ln('M158 38V70', 10),
+    S(rr(58, 122, 28, 24, 6), K.sky, -40), S(rr(106, 122, 28, 24, 6), '#E2D9C6', 40), S(rr(154, 122, 28, 24, 6), '#E2D9C6', 40),
+    S(rr(58, 164, 28, 24, 6), '#E2D9C6', 40), S(rr(106, 164, 28, 24, 6), '#F7A8A8', 40), S(rr(154, 164, 28, 24, 6), '#E2D9C6', 40),
+  ],
   // Developer tools: a friendly ladybug for the debug bubble. The white plate keeps it readable on a dark or orange circle.
   debugLadybug: [
     S(circ(120, 124, 108), K.white, 0),
