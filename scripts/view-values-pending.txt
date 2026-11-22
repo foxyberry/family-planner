@@ -1,8 +1,6 @@
 # View code not migrated to "views hold no values" yet (scripts/check-view-values.sh).
 # One path per line. Shrink only: remove a line when its file is clean.
 ios/Features/Grownup/ItemEditorView.swift
-ios/Features/Grownup/MissionDraftCard.swift
-ios/Features/Grownup/MissionEditorView.swift
 ios/Features/Grownup/OurDayView.swift
 ios/Features/Grownup/SchoolEditorView.swift
 ios/Features/Grownup/SettingsView.swift

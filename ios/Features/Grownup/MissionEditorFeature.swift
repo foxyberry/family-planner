@@ -57,7 +57,21 @@ public struct MissionEditorFeature {
         public var canAdd: Bool { rows.count < Mission.most }
 
         /// "+ Add a mission (6 of 8)".
-        public var addTitle: String { L10n.tr("c5.add", rows.count, Mission.most) }
+        public var addTitle: String { strings.tr("c5.add", rows.count, Mission.most) }
+
+        // MARK: What the view shows (it holds no values of its own)
+
+        /// The header's title and the Done button.
+        public var title: String { strings.tr("c5.title") }
+        public var doneTitle: String { strings.tr("c5.done") }
+        /// In place of the add row once the kid has `Mission.most` missions.
+        public var mostCaption: String { strings.tr("c5.most") }
+        /// The mission card's words: the name field, Remove (also the confirm card's button) and Save.
+        public var nameLabel: String { strings.tr("c5.name") }
+        public var removeLabel: String { strings.tr("c5.remove") }
+        public var saveTitle: String { strings.tr("c5.save") }
+        /// The remove confirm card's cancel button.
+        public var keepLabel: String { strings.tr("c5.remove.keep") }
 
         /// The caption under a mission's name in the list: its days when it is not on every day
         /// ("Thu", "Mon · Wed").
@@ -68,7 +82,7 @@ public struct MissionEditorFeature {
 
         public var removeTitle: String? {
             guard let draft, draft.confirmsRemove else { return nil }
-            return L10n.tr("c5.remove.title", draft.name)
+            return strings.tr("c5.remove.title", draft.name)
         }
     }
 
