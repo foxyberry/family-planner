@@ -90,6 +90,7 @@ public struct HomeLayout: Equatable, Sendable {
     public var leaveNextRow: RowPlace { row(top: 435) }
 
     /// The last part of Kid A's block, whose bottom Kid B's block hangs from (board units).
+    /// ux-states: home, Kid A block end
     public enum KidAEnd: Equatable, Sendable {
         /// Only the name (nothing next today): the name box ends at 214.
         case name

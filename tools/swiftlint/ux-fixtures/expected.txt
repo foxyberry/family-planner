@@ -1,0 +1,6 @@
+fixture home	FixtureBlock.leave	A1, A1m, E1	ok
+fixture home	FixtureBlock.bedTime	A1n	ok
+fixture home	FixtureBlock.nothing	-	NO BOARD
+fixture home	FixtureBlock.bare	-	NO BOARD
+fixture home	FixtureBlock.twin	-	NO BOARD
+fixture home	FixtureBlock.missing	E9	UNKNOWN BOARD E9

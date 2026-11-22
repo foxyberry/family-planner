@@ -1,0 +1,35 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_unit_test")
+load("//:project.bzl", "BUNDLE_ID", "MINIMUM_OS_VERSION")
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# The home through a whole day for the UX review (skill ux-review): pictures for people, compared with
+# nothing. Tagged manual so `make test`, test-affected and `make snapshots` never run it; only
+# `make ux-sweep` does, which sets UX_SWEEP_DIR (the test skips without it).
+fp_swift_library(
+    name = "HomeSweepLib",
+    testonly = True,
+    deps = [
+        "//ios/AppCore",
+        "//ios/Clients/HolidayProvider",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/Features/Home",
+        "//ios/Journeys/Tests:JourneyWorld",
+        "//ios/KitArt",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+        "@swiftpkg_swift_snapshot_testing//:SnapshotTesting",
+    ],
+)
+
+ios_unit_test(
+    name = "HomeSweep",
+    bundle_id = BUNDLE_ID + ".homesweep.tests",
+    env_inherit = ["UX_SWEEP_DIR"],
+    minimum_os_version = MINIMUM_OS_VERSION,
+    runner = "//ios:test_runner",
+    tags = [
+        "manual",
+        "ux",
+    ],
+    deps = [":HomeSweepLib"],
+)

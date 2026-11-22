@@ -23,7 +23,7 @@ OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one test-affected ui-test driver-check swiftlint snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one test-affected ui-test ux-sweep driver-check swiftlint snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios board
 
 # =============================================================================
@@ -128,6 +128,16 @@ snapshots-record: stop-dev-sims
 	  --ios_simulator_version="$(SIM_OS)" || true
 	@ls ios/DesignSystem/SnapshotTests/__Snapshots__ | wc -l | xargs echo "part baselines:"
 	@ls ios/Journeys/Tests/Screens/__Snapshots__ 2>/dev/null | wc -l | xargs echo "screen baselines:"
+
+# The UX review's home sweep (skill ux-review): the home every 15 minutes through four days, drawn
+# into .ux-review/sweep-<time>/ (git-ignored: it holds the private home drawing where there is one).
+UX_SWEEP_TARGET := //ios/Journeys/Tests/Sweep:HomeSweep
+ux-sweep: stop-dev-sims
+	@bash scripts/check-disk.sh
+	@dir="$(CURDIR)/.ux-review/sweep-$$(date +%Y%m%d-%H%M)"; mkdir -p "$$dir"; \
+	UX_SWEEP_DIR="$$dir" $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(UX_SWEEP_TARGET) --nocache_test_results $(TEST_ARGS) \
+	  --ios_simulator_device="$(SIM_DEVICE)" \
+	  --ios_simulator_version="$(SIM_OS)" && echo "home sweep: $$dir"
 
 # The thin UI tests (tag "ui"): the debug app on the simulator, for what journeys can't show.
 # Slow, so not in make test, pre-push or CI.

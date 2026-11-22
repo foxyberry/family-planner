@@ -29,6 +29,8 @@ tools/board/out/
 __pycache__/
 .superpowers/
 .claude/*
+# UX review output (make ux-sweep): may hold the private home drawing.
+.ux-review/
 !.claude/settings.json
 !.claude/hooks/
 !.claude/hooks/**
