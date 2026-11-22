@@ -31,15 +31,17 @@ REGIONS = {
  'home': {'skySwitch': (40, 200, 'left'), 'clock': (0, 900, 'left'), 'panel': (928, 1336, 'stretch')},
  'grown': {'header': (40, 1336, 'stretch'), 'main': (40, 840, 'left'), 'side': (864, 1336, 'right'), 'action': (864, 1336, 'right')},
  'grown64': {'header': (64, 1312, 'stretch'), 'main': (64, 882, 'left'), 'side': (930, 1312, 'right'), 'action': (930, 1312, 'right')},
+ 'calendar': {'header': (40, 1336, 'stretch'), 'months': (40, 1336, 'stretch')},
 }
 LINES = {
  'morning': {'kidsLeft': 64, 'kidTextLeft': 172, 'missionsLeft': 448, 'right': 1312, 'stripTop': 176, 'stripBottom': 516, 'kidsTop': 536, 'missionsTop': 548,
              'circleTop': 612, 'captionTop': 732, 'bottomControlTop': 872, 'baselines': {'header': 107, 'missionsName': 584, 'captions': 757}},
- 'home': {'clockCentre': [448, 528], 'clockRadius': 372, 'clockArea': [0, 900], 'panelLeft': 928, 'panelTop': 96, 'right': 1336, 'mainButtonWidth': 408, 'mainButtonBottom': 968,
-          'baselines': {'weekday': 132, 'kidAName': 187, 'kidALabel': 265, 'timeLeft72': 337, 'status': 374, 'nextLabel': 259, 'nextTitle': 300, 'nextAt': 338},
-          'kidARow': {'pictureLeft': 928, 'picture': 96, 'pictureTop': 241, 'nextPicture': 104, 'nextPictureTop': 238, 'textLeft': 1040, 'nextTextLeft': 1048, 'gap': 16},
-          'kidBRule': {'gapBelowKidA': 40, 'lowestNameBaseline': 584, 'note': 'Kid B block (name, Now row, Next row) moves as one; its name box top = Kid A block last box bottom + 40, never lower than baseline 584'}},
+ 'home': {'clockCentre': [448, 528], 'clockRadius': 372, 'clockArea': [0, 900], 'panelLeft': 928, 'panelTop': 132, 'right': 1336, 'mainButtonWidth': 408, 'mainButtonBottom': 968,
+          'baselines': {'weekday': 168, 'kidAName': 223, 'kidALabel': 297, 'timeLeft48': 346, 'status': 370, 'rowTitle': 308, 'rowTime': 339},
+          'kidARow': {'pictureLeft': 928, 'picture': 80, 'pictureTop': 271, 'rowPitch': 96, 'textLeft': 1024, 'gap': 16, 'note': 'picture top = name baseline + 48; Leave/Bed label +26, time left +75, status +99; row title +37, time line +68 (from the picture top)'},
+          'kidBRule': {'gapBelowKidA': 40, 'lowestNameBaseline': 620, 'endAboveMainButton': 40, 'note': 'Kid B block (name, Now row, Next row) moves as one; its name box top = Kid A last box bottom + 40, name baseline never lower than 620; rows at name baseline + 48 and + 96; the block ends at least 40 above the main button (872)'}},
  'grown': {'margin': 40, 'formLeft': 40, 'formRight': 840, 'labelLeft': 78, 'controlLeft': 192, 'rightEdge': 808, 'sideLeft': 864, 'sideWidth': 472, 'right': 1336, 'headerTop': 44, 'headerBottom': 124, 'formTop': 148, 'formBottom': 968},
+ 'calendar': {'margin': 40, 'right': 1336, 'headerTop': 36, 'cardsTop': 148, 'card': [312, 268], 'cardGap': [16, 12], 'columns': 4, 'cardNumeral': 24, 'cardWeekday': 24, 'cardToday': [38, 28], 'open': {'x': 258, 'y': 160, 'w': 860, 'h': 800, 'numeral': 32, 'cell': [104, 96], 'today': 70}},
  'grown64': {'note': 'superseded board (C1 -> G6, C6 -> G1), kept on the old 64 grid', 'formLeft': 64, 'formRight': 882, 'labelLeft': 104, 'controlLeft': 232, 'sideLeft': 930, 'right': 1312, 'formTop': 176, 'formBottom': 968},
 }
 def region(fam, e):
@@ -47,6 +49,7 @@ def region(fam, e):
     if fam == 'home':
         if x < 220 and y < 150 and e['w'] < 400 and e['kind'] != 'drawing': return 'skySwitch'
         return 'panel' if x >= 900 else 'clock'
+    if fam == 'calendar': return 'header' if y + h <= 140 else 'months'
     if y + h <= (136 if fam == 'grown' else 140): return 'header'
     if fam == 'morning':
         if 170 <= y and y + h <= 520: return 'strip'
@@ -168,7 +171,7 @@ for bid, name, fam in BOARDS:
         if reg == 'strip': it['stripLocal'] = {'x': e['x'] - 64, 'y': e['y'] - 176}
         items.append(it)
     doc = {'version': VERSION, 'board': bid, 'family': fam, 'unit': 'pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)',
-           'global': (dict(GLOBAL, margin=40, right=1336, columnLefts=[40 + 112 * n for n in range(12)], column=88, headerTop=44, headerBottom=124, headerBaseline=103, contentTop=148) if fam == 'grown' else dict(GLOBAL, margin=40, right=1336, columnLefts=[40 + 112 * n for n in range(12)], column=88) if fam == 'home' else GLOBAL), 'lines': LINES[fam], 'regions': {k: {'left': v[0], 'right': v[1], 'anchor': v[2]} for k, v in REGIONS[fam].items()},
+           'global': (dict(GLOBAL, margin=40, right=1336, columnLefts=[40 + 112 * n for n in range(12)], column=88, headerTop=44, headerBottom=124, headerBaseline=103, contentTop=148) if fam == 'grown' else dict(GLOBAL, margin=40, right=1336, columnLefts=[40 + 112 * n for n in range(12)], column=88) if fam in ('home', 'calendar') else GLOBAL), 'lines': LINES[fam], 'regions': {k: {'left': v[0], 'right': v[1], 'anchor': v[2]} for k, v in REGIONS[fam].items()},
            'elements': items}
     if fam == 'home':
         import copy

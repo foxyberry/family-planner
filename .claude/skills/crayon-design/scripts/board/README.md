@@ -68,7 +68,7 @@ All Python scripts take `--work DIR` or `$DESIGN_WORK`; output paths are relativ
 
 `boards.json` is the registry: short id → `[board name, family]`, plus the handover PNG names.
 Add a row when you add a screen board, or export and redlines skip it. Families
-(`home`, `morning`, `grown`, `grown64`) choose the regions and lines in `layout-export.py`.
+(`home`, `morning`, `grown`, `grown64`, `calendar`) choose the regions and lines in `layout-export.py`.
 
 ## Relations check
 

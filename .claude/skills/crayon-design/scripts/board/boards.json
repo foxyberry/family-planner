@@ -1,5 +1,5 @@
 {
- "_doc": "Board registry. boards: short id -> [board file name without .dc.html, layout family]. Families: home, morning, grown, grown64 (see layout-export.py REGIONS/LINES). handover: PNG name -> board, used by handover-pngs.py. Add a row here when you add a screen board.",
+ "_doc": "Board registry. boards: short id -> [board file name without .dc.html, layout family]. Families: home, morning, grown, grown64, calendar (see layout-export.py REGIONS/LINES). handover: PNG name -> board, used by handover-pngs.py. Add a row here when you add a screen board.",
  "boards": {
   "A1": [
    "HomePieB",
@@ -183,15 +183,15 @@
   ],
   "K1": [
    "CalendarYear",
-   "morning"
+   "calendar"
   ],
   "K1o": [
    "CalendarMonth",
-   "morning"
+   "calendar"
   ],
   "K1n": [
    "CalendarNight",
-   "morning"
+   "calendar"
   ],
   "A1z": [
    "HomeAfterBed",
