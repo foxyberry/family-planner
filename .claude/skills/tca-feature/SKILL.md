@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when check-dependencies.sh, check-view-values.sh, check-journeys.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.12.0
+  version: 0.12.1
   status: experimental
 ---
 
@@ -90,7 +90,7 @@ var stored: School?; var place: Place = .school
 | `view reads @Dependency in …` | move the value into State (a view gets the default, not the store's value) |
 | `kid screen scrolls` | cap the list with `Capped` |
 | `layout literal in a screen` / `pending count too high` | put the row on `FormRow` / `FormLines`, use a `Sizing` token or part variant, place corner controls with `cardCorner`; a row's `height:` / `minHeight:` follows its parts' scaled size (`MinutesStepper.rowHeight`, the sizing field and tab heights); lower `scripts/layout-literals-pending.txt` when a count drops |
-| `value in view code: …` | add a non-optional State computed property (copy via `strings.tr`) and a test; a ternary on `store.` or on nil becomes a State property or a part's flag (`captionedRow(hasCaption:)`); remove the file from `scripts/view-values-pending.txt` once clean |
+| `value in view code` or `view_values` | add a non-optional State computed property (copy via `strings.tr`) and a test; a ternary on `store` or nil becomes a State property or a part's flag (`captionedRow(hasCaption:)`); drop the file from `scripts/view-values-pending.txt` when clean |
 | `no journey reaches X` | drive it from a journey (`ios/Journeys/Tests/README.md`); unlist it in `scripts/journeys-pending.txt` |
 | `hard-coded copy in …` / `key not in the catalog` / `unused catalog key` | add the key to the catalog and use `strings.tr` in State; remove keys nothing uses; a non-copy literal (bundle name) ends with `// copy-ok: <reason>` |
 | `passes n argument(s) but its value has m placeholder(s)` | one key has two meanings: give the new screen its own key |

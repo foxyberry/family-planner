@@ -20,6 +20,9 @@
 # only shrinks: a listed file that is clean fails until its line is removed, and a new file must be
 # clean from the start.
 #
+# The `??` and ternary checks also run as the SwiftLint rule view_values (scripts/swiftlint.sh,
+# pre-push), which reads Swift structure. They stay here until CI runs SwiftLint too.
+#
 # Usage: check-view-values.sh [repo root]   (default: this repository)
 # Exit code: 0 = clean, 1 = a value in view code or a stale pending line.
 set -u

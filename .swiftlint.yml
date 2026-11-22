@@ -1,4 +1,4 @@
 # This repo's SwiftLint native rules only (tools/swiftlint); built-in rules stay off.
-# scripts/swiftlint.sh adds the excluded paths (DebugTools, the gallery, pending files).
+# scripts/swiftlint.sh adds the pending files as excluded paths; the rule picks its own places.
 only_rules:
   - view_values

@@ -11,6 +11,9 @@
 #      ios/ or the String Catalog changed (copy only through L10n.tr); check-skills.sh when the
 #      agent harness changed (CLAUDE.md, .claude/)
 #   5. guard tests (scripts/tests/*-test.sh): when a guard script or hook changed
+#   6. scripts/swiftlint.sh (SwiftLint native rules, a cached binary): over ios/ when Swift there,
+#      the rules or the view-values pending list changed; the rules' fixtures (--self-test) when
+#      the rules changed
 # pre-commit already checks each commit as it is made; this catches amended, rebased and
 # merged history and anything committed while the hooks were off.
 # Enable with: git config core.hooksPath .githooks   (make setup does this)
@@ -87,6 +90,18 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
       fi
     fi
   done <<< "$refs"
+fi
+
+# SwiftLint native rules (tools/swiftlint). Not in pre-push-test's scratch repos, which hold no
+# rules; in this repo the script is always there, and a rule that can't build fails the push.
+if [ -f "$ROOT/scripts/swiftlint.sh" ]; then
+  rules='^(tools/swiftlint/|\.swiftlint\.yml$|scripts/swiftlint\.sh$)'
+  if printf '%s' "$changed" | grep -Eq "$rules"; then
+    bash "$ROOT/scripts/swiftlint.sh" --self-test </dev/null || status=1
+  fi
+  if printf '%s' "$changed" | grep -Eq "^ios/.*\.swift$|$rules|^scripts/view-values-pending\.txt$"; then
+    bash "$ROOT/scripts/swiftlint.sh" </dev/null || status=1
+  fi
 fi
 
 # Kit pictures are named from Swift, JSON and the catalog; assets live in ios/KitArt.
