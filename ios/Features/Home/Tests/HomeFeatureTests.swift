@@ -480,6 +480,19 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(empty.state.aheadCaption(saturdayRow), "Saturday")
         XCTAssertEqual(empty.state.kidAEnd, .nextRow)
 
+        // Spec #261: 7 or more days away the caption is the short date (a once item on Tue 17 Nov).
+        var nextWeek = snapshot()
+        nextWeek.routines.removeAll { $0.kid == SeedData.kidA.id }
+        nextWeek.items = [ScheduleItem(id: UUID(), title: "Doctor", iconName: "doctor", audience: .kid(SeedData.kidA.id),
+                                       start: 600, end: 660, recurrence: .once(Day(year: 2026, month: 11, day: 17)),
+                                       skippedDays: [], skipsHolidays: false, showsStar: false)]
+        let later = store(on: tuesday, minute: 600, snapshot: nextWeek)
+        await later.send(.task)
+        await later.receive(\.loaded)
+        guard case let .tomorrow(weekRow) = later.state.kidABlock else { return XCTFail("\(later.state.kidABlock)") }
+        XCTAssertEqual(weekRow.inDays, 7)
+        XCTAssertEqual(later.state.aheadCaption(weekRow), "Tue 17 Nov")
+
         // Nothing in the next 14 days: the name only.
         var nothing = snapshot()
         nothing.items = []

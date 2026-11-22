@@ -126,6 +126,16 @@ final class SchoolYearFeatureTests: XCTestCase {
         XCTAssertEqual(mark(screen, Day(year: 2026, month: 11, day: 23))?.kids,
                        [SeedData.kidA.colorIndex, SeedData.kidB.colorIndex], "both off: the cell splits")
 
+        // Spec #261: a kid at a preschool counts too.
+        var preschooler = SeedData.kidB
+        preschooler.school = School(name: "Example Preschool", days: Weekday.schoolDays, start: 480, end: 720, // copy-ok: test data
+                                    kind: .preschool)
+        let withPreschool = store(kids: [SeedData.kidA, preschooler])
+        await withPreschool.send(.task)
+        await withPreschool.receive(\.loaded)
+        XCTAssertEqual(try XCTUnwrap(withPreschool.state.screen).legend.map(\.label),
+                       ["Kid A off", "Kid B off", "Both off", "Public holiday", "Today"])
+
         // Spec v74: "Both off" only when the family has exactly two kids (a third kid at home here).
         var kidC = SeedData.kidB
         kidC.id = UUID(uuidString: "00000000-0000-0000-0000-0000000000C1")!

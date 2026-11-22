@@ -58,9 +58,11 @@ final class TokenTests: XCTestCase {
         for ground in [CrayonPalette.nowSky, CrayonPalette.kidApricot, CrayonPalette.doneGreen, CrayonPalette.lilac] {
             XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, ground), 4.5, "ink on a day off")
         }
-        for (ground, text) in [(CrayonPalette.nightSky, CrayonPalette.night), (CrayonPalette.nightApricot, CrayonPalette.night),
-                               (CrayonPalette.nightGreen, CrayonPalette.night), (CrayonPalette.nightLilac, CrayonPalette.nightText)] {
-            XCTAssertGreaterThanOrEqual(Contrast.ratio(text, ground), 3.9, "a day off at night")
+        // Spec #261: at night every day-off numeral is #22213A (24 pt counts as large text, 3 : 1); the
+        // night lilac is #8E7BC4 (4.0–4.4 : 1 on every fill).
+        XCTAssertEqual(CrayonPalette.nightLilac, RGB(hex: 0x8E7BC4))
+        for ground in [CrayonPalette.nightSky, CrayonPalette.nightApricot, CrayonPalette.nightGreen, CrayonPalette.nightLilac] {
+            XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.night, ground), 4.0, "a day off at night")
         }
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, CrayonPalette.weekendShade), 4.5)
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightText, CrayonPalette.nightWeekendShade), 4.5)

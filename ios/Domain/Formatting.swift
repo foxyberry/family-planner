@@ -110,6 +110,11 @@ public enum DayText {
         }
     }
     /// "Sat 14 Nov"
+    /// "Tue 1 Dec", when the weekday is known already.
+    public static func short(_ day: Day, weekday: Weekday) -> String {
+        "\(shortName(weekday)) \(day.day) \(monthName(day.month))"
+    }
+
     public static func short(_ day: Day, calendar: Calendar) -> String {
         "\(shortName(day.weekday(calendar))) \(dayMonth(day, calendar: calendar))"
     }

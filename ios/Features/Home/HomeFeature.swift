@@ -298,10 +298,14 @@ public struct HomeFeature {
         /// Board A1z: the caption of Kid A's row for the next day, before midnight.
         public var tomorrowLabel: String { strings.tr("home.tomorrow") }
 
-        /// The Tomorrow row's caption: "Tomorrow", or the weekday of a later day when nothing is
-        /// planned before it.
+        /// The Tomorrow row's caption (spec #261): "Tomorrow"; 2–6 days away the weekday ("Saturday");
+        /// 7 or more the short date ("Tue 1 Dec"), so a weekday never reads as this week's.
         public func aheadCaption(_ row: AheadRow) -> String {
-            row.inDays == 1 ? tomorrowLabel : DayText.name(row.weekday)
+            switch row.inDays {
+            case ...1: tomorrowLabel
+            case 2...6: DayText.name(row.weekday)
+            default: DayText.short(row.day, weekday: row.weekday)
+            }
         }
     }
 
@@ -523,7 +527,7 @@ public struct HomeFeature {
             let slots = offset == 1 ? tomorrow : DayPlanner.slots(on: day, kid: kid, routines: routines, items: items,
                                                                   holidays: holidays, calendar: calendar)
             if let item = HomeModel.dayAhead(slots) {
-                return AheadRow(item: item, inDays: offset, weekday: day.weekday(calendar))
+                return AheadRow(item: item, inDays: offset, day: day, weekday: day.weekday(calendar))
             }
         }
         return nil

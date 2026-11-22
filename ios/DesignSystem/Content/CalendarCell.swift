@@ -126,7 +126,7 @@ public struct CalendarCell: View {
     private var numeralColor: Color {
         if mark.isToday { return CrayonColor.todayText }
         if mark.isHoliday { return CrayonColor.lateText }
-        if let first = mark.kids.first { return CrayonColor.kidOffText(first) }
+        if !mark.kids.isEmpty { return CrayonColor.kidOffText }
         return CrayonColor.ink
     }
 }

@@ -39,15 +39,17 @@ public struct NowItem: Equatable, Sendable {
 /// Spec "Kid A, which row" (layout v74; boards A1n, A1z): Kid A's Tomorrow row, for the next day
 /// with a plan: its first outing ("leave {h:mm}"), else its first thing after the opening Sleep
 /// ("at {h:mm}"). `inDays` is 1 for tomorrow; a later day (nothing planned before it) is named by
-/// its weekday.
+/// its weekday 2–6 days away, by its short date from 7 (spec #261).
 public struct AheadRow: Equatable, Sendable {
     public var item: NextItem
     public var inDays: Int
+    public var day: Day
     public var weekday: Weekday
 
-    public init(item: NextItem, inDays: Int, weekday: Weekday) {
+    public init(item: NextItem, inDays: Int, day: Day, weekday: Weekday) {
         self.item = item
         self.inDays = inDays
+        self.day = day
         self.weekday = weekday
     }
 }

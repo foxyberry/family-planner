@@ -25,13 +25,13 @@ public struct CrayonTabs<ID: Hashable>: View {
     /// a row share its width, `spacing` apart. Sizes and `spacing` are board values (× s on screen).
     /// `faceOnly`: the kid's face without the name (S2/S3 with 3–4 kids, 88 × 72). `marked`: tabs that
     /// show a small hurry dot on the face (S3: route not finished). `neutral` (K1's year tabs, which
-    /// belong to no kid; layout v74): the picked tab on paper and the others on the year-tab colour,
-    /// labels in ink and soft text that follow the night look, instead of a sky blue pick.
+    /// belong to no kid; spec #261): the picked tab filled with the year-tab colour and a bold label,
+    /// the others on the card colour, labels in ink and soft text that follow the night look.
     public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)], compact: Bool = false,
                 itemSize: CGSize? = nil, widths: [CGFloat]? = nil, fills: Bool = false, spacing: CGFloat = Spacing.s,
                 faceOnly: Bool = false, marked: Set<ID> = [], neutral: Bool = false) {
-        picked = neutral ? CrayonStyle.paper : CrayonStyle.skyPill
-        unpicked = neutral ? CrayonStyle.yearTab : CrayonStyle.paper
+        picked = neutral ? CrayonStyle.yearTab : CrayonStyle.skyPill
+        unpicked = CrayonStyle.paper
         self.neutral = neutral
         self.widths = widths
         self.fills = fills
