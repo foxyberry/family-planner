@@ -3334,6 +3334,17 @@
         }
       }
     },
+    "picture.tv" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV"
+          }
+        }
+      }
+    },
     "preview.bring_only" : {
       "extractionState" : "manual",
       "localizations" : {
