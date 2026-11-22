@@ -51,8 +51,9 @@ if [ "${1:-}" = "--check" ] && [ -n "${UX_STATES_INVENTORY:-}" ]; then
 fi
 
 binary="$(bash scripts/swiftlint.sh --binary)" || exit 1
-errors="$(mktemp -t ux-states)"
-trap 'rm -f "$errors"' EXIT
+work="$(mktemp -d "${TMPDIR:-/tmp}/ux-states.XXXXXX")"
+errors="$work/errors"
+trap 'rm -rf "$work"' EXIT
 
 # SwiftLint's report, or exit 1 with its own message: a run that couldn't lint (bad config, crash)
 # must not read as "no states".
@@ -100,12 +101,9 @@ fi
 
 if [ "${1:-}" = "--check" ]; then
   list="$(inventory "$ROOT/ios")" || exit 1
-  inventory_file="$(mktemp -t ux-states-inventory)"
-  printf '%s\n' "$list" > "$inventory_file"
-  check "$inventory_file"
-  code=$?
-  rm -f "$inventory_file"
-  exit "$code"
+  printf '%s\n' "$list" > "$work/inventory.tsv"
+  check "$work/inventory.tsv"
+  exit $?
 fi
 
 if [ $# -eq 0 ]; then set -- "$ROOT/ios"; fi

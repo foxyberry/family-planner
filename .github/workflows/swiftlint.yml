@@ -1,0 +1,89 @@
+name: SwiftLint
+
+# This repo's SwiftLint native rules (tools/swiftlint) on a Linux runner: the rules' self-tests,
+# view_values over ios/ and the UX state check (scripts/swiftlint.sh, scripts/ux-states.sh).
+#
+# It runs on every PR so it can be a required check, and skips in seconds when nothing it reads
+# changed. Pushes to develop run it too: GitHub shares a base branch's cache with its PRs, but not
+# one PR's cache with another, so develop keeps the cache warm.
+#
+# Measured 2026-11-22 (local issue 004): cold, SwiftLint and swift-syntax build in 7 min 13 s and the
+# job takes about 8 min; with the cache the build is 15 s and the job 50 s.
+on:
+  pull_request:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  swiftlint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      SWIFTLINT_BAZEL: bazel
+      # rules_swift's Linux toolchain links with clang.
+      CC: clang
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the base, to see what changed
+      # Run the checks only when Swift under ios/, the rules or what they read changed (or on a
+      # manual run, or when the base can't be found).
+      - name: What changed
+        id: changes
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          relevant='^ios/.*\.swift$|^tools/swiftlint/|^\.swiftlint\.yml$|^scripts/(swiftlint\.sh|ux-states|view-values-pending\.txt)|^docs/superpowers/layout/.*\.json$|^MODULE\.bazel|^\.github/workflows/swiftlint\.yml$'
+          if [ "$EVENT" = workflow_dispatch ] || [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE" HEAD | grep -Eq "$relevant"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "nothing SwiftLint reads changed: skipping"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      # Bazel's disk and repository caches, and the built SwiftLint binary (keyed on the rules and
+      # the lockfile, as scripts/swiftlint.sh keys it).
+      - uses: actions/cache@v4
+        if: steps.changes.outputs.run == 'true'
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/family-planner/swiftlint
+          key: swiftlint-${{ runner.os }}-${{ hashFiles('MODULE.bazel.lock', 'tools/swiftlint/*.swift', 'tools/swiftlint/BUILD.bazel') }}
+          restore-keys: swiftlint-${{ runner.os }}-
+      # rules_swift looks for swift-autolink-extract and friends next to the `swift` it finds on
+      # PATH; on the runner that is a launcher in /usr/local/bin, so put the real toolchain first.
+      - name: Toolchain
+        if: steps.changes.outputs.run == 'true'
+        run: |
+          resources="$(swift -print-target-info | python3 -c 'import json, sys; print(json.load(sys.stdin)["paths"]["runtimeResourcePath"])')"
+          bin="$(cd "$resources/../../bin" && pwd)"
+          ls "$bin/swift-autolink-extract"
+          echo "$bin" >> "$GITHUB_PATH"
+          swift --version
+          bazel --version
+      # The whole Bazel output, so a toolchain or rule failure shows its reason here.
+      - name: Build SwiftLint with our rules
+        if: steps.changes.outputs.run == 'true'
+        run: time bazel build -c opt @SwiftLint//:swiftlint
+      - name: Keep the binary where the scripts look for it
+        if: steps.changes.outputs.run == 'true'
+        run: bash scripts/swiftlint.sh --binary
+      - name: Rule self-tests
+        if: steps.changes.outputs.run == 'true'
+        run: |
+          bash scripts/swiftlint.sh --self-test
+          bash scripts/ux-states.sh --self-test
+      - name: view_values over ios/
+        if: steps.changes.outputs.run == 'true'
+        run: bash scripts/swiftlint.sh
+      - name: Every screen state has a board
+        if: steps.changes.outputs.run == 'true'
+        run: bash scripts/ux-states.sh --check

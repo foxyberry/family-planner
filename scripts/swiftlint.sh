@@ -20,10 +20,13 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 cd "$ROOT"
-B="bazel --bazelrc=.bazelrc --bazelrc=ios/.bazelrc"
-config="$(mktemp -t swiftlint).yml"
-errors="$(mktemp -t swiftlint-err)"
-trap 'rm -f "$config" "$errors"' EXIT
+# CI on Linux passes SWIFTLINT_BAZEL=bazel: ios/.bazelrc holds iOS flags a Linux host doesn't need.
+B="${SWIFTLINT_BAZEL:-bazel --bazelrc=.bazelrc --bazelrc=ios/.bazelrc}"
+# Temporary files in one folder (portable: GNU mktemp needs X's in a template).
+work="$(mktemp -d "${TMPDIR:-/tmp}/swiftlint.XXXXXX")"
+config="$work/config.yml"
+errors="$work/errors"
+trap 'rm -rf "$work"' EXIT
 
 # The binary changes only with our rules, their BUILD file and the SwiftLint version.
 key="$( { cat tools/swiftlint/*.swift tools/swiftlint/BUILD.bazel; grep -E 'swiftlint|extra_rules' MODULE.bazel; } \
