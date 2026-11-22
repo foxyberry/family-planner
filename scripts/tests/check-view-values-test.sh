@@ -28,19 +28,15 @@ test_blocks_copy_lookup_in_a_view() {
   assert test_blocks_copy_lookup_in_a_view $?
 }
 
-test_blocks_fallbacks_and_placeholders() {
+# `??` is the SwiftLint rule view_values now (tools/swiftlint/fixtures carry these cases); this
+# script keeps placeholder numbers.
+test_blocks_placeholders_leaves_fallbacks_to_swiftlint() {
   new_tree
   printf 'KidNowNext(now: now ?? "actPlay")\n' > "$TREE/ios/Features/Home/AView.swift"
-  printf 'timeLeft(minutes: store.minutes ?? 0)\n' > "$TREE/ios/Features/Home/BView.swift"
   printf 'time(store.dropOff, placeholder: 450)\n' > "$TREE/ios/Features/Home/CView.swift"
-  printf 'Text(store.label ?? "")\n' > "$TREE/ios/Features/Home/DView.swift"
-  printf 'let slots = firstDay?.slots ?? []\n' > "$TREE/ios/Features/Home/EView.swift"
-  printf 'KitIcon(KitSlot(rawValue: name) ?? .actPlay)\n' > "$TREE/ios/Features/Home/FView.swift"
   run_check
-  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"AView.swift"* ]] && [[ "$ERR" == *"BView.swift"* ]] \
-    && [[ "$ERR" == *"CView.swift"* ]] && [[ "$ERR" == *"DView.swift"* ]] \
-    && [[ "$ERR" == *"EView.swift"* ]] && [[ "$ERR" == *"FView.swift"* ]]
-  assert test_blocks_fallbacks_and_placeholders $?
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"CView.swift:1"* ]] && [[ "$ERR" != *"AView.swift"* ]]
+  assert test_blocks_placeholders_leaves_fallbacks_to_swiftlint $?
 }
 
 test_finds_views_outside_view_files() {
@@ -51,13 +47,13 @@ test_finds_views_outside_view_files() {
   assert test_finds_views_outside_view_files $?
 }
 
-test_blocks_state_ternaries_in_screens() {
+test_leaves_ternaries_to_swiftlint() {
   new_tree
   printf 'Row().padding(.bottom, store.thenCaption == nil ? -inset : 0)\n' > "$TREE/ios/Features/Home/AView.swift"
   printf 'Button("x").opacity(store.canUndo ? 1 : 0.45)\n' > "$TREE/ios/Features/Home/BView.swift"
   run_check
-  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"AView.swift:1"* ]] && [[ "$ERR" == *"BView.swift:1"* ]]
-  assert test_blocks_state_ternaries_in_screens $?
+  [ "$CODE" -eq 0 ]
+  assert test_leaves_ternaries_to_swiftlint $?
 }
 
 test_parts_may_branch_on_their_own_options() {
@@ -85,7 +81,7 @@ test_parts_get_every_rule_layout_the_copy_rule() {
   printf 'let width = labels.max() ?? 0\n' > "$TREE/ios/DesignSystem/Layout/FormLayout.swift"
   run_check
   [ "$CODE" -eq 0 ] || { assert test_parts_get_every_rule_layout_the_copy_rule 1; return; }
-  printf '.frame(width: width ?? 200)\n' > "$TREE/ios/DesignSystem/Controls/Field.swift"
+  printf 'TimeField(value, placeholder: 200)\n' > "$TREE/ios/DesignSystem/Controls/Field.swift"
   printf '.accessibilityLabel(L10n.tr("check.done"))\n' > "$TREE/ios/DesignSystem/Controls/Check.swift"
   printf 'Text(L10n.tr("a.b"))\n' > "$TREE/ios/DesignSystem/Layout/Grid.swift"
   run_check
@@ -113,26 +109,41 @@ test_pending_file_is_allowed() {
   assert test_pending_file_is_allowed $?
 }
 
-test_pending_only_shrinks() {
+# A pending line for a missing file fails here; whether a listed file is clean needs SwiftLint too,
+# so scripts/swiftlint.sh decides that from --hits.
+test_pending_missing_file_fails() {
   new_tree
   printf 'Text(store.title)\n' > "$TREE/ios/Features/Home/HomeView.swift"
   printf 'ios/Features/Home/HomeView.swift\nios/Features/Home/GoneView.swift\n' > "$TREE/scripts/view-values-pending.txt"
   run_check
-  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"clean file: ios/Features/Home/HomeView.swift"* ]] \
-    && [[ "$ERR" == *"missing file: ios/Features/Home/GoneView.swift"* ]]
-  assert test_pending_only_shrinks $?
+  [ "$CODE" -eq 1 ] && [[ "$ERR" == *"missing file: ios/Features/Home/GoneView.swift"* ]] \
+    && [[ "$ERR" != *"clean file"* ]]
+  assert test_pending_missing_file_fails $?
+}
+
+test_hits_lists_every_view_file_with_a_hit() {
+  new_tree
+  printf 'Text(L10n.tr("a.b"))\n' > "$TREE/ios/Features/Home/HomeView.swift"
+  printf 'Text(store.title)\n' > "$TREE/ios/Features/Home/CleanView.swift"
+  printf 'time(x, placeholder: 4)\n' > "$TREE/ios/Features/Home/PlaceView.swift"
+  printf 'ios/Features/Home/HomeView.swift\n' > "$TREE/scripts/view-values-pending.txt"
+  OUT="$(bash "$SCRIPT" --hits "$TREE" | sort | tr '\n' ',')"
+  CODE=$?; ERR="$OUT"
+  [ "$OUT" = "ios/Features/Home/HomeView.swift,ios/Features/Home/PlaceView.swift," ]
+  assert test_hits_lists_every_view_file_with_a_hit $?
 }
 
 test_blocks_copy_lookup_in_a_view
-test_blocks_fallbacks_and_placeholders
+test_blocks_placeholders_leaves_fallbacks_to_swiftlint
 test_finds_views_outside_view_files
-test_blocks_state_ternaries_in_screens
+test_leaves_ternaries_to_swiftlint
 test_parts_may_branch_on_their_own_options
 test_state_and_models_may_look_copy_up
 test_parts_get_every_rule_layout_the_copy_rule
 test_exempt_places_and_comments
 test_pending_file_is_allowed
-test_pending_only_shrinks
+test_pending_missing_file_fails
+test_hits_lists_every_view_file_with_a_hit
 
 echo "passed=$PASS failed=$FAIL"
 [ "$FAIL" -eq 0 ]
