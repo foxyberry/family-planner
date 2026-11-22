@@ -35,7 +35,7 @@ case "${1:-}" in
     done
     ;;
   close)
-    [ $# -ge 2 ] || { echo "usage: $0 close <number>" >&2; exit 2; }
+    case "${2:-}" in ''|*[!0-9]*) echo "usage: $0 close <number>" >&2; exit 2 ;; esac
     file="$(ls "$dir"/"$(printf '%03d' "$((10#$2))")"-*.md 2>/dev/null | head -1)"
     [ -n "$file" ] || { echo "issue $2: not found in $dir" >&2; exit 1; }
     sed -i.bak "s/^status: .*/status: done $(date +%Y-%m-%d)/" "$file" && rm -f "$file.bak"

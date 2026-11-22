@@ -25,6 +25,9 @@ check "a closed issue leaves the list" "$(bash "$ISSUE" list | cut -c1-3)" "002"
 check "numbers keep counting after a close" "$(basename "$(bash "$ISSUE" new main "Next")")" "003-next.md"
 bash "$ISSUE" close 9 > /dev/null 2>&1
 check "closing a missing issue fails" "$?" "1"
+bash "$ISSUE" close foo > /dev/null 2>&1
+check "closing a non-number is a usage error" "$?" "2"
+printf '# Blank status\n\nowner: main\nstatus:\n' > "$ISSUES_DIR/004-blank.md"
 
 board="$(python3 -I - "$BOARD" "$tmp" <<'EOF'
 import importlib.util, sys
@@ -32,13 +35,17 @@ spec = importlib.util.spec_from_file_location("board", sys.argv[1])
 board = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(board)
 for i in board.read_issues(sys.argv[2]):
-    print(i["file"][:3], i["owner"], i["status"].split()[0], i["title"])
+    print(i["file"][:3], i["owner"], (i["status"].split() or ["-"])[0], i["title"])
 print(len(board.read_issues(sys.argv[2] + "/missing")))
+board.read_issues = lambda root: [{"file": "004-blank.md", "title": "Blank", "owner": "main", "status": "",
+                                   "opened": "", "area": ""}]
+print("blank status renders" if "Blank" in board.issues_section("/") else "blank status lost")
 EOF
 )"
 check "board reads every issue with its fields" "$(printf '%s\n' "$board" | head -3 | cut -d' ' -f1-3 | tr '\n' ',')" \
   "001 main done,002 design open,003 main open,"
-check "board reads no folder as no issues" "$(printf '%s\n' "$board" | tail -1)" "0"
+check "board reads no folder as no issues" "$(printf '%s\n' "$board" | tail -2 | head -1)" "0"
+check "a blank status still renders" "$(printf '%s\n' "$board" | tail -1)" "blank status renders"
 
 [ "$failed" = 0 ] && echo "issue: all passed"
 exit "$failed"

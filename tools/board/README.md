@@ -23,8 +23,10 @@ What it shows:
   - *safe to delete*: its PR merged, or every file it changed already matches develop. These fold
     away with the commands that clean them up; the board itself deletes nothing.
 - **This Mac**: free memory, Bazel servers, booted simulators, and open lessons.
+- **Open issues** (between the lanes and the sessions): `scripts/issue.sh` files in the main
+  checkout's `.claude/issues/`, by owner; closed ones leave the board.
 
-Every section and lane folds (recently merged starts folded), and the folds survive the 30 s reload.
+Every section and lane folds (recently merged starts folded), and the folds survive the 15 s reload.
 
 Where the facts come from:
 - `gh api graphql` for the PRs.
