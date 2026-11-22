@@ -14,6 +14,7 @@ public struct CrayonTabs<ID: Hashable>: View {
     private let marked: Set<ID>
     private let widths: [CGFloat]?
     private let fills: Bool
+    private let picked: CrayonFill
 
     /// `compact`: 16 inside each tab instead of 24, so three short tabs fit the 382 side column (C6).
     /// `itemSize`: every tab the same size, `spacing` apart (S2 "Goes to" 180 × 72 gap 12; the MOE
@@ -21,10 +22,12 @@ public struct CrayonTabs<ID: Hashable>: View {
     /// `widths`: each tab its own width, 72 tall. `fills` (layout v42 fill rule): equal tabs alone on
     /// a row share its width, `spacing` apart. Sizes and `spacing` are board values (× s on screen).
     /// `faceOnly`: the kid's face without the name (S2/S3 with 3–4 kids, 88 × 72). `marked`: tabs that
-    /// show a small hurry dot on the face (S3: route not finished).
+    /// show a small hurry dot on the face (S3: route not finished). `neutral`: the picked tab on a
+    /// neutral ground instead of sky blue (K1's year tabs, which belong to no kid).
     public init(selection: Binding<ID>, items: [(ID, String, KidFace.Badge?)], compact: Bool = false,
                 itemSize: CGSize? = nil, widths: [CGFloat]? = nil, fills: Bool = false, spacing: CGFloat = Spacing.s,
-                faceOnly: Bool = false, marked: Set<ID> = []) {
+                faceOnly: Bool = false, marked: Set<ID> = [], neutral: Bool = false) {
+        picked = neutral ? CrayonStyle.neutralPill : CrayonStyle.skyPill
         self.widths = widths
         self.fills = fills
         self.faceOnly = faceOnly
@@ -63,7 +66,7 @@ public struct CrayonTabs<ID: Hashable>: View {
                     .frame(maxWidth: fills ? .infinity : nil)
                     // 72 × s (or `itemSize`'s height × s).
                     .frame(minHeight: sizing.tabHeight(baseHeight))
-                    .partBackground(.capsule, fill: isOn ? CrayonStyle.skyPill : CrayonStyle.paper,
+                    .partBackground(.capsule, fill: isOn ? picked : CrayonStyle.paper,
                                       seed: CrayonStyle.Seed.tabs + UInt32(index))
                 }
                 .buttonStyle(.plain)
@@ -112,12 +115,18 @@ public struct CrayonTabs<ID: Hashable>: View {
 /// (`spacing` below). Rows centre their tabs vertically.
 struct TabFlow: Layout {
     let spacing: CGFloat
+    /// The gap between rows; `spacing` unless given.
+    var lineSpacing: CGFloat?
+
+    private var rowGap: CGFloat {
+        if let lineSpacing { lineSpacing } else { spacing }
+    }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let available: CGFloat = if let width = proposal.width { width } else { .infinity }
         let rows = rows(width: available, subviews: subviews)
         let width: CGFloat = rows.map(\.width).reduce(0, max)
-        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
+        let height = rows.map(\.height).reduce(0, +) + rowGap * CGFloat(max(rows.count - 1, 0))
         return CGSize(width: width, height: height)
     }
 
@@ -130,7 +139,7 @@ struct TabFlow: Layout {
                                       proposal: ProposedViewSize(size))
                 x += size.width + spacing
             }
-            y += row.height + spacing
+            y += row.height + rowGap
         }
     }
 

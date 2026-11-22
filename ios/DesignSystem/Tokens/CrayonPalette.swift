@@ -76,4 +76,10 @@ public enum CrayonPalette {
     public static let nightLate = RGB(hex: 0xFF8A8E)
     /// Links at night.
     public static let nightLink = RGB(hex: 0x56B4E9)
+    // School calendar (spec K1 "Marks"). The spec names no values yet; these pass its Contrast rule
+    // for the red numeral (lateText 4.57 : 1 by day, nightLate 5.74 : 1 at night).
+    /// A public holiday's light red cell.
+    public static let holidayGround = RGB(hex: 0xFDE6E6)
+    /// The same cell at night, dark so `nightLate` reads on it.
+    public static let nightHolidayGround = RGB(hex: 0x3F2A40)
 }

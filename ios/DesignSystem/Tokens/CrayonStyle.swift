@@ -13,6 +13,8 @@ public enum CrayonStyle {
     public static let apricot = CrayonFill(color: CrayonColor.kidApricot, hachure: HachureStyle(degrees: -35))
     public static let blueCrayon = CrayonFill(color: CrayonColor.pickBlue, hachure: HachureStyle(degrees: -40))
     public static let doneGreen = CrayonFill(color: CrayonColor.doneGreen, hachure: HachureStyle(degrees: -50))
+    /// A picked tab that is no kid's colour (spec K1: the year tabs, "a neutral ground").
+    public static let neutralPill = CrayonFill(color: CrayonPalette.ringTrack.color, hachure: HachureStyle(degrees: -30))
     public static let ink = CrayonFill(color: CrayonColor.marker, hachure: nil)
     /// Chrome: white by day, night control in dark mode.
     public static let paper = CrayonFill.paper(CrayonColor.card)
@@ -53,6 +55,8 @@ public enum CrayonStyle {
         static let formCard: UInt32 = 2701
         static let dayButton: UInt32 = 2801
         static let dayPicker: UInt32 = 2901
+        /// The school calendar's month cards (K1); each card adds its index.
+        static let month: UInt32 = 3001
         /// The kid card's face discs (S1 / G6f), the seed they always had.
         static let kidCardFace: UInt32 = 1650
         /// The side column's remove button (G2 "Remove every week"), the seed it always had.

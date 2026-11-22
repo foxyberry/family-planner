@@ -47,6 +47,17 @@ final class TokenTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.kidB, CrayonPalette.night), 3)
     }
 
+    /// Spec K1 "Marks": the numerals on the school calendar's grounds, by day and at night.
+    func testCalendarNumeralsPassContrast() {
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.lateText, CrayonPalette.holidayGround), 4.5)
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightLate, CrayonPalette.nightHolidayGround), 4.5)
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.card, CrayonPalette.ink), 4.5, "today by day")
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.night, CrayonPalette.moonPaper), 4.5, "today at night")
+        for ground in [CrayonPalette.nowSky, CrayonPalette.kidApricot, CrayonPalette.doneGreen, CrayonPalette.lilac] {
+            XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, ground), 4.5, "ink on a day off")
+        }
+    }
+
     func testContrastKnownValues() {
         XCTAssertEqual(Contrast.ratio(RGB(hex: 0x000000), RGB(hex: 0xFFFFFF)), 21, accuracy: 0.01)
         XCTAssertEqual(Contrast.ratio(CrayonPalette.ink, CrayonPalette.ink), 1, accuracy: 0.0001)

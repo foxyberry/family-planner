@@ -12,6 +12,18 @@ public struct ComponentGallery: View {
                                         colour: "Colour", face: "Face", colourCount: 4,
                                         faces: [.kidGirl, .kidBoy])
 
+    /// A made-up November for the K1 parts: a holiday on the 8th and 9th, a break from the 21st,
+    /// today the 22nd.
+    static var november: [[CalendarCell.Mark?]] {
+        let cells: [CalendarCell.Mark?] = (0..<42).map { index in
+            let day = index - 5
+            guard (1...30).contains(day) else { return nil }
+            return CalendarCell.Mark(number: "\(day)", kids: day >= 21 ? [0] : [], isHoliday: day == 8 || day == 9,
+                                     isToday: day == 22)
+        }
+        return stride(from: 0, to: 42, by: 7).map { Array(cells[$0..<($0 + 7)]) }
+    }
+
     @State private var tab = 0
     @State private var monday = true
     @State private var tuesday = false
@@ -259,6 +271,23 @@ public struct ComponentGallery: View {
                         DrivingKitIcon(.busShuttle, size: 120)
                         DrivingKitIcon(.car, size: 104)
                         DrivingKitIcon(.shoe, size: 96)
+                    }
+                }
+                section("K1 · School calendar") {
+                    CrayonTabs(selection: .constant(2026), items: [(2026, "2026", nil), (2027, "2027", nil)],
+                               itemSize: CGSize(width: 150, height: 72), spacing: 12, neutral: true)
+                    CalendarLegend(items: [
+                        .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), swatch: .init(number: "", kids: [0]), label: "Kid A off"),
+                        .init(face: KidFace.Badge(face: "kidBoy", colorIndex: 1), swatch: .init(number: "", kids: [1]), label: "Kid B off"),
+                        .init(swatch: .init(number: "", kids: [0, 1]), label: "Both off"),
+                        .init(swatch: .init(number: "25", isHoliday: true), label: "Public holiday"),
+                        .init(swatch: .init(number: "22", isToday: true), label: "Today"),
+                    ])
+                    HStack(alignment: .top, spacing: Spacing.m) {
+                        MonthCard(title: "November", weekdays: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+                                  weeks: Self.november, size: .card)
+                        MonthCard(title: "November 2026", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                                  weeks: Self.november, size: .open)
                     }
                 }
                 section("C6 · Edit clock parts") {
