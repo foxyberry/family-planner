@@ -4,3 +4,7 @@ import SwiftUI
 struct FixtureDebugView: View {
     var body: some View { Text(name ?? "").opacity(store.isOn ? 1 : 0) }
 }
+
+enum FixtureDebugReads {
+    static let id = Bundle.main.bundleIdentifier
+}

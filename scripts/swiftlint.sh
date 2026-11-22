@@ -26,7 +26,6 @@ cd "$ROOT"
 B="${SWIFTLINT_BAZEL:-bazel --bazelrc=.bazelrc --bazelrc=ios/.bazelrc}"
 # Temporary files in one folder (portable: GNU mktemp needs X's in a template).
 work="$(mktemp -d "${TMPDIR:-/tmp}/swiftlint.XXXXXX")"
-config="$work/config.yml"
 errors="$work/errors"
 trap 'rm -rf "$work"' EXIT
 
@@ -54,15 +53,25 @@ fi
 touch "$cache/$key"  # in use: keeps this key out of the prune
 [ "${1:-}" = "--binary" ] && { echo "$binary"; exit 0; }
 
+# Configs: every rule (.swiftlint.yml, for the self-test); view_values alone, without and with the
+# view-values pending files left out; every other rule, which the pending list never excuses.
+values="$work/values.yml"
+values_pending="$work/values-pending.yml"
+rest="$work/rest.yml"
+printf 'only_rules:\n  - view_values\n' > "$values"
 {
-  cat .swiftlint.yml
+  cat "$values"
   echo "excluded:"
   grep -vE '^[[:space:]]*(#|$)' scripts/view-values-pending.txt | sed "s|^|  - $ROOT/|"
-} > "$config"
+} > "$values_pending"
+sed '/^  - view_values$/d' .swiftlint.yml > "$rest"
 
-# SwiftLint: 0 clean, 2 violations; anything else (bad config, crash) shows its own message.
-# Paths print relative to the repo (SwiftLint may print /tmp for /private/tmp).
+# lint <config> <path>…: SwiftLint's report; 0 clean, 2 violations; anything else (bad config,
+# crash) shows its own message and stops. Paths print relative to the repo (SwiftLint may print
+# /tmp for /private/tmp).
 lint() {
+  local config="$1"
+  shift
   "$binary" lint --quiet --strict --config "$config" "$@" 2>"$errors" | sed -e "s|^$ROOT/||" -e "s|^${ROOT#/private}/||"
   local code="${PIPESTATUS[0]}"
   if [ "$code" != 0 ] && [ "$code" != 2 ]; then
@@ -74,7 +83,7 @@ lint() {
 }
 
 if [ "${1:-}" = "--self-test" ]; then
-  out="$(lint "$ROOT/tools/swiftlint/fixtures")"
+  out="$(lint .swiftlint.yml "$ROOT/tools/swiftlint/fixtures")"
   [ $? = 1 ] && exit 1  # could not run; the reason is on stderr
   status=0
   # Each line marked `// bad` in a fixture must be reported, and nothing else.
@@ -88,21 +97,26 @@ if [ "${1:-}" = "--self-test" ]; then
   exit "$status"
 fi
 
-out="$(lint "$ROOT/ios")"
+out="$(lint "$values_pending" "$ROOT/ios")"
 code=$?
 printf '%s\n' "$out" | grep -E 'error:|warning:'
 [ "$code" = 2 ] && echo "swiftlint: value in view code (put copy and shown values in State; tca-feature \"When a guard blocks\")" >&2
+if grep -q '^  - ' "$rest"; then
+  out="$(lint "$rest" "$ROOT/ios")"
+  other=$?
+  printf '%s\n' "$out" | grep -E 'error:|warning:'
+  [ "$other" = 2 ] && code=2
+fi
 
 # The pending list only shrinks: a listed file with no view_values hit and no hit of
 # check-view-values.sh (copy lookups, placeholder numbers) is clean, and its line must go.
 pending="$(grep -vE '^[[:space:]]*(#|$)' scripts/view-values-pending.txt | sed 's/[[:space:]]*$//')"
 if [ -n "$pending" ]; then
-  cp .swiftlint.yml "$config"  # no excluded paths: lint the pending files themselves
   files=()
   while IFS= read -r rel; do [ -f "$rel" ] && files+=("$ROOT/$rel"); done <<< "$pending"
   listed=""
   if [ ${#files[@]} -gt 0 ]; then  # bash 3.2 with set -u stops on an empty "${files[@]}"
-    listed="$(lint "${files[@]}")"
+    listed="$(lint "$values" "${files[@]}")"  # view_values on the pending files themselves
     [ $? = 1 ] && exit 1  # could not run; the reason is on stderr
   fi
   native="$(printf '%s\n' "$listed" | grep -E '\.swift:[0-9]+' | cut -d: -f1 | sort -u)"

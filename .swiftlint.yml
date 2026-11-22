@@ -1,4 +1,6 @@
 # This repo's SwiftLint native rules only (tools/swiftlint); built-in rules stay off.
-# scripts/swiftlint.sh adds the pending files as excluded paths; the rule picks its own places.
+# scripts/swiftlint.sh leaves the view-values pending files out of view_values only; each rule picks
+# its own places.
 only_rules:
   - view_values
+  - outside_data

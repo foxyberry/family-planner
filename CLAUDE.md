@@ -28,7 +28,7 @@ Single test target (same flags as `make test`, keeps caches warm):
 Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).
 
 ## Module rules
-- `ios/App`: only `@main` and `AppDelegate.bootstrap` (inject live clients, one line each).
+- `ios/App`: only `@main` and `AppDelegate.bootstrap` (live clients, one line each).
   Under 20 code lines, imports aside.
 - Screens, state and lifecycle live in `ios/AppCore` (and later `ios/Features/*`) as TCA reducers;
   lifecycle callbacks become actions (`AppDelegateBase`, `AppScene`).
@@ -45,8 +45,8 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
 - Outside data (time, calendar and time zone, locale, device, bundle, settings, launch arguments)
   comes only through dependencies (`\.date`, `\.calendar`, `\.continuousClock`, clients), read in
   reducers or Live values; the reference time zone is set once in `bootstrap`.
-  `check-dependencies.sh` blocks globals (`Date()`, …) and views reading `@Dependency`. Days are
-  `Day` values and minutes after midnight (0–1440). Elapsed time counts clock ticks, never `date` differences. Tests pin `Asia/Singapore` and a fixed date.
+  `outside_data` (SwiftLint) blocks globals (`Date()`, …) and views reading `@Dependency`. Days are
+  `Day` values and minutes after midnight (0–1440). Elapsed time counts clock ticks, not `date` differences. Tests pin `Asia/Singapore` and a fixed date.
 - New screens, reducers, services: follow the `tca-feature` skill.
 - The app starts empty and runs first-run setup (S1–S4); `ScheduleStoreLive` never seeds or wipes.
   `SeedData` (Kid A / Kid B) is only for tests, previews and the debug menu's "Load sample family".
