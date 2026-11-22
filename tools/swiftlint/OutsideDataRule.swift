@@ -104,13 +104,18 @@ private extension OutsideDataRule {
             return false
         }
 
-        /// The line says why this global read is right: `// outside-ok: <reason>`. An end-of-line
-        /// comment is the trailing trivia of the line's last token, so walk to it.
+        /// The line says why this global read is right: `// outside-ok: <reason>`, with a reason (an
+        /// empty one passes nothing). An end-of-line comment is the trailing trivia of the line's
+        /// last token, so walk to it.
         private func justified(_ node: some SyntaxProtocol) -> Bool {
             var token = node.lastToken(viewMode: .sourceAccurate)
             while let current = token {
                 for piece in current.trailingTrivia {
-                    if case let .lineComment(text) = piece, text.contains("outside-ok:") { return true }
+                    // The reason runs to the end of the comment, or to a second `//`.
+                    if case let .lineComment(text) = piece, let note = text.range(of: "outside-ok:"),
+                       text[note.upperBound...].components(separatedBy: "//")[0].contains(where: \.isLetter) {
+                        return true
+                    }
                 }
                 guard let next = current.nextToken(viewMode: .sourceAccurate),
                       !next.leadingTrivia.contains(where: \.isNewline) else { return false }
