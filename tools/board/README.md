@@ -5,7 +5,7 @@ sessions on this repo at once. It runs on this Mac only. The output lands in `to
 (git-ignored), and the server listens on 127.0.0.1.
 
 ```bash
-make board                        # http://127.0.0.1:8765, rebuilt on reload (at most every 25 s)
+make board                        # http://127.0.0.1:8765, rebuilt in the background while open
 python3 tools/board/board.py      # write tools/board/out/index.html once
 ```
 
