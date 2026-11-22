@@ -15,7 +15,13 @@ What it shows:
 - **Lanes**: review waiting, fixing, re-review waiting, user check (the iPad check for screen PRs),
   merge waiting, and recently merged. Each card has its category (from the conventional title and
   the paths it touches), the session that opened it, CI, open threads, and LGTM state.
-- **Sessions**: every recent session's title, whether it is busy, and its open PRs.
+- **What each session is doing** (right above the open issues): one card per issue owner (main,
+  review, design, harness), with its newest session's state, open issues left, what it has in hand
+  (issues it marked `doing` with `scripts/issue.sh start`, and its open PRs) and its last status.
+  A session belongs to the owner whose word comes first in its title: 구현 main, 리뷰 review, 디자인
+  design, 하네스 harness (`OWNER_WORDS` in `board.py`). Rename a session so its own word comes first.
+  When an owner's sessions all rest with nothing in hand and issues left, "Who has to act now"
+  says so.
 - **Local work**: every local branch with its last commit, its size against develop, the areas it
   touches and a verdict:
   - *in progress*: it has an open PR;
@@ -23,8 +29,8 @@ What it shows:
   - *safe to delete*: its PR merged, or every file it changed already matches develop. These fold
     away with the commands that clean them up; the board itself deletes nothing.
 - **This Mac**: free memory, Bazel servers, booted simulators, and open lessons.
-- **Open issues** (between the lanes and the sessions): `scripts/issue.sh` files in the main
-  checkout's `.claude/issues/`, by owner; closed ones leave the board.
+- **Open issues** (below the session cards): `scripts/issue.sh` files in the main
+  checkout's `.claude/issues/`, by owner; doing ones are marked; closed ones leave the board.
 
 Every section and lane folds (recently merged starts folded), and the folds survive the 15 s reload.
 
