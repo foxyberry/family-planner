@@ -201,6 +201,29 @@ final class SchoolYearFeatureTests: XCTestCase {
         XCTAssertEqual(screen.legend.last?.swatch.number, "11")
     }
 
+    /// Review of #259: the 1-second ticks that come before a slow reload has finished start no
+    /// second load for the same new day.
+    func testTicksDuringAReloadLoadOnce() async {
+        let loads = LockIsolated(0)
+        let kids = kids(bothAtSchool: false)
+        // The reload waits on a gate, so the next tick arrives while it is still loading.
+        let gate = AsyncStream<Void>.makeStream()
+        let store = store(kids: kids)
+        store.dependencies.scheduleStore.load = {
+            let count = loads.withValue { $0 += 1; return $0 }
+            if count > 1 { for await _ in gate.stream { break } }
+            return ScheduleSnapshot(kids: kids, routines: [], items: [], missions: [])
+        }
+        await store.send(.task)
+        await store.receive(\.loaded)
+        let wednesday = Day(year: 2026, month: 11, day: 11)
+        await store.send(.tick(wednesday.date(minute: 0, calendar: calendar))) { $0.reloadingDay = wednesday }
+        await store.send(.tick(wednesday.date(minute: 0, calendar: calendar).addingTimeInterval(1)))
+        gate.continuation.yield()
+        await store.receive(\.loaded) { $0.reloadingDay = nil }
+        XCTAssertEqual(loads.value, 2, "the first load and one reload")
+    }
+
     func testBackFinishes() async {
         let store = store()
         await store.send(.backTapped)

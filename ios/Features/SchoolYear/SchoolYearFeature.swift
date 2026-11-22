@@ -21,6 +21,9 @@ public struct SchoolYearFeature {
         public var phase: Phase = .loading
         /// The month opened over the year (1–12); nil shows the year alone.
         public var openMonth: Int?
+        /// The new day a reload is under way for, so the 1-second ticks until `.loaded` start no
+        /// second load (review of #259).
+        public var reloadingDay: Day?
         /// Every word this screen shows comes from here (views hold no values).
         public var strings = Localizer.injected
 
@@ -162,10 +165,15 @@ public struct SchoolYearFeature {
                 return load(today: Day(date.now, calendar: calendar))
 
             case let .tick(now):
-                guard case let .ready(year) = state.phase, Day(now, calendar: calendar) != year.today else { return .none }
-                return load(today: Day(now, calendar: calendar))
+                let today = Day(now, calendar: calendar)
+                guard case let .ready(year) = state.phase, today != year.today, state.reloadingDay != today else {
+                    return .none
+                }
+                state.reloadingDay = today
+                return load(today: today)
 
             case var .loaded(year):
+                state.reloadingDay = nil
                 // A reload (a new day) keeps the year the person picked, while it still has data.
                 if case let .ready(old) = state.phase, old.picked != year.picked, year.years.contains(old.picked) {
                     year.picked = old.picked
