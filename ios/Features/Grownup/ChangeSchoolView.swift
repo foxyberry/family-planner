@@ -64,8 +64,7 @@ public struct ChangeSchoolView: View {
             .frame(width: layout.form.width, height: layout.form.height, alignment: .top)
         } primaryAction: { layout in
             if form.place == .preschool {
-                InkButton(form.saveTitle) { store.send(.preschoolSaveTapped) }
-                    .disabled(!form.canContinuePreschool)
+                InkButton(form.saveTitle, isEnabled: form.canContinuePreschool) { store.send(.preschoolSaveTapped) }
                     .frame(width: layout.side.width)
             }
         }

@@ -58,8 +58,7 @@ public struct ChangeBusesView: View {
                            alignment: .topLeading)
             }
         } primaryAction: { layout in
-            InkButton(store.saveTitle) { store.send(.saveTapped) }
-                .disabled(!store.canSave)
+            InkButton(store.saveTitle, isEnabled: store.canSave) { store.send(.saveTapped) }
                 .frame(width: layout.side.width)
         }
     }

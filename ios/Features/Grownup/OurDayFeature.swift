@@ -356,10 +356,6 @@ public struct OurDayFeature {
         public var moreTitle: String { strings.tr("picker.more") }
         public var newNameLabel: String { strings.tr("day.new.name") }
         public var bringBackTitle: String { strings.tr("day.bring_back") }
-        /// Board G1: Undo and Redo are off at 45 % when there is nothing to take back or put back.
-        public var undoOpacity: Double { canUndo ? 1 : Self.offOpacity }
-        public var redoOpacity: Double { canRedo ? 1 : Self.offOpacity }
-        static let offOpacity = 0.45
 
         func title(of source: ClockSlice.Source) -> String {
             switch source {

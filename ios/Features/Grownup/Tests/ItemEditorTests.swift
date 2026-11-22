@@ -291,11 +291,9 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.dateChips.map(\.weekday), ["Mon", "Tue", "Wed", "Thu", "Fri"])
         XCTAssertEqual(store.state.dateChips.map(\.day), store.state.visibleDates)
         XCTAssertEqual(store.state.dateChips.map(\.isOn), [true, false, false, false, false])
-        XCTAssertFalse(store.state.canPageEarlier)
-        XCTAssertEqual(store.state.earlierPageOpacity, 0.3, "‹ is faint on the first page")
+        XCTAssertFalse(store.state.canPageEarlier, "‹ is off on the first page")
         await store.send(.datePageTapped(1))
         XCTAssertTrue(store.state.canPageEarlier)
-        XCTAssertEqual(store.state.earlierPageOpacity, 1)
         XCTAssertEqual(store.state.dateChips.map(\.isOn), [false, false, false, false, false])
     }
 
@@ -403,11 +401,11 @@ final class ItemEditorTests: XCTestCase {
         let store = store(mode: .add(kidA))
         await store.send(.task)
         await store.receive(\.loaded)
-        XCTAssertEqual(store.state.medalSwitchOpacity, 0.45, "faint without a trip")
+        XCTAssertFalse(store.state.form.canSwitchMedal, "off without a trip")
         await store.send(.medalToggled)
         XCTAssertFalse(store.state.form.medalIsOn)
         await store.send(.goingTapped(.car))
-        XCTAssertEqual(store.state.medalSwitchOpacity, 1)
+        XCTAssertTrue(store.state.form.canSwitchMedal)
         XCTAssertEqual([store.state.form.leaveText, store.state.form.leaveCaption].map { $0 != nil }, [true, true],
                        "a trip's Leave row has its minutes and caption")
         await store.send(.medalToggled)

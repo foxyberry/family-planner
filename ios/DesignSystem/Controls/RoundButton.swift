@@ -5,13 +5,15 @@ import SwiftUI
 /// An 80 paper circle holding a symbol, a short text, a glyph (back, close, +) or a kit picture
 /// (G0's pencil); 64 for C4's date paging. Board sizes, × s on screen. A tap hits only the drawn
 /// circle, the frame less the part inset (spec "Sizing → Touch", rule 1, user 2026-11-22), so two
-/// buttons whose frames meet never take each other's taps.
+/// buttons whose frames meet never take each other's taps. Off (`.enabled(false)`: G1's Undo with
+/// nothing to take back, C4's ‹ on the first page) it draws the one off look, 40 %, and takes no taps.
 public struct RoundButton: View {
     private enum Content { case symbol(String), text(String), glyph(MarkerGlyph), picture(KitSlot) }
     private let content: Content
     private let action: () -> Void
     private var size: CGFloat = 80
     private var look: KidLook = .day
+    private var isEnabled = true
     @Environment(\.sizing) private var sizing
     /// The board diameter × s.
     private var drawn: CGFloat { sizing(size) }
@@ -53,6 +55,13 @@ public struct RoundButton: View {
         return copy
     }
 
+    /// `isEnabled`: the caller's State says whether the action can run now (`canUndo`).
+    public func enabled(_ isEnabled: Bool) -> RoundButton {
+        var copy = self
+        copy.isEnabled = isEnabled
+        return copy
+    }
+
     public var body: some View {
         Button(action: action) {
             Group {
@@ -70,6 +79,7 @@ public struct RoundButton: View {
                             seed: CrayonStyle.Seed.roundButton,
                             markerColor: look == .day ? CrayonColor.outline : CrayonColor.chalk)
         }
-        .buttonStyle(.plain)
+        .crayonPlain(isEnabled)
+        .offLook(isEnabled)
     }
 }

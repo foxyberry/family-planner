@@ -58,11 +58,11 @@ final class ComponentSnapshotTests: XCTestCase {
         .background(CrayonColor.night))
     }
 
-    /// Board G1: Undo on, Redo off (45 %), 72 each.
+    /// Board G1: Undo on, Redo off (the one off look, 40 %), 72 each.
     func testUndoRedoButtons() {
         snap(HStack(spacing: Spacing.s) {
             RoundButton(glyph: .undo) {}.size(72)
-            RoundButton(glyph: .redo) {}.size(72).opacity(0.45)
+            RoundButton(glyph: .redo) {}.size(72).enabled(false)
         })
     }
 
@@ -460,9 +460,14 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(MinutesStepper(value: "10 min", caption: "to the stop", minus: {}, plus: {}), width: 560)
     }
 
-    /// S4 switch list: the switch on and off, and a row with a warning caption.
+    /// S4 switch list: the switch on and off, the off look, and a row with a warning caption.
     func testSettingRows() {
         snap(HStack(spacing: Spacing.m) { CrayonSwitch(isOn: true); CrayonSwitch(isOn: false) }, named: "switches")
+        // Off (G2b's Medal without a trip): the one off look, 40 %, off and on.
+        snap(HStack(spacing: Spacing.m) {
+            CrayonSwitch(isOn: false, isEnabled: false)
+            CrayonSwitch(isOn: true, isEnabled: false)
+        }, named: "switches-off")
         snap(VStack(spacing: 20) {
             SettingRow(title: "Grown-up lock", caption: "Face ID before grown-up screens", isOn: true, action: {}) {
                 LockMark(size: 56)

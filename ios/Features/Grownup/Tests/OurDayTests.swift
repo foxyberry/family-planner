@@ -365,15 +365,14 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(item.isRepeating)
         XCTAssertEqual([store.state.startLabel, store.state.endLabel], ["4:00 pm", "5:00 pm"],
                        "a new slice on the clock is the selected one, so its card has its times")
-        XCTAssertEqual([store.state.undoOpacity, store.state.redoOpacity], [1, 0.45])
+        XCTAssertEqual([store.state.canUndo, store.state.canRedo], [true, false])
         // Undo takes the new item back in one step, card and all.
         await store.send(.undoTapped)
         XCTAssertNil(store.state.newSlice)
         XCTAssertTrue(store.state.edit.items.isEmpty)
-        XCTAssertFalse(store.state.canUndo)
-        XCTAssertEqual([store.state.undoOpacity, store.state.redoOpacity], [0.45, 1], "Undo off, Redo on")
+        XCTAssertEqual([store.state.canUndo, store.state.canRedo], [false, true], "Undo off, Redo on")
         await store.send(.redoTapped)
-        XCTAssertEqual([store.state.undoOpacity, store.state.redoOpacity], [1, 0.45])
+        XCTAssertEqual([store.state.canUndo, store.state.canRedo], [true, false])
         XCTAssertEqual(store.state.fromWhenChoice, .today, "the card shows Today until it opens")
         await store.send(.saveTapped)
         XCTAssertEqual(store.state.fromWhen, .today, "a new series asks from when")
@@ -965,7 +964,7 @@ final class OurDayTests: XCTestCase {
                        ["Our day", "List", "Settings", "Save", "Add", "Save the changes?", "Cancel", "Save",
                         "Change from when?", "Save", "Cancel", "Today", "More", "Name", "Bring back",
                         "This day", "All days"])
-        XCTAssertEqual([state.undoOpacity, state.redoOpacity], [0.45, 0.45], "nothing to take back or put back")
+        XCTAssertEqual([state.canUndo, state.canRedo], [false, false], "nothing to take back or put back")
         let keys = withDependencies { $0.localizer = .keys } operation: {
             OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
         }

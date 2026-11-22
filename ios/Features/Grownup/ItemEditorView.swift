@@ -46,9 +46,8 @@ public struct ItemEditorView: View {
                 }
             } primaryAction: { layout in
                 VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
-                    InkButton(store.primaryTitle) { store.send(.saveTapped) }
+                    InkButton(store.primaryTitle, isEnabled: store.canSave) { store.send(.saveTapped) }
                         .frame(width: layout.side.width)
-                        .disabled(!store.canSave)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                     }
@@ -310,13 +309,14 @@ public struct ItemEditorView: View {
                    fills: true, spacing: Spacing.sm)
     }
 
-    /// Board C4: ‹ (64) in the label column, five date chips (96) 12 apart, then ›.
+    /// Board C4: ‹ (64) in the label column, five date chips (96) 12 apart, then ›. ‹ is off on the
+    /// first page of dates.
     private var dateStrip: some View {
         HStack(spacing: 0) {
             FormLabelColumn {
                 RoundButton(glyph: .chevronLeft) { store.send(.datePageTapped(-1)) }
                     .size(64)
-                    .opacity(store.earlierPageOpacity)
+                    .enabled(store.canPageEarlier)
             }
             HStack(spacing: sizing(Spacing.sm)) {
                 ForEach(store.dateChips, id: \.day) { chip in
@@ -353,10 +353,13 @@ public struct ItemEditorView: View {
             }
         }
         row(store.medalLabel) {
-            Button { store.send(.medalToggled) } label: { CrayonSwitch(isOn: store.form.medalIsOn) }
+            // Off without a trip: the switch draws the off look and the button takes no taps
+            // (`.disabled` would dim a plain button a second time).
+            Button { store.send(.medalToggled) } label: {
+                CrayonSwitch(isOn: store.form.medalIsOn, isEnabled: store.form.canSwitchMedal)
+            }
                 .buttonStyle(.plain)
-                .opacity(store.medalSwitchOpacity)
-                .disabled(!store.form.canSwitchMedal)
+                .allowsHitTesting(store.form.canSwitchMedal)
                 .frame(height: sizing(72))
         }
     }
