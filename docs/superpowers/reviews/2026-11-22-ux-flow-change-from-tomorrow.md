@@ -17,7 +17,7 @@ Two versions, because the app has two kinds of repeating things:
 - **T1 (day template)**: "From tomorrow, dinner is at 6:00 pm on school days, not 6:30."
 - **T2 (every-week item)**: "From next week, swimming moves from 3:30 pm to 4:00 pm."
 
-The next morning, Kid A (7) and Kid B (2) open home with no help.
+The next morning, Kid A (reads the clock) and Kid B (no clock, Now / Next rows only) open home with no help.
 
 ## The flow as designed
 
@@ -61,6 +61,10 @@ of next week. The grown-up then picks "Date" and has to find the right chip, or 
 
 **Proposal**: name the day itself. Use "Tomorrow" when it is tomorrow, otherwise the short date
 ("Wed 25 Nov"), not "Next Wed". *Needs the user's OK; it changes board G5's tab text.*
+
+Also, `nextOfType` looks only 14 days ahead. When no day of the series' type falls inside that
+window, the tab reads just "Next " and picking it saves from today. **Proposal**: hide the middle tab
+then.
 
 ### 3. Two minutes without a touch drops Our Day's unsaved changes
 C0's relock rule (proposed) discards unsaved form changes after 2 minutes without a touch, and at once
@@ -107,10 +111,10 @@ grown-up returns; there is no reload."
 ### 8. The kid's side the next morning
 - **Kid A** sees the new dinner time on the clock as soon as dinner is the current or next thing: as
   the Next row ("Dinner / in 45 min"), and as the hub when it starts. Before that it is only a slice on
-  the clock with no time printed. Whether a 7-year-old reads a moved slice as "dinner is earlier" is
+  the clock with no time printed. Whether Kid A reads a moved slice as "dinner is earlier" is
   the question for the iPad run, not something the boards can answer.
-- **Kid B** (2) has no clock and sees only the Now and Next rows (#216), so the change reaches Kid B
-  only when it becomes Now or Next. That is the intent for a 2-year-old; no change proposed.
+- **Kid B** has no clock and sees only the Now and Next rows (#216), so the change reaches Kid B
+  only when it becomes Now or Next. That is the intent for the youngest kid; no change proposed.
 
 ## The alternative to compare
 
