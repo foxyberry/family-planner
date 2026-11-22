@@ -295,7 +295,8 @@ def fetch_prs(slug):
             _github["open"], _github["read_at"] = (repo["open"]["nodes"], repo["merged"]["nodes"]), t
         except Exception as e:
             _github["error"] = str(e)
-    if t - _github["ended_at"] > ENDED_GAP:
+    # The history waits ENDED_GAP once read; until then it retries with the open PRs.
+    if t - _github["ended_at"] > (ENDED_GAP if _github["ended"] is not None else OPEN_GAP):
         _github["ended_at"] = t
         try:
             repo = graphql(slug, 'allMerged: pullRequests(states: MERGED, last: 100) { nodes { number url headRefName headRefOid } } '

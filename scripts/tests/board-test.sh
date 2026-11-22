@@ -104,7 +104,9 @@ for args, want in [(("2026-11-21T03:00:00Z", "2026-11-21T02:00:00Z"), True),
 calls, clock, fail = [], [1000.0], [False]
 def fake_run(cmd):
     calls.append("ended" if "allMerged" in cmd[-1] else "open")
-    if fail[0]:
+    if fail[0] == "ended" and "allMerged" in cmd[-1]:
+        return 1, "", "history refused"
+    if fail[0] is True:
         return 1, "", "rate limit"
     data = {"open": {"nodes": [{"number": 1}]}, "merged": {"nodes": []}, "allMerged": {"nodes": []},
             "oldMerged": {"nodes": [{"headRefName": "feature/a"}]}, "closed": {"nodes": []}}
@@ -136,6 +138,9 @@ else:
     print("FAIL fetch_prs: the failure message is kept")
 step(15, [], "a failure waits the gap too")
 step(600, ["open", "ended"], "after 10 minutes the history again")
+board._github.update(ended=None, ended_at=0.0, open_at=0.0)
+step(0, ["open", "ended"], "a fresh board whose history is refused", failing="ended")
+step(61, ["open", "ended"], "an unread history retries with the open PRs, not after 10 minutes")
 print(f"board: {passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 EOF
