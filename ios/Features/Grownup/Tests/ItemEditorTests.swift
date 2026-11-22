@@ -4,6 +4,7 @@ import Domain
 import Foundation
 import Grownup
 import HolidayProvider
+import KitArt
 import ScheduleStore
 import SchoolDirectory
 import XCTest
@@ -42,6 +43,21 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.picturePicked("actArt"))
         await store.send(.binding(.set(\.form.start, 930)))
         await store.send(.binding(.set(\.form.end, 990)))
+    }
+
+    /// Spec C3 "What" (N15): "More" offers the country flags after the pictures, in kit order, and a
+    /// picked flag becomes the item's picture, first in the row.
+    func testMoreOffersTheCountryFlags() async {
+        XCTAssertEqual(ItemEditorFeature.State.flags, KitSlot.allCases.filter { $0.rawValue.hasPrefix("flag") })
+        XCTAssertTrue(Set(ItemEditorFeature.State.flags).isDisjoint(with: ItemEditorFeature.State.pictures))
+        let store = store(mode: .add(kidA), saved: LockIsolated([]))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.morePicturesTapped)
+        await store.send(.picturePicked("flagJP"))
+        XCTAssertEqual(store.state.form.iconName, "flagJP")
+        XCTAssertFalse(store.state.isPickingMorePictures)
+        XCTAssertEqual(store.state.whatRow.first, "flagJP")
     }
 
     func testAddWeeklySavesAndFinishes() async {

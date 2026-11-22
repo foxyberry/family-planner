@@ -129,6 +129,12 @@ final class ComponentSnapshotTests: XCTestCase {
                         all: row + [.actFootball, .actStory, .actCCA, .actPlay, .homework, .doctor, .cake],
                         isShowingAll: true, moreTitle: "More") {}
             .frame(height: 440, alignment: .top), width: Self.rowWidth, named: "open")
+        // Spec C3 "What" (N15): the country flags after the pictures, from a row of their own.
+        snap(PictureRow(slots: row, selection: .constant(.flagKR),
+                        all: row + [.actFootball, .actStory, .actCCA, .actPlay, .homework, .doctor, .cake],
+                        flags: [.flagKR, .flagJP, .flagCN, .flagUK, .flagFR, .flagIN, .flagTH, .flagVN],
+                        isShowingAll: true, moreTitle: "More") {}
+            .frame(height: 640, alignment: .top), width: Self.rowWidth, named: "flags")
     }
 
     func testIconPicker() {

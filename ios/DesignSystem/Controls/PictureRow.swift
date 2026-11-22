@@ -4,12 +4,15 @@ import SwiftUI
 
 /// Board C3 "What": one row of picture slots (88, gap 16; the picked one has a blue
 /// ring), then a "More" slot (88 circle, bold caption). "More" opens a card under the row with every
-/// picture, 6 per row (`IconPicker`); the row never wraps or scrolls, so the rows below keep their
-/// lines. Callers pass the slots (the picked one first) and the words.
+/// picture, 6 per row (`IconPicker`), and after them, starting on a row of their own, the country
+/// flags (spec C3 "What", N15); the row never wraps or scrolls, so the rows below keep their lines.
+/// Callers pass the slots (the picked one first), the lists and the words.
 public struct PictureRow: View {
     private let slots: [KitSlot]
     @Binding private var selection: KitSlot?
     private let all: [KitSlot]
+    /// The second group in the "More" card (the country flags), on rows of its own.
+    private let flags: [KitSlot]
     private let isShowingAll: Bool
     private let moreTitle: String
     private let onMore: () -> Void
@@ -19,12 +22,13 @@ public struct PictureRow: View {
     @Environment(\.sizing) private var sizing
     private var d: CGFloat { sizing(88) }
 
-    public init(slots: [KitSlot], selection: Binding<KitSlot?>, all: [KitSlot], isShowingAll: Bool,
-                moreTitle: String, columns: Int? = nil, onMore: @escaping () -> Void) {
+    public init(slots: [KitSlot], selection: Binding<KitSlot?>, all: [KitSlot], flags: [KitSlot] = [],
+                isShowingAll: Bool, moreTitle: String, columns: Int? = nil, onMore: @escaping () -> Void) {
         self.columns = columns
         self.slots = slots
         _selection = selection
         self.all = all
+        self.flags = flags
         self.isShowingAll = isShowingAll
         self.moreTitle = moreTitle
         self.onMore = onMore
@@ -74,10 +78,16 @@ public struct PictureRow: View {
             .buttonStyle(.plain)
             .overlay(alignment: .topTrailing) {
                 if isShowingAll {
-                    // Under the "More" slot, its right edge on the slot's: every picture, 6 per row.
-                    PaperCard(seed: 97) { IconPicker(selection: $selection, slots: all) }
-                        .fixedSize()
-                        .offset(y: d + sizing(Spacing.sm))
+                    // Under the "More" slot, its right edge on the slot's: every picture, 6 per row,
+                    // then the flags from a new row (the rows' own 16 apart).
+                    PaperCard(seed: 97) {
+                        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
+                            IconPicker(selection: $selection, slots: all)
+                            if !flags.isEmpty { IconPicker(selection: $selection, slots: flags) }
+                        }
+                    }
+                    .fixedSize()
+                    .offset(y: d + sizing(Spacing.sm))
                 }
             }
     }
