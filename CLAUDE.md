@@ -19,10 +19,10 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - `make run` builds first, then boots the simulator. Shut down idle Bazel servers of other projects.
 - Check screens on a connected iPad (`make device`), else that size's 13"/11"/mini simulator.
   Tap or Face ID states: ask the user or add a launch flag.
-- Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
+- Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI ignores them.
 
 ## Commands
-make setup | build | run | device | test | test-one | ui-test | ux-sweep | snapshots | snapshots-record | art | lint | swiftlint | fmt | xcodeproj | sim-stop | clean
+make setup | build | run | device | test | test-one | ui-test | ux-sweep | ux-states | snapshots | snapshots-record | art | lint | swiftlint | fmt | xcodeproj | sim-stop | clean
 Single test target (same flags as `make test`, keeps caches warm):
 `make test-one TARGET=//ios/AppCore/Tests:AppCoreTests`. Plain `bazel test` skips `ios/.bazelrc`.
 Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).

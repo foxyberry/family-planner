@@ -13,7 +13,8 @@
 #   5. guard tests (scripts/tests/*-test.sh): when a guard script or hook changed
 #   6. scripts/swiftlint.sh (SwiftLint native rules, a cached binary): over ios/ when Swift there,
 #      the rules or the view-values pending list changed; the rules' fixtures (--self-test) when
-#      the rules changed
+#      the rules changed; scripts/ux-states.sh --check (every screen state has a board) when Swift
+#      under ios/, the boards' layout JSON, the rules or its pending list changed
 # pre-commit already checks each commit as it is made; this catches amended, rebased and
 # merged history and anything committed while the hooks were off.
 # Enable with: git config core.hooksPath .githooks   (make setup does this)
@@ -101,6 +102,10 @@ if [ -f "$ROOT/scripts/swiftlint.sh" ]; then
   fi
   if printf '%s' "$changed" | grep -Eq "^ios/.*\.swift$|$rules|^scripts/view-values-pending\.txt$"; then
     bash "$ROOT/scripts/swiftlint.sh" </dev/null || status=1
+  fi
+  if [ -f "$ROOT/scripts/ux-states.sh" ] && printf '%s' "$changed" \
+      | grep -Eq "^ios/.*\.swift$|$rules|^docs/superpowers/layout/.*\.json$|^scripts/ux-states"; then
+    bash "$ROOT/scripts/ux-states.sh" --check </dev/null || status=1
   fi
 fi
 

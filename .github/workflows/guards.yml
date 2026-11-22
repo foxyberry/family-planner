@@ -65,6 +65,8 @@ jobs:
         run: bash scripts/tests/check-strings-test.sh
       - name: View values check tests
         run: bash scripts/tests/check-view-values-test.sh
+      - name: UX state check tests
+        run: bash scripts/tests/ux-states-test.sh
       - name: Journey check tests
         run: bash scripts/tests/check-journeys-test.sh
       - name: Unattended tests check tests

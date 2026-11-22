@@ -8,9 +8,48 @@
 #                                           per state: screen, state, boards, verdict; exit 0, or 1
 #                                           if SwiftLint could not run (its message is printed)
 #        scripts/ux-states.sh --self-test   the fixtures in tools/swiftlint/ux-fixtures give expected.txt
+#        scripts/ux-states.sh --check       fail (exit 1) on a state with no board or an unknown board,
+#                                           unless scripts/ux-states-pending.txt lists it (make ux-states,
+#                                           pre-push). The list only shrinks: a listed state that now has a
+#                                           board, or that no longer exists, fails until its line goes.
+# UX_STATES_INVENTORY=<file> checks that inventory instead of running SwiftLint (tests, CI without it).
 set -u
-ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+ROOT="${UX_STATES_ROOT:-$(cd "$(dirname "$0")/.." && pwd -P)}"
 cd "$ROOT"
+PENDING="$ROOT/scripts/ux-states-pending.txt"
+
+# The pending list against an inventory (screen, state, boards, verdict per line).
+check() {
+  local inventory="$1" status=0 pending
+  pending="$(grep -vE '^[[:space:]]*(#|$)' "$PENDING" 2>/dev/null | sed 's/[[:space:]]*$//')"
+  while IFS=$'\t' read -r screen state boards verdict; do
+    [ -n "$state" ] || continue
+    [ "$verdict" = ok ] && continue
+    if ! printf '%s\n' "$pending" | grep -qxF "$state"; then
+      echo "ux-states: $state ($screen) has $verdict: draw its board and name it at the start of the case's doc comment (skill ux-review)" >&2
+      status=1
+    fi
+  done < "$inventory"
+  while IFS= read -r state; do
+    [ -n "$state" ] || continue
+    line="$(awk -F'\t' -v s="$state" '$2 == s' "$inventory")"
+    if [ -z "$line" ]; then
+      echo "ux-states: pending line for a state that no longer exists: $state (remove it from scripts/ux-states-pending.txt)" >&2
+      status=1
+    elif [ "$(printf '%s' "$line" | cut -f4)" = ok ]; then
+      echo "ux-states: pending line for a state that has its board now: $state (remove it from scripts/ux-states-pending.txt)" >&2
+      status=1
+    fi
+  done <<< "$pending"
+  [ "$status" = 0 ] && echo "ux-states: every state has a board, or is pending"
+  return "$status"
+}
+
+if [ "${1:-}" = "--check" ] && [ -n "${UX_STATES_INVENTORY:-}" ]; then
+  check "$UX_STATES_INVENTORY"
+  exit $?
+fi
+
 binary="$(bash scripts/swiftlint.sh --binary)" || exit 1
 errors="$(mktemp -t ux-states)"
 trap 'rm -f "$errors"' EXIT
@@ -57,6 +96,16 @@ if [ "${1:-}" = "--self-test" ]; then
   echo "ux-states self-test: the fixture inventory differs from expected.txt:" >&2
   diff <(printf '%s\n' "$got") tools/swiftlint/ux-fixtures/expected.txt >&2
   exit 1
+fi
+
+if [ "${1:-}" = "--check" ]; then
+  list="$(inventory "$ROOT/ios")" || exit 1
+  inventory_file="$(mktemp -t ux-states-inventory)"
+  printf '%s\n' "$list" > "$inventory_file"
+  check "$inventory_file"
+  code=$?
+  rm -f "$inventory_file"
+  exit "$code"
 fi
 
 if [ $# -eq 0 ]; then set -- "$ROOT/ios"; fi

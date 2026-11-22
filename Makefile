@@ -23,7 +23,7 @@ OPEN_URL = $(if $(OPEN),--payload-url familyplanner://$(OPEN))
 SIMULATOR   = $(shell xcrun simctl list devices "iOS $(SIM_OS)" available -j \
                 | python3 -c "import sys,json; devs=[d for ds in json.load(sys.stdin)['devices'].values() for d in ds if '$(SIM_DEVICE)' == d['name']]; print(devs[0]['udid'] if devs else '')" 2>/dev/null)
 
-.PHONY: build run device test test-one test-affected ui-test ux-sweep driver-check swiftlint snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
+.PHONY: build run device test test-one test-affected ui-test ux-sweep ux-states driver-check swiftlint snapshots snapshots-record sim-stop stop-dev-sims art art-private private xcodeproj clean clean-expunge fmt lint \
         check-prereqs setup setup-ios board
 
 # =============================================================================
@@ -138,6 +138,10 @@ ux-sweep: stop-dev-sims
 	UX_SWEEP_DIR="$$dir" $(IOS_BAZEL) test $(PUBLIC_FLAGS) $(UX_SWEEP_TARGET) --nocache_test_results $(TEST_ARGS) \
 	  --ios_simulator_device="$(SIM_DEVICE)" \
 	  --ios_simulator_version="$(SIM_OS)" && echo "home sweep: $$dir"
+
+# Every screen state the code marks (ux-states) has a board, or is in scripts/ux-states-pending.txt.
+ux-states:
+	@bash scripts/ux-states.sh --check
 
 # The thin UI tests (tag "ui"): the debug app on the simulator, for what journeys can't show.
 # Slow, so not in make test, pre-push or CI.
