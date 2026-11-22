@@ -17,10 +17,6 @@ public extension Sizing {
     static let cornerControl: CGFloat = 48
     /// `CrayonTabs`, `PillToggle`, `DayChip`: 72 on the board (or the part's own board height).
     func tabHeight(_ board: CGFloat = 72) -> CGFloat { board * s }
-    /// The face inside a tab (`KidFace.medium`), 40.
-    var tabFace: CGFloat { 40 * s }
-    /// S2 / G7 Goes to: 180.
-    var goesToTabWidth: CGFloat { 180 * s }
     /// `MinutesStepper`'s value column: 144.
     var stepperValueWidth: CGFloat { 144 * s }
     /// `CrayonSwitch`: 96 × 52, knob 44.
@@ -36,7 +32,8 @@ public extension Sizing {
     var dateChip: CGSize { CGSize(width: 96 * s, height: 104 * s) }
     /// The clock "+" and the add-between button: 56.
     var clockPlus: CGFloat { 56 * s }
-    /// One-line search rows (keyboard up) 48; two-line rows 72.
+    /// One-line search rows 48 (S2s with the keyboard up, design session 2026-11-15: one line,
+    /// "{name} · {caption}"); two-line rows 72.
     var oneLineRow: CGFloat { 48 * s }
     var twoLineRow: CGFloat { 72 * s }
 

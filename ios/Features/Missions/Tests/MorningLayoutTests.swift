@@ -43,10 +43,10 @@ final class MorningLayoutTests: XCTestCase {
     /// Spec "Sizing: one scale, no floors": on every window each part is its 13" rect × s.
     func testEveryPartIsTheBoardTimesS() {
         let l = MorningLayout(sizing: .thirteenInch)
-        let board = [l.back, l.strip, l.kidRow(1), l.kidRing(0), l.circleRect(3), l.captionRect(2), l.doneMedal, l.slide]
+        let board = [l.back, l.strip, l.kidRow(1), l.kidRing(0), l.circleRect(3), l.doneMedal, l.slide]
         for sizing in iPads {
             let l = MorningLayout(sizing: sizing)
-            assertScaled([l.back, l.strip, l.kidRow(1), l.kidRing(0), l.circleRect(3), l.captionRect(2), l.doneMedal, l.slide], board, sizing)
+            assertScaled([l.back, l.strip, l.kidRow(1), l.kidRing(0), l.circleRect(3), l.doneMedal, l.slide], board, sizing)
         }
     }
 

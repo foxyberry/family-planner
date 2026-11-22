@@ -229,9 +229,6 @@ public struct BusChange: Hashable, Sendable {
         firstBuses.map { BusRoute(service: $0, then: thenBus, trip: trip(from: $0)) }
     }
 
-    /// The first buses as one name ("12 · 34"), joined by `separator`.
-    public func firstBusesName(separator: String) -> String { firstBuses.joined(separator: separator) }
-
     /// A bus number as LTA writes them: digits, then at most one letter ("12", "34A").
     public static func isServiceNumber(_ text: String) -> Bool {
         guard let first = text.first, first.isASCII, first.isNumber, text.count <= 4 else { return false }
