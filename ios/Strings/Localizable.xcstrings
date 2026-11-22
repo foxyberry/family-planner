@@ -1992,17 +1992,6 @@
         }
       }
     },
-    "home.day.holiday" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ · Holiday"
-          }
-        }
-      }
-    },
     "home.hub.free" : {
       "extractionState" : "manual",
       "localizations" : {

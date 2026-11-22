@@ -111,18 +111,27 @@ public struct HomeFeature {
         /// Board 0g2 on the hour: the hand's disc pulses when this changes.
         public var hour: Int { minute / 60 }
 
-        /// Board E3 (2026-11-08): a school holiday on a weekday, the only holiday line on kid screens.
-        public var isSchoolHoliday: Bool {
-            guard let weekday, weekday != .saturday, weekday != .sunday else { return false }
-            return days.first?.dayType == .sunday
+        /// Spec "Hub text" (layout v71, board E3h): today is a public holiday; the weekday turns red.
+        public var isPublicHoliday = false
+        /// Today's public holiday's name ("Deepavali"), from the bundled list.
+        public var holidayName: String?
+        /// The name of Kid A's (the clock kid's) school break today ("June holidays").
+        public var breakName: String?
+
+        /// The right panel's first line (spec "Hub text"): always the full weekday.
+        public var dayHeading: String? { dayName }
+
+        /// The caption under the weekday (spec "Hub text", board E3h): the public holiday's name, else
+        /// on a weekday (spec E3 "Weekday school holiday") the name of Kid A's school break. The only
+        /// holiday sign on the kid screen; nil leaves the line out.
+        public var dayNote: String? {
+            if isPublicHoliday { return holidayName }
+            guard let weekday, Weekday.schoolDays.contains(weekday) else { return nil }
+            return breakName
         }
 
-        /// The right panel's first line (spec "Hub text"): the weekday, or "Monday · Holiday" on a
-        /// weekday school holiday.
-        public var dayHeading: String? {
-            guard let dayName else { return nil }
-            return isSchoolHoliday ? strings.tr("home.day.holiday", dayName) : dayName
-        }
+        /// The name line pushes the rest of the panel down by its 32 (`HomeLayout(dayNote:)`).
+        public var hasDayNote: Bool { dayNote != nil }
 
         /// Every kid's items today, for the missions and Bring of their outings.
         public var items: [ScheduleItem] = []
@@ -290,6 +299,8 @@ public struct HomeFeature {
         case clockHoldCompleted
         /// Board G0: the pencil; the app opens the grown-up lock.
         case pencilTapped
+        /// Board G0 (layout v71): the calendar button; the app opens the school calendar (K1), no lock.
+        case calendarTapped
         /// The kid tapped the day/night switch (board 0g).
         case skySwitchTapped
         case skyAnimationEnded
@@ -366,14 +377,19 @@ public struct HomeFeature {
                 guard let year = state.today?.year else { return .none }
                 return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
-                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    let list = await holidays.holidays(year)
+                    let family = await schoolDirectory.family(
+                        kids: snapshot?.kids ?? [], publicHolidays: list.map(\.day),
+                        holidayNames: Dictionary(list.map { ($0.day, $0.name) }, uniquingKeysWith: { first, _ in first }))
                     await send(.loaded(snapshot, family: family))
                 }
 
             case let .loaded(snapshot, family):
                 guard let snapshot, let today = state.today else {
                     state.days = []
+                    state.isPublicHoliday = false
+                    state.holidayName = nil
+                    state.breakName = nil
                     return .none
                 }
                 // G7 / G4: a school move or hours change whose day has come becomes the record, then the day reloads.
@@ -419,6 +435,9 @@ public struct HomeFeature {
                                   missions: snapshot.missions.filter { $0.kid == kid.id })
                 }
                 state.items = items
+                state.isPublicHoliday = family.publicHolidays.contains(today)
+                state.holidayName = family.holidayName(on: today)
+                state.breakName = snapshot.kids.first.flatMap { family.breakName($0.id, on: today) }
                 state.busPlan = snapshot.kids.first.flatMap { kid in
                     snapshot.busPlans.route(kid: kid.id)?.graced(by: kid)
                 }
@@ -430,6 +449,9 @@ public struct HomeFeature {
 
             case .pencilTapped:
                 state.heldSlotStart = nil
+                return .none
+
+            case .calendarTapped:
                 return .none
 
             case .clockHoldCompleted:

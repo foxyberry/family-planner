@@ -5,7 +5,7 @@ import Domain
 import KitArt
 import SwiftUI
 
-/// The kids' home screen (boards A1, A1m, A1n, E1, E3, E3b). Kids never scroll here: the lists are capped.
+/// The kids' home screen (boards A1, A1m, A1n, E1, E3, E3b, E3h). Kids never scroll here: the lists are capped.
 public struct HomeView: View {
     let store: StoreOf<HomeFeature>
     @Environment(\.rigScale) private var rigScale
@@ -24,7 +24,7 @@ public struct HomeView: View {
         KidFullScreen(look: store.look, wipeFrom: store.isSkyAnimating ? skySwitchCentre : nil) {
             // Boards A1 / A1m / E1 (docs/superpowers/layout), board × s: every part placed from
             // HomeLayout; the panel's parts all start on 928 and end on 1336 (layout v29).
-            let layout = HomeLayout(sizing: sizing)
+            let layout = HomeLayout(sizing: sizing, dayNote: store.hasDayNote)
             ZStack(alignment: .topLeading) {
                 clockArea
                     .position(layout.clockCentre)
@@ -33,6 +33,13 @@ public struct HomeView: View {
                 }
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
+                // Board G0 (layout v71): the school calendar (K1), no lock, left of the pencil.
+                RoundButton(picture: .calendar) {
+                    store.send(.calendarTapped)
+                }
+                .size(96)
+                .look(store.look)
+                .place(topLeft: layout.calendarButton.origin)
                 // Board G0: the way into grown-up mode, the same by day and night.
                 RoundButton(picture: .pencil) {
                     store.send(.pencilTapped)
@@ -108,8 +115,15 @@ public struct HomeView: View {
     @ViewBuilder private func panel(_ layout: HomeLayout) -> some View {
         if let first = firstDay {
             if let heading = store.dayHeading {
-                Text(heading).crayonType(.head).foregroundStyle(store.look.ink)
+                // Spec "Hub text" (board E3h): red on a public holiday, with its name (or a school
+                // break's) as a caption under it.
+                Text(heading).crayonType(.head).foregroundStyle(store.look.text(late: store.isPublicHoliday))
+                    .lineLimit(1)
                     .place(left: layout.panelLeft, baseline: layout.weekdayBaseline)
+            }
+            if let note = store.dayNote {
+                Text(note).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
+                    .place(left: layout.panelLeft, baseline: layout.dayNoteBaseline)
             }
             kidHeader(first.kid, top: layout.kidATop, layout: layout)
             kidABlock(layout: layout)

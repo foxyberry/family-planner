@@ -29,7 +29,8 @@ final class HomeFeatureTests: XCTestCase {
     }
 
     private func store(on day: Day, minute: Int, snapshot: ScheduleSnapshot? = nil,
-                       holidays: [Holiday] = [], schoolClosed: Set<Day> = []) -> TestStoreOf<HomeFeature> {
+                       holidays: [Holiday] = [], schoolClosed: Set<Day> = [],
+                       breaks: [Day: String] = [:]) -> TestStoreOf<HomeFeature> {
         let snapshot = snapshot ?? self.snapshot()
         let store = TestStore(initialState: HomeFeature.State()) {
             HomeFeature()
@@ -38,7 +39,7 @@ final class HomeFeatureTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.scheduleStore.load = { snapshot }
             $0.holidays.holidays = { _ in holidays }
-            $0.schoolDirectory.calendar = { _, _ in SchoolCalendar(closed: schoolClosed) }
+            $0.schoolDirectory.calendar = { _, _ in SchoolCalendar(closed: schoolClosed.union(breaks.keys), breaks: breaks) }
             $0.bus.arrivals = { _ in
                 [BusArrival(service: "1", minutes: 4, type: .single), BusArrival(service: "1", minutes: 28, type: .double)]
             }
@@ -310,25 +311,79 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.currentSlotStart, 450)
     }
 
-    /// Board E3: only a weekday school holiday says "Holiday · no school today".
-    func testSchoolHolidayLineOnlyOnAWeekdayHoliday() async {
-        let holiday = store(on: wednesday, minute: 600, holidays: [Holiday(day: wednesday, name: "Holiday")])
-        await holiday.send(.task)
-        await holiday.receive(\.loaded)
-        XCTAssertTrue(holiday.state.isSchoolHoliday)
-        XCTAssertEqual(holiday.state.dayHeading, "Wednesday · Holiday")
-        // Spec "Repeats, dates and changes": a weekday in the school's vacation is Kid A's day off
-        // too, while Kid B (no school) keeps the weekday.
-        let vacation = store(on: wednesday, minute: 600, schoolClosed: [wednesday])
-        await vacation.send(.task)
-        await vacation.receive(\.loaded)
-        XCTAssertEqual(vacation.state.dayHeading, "Wednesday · Holiday")
-        XCTAssertEqual(vacation.state.days.map(\.dayType), [.sunday, .weekday])
-        let weekend = store(on: saturday, minute: 600)
+    /// Spec "Hub text" (layout v71, board E3h): on a public holiday the full weekday is red with the
+    /// holiday's name under it. Dates and names from the bundled lists: Monday 9 Nov 2026 is
+    /// Deepavali (observed).
+    func testAPublicHolidayTurnsTheWeekdayRedWithItsName() async {
+        let monday = Day(year: 2026, month: 11, day: 9)
+        let store = store(on: monday, minute: 600, holidays: [Holiday(day: monday, name: "Deepavali (observed)")])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.dayHeading, "Monday", "the full weekday, no \"· Holiday\"")
+        XCTAssertTrue(store.state.isPublicHoliday)
+        XCTAssertEqual(store.state.dayNote, "Deepavali (observed)")
+        XCTAssertTrue(store.state.hasDayNote)
+        XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .sunday], "everyone is off")
+    }
+
+    /// Spec "Hub text": on a school break that is no public holiday the weekday stays ink and the
+    /// break's name sits under it (Wednesday 10 Jun 2026 in the MOE June holidays).
+    func testASchoolBreakKeepsTheWeekdayInkWithTheBreaksName() async {
+        let june10 = Day(year: 2026, month: 6, day: 10)
+        let store = store(on: june10, minute: 600, breaks: [june10: "June holidays"])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.dayHeading, "Wednesday")
+        XCTAssertFalse(store.state.isPublicHoliday)
+        XCTAssertEqual(store.state.dayNote, "June holidays")
+        XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .weekday], "Kid B (no school) keeps the weekday")
+    }
+
+    /// A public holiday inside a break: red, with the holiday's name (Monday 1 Jun 2026, Vesak Day
+    /// (observed), in the June holidays).
+    func testAPublicHolidayInsideABreakNamesTheHoliday() async {
+        let june1 = Day(year: 2026, month: 6, day: 1)
+        let store = store(on: june1, minute: 600, holidays: [Holiday(day: june1, name: "Vesak Day (observed)")],
+                          breaks: [june1: "June holidays"])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertTrue(store.state.isPublicHoliday)
+        XCTAssertEqual(store.state.dayNote, "Vesak Day (observed)")
+    }
+
+    /// A school day, and a weekend inside a break: the weekday alone, in ink. A public holiday on a
+    /// Sunday is red all the same (Sunday 31 May 2026, Vesak Day).
+    func testNoLineOnASchoolDayOrABreaksWeekend() async {
+        let school = store(on: tuesday, minute: 600)
+        await school.send(.task)
+        await school.receive(\.loaded)
+        XCTAssertEqual(school.state.dayHeading, "Tuesday")
+        XCTAssertFalse(school.state.isPublicHoliday)
+        XCTAssertNil(school.state.dayNote)
+        XCTAssertFalse(school.state.hasDayNote)
+        let june13 = Day(year: 2026, month: 6, day: 13)
+        let weekend = store(on: june13, minute: 600, breaks: [june13: "June holidays"])
         await weekend.send(.task)
         await weekend.receive(\.loaded)
-        XCTAssertFalse(weekend.state.isSchoolHoliday)
         XCTAssertEqual(weekend.state.dayHeading, "Saturday")
+        XCTAssertNil(weekend.state.dayNote, "a break's name only on a weekday (spec E3)")
+        let may31 = Day(year: 2026, month: 5, day: 31)
+        let sunday = store(on: may31, minute: 600, holidays: [Holiday(day: may31, name: "Vesak Day")],
+                           breaks: [may31: "June holidays"])
+        await sunday.send(.task)
+        await sunday.receive(\.loaded)
+        XCTAssertTrue(sunday.state.isPublicHoliday)
+        XCTAssertEqual(sunday.state.dayNote, "Vesak Day")
+    }
+
+    /// A school-closed weekday with no name (no break, no public holiday) shows the weekday alone.
+    func testAClosedDayWithoutANameShowsTheWeekdayAlone() async {
+        let store = store(on: wednesday, minute: 600, schoolClosed: [wednesday])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.dayHeading, "Wednesday")
+        XCTAssertNil(store.state.dayNote)
+        XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .weekday])
     }
 
     /// Spec "Picture rigs": a tap plays the slot once; taps during the 1.2 s play are ignored.
