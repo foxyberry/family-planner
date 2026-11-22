@@ -83,7 +83,7 @@ Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-pus
   Git flow overrides generic branch-finishing skills (`git-flow-delivery`).
 
 ## Versions
-Bazel 8.8.2; rules_apple 4.3.3, rules_swift 3.6.0, apple_support 1.24.5,
+Bazel 8.8.2; rules_apple 4.5.3, rules_swift 3.6.1, apple_support 2.8.0,
 rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bumps here.
 
 ## Known gotchas
