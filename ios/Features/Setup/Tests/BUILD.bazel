@@ -16,6 +16,7 @@ fp_swift_library(
         "//ios/Domain",
         "//ios/Features/Grownup",
         "//ios/Features/Setup",
+        "//ios/KitArt",
         "//ios/Strings",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
     ],

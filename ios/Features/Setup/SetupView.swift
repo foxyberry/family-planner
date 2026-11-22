@@ -5,7 +5,6 @@ import DesignSystem
 import Domain
 import Grownup
 import KitArt
-import Strings
 import SwiftUI
 
 /// First-run setup S1–S4 (boards S1, S2, S2s, S3, S4) on the grown-up frame.
@@ -53,7 +52,7 @@ public struct SetupView: View {
                 InkButton(store.primaryTitle, arrow: true, isEnabled: store.canGoNext) { store.send(.nextTapped) }
                     .frame(width: grown.side.width)
                 if store.saveFailed {
-                    Text(L10n.tr("editor.save_error")).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
+                    Text(store.saveErrorText).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                 }
             }
         }
@@ -62,8 +61,8 @@ public struct SetupView: View {
             if store.isConfirmingReplace {
                 ZStack {
                     CrayonColor.dim.fullBleed()
-                    ConfirmCard(title: L10n.tr("setup.replace.title"), message: L10n.tr("setup.replace.message"),
-                                cancel: L10n.tr("setup.replace.cancel"), confirm: L10n.tr("setup.replace.accept"),
+                    ConfirmCard(title: store.replaceTitle, message: store.replaceMessage,
+                                cancel: store.replaceCancel, confirm: store.replaceAccept,
                                 isDestructive: true, onCancel: { store.send(.replaceCancelled) },
                                 onConfirm: { store.send(.replaceConfirmed) })
                 }
@@ -102,7 +101,7 @@ public struct SetupView: View {
                        },
                        itemSize: SetupLayout.kidTab(faceOnly: store.kidTabsAreFaceOnly), spacing: SetupLayout.kidTabGap,
                        faceOnly: store.kidTabsAreFaceOnly,
-                       marked: store.step == .gettingThere ? store.unfinishedGoingTabs : [])
+                       marked: store.markedKidTabs)
         }
     }
 
@@ -129,8 +128,8 @@ public struct SetupView: View {
                 if !keyboardIsOpen {
                     KitIcon(.home, size: 280 * layout.grown.sizing.s).environment(\.kitArt, BundledKitArt(includePrivate: false))
                 }
-                Text(L10n.tr("s1.side.title")).crayonType(.head)
-                Text(L10n.tr("s1.side.body")).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                Text(store.familySideTitle).crayonType(.head)
+                Text(store.familySideBody).crayonType(.body).foregroundStyle(CrayonColor.softText)
             }
             .foregroundStyle(CrayonColor.ink)
         case .school:
@@ -163,20 +162,20 @@ private struct FamilyStep: View {
             ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
                 PaperCard(seed: 61 + UInt32(index), padding: sizing.cardPadding) { card(kid) }
                     .frame(width: layout.grown.form.width, alignment: .topLeading)
-                    .cardCorner(size: sizing(Sizing.cornerControl)) { removeButton(kid) } popover: { removeConfirm(kid, index: index) }
-                    .zIndex(store.removeConfirm == kid.id ? 1 : 0)
+                    .cardCorner(size: sizing(Sizing.cornerControl)) { removeButton(kid) } popover: { removeConfirm(kid) }
+                    .zIndex(store.state.cardLayer(kid.id))
             }
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                 if store.canAddKid {
                     Button { store.send(.addKidTapped) } label: {
                         HStack(spacing: sizing(Spacing.s)) {
                             RoundButton(glyph: .plus) {}.size(72).allowsHitTesting(false)
-                            Text(L10n.tr("s1.add")).crayonType(.body).foregroundStyle(CrayonColor.link)
+                            Text(store.addKidTitle).crayonType(.body).foregroundStyle(CrayonColor.link)
                         }
                     }
                     .buttonStyle(.plain)
                 }
-                Text(L10n.tr("s1.one_child")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                Text(store.oneChildCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
             }
             .padding(.leading, sizing.cardPadding.leading)
         }
@@ -193,10 +192,10 @@ private struct FamilyStep: View {
         }
     }
 
-    @ViewBuilder private func removeConfirm(_ kid: KidEntry, index: Int) -> some View {
-        if store.removeConfirm == kid.id {
-            ConfirmCard(title: L10n.tr("s1.remove.confirm", kid.shownName(index: index)), message: nil,
-                        cancel: L10n.tr("s1.remove.keep"), confirm: L10n.tr("s1.remove"), isDestructive: true,
+    @ViewBuilder private func removeConfirm(_ kid: KidEntry) -> some View {
+        if store.removeConfirm == kid.id, let title = store.removeConfirmTitle {
+            ConfirmCard(title: title, message: nil,
+                        cancel: store.removeKeepTitle, confirm: store.removeAcceptTitle, isDestructive: true,
                         onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
         }
     }
@@ -242,7 +241,7 @@ private struct SchoolStep: View {
         if let kid = store.tabKid {
             let school = kid.school
             VStack(alignment: .leading, spacing: layout.grown.sizing.formRowGap) {
-                SetupRow(label: L10n.tr("s2.goes"), height: layout.grown.sizing.tabHeight()) {
+                SetupRow(label: store.goesLabel, labelWidth: layout.grown.labelWidth, height: layout.grown.sizing.tabHeight()) {
                     CrayonTabs(selection: Binding(get: { kid.goesTo }, set: { if let place = $0 { store.send(.goesToTapped(place)) } }),
                                items: SetupFeature.State.places.map { (Optional($0.0), $0.1, nil) },
                                // 180 on the board; three always fit the control column.
@@ -260,12 +259,12 @@ private struct SchoolStep: View {
     }
 
     @ViewBuilder private func form(_ school: SchoolForm) -> some View {
-        row(school.kind == .preschool ? L10n.tr("s2.preschool") : L10n.tr("s2.school")) { schoolField(school) }
+        row(store.schoolLabel) { schoolField(school) }
             .captionedRow()
             .id(Self.fieldID)
             .zIndex(1)
         // Board S2: the editor chips (72, they toggle) 8 apart; the row is as tall as the chips.
-        SetupRow(label: L10n.tr("s2.days"), height: layout.grown.sizing.tabHeight()) {
+        SetupRow(label: store.daysLabel, labelWidth: layout.grown.labelWidth, height: layout.grown.sizing.tabHeight()) {
             HStack(spacing: sizing(Spacing.xs)) {
                 ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                     DayChip(DayText.initial(day), isOn: Binding(get: { school.days.contains(day) },
@@ -274,7 +273,7 @@ private struct SchoolStep: View {
             }
         }
         .drawnRow()
-        row(L10n.tr("s2.hours")) {
+        row(store.hoursLabel) {
             VStack(alignment: .leading, spacing: sizing.captionGap) {
                 HStack(spacing: sizing(Spacing.s)) {
                     time(.start, width: sizing(180))
@@ -291,10 +290,10 @@ private struct SchoolStep: View {
         .captionedRow(hasCaption: school.hoursSource != nil)
         if school.kind == .school {
             // One row: Arrive by, then "latest" and the gate's time (both 180 × 80, gap 16).
-            row(L10n.tr("s2.arrive_by")) {
+            row(store.arriveByLabel) {
                 HStack(spacing: sizing(Spacing.s)) {
                     time(.arriveBy, width: sizing(180))
-                    Text(L10n.tr("s2.latest")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    Text(store.latestWord).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     time(.latest, width: sizing(180))
                 }
             }
@@ -318,7 +317,8 @@ private struct SchoolStep: View {
     }
 
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
-        SetupRow(label: label, height: layout.grown.sizing.fieldHeight, control: control)
+        SetupRow(label: label, labelWidth: layout.grown.labelWidth, height: layout.grown.sizing.fieldHeight,
+                 control: control)
     }
 
     private func time(_ row: SetupFeature.TimeRow, width: CGFloat? = nil) -> some View {
@@ -347,7 +347,7 @@ private struct SchoolStep: View {
                 if school.picked != nil { CheckMark(isDone: true, size: 32) }
                 Text(store.schoolCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 if school.kind == .school {
-                    Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
+                    Button(store.dataSourcesTitle) { store.send(.dataSourcesTapped) }
                         .crayonType(.caption).foregroundStyle(CrayonColor.link)
                         .padding(.leading, sizing(Spacing.s))
                 }
@@ -365,7 +365,7 @@ private struct SchoolStep: View {
             .init(id: entry.id, title: entry.name, caption: entry.resultCaption(oneLine: listHeight != nil)) {
                 store.send(.schoolPicked(entry))
             }
-        } + [.init(id: "not-listed", glyph: .plus, title: L10n.tr("s2.school.not_listed")) { store.send(.notInListTapped) }],
+        } + [.init(id: "not-listed", glyph: .plus, title: store.notListedTitle) { store.send(.notInListTapped) }],
         visibleRows: 6, seed: 75, width: layout.grown.controlWidth, fitHeight: listHeight)
     }
 
@@ -402,12 +402,9 @@ private struct MedalSide: View {
     let store: StoreOf<SetupFeature>
 
     var body: some View {
-        let captions = store.state.medalCaptions
         VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
-            Text(L10n.tr("s2.medals.title")).crayonType(.head)
-            medal(.medalGold, L10n.tr("s2.medal.gold"), captions.gold)
-            medal(.medalSilver, L10n.tr("s2.medal.silver"), captions.silver)
-            medal(.medalBronze, L10n.tr("s2.medal.bronze"), captions.bronze)
+            Text(store.medalsTitle).crayonType(.head)
+            ForEach(store.medalRows, id: \.slot) { row in medal(row.slot, row.name, row.caption) }
         }
         .foregroundStyle(CrayonColor.ink)
     }
@@ -448,7 +445,7 @@ private struct GoingStep: View {
         if let kid = store.goingKid {
             let going = kid.going
             VStack(alignment: .leading, spacing: sizing.formRowGap) {
-                row(L10n.tr("going.label")) {
+                row(store.goingLabel) {
                     ChoiceCircles(GoingForm.ways.map { way in
                         ChoiceCircles.Choice(id: way.rawValue, picture: KitSlot(rawValue: way.moverPicture),
                                              caption: SetupFeature.State.wayCaption(way), isPicked: going.way == way)
@@ -456,13 +453,13 @@ private struct GoingStep: View {
                 }
                 .captionedRow()
                 if going.way == .bus {
-                    row(L10n.tr("c2.stop")) {
+                    row(store.stopLabel) {
                         StopSearchField(store: store.scope(state: \.goingSearch, action: \.stopSearch), visibleRows: 6,
                                         listWidth: GrownupLayout(sizing: sizing).controlWidth)
                     }
                     .captionedRow()
                     .zIndex(1)
-                    row(L10n.tr("s3.buses")) {
+                    row(store.busesLabel) {
                         VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                             if store.hasBusPills {
                                 // Boards S3/C2: bus pills 180 × 72, three across, then one pill per bus
@@ -481,13 +478,13 @@ private struct GoingStep: View {
                                 }
                             } else {
                                 // Board S3: the empty row keeps the pills' 72 slot.
-                                Text(L10n.tr("c2.buses.none")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                                Text(store.noBusesCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                                     .frame(height: sizing.tabHeight())
                             }
                         }
                     }
                     .drawnRow()
-                    stepper(L10n.tr("c2.walk"), text: store.walkText, caption: L10n.tr("s3.walk.caption"),
+                    stepper(store.walkLabel, text: store.walkText, caption: store.walkCaption,
                             value: going.walk) { store.send(.walkChanged($0)) }
                     ForEach(store.rideRows) { ride in
                         stepper(ride.label, text: ride.text, caption: ride.caption, value: ride.minutes) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
@@ -495,7 +492,7 @@ private struct GoingStep: View {
                     // Board S3 (v61, y 801): "+ A bus that changes…" → C2c, back to S3.
                     row("") { PlusLink(store.changeLink) { store.send(.changeLinkTapped) } }
                 } else {
-                    stepper(L10n.tr("going.leave"), text: store.leaveText, caption: store.leaveCaptionText,
+                    stepper(store.leaveLabel, text: store.leaveText, caption: store.leaveCaptionText,
                             step: 5, value: going.leaveBefore) { store.send(.leaveChanged($0)) }
                 }
             }
@@ -504,7 +501,8 @@ private struct GoingStep: View {
 
     /// Board S3 rows hold 72 parts (circles, pills, steppers): 72 × s, never under 56.
     private func row(_ label: String, @ViewBuilder control: () -> some View) -> some View {
-        SetupRow(label: label, height: sizing.tabHeight(), control: control)
+        SetupRow(label: label, labelWidth: GrownupLayout(sizing: sizing).labelWidth, height: sizing.tabHeight(),
+                 control: control)
     }
 
     private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
@@ -568,7 +566,7 @@ private struct SummarySide: View {
         let rows = summaryRows
         ZStack(alignment: .topLeading) {
             let title = layout.s4Side(864, 184)
-            Text(L10n.tr("s4.side.title")).crayonType(.head).place(left: title.x, baseline: title.y)
+            Text(store.summaryTitle).crayonType(.head).place(left: title.x, baseline: title.y)
             let kidsLine = layout.s4Side(864, 235)
             HStack(spacing: sizing(Spacing.sm)) { kids }.place(left: kidsLine.x, baseline: kidsLine.y)
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
@@ -596,14 +594,13 @@ private struct SummarySide: View {
     }
 
     @ViewBuilder private var kids: some View {
-        ForEach(Array(store.kids.enumerated()), id: \.element.id) { index, kid in
+        ForEach(store.summaryKids, id: \.id) { kid in
             HStack(alignment: .firstTextBaseline, spacing: sizing(KidFace.gap(for: KidFace.medium))) {
-                KidFace(.init(face: kid.face ?? "", colorIndex: kid.colorIndex),
+                KidFace(.init(face: kid.face, colorIndex: kid.colorIndex),
                         size: sizing(KidFace.medium))
                     .alignmentGuide(.firstTextBaseline) { $0[.bottom] - sizing(4) }
                 // Board S4: "Kid A · Kid B".
-                Text(index + 1 < store.kids.count ? L10n.tr("hub.about.part", kid.shownName(index: index))
-                                                  : kid.shownName(index: index))
+                Text(kid.text)
                     .crayonType(.body).lineLimit(1)
             }
         }
@@ -614,12 +611,14 @@ private struct SummarySide: View {
 /// centred on the control's first line (`height`: an 80 field or a 72 control).
 private struct SetupRow<Control: View>: View {
     let label: String
+    /// The form's label column (`GrownupLayout.labelWidth`, as GrownupScreen gives its forms).
+    let labelWidth: CGFloat
     let height: CGFloat
     let control: Control
-    @Environment(\.formLabelWidth) private var labelWidth
 
-    init(label: String, height: CGFloat, @ViewBuilder control: () -> Control) {
+    init(label: String, labelWidth: CGFloat, height: CGFloat, @ViewBuilder control: () -> Control) {
         self.label = label
+        self.labelWidth = labelWidth
         self.height = height
         self.control = control()
     }
@@ -628,7 +627,7 @@ private struct SetupRow<Control: View>: View {
         HStack(alignment: .top, spacing: 0) {
             // One line; the card's column fits its longest label.
             Text(label).crayonType(.caption, bold: true).foregroundStyle(CrayonColor.softText).lineLimit(1)
-                .frame(width: labelWidth ?? 128, height: height, alignment: .leading)
+                .frame(width: labelWidth, height: height, alignment: .leading)
             control.frame(minHeight: height, alignment: .leading)
         }
     }

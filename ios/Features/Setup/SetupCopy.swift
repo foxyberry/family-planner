@@ -235,6 +235,87 @@ extension SetupFeature.State {
 
     /// S4's switch rows (spec "S4 · Almost done"), shared with Settings' Family tab.
     public var settingRows: [AppSettingRow] { settings.rows(lockNeedsFaceID: lockNeedsFaceID, touchID: isTouchID) }
+
+    /// Board S4's side title.
+    public var summaryTitle: String { strings.tr("s4.side.title") }
+
+    /// One kid on S4's side line: the face, and the name with " ·" after every kid but the last
+    /// ("Kid A · Kid B").
+    public struct SummaryKid: Equatable, Sendable {
+        public let id: KidEntry.ID
+        public let face: String
+        public let colorIndex: Int
+        public let text: String
+    }
+
+    public var summaryKids: [SummaryKid] {
+        kids.enumerated().map { index, kid in
+            let name = kid.shownName(index: index)
+            return SummaryKid(id: kid.id, face: kid.pickedFace, colorIndex: kid.colorIndex,
+                              text: index + 1 < kids.count ? strings.tr("hub.about.part", name) : name)
+        }
+    }
+
+    // MARK: What the view shows (it holds no values of its own)
+
+    /// Under Next when Start could not save.
+    public var saveErrorText: String { strings.tr("editor.save_error") }
+    /// A debug link's setup over an existing family asks before replacing it.
+    public var replaceTitle: String { strings.tr("setup.replace.title") }
+    public var replaceMessage: String { strings.tr("setup.replace.message") }
+    public var replaceCancel: String { strings.tr("setup.replace.cancel") }
+    public var replaceAccept: String { strings.tr("setup.replace.accept") }
+    /// The header's kid tabs marked with a hurry dot: S3's unfinished routes, none on S2.
+    public var markedKidTabs: Set<KidEntry.ID> { step == .gettingThere ? unfinishedGoingTabs : [] }
+
+    // S1
+    /// The side column's words.
+    public var familySideTitle: String { strings.tr("s1.side.title") }
+    public var familySideBody: String { strings.tr("s1.side.body") }
+    /// "+ Add a child", and the caption under it.
+    public var addKidTitle: String { strings.tr("s1.add") }
+    public var oneChildCaption: String { strings.tr("s1.one_child") }
+    /// The "Remove {name}?" card under the asking kid's ×; nil when no card asks.
+    public var removeConfirmTitle: String? {
+        guard let id = removeConfirm, let index = kids.index(id: id) else { return nil }
+        return strings.tr("s1.remove.confirm", kids[index].shownName(index: index))
+    }
+    public var removeKeepTitle: String { strings.tr("s1.remove.keep") }
+    public var removeAcceptTitle: String { strings.tr("s1.remove") }
+    /// The asking kid's card sits above the cards after it, so its "Remove?" card is not covered.
+    public func cardLayer(_ id: KidEntry.ID) -> Double { removeConfirm == id ? 1 : 0 }
+
+    // S2
+    /// The rows' labels: Goes to, School (Preschool for a preschool), Days, Hours, Arrive, "latest".
+    public var goesLabel: String { strings.tr("s2.goes") }
+    public var schoolLabel: String {
+        tabKid?.school.kind == .preschool ? strings.tr("s2.preschool") : strings.tr("s2.school")
+    }
+    public var daysLabel: String { strings.tr("s2.days") }
+    public var hoursLabel: String { strings.tr("s2.hours") }
+    public var arriveByLabel: String { strings.tr("s2.arrive_by") }
+    public var latestWord: String { strings.tr("s2.latest") }
+    /// The link after the school caption, and the result list's last row.
+    public var dataSourcesTitle: String { strings.tr("hub.data_sources") }
+    public var notListedTitle: String { strings.tr("s2.school.not_listed") }
+    /// The side column on a School tab: the title, then gold, silver and bronze with their captions.
+    public var medalsTitle: String { strings.tr("s2.medals.title") }
+    public var medalRows: [(slot: KitSlot, name: String, caption: String)] {
+        let captions = medalCaptions
+        return [(.medalGold, strings.tr("s2.medal.gold"), captions.gold),
+                (.medalSilver, strings.tr("s2.medal.silver"), captions.silver),
+                (.medalBronze, strings.tr("s2.medal.bronze"), captions.bronze)]
+    }
+
+    // S3
+    /// The rows' labels and the Walk row's caption; "Pick the stop first" in an empty Buses row.
+    public var goingLabel: String { strings.tr("going.label") }
+    public var stopLabel: String { strings.tr("c2.stop") }
+    public var busesLabel: String { strings.tr("s3.buses") }
+    public var noBusesCaption: String { strings.tr("c2.buses.none") }
+    public var walkLabel: String { strings.tr("c2.walk") }
+    public var walkCaption: String { strings.tr("s3.walk.caption") }
+    public var leaveLabel: String { strings.tr("going.leave") }
 }
 
 /// An S3 Ride row: one bus's ride (`service` nil before a bus is picked).

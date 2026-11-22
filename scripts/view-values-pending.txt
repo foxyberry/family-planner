@@ -2,4 +2,3 @@
 # One path per line. Shrink only: remove a line when its file is clean.
 ios/Features/Grownup/ItemEditorView.swift
 ios/Features/Home/HomeView.swift
-ios/Features/Setup/SetupView.swift
