@@ -7,8 +7,9 @@ import SwiftUI
 public struct FromWhenCard<Choice: Hashable>: View {
     /// The board the card follows.
     public enum Board: Sendable {
-        /// G5 (layout v69): 620 wide, padding 38 (`ConfirmCard`'s overlay padding); tabs "Today" 150,
-        /// the middle tab 232, "Date" 130 (the first, middle and last of the tabs given), gap 12.
+        /// G5 (layout v69, spec G5 "The card"): 620 wide, padding 38 (`ConfirmCard`'s overlay padding);
+        /// tabs "Today" 150, the middle tab 232, "Date" 130 (the first, middle and last of the tabs
+        /// given), gap 12; Save · Cancel 40.
         case changeFromWhen
         /// G7 "Starts on": 560 wide; tabs "Next term" 184, "Date" 130.
         case startsOn
@@ -47,18 +48,20 @@ public struct FromWhenCard<Choice: Hashable>: View {
 
     public var body: some View {
         PaperCard(seed: 51, padding: padding) {
-            VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 // A tab wider than its label keeps its round crayon ends: the capsule is drawn at the
                 // tab's size (the board's 9-slice).
                 CrayonTabs(selection: $selection, items: tabs.map { ($0.0, $0.1, nil) }, widths: tabWidths,
                            spacing: Spacing.sm)
+                    .padding(.top, gap(Spacing.m, outlines: 1))
                 if selection == dateChoice {
-                    DateField(label: dateLabel, date: $date)
+                    DateField(label: dateLabel, date: $date).padding(.top, sizing(Spacing.m))
                 }
                 if let caption {
                     Text(caption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, gap(Spacing.s, outlines: 1))
                 }
                 HStack(spacing: sizing(Spacing.l)) {
                     InkButton(save, action: onSave).frame(width: sizing(220))
@@ -67,6 +70,8 @@ public struct FromWhenCard<Choice: Hashable>: View {
                     }
                     .buttonStyle(.plain)
                 }
+                // Save's outline, and the tabs' or the date field's when no caption is between them.
+                .padding(.top, gap(Spacing.m, outlines: caption == nil ? 2 : 1))
             }
             // G5 is 620 wide whether or not the middle tab shows; G7 hugs its content.
             .frame(maxWidth: board == .changeFromWhen ? .infinity : nil, alignment: .leading)
@@ -78,6 +83,17 @@ public struct FromWhenCard<Choice: Hashable>: View {
         switch board {
         case .changeFromWhen: 620
         case .startsOn: 560
+        }
+    }
+
+    /// G5 (spec G5 "The card", "Layout balance"): title → tabs 24, tabs → caption 16, the Save row 24
+    /// below, measured between drawn edges; the tabs, the date field and Save draw their outline one
+    /// inset inside their frame, text none (`outlines`: how many of the two edges are outlines). G7
+    /// keeps 24 between frames.
+    private func gap(_ drawn: CGFloat, outlines: Int) -> CGFloat {
+        switch board {
+        case .changeFromWhen: sizing(drawn) - CGFloat(outlines) * sizing.inset
+        case .startsOn: sizing(Spacing.m)
         }
     }
 

@@ -426,7 +426,9 @@ public struct AppFeature {
 
             case let .path(.element(id: id, action: .settings(.schoolRowTapped))):
                 guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
+                // Spec G5: from Settings "This day" is School's next day and G5 opens on Today.
                 state.path.append(.schoolEditor(SchoolEditorFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                                          nowMinute: Day.minute(of: date.now, calendar: calendar),
                                                                           calendar: calendar)))
                 return .none
 
@@ -493,8 +495,10 @@ public struct AppFeature {
 
             case let .path(.element(id: id, action: .ourDay(.delegate(.openSchool)))):
                 guard case let .ourDay(day) = state.path[id: id] else { return .none }
+                // Spec G5: from the clock G4 carries the day shown there; from the List none.
                 state.path.append(.schoolEditor(SchoolEditorFeature.State(kid: day.kid, today: Day(date.now, calendar: calendar),
-                                                                          day: day.day, calendar: calendar)))
+                                                                          nowMinute: Day.minute(of: date.now, calendar: calendar),
+                                                                          shownDay: day.editorDay, calendar: calendar)))
                 return .none
 
             case let .path(.element(id: id, action: .editor(.delegate(.finished)))):

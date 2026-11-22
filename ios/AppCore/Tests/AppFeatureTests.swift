@@ -145,6 +145,47 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertNil(fromList.shownDay, "from the List")
     }
 
+    /// Spec G5 "Which screens and days": G4 opened from G1 carries the day on the clock; from the List
+    /// or Settings it carries none ("This day" is then School's next day, G5 opens on Today).
+    func testOurDayOpensSchoolOnTheDayBeingLookedAt() async {
+        let later = Day(year: 2026, month: 11, day: 18)
+        var ourDay = OurDayFeature.State(kid: SeedData.kidA.id, today: Day(year: 2026, month: 11, day: 10),
+                                         calendar: Calendar(identifier: .gregorian))
+        ourDay.day = later
+        var state = AppFeature.State()
+        state.path.append(.ourDay(ourDay))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].ourDay.delegate.openSchool)
+        guard case let .schoolEditor(fromClock) = store.state.path.last else { return XCTFail("no G4") }
+        XCTAssertEqual(fromClock.shownDay, later)
+        XCTAssertEqual(fromClock.day, later)
+        await store.send(\.path[id: 1].schoolEditor.delegate.finished)
+        await store.send(\.path[id: 0].ourDay.listTapped)
+        await store.send(\.path[id: 0].ourDay.delegate.openSchool)
+        guard case let .schoolEditor(fromList) = store.state.path.last else { return XCTFail("no G4") }
+        XCTAssertNil(fromList.shownDay, "from the List")
+
+        var settings = AppFeature.State()
+        settings.path.append(.settings(SettingsFeature.State(kid: SeedData.kidA.id)))
+        let hub = TestStore(initialState: settings) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        hub.exhaustivity = .off
+        let settingsID = hub.state.path.ids[0]
+        await hub.send(\.path[id: settingsID].settings.schoolRowTapped)
+        guard case let .schoolEditor(fromSettings) = hub.state.path.last else { return XCTFail("no G4") }
+        XCTAssertNil(fromSettings.shownDay, "from Settings")
+    }
+
     /// "Missions →" opens A2-MVP over home (a kid screen, not a grown-up one); finishing closes it.
     func testMissionsOpenOverHomeAndClose() async {
         let store = TestStore(initialState: AppFeature.State()) {

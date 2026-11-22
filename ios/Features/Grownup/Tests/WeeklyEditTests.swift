@@ -16,6 +16,7 @@ final class WeeklyEditTests: XCTestCase {
     private let tuesday = Day(year: 2026, month: 11, day: 10)
 
     private func store(_ item: ScheduleItem? = nil, minute: Int = 600, on day: Day = F.monday, shownDay: Day? = nil,
+                       school: SchoolCalendar = .none,
                        saved: LockIsolated<[[ScheduleItem]]> = .init([])) -> TestStoreOf<ItemEditorFeature> {
         let item = item ?? swim
         let now = day.date(minute: minute, calendar: F.calendar)
@@ -31,7 +32,7 @@ final class WeeklyEditTests: XCTestCase {
             $0.scheduleStore.save = { item in saved.withValue { $0.append([item]) } }
             $0.scheduleStore.saveAll = { items in saved.withValue { $0.append(items) } }
             $0.holidays.holidays = { _ in [] }
-            $0.schoolDirectory.calendar = { _, _ in .none }
+            $0.schoolDirectory.calendar = { _, _ in school }
         }
         store.exhaustivity = .off
         return store
@@ -158,6 +159,118 @@ final class WeeklyEditTests: XCTestCase {
         await store.send(.binding(.set(\.form.end, 1020)))
         await store.send(.saveTapped)
         XCTAssertEqual(store.state.fromWhenTabs.map(\.0), [.today, .date])
+    }
+
+    /// Spec G5 "The middle tab's day": the next day within Runs, never after the series' end; an end
+    /// before it hides the tab, whichever way the end is set ("On a date", "End of this term",
+    /// "After n times"). Swimming is Mon · Wed from 1 Nov; seen on Tue 10 Nov.
+    func testTheMiddleTabIsTheNextDayWithinRuns() async {
+        func middle(_ item: ScheduleItem, school: SchoolCalendar = .none) async -> [String] {
+            let store = store(item, on: tuesday, school: school)
+            await store.send(.task)
+            await store.receive(\.loaded)
+            await store.send(.scopeTapped(.allDays))
+            await store.send(.binding(.set(\.form.end, 1020)))
+            await store.send(.saveTapped)
+            return store.state.fromWhenTabs.map(\.1)
+        }
+        let wed11 = Day(year: 2026, month: 11, day: 11)
+        let open = await middle(swim)
+        XCTAssertEqual(open, ["Today", "Tomorrow", "Date"])
+        let endsOnIt = await middle(F.weekly(until: wed11))
+        XCTAssertEqual(endsOnIt, ["Today", "Tomorrow", "Date"], "the end day itself still counts")
+        let endedToday = await middle(F.weekly(until: tuesday))
+        XCTAssertEqual(endedToday, ["Today", "Date"], "On a date: no day after the end")
+
+        var termly = swim
+        termly.runsEnd = .term
+        let term = SchoolCalendar(terms: [SchoolCalendar.Term(name: "Term 4", start: Day(year: 2026, month: 10, day: 1),
+                                                              end: tuesday)])
+        let termEnded = await middle(termly, school: term)
+        XCTAssertEqual(termEnded, ["Today", "Date"], "End of this term, worked out from the term data")
+
+        var counted = swim
+        counted.runsEnd = .count(3)   // 2, 4 and 9 Nov
+        let countEnded = await middle(counted)
+        XCTAssertEqual(countEnded, ["Today", "Date"], "After 3 times ends on 9 Nov")
+    }
+
+    /// Spec G5: an every-month item's middle tab is its next matching day of the month, within Runs.
+    func testAMonthlyItemsMiddleTabIsItsNextDayOfTheMonth() async {
+        var monthly = swim
+        monthly.recurrence = .monthly(.nthWeekday(2, .saturday), from: Day(year: 2026, month: 10, day: 10), until: nil)
+        let store = store(monthly, on: tuesday)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.binding(.set(\.form.end, 1020)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Sat 14 Nov", "Date"], "2nd Sat")
+
+        var ending = monthly
+        ending.recurrence = .monthly(.nthWeekday(2, .saturday), from: Day(year: 2026, month: 10, day: 10),
+                                     until: Day(year: 2026, month: 11, day: 13))
+        let ended = self.store(ending, on: tuesday)
+        await ended.send(.task)
+        await ended.receive(\.loaded)
+        await ended.send(.scopeTapped(.allDays))
+        await ended.send(.binding(.set(\.form.end, 1020)))
+        await ended.send(.saveTapped)
+        XCTAssertEqual(ended.state.fromWhenTabs.map(\.0), [.today, .date], "its next 2nd Sat is after the end")
+    }
+
+    /// Spec G5 "Which screens and days": G2 opened from G1 means the day shown there by "This day";
+    /// from the List it is the next day the item happens.
+    func testThisDayIsTheDayG1Showed() async {
+        let saved = LockIsolated<[[ScheduleItem]]>([])
+        let wed18 = Day(year: 2026, month: 11, day: 18)
+        let fromClock = store(on: tuesday, shownDay: wed18, saved: saved)
+        XCTAssertEqual(fromClock.state.thisDayTitle, "Wed 18 Nov only")
+        await fromClock.send(.task)
+        await fromClock.receive(\.loaded)
+        await fromClock.send(.skipRowTapped)
+        await fromClock.receive(\.skipSaved)
+        XCTAssertEqual(saved.value.last?.first?.skippedDays, [wed18], "Skip this day skips the shown day")
+        XCTAssertEqual(fromClock.state.thisDayTitle, "Wed 18 Nov only")
+
+        XCTAssertEqual(store(on: tuesday).state.thisDayTitle, "Wed 11 Nov only", "from the List: the next day")
+        XCTAssertEqual(store(on: tuesday, shownDay: Day(year: 2026, month: 11, day: 12)).state.thisDayTitle,
+                       "Wed 11 Nov only", "a shown day without the item: its next day")
+        XCTAssertEqual(store(on: tuesday, shownDay: F.monday).state.thisDayTitle, "Wed 11 Nov only",
+                       "a day before today is never This day")
+        XCTAssertEqual(store(minute: 1000, on: F.monday, shownDay: F.monday).state.thisDayTitle, "Wed 11 Nov only",
+                       "nor today once the item is over")
+        XCTAssertEqual(store(minute: 900, on: F.monday, shownDay: F.monday).state.thisDayTitle, "Mon 9 Nov only")
+    }
+
+    /// Spec G5: a This day change from G1 saves on the day shown there.
+    func testThisDaySavesOnTheDayG1Showed() async {
+        let saved = LockIsolated<[[ScheduleItem]]>([])
+        let wed18 = Day(year: 2026, month: 11, day: 18)
+        let store = store(on: tuesday, shownDay: wed18, saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.binding(.set(\.form.end, 1020)))
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.last?.first?.dayChanges, [DayChange(day: wed18, end: 1020)])
+    }
+
+    /// Remove every week from G1 on a later day ends the series from that day.
+    func testRemoveFromTheClockEndsTheSeriesFromTheShownDay() async {
+        let saved = LockIsolated<[[ScheduleItem]]>([])
+        let store = store(on: tuesday, shownDay: Day(year: 2026, month: 11, day: 18), saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.removeSeriesTapped)
+        XCTAssertEqual(store.state.confirmMessage,
+                       "It leaves Kid A's clock from Wed 18 Nov. Days before stay in the diary.")
+        await store.send(.confirmAccepted)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.last?.first?.recurrence,
+                       .weekly([.monday, .wednesday], from: Day(year: 2026, month: 11, day: 1),
+                               until: Day(year: 2026, month: 11, day: 17)))
     }
 
     func testFromWhenListsChangedDaysThatNoLongerFit() async {

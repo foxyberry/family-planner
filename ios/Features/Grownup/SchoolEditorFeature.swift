@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Domain
 import Foundation
+import HolidayProvider
 import KitArt
 import Localization
 import ScheduleStore
@@ -8,10 +9,10 @@ import SchoolDirectory
 import Strings
 
 /// G4 · Edit School (spec "G4"): School's hours, days, Arrive by and Latest, Terms, how
-/// the kid goes, Bring and the medal. **All days** writes the school record and a new weekday template
-/// from today with School's slice on the new times (as an All days save on the clock does). **This
-/// day** keeps the record and saves the day's own template with School's slice moved (a late start,
-/// an early dismissal).
+/// the kid goes, Bring and the medal. **All days** asks G5 "Change from when?" (spec G5), then writes
+/// the school record and a new weekday template from that day with School's slice on the new times
+/// (as an All days save on the clock does). **This day** keeps the record and saves the day's own
+/// template with School's slice moved (a late start, an early dismissal).
 @Reducer
 public struct SchoolEditorFeature {
     /// "This day" or "All days" (spec "Edit scope").
@@ -21,9 +22,18 @@ public struct SchoolEditorFeature {
     public struct State: Equatable {
         public var strings = Localizer.injected
         public var kid: Kid.ID
-        /// The date "This day" changes (the clock's day, or today from the List).
-        public var day: Day
+        /// The day G1 showed when "Details ›" opened G4; nil from the List or Settings (spec G5 "Which
+        /// screens and days").
+        public let shownDay: Day?
+        /// The date "This day" changes: the day G1 showed, else School's next day (today until School
+        /// is over, then the next school day).
+        public var day: Day { shownDay ?? nextOccurrence ?? today }
         public var editScope: Scope = .allDays
+        /// Board G5: the "Change from when?" card is open, with its choice and date.
+        public var fromWhen: FromWhenTabs.Choice?
+        public var fromWhenDate: Day
+        /// The family's year: the kid's days off (school holidays, public holidays).
+        public var family = FamilyCalendar()
         /// The school's year, for the Terms row (MOE calendar or its own dates).
         public var schoolYear: SchoolCalendar = .none
         /// The school list says whether this school follows MOE terms (a known MOE school, or one
@@ -41,15 +51,72 @@ public struct SchoolEditorFeature {
         public var originalMedal = true
         public var busPlan: BusPlan?
         public var today: Day
+        /// The minute of the day now: today stops being School's next day once School is over.
+        public var nowMinute: Int
         public var calendar: Calendar
         public var saveError: String?
 
-        public init(kid: Kid.ID, today: Day, day: Day? = nil, calendar: Calendar) {
+        public init(kid: Kid.ID, today: Day, nowMinute: Int = 0, shownDay: Day? = nil, calendar: Calendar) {
             self.kid = kid
             self.today = today
-            self.day = day ?? today
+            self.nowMinute = nowMinute
+            self.shownDay = shownDay
             self.calendar = calendar
+            fromWhenDate = today
         }
+
+        /// The kid's days off.
+        var daysOff: Set<Day> { family.daysOff(kid) }
+
+        /// Whether School is on `day` for the saved school: one of its days, a school day (not a day
+        /// off) and in the day's template (skipped or not, so a skip does not move This day).
+        func hasSchool(on day: Day) -> Bool {
+            guard let days = original?.days, days.contains(day.weekday(calendar)),
+                  DayPlanner.dayType(on: day, holidays: daysOff, calendar: calendar) == .weekday else { return false }
+            return DayPlanner.template(for: kid, on: day, routines: routines, holidays: daysOff, calendar: calendar)?
+                .blocks.contains { $0.kind == .school } == true
+        }
+
+        /// From the List or Settings, "This day" is School's next day: today until School is over,
+        /// else the next school day (a year ahead at most).
+        var nextOccurrence: Day? {
+            (0..<366).lazy.filter { $0 > 0 || self.nowMinute < (self.original?.end ?? 0) }
+                .map { self.today.adding(days: $0, calendar: self.calendar) }
+                .first { self.hasSchool(on: $0) }
+        }
+
+        // MARK: G5 "Change from when?"
+
+        /// Board G5's middle day: the first day after today, within 14 days, that School has with the
+        /// changed days (a weekday of it that is not a day off).
+        var nextDay: Day? {
+            let days = school?.days ?? []
+            return FromWhenTabs.nextDay(after: today, calendar: calendar) {
+                days.contains($0.weekday(calendar))
+                    && DayPlanner.dayType(on: $0, holidays: daysOff, calendar: calendar) == .weekday
+            }
+        }
+        /// Board G5's tabs: "Today", School's next day ("Tomorrow" or "Wed 18 Nov"; none within 14
+        /// days hides it), "Date".
+        public var fromWhenTabs: [(FromWhenTabs.Choice, String)] {
+            FromWhenTabs.tabs(next: nextDay, today: today, calendar: calendar)
+        }
+        public var fromWhenTitle: String { strings.tr("from_when.title") }
+        public var fromWhenSave: String { strings.tr("from_when.save") }
+        public var fromWhenCancel: String { strings.tr("from_when.cancel") }
+        /// The tab the card shows; Today until it opens.
+        public var fromWhenChoice: FromWhenTabs.Choice { fromWhen ?? .today }
+        public var isAskingFromWhen: Bool { fromWhen != nil }
+        /// Where the All days change starts: G5's choice, never before today.
+        public var splitDay: Day {
+            switch fromWhen {
+            case .next?: nextDay ?? today
+            case .date?: max(fromWhenDate, today)
+            case .today?, nil: today
+            }
+        }
+        public var fromWhenDateLabel: String { DayText.dayMonth(max(fromWhenDate, today), calendar: calendar) }
+        public var fromWhenDateValue: Date { max(fromWhenDate, today).date(calendar: calendar) }
 
         /// Board G4 Terms: "MOE 2026 · Term 4 ends 20 Nov", or the school's own term end.
         public var termsText: String {
@@ -135,10 +202,12 @@ public struct SchoolEditorFeature {
                                blocks: edit.blocks)
         }
 
-        /// The weekday template from today with School's slice on the new times (the knobs' rules).
+        /// The weekday template from G5's day with School's slice on the new times (the knobs' rules),
+        /// made from the weekday template in use then (a day's own template is not a base).
         var templateToSave: Routine? {
             guard let school,
-                  let current = DayPlanner.template(for: kid, on: nextSchoolDay, routines: routines, holidays: [],
+                  let current = DayPlanner.template(for: kid, on: weekday(from: splitDay),
+                                                    routines: routines.filter { $0.onlyOn == nil }, holidays: [],
                                                     calendar: calendar),
                   current.blocks.contains(where: { $0.kind == .school }) else { return nil }
             var edit = TemplateEdit(blocks: current.blocks)
@@ -152,13 +221,16 @@ public struct SchoolEditorFeature {
             if let index = blocks.firstIndex(where: { $0.kind == .school }) {
                 blocks[index].trip?.medal = medal
             }
-            return Routine(kid: kid, dayType: .weekday, from: today, blocks: blocks)
+            return Routine(kid: kid, dayType: .weekday, from: splitDay, blocks: blocks)
         }
 
-        /// Today, or the next weekday: the template the change starts from.
-        var nextSchoolDay: Day {
-            (0..<7).map { today.adding(days: $0, calendar: calendar) }
-                .first { $0.weekday(calendar) != .saturday && $0.weekday(calendar) != .sunday } ?? today
+        /// Today, or the next weekday: the template the medal is read from.
+        var nextSchoolDay: Day { weekday(from: today) }
+
+        /// `day`, or the next weekday after it.
+        func weekday(from day: Day) -> Day {
+            (0..<7).map { day.adding(days: $0, calendar: calendar) }
+                .first { $0.weekday(calendar) != .saturday && $0.weekday(calendar) != .sunday } ?? day
         }
     }
 
@@ -167,6 +239,8 @@ public struct SchoolEditorFeature {
         case loaded(ScheduleSnapshot?)
         /// The school's year, and whether the school list knows its terms.
         case schoolYearLoaded(SchoolCalendar, termsKnown: Bool)
+        /// The family's year, for the kid's days off.
+        case familyLoaded(FamilyCalendar)
         case startPicked(Date)
         case endPicked(Date)
         case dayToggled(Weekday)
@@ -187,6 +261,11 @@ public struct SchoolEditorFeature {
         /// "Going ›": Our buses for this kid (spec: the S3 trip screen, opened from here).
         case goingTapped
         case saveTapped
+        /// Board G5 over G4: Today / the next day / Date, then Save or Cancel.
+        case fromWhenPicked(FromWhenTabs.Choice)
+        case fromWhenDatePicked(Date)
+        case fromWhenSaveTapped
+        case fromWhenCancelTapped
         /// This day: skip School on the day, or bring it back; saved at once (as G3).
         case skipDayTapped
         case daySkipSaved(Routine)
@@ -203,6 +282,7 @@ public struct SchoolEditorFeature {
     }
 
     @Dependency(\.scheduleStore) var scheduleStore
+    @Dependency(\.holidays) var holidays
     @Dependency(\.schoolDirectory) var schoolDirectory
     @Dependency(\.uuid) var uuid
 
@@ -214,16 +294,23 @@ public struct SchoolEditorFeature {
             switch action {
             case .task:
                 let kid = state.kid
-                return .run { [scheduleStore, schoolDirectory] send in
+                let year = state.today.year
+                return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [], publicHolidays: [])
+                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
+                                                             publicHolidays: await holidays.holidays(year).map(\.day))
                     let directoryID = snapshot?.kids.first { $0.id == kid }?.school?.directoryID
                     let known = if let directoryID {
                         await schoolDirectory.schools().first { $0.id == directoryID }?.followsMoeTerms != nil
                     } else { false }
                     await send(.loaded(snapshot))
+                    await send(.familyLoaded(family))
                     await send(.schoolYearLoaded(family.schools[kid] ?? .none, termsKnown: known))
                 }
+
+            case let .familyLoaded(family):
+                state.family = family
+                return .none
 
             case let .schoolYearLoaded(year, known):
                 state.schoolYear = year
@@ -347,21 +434,45 @@ public struct SchoolEditorFeature {
                 return .send(.delegate(.changeSchool(state.kid)))
 
             case .saveTapped:
-                guard state.canSave, var kid = state.stored else { return .none }
-                if state.editScope == .thisDay {
-                    // This day: only the date's template changes (spec "Edit scope").
-                    let routine = state.dayTemplateToSave
-                    return .run { [scheduleStore] send in
-                        do {
-                            if let routine { try await scheduleStore.saveRoutine(routine) }
-                            await send(.saved(true))
-                        } catch {
-                            await send(.saved(false))
-                        }
+                guard state.canSave, state.stored != nil else { return .none }
+                if state.editScope == .allDays {
+                    // Spec G5: All days asks from when first, on the day G1 showed.
+                    let opening = FromWhenTabs.opening(shown: state.shownDay, next: state.nextDay, today: state.today)
+                    state.fromWhen = opening.choice
+                    state.fromWhenDate = opening.date
+                    return .none
+                }
+                // This day: only the date's template changes (spec "Edit scope").
+                let routine = state.dayTemplateToSave
+                return .run { [scheduleStore] send in
+                    do {
+                        if let routine { try await scheduleStore.saveRoutine(routine) }
+                        await send(.saved(true))
+                    } catch {
+                        await send(.saved(false))
                     }
                 }
+
+            case let .fromWhenPicked(choice):
+                state.fromWhen = choice
+                return .none
+
+            case let .fromWhenDatePicked(date):
+                state.fromWhen = .date
+                state.fromWhenDate = max(Day(date, calendar: calendar), state.today)
+                return .none
+
+            case .fromWhenCancelTapped:
+                state.fromWhen = nil
+                return .none
+
+            case .fromWhenSaveTapped:
+                guard state.fromWhen != nil, state.canSave, var kid = state.stored else { return .none }
+                // The school record has no date: it changes now, as an All days save on the clock does;
+                // the weekday template changes from G5's day.
                 kid.school = state.school
                 let routine = state.templateToSave
+                state.fromWhen = nil
                 return .run { [scheduleStore, kid] send in
                     do {
                         try await scheduleStore.saveKid(kid)

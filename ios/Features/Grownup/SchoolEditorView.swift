@@ -67,8 +67,23 @@ public struct SchoolEditorView: View {
         }
         .overlay {
             if store.isBringOpen { bringCard }
+            if store.isAskingFromWhen {
+                CrayonColor.dim.fullBleed()
+                    .onTapGesture { store.send(.fromWhenCancelTapped) }
+                fromWhenCard
+            }
         }
         .task { await store.send(.task).finish() }
+    }
+
+    /// Board G5 over G4: an All days save asks from when (the shared DesignSystem card).
+    private var fromWhenCard: some View {
+        FromWhenCard(title: store.fromWhenTitle, tabs: store.fromWhenTabs,
+                     selection: Binding(get: { store.fromWhenChoice }, set: { store.send(.fromWhenPicked($0)) }),
+                     dateChoice: FromWhenTabs.Choice.date, dateLabel: store.fromWhenDateLabel,
+                     date: Binding(get: { store.fromWhenDateValue }, set: { store.send(.fromWhenDatePicked($0)) }),
+                     caption: nil, save: store.fromWhenSave, cancel: store.fromWhenCancel,
+                     onSave: { store.send(.fromWhenSaveTapped) }, onCancel: { store.send(.fromWhenCancelTapped) })
     }
 
     /// Board F2 over G4: School's things to bring, up to four; "More" shows the whole kit.

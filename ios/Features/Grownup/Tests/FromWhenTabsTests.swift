@@ -40,6 +40,23 @@ final class FromWhenTabsTests: XCTestCase {
                      "15 days ahead is too far")
     }
 
+    /// Spec G5 "The middle tab's day": the next of a series' days within its Runs, never before its
+    /// start or after its end; every week its weekdays, every month its day of the month.
+    func testTheNextDayOfASeriesStaysWithinItsRuns() {
+        func next(_ recurrence: Recurrence) -> Day? {
+            FromWhenTabs.nextDay(of: recurrence, after: tuesday, calendar: F.calendar)
+        }
+        let start = day(1)
+        XCTAssertEqual(next(.weekly([.monday, .wednesday], from: start, until: nil)), day(11))
+        XCTAssertEqual(next(.weekly([.monday, .wednesday], from: start, until: day(11))), day(11), "the end day counts")
+        XCTAssertNil(next(.weekly([.monday, .wednesday], from: start, until: day(10))), "nothing after the end")
+        XCTAssertEqual(next(.weekly([.wednesday], from: day(18), until: nil)), day(18), "not before its start")
+        XCTAssertEqual(next(.monthly(.nthWeekday(2, .saturday), from: start, until: nil)), day(14), "2nd Sat")
+        XCTAssertEqual(next(.monthly(.dayOfMonth(14), from: start, until: nil)), day(14), "Day 14")
+        XCTAssertNil(next(.monthly(.dayOfMonth(14), from: start, until: day(13))))
+        XCTAssertNil(next(.monthly(.dayOfMonth(30), from: start, until: nil)), "more than 14 days away")
+    }
+
     /// Spec G5 "It opens on the day being looked at": a later day opens on the middle tab when it is
     /// that day, else on Date with that date; today, an earlier day or no day open on Today.
     func testTheCardOpensOnTheDayBeingLookedAt() {

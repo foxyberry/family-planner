@@ -131,8 +131,8 @@ public struct ItemEditorFeature {
         /// Board G5: the "Change from when?" card is open, with its choice and date.
         public var fromWhen: FromWhen?
         public var fromWhenDate: Day
-        /// The day G1 showed when "Details ›" opened this form; nil from the List or an add. G5 opens on
-        /// it when it is after today (spec G5).
+        /// The day G1 showed when "Details ›" opened this form; nil from the List or an add. This day
+        /// means it, and G5 opens on it when it is after today (spec G5).
         public let shownDay: Day?
         /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
         public var draftID: ScheduleItem.ID?
@@ -441,8 +441,17 @@ public struct ItemEditorFeature {
             }
         }
 
-        /// Board G3: the day "This day" changes: the next one, or the one just skipped.
-        public var thisDay: Day? { skippedDay ?? skipCandidate }
+        /// Board G3: the day "This day" changes: the one just skipped, else the day G1 showed when the
+        /// series has it (spec G5 "Which screens and days"), else the next one.
+        public var thisDay: Day? { skippedDay ?? shownOccurrence ?? skipCandidate }
+
+        /// The day G1 showed, when it is one of the series' days that has not passed yet (never before
+        /// the next one, so This day never lands on a day that is over).
+        var shownOccurrence: Day? {
+            guard let shownDay, let weekly = weeklyItem, let next = skipCandidate, shownDay >= next,
+                  DayPlanner.matches(weekly, on: shownDay, holidays: holidays, calendar: calendar) else { return nil }
+            return shownDay
+        }
 
         /// The side column's tabs show for an every-week item that still has a day ahead.
         public var showsScopeTabs: Bool { isEditingWeekly && thisDay != nil }
@@ -465,10 +474,10 @@ public struct ItemEditorFeature {
         }
 
         /// The first day after today, within 14 days, on the changed series' repeat (every week or
-        /// every month).
+        /// every month) and within its Runs, its end worked out ("End of term", "After n times").
         var nextDay: Day? {
-            let recurrence = seriesEdit.recurrence
-            return FromWhenTabs.nextDay(after: today, calendar: calendar) { recurrence.pattern(on: $0, calendar: calendar) }
+            let series = family.resolving([seriesEdit], calendar: calendar).first ?? seriesEdit
+            return FromWhenTabs.nextDay(of: series.recurrence, after: today, calendar: calendar)
         }
 
         /// Where the series splits for the card's choice.
