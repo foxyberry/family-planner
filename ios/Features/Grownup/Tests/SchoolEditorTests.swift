@@ -295,4 +295,26 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(store.state.thisDayTitle, "Mon 16 Nov only", "a skip does not move This day")
         XCTAssertEqual(store.state.skipTitle, "Bring back this day")
     }
+
+    /// All days builds on the weekday template, never on a day's own one: a This day skip today does
+    /// not reach every school day.
+    func testAllDaysIsBuiltOnTheWeekdayTemplateNotTheDaysOwn() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.familyLoaded)
+        await store.send(.scopeTapped(.thisDay))
+        await store.send(.skipDayTapped)
+        await store.receive(\.daySkipSaved)
+        XCTAssertEqual(routines.value.last?.onlyOn, tuesday)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.endPicked(tuesday.date(minute: 870, calendar: F.calendar)))
+        await store.send(.saveTapped)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertNil(routines.value.last?.onlyOn)
+        XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.isSkipped, false)
+        XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.end, 870)
+    }
 }
