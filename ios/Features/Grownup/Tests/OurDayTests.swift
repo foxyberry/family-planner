@@ -2,6 +2,7 @@ import ComposableArchitecture
 import Domain
 import Foundation
 import Grownup
+import Localization
 import ScheduleStore
 import XCTest
 
@@ -362,15 +363,22 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(item.title, "Piano with Mum", "14 characters at most")
         XCTAssertEqual(item.iconName, "actMusic")
         XCTAssertTrue(item.isRepeating)
+        XCTAssertEqual([store.state.startLabel, store.state.endLabel], ["4:00 pm", "5:00 pm"],
+                       "a new slice on the clock is the selected one, so its card has its times")
+        XCTAssertEqual([store.state.undoOpacity, store.state.redoOpacity], [1, 0.45])
         // Undo takes the new item back in one step, card and all.
         await store.send(.undoTapped)
         XCTAssertNil(store.state.newSlice)
         XCTAssertTrue(store.state.edit.items.isEmpty)
         XCTAssertFalse(store.state.canUndo)
+        XCTAssertEqual([store.state.undoOpacity, store.state.redoOpacity], [0.45, 1], "Undo off, Redo on")
         await store.send(.redoTapped)
+        XCTAssertEqual([store.state.undoOpacity, store.state.redoOpacity], [1, 0.45])
+        XCTAssertEqual(store.state.fromWhenChoice, .today, "the card shows Today until it opens")
         await store.send(.saveTapped)
         XCTAssertEqual(store.state.fromWhen, .today, "a new series asks from when")
         await store.send(.fromWhenPicked(.next))
+        XCTAssertEqual(store.state.fromWhenChoice, .next)
         await store.send(.fromWhenSaveTapped)
         await store.receive(\.saved)
         XCTAssertEqual(writes.items.value.first?.recurrence,
@@ -943,5 +951,31 @@ final class OurDayTests: XCTestCase {
         await store.send(.unsavedSaveTapped)
         await store.receive(\.saved)
         XCTAssertTrue(store.state.showsList, "Save goes on to the List")
+    }
+
+    /// Views hold no values: the header, the cards' and the slice card's words come from State,
+    /// through the injected localizer.
+    func testTheWordsComeFromState() {
+        let state = OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
+        XCTAssertEqual(state.scopeTabs.map(\.0), [.thisDay, .allDays])
+        XCTAssertEqual([state.title, state.listTitle, state.settingsTitle, state.saveTitle, state.addTitle,
+                        state.unsavedTitle, state.unsavedCancel, state.unsavedSave, state.fromWhenTitle,
+                        state.fromWhenSave, state.fromWhenCancel, state.pickerTodayTitle, state.moreTitle,
+                        state.newNameLabel, state.bringBackTitle] + state.scopeTabs.map(\.1),
+                       ["Our day", "List", "Settings", "Save", "Add", "Save the changes?", "Cancel", "Save",
+                        "Change from when?", "Save", "Cancel", "Today", "More", "Name", "Bring back",
+                        "This day", "All days"])
+        XCTAssertEqual([state.undoOpacity, state.redoOpacity], [0.45, 0.45], "nothing to take back or put back")
+        let keys = withDependencies { $0.localizer = .keys } operation: {
+            OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
+        }
+        XCTAssertEqual([keys.title, keys.listTitle, keys.settingsTitle, keys.saveTitle, keys.addTitle,
+                        keys.unsavedTitle, keys.unsavedCancel, keys.unsavedSave, keys.fromWhenTitle,
+                        keys.fromWhenSave, keys.fromWhenCancel, keys.pickerTodayTitle, keys.moreTitle,
+                        keys.newNameLabel, keys.bringBackTitle] + keys.scopeTabs.map(\.1),
+                       ["day.title", "day.list", "day.settings", "day.save", "list.add", "day.unsaved.title",
+                        "day.unsaved.cancel", "day.unsaved.save", "from_when.title", "from_when.save",
+                        "from_when.cancel", "day.picker.today", "picker.more", "day.new.name", "day.bring_back",
+                        "day.scope.this", "day.scope.all"])
     }
 }

@@ -328,6 +328,39 @@ public struct OurDayFeature {
         public var removeAccept: String { strings.tr("day.remove.accept") }
         public var removeKeep: String { strings.tr("day.remove.keep") }
 
+        // MARK: What the view shows (it holds no values of its own)
+
+        /// The header: the title, the List tab and the Settings button.
+        public var title: String { strings.tr("day.title") }
+        public var listTitle: String { strings.tr("day.list") }
+        public var settingsTitle: String { strings.tr("day.settings") }
+        /// The side column's Save, and the List's add link.
+        public var saveTitle: String { strings.tr("day.save") }
+        public var addTitle: String { strings.tr("list.add") }
+        /// Board G1d: leaving with changes asks to save them.
+        public var unsavedTitle: String { strings.tr("day.unsaved.title") }
+        public var unsavedCancel: String { strings.tr("day.unsaved.cancel") }
+        public var unsavedSave: String { strings.tr("day.unsaved.save") }
+        /// Board G5: the "Change from when?" card's words, and the tab it shows (Today until picked).
+        public var fromWhenTitle: String { strings.tr("from_when.title") }
+        public var fromWhenSave: String { strings.tr("from_when.save") }
+        public var fromWhenCancel: String { strings.tr("from_when.cancel") }
+        public var fromWhenChoice: ItemEditorFeature.FromWhen { fromWhen ?? .today }
+        /// Board G1c: the picker's Today button.
+        public var pickerTodayTitle: String { strings.tr("day.picker.today") }
+        /// The slice card: This day / All days, the pictures' More, the new slice's Name and a
+        /// skipped slice's Bring back.
+        public var scopeTabs: [(Scope, String)] {
+            [(.thisDay, strings.tr("day.scope.this")), (.allDays, strings.tr("day.scope.all"))]
+        }
+        public var moreTitle: String { strings.tr("picker.more") }
+        public var newNameLabel: String { strings.tr("day.new.name") }
+        public var bringBackTitle: String { strings.tr("day.bring_back") }
+        /// Board G1: Undo and Redo are off at 45 % when there is nothing to take back or put back.
+        public var undoOpacity: Double { canUndo ? 1 : Self.offOpacity }
+        public var redoOpacity: Double { canRedo ? 1 : Self.offOpacity }
+        static let offOpacity = 0.45
+
         func title(of source: ClockSlice.Source) -> String {
             switch source {
             case let .block(index): edit.blocks.indices.contains(index) ? edit.blocks[index].title : ""
