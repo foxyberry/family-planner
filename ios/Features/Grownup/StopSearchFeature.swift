@@ -11,6 +11,7 @@ import Strings
 public struct StopSearchFeature {
     @ObservableState
     public struct State: Equatable {
+        public var strings = Localizer.injected
         /// The 5-digit code, once known.
         public var stop = ""
         /// The stop the code belongs to (picked from the list or looked up from the code).
@@ -28,9 +29,9 @@ public struct StopSearchFeature {
         }
 
         /// The field's placeholder.
-        public var placeholder: String { L10n.tr("c2.stop.placeholder") }
+        public var placeholder: String { strings.tr("c2.stop.placeholder") }
         /// A result row's caption: the stop's road and code.
-        public func matchCaption(_ stop: BusStop) -> String { L10n.tr("c2.stop.match", stop.road, stop.code) }
+        public func matchCaption(_ stop: BusStop) -> String { strings.tr("c2.stop.match", stop.road, stop.code) }
 
         /// The result list is open while there are matches (layout v14 veils the screen meanwhile).
         public var isListOpen: Bool { !matches.isEmpty }
@@ -40,10 +41,10 @@ public struct StopSearchFeature {
 
         /// The name under the field, or a hint while it is not 5 digits or unknown.
         public var caption: String {
-            if !matches.isEmpty { return L10n.tr("c2.stop.pick") }
-            if let pickedStop { return L10n.tr("c2.stop.match", pickedStop.road, pickedStop.code) }
-            if text.filter(\.isLetter).count >= 2 { return L10n.tr("c2.stop.none_found") }
-            return stop.count == 5 ? L10n.tr("c2.stop.unknown") : L10n.tr("c2.stop.hint")
+            if !matches.isEmpty { return strings.tr("c2.stop.pick") }
+            if let pickedStop { return strings.tr("c2.stop.match", pickedStop.road, pickedStop.code) }
+            if text.filter(\.isLetter).count >= 2 { return strings.tr("c2.stop.none_found") }
+            return stop.count == 5 ? strings.tr("c2.stop.unknown") : strings.tr("c2.stop.hint")
         }
     }
 
