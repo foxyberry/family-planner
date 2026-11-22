@@ -55,3 +55,10 @@ use_repo(
     "swiftpkg_swift_composable_architecture",
     "swiftpkg_swift_snapshot_testing",
 )
+
+# SwiftLint with this repo's native rules (tools/swiftlint; `make swiftlint`). The rule versions
+# above are the ones it resolves to; keep them in step when this version moves.
+bazel_dep(name = "swiftlint", version = "0.65.1", dev_dependency = True, repo_name = "SwiftLint")
+
+extra_rules = use_extension("@SwiftLint//bazel:extensions.bzl", "extra_rules", dev_dependency = True)
+extra_rules.setup(srcs = "@family_planner//tools/swiftlint:extra_rules")
