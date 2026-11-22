@@ -229,7 +229,7 @@ public struct WayStrip: View {
                 let centre = g.point(tree.x, tree.y)
                 CrayonLine([CGPoint(x: centre.x, y: centre.y + r - g.len(4)),
                             CGPoint(x: centre.x, y: centre.y + r + g.len(18))],
-                           marker: .standard.with(width: g.len(5)), color: CrayonColor.pictureMarker,
+                           marker: MarkerStyle.standard.with(width: g.len(5)), color: CrayonColor.pictureMarker,
                            seed: CrayonStyle.Seed.way + UInt32(30 + index))
                 CrayonSurface(.circle, fill: CrayonFill(color: CrayonColor.leaf,
                                                         hachure: HachureStyle(degrees: -40, gap: 4)),

@@ -27,7 +27,7 @@ public struct DeviceConfig: Decodable, Equatable, Sendable {
 
     private static var resourceBundle: Bundle? {
         let home = Bundle(for: BundleToken.self)
-        return [home, .main].lazy
+        return [home, Bundle.main].lazy  // outside-ok: resource lookup
             .compactMap { $0.url(forResource: "DeviceConfigResources", withExtension: "bundle") } // copy-ok: bundle name
             .compactMap(Bundle.init(url:))
             .first

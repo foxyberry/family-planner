@@ -80,7 +80,7 @@ extension View {
     /// `.frame`. `inset`: the board inset the line is drawn at (`artInset`, or 0 for a part whose board
     /// box is its visible edge, as K1's month cards).
     public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
-                               marker: MarkerStyle = .standard, markerColor: Color? = nil,
+                               marker: MarkerStyle = MarkerStyle.standard, markerColor: Color? = nil,
                                tap: PartTap = .drawn, inset: CGFloat = CrayonStyle.artInset) -> some View {
         background(PartSurface(kind: kind, fill: fill, seed: seed, marker: marker, markerColor: markerColor, inset: inset))
             .modifier(DrawnTapShape(kind: kind, tap: tap))

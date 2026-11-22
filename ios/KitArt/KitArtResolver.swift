@@ -73,7 +73,7 @@ public struct BundledKitArt: KitArtResolving {
     /// Resource bundles sit next to this module's code: inside the app, or inside a test bundle.
     private static func resourceBundle(named name: String) -> Bundle? {
         let home = Bundle(for: BundleToken.self)
-        return [home, .main].lazy
+        return [home, Bundle.main].lazy  // outside-ok: resource lookup
             .compactMap { $0.url(forResource: name, withExtension: "bundle") }
             .compactMap(Bundle.init(url:))
             .first

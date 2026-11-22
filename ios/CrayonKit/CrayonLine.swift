@@ -9,7 +9,7 @@ public struct CrayonLine: View {
     let color: Color
     let seed: UInt32
 
-    public init(_ points: [CGPoint], marker: MarkerStyle = .standard, color: Color = .init(white: 0.12),
+    public init(_ points: [CGPoint], marker: MarkerStyle = MarkerStyle.standard, color: Color = .init(white: 0.12),
                 seed: UInt32) {
         self.points = points
         self.marker = marker

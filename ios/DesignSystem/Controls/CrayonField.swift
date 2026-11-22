@@ -36,7 +36,7 @@ public struct CrayonField<Leading: View>: View {
         .frame(minHeight: sizing.fieldHeight)
         .background(
             CrayonSurface(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper,
-                          marker: isFocused || hasProblem ? .standard : .thin,
+                          marker: isFocused || hasProblem ? MarkerStyle.standard : .thin,
                           markerColor: isFocused ? CrayonColor.pickBlue : hasProblem ? CrayonColor.lateText : CrayonColor.marker,
                           seed: CrayonStyle.Seed.field)
                 .padding(sizing(CrayonStyle.artInset))
