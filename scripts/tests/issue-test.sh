@@ -37,14 +37,16 @@ spec.loader.exec_module(board)
 for i in board.read_issues(sys.argv[2]):
     print(i["file"][:3], i["owner"], (i["status"].split() or ["-"])[0], i["title"])
 print(len(board.read_issues(sys.argv[2] + "/missing")))
-board.read_issues = lambda root: [{"file": "004-blank.md", "title": "Blank", "owner": "main", "status": "",
+board.read_issues = lambda root: [{"file": "004-blank.md", "number": "004", "title": "Blank", "owner": "main", "status": "",
                                    "opened": "", "area": ""}]
+print("number shown" if "이슈 004" in board.issues_section("/") else "number missing")
 print("blank status renders" if "Blank" in board.issues_section("/") else "blank status lost")
 EOF
 )"
 check "board reads every issue with its fields" "$(printf '%s\n' "$board" | head -3 | cut -d' ' -f1-3 | tr '\n' ',')" \
   "001 main done,002 design open,003 main open,"
-check "board reads no folder as no issues" "$(printf '%s\n' "$board" | tail -2 | head -1)" "0"
+check "board reads no folder as no issues" "$(printf '%s\n' "$board" | tail -3 | head -1)" "0"
+check "the board leads each issue with its number" "$(printf '%s\n' "$board" | tail -2 | head -1)" "number shown"
 check "a blank status still renders" "$(printf '%s\n' "$board" | tail -1)" "blank status renders"
 
 [ "$failed" = 0 ] && echo "issue: all passed"
