@@ -10,6 +10,7 @@ public struct RollingKitIcon: View {
     private let roll: CGFloat
     private let isHeld: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.kitArt) private var kitArt
 
     public init(_ slot: KitSlot, size: CGFloat, roll: CGFloat, isHeld: Bool) {
         self.slot = slot
@@ -35,7 +36,7 @@ public struct RollingKitIcon: View {
     }
 
     @ViewBuilder private var picture: some View {
-        if let rig = DrivingKitIcon.wheeledRig(for: slot) {
+        if let rig = DrivingKitIcon.wheeledRig(for: slot, art: kitArt) {
             ZStack {
                 ForEach(Array(rig.runs.enumerated()), id: \.offset) { _, run in
                     let image = BundledKitArt.runImage(named: run.image).resizable().scaledToFit()
