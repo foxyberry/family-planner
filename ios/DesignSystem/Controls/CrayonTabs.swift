@@ -18,7 +18,7 @@ public struct CrayonTabs<ID: Hashable>: View {
     private let unpicked: CrayonFill
     private let neutral: Bool
 
-    /// `compact`: 16 inside each tab instead of 24, so three short tabs fit the 382 side column (C6).
+    /// `compact`: 16 inside each tab instead of 24, so three short tabs fit the 382 side column (G1).
     /// `itemSize`: every tab the same size, `spacing` apart (S2 "Goes to" 180 × 72 gap 12; the MOE
     /// question's pills 140 × 64).
     /// `widths`: each tab its own width, 72 tall. `fills` (layout v42 fill rule): equal tabs alone on
@@ -91,7 +91,7 @@ public struct CrayonTabs<ID: Hashable>: View {
                         }
                     }
             }
-            // A tab label never wraps ("Mon–Fri" split over two lines on C6).
+            // A tab label never wraps ("Mon–Fri" split over two lines on G1).
             if !faceOnly || item.2 == nil {
                 // Boards 0b/C1: the chosen label bold ink, the others regular soft text.
                 if truncates {

@@ -9,7 +9,7 @@ import ScheduleStore
 import SchoolDirectory
 import Strings
 
-/// Add to the day (boards C3, C4, C3k) and edit an item (C4 edit mode, E5).
+/// Add to the day (boards C3, C4, C3k) and edit an item (C4 edit mode, G2).
 @Reducer
 public struct ItemEditorFeature {
     public enum Mode: Equatable, Sendable {
@@ -122,7 +122,7 @@ public struct ItemEditorFeature {
         public var saveError: String?
         /// A save, skip or remove is on its way to the store; further taps wait for it.
         public var isSaving = false
-        /// The every-week item as saved right now (skips are saved at once, board E5).
+        /// The every-week item as saved right now (skips are saved at once, board G2).
         public var weeklyItem: ScheduleItem?
         /// The date "Skip this day" skipped, while it can still be brought back.
         public var skippedDay: Day?
@@ -366,7 +366,7 @@ public struct ItemEditorFeature {
         /// Paging never goes before this week.
         public var canPageEarlier: Bool { datePage > 0 }
 
-        /// The every-week side column's title (board E5): "Every Mon and Wed".
+        /// The every-week side column's title (board G2): "Every Mon and Wed".
         /// "Every Mon and Wed", or for every month "Every 2nd Sat" / "Every 14th" (board G2m).
         public var everyTitle: String {
             form.repeats == .monthly ? DayText.monthlyEvery(form.monthlyRule) : DayText.every(form.days)
@@ -667,7 +667,7 @@ public struct ItemEditorFeature {
                 return .none
 
             case let .repeatChanged(repeats):
-                // An every-week item cannot turn into a one-off here (board E5).
+                // An every-week item cannot turn into a one-off here (board G2).
                 if state.isEditingWeekly { return .none }
                 state.form.repeats = repeats
                 state.form.refreshMonthly(calendar: state.calendar)
@@ -947,7 +947,7 @@ public struct ItemEditorFeature {
         }
     }
 
-    /// Skips are saved at once, without "Save changes" (board E5).
+    /// Skips are saved at once, without "Save changes" (board G2).
     private func save(_ item: ScheduleItem, skipped: Day?) -> Effect<Action> {
         .run { [scheduleStore] send in
             do {

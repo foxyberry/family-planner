@@ -25,7 +25,7 @@ public struct TemplateChange: Equatable, Sendable {
     }
 }
 
-/// An every-week, every-month or just-once item on the G1 clock (spec C6 "One card for everything on
+/// An every-week, every-month or just-once item on the G1 clock (spec G1 "One card for everything on
 /// the clock"): its times on the day, and what the grown-up did to it before Save. It sits on top of
 /// the day template; the template underneath stays as it is.
 public struct ClockItem: Equatable, Sendable, Identifiable {
@@ -162,7 +162,7 @@ public extension DayPlanner {
     }
 }
 
-/// What a G1 Save writes for the items on the clock (spec C6 "One card for everything on the clock",
+/// What a G1 Save writes for the items on the clock (spec G1 "One card for everything on the clock",
 /// "Tapping +"): every change waits for Save, then becomes item writes.
 public enum ClockSave {
     public struct Writes: Equatable, Sendable {

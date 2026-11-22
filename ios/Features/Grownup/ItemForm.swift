@@ -28,7 +28,7 @@ public enum FormProblem: Equatable, Sendable {
 /// The form rows that can show a problem.
 public enum FormRow: String, Equatable, Sendable { case name, when, days }
 
-/// The add/edit form's values and its rules (boards C3, C4, E5). Pure, so every rule is tested.
+/// The add/edit form's values and its rules (boards C3, C4, G2). Pure, so every rule is tested.
 public struct ItemForm: Equatable, Sendable {
     public enum Repeat: Hashable, Sendable { case once, weekly, monthly }
 

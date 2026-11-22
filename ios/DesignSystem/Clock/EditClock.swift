@@ -2,7 +2,7 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-/// The C6 edit clock (spec "C6 · Our day"): the day template as slices on a 24-hour disc (R 340,
+/// The G1 edit clock (spec "G1 · Our day: the clock and its rules"): the day template as slices on a 24-hour disc (R 340,
 /// hub 130) with a knob on the rim at every edge. Dragging a knob reports minutes; the feature
 /// applies the rules (`TemplateEdit`) and draws the result. Free slices are paper with a "+".
 public struct EditClock: View {

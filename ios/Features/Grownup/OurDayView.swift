@@ -37,7 +37,7 @@ public struct OurDayView: View {
                             onConfirm: { store.send(.unsavedSaveTapped) })
             }
             if let title = store.removeTitle {
-                // Spec C6 "One card": "Remove {Name} every week?" / "Remove {Name}?", Remove · Keep.
+                // Spec G1 "One card": "Remove {Name} every week?" / "Remove {Name}?", Remove · Keep.
                 CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.removeCancelled) }
                 ConfirmCard(title: title, message: nil, cancel: store.removeKeep, confirm: store.removeAccept,
@@ -248,7 +248,7 @@ public struct OurDayView: View {
                 .buttonStyle(.plain)
             }
         } else if let title = store.selectedTitle {
-            // Spec C6 "One card for everything on the clock": a day slice, an item or School.
+            // Spec G1 "One card for everything on the clock": a day slice, an item or School.
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 HStack(spacing: sizing(Spacing.s)) {
                     if let picture = store.selectedPicture { KitIcon(picture, size: sizing(64)) }

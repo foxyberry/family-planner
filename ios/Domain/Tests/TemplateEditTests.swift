@@ -1,7 +1,7 @@
 import Domain
 import XCTest
 
-/// Spec C6 drag rules: knobs on the rim move the shared edge, snap to 5 minutes, keep every slice
+/// Spec G1 drag rules: knobs on the rim move the shared edge, snap to 5 minutes, keep every slice
 /// at 15 minutes or more and never cross. School's edges move too (layout v37); free time under 15
 /// minutes never stays; a "+" on a shared knob covers 30 minutes (G1).
 final class TemplateEditTests: XCTestCase {
@@ -133,7 +133,7 @@ final class TemplateEditTests: XCTestCase {
         XCTAssertFalse(edit.isChanged)
     }
 
-    /// Spec C6 "One card": Remove on All days makes School free time too (after its ConfirmCard).
+    /// Spec G1 "One card": Remove on All days makes School free time too (after its ConfirmCard).
     func testTheSchoolBlockCanBeMadeFree() {
         var edit = edit
         edit.makeFree(edit.blocks.firstIndex { $0.kind == .school }!)

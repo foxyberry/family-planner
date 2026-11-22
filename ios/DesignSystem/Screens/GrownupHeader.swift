@@ -1,9 +1,9 @@
 import CrayonKit
 import SwiftUI
 
-/// The header of every grown-up screen (board 0f / C1 / C3 / C6): the crayon Back button, the title,
+/// The header of every grown-up screen (board 0f / C1 / C3 / G1): the crayon Back button, the title,
 /// optional controls after it (kid tabs), and on the right `caption` ("Grown-ups only") or a screen's own
-/// control (C6: Undo, 1130–1312).
+/// control (G1: Undo, 1130–1312).
 public struct GrownupHeader<Accessory: View, Trailing: View>: View {
     private let title: String
     private let caption: String

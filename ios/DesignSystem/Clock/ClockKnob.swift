@@ -1,7 +1,7 @@
 import CrayonKit
 import SwiftUI
 
-/// A knob on the C6 edit clock's rim (spec "C6 · Our day"): 36 drawn (× s), and its touch area is
+/// A knob on the G1 edit clock's rim (spec "G1 · Our day: the clock and its rules"): 36 drawn (× s), and its touch area is
 /// the drawn knob (spec "Sizing → Touch"). White at rest, pick blue with a ring while dragged, grey
 /// with a padlock when the edge is locked (school).
 public struct ClockKnob: View {
@@ -24,7 +24,7 @@ public struct ClockKnob: View {
                           markerColor: CrayonColor.pictureOutline, seed: CrayonStyle.Seed.knob)
                 .frame(width: size, height: size)
             if state == .locked {
-                // Board C6: a hand-drawn padlock filling most of the light knob.
+                // Board G1: a hand-drawn padlock filling most of the light knob.
                 MarkerIcon(.lock, size: sizing(22), color: CrayonColor.pictureInk)
             }
         }

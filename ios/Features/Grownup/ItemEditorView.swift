@@ -7,7 +7,7 @@ import ScheduleStore
 import Strings
 import SwiftUI
 
-/// Add to the day / edit an item (boards C3, C4, C3k, E5).
+/// Add to the day / edit an item (boards C3, C4, C3k, G2).
 public struct ItemEditorView: View {
     @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<ItemEditorFeature>
@@ -493,7 +493,7 @@ public struct ItemEditorView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: Side column (every-week item, board E5)
+    // MARK: Side column (every-week item, board G2)
 
     private var weeklySide: some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.s)) {

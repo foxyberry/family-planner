@@ -32,7 +32,7 @@ public struct ScheduleStore: Sendable {
     /// Saves several items in one write (an every-week item split into old and new series).
     public var saveAll: @Sendable (_ items: [ScheduleItem]) async throws -> Void
     public var delete: @Sendable (_ id: ScheduleItem.ID) async throws -> Void
-    /// Saves a day template (C6). It is used from its `from` day; an older one stays for the days
+    /// Saves a day template (G1). It is used from its `from` day; an older one stays for the days
     /// before. Saving again for the same kid, day type and day replaces it.
     public var saveRoutine: @Sendable (_ routine: Routine) async throws -> Void
     /// Replaces one kid's missions with `missions` (C5: add, rename, reorder, remove).
