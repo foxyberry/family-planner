@@ -20,7 +20,6 @@ public struct RemoveButton: View {
             Text(title).crayonType(.head).foregroundStyle(CrayonColor.lateText)
                 .frame(maxWidth: .infinity, minHeight: sizing(Self.height))
                 .partBackground(.roundedRect(cornerRadius: 26), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.removeButton)
-                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

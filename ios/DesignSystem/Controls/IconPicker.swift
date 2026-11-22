@@ -73,7 +73,6 @@ public struct IconPicker: View {
                                            height: Self.ringSize(cell: cell, sizing: sizing))
                             }
                         }
-                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
@@ -82,7 +81,6 @@ public struct IconPicker: View {
                     MarkerIcon(.plus, size: cell * 40 / 88)
                         .frame(width: cell, height: cell)
                         .partBackground(.circle, fill: nil, seed: CrayonStyle.Seed.iconPicker + 999)
-                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
