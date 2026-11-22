@@ -79,16 +79,38 @@ public struct PictureRow: View {
             .overlay(alignment: .topTrailing) {
                 if isShowingAll {
                     // Under the "More" slot, its right edge on the slot's: every picture, 6 per row,
-                    // then the flags from a new row (the rows' own 16 apart).
+                    // then the flags from a new row (the rows' own 16 apart). In a narrow card (G1f)
+                    // it shows 3 per row and scrolls inside, so with its own padding it stays inside
+                    // the side column and above the action button; two rows and a peek of the third
+                    // show, so more is visibly there.
                     PaperCard(seed: 97) {
-                        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
-                            IconPicker(selection: $selection, slots: all)
-                            if !flags.isEmpty { IconPicker(selection: $selection, slots: flags) }
+                        if columns != nil {
+                            // The pick ring draws a little outside a slot, so the list keeps a margin.
+                            ScrollView { morePictures(columns: Self.narrowMoreColumns).padding(sizing(Spacing.xs)) }
+                                .scrollIndicators(.hidden)
+                                .frame(width: sizing(CGFloat(Self.narrowMoreColumns) * 88
+                                                     + CGFloat(Self.narrowMoreColumns - 1) * Spacing.s + 2 * Spacing.xs),
+                                       height: sizing(Self.narrowMoreHeight))
+                        } else {
+                            morePictures(columns: IconPicker.columns)
                         }
                     }
                     .fixedSize()
                     .offset(y: d + sizing(Spacing.sm))
                 }
             }
+    }
+
+    /// Board units: a narrow card's More list shows two rows of 88 slots (16 apart) and a peek of the
+    /// third, inside the list's margin.
+    static let narrowMoreHeight: CGFloat = 2 * (88 + Spacing.s) + 28 + 2 * Spacing.xs
+    /// A narrow card's More list: 3 per row (`IconPicker`'s side-column count).
+    static let narrowMoreColumns = 3
+
+    private func morePictures(columns: Int) -> some View {
+        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
+            IconPicker(selection: $selection, slots: all, columns: columns)
+            if !flags.isEmpty { IconPicker(selection: $selection, slots: flags, columns: columns) }
+        }
     }
 }
