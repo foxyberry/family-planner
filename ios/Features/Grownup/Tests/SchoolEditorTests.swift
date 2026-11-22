@@ -521,7 +521,7 @@ final class SchoolEditorTests: XCTestCase {
         await store.send(.cancelChangeTapped)
         XCTAssertTrue(store.state.isConfirmingCancel)
         XCTAssertEqual(store.state.cancelConfirmTitle, "Cancel the change from 18 Nov?")
-        XCTAssertEqual(store.state.cancelConfirmAction, "Cancel change")
+        XCTAssertEqual(store.state.cancelConfirmAction, "Cancel it")
         XCTAssertEqual(store.state.cancelConfirmKeep, "Keep")
         await store.send(.cancelKept)
         XCTAssertFalse(store.state.isConfirmingCancel)
@@ -530,7 +530,7 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertTrue(store.state.editsWaiting, "still on the waiting change")
     }
 
-    /// "Cancel change" removes only the waiting change: no template was written for it, so the waiting
+    /// "Cancel it" removes only the waiting change: no template was written for it, so the waiting
     /// day's own version keeps its other edits; today's hours stay.
     func testCancelChangeRemovesOnlyTheWaitingChange() async {
         let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])

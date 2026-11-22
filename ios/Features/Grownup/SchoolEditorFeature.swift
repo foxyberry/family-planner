@@ -332,7 +332,7 @@ public struct SchoolEditorFeature {
         case saveTapped
         /// "From {d Mon} · {hours} ›": the form edits the waiting hours change.
         case waitingRowTapped
-        /// "Cancel this change": asks first; "Cancel change" removes the waiting change, "Keep" keeps it.
+        /// "Cancel this change": asks first; "Cancel it" removes the waiting change, "Keep" keeps it.
         case cancelChangeTapped
         case cancelConfirmed
         case cancelKept
