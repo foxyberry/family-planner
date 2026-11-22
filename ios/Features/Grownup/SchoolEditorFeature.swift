@@ -110,6 +110,8 @@ public struct SchoolEditorFeature {
         public var canSwitchMedal: Bool {
             schoolTrip(on: (editsWaiting ? waiting?.from : nil) ?? today, routines: shown) != nil
         }
+        /// The Medal switch shows off without a trip, as the item editor's does (no trip, no medal).
+        public var medalIsOn: Bool { canSwitchMedal && medal }
 
         // MARK: The waiting hours change (spec G5 "What Settings shows meanwhile")
 

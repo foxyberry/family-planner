@@ -218,7 +218,7 @@ public struct SchoolEditorView: View {
             }
             ListRow(leading: store.medalLabel, minHeight: sizing.fieldHeight) {
                 Button { store.send(.medalToggled) } label: {
-                    CrayonSwitch(isOn: store.medal, isEnabled: store.canSwitchMedal)
+                    CrayonSwitch(isOn: store.medalIsOn, isEnabled: store.canSwitchMedal)
                 }
                 .buttonStyle(.plain)
                 .allowsHitTesting(store.canSwitchMedal)

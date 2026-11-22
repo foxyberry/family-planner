@@ -145,6 +145,7 @@ final class SchoolEditorTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         XCTAssertFalse(store.state.canSwitchMedal)
+        XCTAssertFalse(store.state.medalIsOn, "no trip, no medal: the switch shows off, as on the item editor")
         let medal = store.state.medal
         await store.send(.medalToggled)
         XCTAssertEqual(store.state.medal, medal, "an off switch changes nothing")
