@@ -3,7 +3,6 @@ import CrayonKit
 import DesignSystem
 import Domain
 import KitArt
-import Strings
 import SwiftUI
 
 /// G4 · Edit School (board G4; first part): School, When, Days, Arrive by + latest, Going
@@ -33,8 +32,7 @@ public struct SchoolEditorView: View {
                     VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                         // Boards G2 / G4: This day / All days fill the side column.
                         CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
-                                   items: [(SchoolEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
-                                           (.allDays, L10n.tr("editor.scope.all_days"), nil)],
+                                   items: store.scopeTabs.map { ($0.0, $0.1, nil) },
                                    fills: true, spacing: Spacing.sm)
                         if store.isThisDay {
                             Text(store.thisDayTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
@@ -64,7 +62,7 @@ public struct SchoolEditorView: View {
             }
         } primaryAction: { layout in
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
-                InkButton(L10n.tr("editor.primary.save")) { store.send(.saveTapped) }
+                InkButton(store.saveTitle) { store.send(.saveTapped) }
                     .frame(width: layout.side.width)
                     .disabled(!store.canSave)
                 if let error = store.saveError {
@@ -102,8 +100,8 @@ public struct SchoolEditorView: View {
 
     /// Board F2 over G4: School's things to bring, up to four; "More" shows the whole kit.
     private var bringCard: some View {
-        FormCard(title: L10n.tr("editor.row.bring"), size: CGSize(width: 640, height: 420), done: L10n.tr("c5.done"),
-                 cancel: L10n.tr("card.cancel"), onDone: { store.send(.bringDoneTapped) },
+        FormCard(title: store.bringLabel, size: CGSize(width: 640, height: 420), done: store.bringDoneTitle,
+                 cancel: store.bringCancelTitle, onDone: { store.send(.bringDoneTapped) },
                  onCancel: { store.send(.bringClosed) }) {
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 ScrollView {
@@ -111,7 +109,7 @@ public struct SchoolEditorView: View {
                 }
                 .frame(maxHeight: sizing(320))
                 Button { store.send(.bringMoreTapped) } label: {
-                    Text(L10n.tr("picker.more")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
+                    Text(store.bringMoreTitle).crayonType(.body, bold: true).foregroundStyle(CrayonColor.link)
                 }
                 .buttonStyle(.plain)
             }
@@ -141,7 +139,7 @@ public struct SchoolEditorView: View {
         VStack(alignment: .leading, spacing: sizing.formRowGap) {
             // Board G4: the school's name; changing the school itself is G7 (not built yet).
             // Board G4: School › opens G7 (change school); a change waiting for its day shows under it.
-            linkRow(L10n.tr("settings.school"), action: .changeSchoolTapped) {
+            linkRow(store.schoolLabel, action: .changeSchoolTapped) {
                 KitIcon(.actSchool, size: sizing(48))
                 Text(store.schoolName).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
             }
@@ -150,7 +148,7 @@ public struct SchoolEditorView: View {
                     Text(pending).crayonType(.caption).foregroundStyle(CrayonColor.softText).lineLimit(1)
                 }
             }
-            ListRow(leading: L10n.tr("editor.row.when"), minHeight: sizing.fieldHeight) {
+            ListRow(leading: store.whenLabel, minHeight: sizing.fieldHeight) {
                 HStack(spacing: sizing(Spacing.s)) {
                     TimeField(label: store.startLabel, time: Binding(get: { store.startDate },
                                                                      set: { store.send(.startPicked($0)) }),
@@ -168,23 +166,23 @@ public struct SchoolEditorView: View {
                     Text(waiting).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
             }
-            ListRow(leading: L10n.tr("editor.row.days"), minHeight: sizing.fieldHeight) {
+            ListRow(leading: store.daysLabel, minHeight: sizing.fieldHeight) {
                 HStack(spacing: sizing(Spacing.sm)) {
                     ForEach(Weekday.allCases.sorted(), id: \.self) { day in
                         DayChip(DayText.initial(day), isOn: Binding(
-                            get: { store.school?.days.contains(day) ?? false },
+                            get: { store.state.isDayOn(day) },
                             set: { _ in store.send(.dayToggled(day)) }))
                     }
                 }
             }
             .drawnRow()
             // As on S2: Arrive, then latest (the grace sets the medals).
-            ListRow(leading: L10n.tr("s2.arrive_by"), minHeight: sizing.fieldHeight) {
+            ListRow(leading: store.arriveByRowLabel, minHeight: sizing.fieldHeight) {
                 HStack(spacing: sizing(Spacing.s)) {
                     TimeField(label: store.arriveByLabel,
                               time: Binding(get: { store.arriveByDate }, set: { store.send(.arriveByPicked($0)) }),
                               width: sizing.timeFieldWidth)
-                    Text(L10n.tr("s2.latest")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                    Text(store.latestWord).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     TimeField(label: store.latestLabel,
                               time: Binding(get: { store.latestDate }, set: { store.send(.latestPicked($0)) }),
                               width: sizing.timeFieldWidth)
@@ -193,7 +191,7 @@ public struct SchoolEditorView: View {
             .drawnRow()
             // Board G4 Terms: the term text, and the S2 MOE switch only for a school our data
             // doesn't know or one typed by hand.
-            ListRow(leading: L10n.tr("settings.terms"), minHeight: sizing.fieldHeight) {
+            ListRow(leading: store.termsLabel, minHeight: sizing.fieldHeight) {
                 VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                     Text(store.termsText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(2)
                     if store.showsMoeCheck {
@@ -207,19 +205,19 @@ public struct SchoolEditorView: View {
                     }
                 }
             }
-            linkRow(L10n.tr("going.label"), action: .goingTapped) {
+            linkRow(store.goingLabel, action: .goingTapped) {
                 if let picture = store.goingPicture { KitIcon(KitSlot(iconName: picture), size: sizing(48)) }
                 Text(store.goingText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
             }
-            linkRow(L10n.tr("editor.row.bring"), action: .bringRowTapped) {
+            linkRow(store.bringLabel, action: .bringRowTapped) {
                 if let picture = store.bringFirstPicture, let text = store.bringText {
                     KitIcon(KitSlot(iconName: picture), size: sizing(48))
                     Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 } else {
-                    Text(L10n.tr("editor.row.nothing")).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                    Text(store.nothingText).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 }
             }
-            ListRow(leading: L10n.tr("editor.row.medal"), minHeight: sizing.fieldHeight) {
+            ListRow(leading: store.medalLabel, minHeight: sizing.fieldHeight) {
                 Button { store.send(.medalToggled) } label: { CrayonSwitch(isOn: store.medal) }
                     .buttonStyle(.plain)
             }

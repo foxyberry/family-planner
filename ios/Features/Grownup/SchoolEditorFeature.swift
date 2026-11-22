@@ -201,6 +201,34 @@ public struct SchoolEditorFeature {
         public var bringSlots: [KitSlot] { isPickingMoreBring ? ItemEditorFeature.State.bringAll : ItemEditorFeature.State.bringGroup }
 
         public var title: String { L10n.tr("school_edit.title") }
+
+        // MARK: What the view shows (it holds no values of its own)
+
+        /// Boards G2 / G4: the side column's This day / All days tabs.
+        public var scopeTabs: [(Scope, String)] {
+            [(.thisDay, strings.tr("editor.scope.this_day")), (.allDays, strings.tr("editor.scope.all_days"))]
+        }
+        /// The side column's foot: Save changes.
+        public var saveTitle: String { strings.tr("editor.primary.save") }
+        /// The rows' labels: School, When, Days, Arrive by (then "latest"), Terms, Going, Bring, Medal.
+        public var schoolLabel: String { strings.tr("settings.school") }
+        public var whenLabel: String { strings.tr("editor.row.when") }
+        public var daysLabel: String { strings.tr("editor.row.days") }
+        public var arriveByRowLabel: String { strings.tr("s2.arrive_by") }
+        public var latestWord: String { strings.tr("s2.latest") }
+        public var termsLabel: String { strings.tr("settings.terms") }
+        public var goingLabel: String { strings.tr("going.label") }
+        /// The Bring row's label, also the F2 card's title.
+        public var bringLabel: String { strings.tr("editor.row.bring") }
+        public var medalLabel: String { strings.tr("editor.row.medal") }
+        /// The Bring row with nothing to bring.
+        public var nothingText: String { strings.tr("editor.row.nothing") }
+        /// Board F2: the card's Done and Cancel, and "More" (the whole kit).
+        public var bringDoneTitle: String { strings.tr("c5.done") }
+        public var bringCancelTitle: String { strings.tr("card.cancel") }
+        public var bringMoreTitle: String { strings.tr("picker.more") }
+        /// The Days row's chip for `day` is on: School is on that weekday.
+        public func isDayOn(_ day: Weekday) -> Bool { school?.days.contains(day) == true }
         public var schoolName: String { school?.name ?? "" }
         /// "From 5 Jan: Example Primary School" while a G7 change waits for its day.
         public var pendingLine: String? {
