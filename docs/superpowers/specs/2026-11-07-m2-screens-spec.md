@@ -172,6 +172,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: the country flags' picture names are their languages ("Korean" … "Vietnamese"); the plain flag is "Weekend school".
 - 2026-11-22: from the 13" walkthrough: the free-paper "+" is the same RoundButton 56 (drawn 44) as the edge "+"; G1f's times row (176 × 80 fields) shows once a picture is picked.
 - 2026-11-22: the slice card bullets match G1: 472 wide, one times row with two TimeField 176 × 80 (no Starts / Ends labels).
+- 2026-11-22: home "next" is one row (user): picture 104 + "Next" / title / "in {n} min" within 60 minutes, else "at {h:mm}"; the item shows once (no time-left block plus a second row). Kid B shows a Now row and a Next row of the same shape instead of the now / next circles. Layout v68 (A1, A1m, A1b, A1n, E1, E3, E3b, G0).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -191,7 +192,7 @@ Every board and the app follow these. Change them here and on board 00 first.
 - **Type and space**: Playpen Sans, six sizes (144 · 96 · 48 · 36 · 30 · 24), nothing under 24 on the board (all × s on screen, **Sizing**). Gaps 4 · 8 · 12 · 16 · 24 · 40 · 64 (4 and 12 inside one part). 12 columns, margin 64; header 48–128, content 176–968.
 - **Drawing**: UI shapes are CrayonKit Shapes; pictures come from the kit only (`KitIcon`); the kid's own drawings swap into the same slot later. Motion 1.2 s, rigid parts; reduced motion = still.
 - **Privacy**: public repo uses Kid A / Kid B; no home, stops, routes, school names or keys; real family times stay on the canvas. Wolfie is public; the home drawing is not.
-- Parts: board 0b (controls), 0c (content), 0c2 (kid parts: `KidFace`, `MissionCircle`, `KidList`/`KidBand`, `NextRow`/`KidNowNext`, `WayCard`, `DonePill`).
+- Parts: board 0b (controls), 0c (content), 0c2 (kid parts: `KidFace`, `MissionCircle`, `KidList`/`KidBand`, `NextRow`, `WayCard`, `DonePill`).
 
 - **Crayon rounded boxes** (main session, 2026-11-09): every rounded rect keeps at least 6 outline samples per corner so corners draw round (at 12 pt sampling a 24 pt corner had only 3 and looked cut off). Small circles such as the 28 step dots use a calmer line: width 3, roughness 0.4.
 
@@ -405,49 +406,37 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 - Two short slots next to each other keep their order and push apart by up to 5 minutes each. If they still collide, the lower-priority one is dropped from the drawing; it stays in the data and in the side lists.
 
 ### Now and next on home: one rule (2026-11-08)
-- Every kid shows **now once and next once**. Never a list.
-  - Kid A, the kid whose clock is shown: now is the hub. The right panel shows only **Next**.
-  - Kid B (and any other kid without the clock): the now / next circles.
-- **Next** = the next thing on that kid's clock after the current one, of any kind (template slot, every-week, just-once), after the priority rule. Skip free time (no picture) and a slot that only continues after an item ends (Play after Weekend school). On E3 at 9:15 that gives "Birthday · at 2:00 pm".
-- **Kid A block** (right panel, x 928–1336):
-  - `KidFace` 48 (face in the kid's colour ring, replaces `KidDot`), gap 16, name head 36.
-  - 24 below: "Next" caption 24 `softText`.
-  - 8 below: Next row: `KitIcon` 104, gap 24, then the title **head 36 bold** over "at {h:mm am/pm}" body 30 `softText`. Both lines are one line: start time only (the range is on the clock), no wrap; a long title ends with "…". A just-once item keeps its star sticker on the picture.
-  - 24 below: time left to that thing: "in" body 30 `softText`, then `TimeLeft` display 96 ("38 min"). Over 60 minutes: "1h 20m" in the same size, whole hours "2h" (user, PR #27, 2026-11-09: "1 h 30 min" was 503 wide and cut off in the 384 panel; "1h 30m" measures 356, "38 min" 330). Over 3 h: leave the time left out. The A2 header uses the same format ("2h 59m" at title 48 is 177 wide).
-  - **With the live bus (build step 5, "A2 live look")** on bus mornings the time left becomes "Leave in" + `TimeLeft` to the leave time + "On time" (boards A1, E1). Same place and sizes; only the words and the target time change. On A1 (two kids) the Next row is hidden on school mornings to leave room for Kid B; E1 (one kid) keeps it under "On time".
-- **Night** (A1n look; board order confirmed 2026-11-09): the time left comes first: "Bed in" (first line, baseline 301) + `TimeLeft` (baseline 403) to Sleep. Then the "Tomorrow" row: a 64 picture on a 104 plate at y 436, "Tomorrow" (body bold, baseline 484) over "School, leave {h:mm}" (caption, baseline 516). There is no Next row at night: Next would be Sleep, which the time left already says.
-- Kid B block: unchanged (now 160 / next 104 circles, captions "now" / "next").
+- Every kid shows **now once and next once**, each as one row of the same shape (user, 2026-11-22: one rule for "next", and Kid B in rows like Kid A).
+  - Kid A, the kid whose clock is shown: now is the hub. The right panel shows one row for Kid A: **Leave**, **Bed** or **Next** (below).
+  - Kid B (and any other kid without the clock): a **Now** row, then a **Next** row.
+- **Next** = the next thing on that kid's clock after the current one, of any kind (template slot, every-week, just-once), after the priority rule. Skip free time (no picture) and a slot that only continues after an item ends (Play after Weekend school). On E3 at 9:15 that gives "Birthday" / "at 2:00 pm".
+- **The row** (the "Next shape" in "Home panel lines"): picture 104, then to its right the caption ("Now" / "Next", caption `softText`), the title (head 36 bold, one line, a long title ends with "…") and one time line (body 30 `softText`, one line). A just-once item keeps its star sticker on the picture.
+  - **Now** row: the time line is "until {h:mm am/pm}" (the end of what is on now).
+  - **Next** row: the time line is **"in {n} min"** while the start is **60 minutes or less** away, otherwise "at {h:mm am/pm}" (user, 2026-11-22: a kid reads "in 45 min" more easily; past an hour the time of day is enough). So the Next row never shows "1h 20m"; that format stays for "Leave in" and "Bed in".
+  - The thing a row names shows once: no second row, picture or time left for the same item anywhere in that kid's block.
+- **Kid A, which row**: on a bus or outing morning the **Leave** row ("Leave in" + time left to the leave time, + "On time" with live bus times; boards A1, A1m, A1b), at night the **Bed** row and the Tomorrow row (A1n), otherwise the **Next** row (E3, E3b). With the Leave row, A1 (two kids) shows no Next for Kid A; E1 (one kid) adds its Next row under the Leave row.
+- **Night** (A1n look; board order confirmed 2026-11-09): the time left comes first: "Bed in" (first line, baseline 301) + `TimeLeft` (baseline 403) to Sleep. Then the "Tomorrow" row: a 64 picture on a 104 plate at y 436, "Tomorrow" (body bold, baseline 484) over "School, leave {h:mm}" (caption, baseline 516). There is no Next row for Kid A at night: Next would be Sleep, which the time left already says. Kid B's rows put their pictures on 104 night plates (picture 64), as Kid A's night pictures.
 
 ### Right panel
 - **Home panel lines** (all home boards A1, A1m, A1n, E1, E3, E3b; fixed 2026-11-09, Kid B rule changed the same day after the user's iPad check: the fixed Kid B line left about 140 empty under a short Kid A block): panel x 928 … 1312, top 96.
   - **Kid A block, look ①** (user, 2026-11-09, board "Home right panel: every look side by side"; replaces the label line with the way picture at the far right): weekday baseline **132**, Kid A name **187** (face 48 at y 163), then one row, 24 below the name: the picture on the left, the words stacked to its right.
     - **Leave / Bed shape**: picture 96 at (928, 241): the way picture (bus, car, taxi, shoe); at night the moon on a 96 paper plate (picture 64). Text left **1040** (928 + 96 + 16): "Leave in" / "Bed in" (body, `softText`) baseline **265**, the time left (**72 bold**, line height 1.0) baseline **337**. Status "On time" (body bold, `onTimeText`, dot 24) at x 1040, baseline **374**. "1h 20m" measures 267 at 72, inside the 272 beside the picture.
-    - **Next shape** (E3, E3b, and the second block on E1): picture 104 at (928, 238), text left **1048**: "Next" (caption) baseline **259**, title (head) **300**, "at {h:mm am/pm}" (body, `softText`) **338**.
+    - **Next shape** (E3, E3b, and the second block on E1): picture 104 at (928, 238), text left **1048**: "Next" (caption) baseline **259**, title (head) **300**, the time line (body, `softText`; "in {n} min" or "at {h:mm am/pm}", see the row rule) **338**.
     - A1n: the Tomorrow row (80 plate, 56 picture) follows 24 below the row.
-  - **Kid B block, one rule**: the Kid B block (name, now/next circles, captions) moves as one unit. Its name box top = the bottom of Kid A's last box + **40**, and its name baseline is never lower than **584**. Inside the block: circles top = name baseline + 48 (now 160, next 104, bottom-aligned), captions baseline = circles bottom + 33. Board values (layout v17, name baseline / circles bottom / captions): A1 464 / 672 / 705, A1m 428 / 636 / 669, A1n 514 / 722 / 755, E3 and E3b 416 / 624 / 657.
+  - **Kid B block, one rule**: the Kid B block (name, Now row, Next row) moves as one unit. Its name box top = the bottom of Kid A's last box + **40**, and its name baseline is never lower than **584**. Inside the block both rows use the Next shape (picture 104 at x 928, text left 1048; caption / title / time line baselines = picture top + 21 / 62 / 100): the Now picture top = name baseline + **50**, the Next picture top = the Now picture top + **126** (both ±1 on the boards, from text boxes rounding). Board values (layout v68, name baseline / Now picture top / Next picture top): A1 464 / 514 / 640, A1m and A1b 428 / 479 / 604, A1n 514 / 565 / 690, E3 and E3b 416 / 466 / 592. The block ends by y 801 on every board, above the main button (872).
   - A1n's Tomorrow row uses an 80 plate with a 56 picture (was 104 / 64), so the night block ends at 516 and Kid B sits on 584.
   - Main button 872–968 stays pinned; the space a short Kid A block leaves now sits above the button, not between the kids. On E1 (one child) the second "Next" sits on 584.
-- **Kid A block** (spacing from the board):
-  - `KidFace` 48 (Kid A), gap 16, name head 36.
-  - **With the live bus (build step 5)** bus mornings: "Leave in" (body, `softText`) with an 80 pt bus picture at right, then `TimeLeft` at display 96 ("34 min"), then the status "On time" (body bold `onTimeText`, 24 pt green dot).
-  - **Otherwise**: Next row + time left, see "Now and next on home".
-- **Kid B block**, 64 below:
-  - `KidFace` 48 (Kid B), gap 16, name head 36.
-  - Row with gap 40:
-    - "now": 160 circle in crayon `kidApricot` with a 104 picture inside, caption "now" under it.
-    - "next": 104 white circle with a 64 picture inside, caption "next".
-  - Bottom-aligned.
 - **Main button**: `InkButton` "Missions →", full panel width, 96 tall, bottom of panel → A2. Shows only in the mission morning (below).
 - **Mission morning (board A1m)**: from the earliest kid's wake-up (end of their Sleep slot) until 12:00 pm, on A1, E3 and E3b:
   - "Missions →" shows at the bottom of the panel (E3's "Diary →" is M5, so there is no clash).
-  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: "Leave in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the leave time (start − "leave before") ("38 min", "1h 20m"). This is the A1 board layout; the "On time" line shows only with live bus times. Otherwise: the Next row without the time left.
+  - Kid A block: face + name, then, if Kid A has an outing (see "Morning data") that has not started and starts within 3 h: "Leave in" (body `softText`) with the way picture 80 at the right (bus, car, taxi, shoe), then `TimeLeft` display 96 to the leave time (start − "leave before") ("38 min", "1h 20m"). This is the A1 board layout; the "On time" line shows only with live bus times. Otherwise: the Next row.
   - Kid B block unchanged.
-  - **Panel fit** (board A1m; 2026-11-08): the panel is the column x 928–1336, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "Leave in" row 72 (the 80 way picture may stand 8 above the row); 8; "33 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 24; now/next row 160 + 8 + caption. That ends at about y 650. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 220 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 64 → 40. The clock never moves.
+  - **Panel fit** (board A1m; 2026-11-08): the panel is the column x 928–1336, y 96–968. Stack from the top: weekday head 36, 24; Kid A face row 48; 24; "Leave in" row 72 (the 80 way picture may stand 8 above the row); 8; "33 min" display 96 (line height 1.0, so the box is 96 tall, not 115); 64; Kid B face row 48; 26; the Now and Next rows (126 apart). That ends at about y 715. "Missions →" (96) is pinned to the panel bottom (968) by flexible space, so about 150 pt are free. Nothing should move the home up: check line heights first (display and title boxes use line height 1.0–1.15, not the font's default), and never let the panel grow the screen. If a longer case still does not fit, shrink in this order: the flexible space down to 24, then the Kid B gap 40 → 24. The clock never moves.
   - After 12:00 pm the panel goes back to the "Now and next on home" rule and the button hides. On a bus morning with live times the Kid A block shows "Leave in" + "On time" instead (see "A2 live look").
 
 ### States
 - Weekend or holiday → E3 layout. One child → E1 layout.
-- Kid B has no slot now: the "now" circle shows the play picture with caption "now"; if nothing is next, the "next" circle is not shown. [proposed]
+- Kid B has no slot now: the Now row shows the play picture, "Free time" and "until {next start}"; if nothing is next, the Next row is left out. [proposed]
 
 ---
 
@@ -721,13 +710,13 @@ At the end of the C3 / C4 / E5 form (the card scrolls, as C3g), one line each, o
 ## E1 · Home, one child [board]
 - Same clock and hub as A1.
 - Right panel: Kid A block, then **Next**:
-  - Next row + time left exactly as the A1 Kid A block ("Now and next on home"). One row only (changed 2026-11-08; was 2 rows).
+  - The Leave row as A1, then the Next row (the row rule in "Now and next on home"). One row only.
 - No Kid B block. Main button as A1 (hidden in M2).
 - Empty Next [proposed]: "Next" + "Nothing else today" (body, `softText`).
 
 ## E3 · Home, weekend or holiday [board]
 - Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
-- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (Next row + time left, "Now and next on home"), then the Kid B block. The weekday is the panel's first line, as on A1. No "No bus today" (the line only appeared on weekends and read oddly).
+- Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (the Next row, "Now and next on home"), then the Kid B block. The weekday is the panel's first line, as on A1. No "No bus today" (the line only appeared on weekends and read oddly).
   - **Weekday school holiday**: the panel's weekday line reads "{Weekday} · Holiday" (see Hub text). That is the only holiday sign on the kid screen; the clock already uses the Sun template.
   - Kid B block as A1.
 - Main button "Diary →" → B2. **[later M5]**: hidden in M2.
@@ -767,7 +756,7 @@ Applies to the kid screens of M2 (A1, E1, E3, E3b). Board A1n shows A1 at 7:40 p
 - **Right panel at night** (board):
   - Kid A: "Bed in" (body, soft) and `TimeLeft` display 96 "20 min" until bedtime.
   - Then a "Tomorrow" row: plated 64 picture, "Tomorrow" (body bold) over "School, leave {h:mm}" (caption).
-  - Kid B: now/next circles as by day; next = wake-up (sun).
+  - Kid B: the Now and Next rows as by day, pictures on night plates (Now "Sleep" until the wake-up time, Next the first thing after it).
   - Button "Diary →". **[later M5]**: hidden in M2, as by day.
 
 ## Sky switch: the kid's day/night switch (new 2026-11-08) [board 0g; on every kid home: A1, A1m, A1n, E1, E3, E3b]
@@ -1046,7 +1035,7 @@ any grown-up screen --2 min idle or app backgrounded--> home
   - now
   - hold progress 0–1 for C0
 - `ClockSlot` colour tokens (table above). They extend `CrayonPalette`.
-- `KidNowNext` (Kid B's 160 "now" circle and 104 "next" circle with captions).
+- `NextRow` (picture 104 + caption / title / time line): Kid A's Next row and Kid B's Now and Next rows.
 - `KidFace` (2026-11-08, replaces `KidDot` everywhere a kid is named; the only colour-only circles left are the S1 colour swatches):
   - Layers: a `CrayonKit` crayon ring in the kid's colour (the same Shape as the progress ring at 100 %, stroke about 9 % of the box, fixed seed per kid), then the kid's face `KitIcon` centred at **86 %** of the box (the face drawing fills about 68 % of its own box, so it nearly fills the ring without touching it). The ring is a UI shape, so it is drawn in code like every other crayon UI part (roadmap rule); only the face is a kit picture.
   - Face source: a new `Kid.face: KitSlot`, seed Kid A = `kidGirl`, Kid B = `kidBoy`. S1 (M4) sets it ("Girl face" / "Boy face"); M6 can swap in the kid's own drawing later, same slot.
