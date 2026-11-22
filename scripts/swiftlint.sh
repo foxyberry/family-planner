@@ -90,4 +90,24 @@ out="$(lint "$ROOT/ios")"
 code=$?
 printf '%s\n' "$out" | grep -E 'error:|warning:'
 [ "$code" = 2 ] && echo "swiftlint: value in view code (put copy and shown values in State; tca-feature \"When a guard blocks\")" >&2
+
+# The pending list only shrinks: a listed file with no view_values hit and no hit of
+# check-view-values.sh (copy lookups, placeholder numbers) is clean, and its line must go.
+pending="$(grep -vE '^[[:space:]]*(#|$)' scripts/view-values-pending.txt | sed 's/[[:space:]]*$//')"
+if [ -n "$pending" ]; then
+  cp .swiftlint.yml "$config"  # no excluded paths: lint the pending files themselves
+  files=()
+  while IFS= read -r rel; do [ -f "$rel" ] && files+=("$ROOT/$rel"); done <<< "$pending"
+  listed="$(lint "${files[@]}")"
+  [ $? = 1 ] && exit 1  # could not run; the reason is on stderr
+  native="$(printf '%s\n' "$listed" | grep -E '\.swift:[0-9]+' | cut -d: -f1 | sort -u)"
+  regex="$(bash scripts/check-view-values.sh --hits "$ROOT")"
+  while IFS= read -r rel; do
+    [ -f "$rel" ] || continue  # check-view-values.sh reports a missing file
+    if ! printf '%s\n' "$native" "$regex" | grep -qxF "$rel"; then
+      echo "swiftlint: pending line for a clean file: $rel (remove it from scripts/view-values-pending.txt)" >&2
+      [ "$code" = 0 ] && code=1
+    fi
+  done <<< "$pending"
+fi
 exit "$code"
