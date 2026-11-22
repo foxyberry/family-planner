@@ -51,6 +51,23 @@ final class ScreenSnapshotTests: XCTestCase {
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
     }
 
+    /// A pushed screen with a form card open (C3's Bring card over the new-item editor), at the mini:
+    /// the dim reaches the window's sides past the board frame, as it does on the 13-inch (review of
+    /// PR 168: the navigation stack clipped pushed screens to the board frame).
+    func testFormCardDimAtTheMini() async throws {
+        let world = World(sample)
+        var start = AppFeature.State()
+        start.path.append(.editor(ItemEditorFeature.State(mode: .add(.kid(SeedData.kidA.id)), repeats: .weekly,
+                                                          now: world.now, calendar: world.calendar)))
+        let store = world.store(start)
+        await opened(store)
+        let editor = store.state.path.ids[0]
+        await store.send(.path(.element(id: editor, action: .editor(.task))))
+        await store.receive(\.path[id: editor].editor.loaded)
+        await store.send(.path(.element(id: editor, action: .editor(.bringRowTapped))))
+        snap(store.state, world, size: Self.sizes[1].size, named: "mini")
+    }
+
     /// The Setup covers (S2 Data sources, S3 Change buses) are hosted outside AppView's board
     /// frame, with only `sizing` from the environment: at the mini their header, form and action
     /// must still sit on one centred board frame (review of PR 168).
