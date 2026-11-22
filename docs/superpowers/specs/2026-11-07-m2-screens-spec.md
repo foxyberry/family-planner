@@ -174,7 +174,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: the slice card bullets match G1: 472 wide, one times row with two TimeField 176 × 80 (no Starts / Ends labels).
 - 2026-11-22: home "next" is one row (user): picture 104 + "Next" / title / "in {n} min" within 60 minutes, else "at {h:mm}"; the item shows once (no time-left block plus a second row). Kid B shows a Now row and a Next row of the same shape instead of the now / next circles. Layout v68 (A1, A1m, A1b, A1n, E1, E3, E3b, G0).
 - 2026-11-22: from the UX flow review (user): G5 opens on the day being looked at and names its middle day ("Tomorrow" or "Wed 18 Nov", not "Next Wed"); the 2-minute idle relock and its countdown are gone (backgrounding still relocks); C0 points at G0 / G1 for the pencil and the header; home shows a saved change on return. Layout v69 (G5).
-- 2026-11-22: home edges from the #216 build: E1's Next row names the thing after the Leave row's item (board E1 "Snack"); Kid B "Free time" with no time line when nothing is later, "Nothing planned" on an empty day; Kid B's Next skips like Kid A's and looks past the wake-up at night. Layout v70 (E1).
+- 2026-11-22: home edges from the #216 build: E1's Next row names the next thing other than the Leave row's item (board E1 "Snack"); Kid B "Free time" with no time line when nothing is later, "Nothing planned" on an empty day; Kid B's Next skips like Kid A's and looks past the wake-up at night. Layout v70 (E1).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
