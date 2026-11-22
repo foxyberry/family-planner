@@ -141,6 +141,37 @@ step(600, ["open", "ended"], "after 10 minutes the history again")
 board._github.update(ended=None, ended_at=0.0, open_at=0.0)
 step(0, ["open", "ended"], "a fresh board whose history is refused", failing="ended")
 step(61, ["open", "ended"], "an unread history retries with the open PRs, not after 10 minutes")
+# Each session maps to the issue owner whose word comes first in its title.
+for title, want in [("가족 플래너 구현 (iPad 앱, M2→MVP: 홈·C6·아침 미션, 하네스·가드)", "main"),
+                    ("Family-planner 하네스 (스킬·가드·2차 리뷰)", "harness"),
+                    ("Family-planner iOS 코드 리뷰", "review"),
+                    ("가족 플래너 디자인·기획 (Hi-Fi 캔버스, 키트, 명세, 백로그)", "design"),
+                    ("Some other project", None), (None, None)]:
+    if board.owner_of_title(title) == want:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL owner_of_title({title!r}): want {want}, got {board.owner_of_title(title)}")
+
+# An owner needs the user's nudge only when every session rests, none asks, nothing is in hand
+# (no doing issue, no open PR) and open issues are left.
+def issue(n, status="open"):
+    return {"number": n, "title": f"Issue {n}", "status": status, "owner": "harness"}
+rest = {"busy": False, "asking": False, "prs": 0}
+for name, o, want in [
+    ("resting with open issues", dict(rest, issues=[issue("003"), issue("004")]), ["003", "004"]),
+    ("busy", dict(rest, busy=True, issues=[issue("003")]), []),
+    ("asking the user", dict(rest, asking=True, issues=[issue("003")]), []),
+    ("an open PR in hand", dict(rest, prs=1, issues=[issue("003")]), []),
+    ("a doing issue in hand", dict(rest, issues=[issue("003", "doing 2026-11-22 17:10"), issue("004")]), []),
+    ("only closed issues", dict(rest, issues=[issue("003", "done 2026-11-22")]), []),
+]:
+    got = [i["number"] for _, items in board.idle_with_issues({"harness": o}) for i in items]
+    if got == want:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL idle_with_issues {name}: want {want}, got {got}")
 print(f"board: {passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 EOF

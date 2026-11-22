@@ -103,10 +103,10 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
 - Skills live in `.claude/skills` (`.agents/skills` links there); reviews start from a PR (`pr-review-handoff`).
 - Work left for later, any session's (not reviews or PR waits): `scripts/issue.sh new <owner> "<title>"`
-  (git-ignored, on the board), `close <n>` when done; check `issue.sh list <owner>` at start.
+  (git-ignored, on the board), `start <n>` on pickup, `close <n>` when done; check `issue.sh list <owner>` first.
 - Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known;
   `skill-retro` moves them into guards, this file or skills. `scripts/check-skills.sh` checks all three.
-- Claude hooks block private terms in file writes and publishing text.
+- Claude hooks block private terms in writes and publishing text.
 - Git hooks (`.githooks`, `make setup`): pre-commit and pre-push run gitleaks and the term check;
   pre-push also runs `make lint` on Bazel changes and guard tests on guard changes.
-- Show the command and its output before saying a build or test passed.
+- Show the command and output before saying a build or test passed.
