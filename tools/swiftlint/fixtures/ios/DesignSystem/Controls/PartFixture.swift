@@ -13,3 +13,7 @@ struct FixturePart: View {
 struct FixturePartStyle {
     var inset: CGFloat { custom ?? 8 }  // bad
 }
+
+struct FixturePartFrame: View {
+    var body: some View { Text("p").frame(width: 112) }
+}

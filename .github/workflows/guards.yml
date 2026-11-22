@@ -57,8 +57,6 @@ jobs:
         run: bash scripts/tests/check-crayon-canvas-test.sh
       - name: Debug boundary check tests
         run: bash scripts/tests/check-debug-boundary-test.sh
-      - name: Layout literal check tests
-        run: bash scripts/tests/check-layout-literals-test.sh
       - name: Strings check tests
         run: bash scripts/tests/check-strings-test.sh
       - name: View values check tests
@@ -88,12 +86,11 @@ jobs:
       - name: Affected-test selection tests
         run: bash scripts/tests/test-affected-test.sh
       # The checks themselves, on this commit.
-      - name: Repo checks (kid screens, crayon canvas, debug boundary, layout literals, view values, journeys, unattended tests, driver contract, type names, kit art, strings, skills, skill refs)
+      - name: Repo checks (kid screens, crayon canvas, debug boundary, view values, journeys, unattended tests, driver contract, type names, kit art, strings, skills, skill refs)
         run: |
           bash scripts/check-kid-screens.sh
           bash scripts/check-crayon-canvas.sh
           bash scripts/check-debug-boundary.sh
-          bash scripts/check-layout-literals.sh
           bash scripts/check-view-values.sh
           bash scripts/check-journeys.sh
           bash scripts/check-unattended-tests.sh

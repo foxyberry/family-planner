@@ -1,4 +1,5 @@
-# Screens still carrying layout numbers (scripts/check-layout-literals.sh). Shrink only.
+# Screens still carrying layout numbers (SwiftLint rule layout_literals, counted by scripts/swiftlint.sh).
+# Shrink only.
 # <file> <lines>
 ios/Features/Grownup/ChangeBusesView.swift 3
 ios/Features/Grownup/ChangeSchoolView.swift 3
