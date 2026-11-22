@@ -15,6 +15,7 @@ node kit.js . ../../ios/KitArt/Resources/KitArt.xcassets [shapes.json]
 - Each picture gets its own seed, derived from its slot name.
   - Adding, removing or reordering pictures never changes another picture.
   - The same input always produces the same files, so re-running leaves `git status` clean.
+- The output catalog holds only what this script writes. A run removes any `.imageset` it did not write (a slot dropped from the list, or a rig frame whose rig changed), so stale art never piles up.
 - Style rules: one bold freehand marker outline (long straight runs bow a little and every edge drifts slowly), crayon hatching with the paper showing, colour spilling slightly past the line, plain dot eyes, a one-line smile.
 - Do not add pictures of real places, schools or people here, because this folder is public.
   - The school mascot is the public `wolfie` picture (the user's choice, 2026-11-08).
