@@ -28,6 +28,8 @@ jobs:
     timeout-minutes: 45
     env:
       SWIFTLINT_BAZEL: bazel
+      # rules_swift's Linux toolchain links with clang.
+      CC: clang
     steps:
       - uses: actions/checkout@v4
       # Bazel's disk and repository caches, and the built SwiftLint binary (keyed on the rules and
@@ -44,8 +46,11 @@ jobs:
         run: |
           swift --version
           bazel --version
+      # The whole Bazel output, so a toolchain or rule failure shows its reason here.
       - name: Build SwiftLint with our rules
-        run: time bash scripts/swiftlint.sh --binary
+        run: time bazel build -c opt @SwiftLint//:swiftlint
+      - name: Keep the binary where the scripts look for it
+        run: bash scripts/swiftlint.sh --binary
       - name: Rule self-tests
         run: |
           bash scripts/swiftlint.sh --self-test
