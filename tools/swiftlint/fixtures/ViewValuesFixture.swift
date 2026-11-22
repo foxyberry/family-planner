@@ -8,6 +8,11 @@ struct FixtureView: View {
         Rectangle().opacity(store.canUndo ? 1 : 0.45)  // bad
         Text("a ? b : c")
         Rectangle().opacity(isOn ? 1 : 0)
+        Rectangle().opacity(!store.isOn ? 1 : 0)  // bad
+        Rectangle().opacity(isOn && store.canUndo ? 1 : 0)  // bad
+        Rectangle().opacity((store.isOn) ? 1 : 0)  // bad
+        Rectangle().opacity(restore ? 1 : 0)
+        Text(store.isOn ? "store" : "nil")  // bad
     }
 
     var inset: CGFloat { caption == nil ? 0 : 8 }  // bad

@@ -6,7 +6,8 @@
 # A rule that replaces a regex guard keeps that guard's shrink-only pending list: files listed in
 # scripts/view-values-pending.txt are left out of `view_values` until they are fixed.
 #
-# Usage: scripts/swiftlint.sh             lint ios/ (exit 1 on any violation)
+# Usage: scripts/swiftlint.sh             lint ios/: exit 0 clean, 2 on a violation, 1 if it
+#                                         could not run (build, config or crash; the reason is printed)
 #        scripts/swiftlint.sh --self-test lint tools/swiftlint/fixtures: every `bad` line must be
 #                                         reported and no `good` file may be
 set -u
@@ -32,6 +33,12 @@ lint() {
   if grep -q "Build did NOT complete\|Build failed" "$errors"; then
     grep -E "error:|ERROR:" "$errors" | head -10 >&2
     echo "swiftlint: SwiftLint or a rule in tools/swiftlint failed to build" >&2
+    exit 1
+  fi
+  # SwiftLint: 0 clean, 2 violations; anything else (bad config, crash) shows its own message.
+  if [ "$code" != 0 ] && [ "$code" != 2 ]; then
+    grep -vE "^(INFO|Loading|Analyzing|Computing|Target |  bazel-bin)" "$errors" | tail -15 >&2
+    echo "swiftlint: SwiftLint exited $code without linting" >&2
     exit 1
   fi
   return "$code"

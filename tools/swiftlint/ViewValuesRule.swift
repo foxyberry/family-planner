@@ -19,11 +19,14 @@ struct ViewValuesRule: Rule {
             Example(code: "struct Model { var title: String { name ?? \"\" } }"),
             Example(code: "struct A: View { var body: some View { Text(\"a ? b : c\") } }"),
             Example(code: "struct A: View { var body: some View { Rect().opacity(isOn ? 1 : 0) } }"),
+            Example(code: "struct A: View { var body: some View { Rect().opacity(restore ? 1 : 0) } }"),
         ],
         triggeringExamples: [
             Example(code: "struct A: View { var body: some View { Text(store.label ↓?? \"\") } }"),
             Example(code: "struct A: View { var body: some View { Rect().opacity(↓store.canUndo ? 1 : 0.45) } }"),
             Example(code: "extension A: View { var inset: CGFloat { ↓caption == nil ? 0 : 8 } }"),
+            Example(code: "struct A: View { var body: some View { Rect().opacity(↓!store.isOn ? 1 : 0) } }"),
+            Example(code: "struct A: View { var body: some View { Rect().opacity(↓a && store.isOn ? 1 : 0) } }"),
         ]
     )
 }
@@ -37,10 +40,12 @@ private extension ViewValuesRule {
 
         override func visitPost(_ node: TernaryExprSyntax) {
             guard node.isInsideView, file.path?.path.contains("/ios/DesignSystem/") != true else { return }
-            let condition = node.condition.trimmedDescription
-            guard condition.hasPrefix("store.") || condition.contains("== nil") || condition.contains("!= nil") else {
-                return
+            // Any `store` or `nil` in the condition, however it is wrapped (`!store.x`,
+            // `a && store.x`, `(store.x)`, `caption == nil`).
+            let readsStateOrNil = node.condition.tokens(viewMode: .sourceAccurate).contains {
+                $0.tokenKind == .identifier("store") || $0.tokenKind == .keyword(.nil)
             }
+            guard readsStateOrNil else { return }
             violations.append(node.positionAfterSkippingLeadingTrivia)
         }
     }
