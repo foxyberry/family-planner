@@ -181,6 +181,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: a School change from a later day keeps today's hours; the Hours row shows today's and "From {d Mon} · {new hours}" while it waits; skipped dates never count for the G5 middle tab.
 - 2026-11-22: a waiting School hours change is stored like the waiting school move (one per school); its row opens G4 with the waiting hours and "Cancel this change"; a second save replaces it.
 - 2026-11-22: "Cancel this change" also removes the template version it would start; a save from "Today" drops a waiting change.
+- 2026-11-22: on a weekday school holiday the home weekday line uses the short weekday ("Wed · Holiday"), so it clears the top-right buttons (user).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -396,7 +397,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 - The hub has two parts only: the slot title and "until {end h:mm am/pm}" (body 30 `softText`).
   - One line: title 48 `ink`, baseline 540; "until" baseline 590.
   - Two lines (title fitting below): head 36, lines at 512 and 550 (pitch 38); "until" at 594.
-- **Weekday**: the first line of the right panel on every kid home screen (A1, A1n, E1, E3, E3b): head 36 (ink by day, `nightText` at night), then 24 to the Kid A name row. On a weekday school holiday it reads "{Weekday} · Holiday". It replaced "NOW" in the hub (2026-11-08) and moved out of the hub the same day so a two-line title has room.
+- **Weekday**: the first line of the right panel on every kid home screen (A1, A1n, E1, E3, E3b): head 36 (ink by day, `nightText` at night), then 24 to the Kid A name row. On a weekday school holiday it reads "{Wkd} · Holiday" with the short weekday ("Wed · Holiday", about 250 wide; user, 2026-11-22), so it ends before the buttons at the top right ("Wednesday · Holiday" measured 374 and ran into the pencil at 1240). It replaced "NOW" in the hub (2026-11-08) and moved out of the hub the same day so a two-line title has room.
 - Slot title = the item's name (e.g. "Breakfast", "School", "Swimming", "Sleep").
 - Title fitting (user decision, 2026-11-08; replaces "never wrap"):
   1. Title 48 on one line if it fits in 260 pt.
@@ -728,7 +729,7 @@ At the end of the C3 / C4 / G2 form (the card scrolls, as C3g), one line each, o
 ## E3 · Home, weekend or holiday [board]
 - Same clock. Slots come from the **Sat** or **Sun** template. A weekday school holiday uses the **Sun** template (2026-11-08).
 - Right panel (changed again 2026-11-08): **the same as A1** — Kid A block (the Next row, "Now and next on home"), then the Kid B block. The weekday is the panel's first line, as on A1. No "No bus today" (the line only appeared on weekends and read oddly).
-  - **Weekday school holiday**: the panel's weekday line reads "{Weekday} · Holiday" (see Hub text). That is the only holiday sign on the kid screen; the clock already uses the Sun template.
+  - **Weekday school holiday**: the panel's weekday line reads "{Wkd} · Holiday" ("Wed · Holiday", see Hub text). That is the only holiday sign on the kid screen; the clock already uses the Sun template.
   - Kid B block as A1.
 - Main button "Diary →" → B2. **[later M5]**: hidden in M2.
 - No item left today [proposed]: leave out the item row.
