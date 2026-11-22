@@ -34,7 +34,3 @@ flagKR
 flagTH
 flagUK
 flagVN
-
-# A rig frame the rig data no longer names: make art writes frames but never prunes old ones, so
-# this stays until the generator prunes and make art runs again.
-rig-actLanguageSchool-2
