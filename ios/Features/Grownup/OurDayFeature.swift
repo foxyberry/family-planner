@@ -340,26 +340,43 @@ public struct OurDayFeature {
         /// The day type's template the clock's day would have without its own one: where an All days
         /// change goes.
         var baseBlocks: [RoutineBlock] {
-            DayPlanner.template(for: kid, on: day, routines: routines.filter { $0.onlyOn == nil },
+            DayPlanner.template(for: kid, on: day, routines: shownRoutines.filter { $0.onlyOn == nil },
                                 holidays: family.daysOff(kid), calendar: calendar)?.blocks ?? []
         }
+
+        /// The templates as each date reads them: a waiting School change from its day on (#255).
+        var shownRoutines: [Routine] { kidInfo?.readingWaitingHours(routines) ?? routines }
 
         /// What Save writes for the template, each change by its own scope: the All days changes on
         /// the day type's template from G5's date (never before today), and, when there are This day
         /// changes, the day's own template (with the All days changes too when they start by then).
         public var routinesToSave: [Routine] {
-            var routines: [Routine] = []
+            // A School save from today reaches the later templates that follow the old record first.
+            var routines = followingToSave
             let base = baseBlocks
             let series = edit.seriesBlocks(from: base)
+            // Templates from a waiting change's day on keep today's School (#255: never a copy).
+            let kid = schoolToSave ?? kidInfo
+            let stored = DayPlanner.template(for: self.kid, on: day, routines: self.routines.filter { $0.onlyOn == nil },
+                                             holidays: family.daysOff(self.kid), calendar: calendar)?.blocks ?? []
             if series != base {
-                routines.append(Routine(kid: kid, dayType: dayType, from: allDaysFrom, blocks: series))
+                let blocks = kid?.storingSchool(series, on: allDaysFrom, stored: stored) ?? series
+                routines.append(Routine(kid: self.kid, dayType: dayType, from: allDaysFrom, blocks: blocks))
             }
             if edit.hasThisDayTemplateChange {
                 // All days changes reach this day only when G5's date is on or before it.
-                let blocks = allDaysFrom <= day ? edit.blocks : edit.replaying(on: edit.savedBlocks, scopes: [.thisDay])
-                routines.append(Routine.day(day, kid: kid, dayType: dayType, blocks: blocks))
+                let edited = allDaysFrom <= day ? edit.blocks : edit.replaying(on: edit.savedBlocks, scopes: [.thisDay])
+                let blocks = kid?.storingSchool(edited, on: day, stored: stored) ?? edited
+                routines.append(Routine.day(day, kid: self.kid, dayType: dayType, blocks: blocks))
             }
             return routines
+        }
+
+        /// A School move saved from today (the record changes now): the later templates, a day's own
+        /// ones included, whose School follows the old record move with it.
+        var followingToSave: [Routine] {
+            guard allDaysFrom <= today, let kid = schoolToSave, let old = kidInfo?.school, kid.school != old else { return [] }
+            return kid.followingSchool(routines, from: today, old: old)
         }
 
         /// G5 asks from when only when there are All days changes; its date applies only to them.
@@ -454,17 +471,21 @@ public struct OurDayFeature {
         }
 
         /// What an All days change does to the school record (layout v37): the School slice's new
-        /// times become School's hours. nil when School did not move on All days. "Remove School
-        /// every week" changes only the template, never the school record.
+        /// times become School's hours, from today at once, from a later day as the waiting hours change
+        /// (spec G5 "What Settings shows meanwhile"). nil when School did not move on All days. "Remove
+        /// School every week" changes only the template, never the school record.
         public var schoolToSave: Kid? {
             let base = baseBlocks
-            guard edit.hasAllDaysChange, var kid = kidInfo, let school = kid.school,
+            // The record that applies from G5's day: a waiting change keeps its days, Bring and the rest.
+            guard edit.hasAllDaysChange, let kid = kidInfo,
+                  let school = kid.waitingHours(on: allDaysFrom)?.school ?? kid.school,
                   let block = edit.seriesBlocks(from: base).first(where: { $0.kind == .school }),
                   let was = base.first(where: { $0.kind == .school }),
                   block.start != was.start || block.end != was.end else { return nil }
-            kid.school = school.moved(sliceStart: block.start, sliceEnd: block.end)
-            return kid
+            return kid.savingSchool(school.moved(sliceStart: block.start, sliceEnd: block.end), from: allDaysFrom,
+                                    today: today)
         }
+
         /// Board G1f: seven day pictures and "More" (two rows of four), the picked one first.
         public var newSlicePictures: [KitSlot] {
             let picked = newSlice?.iconName.flatMap(KitSlot.init(rawValue:))
@@ -958,13 +979,13 @@ public struct OurDayFeature {
 
     /// The day's template: its own one, else the day type's.
     private func template(_ state: State) -> Routine? {
-        DayPlanner.template(for: state.kid, on: state.day, routines: state.routines,
+        DayPlanner.template(for: state.kid, on: state.day, routines: state.shownRoutines,
                             holidays: state.family.daysOff(state.kid), calendar: calendar)
     }
 
     /// The kid's items on the day on the clock.
     private func clockItems(_ state: State) -> [ClockItem] {
-        DayPlanner.clockItems(on: state.day, kid: state.kid, routines: state.routines, items: state.items,
+        DayPlanner.clockItems(on: state.day, kid: state.kid, routines: state.shownRoutines, items: state.items,
                               holidays: state.family.daysOff(state.kid), calendar: calendar)
     }
 

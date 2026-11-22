@@ -20,7 +20,9 @@ final class OurDayTests: XCTestCase {
     }
 
     private func store(saved: LockIsolated<[Routine]> = .init([]), savedKids: LockIsolated<[Kid]> = .init([]),
-                       items: [ScheduleItem] = [], writes: Writes = Writes()) -> TestStoreOf<OurDayFeature> {
+                       items: [ScheduleItem] = [], writes: Writes = Writes(),
+                       kids: [Kid] = SeedData.kids, routines: [Routine] = SeedData.routines)
+        -> TestStoreOf<OurDayFeature> {
         let store = TestStore(initialState: OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday,
                                                                 calendar: F.calendar)) {
             OurDayFeature()
@@ -28,7 +30,7 @@ final class OurDayTests: XCTestCase {
             $0.calendar = F.calendar
             $0.date.now = self.tuesday.date(minute: 600, calendar: F.calendar)
             $0.uuid = .incrementing
-            $0.scheduleStore.load = { ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: items) }
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: routines, items: items) }
             $0.scheduleStore.saveRoutine = { routine in
                 saved.withValue { $0.append(routine) }
                 writes.routines.withValue { $0.append(routine) }
@@ -44,8 +46,10 @@ final class OurDayTests: XCTestCase {
     }
 
     private func loaded(saved: LockIsolated<[Routine]> = .init([]), savedKids: LockIsolated<[Kid]> = .init([]),
-                        items: [ScheduleItem] = [], writes: Writes = Writes()) async -> TestStoreOf<OurDayFeature> {
-        let store = store(saved: saved, savedKids: savedKids, items: items, writes: writes)
+                        items: [ScheduleItem] = [], writes: Writes = Writes(),
+                        kids: [Kid] = SeedData.kids,
+                        routines: [Routine] = SeedData.routines) async -> TestStoreOf<OurDayFeature> {
+        let store = store(saved: saved, savedKids: savedKids, items: items, writes: writes, kids: kids, routines: routines)
         await store.send(.task)
         await store.receive(\.loaded)
         return store
@@ -135,6 +139,132 @@ final class OurDayTests: XCTestCase {
         await store.receive(\.saved)
         XCTAssertEqual(savedKids.value.last?.school?.start, 480)
         XCTAssertEqual(savedKids.value.last?.school?.end, 900)
+    }
+
+    /// Spec G5 "What Settings shows meanwhile", #255: School moved on All days from a later day keeps
+    /// today's hours; the new ones wait for that day on the kid, and the version saved from it keeps
+    /// today's School (the date reads the waiting hours).
+    func testMovingSchoolFromALaterDayWaits() async {
+        let savedKids = LockIsolated<[Kid]>([]), saved = LockIsolated<[Routine]>([])
+        let store = await loaded(saved: saved, savedKids: savedKids)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.knobDragged(index: knob(store, at: 450), minute: 480))
+        await store.send(.knobReleased(knob(store, at: 480)))
+        await store.send(.saveTapped)
+        await store.send(.fromWhenPicked(.next))
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        let wednesday = Day(year: 2026, month: 11, day: 11)
+        XCTAssertEqual(savedKids.value.last?.school, SeedData.kidA.school, "today's hours stay")
+        XCTAssertEqual(savedKids.value.last?.pendingHours?.from, wednesday)
+        XCTAssertEqual(savedKids.value.last?.pendingHours?.school.start, 480)
+        XCTAssertEqual(saved.value.last?.from, wednesday)
+        XCTAssertEqual(saved.value.last?.blocks.first { $0.kind == .school }?.start, 450, "no copy of the waiting hours")
+        let kid = try? XCTUnwrap(savedKids.value.last)
+        let read = kid?.readingWaitingHours(SeedData.routines + saved.value) ?? []
+        XCTAssertEqual(DayPlanner.template(for: SeedData.kidA.id, on: wednesday, routines: read, holidays: [],
+                                           calendar: F.calendar)?.blocks.first { $0.kind == .school }?.start, 480)
+    }
+
+    /// A design answer to #255: School moved on All days from today reaches a later version that
+    /// follows the old record (its other edit stays).
+    func testMovingSchoolFromTodayReachesLaterVersions() async {
+        var later = SeedData.routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!
+        later.from = Day(year: 2026, month: 11, day: 20)
+        if let index = later.blocks.firstIndex(where: { $0.kind == .dinner }) {
+            later.blocks[index - 1].end = 1125
+            later.blocks[index].start = 1125
+        }
+        let saved = LockIsolated<[Routine]>([]), savedKids = LockIsolated<[Kid]>([])
+        let store = await loaded(saved: saved, savedKids: savedKids, routines: SeedData.routines + [later])
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.knobDragged(index: knob(store, at: 450), minute: 480))
+        await store.send(.knobReleased(knob(store, at: 480)))
+        await store.send(.saveTapped)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(savedKids.value.last?.school?.start, 480)
+        let moved = saved.value.first { $0.from == later.from }
+        XCTAssertEqual(moved?.blocks.first { $0.kind == .school }?.start, 480)
+        XCTAssertEqual(moved?.blocks.first { $0.kind == .dinner }?.start, 1125, "its own edit stays")
+    }
+
+    /// School moved on All days from a day after a waiting change starts from the record that applies
+    /// then (the waiting one: its days stay), and replaces the waiting change from that day.
+    func testMovingSchoolAfterTheWaitingDayStartsFromTheWaitingRecord() async {
+        let wednesday = Day(year: 2026, month: 11, day: 11), thursday = Day(year: 2026, month: 11, day: 12)
+        var waiting = SeedData.kidA.school!
+        waiting.start = 480
+        waiting.days = [.monday, .tuesday, .wednesday, .thursday]
+        let kidA = SeedData.kidA.savingSchool(waiting, from: wednesday, today: tuesday)
+        let savedKids = LockIsolated<[Kid]>([])
+        let store = await loaded(savedKids: savedKids, kids: [kidA, SeedData.kidB])
+        await store.send(.pickerDayTapped(thursday))
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.knobDragged(index: knob(store, at: 480), minute: 510))
+        await store.send(.knobReleased(knob(store, at: 510)))
+        await store.send(.saveTapped)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        let pending = savedKids.value.last?.pendingHours
+        XCTAssertEqual(pending?.from, thursday)
+        XCTAssertEqual(pending?.school.start, 510)
+        XCTAssertEqual(pending?.school.days, waiting.days, "the waiting record's days stay")
+        XCTAssertEqual(savedKids.value.last?.school, SeedData.kidA.school, "today's record stays")
+    }
+
+    /// While a change waits, a This day edit on a later day stores today's School (never a copy).
+    func testAThisDayEditAfterTheWaitingDayStoresTodaysSchool() async {
+        let wednesday = Day(year: 2026, month: 11, day: 11), thursday = Day(year: 2026, month: 11, day: 12)
+        var waiting = SeedData.kidA.school!
+        waiting.start = 480
+        let kidA = SeedData.kidA.savingSchool(waiting, from: wednesday, today: tuesday)
+        let saved = LockIsolated<[Routine]>([])
+        let store = await loaded(saved: saved, kids: [kidA, SeedData.kidB])
+        await store.send(.pickerDayTapped(thursday))
+        await store.send(.knobDragged(index: knob(store, at: 1110), minute: 1125))
+        await store.send(.knobReleased(knob(store, at: 1125)))
+        await store.send(.saveTapped)
+        await store.receive(\.saved)
+        let own = saved.value.last
+        XCTAssertEqual(own?.onlyOn, thursday)
+        XCTAssertEqual(own?.blocks.first { $0.kind == .school }?.start, 450, "today's School is stored")
+        XCTAssertEqual(own?.blocks.first { $0.kind == .dinner }?.start, 1125)
+        XCTAssertEqual(store.state.edit.blocks.first { $0.kind == .school }?.start, 480, "still read by date")
+    }
+
+    /// #255 S1: while a change waits from Wed, Thu's clock shows the waiting School; another slice saved
+    /// on All days from Thu keeps today's School in the store, so a cancel leaves Thu on today's hours
+    /// with the other edit.
+    func testAnotherEditAfterTheWaitingDayStoresTodaysSchool() async {
+        let wednesday = Day(year: 2026, month: 11, day: 11), thursday = Day(year: 2026, month: 11, day: 12)
+        var later = SeedData.kidA.school!
+        later.start = 480
+        let kidA = SeedData.kidA.savingSchool(later, from: wednesday, today: tuesday)
+        let saved = LockIsolated<[Routine]>([])
+        let store = await loaded(saved: saved, kids: [kidA, SeedData.kidB])
+        XCTAssertEqual(store.state.edit.blocks.first { $0.kind == .school }?.start, 450, "today: today's hours")
+        await store.send(.pickerDayTapped(thursday))
+        XCTAssertEqual(store.state.edit.blocks.first { $0.kind == .school }?.start, 480, "Thu reads the waiting hours")
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.knobDragged(index: knob(store, at: 1110), minute: 1125))
+        await store.send(.knobReleased(knob(store, at: 1125)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.allDaysFrom, thursday)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        let version = saved.value.last
+        XCTAssertEqual(version?.from, thursday)
+        XCTAssertEqual(version?.blocks.first { $0.kind == .school }?.start, 450, "today's School is stored")
+        XCTAssertEqual(version?.blocks.first { $0.kind == .dinner }?.start, 1125)
+        XCTAssertEqual(store.state.edit.blocks.first { $0.kind == .school }?.start, 480, "still read by date")
+        var cancelled = kidA
+        cancelled.pendingHours = nil
+        let after = DayPlanner.template(for: kidA.id, on: thursday,
+                                        routines: cancelled.readingWaitingHours(SeedData.routines + saved.value),
+                                        holidays: [], calendar: F.calendar)
+        XCTAssertEqual(after?.blocks.first { $0.kind == .school }?.start, 450)
+        XCTAssertEqual(after?.blocks.first { $0.kind == .dinner }?.start, 1125, "the other edit stays")
     }
 
     /// Spec "Add between two slices": a "+" on every shared knob, all the time (none beside free

@@ -15,23 +15,49 @@ final class SchoolEditorTests: XCTestCase {
 
     private func day(_ number: Int) -> Day { Day(year: 2026, month: 11, day: number) }
 
+    /// A waiting hours change from Wed 18 Nov: 8:30 am – 2:00 pm, Arrive by 8:30, Latest 8:40.
+    private var waitingDay: Day { day(18) }
+    private var waitingSchool: School {
+        var school = SeedData.kidA.school!
+        school.start = 510
+        school.end = 840
+        school.arriveBy = 510
+        school.latest = 520
+        return school
+    }
+    /// Kid A's weekday version on the waiting day with another edit (Dinner at 6:45 pm).
+    private var dinnerVersion: Routine {
+        var version = SeedData.routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!
+        version.from = waitingDay
+        if let index = version.blocks.firstIndex(where: { $0.kind == .dinner }) {
+            version.blocks[index - 1].end = 1125
+            version.blocks[index].start = 1125
+        }
+        return version
+    }
+
     private func store(savedKids: LockIsolated<[Kid]>, savedRoutines: LockIsolated<[Routine]>,
+                       routines extra: [Routine] = [],
                        directoryID: String? = nil, schools: [SchoolEntry] = [], today: Day? = nil,
-                       nowMinute: Int = 600, shownDay: Day? = nil, holidays: [Holiday] = [])
+                       nowMinute: Int = 600, shownDay: Day? = nil, holidays: [Holiday] = [],
+                       waits: Bool = false, editsWaiting: Bool = false)
         -> TestStoreOf<SchoolEditorFeature> {
         var kidA = SeedData.kidA
         kidA.school?.arriveBy = 450
         kidA.school?.latest = 460
         kidA.school?.directoryID = directoryID
+        let routines = SeedData.routines + extra
+        // The waiting change is only on the kid: it writes no template (spec #255).
+        if waits { kidA.pendingHours = PendingHours(school: waitingSchool, from: waitingDay, medal: false) }
         let kids = [kidA, SeedData.kidB]
         let state = SchoolEditorFeature.State(kid: kidA.id, today: today ?? tuesday, nowMinute: nowMinute,
-                                              shownDay: shownDay, calendar: F.calendar)
+                                              shownDay: shownDay, editsWaiting: editsWaiting, calendar: F.calendar)
         let store = TestStore(initialState: state) {
             SchoolEditorFeature()
         } withDependencies: {
             $0.calendar = F.calendar
             $0.holidays.holidays = { year in holidays.filter { $0.day.year == year } }
-            $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: SeedData.routines, items: []) }
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: routines, items: []) }
             $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.scheduleStore.saveRoutine = { routine in savedRoutines.withValue { $0.append(routine) } }
             $0.schoolDirectory.calendar = { _, _ in .none }
@@ -185,10 +211,13 @@ final class SchoolEditorTests: XCTestCase {
         await store.send(.fromWhenSaveTapped)
         await store.receive(\.saved)
         XCTAssertNil(store.state.fromWhen)
-        XCTAssertEqual(routines.value.last?.from, day(11))
-        XCTAssertEqual(routines.value.last?.dayType, .weekday)
-        XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.end, 870)
-        XCTAssertEqual(kids.value.last?.school?.end, 870, "the school record has no date: it changes now, as on G1")
+        // Spec G5 "What Settings shows meanwhile", #255: today's hours stay until that day; the new
+        // ones wait on the kid and no template copies them (dates read them from their day).
+        XCTAssertEqual(kids.value.last?.school?.end, 900, "today's hours stay in force")
+        XCTAssertEqual(kids.value.last?.pendingHours?.from, day(11))
+        XCTAssertEqual(kids.value.last?.pendingHours?.school.end, 870)
+        XCTAssertNil(kids.value.last?.pendingHours?.medal, "the medal did not change")
+        XCTAssertEqual(routines.value, [])
     }
 
     /// G5's Date: a weekend date still makes the weekday template from that day; never before today.
@@ -205,9 +234,9 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(store.state.fromWhenDateLabel, "21 Nov")
         await store.send(.fromWhenSaveTapped)
         await store.receive(\.saved)
-        XCTAssertEqual(routines.value.last?.from, day(21))
-        XCTAssertEqual(routines.value.last?.dayType, .weekday)
-        XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.start, 450)
+        XCTAssertEqual(kids.value.last?.pendingHours?.from, day(21), "a weekend date waits for that day")
+        XCTAssertEqual(kids.value.last?.pendingHours?.school.start, 450)
+        XCTAssertEqual(routines.value, [])
     }
 
     /// Spec G5: G4 opened from G1 on a later day opens the card on that day: the middle tab when it is
@@ -364,5 +393,189 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertNil(routines.value.last?.onlyOn)
         XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.isSkipped, false)
         XCTAssertEqual(routines.value.last?.blocks.first { $0.kind == .school }?.end, 870)
+    }
+
+    // MARK: The waiting hours change (spec G5 "What Settings shows meanwhile", #255)
+
+    /// G4 opened any other way starts from today's whole record; the waiting change shows under When
+    /// and its row turns this G4 to the waiting values, with "Cancel this change". No edits, no Save.
+    func testTheWaitingRowOpensTheWaitingHours() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, waits: true)
+        XCTAssertNil(store.state.school, "no form before the store answers")
+        XCTAssertNil(store.state.waitingLine)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.startLabel, "7:30 am", "today's hours")
+        XCTAssertEqual(store.state.waitingLine, "From 18 Nov · 8:30 am – 2:00 pm")
+        XCTAssertNil(store.state.cancelChangeTitle)
+        XCTAssertTrue(store.state.medal)
+
+        await store.send(.waitingRowTapped)
+        XCTAssertTrue(store.state.editsWaiting)
+        XCTAssertEqual(store.state.startLabel, "8:30 am")
+        XCTAssertEqual(store.state.endLabel, "2:00 pm")
+        XCTAssertEqual(store.state.arriveByLabel, "8:30 am")
+        XCTAssertFalse(store.state.medal, "the waiting change's medal")
+        XCTAssertNil(store.state.waitingLine)
+        XCTAssertEqual(store.state.cancelChangeTitle, "Cancel this change")
+        XCTAssertFalse(store.state.canSave, "nothing changed yet")
+        await store.send(.saveTapped)
+        XCTAssertNil(store.state.fromWhen)
+    }
+
+    /// Opened from its row (Settings), the form is the waiting change; a second save replaces it, G5
+    /// asks again on its day, and still no template is written.
+    func testSavingTheWaitingChangeAgainReplacesIt() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, waits: true, editsWaiting: true)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.familyLoaded)
+        XCTAssertEqual(store.state.startLabel, "8:30 am")
+        await store.send(.endPicked(tuesday.date(minute: 780, calendar: F.calendar)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .date, "G5 opens on the waiting day")
+        XCTAssertEqual(store.state.splitDay, waitingDay)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        await store.receive(\.delegate.finished)
+        var replaced = waitingSchool
+        replaced.end = 780
+        XCTAssertEqual(kids.value.last?.school?.end, 900, "today's hours stay")
+        XCTAssertEqual(kids.value.last?.pendingHours, PendingHours(school: replaced, from: waitingDay, medal: false))
+        XCTAssertEqual(routines.value, [])
+    }
+
+    /// A second save from another day moves the waiting change there; nothing is left on the old day.
+    func testSavingFromAnotherDayMovesTheWaitingChange() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, waits: true, editsWaiting: true)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.medalToggled)
+        await store.send(.saveTapped)
+        await store.send(.fromWhenDatePicked(day(25).date(calendar: F.calendar)))
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(kids.value.last?.pendingHours?.from, day(25))
+        XCTAssertNil(kids.value.last?.pendingHours?.medal, "back on the template's medal")
+        XCTAssertEqual(routines.value, [])
+    }
+
+    /// Spec G5: a save from "Today" while a change waits drops it; the template from today is written
+    /// as any Today save, and that day's own version keeps its other edits (#255).
+    func testASaveFromTodayDropsTheWaitingChange() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, routines: [dinnerVersion], waits: true)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.endPicked(tuesday.date(minute: 870, calendar: F.calendar)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .today)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(kids.value.last?.school?.end, 870, "the record changes now")
+        XCTAssertNil(kids.value.last?.pendingHours)
+        // "From today" reaches the waiting day's version too (it follows the record): its Dinner stays.
+        XCTAssertEqual(routines.value.map(\.from), [waitingDay, tuesday])
+        XCTAssertEqual(routines.value.first?.blocks.first { $0.kind == .school }?.end, 870)
+        XCTAssertEqual(routines.value.first?.blocks.first { $0.kind == .dinner }?.start, 1125)
+    }
+
+    /// A design answer to #255: a School save from today reaches later templates, a day's own ones
+    /// included, that follow the old record; a day with its own School times keeps them.
+    func testASaveFromTodayReachesLaterTemplates() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        var later = SeedData.routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!
+        later.from = day(25)
+        let skipped = Routine.day(day(20), kid: SeedData.kidA.id, dayType: .weekday, blocks: later.blocks)
+        var lateStart = skipped
+        lateStart.onlyOn = day(23)
+        lateStart.from = day(23)
+        if let index = lateStart.blocks.firstIndex(where: { $0.kind == .school }) {
+            lateStart.blocks[index - 1].end = 540
+            lateStart.blocks[index].start = 540
+        }
+        let store = store(savedKids: kids, savedRoutines: routines, routines: [later, skipped, lateStart])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.endPicked(tuesday.date(minute: 870, calendar: F.calendar)))
+        await store.send(.saveTapped)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        let saved = routines.value
+        XCTAssertEqual(saved.map { $0.onlyOn ?? $0.from }, [day(25), day(20), tuesday])
+        XCTAssertEqual(saved.first?.blocks.first { $0.kind == .school }?.end, 870)
+        XCTAssertEqual(saved[1].blocks.first { $0.kind == .school }?.end, 870)
+        XCTAssertFalse(saved.contains { $0.onlyOn == day(23) }, "a late start of its own stays")
+    }
+
+    /// "Cancel this change" asks first ("Cancel the change from 18 Nov?"); the link alone and "Keep"
+    /// save nothing.
+    func testCancelThisChangeAsksFirst() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, waits: true, editsWaiting: true)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.cancelChangeTapped)
+        XCTAssertTrue(store.state.isConfirmingCancel)
+        XCTAssertEqual(store.state.cancelConfirmTitle, "Cancel the change from 18 Nov?")
+        XCTAssertEqual(store.state.cancelConfirmAction, "Cancel it")
+        XCTAssertEqual(store.state.cancelConfirmKeep, "Keep")
+        await store.send(.cancelKept)
+        XCTAssertFalse(store.state.isConfirmingCancel)
+        await store.finish()
+        XCTAssertTrue(kids.value.isEmpty && routines.value.isEmpty, "nothing saved")
+        XCTAssertTrue(store.state.editsWaiting, "still on the waiting change")
+    }
+
+    /// "Cancel it" removes only the waiting change: no template was written for it, so the waiting
+    /// day's own version keeps its other edits; today's hours stay.
+    func testCancelChangeRemovesOnlyTheWaitingChange() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, routines: [dinnerVersion], waits: true,
+                          editsWaiting: true)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.cancelChangeTapped)
+        await store.send(.cancelConfirmed)
+        await store.receive(\.saved)
+        await store.receive(\.delegate.finished)
+        XCTAssertNil(kids.value.last?.pendingHours)
+        XCTAssertEqual(kids.value.last?.school?.start, 450, "today's hours stay")
+        XCTAssertEqual(routines.value, [], "the waiting day's version (with its Dinner edit) is left as it is")
+    }
+
+    /// From its day the form's This day reads the waiting hours (the template by date); a skip there
+    /// stores today's School, so a cancel returns that day to it.
+    func testThisDayOnTheWaitingDayReadsTheWaitingHours() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, shownDay: waitingDay, waits: true)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.thisDay))
+        await store.send(.skipDayTapped)
+        await store.receive(\.daySkipSaved)
+        let school = routines.value.last?.blocks.first { $0.kind == .school }
+        XCTAssertEqual(routines.value.last?.onlyOn, waitingDay)
+        XCTAssertEqual(school?.start, 450, "the skip stores today's School, never a copy of the waiting one")
+        XCTAssertEqual(school?.isSkipped, true)
+        XCTAssertTrue(store.state.isDaySkipped)
+        XCTAssertEqual(store.state.skipTitle, "Bring back this day")
+    }
+
+    /// Opened on a waiting change that is gone (cancelled elsewhere): today's hours, nothing to cancel.
+    func testOpenedOnAWaitingChangeThatIsGoneShowsTodaysHours() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines, editsWaiting: true)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertFalse(store.state.editsWaiting)
+        XCTAssertEqual(store.state.startLabel, "7:30 am")
+        XCTAssertNil(store.state.cancelChangeTitle)
+        await store.send(.cancelChangeTapped)
+        XCTAssertFalse(store.state.isConfirmingCancel)
+        XCTAssertTrue(kids.value.isEmpty)
     }
 }

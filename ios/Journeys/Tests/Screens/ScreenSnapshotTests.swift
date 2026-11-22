@@ -51,6 +51,43 @@ final class ScreenSnapshotTests: XCTestCase {
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
     }
 
+    /// Spec G5 "What Settings shows meanwhile", reached as in SchoolJourneys: G4 saves a new end from
+    /// tomorrow; Settings then shows today's hours and "From 11 Nov" under them, and G4 the same line
+    /// under When; its row turns G4 to the waiting hours with "Cancel this change", which asks first.
+    func testWaitingSchoolHours() async throws {
+        let world = World(sample)
+        var start = AppFeature.State()
+        start.path.append(.settings(SettingsFeature.State(kid: SeedData.kidA.id)))
+        let store = world.store(start)
+        await opened(store)
+        let settings = store.state.path.ids[0]
+        await store.send(.path(.element(id: settings, action: .settings(.task))))
+        await store.receive(\.path[id: settings].settings.loaded)
+        await store.send(.path(.element(id: settings, action: .settings(.schoolRowTapped))))
+        let editor = try XCTUnwrap(store.state.path.ids.last)
+        await store.send(.path(.element(id: editor, action: .schoolEditor(.task))))
+        await store.receive(\.path[id: editor].schoolEditor.loaded)
+        let end = world.today.date(minute: 870, calendar: world.calendar)
+        await store.send(.path(.element(id: editor, action: .schoolEditor(.endPicked(end)))))
+        await store.send(.path(.element(id: editor, action: .schoolEditor(.saveTapped))))
+        await store.send(.path(.element(id: editor, action: .schoolEditor(.fromWhenPicked(.next)))))
+        await store.send(.path(.element(id: editor, action: .schoolEditor(.fromWhenSaveTapped))))
+        await store.receive(\.path[id: editor].schoolEditor.delegate.finished)
+        await store.finish()
+        await store.skipReceivedActions()
+        for (name, size) in Self.sizes { snap(store.state, world, size: size, named: "settings-\(name)") }
+
+        await store.send(.path(.element(id: settings, action: .settings(.schoolRowTapped))))
+        let today = try XCTUnwrap(store.state.path.ids.last)
+        await store.send(.path(.element(id: today, action: .schoolEditor(.task))))
+        await store.receive(\.path[id: today].schoolEditor.loaded)
+        snap(store.state, world, size: Self.sizes[0].size, named: "g4-13")
+        await store.send(.path(.element(id: today, action: .schoolEditor(.waitingRowTapped))))
+        snap(store.state, world, size: Self.sizes[0].size, named: "g4-waiting-13")
+        await store.send(.path(.element(id: today, action: .schoolEditor(.cancelChangeTapped))))
+        snap(store.state, world, size: Self.sizes[0].size, named: "g4-cancel-13")
+    }
+
     /// A pushed screen with a form card open (C3's Bring card over the new-item editor), at the mini:
     /// the dim reaches the window's sides past the board frame, as it does on the 13-inch (review of
     /// PR 168: the navigation stack clipped pushed screens to the board frame).

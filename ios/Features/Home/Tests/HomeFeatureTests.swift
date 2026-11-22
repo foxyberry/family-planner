@@ -47,6 +47,73 @@ final class HomeFeatureTests: XCTestCase {
         return store
     }
 
+    /// Spec G5 / #255: a School hours change waiting from Wednesday. On Tuesday today's clock keeps
+    /// today's hours and tomorrow reads the waiting ones; nothing is written yet.
+    func testAWaitingHoursChangeReadsFromItsDay() async {
+        var kidA = SeedData.kidA
+        var later = kidA.school!
+        later.end = 840
+        kidA = kidA.savingSchool(later, from: wednesday, today: tuesday)
+        let routines = LockIsolated<[Routine]>([])
+        let store = store(on: tuesday, minute: 600, snapshot: snapshot(kids: [kidA, SeedData.kidB]))
+        store.dependencies.scheduleStore.saveRoutine = { routine in routines.withValue { $0.append(routine) } }
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.days.first?.slots.first { $0.kind == .school }?.end, 900, "today's hours")
+        XCTAssertEqual(store.state.days.first?.tomorrowSlots.first { $0.kind == .school }?.end, 840)
+        XCTAssertEqual(routines.value, [])
+    }
+
+    /// On its day Home writes the waiting hours into that day's template version, then the record,
+    /// once (routines first, the kid last).
+    func testOnItsDayHomeWritesTheWaitingHoursThenTheRecord() async {
+        var kidA = SeedData.kidA
+        var later = kidA.school!
+        later.end = 840
+        kidA = kidA.savingSchool(later, from: wednesday, today: tuesday)
+        let writes = LockIsolated<[String]>([]), routines = LockIsolated<[Routine]>([]), kids = LockIsolated<[Kid]>([])
+        let store = store(on: wednesday, minute: 600, snapshot: snapshot(kids: [kidA, SeedData.kidB]))
+        store.dependencies.scheduleStore.saveRoutine = { routine in
+            routines.withValue { $0.append(routine) }
+            writes.withValue { $0.append("routine") }
+        }
+        store.dependencies.scheduleStore.saveKid = { kid in
+            kids.withValue { $0.append(kid) }
+            writes.withValue { $0.append("kid") }
+        }
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.reload)
+        await store.receive(\.loaded)
+        XCTAssertEqual(writes.value, ["routine", "kid"])
+        XCTAssertEqual(routines.value.first?.from, wednesday)
+        XCTAssertEqual(routines.value.first?.dayType, .weekday)
+        XCTAssertEqual(routines.value.first?.blocks.first { $0.kind == .school }?.end, 840)
+        XCTAssertEqual(kids.value.first?.school, later)
+        XCTAssertNil(kids.value.first?.pendingHours)
+    }
+
+    /// Review of #257: when a template save fails on the day, the record is not written, so the change
+    /// still waits (read by date) instead of leaving a template on the old slot for good.
+    func testOnItsDayAFailedTemplateSaveLeavesTheRecordWaiting() async {
+        struct SaveFailed: Error {}
+        var kidA = SeedData.kidA
+        var later = kidA.school!
+        later.end = 840
+        kidA = kidA.savingSchool(later, from: wednesday, today: tuesday)
+        let kids = LockIsolated<[Kid]>([])
+        let store = store(on: wednesday, minute: 600, snapshot: snapshot(kids: [kidA, SeedData.kidB]))
+        store.dependencies.scheduleStore.saveRoutine = { _ in throw SaveFailed() }
+        store.dependencies.scheduleStore.saveKid = { kid in kids.withValue { $0.append(kid) } }
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.reload)
+        await store.receive(\.loaded)
+        XCTAssertEqual(kids.value, [], "no record write after a failed template save")
+        XCTAssertEqual(store.state.days.first?.slots.first { $0.kind == .school }?.end, 840,
+                       "today still reads the waiting hours by date")
+    }
+
     /// Board A1 on a live bus morning: "Leave in" counts to the chosen bus and the status shows.
     /// Made-up stop and bus numbers (privacy rule).
     func testLiveBusMorningShowsTheStatus() async {

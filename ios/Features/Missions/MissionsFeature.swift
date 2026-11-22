@@ -707,7 +707,7 @@ public struct MissionsFeature {
     static func slots(_ snapshot: ScheduleSnapshot, today: Day, family: FamilyCalendar,
                       calendar: Calendar) -> [Kid.ID: [Slot]] {
         Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
-            (kid.id, DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines, items: family.resolving(snapshot.items, calendar: calendar),
+            (kid.id, DayPlanner.slots(on: today, kid: kid, routines: kid.readingWaitingHours(snapshot.routines), items: family.resolving(snapshot.items, calendar: calendar),
                                       holidays: family.daysOff(kid.id), calendar: calendar))
         })
     }
@@ -716,7 +716,7 @@ public struct MissionsFeature {
     static func nights(_ snapshot: ScheduleSnapshot, today: Day, family: FamilyCalendar,
                        calendar: Calendar) -> [Kid.ID: NightSpan?] {
         Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
-            (kid.id, DayPlanner.nightSpan(of: DayPlanner.template(for: kid.id, on: today, routines: snapshot.routines,
+            (kid.id, DayPlanner.nightSpan(of: DayPlanner.template(for: kid.id, on: today, routines: kid.readingWaitingHours(snapshot.routines),
                                                                   holidays: family.daysOff(kid.id), calendar: calendar)))
         })
     }

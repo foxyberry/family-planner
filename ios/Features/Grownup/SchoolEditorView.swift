@@ -48,6 +48,13 @@ public struct SchoolEditorView: View {
                             }
                         } else {
                             Text(store.everyTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                            // The waiting hours change: it can be cancelled (spec G5 "What Settings shows meanwhile").
+                            if let cancel = store.cancelChangeTitle {
+                                Button { store.send(.cancelChangeTapped) } label: {
+                                    Text(cancel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.lateText)
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -71,6 +78,13 @@ public struct SchoolEditorView: View {
                 CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.fromWhenCancelTapped) }
                 fromWhenCard
+            }
+            // Spec #255: "Cancel this change" asks first (centred over the dim, as G7's cancel).
+            if store.isConfirmingCancel {
+                CrayonColor.dim.fullBleed().onTapGesture { store.send(.cancelKept) }
+                ConfirmCard(title: store.cancelConfirmTitle, message: nil, cancel: store.cancelConfirmKeep,
+                            confirm: store.cancelConfirmAction, isDestructive: true,
+                            onCancel: { store.send(.cancelKept) }, onConfirm: { store.send(.cancelConfirmed) })
             }
         }
         .task { await store.send(.task).finish() }
@@ -148,6 +162,12 @@ public struct SchoolEditorView: View {
                 }
             }
             .drawnRow()
+            // Today's hours above; a waiting change below them opens here on its own hours.
+            if let waiting = store.waitingLine {
+                linkRow("", action: .waitingRowTapped) {
+                    Text(waiting).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                }
+            }
             ListRow(leading: L10n.tr("editor.row.days"), minHeight: sizing.fieldHeight) {
                 HStack(spacing: sizing(Spacing.sm)) {
                     ForEach(Weekday.allCases.sorted(), id: \.self) { day in

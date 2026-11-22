@@ -10,9 +10,12 @@ import Strings
 
 /// G4 · Edit School (spec "G4"): School's hours, days, Arrive by and Latest, Terms, how
 /// the kid goes, Bring and the medal. **All days** asks G5 "Change from when?" (spec G5), then writes
-/// the school record and a new weekday template from that day with School's slice on the new times
-/// (as an All days save on the clock does). **This day** keeps the record and saves the day's own
-/// template with School's slice moved (a late start, an early dismissal).
+/// the school record and a new weekday template from today with School's slice on the new times; from a
+/// later day it stores the kid's one waiting change instead (spec G5 "What Settings shows meanwhile",
+/// #255), which templates read from its day and Home writes in on that day. Its "From {d Mon} ·
+/// {hours} ›" row turns this G4 to it, with "Cancel this change" (asked first).
+/// **This day** keeps the record and saves the day's own template with School's slice moved (a late
+/// start, an early dismissal).
 @Reducer
 public struct SchoolEditorFeature {
     /// "This day" or "All days" (spec "Edit scope").
@@ -33,6 +36,11 @@ public struct SchoolEditorFeature {
             return schoolDay(onOrAfter: from) ?? from
         }
         public var editScope: Scope = .allDays
+        /// The form edits the waiting hours change (opened from its "From {d Mon} · {hours} ›" row),
+        /// not today's hours.
+        public var editsWaiting: Bool
+        /// "Cancel this change" asks first ("Cancel the change from 18 Nov?").
+        public var isConfirmingCancel = false
         /// Board G5: the "Change from when?" card is open, with its choice and date.
         public var fromWhen: FromWhenTabs.Choice?
         public var fromWhenDate: Day
@@ -60,14 +68,57 @@ public struct SchoolEditorFeature {
         public var calendar: Calendar
         public var saveError: String?
 
-        public init(kid: Kid.ID, today: Day, nowMinute: Int = 0, shownDay: Day? = nil, calendar: Calendar) {
+        public init(kid: Kid.ID, today: Day, nowMinute: Int = 0, shownDay: Day? = nil, editsWaiting: Bool = false,
+                    calendar: Calendar) {
             self.kid = kid
             self.today = today
             self.nowMinute = nowMinute
             self.shownDay = shownDay
+            self.editsWaiting = editsWaiting
             self.calendar = calendar
             fromWhenDate = today
         }
+
+        /// The form's values once the kid is known: the waiting change when the form edits it (none
+        /// left, today's), else today's hours; the medal from the template they start.
+        mutating func startForm() {
+            let waiting = editsWaiting ? stored?.pendingHours : nil
+            editsWaiting = waiting != nil
+            school = waiting?.school ?? stored?.school
+            original = school
+            medal = templateMedal(on: waiting?.from ?? today, routines: shown)
+            originalMedal = medal
+        }
+
+        /// The kid's templates as each date reads them (a waiting change from its day on).
+        var shown: [Routine] { stored?.readingWaitingHours(routines) ?? routines }
+
+        /// The medal School wins on the weekday template in use from `day` (today, or the next weekday).
+        func templateMedal(on day: Day, routines: [Routine]) -> Bool {
+            let template = DayPlanner.template(for: kid, on: weekday(from: day), routines: routines, holidays: [],
+                                               calendar: calendar)
+            return template?.blocks.first { $0.kind == .school }?.trip?.medal ?? true
+        }
+
+        // MARK: The waiting hours change (spec G5 "What Settings shows meanwhile")
+
+        /// The kid's waiting hours change, if one waits.
+        public var waiting: PendingHours? { stored?.pendingHours }
+        /// Under When (today's hours): "From 18 Nov · 8:30 am – 2:00 pm" while a change waits; not on
+        /// the waiting change itself.
+        public var waitingLine: String? {
+            guard !editsWaiting, let waiting else { return nil }
+            return strings.tr("school_edit.waiting", DayText.dayMonth(waiting.from, calendar: calendar),
+                              TimeText.hours(waiting.school.start, waiting.school.end))
+        }
+        /// The waiting change's "Cancel this change" (`lateText`); none on today's hours.
+        public var cancelChangeTitle: String? { editsWaiting ? strings.tr("school_edit.cancel_change") : nil }
+        /// The ConfirmCard under the link (spec #255): "Cancel the change from 18 Nov?".
+        public var cancelConfirmTitle: String {
+            strings.tr("school_edit.cancel_change.title", DayText.dayMonth(waiting?.from ?? today, calendar: calendar))
+        }
+        public var cancelConfirmAction: String { strings.tr("school_edit.cancel_change.confirm") }
+        public var cancelConfirmKeep: String { strings.tr("school_edit.cancel_change.keep") }
 
         /// The kid's days off.
         var daysOff: Set<Day> { family.daysOff(kid) }
@@ -75,21 +126,24 @@ public struct SchoolEditorFeature {
         /// Whether School is on `day` for the saved school: one of its days, a school day (not a day
         /// off) and in the day's template (skipped or not, so a skip does not move This day).
         func hasSchool(on day: Day) -> Bool {
-            guard let days = original?.days, days.contains(day.weekday(calendar)),
+            guard let days = stored?.school?.days, days.contains(day.weekday(calendar)),
                   DayPlanner.dayType(on: day, holidays: daysOff, calendar: calendar) == .weekday else { return false }
-            return DayPlanner.template(for: kid, on: day, routines: routines, holidays: daysOff, calendar: calendar)?
+            return DayPlanner.template(for: kid, on: day, routines: shown, holidays: daysOff, calendar: calendar)?
                 .blocks.contains { $0.kind == .school } == true
         }
 
         /// The day carried from G1 as This day moved it (G5 opens on it, spec G5 #250); nil from the
-        /// List or Settings, so G5 opens on Today.
-        var carriedDay: Day? { shownDay == nil ? nil : day }
+        /// List or Settings, so G5 opens on Today. The waiting change opens G5 on its own day.
+        var carriedDay: Day? {
+            if editsWaiting, let waiting { return waiting.from }
+            return shownDay == nil ? nil : day
+        }
 
         /// The first day from `start` that has School (a year ahead at most); today counts only until
         /// School is over.
         func schoolDay(onOrAfter start: Day) -> Day? {
             (0..<366).lazy.map { start.adding(days: $0, calendar: self.calendar) }
-                .filter { $0 != self.today || self.nowMinute < (self.original?.end ?? 0) }
+                .filter { $0 != self.today || self.nowMinute < (self.stored?.school?.end ?? 0) }
                 .first { self.hasSchool(on: $0) }
         }
 
@@ -159,9 +213,9 @@ public struct SchoolEditorFeature {
         /// Spec "E5 School rule": This day's side column as G3, "{Day d Mon} only" then "Skip this day".
         public var isThisDay: Bool { editScope == .thisDay }
         public var thisDayTitle: String { L10n.tr("editor.this_day.only", DayText.short(day, calendar: calendar)) }
-        /// The day's template (its own one when it has it).
+        /// The day's template (its own one when it has it), as that date reads it.
         var dayTemplate: Routine? {
-            DayPlanner.template(for: kid, on: day, routines: routines, holidays: [], calendar: calendar)
+            DayPlanner.template(for: kid, on: day, routines: shown, holidays: [], calendar: calendar)
         }
         /// School is skipped on this day (a sick day); "Bring back" undoes it.
         public var isDaySkipped: Bool { dayTemplate?.blocks.first { $0.kind == .school }?.isSkipped == true }
@@ -197,8 +251,7 @@ public struct SchoolEditorFeature {
         /// This day: the date's own template with School's slice moved; the school record stays.
         var dayTemplateToSave: Routine? {
             guard let school,
-                  let current = DayPlanner.template(for: kid, on: day, routines: routines, holidays: [], calendar: calendar),
-                  current.blocks.contains(where: { $0.kind == .school }) else { return nil }
+                  let current = dayTemplate, current.blocks.contains(where: { $0.kind == .school }) else { return nil }
             var edit = TemplateEdit(blocks: current.blocks)
             if let index = edit.blocks.firstIndex(where: { $0.kind == .school }) {
                 _ = edit.setStart(ofBlock: index, to: school.arriveBy ?? school.start)
@@ -207,11 +260,19 @@ public struct SchoolEditorFeature {
                 _ = edit.setEnd(ofBlock: index, to: school.end)
             }
             return Routine.day(day, kid: kid, dayType: DayPlanner.dayType(on: day, holidays: [], calendar: calendar),
-                               blocks: edit.blocks)
+                               blocks: storing(edit.blocks, on: day))
         }
 
-        /// The weekday template from G5's day with School's slice on the new times (the knobs' rules),
-        /// made from the weekday template in use then (a day's own template is not a base).
+        /// What a day's own template stores: while a change waits there, School on the waiting hours
+        /// goes back to today's record (#255: a day reads School by date, never a copy).
+        func storing(_ blocks: [RoutineBlock], on day: Day) -> [RoutineBlock] {
+            let raw = DayPlanner.template(for: kid, on: day, routines: routines, holidays: [], calendar: calendar)?.blocks
+            return stored?.storingSchool(blocks, on: day, stored: raw ?? blocks) ?? blocks
+        }
+
+        /// A save from today: the weekday template from today with School's slice on the new times (the
+        /// knobs' rules), made from the weekday template in use (a day's own template is not a base). A
+        /// save from a later day writes no template: the waiting change is read from its day (#255).
         var templateToSave: Routine? {
             guard let school,
                   let current = DayPlanner.template(for: kid, on: weekday(from: splitDay),
@@ -269,6 +330,12 @@ public struct SchoolEditorFeature {
         /// "Going ›": Our buses for this kid (spec: the S3 trip screen, opened from here).
         case goingTapped
         case saveTapped
+        /// "From {d Mon} · {hours} ›": the form edits the waiting hours change.
+        case waitingRowTapped
+        /// "Cancel this change": asks first; "Cancel it" removes the waiting change, "Keep" keeps it.
+        case cancelChangeTapped
+        case cancelConfirmed
+        case cancelKept
         /// Board G5 over G4: Today / the next day / Date, then Save or Cancel.
         case fromWhenPicked(FromWhenTabs.Choice)
         case fromWhenDatePicked(Date)
@@ -328,17 +395,41 @@ public struct SchoolEditorFeature {
                 return .none
 
             case let .loaded(snapshot):
-                let kid = snapshot?.kids.first { $0.id == state.kid }
-                state.stored = kid
-                state.school = kid?.school
-                state.original = kid?.school
+                state.stored = snapshot?.kids.first { $0.id == state.kid }
                 state.routines = snapshot?.routines ?? []
                 state.busPlan = snapshot?.busPlans.route(kid: state.kid)
-                let template = DayPlanner.template(for: state.kid, on: state.nextSchoolDay, routines: state.routines,
-                                                   holidays: [], calendar: calendar)
-                state.medal = template?.blocks.first { $0.kind == .school }?.trip?.medal ?? true
-                state.originalMedal = state.medal
+                state.startForm()
                 return .none
+
+            case .waitingRowTapped:
+                guard state.waiting != nil else { return .none }
+                state.editsWaiting = true
+                state.editScope = .allDays
+                state.startForm()
+                return .none
+
+            case .cancelChangeTapped:
+                guard state.editsWaiting, state.waiting != nil else { return .none }
+                state.isConfirmingCancel = true
+                return .none
+
+            case .cancelKept:
+                state.isConfirmingCancel = false
+                return .none
+
+            case .cancelConfirmed:
+                state.isConfirmingCancel = false
+                guard state.editsWaiting, var kid = state.stored, kid.pendingHours != nil else { return .none }
+                // Only the waiting change goes: it wrote nothing into the templates (#255).
+                kid.pendingHours = nil
+                return .run { [scheduleStore, kid] send in
+                    do {
+                        try await scheduleStore.saveKid(kid)
+                        await send(.saved(true))
+                    } catch {
+                        await send(.saved(false))
+                    }
+                }
 
             case let .startPicked(date):
                 // Arrive by and Latest move with the start, Latest keeping its grace.
@@ -425,7 +516,7 @@ public struct SchoolEditorFeature {
                 blocks[index].isSkipped.toggle()
                 let routine = Routine.day(state.day, kid: state.kid,
                                           dayType: DayPlanner.dayType(on: state.day, holidays: [], calendar: state.calendar),
-                                          blocks: blocks)
+                                          blocks: state.storing(blocks, on: state.day))
                 return .run { [scheduleStore] send in
                     do {
                         try await scheduleStore.saveRoutine(routine)
@@ -478,15 +569,27 @@ public struct SchoolEditorFeature {
                 return .none
 
             case .fromWhenSaveTapped:
-                guard state.fromWhen != nil, state.canSave, var kid = state.stored else { return .none }
-                // The school record has no date: it changes now, as an All days save on the clock does;
-                // the weekday template changes from G5's day.
-                kid.school = state.school
-                let routine = state.templateToSave
+                guard state.fromWhen != nil, state.canSave, let stored = state.stored, let school = state.school
+                else { return .none }
+                // From today: the record and the weekday template now (a waiting change is dropped). From a
+                // later day: the kid's one waiting change, its medal only when it differs from the
+                // template's then; no template is written (#255: dates read it from its day).
+                let from = state.splitDay
+                let waits = from > state.today
+                let stays = state.templateMedal(on: from, routines: state.routines)
+                let medal: Bool? = waits && state.medal != stays ? state.medal : nil
+                let kid = stored.savingSchool(school, from: from, today: state.today, medal: medal)
+                let routine = waits ? nil : state.templateToSave
+                // From today the change reaches the later templates that follow the old record too.
+                let changedMedal = state.medal != state.originalMedal ? state.medal : nil
+                let following = waits ? [] : stored.school.map {
+                    kid.followingSchool(state.routines, from: state.today, old: $0, medal: changedMedal)
+                } ?? []
                 state.fromWhen = nil
                 return .run { [scheduleStore, kid] send in
                     do {
                         try await scheduleStore.saveKid(kid)
+                        for later in following { try await scheduleStore.saveRoutine(later) }
                         if let routine { try await scheduleStore.saveRoutine(routine) }
                         await send(.saved(true))
                     } catch {
