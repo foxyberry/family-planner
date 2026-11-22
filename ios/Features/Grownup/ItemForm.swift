@@ -159,7 +159,24 @@ public struct ItemForm: Equatable, Sendable {
         }
     }
 
-    static func label(for iconName: String) -> String {
+    /// A picture's name for a new item or slice (C3, G1f): the catalog's where the spec names it,
+    /// else the kit name in words ("actSwim" → "Swim").
+    public static func label(for iconName: String) -> String {
+        // Spec seed data (actLanguageSchool): the flags are named by their language only, so every
+        // name fits the 14 characters; the plain flag is "Weekend school". "TV" keeps its capitals.
+        switch iconName {
+        case "actLanguageSchool": return L10n.tr("picture.actLanguageSchool") // copy-ok: KitSlot name
+        case "tv": return L10n.tr("picture.tv") // copy-ok: KitSlot name
+        case "flagKR": return L10n.tr("picture.flagKR") // copy-ok: KitSlot name
+        case "flagJP": return L10n.tr("picture.flagJP") // copy-ok: KitSlot name
+        case "flagCN": return L10n.tr("picture.flagCN") // copy-ok: KitSlot name
+        case "flagUK": return L10n.tr("picture.flagUK") // copy-ok: KitSlot name
+        case "flagFR": return L10n.tr("picture.flagFR") // copy-ok: KitSlot name
+        case "flagIN": return L10n.tr("picture.flagIN") // copy-ok: KitSlot name
+        case "flagTH": return L10n.tr("picture.flagTH") // copy-ok: KitSlot name
+        case "flagVN": return L10n.tr("picture.flagVN") // copy-ok: KitSlot name
+        default: break
+        }
         var raw = Substring(iconName)
         if raw.hasPrefix("act"), raw.dropFirst(3).first?.isUppercase == true { raw = raw.dropFirst(3) }
         if raw.allSatisfy(\.isUppercase) { return String(raw) }

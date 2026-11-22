@@ -56,6 +56,7 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.morePicturesTapped)
         await store.send(.picturePicked("flagJP"))
         XCTAssertEqual(store.state.form.iconName, "flagJP")
+        XCTAssertEqual(store.state.form.name, "Japanese", "a flag is named by its language (spec seed data)")
         XCTAssertFalse(store.state.isPickingMorePictures)
         XCTAssertEqual(store.state.whatRow.first, "flagJP")
     }

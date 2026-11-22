@@ -1,6 +1,7 @@
 import Domain
 import Foundation
 import Grownup
+import KitArt
 import ScheduleStore
 import XCTest
 
@@ -412,4 +413,20 @@ final class ItemFormTests: XCTestCase {
         form.setGoing(.car)
         XCTAssertEqual(form.leaveLine, "Leave 3:20 pm by car · bring Robe.")
     }
+
+    /// Every picture C3's and G1f's grids and "More" cards can show prefills a real name: no raw
+    /// kit-name leftovers like "Flag k r" (a one-letter word), and within the 14-character limit.
+    func testEveryOfferedPictureHasARealName() {
+        let offered = Set(ItemEditorFeature.State.pictures + ItemEditorFeature.State.flags
+                          + OurDayFeature.pictures + OurDayFeature.suggested)
+        for slot in offered {
+            let name = ItemForm.label(for: slot.rawValue)
+            XCTAssertFalse(name.split(separator: " ").contains { $0.count == 1 }, "\(slot.rawValue) → \(name)")
+            XCTAssertLessThanOrEqual(name.count, 14, "\(slot.rawValue) → \(name)")
+        }
+        XCTAssertEqual(ItemForm.label(for: "flagKR"), "Korean")
+        XCTAssertEqual(ItemForm.label(for: "actLanguageSchool"), "Weekend school")
+        XCTAssertEqual(ItemForm.label(for: "tv"), "TV")
+    }
+
 }
