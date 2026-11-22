@@ -2,7 +2,7 @@
 name: git-flow-delivery
 description: Runs this repo's git flow delivery loop - feature/* branches cut from develop, English conventional commits, private-term checks on diffs and on commit/PR text, a branch's first push only after explicit user approval (later pushes to your own draft or open PR branch need no ask), PRs into develop, CI checks with self-fix on the same branch, and release/hotfix merges into main with tags. Use when starting a milestone task, creating a branch, committing, pushing, opening or updating a PR, checking or fixing CI, or preparing a release.
 metadata:
-  version: 0.8.0
+  version: 0.9.0
   status: experimental
 ---
 
@@ -107,7 +107,12 @@ When you ask:
 ## Merge
 
 - `feature/*` → `develop`: squash merge, after an "LGTM at <sha>" on the PR for its current head (`pr-review-handoff`).
-- `release/*` → `main`: merge commit + tag `v<x.y.z>`, then merge `main` back into `develop`.
+- `release/*` → `main`: a PR, merged with a merge commit, then tag `v<x.y.z>` (tags push as before).
+  Then a second PR brings `main` back into `develop`: a `sync/main-to-develop` branch cut from
+  `main`, merged with a merge commit. `main` and `develop` are protected for admins too (Guards and
+  Secret scan required, no force push or deletion), so a merge commit pushed straight to either is
+  refused: every merge goes through a PR whose checks ran. Wait for them (`gh pr checks <n> --watch`).
+- `hotfix/*` → `main`, then into `develop`: the same two PRs.
 
 ## Do not
 
