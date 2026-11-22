@@ -64,7 +64,9 @@ printf 'only_rules:\n  - view_values\n' > "$values"
   echo "excluded:"
   grep -vE '^[[:space:]]*(#|$)' scripts/view-values-pending.txt | sed "s|^|  - $ROOT/|"
 } > "$values_pending"
-sed '/^  - view_values$/d' .swiftlint.yml > "$rest"
+sed '/^  - view_values$/d; /^  - layout_literals$/d' .swiftlint.yml > "$rest"
+layout="$work/layout.yml"
+printf 'only_rules:\n  - layout_literals\n' > "$layout"
 
 # lint <config> <path>…: SwiftLint's report; 0 clean, 2 violations; anything else (bad config,
 # crash) shows its own message and stops. Paths print relative to the repo (SwiftLint may print
@@ -107,6 +109,31 @@ if grep -q '^  - ' "$rest"; then
   printf '%s\n' "$out" | grep -E 'error:|warning:'
   [ "$other" = 2 ] && code=2
 fi
+
+# layout_literals counts per screen file against scripts/layout-literals-pending.txt: one count per
+# line with a hit, as the old regex guard counted. A file not listed must have 0; a listed file must
+# have exactly its count (lower it when some go; delete the line at 0); a line for a missing file goes.
+out="$(lint "$layout" "$ROOT/ios")"
+[ $? = 1 ] && exit 1  # could not run; the reason is on stderr
+hits="$(printf '%s\n' "$out" | grep -E '\.swift:[0-9]+:')"
+counts="$(printf '%s\n' "$hits" | grep . | cut -d: -f1,2 | sort -u | cut -d: -f1 | sort | uniq -c | awk '{ print $2, $1 }')"
+listed="$(grep -vE '^[[:space:]]*(#|$)' scripts/layout-literals-pending.txt)"
+for rel in $( { printf '%s\n' "$counts" | cut -d' ' -f1; printf '%s\n' "$listed" | cut -d' ' -f1; } | grep . | sort -u); do
+  have="$(printf '%s\n' "$counts" | awk -v f="$rel" '$1 == f { print $2 }')"
+  allowed="$(printf '%s\n' "$listed" | awk -v f="$rel" '$1 == f { print $2 }')"
+  have="${have:-0}"; allowed="${allowed:-0}"
+  if [ ! -f "$rel" ]; then
+    echo "swiftlint: pending entry for a missing file: $rel (delete it from scripts/layout-literals-pending.txt)" >&2
+    code=2
+  elif [ "$have" -gt "$allowed" ]; then
+    printf '%s\n' "$hits" | grep -F "$rel:"
+    echo "swiftlint: layout literal in a screen: $rel has $have, pending allows $allowed (use a token, part or layout; no offsets)" >&2
+    code=2
+  elif [ "$have" -lt "$allowed" ]; then
+    echo "swiftlint: pending count too high: $rel has $have, scripts/layout-literals-pending.txt says $allowed (lower it; delete the line at 0)" >&2
+    code=2
+  fi
+done
 
 # The pending list only shrinks: a listed file with no view_values hit and no hit of
 # check-view-values.sh (copy lookups, placeholder numbers) is clean, and its line must go.

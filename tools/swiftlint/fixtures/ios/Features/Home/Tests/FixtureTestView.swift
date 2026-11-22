@@ -8,3 +8,7 @@ struct FixtureTestView: View {
 enum FixtureTestReads {
     static let calendar = Calendar.current
 }
+
+struct FixtureTestFrames: View {
+    var body: some View { Text("t").frame(width: 112).offset(x: 4) }
+}

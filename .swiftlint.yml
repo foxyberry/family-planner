@@ -4,3 +4,4 @@
 only_rules:
   - view_values
   - outside_data
+  - layout_literals

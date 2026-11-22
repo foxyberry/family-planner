@@ -38,7 +38,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           EVENT: ${{ github.event_name }}
         run: |
-          relevant='^ios/.*\.swift$|^tools/swiftlint/|^\.swiftlint\.yml$|^scripts/(swiftlint\.sh|ux-states|view-values-pending\.txt|check-view-values\.sh)|^docs/superpowers/layout/.*\.json$|^MODULE\.bazel|^\.github/workflows/swiftlint\.yml$'
+          relevant='^ios/.*\.swift$|^tools/swiftlint/|^\.swiftlint\.yml$|^scripts/(swiftlint\.sh|ux-states|view-values-pending\.txt|layout-literals-pending\.txt|check-view-values\.sh)|^docs/superpowers/layout/.*\.json$|^MODULE\.bazel|^\.github/workflows/swiftlint\.yml$'
           if [ "$EVENT" = workflow_dispatch ] || [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           elif git diff --name-only "$BASE" HEAD | grep -Eq "$relevant"; then

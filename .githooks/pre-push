@@ -4,7 +4,7 @@
 #   2. check-private-terms.sh: private words in those commits (diff, file names, message,
 #      author), in the pushed branch or tag names, and in annotated tag messages
 #   3. make lint: when a Bazel file changed (BUILD, .bzl, MODULE.bazel)
-#   4. check-kid-screens.sh, check-crayon-canvas.sh, check-layout-literals.sh, check-view-values.sh, check-journeys.sh and check-unattended-tests.sh: when Swift under
+#   4. check-kid-screens.sh, check-crayon-canvas.sh, check-view-values.sh, check-journeys.sh and check-unattended-tests.sh: when Swift under
 #      ios/ changed (kid screens never scroll; outside data only through dependencies; every
 #      Canvas says how crayon wobble bleeds; no debug code outside DebugTools: check-debug-boundary.sh; every reducer has a journey; no test waits for Face ID);
 #      check-strings.sh when Swift under
@@ -71,7 +71,6 @@ if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   "$ROOT/scripts/check-kid-screens.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-crayon-canvas.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-debug-boundary.sh" </dev/null || status=1
-  bash "$ROOT/scripts/check-layout-literals.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-view-values.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-journeys.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-unattended-tests.sh" </dev/null || status=1
@@ -99,7 +98,7 @@ if [ -f "$ROOT/scripts/swiftlint.sh" ]; then
   if printf '%s' "$changed" | grep -Eq "$rules"; then
     bash "$ROOT/scripts/swiftlint.sh" --self-test </dev/null || status=1
   fi
-  if printf '%s' "$changed" | grep -Eq "^ios/.*\.swift$|$rules|^scripts/view-values-pending\.txt$"; then
+  if printf '%s' "$changed" | grep -Eq "^ios/.*\.swift$|$rules|^scripts/(view-values|layout-literals)-pending\.txt$"; then
     bash "$ROOT/scripts/swiftlint.sh" </dev/null || status=1
   fi
   if [ -f "$ROOT/scripts/ux-states.sh" ] && printf '%s' "$changed" \
