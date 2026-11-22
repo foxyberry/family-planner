@@ -22,7 +22,7 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 - Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
 
 ## Commands
-make setup | build | run | device | test | test-one | ui-test | snapshots | snapshots-record | art | lint | swiftlint | fmt | xcodeproj | sim-stop | clean
+make setup | build | run | device | test | test-one | ui-test | ux-sweep | snapshots | snapshots-record | art | lint | swiftlint | fmt | xcodeproj | sim-stop | clean
 Single test target (same flags as `make test`, keeps caches warm):
 `make test-one TARGET=//ios/AppCore/Tests:AppCoreTests`. Plain `bazel test` skips `ios/.bazelrc`.
 Guard tests: `for t in scripts/tests/*-test.sh; do bash "$t"; done` (the pre-push hook runs them when guards change).
@@ -109,4 +109,4 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 - Claude hooks block private terms in file writes and publishing text.
 - Git hooks (`.githooks`, `make setup`): pre-commit and pre-push run gitleaks and the term check;
   pre-push also runs `make lint` on Bazel changes and guard tests on guard changes.
-- Show the command and its output as evidence before saying a build or test passed.
+- Show the command and its output before saying a build or test passed.

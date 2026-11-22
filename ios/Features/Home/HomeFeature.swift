@@ -15,6 +15,7 @@ import Strings
 @Reducer
 public struct HomeFeature {
     /// Kid A's block on the right panel (spec "Now and next on home").
+    /// ux-states: home, Kid A block
     public enum KidABlock: Equatable, Sendable {
         /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
         case leave

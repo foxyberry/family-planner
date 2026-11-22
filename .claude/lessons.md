@@ -4,3 +4,4 @@ Lessons from real work, waiting for a skill retro (`skill-retro` skill). One lin
 `- YYYY-MM-DD · symptom · cause · rule · target` where target is a skill name, `CLAUDE.md`,
 `guard` (a script or test can enforce it) or `drop`. This repo is public: no private names, places,
 stops or schools. The retro moves each line into its target and deletes it here.
+- 2026-11-22 · the harness session deleted an untracked file in the main checkout (another session's) while the review session was still asking the user · "it is safe, the content is on develop" felt like enough · deleting or overwriting anything in another session's checkout waits for the user's yes, even when the content is kept elsewhere · pr-review-handoff
