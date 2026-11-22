@@ -1,7 +1,7 @@
 import CoreGraphics
 import DesignSystem
 
-/// Boards A1, A1m, A1n, E1, E3, E3b (docs/superpowers/layout, v17 "Home panel lines"), every board
+/// Boards A1, A1m, A1b, A1n, E1, E3, E3b (docs/superpowers/layout, v68 "Home panel lines"), every board
 /// value × s (spec "Sizing: one scale, no floors"): the home screen's parts as screen rects, lines
 /// and baselines. Kid A's lines are fixed; Kid B's block moves as one unit 40 below Kid A's last part
 /// (`kidBTop(after:)`). The clock disc's centre is (448, 528), R 372; the panel runs 928–1336
@@ -57,7 +57,7 @@ public struct HomeLayout: Equatable, Sendable {
     public var kidAStatusBaseline: CGFloat { sizing.y(374) }
 
     /// Where a Next row sits: the picture (104) on 928, then at 1048 (gap 16) "Next" (caption), the
-    /// title and "at …", 21, 62 and 100 below the picture's top.
+    /// title and the time line, 21, 62 and 100 below the picture's top (the `NextRow` part's lines).
     public struct RowPlace: Equatable, Sendable {
         public let picture: CGRect
         public let textLeft: CGFloat
@@ -67,17 +67,19 @@ public struct HomeLayout: Equatable, Sendable {
         public let atBaseline: CGFloat
     }
 
+    /// The lines come from the `NextRow` part itself, so the layout tests check what it draws.
     private func row(top: CGFloat) -> RowPlace {
-        RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: 104 * s, height: 104 * s),
-                 textLeft: sizing.x(1048), labelBaseline: sizing.y(top + 21),
-                 titleBaseline: sizing.y(top + 62), atBaseline: sizing.y(top + 100))
+        let side = NextRow.pictureSide * s
+        return RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: side, height: side),
+                        textLeft: sizing.x(928 + NextRow.textLeft), labelBaseline: sizing.y(top + NextRow.captionBaseline),
+                        titleBaseline: sizing.y(top + NextRow.titleBaseline), atBaseline: sizing.y(top + NextRow.lineBaseline))
     }
 
     /// E3 / E3b: the Next row at 238.
     public var nextRow: RowPlace { row(top: 238) }
 
-    /// A1n: the 80 row 24 below the time left (Tomorrow, or Next by day) at 367: a 56 picture on an
-    /// 80 plate, text at 1024 (gap 16) on 404 and 435.
+    /// A1n: the Tomorrow row, 24 below the time left at 367: a 56 picture on an 80 plate, text at
+    /// 1024 (gap 16) on 404 and 435.
     public var timeLeftRow: RowPlace {
         RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(367), width: 80 * s, height: 80 * s),
                  textLeft: sizing.x(1024), labelBaseline: nil, titleBaseline: sizing.y(404),
@@ -91,13 +93,13 @@ public struct HomeLayout: Equatable, Sendable {
     public enum KidAEnd: Equatable, Sendable {
         /// Only the name (nothing next today): the name box ends at 214.
         case name
-        /// E3 / E3b: the Next row's "at …" ends at 348.
+        /// E3 / E3b: the Next row's time line ends at 348.
         case nextRow
         /// A1m: the time-left box ends at 360.
         case timeLeft
         /// A1: "On time" ends at 396.
         case status
-        /// A1n: the 80 row under the time left ends at 446.
+        /// A1n: the Tomorrow row under the time left ends at 446.
         case timeLeftRow
 
         var bottom: CGFloat {
@@ -118,8 +120,10 @@ public struct HomeLayout: Equatable, Sendable {
         return nameBaseline - 24
     }
 
-    /// Now (160) and next (104) circles, bottoms aligned, 48 below Kid B's name baseline.
-    public func nowNext(kidBTop: CGFloat) -> CGPoint { CGPoint(x: panelLeft, y: sizing.y(kidBTop + 72)) }
+    /// Layout v68: Kid B's Now row, its picture's top 50 below the name baseline (the badge top + 24).
+    public func kidBNowRow(kidBTop: CGFloat) -> RowPlace { row(top: kidBTop + 24 + 50) }
+    /// Kid B's Next row, 126 below the Now row.
+    public func kidBNextRow(kidBTop: CGFloat) -> RowPlace { row(top: kidBTop + 24 + 50 + 126) }
 
     /// "Missions →", the panel's width, bottom 968.
     public var button: CGRect { CGRect(x: panelLeft, y: sizing.y(872), width: panelRight - panelLeft, height: 96 * s) }

@@ -4,9 +4,8 @@ import Foundation
 import KitArt
 import Strings
 
-/// A row of the "Next" list or the day-off item (boards E1, E3).
-/// The one thing next on a kid's clock (spec "Now and next on home").
-public struct NextRow: Equatable, Sendable {
+/// The one thing next on a kid's clock (spec "Now and next on home"), drawn as a Next row.
+public struct NextItem: Equatable, Sendable {
     public var iconName: String
     public var title: String
     public var start: Int
@@ -14,12 +13,27 @@ public struct NextRow: Equatable, Sendable {
     public var kind: SlotKind
     /// A just-once item keeps its star sticker on the picture.
     public var showsStar: Bool
+    /// The row's time line: "in 45 min" within 60 minutes, else "at 7:30 am" (`HomeModel.nextLine`).
+    public var line: String
 
     /// The row's picture (an unknown name shows play).
     public var picture: KitSlot { KitSlot(iconName: iconName) }
+}
 
-    /// "at 7:30 am": the start only; the range is on the clock.
-    public var at: String { L10n.tr("home.next.at", TimeText.withPeriod(start)) }
+/// What is on now for a kid without the clock (Kid B's Now row): its picture, title and "until …".
+public struct NowItem: Equatable, Sendable {
+    public var picture: KitSlot
+    public var title: String
+    /// "until 4:00 pm"; nil when nothing is on now and nothing is later today (the row has no time line).
+    public var line: String?
+    public var showsStar: Bool
+
+    public init(picture: KitSlot, title: String, line: String?, showsStar: Bool) {
+        self.picture = picture
+        self.title = title
+        self.line = line
+        self.showsStar = showsStar
+    }
 }
 
 /// Board A1n "Tomorrow" row: tomorrow's first outing, "Tomorrow" over "School, leave 7:25 am".
@@ -67,15 +81,48 @@ public enum HomeModel {
 
     /// Spec "Now and next on home": the next thing after the current one, of any kind, after the
     /// priority rule. Free time is skipped, and so is a slot that only continues after an item ends
-    /// (Play after Weekend school).
-    public static func next(_ slots: [Slot], minute: Int) -> NextRow? {
-        let after = DayPlanner.now(at: minute, in: slots).current?.end ?? minute
-        return slots.first { $0.start >= after && $0.start > minute && $0.kind != .free && !onlyContinues($0, in: slots) }
-            .map { NextRow(iconName: $0.iconName, title: $0.title, start: $0.start, end: end(of: $0, in: slots),
-                           kind: $0.kind, showsStar: $0.showsStar) }
+    /// (Play after Weekend school). With `tomorrow` (Kid B at night, board A1n) a day with nothing
+    /// left goes on into tomorrow's first thing after the night's sleep ("Breakfast").
+    public static func next(_ slots: [Slot], minute: Int, tomorrow: [Slot] = []) -> NextItem? {
+        let current = DayPlanner.now(at: minute, in: slots).current
+        let after = current?.end ?? minute
+        if let slot = slots.first(where: { $0.start >= after && $0.start > minute && shows($0, in: slots) }) {
+            return item(slot, in: slots, minutesAway: slot.start - minute)
+        }
+        // Tomorrow's night is skipped: its opening Sleep, whatever is on now (with nothing left today,
+        // or a gap after the last item), or tonight's slot running on past midnight into
+        // tomorrow's first slot of the same kind.
+        let night = tomorrow.first { slot in
+            slot.start == 0 && (slot.kind == .sleep || current.map { $0.kind == slot.kind && $0.end == 1440 } == true)
+        }
+        let wake = night?.end ?? 0
+        return tomorrow.first { $0.start >= wake && shows($0, in: tomorrow) }
+            .map { item($0, in: tomorrow, minutesAway: $0.start + 1440 - minute) }
     }
 
-    /// "in" / "Bed in" and the minutes to `next`; `nil` over 3 hours or with nothing next.
+    /// The Next row's time line (spec "The row", user 2026-11-22): "in {n} min" while the start is
+    /// 60 minutes or less away, else "at {h:mm am/pm}". Never "1h 20m" (that stays for Leave and Bed).
+    public static func nextLine(start: Int, minutesAway: Int) -> String {
+        minutesAway <= 60 ? L10n.tr("home.next.in_min", "\(minutesAway)") : L10n.tr("home.next.at", TimeText.withPeriod(start))
+    }
+
+    /// Kid B's Now row (spec "Kid B block"): the slot on now "until" its end; with nothing on now (or
+    /// free time) the play picture and "Free time" until the next slot starts (spec "States"). With
+    /// `tomorrow`, a slot running past midnight ends at tomorrow's wake-up (the Next row's day).
+    public static func now(_ slots: [Slot], minute: Int, tomorrow: [Slot] = []) -> NowItem {
+        let now = DayPlanner.now(at: minute, in: slots)
+        let until = { (minute: Int) in L10n.tr("home.hub.until", TimeText.withPeriod(minute)) }
+        let nextDay = tomorrow.isEmpty ? slots : tomorrow
+        if let current = now.current, current.kind != .free {
+            return NowItem(picture: KitSlot(iconName: current.iconName), title: current.title,
+                           line: until(end(of: current, in: nextDay)), showsStar: current.showsStar)
+        }
+        let freeUntil = now.current.map { end(of: $0, in: nextDay) } ?? now.next?.start
+        return NowItem(picture: .actPlay, title: L10n.tr("home.hub.free"), line: freeUntil.map(until), showsStar: false)
+    }
+
+    /// "Bed in" and the minutes to `next`, when it is Sleep (board A1n); `nil` over 3 hours or with
+    /// nothing next.
     public struct TimeLeft: Equatable, Sendable {
         public var label: String
         public var minutes: Int
@@ -90,10 +137,20 @@ public enum HomeModel {
         public var isLate: Bool { TimeLeftText.isLate(minutes: minutes) }
     }
 
-    public static func timeLeft(to next: NextRow?, minute: Int) -> TimeLeft? {
-        guard let next, next.start - minute <= 180 else { return nil }
-        return TimeLeft(label: next.kind == .sleep ? L10n.tr("home.next.bed_in") : L10n.tr("home.next.in"),
-                        minutes: next.start - minute)
+    public static func bedIn(to next: NextItem?, minute: Int) -> TimeLeft? {
+        guard let next, next.kind == .sleep, next.start - minute <= 180 else { return nil }
+        return TimeLeft(label: L10n.tr("home.next.bed_in"), minutes: next.start - minute)
+    }
+
+    /// A slot the Next row can name: not free time, not a template slot that only resumes.
+    private static func shows(_ slot: Slot, in slots: [Slot]) -> Bool {
+        slot.kind != .free && !onlyContinues(slot, in: slots)
+    }
+
+    private static func item(_ slot: Slot, in slots: [Slot], minutesAway: Int) -> NextItem {
+        NextItem(iconName: slot.iconName, title: slot.title, start: slot.start, end: end(of: slot, in: slots),
+                 kind: slot.kind, showsStar: slot.showsStar,
+                 line: nextLine(start: slot.start, minutesAway: minutesAway))
     }
 
     /// A template slot that starts where an item ends, with a piece of the same slot just before
