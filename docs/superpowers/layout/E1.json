@@ -1,5 +1,5 @@
 {
- "version": "71",
+ "version": "73",
  "board": "E1",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -176,7 +176,7 @@
    "text": "Monday"
   },
   {
-   "id": "panel.kidName.1",
+   "id": "panel.kidName",
    "kind": "text",
    "x": 928,
    "y": 196,
@@ -222,26 +222,26 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.1",
+   "id": "panel.kidALabel",
    "kind": "text",
-   "x": 1040,
-   "y": 266,
-   "w": 117,
-   "h": 45,
+   "x": 1024,
+   "y": 269,
+   "w": 94,
+   "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 301,
-   "font": 30,
+   "baseline": 297,
+   "font": 24,
    "text": "Leave in"
   },
   {
-   "id": "panel.picture.1",
+   "id": "panel.kidAWay.1",
    "kind": "picture",
    "x": 928,
-   "y": 277,
-   "w": 96,
-   "h": 96,
+   "y": 271,
+   "w": 80,
+   "h": 80,
    "region": "panel",
    "anchor": "stretch",
    "align": "start"
@@ -249,15 +249,29 @@
   {
    "id": "panel.text.1",
    "kind": "text",
-   "x": 1040,
-   "y": 289,
-   "w": 253,
-   "h": 108,
+   "x": 1024,
+   "y": 290,
+   "w": 169,
+   "h": 72,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 373,
-   "font": 72
+   "baseline": 346,
+   "font": 48
+  },
+  {
+   "id": "panel.kidAStatus",
+   "kind": "text",
+   "x": 1024,
+   "y": 352,
+   "w": 127,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 370,
+   "font": 24,
+   "text": "On time"
   },
   {
    "id": "clock.slotPicture.3",
@@ -271,18 +285,29 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidAStatus",
+   "id": "panel.kidAWay.2",
+   "kind": "picture",
+   "x": 928,
+   "y": 425,
+   "w": 80,
+   "h": 80,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.text.2",
    "kind": "text",
-   "x": 1040,
-   "y": 387,
-   "w": 151,
+   "x": 1024,
+   "y": 427,
+   "w": 192,
    "h": 45,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 410,
+   "baseline": 462,
    "font": 30,
-   "text": "On time"
+   "text": "Next · Snack"
   },
   {
    "id": "clock.slotPicture.4",
@@ -296,43 +321,17 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.2",
+   "id": "panel.text.3",
    "kind": "text",
-   "x": 1048,
+   "x": 1024,
    "y": 465,
-   "w": 56,
+   "w": 136,
    "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
    "baseline": 493,
-   "font": 24,
-   "text": "Next"
-  },
-  {
-   "id": "panel.picture.2",
-   "kind": "picture",
-   "x": 928,
-   "y": 471,
-   "w": 104,
-   "h": 104,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
-  },
-  {
-   "id": "panel.kidName.2",
-   "kind": "text",
-   "x": 1048,
-   "y": 491,
-   "w": 114,
-   "h": 54,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 533,
-   "font": 36,
-   "text": "Snack"
+   "font": 24
   },
   {
    "id": "clock.slotPicture.5",
@@ -344,19 +343,6 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "panel.text.2",
-   "kind": "text",
-   "x": 1048,
-   "y": 537,
-   "w": 170,
-   "h": 45,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 572,
-   "font": 30
   },
   {
    "id": "clock.slotPicture.6",

@@ -1,5 +1,5 @@
 {
- "version": "71",
+ "version": "73",
  "board": "A1b",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -58,7 +58,7 @@
    "nextLabel": 259,
    "nextTitle": 300,
    "nextAt": 338,
-   "kidBName": 464
+   "kidBName": 436
   },
   "kidARow": {
    "pictureLeft": 928,
@@ -223,26 +223,26 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.1",
+   "id": "panel.kidALabel",
    "kind": "text",
-   "x": 1040,
-   "y": 266,
-   "w": 117,
-   "h": 45,
+   "x": 1024,
+   "y": 269,
+   "w": 94,
+   "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 301,
-   "font": 30,
+   "baseline": 297,
+   "font": 24,
    "text": "Leave in"
   },
   {
-   "id": "panel.picture.1",
+   "id": "panel.kidAWay.1",
    "kind": "picture",
    "x": 928,
-   "y": 277,
-   "w": 96,
-   "h": 96,
+   "y": 271,
+   "w": 80,
+   "h": 80,
    "region": "panel",
    "anchor": "stretch",
    "align": "start"
@@ -250,15 +250,15 @@
   {
    "id": "panel.text.1",
    "kind": "text",
-   "x": 1040,
-   "y": 289,
-   "w": 232,
-   "h": 108,
+   "x": 1024,
+   "y": 290,
+   "w": 155,
+   "h": 72,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 373,
-   "font": 72
+   "baseline": 346,
+   "font": 48
   },
   {
    "id": "clock.slotPicture.3",
@@ -286,20 +286,20 @@
    "id": "panel.kidName.2",
    "kind": "text",
    "x": 928,
-   "y": 437,
+   "y": 409,
    "w": 173,
    "h": 54,
    "region": "panel",
    "anchor": "stretch",
    "align": "start",
-   "baseline": 464,
+   "baseline": 436,
    "font": 36
   },
   {
    "id": "panel.kidRing.2",
    "kind": "picture",
    "x": 928,
-   "y": 440,
+   "y": 412,
    "w": 48,
    "h": 48,
    "region": "panel",
@@ -310,7 +310,7 @@
    "id": "panel.kidFace.2",
    "kind": "picture",
    "x": 932,
-   "y": 444,
+   "y": 416,
    "w": 41,
    "h": 41,
    "region": "panel",
@@ -318,18 +318,29 @@
    "align": "inside"
   },
   {
+   "id": "panel.kidAWay.2",
+   "kind": "picture",
+   "x": 928,
+   "y": 484,
+   "w": 80,
+   "h": 80,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
    "id": "panel.text.2",
    "kind": "text",
-   "x": 1048,
-   "y": 508,
-   "w": 51,
-   "h": 36,
+   "x": 1024,
+   "y": 486,
+   "w": 158,
+   "h": 45,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 536,
-   "font": 24,
-   "text": "Now"
+   "baseline": 521,
+   "font": 30,
+   "text": "Now · Play"
   },
   {
    "id": "clock.slotPicture.5",
@@ -343,42 +354,42 @@
    "align": "inside"
   },
   {
-   "id": "panel.picture.2",
+   "id": "panel.text.3",
+   "kind": "text",
+   "x": 1024,
+   "y": 524,
+   "w": 164,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 552,
+   "font": 24
+  },
+  {
+   "id": "panel.kidAWay.3",
    "kind": "picture",
    "x": 928,
-   "y": 515,
-   "w": 104,
-   "h": 104,
+   "y": 580,
+   "w": 80,
+   "h": 80,
    "region": "panel",
    "anchor": "stretch",
    "align": "start"
   },
   {
-   "id": "panel.kidName.3",
+   "id": "panel.text.4",
    "kind": "text",
-   "x": 1048,
-   "y": 535,
-   "w": 79,
-   "h": 54,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 577,
-   "font": 36,
-   "text": "Play"
-  },
-  {
-   "id": "panel.text.3",
-   "kind": "text",
-   "x": 1048,
-   "y": 580,
-   "w": 205,
+   "x": 1024,
+   "y": 582,
+   "w": 235,
    "h": 45,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 615,
-   "font": 30
+   "baseline": 617,
+   "font": 30,
+   "text": "Next · Birthday"
   },
   {
    "id": "clock.slotPicture.6",
@@ -392,43 +403,17 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.2",
+   "id": "panel.text.5",
    "kind": "text",
-   "x": 1048,
-   "y": 634,
-   "w": 56,
+   "x": 1024,
+   "y": 620,
+   "w": 111,
    "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 662,
-   "font": 24,
-   "text": "Next"
-  },
-  {
-   "id": "panel.picture.3",
-   "kind": "picture",
-   "x": 928,
-   "y": 640,
-   "w": 104,
-   "h": 104,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
-  },
-  {
-   "id": "panel.kidName.4",
-   "kind": "text",
-   "x": 1048,
-   "y": 660,
-   "w": 164,
-   "h": 54,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 702,
-   "font": 36,
-   "text": "Birthday"
+   "baseline": 648,
+   "font": 24
   },
   {
    "id": "clock.slotPicture.7",
@@ -440,19 +425,6 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "panel.text.4",
-   "kind": "text",
-   "x": 1048,
-   "y": 706,
-   "w": 139,
-   "h": 45,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 741,
-   "font": 30
   },
   {
    "id": "clock.slotPicture.8",
