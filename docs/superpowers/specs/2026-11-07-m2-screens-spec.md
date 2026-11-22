@@ -193,7 +193,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: home redesigned (user, design note 2026-11-22-home-redesign-design.md): the clock shows the picked kid's day (kid-colour rim, hub r 104 with face, weekday and time; weekday leaves the panel), the right panel is one family list of next things in time order climbing from the bottom (next card above the kid chips), time cell with six time-left dots within the hour, mission rows replace the main button, faces under titles, no "Leave in" / "On time" / "Now ·" / "Next ·" on home, kid chips pick the clock and dim other kids for 10 s, holiday scene behind the clock; disabled look 40 % everywhere (Undo / Redo off, steppers at a limit, Medal without a trip). Boards A1 … G0 redrawn, new E3s, E3x, A1k; layout v75.
 - 2026-11-22: K1 month cards and the open month draw their outline on the box (inset 0), an exception to the crayon part inset, so six-row months fit (#259 build).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
-- 2026-11-22: holiday scene (user, issue 023): full background kept; public-holiday scenes drawn in next-date order (Christmas Day, New Year's Day first), an "(observed)" day uses its holiday's scene; scenes ship as HEIC @2x, not SVG.
+- 2026-11-22: holiday scene (user, issue 023): full background kept; public-holiday scenes drawn in next-date order (Christmas Day, New Year's Day first), an "(observed)" day uses its holiday's scene; scenes are HEIC @2x in an Apple-hosted Background Assets pack (prefetch), none until downloaded.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -412,7 +412,8 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 - **Full background**: sky and ground fill the whole area, behind the hour labels; the scene's things (tree, presents, balloons, umbrella) sit in the corners, off the hour labels.
 - Which scene: a public holiday's own scene first; else the school-holiday scene (beach, `holiday-scene.js`) when **every** kid who goes to a school or preschool is off for a school break (vacation, school holiday, day off in lieu, preschool closure); else none. A public holiday without its own scene shows none. An "(observed)" day uses its holiday's scene.
 - Public-holiday scenes so far: Christmas Day, New Year's Day. The rest are drawn in next-date order from the bundled list: Chinese New Year, Hari Raya Puasa, Good Friday, Labour Day, Hari Raya Haji, Vesak Day, National Day, Deepavali.
-- File: HEIC @2x (1800 × 2064, quality 0.8, opaque) in an asset catalog, made from the crayon SVG; the SVG is the source and is not shipped. About 0.33–0.43 MB per scene on an iPad, about 5 MB for 10 holidays and 3 school-holiday scenes. (SVG in a catalog ships 1x / 2x / 3x bitmaps too: about 1.7 MB per scene; issue 023.)
+- File: HEIC @2x (1800 × 2064, quality 0.8, opaque), made from the crayon SVG; the SVG is the source and is not shipped. About 0.33–0.43 MB per scene, about 5 MB for 10 holidays and 3 school-holiday scenes (issue 023).
+- Delivery: the scenes are an Apple-hosted Background Assets asset pack, not in the app (user, 2026-11-22), downloaded in the background after install and after each update (prefetch). A scene that is not on the device yet shows none; home never waits for it.
 - Hidden in the night look (the sky switch's night, by time or by a tap).
 
 ### Overlap and short slots [proposed]
