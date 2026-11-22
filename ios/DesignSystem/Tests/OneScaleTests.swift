@@ -21,7 +21,7 @@ final class OneScaleTests: XCTestCase {
          ("knob", sizing.switchKnob, 44), ("setting row", sizing.settingRowHeight, 120),
          ("setting picture", sizing.settingRowPicture, 56), ("swatch", sizing.swatch, 56),
          ("face", sizing.pickedFace, 64), ("date chip w", sizing.dateChip.width, 96),
-         ("date chip h", sizing.dateChip.height, 104), ("clock plus", sizing.clockPlus, 56),
+         ("date chip h", sizing.dateChip.height, 104),
          ("one-line row", sizing.oneLineRow, 48), ("two-line row", sizing.twoLineRow, 72),
          ("text padding", sizing.textPadding, 24), ("small card", sizing.smallCardInset, 24),
          ("pair gap", sizing.pairGap, 16), ("joiner", sizing.joiner, 40), ("mission", sizing.missionCircle, 112),

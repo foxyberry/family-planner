@@ -265,7 +265,7 @@ public struct ComponentGallery: View {
                         ClockKnob(.idle)
                         ClockKnob(.dragging)
                         ClockKnob(.locked)
-                        PlusGlyph(size: 40)
+                        RoundButton(glyph: .plus) {}.size(56)
                     }
                 }
                 section("0g3 · Picture rigs (tap to play)") {

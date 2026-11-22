@@ -30,8 +30,6 @@ public extension Sizing {
     var pickedFace: CGFloat { 64 * s }
     /// `DateChip` 96 × 104.
     var dateChip: CGSize { CGSize(width: 96 * s, height: 104 * s) }
-    /// The clock "+" and the add-between button: 56.
-    var clockPlus: CGFloat { 56 * s }
     /// One-line search rows 48 (S2s with the keyboard up, design session 2026-11-15: one line,
     /// "{name} · {caption}"); two-line rows 72.
     var oneLineRow: CGFloat { 48 * s }
