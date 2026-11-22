@@ -16,7 +16,12 @@ struct OutsideDataFixture {
         UserDefaults.standard.set(1, forKey: "k")  // bad
         let arguments = ProcessInfo.processInfo.arguments  // bad
         let autoZone = TimeZone.autoupdatingCurrent  // bad
+        let qualifiedNow = Foundation.Date()  // bad
+        let qualifiedCalendar = Foundation.Calendar.current  // bad
+        let qualifiedZone = Foundation.TimeZone.current  // bad
+        let qualifiedDevice = UIKit.UIDevice.current  // bad
         let fixed = Date(timeIntervalSince1970: 0)
+        let qualifiedFixed = Foundation.Date(timeIntervalSince1970: 0)
         let fromClient = date.now
         let label = "Date() and Calendar.current in a string"
         // Never use Calendar.current or Date() here.

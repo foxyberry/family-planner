@@ -68,6 +68,20 @@ private extension OutsideDataRule {
         "ProcessInfo": ["processInfo"],
     ]
 
+    /// The modules these types come from, as a qualifier (`Foundation.Date()`).
+    static let modules: Set<String> = ["Foundation", "UIKit", "SwiftUI"]
+
+    /// The type an expression names: `Calendar`, or `Foundation.Calendar` qualified by a module.
+    static func typeName(_ expr: ExprSyntax?) -> String? {
+        guard let expr else { return nil }
+        if let name = expr.as(DeclReferenceExprSyntax.self) { return name.baseName.text }
+        if let member = expr.as(MemberAccessExprSyntax.self),
+           let module = member.base?.as(DeclReferenceExprSyntax.self), modules.contains(module.baseName.text) {
+            return member.declName.baseName.text
+        }
+        return nil
+    }
+
     final class Visitor: ViolationsSyntaxVisitor<ConfigurationType> {
         private lazy var scope = OutsideDataScope(path: file.path?.path)
 
@@ -83,17 +97,17 @@ private extension OutsideDataRule {
             ))
         }
 
-        // `Calendar.current`, `Date.now`, `Bundle.main`, ...
+        // `Calendar.current`, `Date.now`, `Bundle.main`, `Foundation.Calendar.current`, ...
         override func visitPost(_ node: MemberAccessExprSyntax) {
-            guard checked, let base = node.base?.as(DeclReferenceExprSyntax.self),
-                  OutsideDataRule.globals[base.baseName.text]?.contains(node.declName.baseName.text) == true
+            guard checked, let type = OutsideDataRule.typeName(node.base),
+                  OutsideDataRule.globals[type]?.contains(node.declName.baseName.text) == true
             else { return }
             global(node.positionAfterSkippingLeadingTrivia)
         }
 
-        // `Date()` with no arguments and no trailing closure.
+        // `Date()` or `Foundation.Date()` with no arguments and no trailing closure.
         override func visitPost(_ node: FunctionCallExprSyntax) {
-            guard checked, node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text == "Date",
+            guard checked, OutsideDataRule.typeName(node.calledExpression) == "Date",
                   node.arguments.isEmpty, node.trailingClosure == nil
             else { return }
             global(node.positionAfterSkippingLeadingTrivia)
