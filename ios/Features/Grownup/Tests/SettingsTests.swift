@@ -3,6 +3,7 @@ import ComposableArchitecture
 import Domain
 import Foundation
 import Grownup
+import Localization
 import ParentAuthClient
 import ScheduleStore
 import SchoolDirectory
@@ -163,6 +164,21 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(store.state.sections[1].rows.map(\.value), ["At home"])
         XCTAssertEqual(store.state.sections[1].rows.first?.link, .changeSchool)
         XCTAssertEqual(store.state.tabs.map(\.0), [.kid(SeedData.kidA.id), .kid(SeedData.kidB.id), .family])
+        XCTAssertEqual(store.state.tabs.map(\.1), ["Kid A", "Kid B", "Family"], "the Family tab's name is in State")
+    }
+
+    /// Views hold no values: the header, the Family tab's headings and the foot link come from
+    /// State, through the injected localizer.
+    func testTheWordsComeFromState() {
+        let state = SettingsFeature.State()
+        XCTAssertEqual([state.title, state.dataSourcesTitle, state.thisIPadTitle, state.childrenTitle,
+                        state.addChildTitle, state.tabs.last?.1],
+                       ["Settings", "Data sources", "This iPad", "Children", "Add a child", "Family"])
+        let keys = withDependencies { $0.localizer = .keys } operation: { SettingsFeature.State() }
+        XCTAssertEqual([keys.title, keys.dataSourcesTitle, keys.thisIPadTitle, keys.childrenTitle,
+                        keys.addChildTitle, keys.tabs.last?.1],
+                       ["settings.title", "hub.data_sources", "settings.this_ipad", "settings.children",
+                        "settings.add_child", "settings.family"])
     }
 
     func testFamilyTabSwitchesSaveAtOnceAndTheLockChecksFaceID() async {

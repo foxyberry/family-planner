@@ -3,6 +3,5 @@
 ios/Features/Grownup/ItemEditorView.swift
 ios/Features/Grownup/OurDayView.swift
 ios/Features/Grownup/SchoolEditorView.swift
-ios/Features/Grownup/SettingsView.swift
 ios/Features/Home/HomeView.swift
 ios/Features/Setup/SetupView.swift

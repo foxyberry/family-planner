@@ -38,7 +38,7 @@ public struct SettingsView: View {
                 if let lists = store.listsLine {
                     Text(lists).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                 }
-                Button(L10n.tr("hub.data_sources")) { store.send(.dataSourcesTapped) }
+                Button(store.dataSourcesTitle) { store.send(.dataSourcesTapped) }
                     .crayonType(.caption, bold: true)
                     .foregroundStyle(CrayonColor.link)
             }
@@ -48,14 +48,13 @@ public struct SettingsView: View {
     }
 
     private var header: some View {
-        GrownupHeader(title: L10n.tr("settings.title"), caption: store.headerCaption,
+        GrownupHeader(title: store.title, caption: store.headerCaption,
                       onBack: { store.send(.backTapped) }) {
             if let tab = store.tab {
                 // Board G6: a tab per kid, then "Family".
                 CrayonTabs(selection: Binding(get: { tab }, set: { store.send(.tabTapped($0)) }),
                            items: store.tabs.map { tab, name, kid in
-                               (tab, kid == nil ? L10n.tr("settings.family") : name,
-                                kid.map { KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex) })
+                               (tab, name, kid.map { KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex) })
                            },
                            spacing: Spacing.sm)
             }
@@ -105,7 +104,7 @@ public struct SettingsView: View {
     private var familyCard: some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
             switches
-            Text(L10n.tr("settings.children")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+            Text(store.childrenTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
                 .padding(.top, sizing(Spacing.m))
             ForEach(store.childRows, id: \.kid.id) { row in
                 Button { store.send(.childTapped(row.kid.id)) } label: {
@@ -128,7 +127,7 @@ public struct SettingsView: View {
                         MarkerIcon(.plus, size: sizing(28), color: CrayonColor.ink)
                             .frame(width: sizing(56), height: sizing(56))
                             .crayonBackground(.circle, fill: nil, seed: 1806)
-                        Text(L10n.tr("settings.add_child")).crayonType(.body).foregroundStyle(CrayonColor.link)
+                        Text(store.addChildTitle).crayonType(.body).foregroundStyle(CrayonColor.link)
                     }
                     .frame(minHeight: sizing(72))
                     .contentShape(Rectangle())
@@ -140,7 +139,7 @@ public struct SettingsView: View {
 
     private var switches: some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
-            Text(L10n.tr("settings.this_ipad")).crayonType(.head).foregroundStyle(CrayonColor.ink)
+            Text(store.thisIPadTitle).crayonType(.head).foregroundStyle(CrayonColor.ink)
             ForEach(store.settingRows, id: \.setting) { row in
                 SettingRow(title: row.title, caption: row.caption, captionIsWarning: row.isWarning, isOn: row.isOn,
                            action: { store.send(.settingTapped(row.setting)) }) {

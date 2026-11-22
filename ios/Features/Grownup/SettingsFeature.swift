@@ -45,10 +45,21 @@ public struct SettingsFeature {
         public var selectedKid: Kid.ID? { if case let .kid(id)? = tab { id } else { nil } }
         public var kid: Kid? { snapshot?.kids.first { $0.id == selectedKid } }
 
-        /// The header's tabs: each kid, then "Family".
+        /// The header's tabs: each kid by name, then "Family".
         public var tabs: [(Tab, String, Kid?)] {
-            (snapshot?.kids ?? []).map { (Tab.kid($0.id), $0.name, $0) } + [(.family, "", nil)]
+            (snapshot?.kids ?? []).map { (Tab.kid($0.id), $0.name, $0) } + [(.family, strings.tr("settings.family"), nil)]
         }
+
+        // MARK: What the view shows (it holds no values of its own)
+
+        /// The header's title.
+        public var title: String { strings.tr("settings.title") }
+        /// The foot's link to the data sources.
+        public var dataSourcesTitle: String { strings.tr("hub.data_sources") }
+        /// Board G6f: the Family tab's headings and its add row.
+        public var thisIPadTitle: String { strings.tr("settings.this_ipad") }
+        public var childrenTitle: String { strings.tr("settings.children") }
+        public var addChildTitle: String { strings.tr("settings.add_child") }
 
         /// The kid tab's sections (board G6).
         public var sections: [SettingsSection] {
@@ -62,13 +73,13 @@ public struct SettingsFeature {
         /// Board G6f "Children": one row per kid, "{age} · {place}".
         public var childRows: [(kid: Kid, detail: String)] {
             (snapshot?.kids ?? []).map { kid in
-                (kid, L10n.tr("settings.child.detail", kid.age, kid.school?.name ?? L10n.tr("settings.child.home")))
+                (kid, strings.tr("settings.child.detail", kid.age, kid.school?.name ?? strings.tr("settings.child.home")))
             }
         }
         /// "+ Add a child", up to four kids.
         /// Board G6 / G6f foot: "School lists · 9 Nov" over "Data sources".
         public var listsLine: String? {
-            listsUpdated.map { L10n.tr("settings.lists", DayText.dayMonth($0, calendar: calendar)) }
+            listsUpdated.map { strings.tr("settings.lists", DayText.dayMonth($0, calendar: calendar)) }
         }
         public var canAddChild: Bool { (snapshot?.kids.count ?? 0) < AddChildFeature.most }
 
