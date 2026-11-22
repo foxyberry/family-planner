@@ -2142,6 +2142,12 @@ console.log('wrote', Object.keys(ITEMS).length, 'imagesets');
     }
     out.rigs[name] = { runs, parts: Object.fromEntries(rig.parts.map((p) => [p.name, { origin: p.origin, moves: p.moves }])) };
   }
+  // A rig frame this run did not write (its rig lost a run, or the rig is gone) is stale: no rig names
+  // it, so remove it rather than leave it for the dead-code guard.
+  const written = new Set(Object.values(out.rigs).flatMap((r) => r.runs.map((run) => `${run.image}.imageset`)));
+  const stale = fs.readdirSync(outDir).filter((f) => /^rig-.+\.imageset$/.test(f) && !written.has(f));
+  stale.forEach((f) => fs.rmSync(path.join(outDir, f), { recursive: true, force: true }));
+  if (stale.length) console.log('removed', stale.length, 'stale rig imagesets:', stale.join(', '));
   const ds = path.join(outDir, 'KitRigs.dataset');
   fs.mkdirSync(ds, { recursive: true });
   fs.writeFileSync(path.join(ds, 'rigs.json'), `${JSON.stringify(out, null, 1)}\n`);
