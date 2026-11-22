@@ -83,12 +83,32 @@ private extension LayoutLiteralsRule {
         override func visitPost(_ node: IntegerLiteralExprSyntax) { check(node) }
         override func visitPost(_ node: FloatLiteralExprSyntax) { check(node) }
 
+        /// The size label a number is given to, through arithmetic, a sign or parentheses.
+        private func sizeLabel(above literal: some SyntaxProtocol) -> String? {
+            var current = literal.parent
+            while let node = current {
+                if let argument = node.as(LabeledExprSyntax.self) {
+                    if let label = argument.label?.text {
+                        return LayoutLiteralsRule.sizeLabels.contains(label) ? label : nil
+                    }
+                    // An unlabelled element: of a parenthesized expression, go on; of a call, stop.
+                    guard argument.parent?.parent?.is(TupleExprSyntax.self) == true else { return nil }
+                } else if !(node.is(ExprListSyntax.self) || node.is(SequenceExprSyntax.self)
+                    || node.is(InfixOperatorExprSyntax.self) || node.is(PrefixOperatorExprSyntax.self)
+                    || node.is(TupleExprSyntax.self) || node.is(LabeledExprListSyntax.self)) {
+                    return nil  // a call, a member access, a closure: not this label's number
+                }
+                current = node.parent
+            }
+            return nil
+        }
+
         /// A non-zero number in a `.frame` / `.padding` call, a `spacing:` argument or a size label.
         private func check(_ literal: some SyntaxProtocol) {
             guard screen, LayoutLiteralsRule.nonZero(literal) else { return }
-            // A size label takes the number itself: `height: 72` (not `height: layout.row + 8`).
-            if let argument = literal.parent?.as(LabeledExprSyntax.self), let label = argument.label?.text,
-               LayoutLiteralsRule.sizeLabels.contains(label) {
+            // A size label takes the number, alone or in arithmetic: `height: 72`, `72 * s`,
+            // `gap + 72`, `-8`, `(72)`. A call stops it: `height: sizing(72)` scales the number.
+            if let label = sizeLabel(above: literal) {
                 return report(literal, "\(label):")
             }
             // Walk out to the enclosing call; it counts only if the number is in its arguments, not

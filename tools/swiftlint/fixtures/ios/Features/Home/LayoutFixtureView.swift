@@ -14,7 +14,14 @@ struct LayoutFixtureView: View {
             SetupRow(label: day, height: 72) {}  // bad
             ListRow(leading: x, minHeight: 80, labelHeight: 80) {}  // bad
             CrayonTabs(itemSize: CGSize(width: tabWidth, height: 72))  // bad
+            SetupRow(label: day, height: 72 * scale) {}  // bad
+            ListRow(leading: x, minHeight: 72 + gap) {}  // bad
+            ListRow(leading: x, minHeight: gap + 72) {}  // bad
+            SetupRow(label: day, height: -8) {}  // bad
+            SetupRow(label: day, height: (72)) {}  // bad
             SetupRow(label: day, height: sizing.tabHeight()) {}
+            SetupRow(label: day, height: sizing(72)) {}
+            SetupRow(label: day, height: layout.rows[2]) {}
             ListRow(leading: x, minHeight: 0) {}
             Text("c")
                 .frame(width: sizing.swatch2, height: layout.row)
