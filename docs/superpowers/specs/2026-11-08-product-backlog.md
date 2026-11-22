@@ -248,7 +248,7 @@ Per-device settings never sync. They are asked once at join and can be changed l
 - **Delete vs edit**: a delete wins unless the other iPad's edit is newer than the delete. Deleted records keep a tombstone for 30 days so a late edit cannot resurrect them by accident.
 - **Today's mission checks** merge per mission: checked if any iPad checked it. Un-checking is a newer explicit change, so it wins only if it is the newest.
   - So the kid can tick "Brush teeth" on the kitchen iPad and see it ticked in the bedroom.
-- **The day-template drag (C6)** saves on "Save the day" as one change set. If the other iPad saved the same day type in the meantime, a card asks before replacing: "The Mon–Fri day changed on the other iPad. Keep yours / Use theirs".
+- **Our Day edits (G1)** save on "Save" as one change set. If the other iPad saved the same day type in the meantime, a card asks before replacing: "The Mon–Fri day changed on the other iPad. Keep yours / Use theirs".
 
 ### Offline
 - Every iPad works fully offline; changes queue and sync when back online.
