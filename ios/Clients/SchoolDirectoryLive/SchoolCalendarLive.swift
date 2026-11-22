@@ -39,6 +39,8 @@ struct MoeCalendarFile: Decodable, Versioned {
 
     /// The kinds of day a school is closed on.
     static let closures: Set<String> = ["vacation", "school_holiday", "public_holiday", "day_off_in_lieu"]
+    /// The closures that are the school's own breaks (not public holidays; spec K1 "Marks").
+    static let breakTypes: Set<String> = ["vacation", "school_holiday", "day_off_in_lieu"]
 
     let schemaVersion: Int
     let years: [String: Year]
@@ -52,7 +54,10 @@ struct MoeCalendarFile: Decodable, Versioned {
         let closed = events.filter { Self.closures.contains($0.type) }.flatMap { event in
             BundledSchools.days(from: event.start ?? event.date, to: event.end ?? event.date, calendar: calendar)
         }
-        return SchoolCalendar(terms: terms.sorted { $0.start < $1.start }, closed: Set(closed), isMoe: true)
+        let breaks = BundledSchools.named(events.filter { Self.breakTypes.contains($0.type) }.map {
+            ($0.name, $0.start ?? $0.date, $0.end ?? $0.date)
+        }, calendar: calendar)
+        return SchoolCalendar(terms: terms.sorted { $0.start < $1.start }, closed: Set(closed), breaks: breaks, isMoe: true)
     }
 }
 
@@ -67,6 +72,17 @@ extension BundledSchools {
         }
         return days
     }
+
+    /// Each day of the named ranges with its range's name; where two ranges meet, the first keeps the day.
+    static func named(_ ranges: [(name: String, start: String?, end: String?)], calendar: Calendar) -> [Day: String] {
+        var names: [Day: String] = [:]
+        for range in ranges {
+            for day in days(from: range.start, to: range.end, calendar: calendar) where names[day] == nil {
+                names[day] = range.name
+            }
+        }
+        return names
+    }
 }
 
 extension OtherFile.School {
@@ -78,10 +94,10 @@ extension OtherFile.School {
             return SchoolCalendar.Term(name: range.name, start: start, end: end)
         }
         guard !terms.isEmpty else { return nil }
-        let closed = years.flatMap { $0.breaksAndHolidays ?? [] }.flatMap {
-            BundledSchools.days(from: $0.start, to: $0.end, calendar: calendar)
-        }
-        return SchoolCalendar(terms: terms.sorted { $0.start < $1.start }, closed: Set(closed))
+        let ranges = years.flatMap { $0.breaksAndHolidays ?? [] }
+        let closed = ranges.flatMap { BundledSchools.days(from: $0.start, to: $0.end, calendar: calendar) }
+        let breaks = BundledSchools.named(ranges.map { ($0.name, $0.start, $0.end) }, calendar: calendar)
+        return SchoolCalendar(terms: terms.sorted { $0.start < $1.start }, closed: Set(closed), breaks: breaks)
     }
 }
 

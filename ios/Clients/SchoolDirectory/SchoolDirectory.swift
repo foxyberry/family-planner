@@ -32,13 +32,13 @@ public struct DataSource: Equatable, Identifiable, Sendable {
 
 extension SchoolDirectory {
     /// The family's year: each kid's school calendar (none for a kid without a school) and the
-    /// public holidays.
-    public func family(kids: [Kid], publicHolidays: [Day]) async -> FamilyCalendar {
+    /// public holidays, with their names when the caller has them (`holidayNames`).
+    public func family(kids: [Kid], publicHolidays: [Day], holidayNames: [Day: String] = [:]) async -> FamilyCalendar {
         var schools: [Kid.ID: SchoolCalendar] = [:]
         for kid in kids {
             schools[kid.id] = if let school = kid.school { await calendar(school, kid.age) } else { SchoolCalendar.none }
         }
-        return FamilyCalendar(schools: schools, publicHolidays: Set(publicHolidays))
+        return FamilyCalendar(schools: schools, publicHolidays: Set(publicHolidays), holidayNames: holidayNames)
     }
 }
 

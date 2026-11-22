@@ -18,12 +18,18 @@ public struct SchoolCalendar: Equatable, Sendable {
 
     public var terms: [Term]
     public var closed: Set<Day>
+    /// The days of the school's own breaks (vacations, school holidays, days off in lieu, a
+    /// preschool's closures), each with its break's name ("June holidays"). Public holidays are not
+    /// breaks, even where the MOE calendar lists them as closures (spec K1 "Marks": a kid's day off is
+    /// drawn in the kid's colour, a public holiday in red). Every break day is also in `closed`.
+    public var breaks: [Day: String]
     /// The MOE calendar (Settings reads "MOE 2026 · Term 4 ends 20 Nov"); false for a school's own.
     public var isMoe: Bool
 
-    public init(terms: [Term] = [], closed: Set<Day> = [], isMoe: Bool = false) {
+    public init(terms: [Term] = [], closed: Set<Day> = [], breaks: [Day: String] = [:], isMoe: Bool = false) {
         self.terms = terms
         self.closed = closed
+        self.breaks = breaks
         self.isMoe = isMoe
     }
 
