@@ -53,7 +53,12 @@ for bid, name in MAP.items():
         o.append(f'<div style="position:absolute;left:{cx-R}px;top:{cy-R}px;width:{2*R}px;height:{2*R}px;border-radius:50%;outline:2px dashed {CYAN}"></div>')
         o.append(vline(cx, f'clock centre {cx}', color=CYAN, dash=True)); o.append(hline(cy, f'clock centre {cy}', color=CYAN, left=0, right=900))
         o.append(vline(928, '928 panel', top=90)); o.append(vline(1336, '1336 panel right', top=90))
-        for y, lab in [(132, 'weekday 132'), (187, 'kid A 187'), (265, 'label 265'), (337, 'time 337'), (374, 'status 374')] + [(v, f'{k} {v}') for k, v in [('kid B', ln['baselines'].get('kidBName')), ('circles bottom', ln.get('nowNextBottom')), ('captions', ln['baselines'].get('nowNextCaptions'))] if v]: o.append(hline(y, lab, color=GREY, left=920, right=1336))
+        h = ln.get('hubRadius', 104)
+        o.append(f'<div style="position:absolute;left:{cx-h}px;top:{cy-h}px;width:{2*h}px;height:{2*h}px;border-radius:50%;outline:2px dashed {CYAN}"></div>')
+        rows = ln.get('rows', {})
+        for x, lab in [(rows.get('timeCell', [0, 1040])[1], 'time right 1040'), (rows.get('picture', [1052])[0], 'picture 1052'), (rows.get('titleLeft', 1120), 'title 1120')]: o.append(vline(x, lab, top=140, dash=True))
+        chip = ln.get('kidChips', {}).get('top', 872)
+        o.append(hline(chip, f'kid chips {chip}', color=GREY, left=920, right=1336))
     if fam == 'grown':
         for x, lab in [(80, '80 labels'), (208, '208 controls'), (840, '840'), (864, '864 side')]: o.append(vline(x, lab, top=CT - 6, dash=x in (80, 208)))
     if fam == 'grown64':

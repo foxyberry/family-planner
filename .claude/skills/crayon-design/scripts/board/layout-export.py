@@ -36,10 +36,13 @@ REGIONS = {
 LINES = {
  'morning': {'kidsLeft': 64, 'kidTextLeft': 172, 'missionsLeft': 448, 'right': 1312, 'stripTop': 176, 'stripBottom': 516, 'kidsTop': 536, 'missionsTop': 548,
              'circleTop': 612, 'captionTop': 732, 'bottomControlTop': 872, 'baselines': {'header': 107, 'missionsName': 584, 'captions': 757}},
- 'home': {'clockCentre': [448, 528], 'clockRadius': 372, 'clockArea': [0, 900], 'panelLeft': 928, 'panelTop': 132, 'right': 1336, 'mainButtonWidth': 408, 'mainButtonBottom': 968,
-          'baselines': {'weekday': 168, 'kidAName': 223, 'kidALabel': 297, 'timeLeft48': 346, 'status': 370, 'rowTitle': 308, 'rowTime': 339},
-          'kidARow': {'pictureLeft': 928, 'picture': 80, 'pictureTop': 271, 'rowPitch': 96, 'textLeft': 1024, 'gap': 16, 'note': 'picture top = name baseline + 48; Leave/Bed label +26, time left +75, status +99; row title +37, time line +68 (from the picture top)'},
-          'kidBRule': {'gapBelowKidA': 40, 'lowestNameBaseline': 620, 'endAboveMainButton': 40, 'note': 'Kid B block (name, Now row, Next row) moves as one; its name box top = Kid A last box bottom + 40, name baseline never lower than 620; rows at name baseline + 48 and + 96; the block ends at least 40 above the main button (872)'}},
+ 'home': {'clockCentre': [448, 528], 'clockRadius': 372, 'clockArea': [0, 900], 'hubRadius': 104, 'rim': {'width': 12, 'colour': 'picked kid'},
+          'hub': {'face': [424, 440, 48], 'weekdayBaseline': 524, 'timeBaseline': 574, 'withNameLine': {'weekday': 494, 'time': 544, 'name': 580}, 'weekday': 28, 'time': 44, 'ampm': 24},
+          'panelLeft': 928, 'right': 1336, 'topButtons': [36, 132], 'panelBottom': 968, 'order': 'bottom-up: kid chips at the bottom, the next card above them, later rows climb above it',
+          'kidChips': {'top': 872, 'height': 96, 'gap': 12, 'face': 56, 'picture': 60},
+          'nextCard': {'gapAboveChips': 24, 'bleedLeft': 12, 'width': 420, 'paddingLeft': 12, 'paddingRight': 10, 'paddingY': 16, 'time': 36, 'picture': 72, 'title': 36, 'faces': 36},
+          'rows': {'gap': 16, 'timeCell': [928, 1040], 'picture': [1052, 56], 'titleLeft': 1120, 'title': 30, 'faces': 32, 'faceOverlap': 8, 'missionBleedLeft': 12, 'missionPadding': [12, 10]},
+          'timeLeftDots': {'count': 6, 'minutesEach': 10, 'size': 11, 'gap': 5}},
  'grown': {'margin': 40, 'formLeft': 40, 'formRight': 840, 'labelLeft': 78, 'controlLeft': 192, 'rightEdge': 808, 'sideLeft': 864, 'sideWidth': 472, 'right': 1336, 'headerTop': 44, 'headerBottom': 124, 'formTop': 148, 'formBottom': 968},
  'calendar': {'margin': 40, 'right': 1336, 'headerTop': 36, 'cardsTop': 148, 'card': [312, 268], 'cardGap': [16, 12], 'columns': 4, 'cardNumeral': 24, 'cardWeekday': 24, 'cardToday': [38, 28], 'open': {'x': 258, 'y': 160, 'w': 860, 'h': 800, 'numeral': 32, 'cell': [104, 96], 'today': 70}},
  'grown64': {'note': 'superseded board (C1 -> G6, C6 -> G1), kept on the old 64 grid', 'formLeft': 64, 'formRight': 882, 'labelLeft': 104, 'controlLeft': 232, 'sideLeft': 930, 'right': 1312, 'formTop': 176, 'formBottom': 968},
@@ -111,6 +114,15 @@ def name_of(fam, reg, e, els):
             if k == 'picture' and w >= 800: return 'clockArt'
             return 'slotPicture' if k == 'picture' else k
         if reg == 'panel':
+            # v75 home (user 2026-11-22): next list climbs above the next card, kid chips at the bottom
+            if k == 'button' and y < 140: return 'topButton'
+            if k == 'button' and h == 96 and y >= 860: return 'kidChip'
+            if k == 'button' and h >= 100: return 'nextCard'
+            if k == 'button': return 'rowButton'
+            if k == 'picture' and w <= 40: return 'face'
+            if k == 'picture' and w in (56, 72): return 'rowPicture'
+            if k == 'text' and x >= 1100: return 'rowTitle'
+            if k == 'text': return 'rowTime'
             if k == 'primary': return 'button'
             if k == 'text':
                 f = e.get('font')
