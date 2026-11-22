@@ -9,6 +9,10 @@ public enum KidLook: String, Equatable, Sendable {
     public var page: Color { self == .day ? CrayonColor.paper : CrayonColor.night }
     public var ink: Color { self == .day ? CrayonColor.ink : CrayonColor.nightText }
     public var softText: Color { self == .day ? CrayonColor.softText : CrayonColor.nightSoftText }
+    /// Red text (spec "Hub text": the weekday on a public holiday): `lateText` by day, `nightLate` at night.
+    public var late: Color { self == .day ? CrayonPalette.lateText.color : CrayonPalette.nightLate.color }
+    /// Text that turns red when `late` (the weekday on a public holiday), else ink.
+    public func text(late isLate: Bool) -> Color { isLate ? late : ink }
     /// Clock hour labels: the four main ones, then the rest.
     public var majorLabel: Color { self == .day ? CrayonColor.ink : CrayonColor.nightText }
     public var minorLabel: Color { self == .day ? CrayonColor.softText : CrayonColor.nightSoftText }

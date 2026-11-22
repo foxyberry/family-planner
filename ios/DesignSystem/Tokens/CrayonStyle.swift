@@ -13,6 +13,8 @@ public enum CrayonStyle {
     public static let apricot = CrayonFill(color: CrayonColor.kidApricot, hachure: HachureStyle(degrees: -35))
     public static let blueCrayon = CrayonFill(color: CrayonColor.pickBlue, hachure: HachureStyle(degrees: -40))
     public static let doneGreen = CrayonFill(color: CrayonColor.doneGreen, hachure: HachureStyle(degrees: -50))
+    /// The picked year tab (spec K1, #261): #EDE7DC by day, #3E3B5E at night.
+    public static let yearTab = CrayonFill.paper(CrayonColor.yearTab)
     public static let ink = CrayonFill(color: CrayonColor.marker, hachure: nil)
     /// Chrome: white by day, night control in dark mode.
     public static let paper = CrayonFill.paper(CrayonColor.card)
@@ -53,6 +55,8 @@ public enum CrayonStyle {
         static let formCard: UInt32 = 2701
         static let dayButton: UInt32 = 2801
         static let dayPicker: UInt32 = 2901
+        /// The school calendar's month cards (K1); each card adds its index.
+        static let month: UInt32 = 3001
         /// The kid card's face discs (S1 / G6f), the seed they always had.
         static let kidCardFace: UInt32 = 1650
         /// The side column's remove button (G2 "Remove every week"), the seed it always had.
@@ -73,11 +77,12 @@ public enum PartTap: Equatable, Sendable {
 extension View {
     /// A part's crayon shape, drawn `CrayonStyle.artInset` × s inside the view's box (spec "Art inset").
     /// `tap`: a control takes taps only on that drawn shape (user, 2026-11-22); a container passes
-    /// `.frame`.
+    /// `.frame`. `inset`: the board inset the line is drawn at (`artInset`, or 0 for a part whose board
+    /// box is its visible edge, as K1's month cards).
     public func partBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
                                marker: MarkerStyle = .standard, markerColor: Color? = nil,
-                               tap: PartTap = .drawn) -> some View {
-        background(PartSurface(kind: kind, fill: fill, seed: seed, marker: marker, markerColor: markerColor))
+                               tap: PartTap = .drawn, inset: CGFloat = CrayonStyle.artInset) -> some View {
+        background(PartSurface(kind: kind, fill: fill, seed: seed, marker: marker, markerColor: markerColor, inset: inset))
             .modifier(DrawnTapShape(kind: kind, tap: tap))
     }
 }
@@ -115,10 +120,11 @@ private struct PartSurface: View {
     let seed: UInt32
     let marker: MarkerStyle
     let markerColor: Color?
+    let inset: CGFloat
     @Environment(\.sizing) private var sizing
 
     var body: some View {
         CrayonSurface(kind, fill: fill, marker: marker, markerColor: markerColor, seed: seed)
-            .padding(sizing(CrayonStyle.artInset))
+            .padding(sizing(inset))
     }
 }

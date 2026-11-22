@@ -10,8 +10,8 @@ public struct TimeLeft: View {
 
     /// `text` ("19 min", "−2 min") comes from the caller (`TimeLeftText` in Domain); `isLate` draws
     /// it late red.
-    /// `compact`: 72 bold beside a picture (home Kid A row, look ①, layout v17) instead of the
-    /// display 96; "1h 20m" then fits the 272 beside the 96 picture.
+    /// `compact`: 48 bold beside a picture (home Kid A row, layout v73 look B) instead of the
+    /// display 96.
     public init(_ text: String, isLate: Bool, look: KidLook = .day, compact: Bool = false) {
         self.text = text
         self.isLate = isLate
@@ -26,7 +26,7 @@ public struct TimeLeft: View {
             .foregroundStyle(isLate ? CrayonColor.lateText : look.ink)
             .monospacedDigit()
             .lineLimit(1)
-            // Line height 1.0: the box is as tall as the type (96 or 72 on the board), not the
+            // Line height 1.0: the box is as tall as the type (96 or 48 on the board), not the
             // font's taller default.
             .frame(height: size * CrayonType.display.lineHeight)
     }

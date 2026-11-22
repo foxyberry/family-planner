@@ -2,7 +2,7 @@ import CrayonKit
 import SwiftUI
 
 /// The live status after "Leave in" (spec "Header right"): head text with a 28 crayon dot, gap 16.
-/// `compact` (home Kid A row, look ①): body bold with a 24 dot, gap 8.
+/// `compact` (home Kid A row, layout v73): caption bold with a 24 dot, gap 8.
 /// On time is green, Leave now! is the hurry orange, Ask a grown-up is soft text with no dot.
 /// Colour never carries the meaning alone: the words do.
 public struct StatusDot: View {
@@ -27,7 +27,7 @@ public struct StatusDot: View {
                               marker: .thin, seed: CrayonStyle.Seed.status)
                     .frame(width: sizing(compact ? 24 : 28), height: sizing(compact ? 24 : 28))
             }
-            Text(text).crayonType(compact ? .body : .head, bold: true).foregroundStyle(textColor).lineLimit(1).fixedSize()
+            Text(text).crayonType(compact ? .caption : .head, bold: true).foregroundStyle(textColor).lineLimit(1).fixedSize()
         }
     }
 

@@ -84,6 +84,16 @@ final class SchoolDirectoryLiveTests: XCTestCase {
             XCTAssertTrue(year.closed.contains(closed), "\(closed)")
         }
         XCTAssertFalse(year.closed.contains(Day(year: 2026, month: 11, day: 10)), "a school day")
+        // Spec K1 "Marks": the breaks carry their names; public holidays are not breaks.
+        XCTAssertEqual(year.breaks[Day(year: 2026, month: 3, day: 14)], "March holidays", "the break's first day")
+        XCTAssertEqual(year.breaks[Day(year: 2026, month: 3, day: 22)], "March holidays", "the break's last day")
+        XCTAssertNil(year.breaks[Day(year: 2026, month: 3, day: 13)], "the term's last day")
+        XCTAssertEqual(year.breaks[Day(year: 2026, month: 3, day: 21)], "March holidays", "Hari Raya Puasa inside it")
+        XCTAssertEqual(year.breaks[Day(year: 2026, month: 3, day: 23)], "Day off-in-lieu for Hari Raya Puasa")
+        XCTAssertEqual(year.breaks[Day(year: 2026, month: 7, day: 6)], "Youth Day (school holiday)")
+        XCTAssertNil(year.breaks[Day(year: 2026, month: 5, day: 1)], "Labour Day: a public holiday, no break")
+        XCTAssertTrue(year.closed.contains(Day(year: 2026, month: 5, day: 1)), "but still closed")
+        XCTAssertTrue(Set(year.breaks.keys).isSubset(of: year.closed))
     }
 
     func testMoeTermsByHandAndNoCalendar() async {

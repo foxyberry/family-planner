@@ -64,6 +64,32 @@ public enum CrayonColor {
     /// The layer behind a card: ink 35 % by day, black 45 % in dark mode.
     public static let dim = adaptiveDim()
 
+    /// Spec K1 "Marks" (layout v74): a public holiday's light red cell and chip (dark red at night).
+    /// Its numeral is `lateText` (#C62F35 / #FF8A8E), drawn only on this colour.
+    public static let holidayGround = adaptive(CrayonPalette.holidayGround, night: CrayonPalette.nightHolidayGround)
+    /// Spec K1 "Marks": today's pill (disc when open) and its numeral.
+    public static let todayDisc = adaptive(CrayonPalette.ink, night: CrayonPalette.nightToday)
+    public static let todayText = adaptive(CrayonPalette.card, night: CrayonPalette.night)
+    /// Spec K1: the picked year tab; the weekend columns.
+    public static let yearTab = adaptive(CrayonPalette.yearTab, night: CrayonPalette.nightYearTab)
+    public static let weekendShade = adaptive(CrayonPalette.weekendShade, night: CrayonPalette.nightWeekendShade)
+
+    /// Spec K1 "Marks": a kid's school day off in the kid's colour (Kid A sky, Kid B apricot, then
+    /// green and lilac; darker at night); more kids than colours wrap around, as `kid(_:)` does.
+    public static func kidOff(_ colorIndex: Int) -> Color {
+        let fill = kidOffFills[((colorIndex % kidOffFills.count) + kidOffFills.count) % kidOffFills.count]
+        return adaptive(fill.day, night: fill.night)
+    }
+
+    /// A day numeral on a kid's day off: ink by day, #22213A (the night page colour) at night on every
+    /// fill (spec #261: 4.0–4.4 : 1; 24 pt counts as large text).
+    public static let kidOffText = adaptive(CrayonPalette.ink, night: CrayonPalette.night)
+
+    private static let kidOffFills: [(day: RGB, night: RGB)] = [
+        (CrayonPalette.nowSky, CrayonPalette.nightSky), (CrayonPalette.kidApricot, CrayonPalette.nightApricot),
+        (CrayonPalette.doneGreen, CrayonPalette.nightGreen), (CrayonPalette.lilac, CrayonPalette.nightLilac),
+    ]
+
     /// Colours a parent can pick for a child (blue, orange, green, purple).
     public static let kidPalette: [Color] = [
         CrayonPalette.kidA.color, CrayonPalette.kidB.color,

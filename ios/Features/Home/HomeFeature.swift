@@ -20,10 +20,15 @@ public struct HomeFeature {
         /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
         case leave
         /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
-        case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
-        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v68).
+        case bedTime(HomeModel.TimeLeft, tomorrow: AheadRow?)
+        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v74).
+        /// After midnight, while the night's Sleep goes on, A1z's row is this one too.
         case next(NextItem)
-        /// Nothing next today: the row is left out (spec E3 "No item left today").
+        /// A1z: after bedtime (Sleep has started), or whenever today has nothing left, one row for the
+        /// next day with a plan: its first outing ("leave {h:mm}"), else its first thing ("at {h:mm}").
+        case tomorrow(AheadRow)
+        /// A1z: without the row, nothing at all in the next 14 days, so Kid A shows the name only
+        /// (spec "Night", layout v74).
         case nothing
     }
 
@@ -33,8 +38,9 @@ public struct HomeFeature {
         public var slots: [Slot]
         /// From the template's evening routine to wake-up (board A1n); `nil` keeps the day look.
         public var night: NightSpan? = nil
-        /// Tomorrow's first outing (board A1n "Tomorrow" row); `nil` when tomorrow has none.
-        public var tomorrow: Outing? = nil
+        /// The Tomorrow row (boards A1n, A1z): the next day with a plan within 14 days; `nil` when
+        /// nothing is planned in them.
+        public var ahead: AheadRow? = nil
         /// Tomorrow's slots: Kid B's Next row at night goes on to the first thing after wake-up (A1n).
         public var tomorrowSlots: [Slot] = []
         /// The kid's routine missions (C5).
@@ -43,13 +49,13 @@ public struct HomeFeature {
         /// Spec "Mission windows": the day's stretches for missions.
         public var windows: [WindowSpan] { DayPlanner.missionWindows(slots: slots, night: night) }
 
-        public init(kid: Kid, dayType: DayType, slots: [Slot], night: NightSpan? = nil, tomorrow: Outing? = nil,
+        public init(kid: Kid, dayType: DayType, slots: [Slot], night: NightSpan? = nil, ahead: AheadRow? = nil,
                     tomorrowSlots: [Slot] = [], missions: [Mission] = []) {
             self.kid = kid
             self.dayType = dayType
             self.slots = slots
             self.night = night
-            self.tomorrow = tomorrow
+            self.ahead = ahead
             self.tomorrowSlots = tomorrowSlots
             self.missions = missions
         }
@@ -111,18 +117,27 @@ public struct HomeFeature {
         /// Board 0g2 on the hour: the hand's disc pulses when this changes.
         public var hour: Int { minute / 60 }
 
-        /// Board E3 (2026-11-08): a school holiday on a weekday, the only holiday line on kid screens.
-        public var isSchoolHoliday: Bool {
-            guard let weekday, weekday != .saturday, weekday != .sunday else { return false }
-            return days.first?.dayType == .sunday
+        /// Spec "Hub text" (layout v71, board E3h): today is a public holiday; the weekday turns red.
+        public var isPublicHoliday = false
+        /// Today's public holiday's name ("Deepavali"), from the bundled list.
+        public var holidayName: String?
+        /// The name of Kid A's (the clock kid's) school break today ("June holidays").
+        public var breakName: String?
+
+        /// The right panel's first line (spec "Hub text"): always the full weekday.
+        public var dayHeading: String? { dayName }
+
+        /// The caption under the weekday (spec "Hub text", board E3h): the public holiday's name, else
+        /// on a weekday (spec E3 "Weekday school holiday") the name of Kid A's school break. The only
+        /// holiday sign on the kid screen; nil leaves the line out.
+        public var dayNote: String? {
+            if isPublicHoliday { return holidayName }
+            guard let weekday, Weekday.schoolDays.contains(weekday) else { return nil }
+            return breakName
         }
 
-        /// The right panel's first line (spec "Hub text"): the weekday, or "Monday · Holiday" on a
-        /// weekday school holiday.
-        public var dayHeading: String? {
-            guard let dayName else { return nil }
-            return isSchoolHoliday ? strings.tr("home.day.holiday", dayName) : dayName
-        }
+        /// The name line pushes the rest of the panel down by its 32 (`HomeLayout(dayNote:)`).
+        public var hasDayNote: Bool { dayNote != nil }
 
         /// Every kid's items today, for the missions and Bring of their outings.
         public var items: [ScheduleItem] = []
@@ -210,11 +225,14 @@ public struct HomeFeature {
         public var kidABlock: KidABlock {
             guard let first = days.first else { return .nothing }
             if morningOuting != nil { return .leave }
-            guard let next = HomeModel.next(first.slots, minute: minute) else { return .nothing }
+            guard let next = HomeModel.next(first.slots, minute: minute) else {
+                // Board A1z: nothing left today (after bedtime, or a day with no more plan): the next day.
+                return first.ahead.map(KidABlock.tomorrow) ?? .nothing
+            }
             // Spec "Kid A, which row": one row only; the item it names shows once (no time left
             // block over a second row for the same thing).
             if !showsMissions, let left = HomeModel.bedIn(to: next, minute: minute) {
-                return .bedTime(left, tomorrow: first.tomorrow.map(TomorrowRow.init))
+                return .bedTime(left, tomorrow: first.ahead)
             }
             return .next(next)
         }
@@ -224,7 +242,7 @@ public struct HomeFeature {
             switch kidABlock {
             case .leave: status == nil ? .timeLeft : .status
             case let .bedTime(_, tomorrow): tomorrow == nil ? .timeLeft : .timeLeftRow
-            case .next: .nextRow
+            case .next, .tomorrow: .nextRow
             case .nothing: .name
             }
         }
@@ -276,6 +294,19 @@ public struct HomeFeature {
 
         /// The Next row's caption (Kid A's and Kid B's).
         public var nextLabel: String { strings.tr("home.next") }
+
+        /// Board A1z: the caption of Kid A's row for the next day, before midnight.
+        public var tomorrowLabel: String { strings.tr("home.tomorrow") }
+
+        /// The Tomorrow row's caption (spec #261): "Tomorrow"; 2–6 days away the weekday ("Saturday");
+        /// 7 or more the short date ("Tue 1 Dec"), so a weekday never reads as this week's.
+        public func aheadCaption(_ row: AheadRow) -> String {
+            switch row.inDays {
+            case ...1: tomorrowLabel
+            case 2...6: DayText.name(row.weekday)
+            default: DayText.short(row.day, weekday: row.weekday)
+            }
+        }
     }
 
     public enum Action: Equatable {
@@ -290,6 +321,8 @@ public struct HomeFeature {
         case clockHoldCompleted
         /// Board G0: the pencil; the app opens the grown-up lock.
         case pencilTapped
+        /// Board G0 (layout v74): the calendar button; the app opens the school calendar (K1), no lock.
+        case calendarTapped
         /// The kid tapped the day/night switch (board 0g).
         case skySwitchTapped
         case skyAnimationEnded
@@ -366,14 +399,19 @@ public struct HomeFeature {
                 guard let year = state.today?.year else { return .none }
                 return .run { [scheduleStore, holidays, schoolDirectory] send in
                     let snapshot = try? await scheduleStore.load()
-                    let family = await schoolDirectory.family(kids: snapshot?.kids ?? [],
-                                                             publicHolidays: await holidays.holidays(year).map(\.day))
+                    let list = await holidays.holidays(year)
+                    let family = await schoolDirectory.family(
+                        kids: snapshot?.kids ?? [], publicHolidays: list.map(\.day),
+                        holidayNames: Dictionary(list.map { ($0.day, $0.name) }, uniquingKeysWith: { first, _ in first }))
                     await send(.loaded(snapshot, family: family))
                 }
 
             case let .loaded(snapshot, family):
                 guard let snapshot, let today = state.today else {
                     state.days = []
+                    state.isPublicHoliday = false
+                    state.holidayName = nil
+                    state.breakName = nil
                     return .none
                 }
                 // G7 / G4: a school move or hours change whose day has come becomes the record, then the day reloads.
@@ -414,11 +452,15 @@ public struct HomeFeature {
                                   night: DayPlanner.nightSpan(of: DayPlanner.template(
                                       for: kid.id, on: today, routines: routines, holidays: holidayDays,
                                       calendar: calendar)),
-                                  tomorrow: DayPlanner.nextOuting(in: tomorrow, after: -1),
+                                  ahead: aheadRow(kid: kid, today: today, tomorrow: tomorrow, routines: routines,
+                                                  items: items, holidays: holidayDays),
                                   tomorrowSlots: tomorrow,
                                   missions: snapshot.missions.filter { $0.kid == kid.id })
                 }
                 state.items = items
+                state.isPublicHoliday = family.publicHolidays.contains(today)
+                state.holidayName = family.holidayName(on: today)
+                state.breakName = snapshot.kids.first.flatMap { family.breakName($0.id, on: today) }
                 state.busPlan = snapshot.kids.first.flatMap { kid in
                     snapshot.busPlans.route(kid: kid.id)?.graced(by: kid)
                 }
@@ -430,6 +472,9 @@ public struct HomeFeature {
 
             case .pencilTapped:
                 state.heldSlotStart = nil
+                return .none
+
+            case .calendarTapped:
                 return .none
 
             case .clockHoldCompleted:
@@ -472,6 +517,20 @@ public struct HomeFeature {
                 return .none
             }
         }
+    }
+
+    /// Spec "Kid A, which row" (layout v74): the first of the next 14 days with something to name.
+    private func aheadRow(kid: Kid, today: Day, tomorrow: [Slot], routines: [Routine], items: [ScheduleItem],
+                          holidays: Set<Day>) -> AheadRow? {
+        for offset in 1...14 {
+            let day = today.adding(days: offset, calendar: calendar)
+            let slots = offset == 1 ? tomorrow : DayPlanner.slots(on: day, kid: kid, routines: routines, items: items,
+                                                                  holidays: holidays, calendar: calendar)
+            if let item = HomeModel.dayAhead(slots) {
+                return AheadRow(item: item, inDays: offset, day: day, weekday: day.weekday(calendar))
+            }
+        }
+        return nil
     }
 
     private func minute(of date: Date) -> Int {

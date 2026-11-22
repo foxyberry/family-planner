@@ -41,6 +41,17 @@ public struct WorldData: Sendable {
     public var routes: [Route] = []
     /// What Face ID answers: "success", "notRecognised", "cancelled", "notAvailable", "lockedOut".
     public var faceID = "success"
+    /// Public holidays, "yyyy-mm-dd" to the holiday's name (none unless a journey sets them).
+    public var holidays: [String: String] = [:]
+    /// School breaks every kid's school follows: name, first and last day ("yyyy-mm-dd").
+    public var breaks: [Break] = []
+
+    public struct Break: Sendable {
+        public var name, from, to: String
+        public init(name: String, from: String, to: String) {
+            self.name = name; self.from = from; self.to = to
+        }
+    }
 
     /// Tuesday 10 Nov 2026, 7:30 am in Singapore: not a holiday (Monday the 9th is Deepavali observed).
     public static let standard = WorldData()
@@ -98,6 +109,12 @@ public final class World: Sendable {
     public func school(_ id: String) -> SchoolEntry? { directory.first { $0.id == id } }
 
     private var directory: [SchoolEntry] { FakeWorld.entries(data.schools) }
+
+    /// "2026-11-09" as a day.
+    static func day(_ text: String) -> Day? {
+        let parts = text.split(separator: "-").compactMap { Int($0) }
+        return parts.count == 3 ? Day(year: parts[0], month: parts[1], day: parts[2]) : nil
+    }
 
     public func install(_ values: inout DependencyValues) {
         values.calendar = calendar
@@ -159,7 +176,21 @@ public final class World: Sendable {
         }
 
         FakeWorld.install(&values, stops: data.stops, services: data.services, schools: data.schools)
-        values.holidays.holidays = { _ in [] }
+        let holidays = data.holidays.compactMap { date, name in Self.day(date).map { Holiday(day: $0, name: name) } }
+            .sorted { $0.day < $1.day }
+        values.holidays.holidays = { year in holidays.filter { $0.day.year == year } }
+        if !data.breaks.isEmpty {
+            var breaks: [Day: String] = [:]
+            for entry in data.breaks {
+                guard var day = Self.day(entry.from), let last = Self.day(entry.to) else { continue }
+                while day <= last {
+                    breaks[day] = breaks[day] ?? entry.name
+                    day = day.adding(days: 1, calendar: calendar)
+                }
+            }
+            let year = SchoolCalendar(closed: Set(breaks.keys), breaks: breaks)
+            values.schoolDirectory.calendar = { _, _ in year }
+        }
         values.deviceLook.isDark = { false }
 
         let settings = settings

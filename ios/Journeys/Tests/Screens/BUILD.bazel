@@ -14,6 +14,7 @@ fp_swift_library(
         "//ios/DesignSystem",
         "//ios/Domain",
         "//ios/Features/Grownup",
+        "//ios/Features/SchoolYear",
         "//ios/Journeys/Tests:JourneyWorld",
         "//ios/KitArt",
         "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",

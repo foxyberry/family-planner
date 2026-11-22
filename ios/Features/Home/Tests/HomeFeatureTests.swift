@@ -29,7 +29,8 @@ final class HomeFeatureTests: XCTestCase {
     }
 
     private func store(on day: Day, minute: Int, snapshot: ScheduleSnapshot? = nil,
-                       holidays: [Holiday] = [], schoolClosed: Set<Day> = []) -> TestStoreOf<HomeFeature> {
+                       holidays: [Holiday] = [], schoolClosed: Set<Day> = [],
+                       breaks: [Day: String] = [:]) -> TestStoreOf<HomeFeature> {
         let snapshot = snapshot ?? self.snapshot()
         let store = TestStore(initialState: HomeFeature.State()) {
             HomeFeature()
@@ -38,7 +39,7 @@ final class HomeFeatureTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.scheduleStore.load = { snapshot }
             $0.holidays.holidays = { _ in holidays }
-            $0.schoolDirectory.calendar = { _, _ in SchoolCalendar(closed: schoolClosed) }
+            $0.schoolDirectory.calendar = { _, _ in SchoolCalendar(closed: schoolClosed.union(breaks.keys), breaks: breaks) }
             $0.bus.arrivals = { _ in
                 [BusArrival(service: "1", minutes: 4, type: .single), BusArrival(service: "1", minutes: 28, type: .double)]
             }
@@ -310,25 +311,214 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.currentSlotStart, 450)
     }
 
-    /// Board E3: only a weekday school holiday says "Holiday · no school today".
-    func testSchoolHolidayLineOnlyOnAWeekdayHoliday() async {
-        let holiday = store(on: wednesday, minute: 600, holidays: [Holiday(day: wednesday, name: "Holiday")])
-        await holiday.send(.task)
-        await holiday.receive(\.loaded)
-        XCTAssertTrue(holiday.state.isSchoolHoliday)
-        XCTAssertEqual(holiday.state.dayHeading, "Wednesday · Holiday")
-        // Spec "Repeats, dates and changes": a weekday in the school's vacation is Kid A's day off
-        // too, while Kid B (no school) keeps the weekday.
-        let vacation = store(on: wednesday, minute: 600, schoolClosed: [wednesday])
-        await vacation.send(.task)
-        await vacation.receive(\.loaded)
-        XCTAssertEqual(vacation.state.dayHeading, "Wednesday · Holiday")
-        XCTAssertEqual(vacation.state.days.map(\.dayType), [.sunday, .weekday])
-        let weekend = store(on: saturday, minute: 600)
+    /// Spec "Hub text" (layout v71, board E3h): on a public holiday the full weekday is red with the
+    /// holiday's name under it. Dates and names from the bundled lists: Monday 9 Nov 2026 is
+    /// Deepavali (observed).
+    func testAPublicHolidayTurnsTheWeekdayRedWithItsName() async {
+        let monday = Day(year: 2026, month: 11, day: 9)
+        let store = store(on: monday, minute: 600, holidays: [Holiday(day: monday, name: "Deepavali (observed)")])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.dayHeading, "Monday", "the full weekday, no \"· Holiday\"")
+        XCTAssertTrue(store.state.isPublicHoliday)
+        XCTAssertEqual(store.state.dayNote, "Deepavali (observed)")
+        XCTAssertTrue(store.state.hasDayNote)
+        XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .sunday], "everyone is off")
+    }
+
+    /// Spec "Hub text": on a school break that is no public holiday the weekday stays ink and the
+    /// break's name sits under it (Wednesday 10 Jun 2026 in the MOE June holidays).
+    func testASchoolBreakKeepsTheWeekdayInkWithTheBreaksName() async {
+        let june10 = Day(year: 2026, month: 6, day: 10)
+        let store = store(on: june10, minute: 600, breaks: [june10: "June holidays"])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.dayHeading, "Wednesday")
+        XCTAssertFalse(store.state.isPublicHoliday)
+        XCTAssertEqual(store.state.dayNote, "June holidays")
+        XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .weekday], "Kid B (no school) keeps the weekday")
+    }
+
+    /// A public holiday inside a break: red, with the holiday's name (Monday 1 Jun 2026, Vesak Day
+    /// (observed), in the June holidays).
+    func testAPublicHolidayInsideABreakNamesTheHoliday() async {
+        let june1 = Day(year: 2026, month: 6, day: 1)
+        let store = store(on: june1, minute: 600, holidays: [Holiday(day: june1, name: "Vesak Day (observed)")],
+                          breaks: [june1: "June holidays"])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertTrue(store.state.isPublicHoliday)
+        XCTAssertEqual(store.state.dayNote, "Vesak Day (observed)")
+    }
+
+    /// A school day, and a weekend inside a break: the weekday alone, in ink. A public holiday on a
+    /// Sunday is red all the same (Sunday 31 May 2026, Vesak Day).
+    func testNoLineOnASchoolDayOrABreaksWeekend() async {
+        let school = store(on: tuesday, minute: 600)
+        await school.send(.task)
+        await school.receive(\.loaded)
+        XCTAssertEqual(school.state.dayHeading, "Tuesday")
+        XCTAssertFalse(school.state.isPublicHoliday)
+        XCTAssertNil(school.state.dayNote)
+        XCTAssertFalse(school.state.hasDayNote)
+        let june13 = Day(year: 2026, month: 6, day: 13)
+        let weekend = store(on: june13, minute: 600, breaks: [june13: "June holidays"])
         await weekend.send(.task)
         await weekend.receive(\.loaded)
-        XCTAssertFalse(weekend.state.isSchoolHoliday)
         XCTAssertEqual(weekend.state.dayHeading, "Saturday")
+        XCTAssertNil(weekend.state.dayNote, "a break's name only on a weekday (spec E3)")
+        let may31 = Day(year: 2026, month: 5, day: 31)
+        let sunday = store(on: may31, minute: 600, holidays: [Holiday(day: may31, name: "Vesak Day")],
+                           breaks: [may31: "June holidays"])
+        await sunday.send(.task)
+        await sunday.receive(\.loaded)
+        XCTAssertTrue(sunday.state.isPublicHoliday)
+        XCTAssertEqual(sunday.state.dayNote, "Vesak Day")
+    }
+
+    /// A school-closed weekday with no name (no break, no public holiday) shows the weekday alone.
+    func testAClosedDayWithoutANameShowsTheWeekdayAlone() async {
+        let store = store(on: wednesday, minute: 600, schoolClosed: [wednesday])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.dayHeading, "Wednesday")
+        XCTAssertNil(store.state.dayNote)
+        XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .weekday])
+    }
+
+    /// Board A1z (layout v74): after Kid A's bedtime (Sleep has started) the block shows one row for
+    /// the next day's first thing, its opening Sleep skipped. Before midnight: "Tomorrow", the title
+    /// and "at {h:mm}" (Breakfast is no outing). Tuesday 10 Nov 2026, 9:15 pm; Sleep from 8:00 pm.
+    func testAfterBedtimeKidAShowsTomorrowsFirstThing() async {
+        let store = store(on: tuesday, minute: 1275)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .tomorrow(row) = store.state.kidABlock else {
+            return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
+        }
+        // Spec v74 (board A1z): the next day's first outing, School by bus (7:30, leave 5 min before).
+        XCTAssertEqual(row.item.title, "School")
+        XCTAssertEqual(row.item.line, "leave 7:25 am")
+        XCTAssertEqual(row.inDays, 1)
+        XCTAssertEqual(store.state.aheadCaption(row), "Tomorrow")
+        XCTAssertEqual(store.state.kidAEnd, .nextRow, "Kid B hangs below it as on E3 (A1z: 452)")
+        XCTAssertEqual(store.state.look, .night)
+        // Just before Sleep the Bed row still shows (board A1n).
+        let evening = self.store(on: tuesday, minute: 1185)
+        await evening.send(.task)
+        await evening.receive(\.loaded)
+        guard case .bedTime = evening.state.kidABlock else { return XCTFail("expected the Bed row before 8:00 pm") }
+    }
+
+    /// Board A1z: when the next day starts with an outing, its line is "leave {h:mm}" (School by bus,
+    /// leave 5 min before 7:00 am).
+    func testTomorrowsOutingSaysWhenToLeave() async {
+        var snapshot = snapshot()
+        let blocks = [
+            RoutineBlock(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 0, end: 420, isLocked: false, trip: nil),
+            RoutineBlock(title: "School", iconName: "wolfie", kind: .school, start: 420, end: 900, isLocked: true,
+                         trip: Trip(way: .bus, leaveBefore: 5)),
+            RoutineBlock(title: "Play", iconName: "blocks", kind: .play, start: 900, end: 1200, isLocked: false, trip: nil),
+            RoutineBlock(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 1200, end: 1440, isLocked: false, trip: nil),
+        ]
+        snapshot.routines.removeAll { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }
+        snapshot.routines.append(Routine(kid: SeedData.kidA.id, dayType: .weekday, from: SeedData.templatesFrom, blocks: blocks))
+        let store = store(on: tuesday, minute: 1275, snapshot: snapshot)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .tomorrow(row) = store.state.kidABlock else {
+            return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
+        }
+        XCTAssertEqual(row.item.title, "School")
+        XCTAssertEqual(row.item.line, "leave 6:55 am")
+    }
+
+    /// Spec v74: with no outing on the next day the row names its first thing after the opening
+    /// Sleep (Saturday 14 Nov, 9:30 pm, to Sunday: Breakfast at 7:30 am, no outing).
+    func testTomorrowWithoutAnOutingNamesItsFirstThing() async {
+        let store = store(on: saturday, minute: 1290)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .tomorrow(row) = store.state.kidABlock else {
+            return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
+        }
+        XCTAssertEqual(row.item.title, "Breakfast")
+        XCTAssertEqual(row.item.line, "at 7:30 am")
+    }
+
+    /// Spec v74: whenever today has nothing left (a day that does not end in Sleep, an empty day) Kid A
+    /// shows the Tomorrow row too; with nothing at all in the next 14 days, the name only (A1z
+    /// without the row).
+    func testNothingLeftTodayShowsTheNextDayWithAPlan() async {
+        // Tuesday 9:15 pm on a template that ends in Play (no Sleep): tomorrow's School.
+        var playLate = snapshot()
+        let blocks = [
+            RoutineBlock(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 0, end: 420, isLocked: false, trip: nil),
+            RoutineBlock(title: "School", iconName: "wolfie", kind: .school, start: 420, end: 900, isLocked: true,
+                         trip: Trip(way: .bus, leaveBefore: 5)),
+            RoutineBlock(title: "Play", iconName: "blocks", kind: .play, start: 900, end: 1440, isLocked: false, trip: nil),
+        ]
+        playLate.routines.removeAll { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }
+        playLate.routines.append(Routine(kid: SeedData.kidA.id, dayType: .weekday, from: SeedData.templatesFrom, blocks: blocks))
+        let late = store(on: tuesday, minute: 1275, snapshot: playLate)
+        await late.send(.task)
+        await late.receive(\.loaded)
+        guard case let .tomorrow(row) = late.state.kidABlock else { return XCTFail("\(late.state.kidABlock)") }
+        XCTAssertEqual(row.item.title, "School")
+        XCTAssertEqual(row.inDays, 1)
+
+        // Only a Saturday template and no items: on Tuesday the next plan is Saturday, 4 days on.
+        var weekendOnly = snapshot()
+        weekendOnly.items = []
+        weekendOnly.routines.removeAll { $0.kid == SeedData.kidA.id && $0.dayType != .saturday }
+        let empty = store(on: tuesday, minute: 600, snapshot: weekendOnly)
+        await empty.send(.task)
+        await empty.receive(\.loaded)
+        guard case let .tomorrow(saturdayRow) = empty.state.kidABlock else { return XCTFail("\(empty.state.kidABlock)") }
+        XCTAssertEqual(saturdayRow.inDays, 4)
+        XCTAssertEqual(saturdayRow.item.title, "Breakfast")
+        XCTAssertEqual(empty.state.aheadCaption(saturdayRow), "Saturday")
+        XCTAssertEqual(empty.state.kidAEnd, .nextRow)
+
+        // Spec #261: 7 or more days away the caption is the short date (a once item on Tue 17 Nov).
+        var nextWeek = snapshot()
+        nextWeek.routines.removeAll { $0.kid == SeedData.kidA.id }
+        nextWeek.items = [ScheduleItem(id: UUID(), title: "Doctor", iconName: "doctor", audience: .kid(SeedData.kidA.id),
+                                       start: 600, end: 660, recurrence: .once(Day(year: 2026, month: 11, day: 17)),
+                                       skippedDays: [], skipsHolidays: false, showsStar: false)]
+        let later = store(on: tuesday, minute: 600, snapshot: nextWeek)
+        await later.send(.task)
+        await later.receive(\.loaded)
+        guard case let .tomorrow(weekRow) = later.state.kidABlock else { return XCTFail("\(later.state.kidABlock)") }
+        XCTAssertEqual(weekRow.inDays, 7)
+        XCTAssertEqual(later.state.aheadCaption(weekRow), "Tue 17 Nov")
+
+        // Nothing in the next 14 days: the name only.
+        var nothing = snapshot()
+        nothing.items = []
+        nothing.routines.removeAll { $0.kid == SeedData.kidA.id }
+        let bare = store(on: tuesday, minute: 600, snapshot: nothing)
+        await bare.send(.task)
+        await bare.receive(\.loaded)
+        XCTAssertEqual(bare.state.kidABlock, .nothing)
+        XCTAssertEqual(bare.state.kidAEnd, .name)
+    }
+
+    /// Board A1z: after midnight the day is the new one, so the row is the ordinary Next row ("Next",
+    /// "at 6:30 am" more than an hour ahead, "in {n} min" within the hour). Wednesday 11 Nov, 0:30 am.
+    func testAfterMidnightTheRowIsTheOrdinaryNextRow() async {
+        let store = store(on: wednesday, minute: 30)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .next(next) = store.state.kidABlock else { return XCTFail("expected the Next row") }
+        XCTAssertEqual(next.title, "Breakfast")
+        XCTAssertEqual(next.line, "at 6:30 am")
+        XCTAssertEqual(store.state.nextLabel, "Next")
+        let soon = self.store(on: wednesday, minute: 345)
+        await soon.send(.task)
+        await soon.receive(\.loaded)
+        guard case let .next(row) = soon.state.kidABlock else { return XCTFail("expected the Next row") }
+        XCTAssertEqual(row.line, "in 45 min")
     }
 
     /// Spec "Picture rigs": a tap plays the slot once; taps during the 1.2 s play are ignored.
@@ -460,8 +650,10 @@ final class HomeFeatureTests: XCTestCase {
             return XCTFail("\(evening.state.kidABlock)")
         }
         XCTAssertEqual(left.label, "Bed in")
-        XCTAssertEqual(tomorrow?.title, "Tomorrow")
-        XCTAssertEqual(tomorrow?.line.hasPrefix("School, leave "), true)
+        // Layout v73: "Tomorrow · School" over "leave 7:25 am" (School 7:30, 5 min by bus).
+        XCTAssertEqual(evening.state.tomorrowLabel, "Tomorrow")
+        XCTAssertEqual(tomorrow?.item.title, "School")
+        XCTAssertEqual(tomorrow?.item.line, "leave 7:25 am")
     }
 
     /// E1: one kid keeps the Next row under "Leave in" on a leaving morning.

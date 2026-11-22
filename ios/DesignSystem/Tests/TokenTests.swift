@@ -47,6 +47,27 @@ final class TokenTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.kidB, CrayonPalette.night), 3)
     }
 
+    /// Spec K1 "Marks" (layout v74): red numerals (24 bold, large text) on the holiday colour pass 3 : 1
+    /// (the spec's 4.36 by day, 4.59 at night); today's numeral and the day-off numerals by day pass 4.5.
+    /// At night the day-off numerals reach about 4.0–4.4 (dark on sky, apricot, green; light on lilac).
+    func testCalendarNumeralsPassContrast() {
+        XCTAssertEqual(Contrast.ratio(CrayonPalette.lateText, CrayonPalette.holidayGround), 4.36, accuracy: 0.01)
+        XCTAssertEqual(Contrast.ratio(CrayonPalette.nightLate, CrayonPalette.nightHolidayGround), 4.59, accuracy: 0.01)
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.card, CrayonPalette.ink), 4.5, "today by day")
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.night, CrayonPalette.nightToday), 4.5, "today at night")
+        for ground in [CrayonPalette.nowSky, CrayonPalette.kidApricot, CrayonPalette.doneGreen, CrayonPalette.lilac] {
+            XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, ground), 4.5, "ink on a day off")
+        }
+        // Spec #261: at night every day-off numeral is #22213A (24 pt counts as large text, 3 : 1); the
+        // night lilac is #8E7BC4 (4.0–4.4 : 1 on every fill).
+        XCTAssertEqual(CrayonPalette.nightLilac, RGB(hex: 0x8E7BC4))
+        for ground in [CrayonPalette.nightSky, CrayonPalette.nightApricot, CrayonPalette.nightGreen, CrayonPalette.nightLilac] {
+            XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.night, ground), 4.0, "a day off at night")
+        }
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.ink, CrayonPalette.weekendShade), 4.5)
+        XCTAssertGreaterThanOrEqual(Contrast.ratio(CrayonPalette.nightText, CrayonPalette.nightWeekendShade), 4.5)
+    }
+
     func testContrastKnownValues() {
         XCTAssertEqual(Contrast.ratio(RGB(hex: 0x000000), RGB(hex: 0xFFFFFF)), 21, accuracy: 0.01)
         XCTAssertEqual(Contrast.ratio(CrayonPalette.ink, CrayonPalette.ink), 1, accuracy: 0.0001)

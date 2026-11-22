@@ -118,7 +118,7 @@ final class KitArtTests: XCTestCase {
     func testThingsAreObjectsOnly() {
         XCTAssertTrue([KitSlot.backpack, .lunchBox, .waterBottle, .shoe, .teddy].allSatisfy(\.isThing))
         XCTAssertTrue([KitSlot.swimsuit, .goggles, .towel, .rollerblades, .helmet, .libraryBag].allSatisfy(\.isThing))
-        XCTAssertFalse([KitSlot.actSwim, .busDouble, .medalGold, .feelHappy, .skyDay, .pencil, .debugLadybug, .wolfie,
+        XCTAssertFalse([KitSlot.actSwim, .busDouble, .medalGold, .feelHappy, .skyDay, .pencil, .calendar, .debugLadybug, .wolfie,
                         .home, .kidGirl].contains(where: \.isThing))
     }
 }

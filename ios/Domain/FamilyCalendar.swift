@@ -5,10 +5,30 @@ import Foundation
 public struct FamilyCalendar: Equatable, Sendable {
     public var schools: [Kid.ID: SchoolCalendar]
     public var publicHolidays: Set<Day>
+    /// The public holidays' names ("Deepavali"), for the home's holiday line (spec "Hub text").
+    public var holidayNames: [Day: String]
 
-    public init(schools: [Kid.ID: SchoolCalendar] = [:], publicHolidays: Set<Day> = []) {
+    public init(schools: [Kid.ID: SchoolCalendar] = [:], publicHolidays: Set<Day> = [],
+                holidayNames: [Day: String] = [:]) {
         self.schools = schools
         self.publicHolidays = publicHolidays
+        self.holidayNames = holidayNames
+    }
+
+    /// The public holiday's name on `day`; nil on any other day (or when the list has no name).
+    public func holidayName(on day: Day) -> String? {
+        publicHolidays.contains(day) ? holidayNames[day] : nil
+    }
+
+    /// The name of the kid's school break on `day` ("June holidays"); nil on a school day, a public
+    /// holiday outside a break, and for a kid without a school.
+    public func breakName(_ kid: Kid.ID, on day: Day) -> String? {
+        schools[kid]?.breaks[day]
+    }
+
+    /// The days of the kid's school breaks (spec K1 "Marks": the kid's colour on the calendar).
+    public func breakDays(_ kid: Kid.ID) -> Set<Day> {
+        Set((schools[kid] ?? .none).breaks.keys)
     }
 
     /// A kid's days off: the school's closed days and the public holidays.

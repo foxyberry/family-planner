@@ -67,6 +67,9 @@ public enum DayText {
     }
 
 
+    /// Monday … Sunday, the order the calendar's columns read.
+    public static let mondayFirst: [Weekday] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
+
     /// "M": the letter on a day chip.
     public static func initial(_ weekday: Weekday) -> String { String(name(weekday).prefix(1)) }
 
@@ -107,6 +110,11 @@ public enum DayText {
         }
     }
     /// "Sat 14 Nov"
+    /// "Tue 1 Dec", when the weekday is known already.
+    public static func short(_ day: Day, weekday: Weekday) -> String {
+        "\(shortName(weekday)) \(day.day) \(monthName(day.month))"
+    }
+
     public static func short(_ day: Day, calendar: Calendar) -> String {
         "\(shortName(day.weekday(calendar))) \(dayMonth(day, calendar: calendar))"
     }

@@ -7,6 +7,7 @@ import Grownup
 import Home
 import Missions
 import KitArt
+import SchoolYear
 import Setup
 import SwiftUI
 
@@ -112,6 +113,11 @@ public struct AppView: View {
                 case let .missions(store):
                     // Pushed over home; its own ← goes back (no system bar or edge swipe).
                     MissionsView(store: store)
+                        .toolbar(.hidden, for: .navigationBar)
+                        .navigationBarBackButtonHidden()
+                case let .schoolYear(store):
+                    // K1, pushed over home; its own "‹" goes back.
+                    SchoolYearView(store: store)
                         .toolbar(.hidden, for: .navigationBar)
                         .navigationBarBackButtonHidden()
                 case let .settings(store):

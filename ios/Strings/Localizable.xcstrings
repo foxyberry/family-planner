@@ -562,6 +562,61 @@
         }
       }
     },
+    "calendar.both_off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Both off"
+          }
+        }
+      }
+    },
+    "calendar.kid_off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ off"
+          }
+        }
+      }
+    },
+    "calendar.month_year" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "calendar.public_holiday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Public holiday"
+          }
+        }
+      }
+    },
+    "calendar.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        }
+      }
+    },
     "card.cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1992,17 +2047,6 @@
         }
       }
     },
-    "home.day.holiday" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ · Holiday"
-          }
-        }
-      }
-    },
     "home.hub.free" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2124,13 +2168,13 @@
         }
       }
     },
-    "home.tomorrow.leave" : {
+    "home.tomorrow.leave_at" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@, leave %2$@"
+            "value" : "leave %@"
           }
         }
       }

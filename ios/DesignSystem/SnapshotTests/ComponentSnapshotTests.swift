@@ -79,6 +79,72 @@ final class ComponentSnapshotTests: XCTestCase {
                         itemSize: CGSize(width: 180, height: 72), spacing: Spacing.sm), width: 420, named: "wraps")
     }
 
+    /// K1's year tabs: the picked one on a neutral ground, not a kid's sky blue.
+    func testCrayonTabsNeutral() {
+        snap(CrayonTabs(selection: .constant(2026), items: [(2026, "2026", nil), (2027, "2027", nil)],
+                        itemSize: CGSize(width: 150, height: 72), spacing: 12, neutral: true))
+    }
+
+    // MARK: - K1 School calendar
+
+    /// Spec K1 "Marks" (layout v74): plain, Kid A off, Kid B off, both, three kids, a public holiday,
+    /// a public holiday inside a break (red on a chip), today's pill, today on a day off; then the open
+    /// month's and the key's sizes.
+    func testCalendarCells() {
+        for dark in [false, true] {
+            snap(HStack(spacing: 8) {
+                ForEach(Array(Self.cellMarks.enumerated()), id: \.offset) { _, mark in CalendarCell(mark, size: .card) }
+                ForEach(Array(Self.cellMarks.suffix(4).enumerated()), id: \.offset) { _, mark in CalendarCell(mark, size: .open) }
+                ForEach(Array(Self.cellMarks.suffix(4).enumerated()), id: \.offset) { _, mark in CalendarCell(mark, size: .legend) }
+            }
+            .padding(Spacing.s)
+            .background(CrayonColor.card), named: dark ? "night" : nil, dark: dark)
+        }
+    }
+
+    /// Board K1: a month card (November 2026: Deepavali 8–9, the year-end break from the 21st, today
+    /// the 22nd); board K1o: the same month open.
+    func testMonthCards() {
+        for dark in [false, true] {
+            snap(MonthCard(title: "November", weekdays: Self.letters, weeks: Self.november, size: .card),
+                 named: dark ? "card-night" : "card", dark: dark)
+        }
+        snap(MonthCard(title: "November 2026", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                       weeks: Self.november, size: .open), named: "open")
+    }
+
+    /// Board K1: the key, wrapping "Today" to a second line in the 856 legend column.
+    func testCalendarLegend() {
+        snap(CalendarLegend(items: Self.legend).frame(width: 856, alignment: .leading), width: 856 + 2 * Spacing.m)
+    }
+
+    static let letters = ["M", "T", "W", "T", "F", "S", "S"]
+
+    static let cellMarks: [CalendarCell.Mark] = [
+        .init(number: "3"), .init(number: "4", kids: [0]), .init(number: "5", kids: [1]),
+        .init(number: "6", kids: [0, 1]), .init(number: "7", kids: [0, 1, 2]), .init(number: "25", isHoliday: true),
+        .init(number: "21", kids: [0], isHoliday: true), .init(number: "22", isToday: true),
+        .init(number: "23", kids: [0, 1], isToday: true),
+    ]
+
+    static var november: [[CalendarCell.Mark?]] {
+        let cells: [CalendarCell.Mark?] = (0..<42).map { index in
+            let day = index - 5
+            guard (1...30).contains(day) else { return nil }
+            return CalendarCell.Mark(number: "\(day)", kids: day >= 21 ? (day >= 23 ? [0, 1] : [0]) : [],
+                                     isHoliday: day == 8 || day == 9, isToday: day == 22)
+        }
+        return stride(from: 0, to: 42, by: 7).map { Array(cells[$0..<($0 + 7)]) }
+    }
+
+    static let legend: [CalendarLegend.Item] = [
+        .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), swatch: .init(number: "", kids: [0]), label: "Kid A off"),
+        .init(face: KidFace.Badge(face: "kidBoy", colorIndex: 1), swatch: .init(number: "", kids: [1]), label: "Kid B off"),
+        .init(swatch: .init(number: "", kids: [0, 1]), label: "Both off"),
+        .init(swatch: .init(number: "25", isHoliday: true), label: "Public holiday"),
+        .init(swatch: .init(number: "22", isToday: true), label: "Today"),
+    ]
+
     /// S1–S4 parts: step dots, colour swatches (one picked), a placeholder time, a face not picked yet.
     func testSetupParts() {
         snap(HStack(spacing: Spacing.m) {
@@ -330,6 +396,8 @@ final class ComponentSnapshotTests: XCTestCase {
             VStack(alignment: .leading, spacing: 22) {
                 NextRow(picture: .actSleep, caption: "Now", title: "Sleep", line: "until 7:00 am", look: .night)
                 NextRow(picture: .actBreakfast, caption: "Next", title: "Breakfast", line: "at 7:00 am", look: .night)
+                // Board A1z / A1n: the next day's first thing.
+                NextRow(picture: .actSchool, caption: "Tomorrow", title: "School", line: "leave 7:25 am", look: .night)
             }
             .padding(Spacing.s)
             .background(CrayonColor.night)

@@ -1,0 +1,18 @@
+load("//ios:build_defs.bzl", "fp_swift_library")
+
+# K1 · School calendar: a read-only year of each kid's school days off and the public holidays,
+# opened from the calendar button on every kid home, without the lock (spec K1, layout v71).
+fp_swift_library(
+    name = "SchoolYear",
+    visibility = ["//ios:__subpackages__"],
+    deps = [
+        "//ios/Clients/HolidayProvider",
+        "//ios/Clients/Localization",
+        "//ios/Clients/ScheduleStore",
+        "//ios/Clients/SchoolDirectory",
+        "//ios/DesignSystem",
+        "//ios/Domain",
+        "//ios/Strings",
+        "@swiftpkg_swift_composable_architecture//:ComposableArchitecture",
+    ],
+)
