@@ -190,6 +190,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: waiting School change, from the #257 build: the medal waits in the change; one-day versions and later versions read School by date (a "Today" save reaches them); cancel card centred, "Cancel it" / "Keep"; G5 carried day never before today.
 - 2026-11-22: from the #259 build: K1 text 24 and up (numerals, M T W T F S S, today pill 38 × 28), calendar colours and rules written down; the Tomorrow row names the next day's first outing, else its first thing, and shows whenever today has nothing left; Kid B block ends at least 40 above the main button. Layout v74 (K1 boards in their own `calendar` family; home lines at v73 values).
 - 2026-11-22: K1 night numerals dark on every kid fill (night lilac #8E7BC4), the picked year tab is the filled one, "Both off" needs two school kids, Tomorrow caption becomes the weekday 2–6 days away and the short date from 7 days.
+- 2026-11-22: K1 month cards and the open month draw their outline on the box (inset 0), an exception to the crayon part inset, so six-row months fit (#259 build).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -785,7 +786,7 @@ A read-only year of each kid's school days off and the public holidays, opened f
 ### Layout
 - Header (44–124): `RoundButton` 80 "‹" back to the home it came from; then the year tabs "2026" | "2027" (`CrayonTabs` 150 × 72, gap 12, at x 144; the picked one on a neutral ground, not a kid colour). Only the years the school data has (2026–2027 now).
 - Legend (x 480–1336, y 44–124, caption 24, may wrap to two lines): each kid's face 36 and colour swatch with "{Name} off"; a split swatch "Both off"; a light red swatch with a red "25" "Public holiday"; a dark pill "22" "Today" (swatches 48 × 36, numerals 24 bold). "Both off" shows only when the family has exactly two kids and both go to a school or preschool.
-- Twelve month cards, 4 × 3, 312 × 268, gap 16 across and 12 down, from (40, 148). Each card: the month name (30 bold) at 20 / 8 in; the weekday row "M T W T F S S" (24, `softText`) at 48 in; six rows of day cells 36 × 28 on a 30 pitch, gap 4, numerals 24 (nothing on the screen is under 24); Saturday and Sunday columns lightly shaded.
+- Twelve month cards, 4 × 3, 312 × 268 (the K1 month cards and the open month draw their outline on the box edge, inset 0, as the boards do: the exception to "Crayon part inset", so a six-row month fits), gap 16 across and 12 down, from (40, 148). Each card: the month name (30 bold) at 20 / 8 in; the weekday row "M T W T F S S" (24, `softText`) at 48 in; six rows of day cells 36 × 28 on a 30 pitch, gap 4, numerals 24 (nothing on the screen is under 24); Saturday and Sunday columns lightly shaded.
 - **Tap a card**: that month opens over the year (dim layer, as other cards): card 860 × 800 centred at y 160; title "{Month} {Year}" (48 bold) at 40 / 24 in; a `RoundButton` 72 "×" at its top right; weekday row "Mon … Sun" (24); day cells 104 × 96 on a 104 pitch, gap 8, numerals 32 bold. "×" or a tap outside closes it. No paging arrows anywhere.
 
 ### Marks (the same on cards and on the open month)
