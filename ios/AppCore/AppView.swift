@@ -66,7 +66,7 @@ public struct AppView: View {
         // first paper): the top screen's page (paper, or the night sky).
         .background { store.pageLook.page.ignoresSafeArea() }
         // The 1-second tick lives on the root, not on the home screen: a pushed grown-up screen makes
-        // the home disappear, which would cancel its task and stop the idle relock.
+        // the home disappear, which would cancel its task and stop the clock.
         .task { store.send(.checkFamily) }
         .task { await store.send(.task).finish() }
     }
@@ -142,10 +142,5 @@ public struct AppView: View {
         // The stack spans the window and frames its screens back to the board, so a pushed screen's
         // dim layer or veil (`fullBleed()`) reaches the window's sides and takes their taps.
         .spansWindow()
-        // Any touch on a grown-up screen keeps it open for another 2 minutes.
-        .simultaneousGesture(DragGesture(minimumDistance: 0).onEnded { _ in
-            if store.hasGrownupScreens { store.send(.grownupTouched) }
-        })
-        .environment(\.relockCaption, store.relockCaption)
     }
 }

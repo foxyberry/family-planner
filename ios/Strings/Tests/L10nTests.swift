@@ -8,8 +8,8 @@ final class L10nTests: XCTestCase {
     }
 
     func testFormatKeyFillsInItsArgument() {
-        XCTAssertEqual(L10n.tr("relock.countdown", 5), "Locks in 0:05")
-        XCTAssertEqual(L10n.tr("relock.countdown", 30), "Locks in 0:30")
+        XCTAssertEqual(L10n.tr("from.gap", 5), "5 min after")
+        XCTAssertEqual(L10n.tr("from.gap", 30), "30 min after")
     }
 
     func testMissingKeyShowsTheKey() {

@@ -70,7 +70,7 @@ final class ScreenLinkTests: XCTestCase {
         XCTAssertFalse(store.state.opensGrownupOnHomeLoad)
     }
 
-    /// A relock (another link, idle, the app leaving) drops a grown-up open still waiting for the home.
+    /// A relock (another link, the app leaving) drops a grown-up open still waiting for the home.
     func testARelockDropsTheWaitingOpen() async {
         var state = AppFeature.State()
         state.grownupLock = false
@@ -111,7 +111,6 @@ final class ScreenLinkTests: XCTestCase {
         let asked = LockIsolated(0)
         var state = AppFeature.State()
         state.path.append(.settings(SettingsFeature.State()))
-        state.grownupIdleSeconds = 0
         let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
             $0.parentAuth.authenticate = { _ in asked.withValue { $0 += 1 }; return .cancelled }
         }

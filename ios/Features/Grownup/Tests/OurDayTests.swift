@@ -330,7 +330,7 @@ final class OurDayTests: XCTestCase {
     }
 
     /// Review case B (PR 174): Skip Play on This day and Remove Dinner on All days; each is saved by
-    /// its own scope. With G5 on Next Wed, this day keeps Dinner and has Play skipped.
+    /// its own scope. With G5 on tomorrow (Wed), this day keeps Dinner and has Play skipped.
     func testASkipAndARemoveSaveByTheirOwnScopes() async throws {
         let writes = Writes()
         let store = await loaded(writes: writes)
@@ -499,6 +499,48 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.edit.blocks.first { $0.title == "Dinner" }?.end, 1155)
     }
 
+    /// Spec G5 (layout v69): on a later day G1's card opens with that day picked, on Date unless it
+    /// is the middle tab's day; Save writes the template from that day.
+    func testFromWhenOpensOnTheDayBeingLookedAt() async {
+        let saved = LockIsolated<[Routine]>([])
+        let store = await loaded(saved: saved)
+        await store.send(.dayButtonTapped)
+        await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 12)))
+        XCTAssertEqual(store.state.day, Day(year: 2026, month: 11, day: 12))
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.knobReleased(0))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .date, "Thu 12 Nov is not the middle tab's day (tomorrow)")
+        XCTAssertEqual(store.state.fromWhenDateLabel, "12 Nov")
+        XCTAssertEqual(store.state.editorDay, Day(year: 2026, month: 11, day: 12), "Details opens on this day")
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(saved.value.first?.from, Day(year: 2026, month: 11, day: 12))
+    }
+
+    /// Spec G5: tomorrow on the clock opens on the middle tab.
+    func testFromWhenOpensOnTomorrowsTab() async {
+        let store = await loaded()
+        await store.send(.dayButtonTapped)
+        await store.send(.pickerDayTapped(Day(year: 2026, month: 11, day: 11)))
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.knobDragged(index: knob(store, at: 1155), minute: 1170))
+        await store.send(.knobReleased(0))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhen, .next, "tomorrow is the middle tab (today: testSaveAllDaysFromTheDay)")
+        XCTAssertEqual(store.state.allDaysFrom, Day(year: 2026, month: 11, day: 11))
+    }
+
+    /// The List's rows open G2 / G4 on Today (no day being looked at).
+    func testTheListOpensItemsWithNoShownDay() async {
+        let store = await loaded()
+        XCTAssertEqual(store.state.editorDay, tuesday)
+        await store.send(.listTapped)
+        XCTAssertTrue(store.state.showsList)
+        XCTAssertNil(store.state.editorDay)
+    }
+
     func testSaveAllDaysFromTheDay() async {
         let saved = LockIsolated<[Routine]>([])
         let store = await loaded(saved: saved)
@@ -508,7 +550,7 @@ final class OurDayTests: XCTestCase {
         await store.send(.scopeTapped(.thisDay))
         await store.send(.saveTapped)
         XCTAssertEqual(store.state.fromWhen, .today, "an All days drag asks from when (board G5), whatever tab shows")
-        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Next Wed", "Date"])
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Tomorrow", "Date"], "never \"Next Wed\"")
         await store.send(.fromWhenPicked(.next))
         await store.send(.fromWhenSaveTapped)
         await store.receive(\.saved)

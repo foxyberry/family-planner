@@ -3,9 +3,7 @@
   "about": "The parity contract (PROTOCOL.md): the screens, visible State fields and person actions an agent driver exposes. Any platform implements these names; `ios` binds each to this app's code and scripts/check-driver-contract.sh checks it. v1 covers the screens the journeys walk that are not being redesigned.",
   "app": {
     "ios": { "file": "ios/AppCore/AppFeature.swift" },
-    "fields": [
-      { "name": "relockCaption", "type": "string?", "about": "the countdown before the grown-up screens close", "ios": "relockCaption" }
-    ]
+    "fields": []
   },
   "screens": [
     {

@@ -21,7 +21,7 @@ Returns where the app is and what a person could do now:
   "screen": "addChild",
   "stack": ["home", "ourDay", "settings", "addChild"],
   "fields": { "name": "Kid C", "age": "6", "colour": 2, "canSave": false },
-  "app": { "relockCaption": null },
+  "app": {},
   "actions": [
     { "name": "addChild.nameChanged", "args": { "text": "string" } },
     { "name": "addChild.faceTapped", "args": { "face": "string" } }
@@ -61,8 +61,8 @@ Sends one person action, named `<screen>.<action>`, with arguments as the contra
 - `why` is a note for people; runners ignore it.
 
 ## What v1 leaves out
-- **Time.** Journeys that wait on the clock (the 2-minute grown-up relock, A3's done view after the
-  slide) need the world's clock moved; v1 has no command for it and does not fake one.
+- **Time.** Journeys that wait on the clock (A3's done view after the slide) need the world's clock
+  moved; v1 has no command for it and does not fake one.
 - **Screens being redesigned**: Our day's editing (layout v65; v1 has only its way to Settings), the
   bus screens and the morning missions join the contract when they settle.
 - **The real hold and keyboard**: `home.clockHeld` is the hold's outcome; the hold itself, focus and

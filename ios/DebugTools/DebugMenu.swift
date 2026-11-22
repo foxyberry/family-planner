@@ -120,7 +120,7 @@ struct DebugMenu: View {
         } header: {
             Text("Time machine")
         } footer: {
-            Text("Only the app's clock moves; the 2-minute grown-up lock still counts real seconds. Launch with make run NOW=2026-11-09T07:30 SPEED=60.")
+            Text("Only the app's clock moves. Launch with make run NOW=2026-11-09T07:30 SPEED=60.")
         }
     }
 

@@ -178,6 +178,4 @@ extension EnvironmentValues {
     /// A grown-up form's label column (114, labels 78 → controls 192); `nil` keeps `ListRow`'s own
     /// 120 + gap.
     @Entry public var formLabelWidth: CGFloat? = nil
-    /// Replaces the "Grown-ups only" header caption during the relock countdown ("Locks in 0:30").
-    @Entry public var relockCaption: String? = nil
 }

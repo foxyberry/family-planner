@@ -6,7 +6,7 @@ import XCTest
 final class LocalizerTests: XCTestCase {
     func testEnglishCatalogResolvesKeysAndArguments() {
         XCTAssertEqual(Localizer.english.tr("lock.enter"), "Enter")
-        XCTAssertEqual(Localizer.english.tr("relock.countdown", 30), "Locks in 0:30")
+        XCTAssertEqual(Localizer.english.tr("from.gap", 30), "30 min after")
     }
 
     func testAppCatalogMatchesTheStaticLookup() {
@@ -15,7 +15,7 @@ final class LocalizerTests: XCTestCase {
 
     func testKeysShowTheKeyAndItsArguments() {
         XCTAssertEqual(Localizer.keys.tr("lock.enter"), "lock.enter")
-        XCTAssertEqual(Localizer.keys.tr("relock.countdown", 30), "relock.countdown|30")
+        XCTAssertEqual(Localizer.keys.tr("from.gap", 30), "from.gap|30")
     }
 
     func testInjectedReadsTheDependency() {

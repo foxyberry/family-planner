@@ -1783,17 +1783,6 @@
         }
       }
     },
-    "from_when.next" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next %@"
-          }
-        }
-      }
-    },
     "from_when.removed.many" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1845,6 +1834,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Today"
+          }
+        }
+      }
+    },
+    "from_when.tomorrow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow"
           }
         }
       }
@@ -3385,28 +3385,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "both kids"
-          }
-        }
-      }
-    },
-    "relock.countdown" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Locks in 0:%02lld"
-          }
-        }
-      }
-    },
-    "relock.countdown.home" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Home in 0:%02lld"
           }
         }
       }

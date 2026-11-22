@@ -131,6 +131,9 @@ public struct ItemEditorFeature {
         /// Board G5: the "Change from when?" card is open, with its choice and date.
         public var fromWhen: FromWhen?
         public var fromWhenDate: Day
+        /// The day G1 showed when "Details ›" opened this form; nil from the List or an add. G5 opens on
+        /// it when it is after today (spec G5).
+        public let shownDay: Day?
         /// The id a new item has in the preview, kept from `.task` on (save still asks for a fresh id).
         public var draftID: ScheduleItem.ID?
         /// The From, Bring, Ends or No school days card is open.
@@ -276,8 +279,10 @@ public struct ItemEditorFeature {
             return DayText.short(termEnd, calendar: calendar)
         }
 
-        public init(mode: Mode, repeats: ItemForm.Repeat = .weekly, now: Date, calendar: Calendar) {
+        public init(mode: Mode, repeats: ItemForm.Repeat = .weekly, now: Date, calendar: Calendar,
+                    shownDay: Day? = nil) {
             self.mode = mode
+            self.shownDay = shownDay
             self.calendar = calendar
             today = Day(now, calendar: calendar)
             nowMinute = Day.minute(of: now, calendar: calendar)
@@ -453,16 +458,17 @@ public struct ItemEditorFeature {
             skippedDay == nil ? L10n.tr("editor.this_day.skip") : L10n.tr("editor.this_day.bring_back")
         }
 
-        /// Board G5's tabs: "Today", "Next Mon" (the next day of the changed series), "Date".
+        /// Board G5's tabs: "Today", the next day of the changed series ("Tomorrow" or "Wed 18 Nov";
+        /// none when it has no day in the next 14 days), "Date".
         public var fromWhenTabs: [(FromWhen, String)] {
-            [(.today, L10n.tr("from_when.today")),
-             (.next, L10n.tr("from_when.next", nextDay.map { DayText.shortName($0.weekday(calendar)) } ?? "")),
-             (.date, L10n.tr("from_when.date"))]
+            FromWhenTabs.tabs(next: nextDay, today: today, calendar: calendar)
         }
 
-        /// The first day after today on one of the changed series' weekdays.
+        /// The first day after today, within 14 days, on the changed series' repeat (every week or
+        /// every month).
         var nextDay: Day? {
-            (1...7).map { today.adding(days: $0, calendar: calendar) }.first { form.days.contains($0.weekday(calendar)) }
+            let recurrence = seriesEdit.recurrence
+            return FromWhenTabs.nextDay(after: today, calendar: calendar) { recurrence.pattern(on: $0, calendar: calendar) }
         }
 
         /// Where the series splits for the card's choice.
@@ -676,9 +682,10 @@ public struct ItemEditorFeature {
                 }
                 if state.showsScopeTabs, let weekly = state.weeklyItem {
                     guard state.editScope == .thisDay, let day = state.thisDay else {
-                        // All days asks from when first (board G5).
-                        state.fromWhen = .today
-                        state.fromWhenDate = state.today
+                        // All days asks from when first (board G5), on the day G1 showed.
+                        let opening = FromWhenTabs.opening(shown: state.shownDay, next: state.nextDay, today: state.today)
+                        state.fromWhen = opening.choice
+                        state.fromWhenDate = opening.date
                         return .none
                     }
                     state.isSaving = true
