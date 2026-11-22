@@ -111,6 +111,15 @@ public struct AppFeature {
             path.contains { !$0.isKidScreen }
         }
 
+        /// The board family on top, for the debug overlay's layout grid: setup and grown-up screens
+        /// share the grown-up frame, the morning screen (the stack's first) its own, else the home.
+        public enum ScreenFamily: Equatable, Sendable { case home, morning, grownup }
+        public var screenFamily: ScreenFamily {
+            if setup != nil { return .grownup }
+            if isShowingMissions { return .morning }
+            return path.isEmpty ? .home : .grownup
+        }
+
         /// The school calendar is on the stack.
         public var isShowingSchoolYear: Bool {
             path.contains { if case .schoolYear = $0 { true } else { false } }

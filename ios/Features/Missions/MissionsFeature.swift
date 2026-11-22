@@ -441,6 +441,8 @@ public struct MissionsFeature {
         public var homeAllDayText: String { strings.tr("missions.home_all_day") }
         /// The slide's title once the chosen kid is ready.
         public var slideDoneTitle: String { strings.tr("missions.ready") }
+        /// The slide rests done once the chosen kid is ready, idle otherwise.
+        public var slidePhase: SlideToGoModel.Phase { chosenIsReady ? .done : .idle }
 
         /// The name under a circle: the mission's, or the folded, more and back circles' words.
         public func name(of circle: Circle) -> String {

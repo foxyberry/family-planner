@@ -34,7 +34,7 @@ public struct MissionEditorView: View {
                 }
             } primaryAction: { layout in
                 VStack(alignment: .trailing, spacing: sizing(Spacing.xs)) {
-                    InkButton(L10n.tr("c5.done")) { store.send(.doneTapped) }
+                    InkButton(store.doneTitle) { store.send(.doneTapped) }
                         .frame(width: layout.side.width)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
@@ -45,11 +45,12 @@ public struct MissionEditorView: View {
                 CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.draftClosed) }
                 if let title = store.removeTitle {
-                    ConfirmCard(title: title, message: nil, cancel: L10n.tr("c5.remove.keep"),
-                                confirm: L10n.tr("c5.remove"), isDestructive: true,
+                    ConfirmCard(title: title, message: nil, cancel: store.keepLabel,
+                                confirm: store.removeLabel, isDestructive: true,
                                 onCancel: { store.send(.removeCancelled) }, onConfirm: { store.send(.removeConfirmed) })
                 } else {
-                    MissionDraftCard(draft: draft, onName: { store.send(.draftNameChanged($0)) },
+                    MissionDraftCard(draft: draft, nameLabel: store.nameLabel, removeLabel: store.removeLabel,
+                                     saveTitle: store.saveTitle, onName: { store.send(.draftNameChanged($0)) },
                                      onPicture: { store.send(.draftPicturePicked($0)) },
                                      onDay: { store.send(.draftDayToggled($0)) },
                                      onRemove: { store.send(.removeTapped) }, onSave: { store.send(.saveTapped) })
@@ -61,7 +62,7 @@ public struct MissionEditorView: View {
 
     private var header: some View {
         // Board C5: the kid tabs at the header's right end, in place of "Grown-ups only".
-        GrownupHeader(title: L10n.tr("c5.title"), caption: store.headerCaption,
+        GrownupHeader(title: store.title, caption: store.headerCaption,
                       onBack: { store.send(.doneTapped) }, accessory: { EmptyView() }) {
             CrayonTabs(selection: Binding(get: { store.selectedKid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) },
@@ -88,7 +89,7 @@ public struct MissionEditorView: View {
                 }
                 .buttonStyle(.plain)
             } else {
-                Text(L10n.tr("c5.most")).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                Text(store.mostCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: sizing(72))
             }
         }

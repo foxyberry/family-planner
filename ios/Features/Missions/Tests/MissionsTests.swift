@@ -355,7 +355,9 @@ final class MissionsTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         XCTAssertTrue(store.state.slides)
+        XCTAssertEqual(store.state.slidePhase, .idle)
         await store.send(.slid)
+        XCTAssertEqual(store.state.slidePhase, .done, "the slide rests done while the kid is ready")
         XCTAssertEqual(store.state.days[kidA]?.medal, .gold)
         XCTAssertEqual(store.state.days[kidA]?.readyAt, 440)
         XCTAssertEqual(store.state.caption(store.state.rows[0]), "Ready! Gold")
@@ -374,6 +376,7 @@ final class MissionsTests: XCTestCase {
         await store.send(.slideUndone)
         XCTAssertNil(store.state.days[kidA]?.medal)
         XCTAssertEqual(store.state.days[kidA]?.ready, false)
+        XCTAssertEqual(store.state.slidePhase, .idle)
         XCTAssertNil(store.state.done)
         await store.send(.backTapped)
     }

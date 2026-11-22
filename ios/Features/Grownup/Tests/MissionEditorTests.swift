@@ -2,6 +2,7 @@ import ComposableArchitecture
 import Domain
 import Foundation
 import Grownup
+import Localization
 import ScheduleStore
 import XCTest
 
@@ -141,5 +142,18 @@ final class MissionEditorTests: XCTestCase {
         await store.send(.draftDayToggled(.wednesday))
         await store.send(.saveTapped)
         XCTAssertEqual(saved.value.last.flatMap(store.state.daysCaption), "Mon · Wed")
+    }
+
+    /// Views hold no values: the screen's and the mission card's words come from State, through the
+    /// injected localizer.
+    func testTheWordsComeFromState() {
+        let state = MissionEditorFeature.State(kid: kidA)
+        XCTAssertEqual([state.title, state.doneTitle, state.mostCaption, state.nameLabel, state.removeLabel,
+                        state.saveTitle, state.keepLabel],
+                       ["Morning missions", "Done", "8 is the most", "Name", "Remove", "Save", "Keep"])
+        let keys = withDependencies { $0.localizer = .keys } operation: { MissionEditorFeature.State(kid: kidA) }
+        XCTAssertEqual([keys.title, keys.doneTitle, keys.mostCaption, keys.nameLabel, keys.removeLabel,
+                        keys.saveTitle, keys.keepLabel, keys.addTitle],
+                       ["c5.title", "c5.done", "c5.most", "c5.name", "c5.remove", "c5.save", "c5.remove.keep", "c5.add|0|8"])
     }
 }

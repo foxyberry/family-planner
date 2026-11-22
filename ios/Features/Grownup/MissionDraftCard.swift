@@ -13,6 +13,10 @@ struct MissionDraftCard: View {
                                       .milk, .babyBottle, .backpack, .lunchBox, .waterBottle, .shoe]
 
     let draft: MissionEditorFeature.Draft
+    /// The card's words, from the caller's State.
+    let nameLabel: String
+    let removeLabel: String
+    let saveTitle: String
     let onName: (String) -> Void
     let onPicture: (String) -> Void
     /// The Days row (C5 morning missions only; an item's missions have no days).
@@ -24,7 +28,7 @@ struct MissionDraftCard: View {
     var body: some View {
         PaperCard(seed: 43) {
             VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
-                CrayonField(L10n.tr("c5.name"), text: Binding(get: { draft.name }, set: onName))
+                CrayonField(nameLabel, text: Binding(get: { draft.name }, set: onName))
                 IconPicker(selection: Binding(get: { KitSlot(rawValue: draft.picture) },
                                               set: { if let slot = $0 { onPicture(slot.rawValue) } }),
                            slots: Self.pictures)
@@ -40,12 +44,12 @@ struct MissionDraftCard: View {
                 HStack(spacing: sizing(Spacing.m)) {
                     if !draft.isNew {
                         Button(action: onRemove) {
-                            Text(L10n.tr("c5.remove")).crayonType(.body).foregroundStyle(CrayonColor.lateText)
+                            Text(removeLabel).crayonType(.body).foregroundStyle(CrayonColor.lateText)
                         }
                         .buttonStyle(.plain)
                     }
                     Spacer()
-                    InkButton(L10n.tr("c5.save"), action: onSave)
+                    InkButton(saveTitle, action: onSave)
                         .frame(width: sizing(240))
                         .opacity(draft.canSave ? 1 : 0.4)
                         .disabled(!draft.canSave)
