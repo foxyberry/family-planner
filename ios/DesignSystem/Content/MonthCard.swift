@@ -17,18 +17,18 @@ public struct MonthCard: View {
             }
         }
 
-        var cell: CalendarCell.Size { self == .card ? .card : .open }
+        public var cell: CalendarCell.Size { self == .card ? .card : .open }
         /// The month's name 20 (open: 40) in from the left; its baseline (card 30 bold: 43; open 48 bold: 80).
-        var titleLeft: CGFloat { self == .card ? 20 : 40 }
-        var titleBaseline: CGFloat { self == .card ? 43 : 80 }
-        var titleType: CrayonType { self == .card ? .body : .title }
+        public var titleLeft: CGFloat { self == .card ? 20 : 40 }
+        public var titleBaseline: CGFloat { self == .card ? 43 : 80 }
+        public var titleType: CrayonType { self == .card ? .body : .title }
         /// The weekday row's baseline and size (card 17 soft; open 24).
-        var weekdayBaseline: CGFloat { self == .card ? 72 : 140 }
-        var weekdaySize: CGFloat { self == .card ? 17 : 24 }
+        public var weekdayBaseline: CGFloat { self == .card ? 72 : 140 }
+        public var weekdaySize: CGFloat { self == .card ? 17 : 24 }
         /// The first cell's top-left and the pitch: card 36 × 28 on 40 / 30 from (18, 78); open
         /// 104 × 96 on 112 / 104 from (40, 148).
-        var gridOrigin: CGPoint { self == .card ? CGPoint(x: 18, y: 78) : CGPoint(x: 40, y: 148) }
-        var pitch: CGSize { self == .card ? CGSize(width: 40, height: 30) : CGSize(width: 112, height: 104) }
+        public var gridOrigin: CGPoint { self == .card ? CGPoint(x: 18, y: 78) : CGPoint(x: 40, y: 148) }
+        public var pitch: CGSize { self == .card ? CGSize(width: 40, height: 30) : CGSize(width: 112, height: 104) }
     }
 
     private let title: String

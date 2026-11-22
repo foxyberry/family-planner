@@ -62,8 +62,8 @@ final class ScreenSnapshotTests: XCTestCase {
         snap(store.state, world, size: Self.sizes[0].size, named: "13")
     }
 
-    /// Board K1: the school calendar's year, opened from home (Kid A's year-end break, Deepavali,
-    /// Christmas inside the break, today the 10th).
+    /// Board K1: the school calendar's year, opened from home, both kids at school (their breaks
+    /// split, "Both off", the key on two lines; Deepavali, Christmas inside the break, today the 10th).
     func testSchoolYear() async throws {
         let (store, world) = await schoolYear()
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
@@ -94,6 +94,10 @@ final class ScreenSnapshotTests: XCTestCase {
                        WorldData.Break(name: "June holidays", from: "2026-05-30", to: "2026-06-28"),
                        WorldData.Break(name: "End-of-year holidays", from: "2026-11-21", to: "2026-12-31")]
         let world = World(data)
+        // Both kids at school, so the key lists both with "Both off" and the shared days split.
+        world.family.withValue { family in
+            if family.kids.count > 1 { family.kids[1].school = family.kids[0].school }
+        }
         let store = world.store()
         await opened(store)
         if night { await store.send(.home(.skySwitchTapped)) }
