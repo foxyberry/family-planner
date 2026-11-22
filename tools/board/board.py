@@ -88,12 +88,13 @@ def ago(t):
 
 TITLE = re.compile(rb'"(?:customTitle|agentName)":"((?:[^"\\]|\\.)*)"')
 CWD = re.compile(rb'"cwd":"((?:[^"\\]|\\.)*)"')
-EMPTY = {"v": 3, "active_at": None, "offset": 0, "title": None, "cwd": None, "prs": [], "branches": [], "related": False,
+EMPTY = {"v": 4, "active_at": None, "offset": 0, "title": None, "cwd": None, "prs": [], "branches": [], "related": False,
          "ask": None, "user_at": None}
 # Messages that reach a session as a user turn but are not the user's own words.
 NOT_USER = ("<ci-monitor-event", "<cross-session-message", "<side-sessions-event", "<system-reminder",
             "<task-notification", "<command-", "<local-command", "Another Claude session sent a message")
-NEW_BRANCH = re.compile(rb'(?:checkout|switch)\s+-[bcBC]\s+([A-Za-z0-9._/-]+)|worktree add[^"]*?\s-b\s+([A-Za-z0-9._/-]+)')
+# Other flags may come first (`git switch -q -c <branch>`).
+NEW_BRANCH = re.compile(rb'(?:checkout|switch)(?:\s+-{1,2}[A-Za-z-]+)*?\s+-[bcBC]\s+([A-Za-z0-9._/-]+)|worktree add[^"]*?\s-b\s+([A-Za-z0-9._/-]+)')
 
 
 def scan_sessions(repo_root, slug):
@@ -927,29 +928,38 @@ def build():
         h.append("</details>")
     h.append("</section>")
 
-    # Local issues sit between the review-to-merge lanes and the sessions
+    # The working sessions, one card per issue owner, then their issues: what each has in hand
+    # (its doing issues and open PRs), how it is, and what it said last. Older or side sessions that
+    # own no issues stay off the board (the app's sidebar has them).
+    h.append('<details class="fold" data-id="sessions" open><summary><h2>세션이 하는 일</h2></summary><div class="who">')
+    if not owners:
+        h.append('<div class="box soft">이슈 담당 세션을 찾지 못했습니다.</div>')
+    for owner in sorted(owners, key=lambda o: ["main", "review", "design", "harness"].index(o)
+                        if o in ("main", "review", "design", "harness") else 9):
+        o = owners[owner]
+        newest = max(o["sessions"], key=lambda x: x["mtime"])
+        busy = [x for x in o["sessions"] if session_state(x)[0] == "busy"]
+        cls, label = session_state(busy[0] if busy else newest)
+        doing = [i for i in o["issues"] if is_doing(i)]
+        waiting = [i for i in o["issues"] if is_open(i) and not is_doing(i)]
+        prs = [n for x in o["sessions"] for n in held.get(x["id"], [])]
+        hand = [f'<li><span class="f-info">이슈 {esc(i["number"])}</span> {esc(i["title"])}</li>' for i in doing]
+        hand += [f'<li><a href="{esc(open_numbers[n]["url"])}">#{n}</a> {esc(open_numbers[n]["title"])}</li>' for n in prs]
+        d = newest.get("desk") or {}
+        report = d.get("status") or d.get("report", "")
+        report = esc(report[:160]) + ("…" if len(report) > 160 else "")
+        h.append(f'<div class="box"><b>{esc(owner)}</b> · {sess(newest["title"], newest["title"] + " 열기", sid=newest["id"])}'
+                 f'<div class="meta"><span class="dot {cls}"></span>{label} <span class="soft">({esc(ago(newest["mtime"]))})</span>'
+                 f' · 남은 이슈 {len(waiting)}건</div>'
+                 + (f'<ul>{"".join(hand)}</ul>' if hand else '<div class="meta f-wait">집은 이슈도 열린 PR도 없음</div>')
+                 + (f'<div class="meta report">{report}</div>' if report else "") + "</div>")
+    h.append("</div></details>")
+
+    # Local issues sit between the sessions' cards and the local work
     h.append(issues_section(repo_root))
 
-    # Sessions, local-only work, machine
+    # Local-only work, machine
     h.append('<section class="grid2">')
-    h.append('<div class="box wide"><details class="fold" data-id="sessions" open><summary><h2>세션</h2></summary>'
-             '<table><tr><th>세션</th><th>상태</th><th>마지막 보고</th><th>하는 일</th></tr>')
-    for s in sorted(sessions.values(), key=lambda s: s["mtime"], reverse=True):
-        cls, label = session_state(s)
-        # What it has in hand: its owner's doing issues (scripts/issue.sh start), then its open PRs.
-        owner = owner_of_title(s["title"])
-        doing = [i for i in issues if owner and i["owner"].split()[:1] == [owner] and is_doing(i)]
-        links = " ".join(f'<a href="{esc(open_numbers[n]["url"])}">#{n}</a>' for n in held.get(s["id"], []))
-        prs = "<br>".join([f'<span class="f-info">이슈 {esc(i["number"])}</span> {esc(i["title"])}' for i in doing]
-                          + ([links] if links else []))
-        d = s.get("desk") or {}
-        status = f'<div class="meta">{esc(d["status"])}</div>' if d.get("status") else ""
-        report = esc(d.get("report", "")[:220]) + ("…" if len(d.get("report", "")) > 220 else "")
-        h.append(f'<tr><td>{sess(s["title"], sid=s["id"])}</td><td><span class="dot {cls}"></span>{label} '
-                 f'<span class="soft">({esc(ago(s["mtime"]))})</span>{status}</td>'
-                 f'<td class="report">{report or "<span class=soft>없음</span>"}</td>'
-                 f'<td>{prs or "<span class=soft>집은 이슈도 열린 PR도 없음</span>"}</td></tr>')
-    h.append("</table></details></div>")
 
     # Local work: each branch's story and a verdict; safe deletes fold away with their commands
     tag = {"active": ("f-info", "진행 중"), "decide": ("f-wait", "결정 필요"), "delete": ("f-good", "삭제 가능")}

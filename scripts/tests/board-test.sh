@@ -172,6 +172,17 @@ for name, o, want in [
     else:
         failed += 1
         print(f"FAIL idle_with_issues {name}: want {want}, got {got}")
+# A session owns the branches it cut, whatever flags come before -c / -b.
+for line, want in [(b"git switch -q -c feature/a origin/develop", "feature/a"), (b"git checkout -b feature/b", "feature/b"),
+                   (b"git switch -c feature/c", "feature/c"), (b"git checkout --quiet -B feature/d x", "feature/d"),
+                   (b"git worktree add ../w -b feature/e", "feature/e"), (b"git switch feature/f", None)]:
+    m = board.NEW_BRANCH.search(line)
+    got = (m.group(1) or m.group(2)).decode() if m else None
+    if got == want:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL NEW_BRANCH {line!r}: want {want}, got {got}")
 print(f"board: {passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 EOF
