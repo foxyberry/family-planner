@@ -174,6 +174,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: the slice card bullets match G1: 472 wide, one times row with two TimeField 176 × 80 (no Starts / Ends labels).
 - 2026-11-22: home "next" is one row (user): picture 104 + "Next" / title / "in {n} min" within 60 minutes, else "at {h:mm}"; the item shows once (no time-left block plus a second row). Kid B shows a Now row and a Next row of the same shape instead of the now / next circles. Layout v68 (A1, A1m, A1b, A1n, E1, E3, E3b, G0).
 - 2026-11-22: from the UX flow review (user): G5 opens on the day being looked at and names its middle day ("Tomorrow" or "Wed 18 Nov", not "Next Wed"); the 2-minute idle relock and its countdown are gone (backgrounding still relocks); C0 points at G0 / G1 for the pencil and the header; home shows a saved change on return. Layout v69 (G5).
+- 2026-11-22: home edges from the #216 build: E1's Next row names the thing after the Leave row's item (board E1 "Snack"); Kid B "Free time" with no time line when nothing is later, "Nothing planned" on an empty day; Kid B's Next skips like Kid A's and looks past the wake-up at night. Layout v70 (E1).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -416,7 +417,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
   - **Next** row: the time line is **"in {n} min"** while the start is **60 minutes or less** away, otherwise "at {h:mm am/pm}" (user, 2026-11-22: a kid reads "in 45 min" more easily; past an hour the time of day is enough). So the Next row never shows "1h 20m"; that format stays for "Leave in" and "Bed in".
   - The thing a row names shows once: no second row, picture or time left for the same item anywhere in that kid's block.
 - A grown-up's saved change shows on home when the grown-up comes back; there is no reload to do. A change from a later day shows from that day (the clock's day changes at midnight).
-- **Kid A, which row**: on a bus or outing morning the **Leave** row ("Leave in" + time left to the leave time, + "On time" with live bus times; boards A1, A1m, A1b), at night the **Bed** row and the Tomorrow row (A1n), otherwise the **Next** row (E3, E3b). With the Leave row, A1 (two kids) shows no Next for Kid A; E1 (one kid) adds its Next row under the Leave row.
+- **Kid A, which row**: on a bus or outing morning the **Leave** row ("Leave in" + time left to the leave time, + "On time" with live bus times; boards A1, A1m, A1b), at night the **Bed** row and the Tomorrow row (A1n), otherwise the **Next** row (E3, E3b). With the Leave row, A1 (two kids) shows no Next for Kid A; E1 (one kid) adds its Next row under the Leave row, and that row names the next thing **other than** the Leave row's item (a Breakfast still before leaving keeps its place), so the outing's item shows once (board E1 at 6:52 on a school day, Breakfast now: Leave in 34 min for School, then Next "Snack" / "at 3:00 pm").
 - **Night** (A1n look; board order confirmed 2026-11-09): the time left comes first: "Bed in" (first line, baseline 301) + `TimeLeft` (baseline 403) to Sleep. Then the "Tomorrow" row: a 64 picture on a 104 plate at y 436, "Tomorrow" (body bold, baseline 484) over "School, leave {h:mm}" (caption, baseline 516). There is no Next row for Kid A at night: Next would be Sleep, which the time left already says. Kid B's rows put their pictures on 104 night plates (picture 64), as Kid A's night pictures.
 
 ### Right panel
@@ -438,7 +439,9 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 
 ### States
 - Weekend or holiday → E3 layout. One child → E1 layout.
-- Kid B has no slot now: the Now row shows the play picture, "Free time" and "until {next start}"; if nothing is next, the Next row is left out. [proposed]
+- Kid B has no slot now: the Now row shows the play picture, "Free time" and "until {next start}". With nothing later today it is "Free time" with no time line, and the Next row is left out.
+- Kid B with an empty day (nothing planned at all): the Now row reads "Nothing planned" (the play picture, no time line), as Kid A's hub does on an empty day, and the Next row is left out.
+- Kid B's Next follows the same **Next** rule as Kid A: it skips free time and a slot that only continues the current one, and it looks into tomorrow **only when the Now item runs past midnight** (Sleep at night): then Next is the first thing after the wake-up (board A1n: "Breakfast" / "at 6:30 am"). Otherwise Next stays within today, so with nothing left today, or on an empty day, the Next row is left out.
 
 ---
 
