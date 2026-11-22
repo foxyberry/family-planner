@@ -17,8 +17,8 @@ Monorepo: `ios/` today; other parts (backend, web) go next to it later.
 ## Machine limits (8 GB Mac)
 - One Bazel build/test at a time, one simulator. `make sim-stop` when done.
 - `make run` builds first, then boots the simulator. Shut down idle Bazel servers of other projects.
-- Check screens on the iPad (`make device`), never the dev simulator; for tap or Face ID states,
-  ask the user or add a launch flag.
+- Check screens on a connected iPad (`make device`), else that size's 13"/11"/mini simulator.
+  Tap or Face ID states: ask the user or add a launch flag.
 - Local memory caps live in `user.bazelrc` (copied from `user.bazelrc.example`); CI does not use them.
 
 ## Commands

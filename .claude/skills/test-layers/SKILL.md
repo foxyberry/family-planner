@@ -2,7 +2,7 @@
 name: test-layers
 description: Use when deciding which test should catch a bug, a review finding or something seen on the iPad or simulator while self-checking (WebDriverAgent, screenshots, taps); adding tests for a new screen or flow; a test would need Face ID, a passcode or a person to tap; choosing between a reducer test, a journey, a UI test and a snapshot; or writing a PR's test evidence.
 metadata:
-  version: 0.3.0
+  version: 0.3.1
   status: experimental
 ---
 
@@ -23,7 +23,7 @@ is only the look and feel.
 | Screen snapshot | `ios/Journeys/Tests/Screens` | a whole screen at a journey state, at the 13-inch and the mini | same |
 | UI test | `ios/Journeys/Tests/UI` | what State can't show: holds, keyboard focus, sheets, scrolling | `make ui-test` (local) |
 | Self-check | simulator, or the iPad over WebDriverAgent | anything, while building | by hand, never evidence alone |
-| The user's iPad check | screen PRs (`pr-review-handoff`) | look and feel only | the user |
+| The user's iPad check | screen PRs (`pr-review-handoff`) | look and feel only | the user; a connected iPad first, else the 13" / 11" / mini simulator of the missing size |
 
 ## A finding goes to
 | You saw | Add |
