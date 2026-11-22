@@ -8,7 +8,9 @@
 #   - dead-code candidates from the changed Swift files (grep): declarations whose name appears
 #     nowhere else in ios/, or only in tests or DebugTools. Candidates, not verdicts: a protocol
 #     requirement, an override or a SwiftUI entry point can look unused;
-#   - comments that quote a board's numbers without a layout version, to re-check against the board.
+#   - comments that quote a board's numbers without a layout version, to re-check against the board;
+#   - the justified exceptions guards accept: every `// outside-ok:` and `// bleed-ok:` line with its
+#     reason, and the `// copy-ok:` lines in the changed files (there are many), to re-judge each.
 #
 # Usage: scripts/audit.sh [--since SHA] [--mark]
 #   --since SHA  audit from SHA instead of the last audited one (first run: 50 commits back)
@@ -48,6 +50,18 @@ for guard in scripts/check-*.sh; do
     printf '%s\n' "$out" | head -5 | sed 's/^/  - /'
   fi
 done
+
+echo
+echo "## Justified exceptions (re-judge each reason)"
+for note in outside-ok bleed-ok; do
+  lines="$(grep -rnE "// $note:" ios --include='*.swift' | sed -E "s|^([^:]+:[0-9]+):.*// $note:[[:space:]]*|\1  |")"
+  echo "- $note: $(printf '%s\n' "$lines" | grep -c .)"
+  printf '%s\n' "$lines" | grep . | sed 's/^/  - /'
+done
+copy_all="$(grep -rlE '// copy-ok:' ios --include='*.swift' | wc -l | tr -d ' ')"
+copy_changed="$(printf '%s\n' "$changed" | grep '\.swift$' | while read -r f; do [ -f "$f" ] && grep -nE '// copy-ok:' "$f" | sed "s|^|$f:|"; done)"
+echo "- copy-ok: in $copy_all files; in the changed files: $(printf '%s\n' "$copy_changed" | grep -c .)"
+printf '%s\n' "$copy_changed" | grep . | sed -E 's|^([^:]+:[0-9]+):.*// copy-ok:[[:space:]]*|  - \1  |'
 
 echo
 echo "## Pending lists (shrink-only)"

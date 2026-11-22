@@ -31,5 +31,6 @@ struct ImplicitGlobalsFixture {
     let explicitStyle = TextStyle.current
     let resources = [Bundle(for: Token.self), Bundle.main]  // outside-ok: resource lookup
     let unexplained = [Bundle(for: Token.self), Bundle.main]  // bad
+    let noReason = Bundle.main  // outside-ok: // bad (a note with no reason)
     let queue = DispatchQueue.main
 }

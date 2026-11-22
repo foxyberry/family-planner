@@ -2,7 +2,7 @@
 name: architecture-audit
 description: Use only when the user asks to audit or check develop ("develop 점검해줘", "audit develop", "아키텍처 점검") — never on a schedule or on your own — or when asked whether develop has dead code, rule drift, stale board citations or pending lists that stopped shrinking.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   status: experimental
 ---
 
@@ -34,6 +34,8 @@ lessons and a short Korean report. It never edits the shared checkout.
    - comments citing retired boards (C1, C6, E5, E6): the version guard can't see boards that no
      longer have a layout file;
    - code left from a replaced spec: a type, case or copy key only the old flow used.
+   - the report's justified exceptions (`outside-ok`, `bleed-ok`, new `copy-ok`): is each reason
+     still true? A stale one goes, and the code is fixed or the guard catches it again.
 4. Dead code, deeper than grep: Periphery (`brew install periphery`, the user's OK), when Bazel is
    free. Its Bazel mode needs a module entry that also moves apple_support and rules_apple past the
    CLAUDE.md pins, so it never lands in git: in the audit worktree only, append
