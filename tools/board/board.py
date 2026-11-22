@@ -6,7 +6,8 @@ It reads three things on this Mac and writes one HTML page (tools/board/out/inde
     iPad check, merge) and the PRs merged lately;
   - Claude Code transcripts (~/.claude/projects): each session's title, the PRs and branches it
     created and the folder it works in;
-  - git and the machine: worktrees, local-only branches and commits, Bazel servers, simulators.
+  - git and the machine: worktrees, local-only branches and commits, Bazel servers, simulators;
+  - local issues: .claude/issues/*.md in the main checkout (git-ignored; scripts/issue.sh).
 
   python3 tools/board/board.py            # write the page once
   python3 tools/board/board.py --serve    # http://127.0.0.1:8765, rebuilt at most every 25 s
@@ -496,6 +497,51 @@ def local_work(wts, open_by_branch, ended, by_branch, owner_of, repo_root):
     return sorted(items, key=lambda i: -i["when"])
 
 
+def read_issues(repo_root):
+    """Local issues (.claude/issues/*.md in the main checkout): title from the first `# ` line,
+    `key: value` lines (owner, status, opened, area) before the first `##` section."""
+    issues = []
+    folder = os.path.join(repo_root, ".claude", "issues")
+    for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+        if not name.endswith(".md"):
+            continue
+        issue = {"file": name, "title": name[:-3], "owner": "", "status": "open", "opened": "", "area": ""}
+        with open(os.path.join(folder, name), encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("## "):
+                    break
+                if line.startswith("# "):
+                    issue["title"] = line[2:].strip()
+                elif ":" in line:
+                    key, value = line.split(":", 1)
+                    if key.strip() in ("owner", "status", "opened", "area"):
+                        issue[key.strip()] = value.strip()
+        issues.append(issue)
+    return issues
+
+
+def issues_section(repo_root):
+    """The open local issues fold (scripts/issue.sh, CLAUDE.md "Agent harness"), grouped by owner."""
+    h = []
+    open_issues = [i for i in read_issues(repo_root) if (i["status"].split() or ["open"])[0] not in ("closed", "done")]
+    h.append(f'<details class="fold" data-id="issues" open><summary><h2>열린 이슈 '
+             f'<span class="count">{len(open_issues)}</span> <span class="soft">(.claude/issues, 담당 세션이 집어 감)</span>'
+             '</h2></summary><div class="who">')
+    if not open_issues:
+        h.append('<div class="box soft">열린 이슈가 없습니다.</div>')
+    owners = {}
+    for i in open_issues:
+        owners.setdefault(i["owner"] or "담당 없음", []).append(i)
+    for owner, items in sorted(owners.items()):
+        h.append(f'<div class="box"><b>{esc(owner)}</b> <span class="soft">· {len(items)}건</span><ul>')
+        for i in items:
+            h.append(f'<li>{esc(i["title"])} <span class="soft">({esc(i["file"])} · {esc(i["status"])}'
+                     f'{" · " + esc(i["opened"]) if i["opened"] else ""})</span></li>')
+        h.append("</ul></div>")
+    h.append("</div></details>")
+    return "".join(h)
+
+
 def machine():
     info = {}
     code, out, _ = run(["pgrep", "-f", "A-server.jar"])
@@ -574,7 +620,7 @@ a.sess::after{content:" ↗";font-size:11px}td.report{font-size:12px;color:var(-
 border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer}
 """
 
-# Folds survive the 30 s reload: each <details data-id> keeps its open state in this viewer's
+# Folds survive the 15 s reload: each <details data-id> keeps its open state in this viewer's
 # localStorage (a convenience only; the page works without it).
 FOLD_JS = """(function(){var K='board-folds',s={};try{s=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
 function save(){try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}
@@ -676,8 +722,8 @@ def build():
 
     h = ['<!doctype html><html lang="ko"><head><meta charset="utf-8">',
          '<meta name="viewport" content="width=device-width,initial-scale=1">',
-         '<meta http-equiv="refresh" content="30"><title>작업 현황판</title>', f"<style>{CSS}</style></head><body>",
-         f'<header><h1>작업 현황판</h1><span class="soft">{esc(slug)} · {dt.datetime.now().strftime("%H:%M:%S")} 갱신 · 30초마다 새로고침</span>'
+         '<meta http-equiv="refresh" content="15"><title>작업 현황판</title>', f"<style>{CSS}</style></head><body>",
+         f'<header><h1>작업 현황판</h1><span class="soft">{esc(slug)} · {dt.datetime.now().strftime("%H:%M:%S")} 갱신 · 15초마다 새로고침</span>'
          '<span class="tools"><button type="button" data-fold="close">모두 접기</button>'
          '<button type="button" data-fold="open">모두 펼치기</button></span></header>',
          '<div class="wrap">']
@@ -779,6 +825,9 @@ def build():
             h.append("</div>")
         h.append("</details>")
     h.append("</section>")
+
+    # Local issues sit between the review-to-merge lanes and the sessions
+    h.append(issues_section(repo_root))
 
     # Sessions, local-only work, machine
     h.append('<section class="grid2">')

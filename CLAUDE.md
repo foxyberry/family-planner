@@ -101,13 +101,12 @@ rules_swift_package_manager 1.25.0, rules_xcodeproj 3.5.1; TCA 1.26.2. Record bu
 
 ## Agent harness
 - `AGENTS.md` is a symlink to this file. Edit `CLAUDE.md`, never the link.
-- Skills in `.claude/skills` (`.agents/skills` links there): `git-flow-delivery`, `bazel-ios`, `tca-feature`, `screen-layout`,
-  `test-layers`, `architecture-audit`, `skill-retro`, `crayon-design` (sizes, copy), `pr-review-handoff` (review starts from a PR).
-- Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known; the
-  `skill-retro` skill moves them into guards, this file or skills (a session-start note says when 5+ wait).
-  `bash scripts/check-skills.sh` checks skills, this file's length and the inbox.
-- Hooks block private terms in file writes and in commit/tag/PR/issue/release text.
-- Git hooks (`.githooks`, enabled by `make setup`): pre-commit (gitleaks + terms on staged lines),
-  commit-msg, pre-push (gitleaks + terms on every new commit, ref and tag; `make lint` on Bazel
-  changes; guard tests on guard changes).
+- Skills live in `.claude/skills` (`.agents/skills` links there); reviews start from a PR (`pr-review-handoff`).
+- Work left for later, any session's (not reviews or PR waits): `scripts/issue.sh new <owner> "<title>"`
+  (git-ignored, on the board), `close <n>` when done; check `issue.sh list <owner>` at start.
+- Lessons: append one line to `.claude/lessons.md` as soon as a mistake's cause is known;
+  `skill-retro` moves them into guards, this file or skills. `scripts/check-skills.sh` checks all three.
+- Claude hooks block private terms in file writes and publishing text.
+- Git hooks (`.githooks`, `make setup`): pre-commit and pre-push run gitleaks and the term check;
+  pre-push also runs `make lint` on Bazel changes and guard tests on guard changes.
 - Show the command and its output as evidence before saying a build or test passed.
