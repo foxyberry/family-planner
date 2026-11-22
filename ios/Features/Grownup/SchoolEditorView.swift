@@ -62,9 +62,8 @@ public struct SchoolEditorView: View {
             }
         } primaryAction: { layout in
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
-                InkButton(store.saveTitle) { store.send(.saveTapped) }
+                InkButton(store.saveTitle, isEnabled: store.canSave) { store.send(.saveTapped) }
                     .frame(width: layout.side.width)
-                    .disabled(!store.canSave)
                 if let error = store.saveError {
                     Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                 }

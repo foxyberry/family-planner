@@ -44,14 +44,10 @@ public struct InkButton: View {
                 .frame(maxWidth: .infinity, minHeight: sizing(height))
                 .modifier(Surface(isNight: isNight))
         }
-        .buttonStyle(.plain)
-        // Off: the whole button at 40 % (the dimmed Save on S1–S4 and the mission card).
-        .opacity(isEnabled ? 1 : Self.offOpacity)
-        .disabled(!isEnabled)
+        .crayonPlain(isEnabled)
+        // Off: the whole button at 40 % (the dimmed Save on S1–S4, the editors and the mission card).
+        .offLook(isEnabled)
     }
-
-    /// The off look's opacity.
-    static let offOpacity = 0.4
 
     private struct Surface: ViewModifier {
         let isNight: Bool

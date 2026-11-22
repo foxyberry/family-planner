@@ -4,16 +4,20 @@ import SwiftUI
 /// Spec "S4 · Almost done" `CrayonSwitch` (board close-up, 2026-11-09): in a 96 × 52 box, a thin pill
 /// track 92 × 28 (sky `tab-on` when on, paper `tab-off` when off) and a 44 paper knob, taller than the
 /// track, at x 48 on / x 4 off with the check picture 28 inside it when on. The knob slides in 0.2 s.
-/// Its row (`SettingRow`) is the touch area.
+/// Its row (`SettingRow`) or the caller's button is the touch area. Off (`isEnabled: false`, G2b's
+/// Medal without a trip) it draws the one off look, 40 %, and takes no taps; the caller's button takes
+/// none either (`allowsHitTesting` with the same flag; `.disabled` would dim it twice).
 public struct CrayonSwitch: View {
     public static let size = CGSize(width: 96, height: 52)
     private static let knob: CGFloat = 44
 
     private let isOn: Bool
+    private let isEnabled: Bool
     @Environment(\.sizing) private var sizing
 
-    public init(isOn: Bool) {
+    public init(isOn: Bool, isEnabled: Bool = true) {
         self.isOn = isOn
+        self.isEnabled = isEnabled
     }
 
     public var body: some View {
@@ -34,6 +38,7 @@ public struct CrayonSwitch: View {
         }
         .frame(width: box.width, height: box.height)
         .animation(.easeInOut(duration: 0.2), value: isOn)
+        .offLook(isEnabled)
     }
 }
 

@@ -373,9 +373,6 @@ public struct ItemEditorFeature {
         public var fromWhenSave: String { strings.tr("from_when.save") }
         public var fromWhenCancel: String { strings.tr("from_when.cancel") }
         public var fromWhenChoice: FromWhen { fromWhen ?? .today }
-        /// Board C4: ‹ is faint (30 %) on the first page of dates; Medal is faint (45 %) without a trip.
-        public var earlierPageOpacity: Double { canPageEarlier ? 1 : 0.3 }
-        public var medalSwitchOpacity: Double { form.canSwitchMedal ? 1 : 0.45 }
         /// While editing, an event that already started keeps its start time without "That time has passed".
         public var problem: FormProblem? {
             let keptStart = !isAdding && form.date == original.date ? original.start : nil
@@ -422,7 +419,7 @@ public struct ItemEditorFeature {
             }
         }
 
-        /// Paging never goes before this week.
+        /// Paging never goes before this week; board C4's ‹ is off on the first page.
         public var canPageEarlier: Bool { datePage > 0 }
 
         /// The every-week side column's title (board G2): "Every Mon and Wed".

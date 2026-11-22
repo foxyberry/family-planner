@@ -104,17 +104,15 @@ public struct OurDayView: View {
     }
 
     /// Board G1: Undo and Redo, 72 each, at the clock area's bottom right (722 and 810, y 880);
-    /// off at 45 % when there is nothing to take back or put back.
+    /// off (40 %, no taps) when there is nothing to take back or put back.
     private var undoRedo: some View {
         HStack(spacing: sizing(Spacing.s)) {
             RoundButton(glyph: .undo) { store.send(.undoTapped) }
                 .size(72)
-                .opacity(store.undoOpacity)
-                .disabled(!store.canUndo)
+                .enabled(store.canUndo)
             RoundButton(glyph: .redo) { store.send(.redoTapped) }
                 .size(72)
-                .opacity(store.redoOpacity)
-                .disabled(!store.canRedo)
+                .enabled(store.canRedo)
         }
         .padding(.bottom, sizing(Spacing.s))
     }

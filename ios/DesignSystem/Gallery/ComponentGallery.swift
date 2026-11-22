@@ -55,13 +55,15 @@ public struct ComponentGallery: View {
                         // G0: the pencil way in.
                         RoundButton(picture: .pencil) {}
                         RoundButton(picture: .pencil) {}.look(.night)
-                        // G1 Undo (on) and Redo (off, at 45 %).
+                        // G1 Undo (on) and Redo (off: 40 %, no taps).
                         RoundButton(glyph: .undo) {}.size(72)
-                        RoundButton(glyph: .redo) {}.size(72).opacity(0.45)
+                        RoundButton(glyph: .redo) {}.size(72).enabled(false)
                         PillToggle("12", isOn: true) {}
                         PillToggle("34", isOn: false) {}
                         CrayonSwitch(isOn: true)
                         CrayonSwitch(isOn: false)
+                        // G2b Medal without a trip (off: 40 %).
+                        CrayonSwitch(isOn: false, isEnabled: false)
                         CheckMark(isDone: true)
                         CheckMark(isDone: false)
                     }
