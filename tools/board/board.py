@@ -6,7 +6,8 @@ It reads three things on this Mac and writes one HTML page (tools/board/out/inde
     iPad check, merge) and the PRs merged lately;
   - Claude Code transcripts (~/.claude/projects): each session's title, the PRs and branches it
     created and the folder it works in;
-  - git and the machine: worktrees, local-only branches and commits, Bazel servers, simulators.
+  - git and the machine: worktrees, local-only branches and commits, Bazel servers, simulators;
+  - local issues: .claude/issues/*.md in the main checkout (git-ignored; pr-review-handoff).
 
   python3 tools/board/board.py            # write the page once
   python3 tools/board/board.py --serve    # http://127.0.0.1:8765, rebuilt at most every 25 s
@@ -496,6 +497,29 @@ def local_work(wts, open_by_branch, ended, by_branch, owner_of, repo_root):
     return sorted(items, key=lambda i: -i["when"])
 
 
+def read_issues(repo_root):
+    """Local issues (.claude/issues/*.md in the main checkout): title from the first `# ` line,
+    `key: value` lines (owner, status, opened, area) before the first `##` section."""
+    issues = []
+    folder = os.path.join(repo_root, ".claude", "issues")
+    for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+        if not name.endswith(".md"):
+            continue
+        issue = {"file": name, "title": name[:-3], "owner": "", "status": "open", "opened": "", "area": ""}
+        with open(os.path.join(folder, name), encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("## "):
+                    break
+                if line.startswith("# "):
+                    issue["title"] = line[2:].strip()
+                elif ":" in line:
+                    key, value = line.split(":", 1)
+                    if key.strip() in ("owner", "status", "opened", "area"):
+                        issue[key.strip()] = value.strip()
+        issues.append(issue)
+    return issues
+
+
 def machine():
     info = {}
     code, out, _ = run(["pgrep", "-f", "A-server.jar"])
@@ -749,6 +773,24 @@ def build():
         for c in sorted(items, key=lambda c: c["since"] or now()):
             h.append(f'<li><a href="{esc(c["pr"]["url"])}">#{c["pr"]["number"]}</a> {esc(c["what"])} '
                      f'<span class="soft">({esc(ago(c["since"]))}부터)</span></li>')
+        h.append("</ul></div>")
+    h.append("</div></details>")
+
+    # Local issues: work a session picks up later (pr-review-handoff "Local issues")
+    open_issues = [i for i in read_issues(repo_root) if i["status"].split()[0] not in ("closed", "done")]
+    h.append(f'<details class="fold" data-id="issues" open><summary><h2>열린 이슈 '
+             f'<span class="count">{len(open_issues)}</span> <span class="soft">(.claude/issues, 담당 세션이 집어 감)</span>'
+             '</h2></summary><div class="who">')
+    if not open_issues:
+        h.append('<div class="box soft">열린 이슈가 없습니다.</div>')
+    owners = {}
+    for i in open_issues:
+        owners.setdefault(i["owner"] or "담당 없음", []).append(i)
+    for owner, items in sorted(owners.items()):
+        h.append(f'<div class="box"><b>{esc(owner)}</b> <span class="soft">· {len(items)}건</span><ul>')
+        for i in items:
+            h.append(f'<li>{esc(i["title"])} <span class="soft">({esc(i["file"])} · {esc(i["status"])}'
+                     f'{" · " + esc(i["opened"]) if i["opened"] else ""})</span></li>')
         h.append("</ul></div>")
     h.append("</div></details>")
 
