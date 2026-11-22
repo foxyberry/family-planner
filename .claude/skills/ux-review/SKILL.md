@@ -2,7 +2,7 @@
 name: ux-review
 description: Use when reviewing the UX of a screen or flow before or after it is built (a new screen such as the school calendar, a board family, a kid or grown-up flow), when a state may have no board ("did anyone draw this?"), when checking the kids' home across a whole day, or when a fresh reviewer should judge screens from screenshots and a task alone.
 metadata:
-  version: 0.2.0
+  version: 0.2.1
   status: experimental
 ---
 
@@ -30,7 +30,9 @@ A screen with no code yet (a new design) gets piece 3 alone, on its boards.
    design session: draw it, or show it can't happen.
 4. `make ux-states` (and pre-push) fails on such a state unless `scripts/ux-states-pending.txt`
    lists it. The list only shrinks: once the board exists and the case's comment names it, remove
-   the line.
+   the line. Pre-push runs it on layout JSON too, so a design-only push may first build SwiftLint
+   with the rules (about 2 min from the disk cache, 12 min cold) when no cached binary matches.
+   Run `make ux-states` once before a design push to build it ahead.
 - The list sees enum cases. A state that lives in a count or a flag (E1 is "one kid") needs its own
   enum or a sweep day.
 
