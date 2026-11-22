@@ -49,6 +49,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 
 - 2026-11-21: cleanup: build status brought up to date (steps 3–6d done), VoiceOver out of this phase, resizable windows decided (one scale from the window); portrait stays open.
 - 2026-11-22: N15 country flags in the What picker (the kit flags were drawn but no picker showed them).
+- 2026-11-22: the sync and time zone plans point at G6 Settings → Family, not the retired C1.
 ## Goal (the user's words)
 > **See today's schedule on this iPad, and do today's missions.**
 
@@ -132,7 +133,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 | N9 | Taxi day: a grown-up types the ride-hailing ETA once ("taxi in 7 min"); the way strip counts down to it. No ride-hailing API: Grab has no public API for a rider's own booking (checked 2026-11-08). | A2t way strip | bus |
 
 ### N4 · Reference time zone (UX)
-- **Family time zone**: the zone the plan is written in. It is set once in C1 → "About the family" (default: this iPad's zone at first run). Every template slot and item is stored in family time.
+- **Family time zone**: the zone the plan is written in. It is set once in G6 Settings → Family (default: this iPad's zone at first run). Every template slot and item is stored in family time.
 - **Show times in**, a per-device setting: "Family time (default)" or "This iPad's time".
   - In the first case, an iPad that is travelling (e.g. in Korea) still shows the Singapore day, and the clock gets a chip under the hub: "Singapore time" (caption).
   - In the second case, the plan is converted. The day changes at local midnight; slots that cross the boundary are split across the two days.
@@ -192,7 +193,7 @@ Example household: a 12.9″ iPad Pro on the living-room wall and a smaller iPad
 | Kid iPad | an iPad set to show one or both kids | kid screens; grown-up screens only behind that iPad's lock (a parent's face) |
 
 ### Start sharing (owner, grown-up screen C8 "Our iPads")
-Opened from C1 → "Our iPads", behind the lock.
+Opened from G6 Settings → Family → "Our iPads", behind the lock.
 1. **First time**: a short card.
    - "Use this family on other iPads. Each iPad keeps its own Apple account. Changes show up on all of them."
    - Button "Start sharing". The app creates the share.
@@ -212,7 +213,7 @@ Opened from C1 → "Our iPads", behind the lock.
   - "Join a family from another iPad"
 - **Join**:
   - The screen shows the camera (to scan the owner's QR code) and "Or open the link you were sent".
-  - Caption: "A grown-up starts this on their iPad: Our kids → Our iPads → Add an iPad."
+  - Caption: "A grown-up starts this on their iPad: Settings → Family → Our iPads → Add an iPad."
 - **Accepting**: scanning or tapping the link opens the system iCloud sharing sheet ("Join 'Family Planner'?"). The grown-up taps Join.
   - If a child account's Screen Time blocks it, the app says: "This iPad needs a grown-up's OK. Approve it in Screen Time, then scan again." To be confirmed on a real device.
 - **After joining**: "Which kids does this iPad show?" (Both / Kid A / Kid B), then "Show times in: Family time / This iPad's time" (only if the zones differ). Then the clock.
@@ -229,7 +230,7 @@ Opened from C1 → "Our iPads", behind the lock.
 | **The owner's iCloud is signed out** | Same as Offline | C8: "Sharing is paused: the owner iPad needs iCloud." |
 
 ### What is shared, and what stays on each iPad
-Per-device settings never sync. They are asked once at join and can be changed later in that iPad's C1 → "This iPad".
+Per-device settings never sync. They are asked once at join and can be changed later in that iPad's G6 Settings → Family → "This iPad".
 
 | Shared (family) | Per iPad (device) |
 |---|---|
