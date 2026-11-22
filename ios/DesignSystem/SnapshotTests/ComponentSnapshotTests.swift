@@ -135,6 +135,12 @@ final class ComponentSnapshotTests: XCTestCase {
                         flags: [.flagKR, .flagJP, .flagCN, .flagUK, .flagFR, .flagIN, .flagTH, .flagVN],
                         isShowingAll: true, moreTitle: "More") {}
             .frame(height: 640, alignment: .top), width: Self.rowWidth, named: "flags")
+        // Board G1f: in the 424 side card the slots wrap 4 per row, and "More" shows 3 per row and
+        // scrolls inside (two rows and a peek), so it never runs past the side column.
+        snap(PictureRow(slots: [.actPlay, .snack, .actStory, .homework, .tv, .actArt, .actMusic], selection: .constant(.actPlay),
+                        all: [.actSleep, .pyjamas, .teddy, .sun, .toilet, .toothbrush, .washFace, .hairBrush, .shirt, .actBreakfast],
+                        flags: [.flagKR, .flagJP], isShowingAll: true, moreTitle: "More", columns: 4) {}
+            .frame(width: 424, height: 620, alignment: .top), width: 472, named: "narrow")
     }
 
     func testIconPicker() {
