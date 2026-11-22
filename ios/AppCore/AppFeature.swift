@@ -353,6 +353,7 @@ public struct AppFeature {
 
             case .home(.tick), .home(.skySwitchTapped):
                 // A2 after dusk takes the night look with the home (board A2 night).
+                var ticks: [Effect<Action>] = []
                 for id in state.path.ids {
                     if case var .missions(missions) = state.path[id: id], missions.look != state.home.look {
                         missions.look = state.home.look
@@ -363,8 +364,12 @@ public struct AppFeature {
                         year.look = state.home.look
                         state.path[id: id] = .schoolYear(year)
                     }
+                    // K1 open past midnight moves today's mark (review of #259).
+                    if case .schoolYear = state.path[id: id], case let .home(.tick(now)) = action {
+                        ticks.append(.send(.path(.element(id: id, action: .schoolYear(.tick(now))))))
+                    }
                 }
-                return .none
+                return .merge(ticks)
 
             case .home(.loaded):
                 // The home's kids are known now (Scope ran first), so a waiting Our day can open.

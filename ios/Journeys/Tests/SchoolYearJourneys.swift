@@ -48,6 +48,14 @@ final class SchoolYearJourneys: XCTestCase {
         await store.send(.path(.element(id: calendar, action: .schoolYear(.yearTapped(2027)))))
         XCTAssertEqual(schoolYear(store, calendar)?.screen?.pickedYear, 2027)
 
+        // Still open at midnight: the root's tick moves today to Wednesday the 11th.
+        let midnight = world.today.adding(days: 1, calendar: world.calendar).date(minute: 0, calendar: world.calendar)
+        await store.send(.tick(midnight))
+        await store.receive(\.path[id: calendar].schoolYear.loaded)
+        await store.send(.path(.element(id: calendar, action: .schoolYear(.yearTapped(2026)))))
+        let wednesday = schoolYear(store, calendar)?.screen?.months[10].weeks.joined().compactMap { $0 }[10]
+        XCTAssertEqual(wednesday, CalendarCell.Mark(number: "11", isToday: true))
+
         // "‹" goes back to the home it came from.
         await store.send(.path(.element(id: calendar, action: .schoolYear(.backTapped))))
         await store.receive(\.path[id: calendar].schoolYear.delegate.finished)

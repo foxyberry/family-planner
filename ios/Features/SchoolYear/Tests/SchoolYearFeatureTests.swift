@@ -170,6 +170,27 @@ final class SchoolYearFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.screen?.pickedYear, 2027, "a year without a tab is ignored")
     }
 
+    /// Review of #259: open past midnight, the calendar moves today's pill to the new day (the root's
+    /// tick, as home does). A tick on the same day loads nothing; a picked year stays picked.
+    func testTodayMovesWhenTheDayChanges() async throws {
+        let store = store()
+        await store.send(.task)
+        await store.receive(\.loaded)
+        store.exhaustivity = .on
+        await store.send(.tick(today.date(minute: 1439, calendar: calendar)))
+        store.exhaustivity = .off
+        await store.send(.yearTapped(2027)) { $0.openMonth = nil }
+        let wednesday = Day(year: 2026, month: 11, day: 11)
+        await store.send(.tick(wednesday.date(minute: 0, calendar: calendar)))
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.screen?.pickedYear, 2027, "the pick stays")
+        await store.send(.yearTapped(2026))
+        let screen = try XCTUnwrap(store.state.screen)
+        XCTAssertEqual(mark(screen, wednesday)?.isToday, true)
+        XCTAssertEqual(mark(screen, today)?.isToday, false)
+        XCTAssertEqual(screen.legend.last?.swatch.number, "11")
+    }
+
     func testBackFinishes() async {
         let store = store()
         await store.send(.backTapped)

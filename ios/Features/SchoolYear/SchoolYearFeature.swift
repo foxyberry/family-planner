@@ -128,6 +128,8 @@ public struct SchoolYearFeature {
 
     public enum Action: Equatable {
         case task
+        /// The root's 1-second tick: a new day reloads the year, so today's mark moves at midnight.
+        case tick(Date)
         case loaded(State.Year)
         case yearTapped(Int)
         case monthTapped(Int)
@@ -157,25 +159,18 @@ public struct SchoolYearFeature {
         Reduce { state, action in
             switch action {
             case .task:
-                let today = Day(date.now, calendar: calendar)
-                return .run { [calendar, scheduleStore, holidays, schoolDirectory] send in
-                    let snapshot = try? await scheduleStore.load()
-                    // This year always; next year when its lists are out (2026–2027 now).
-                    var years = [today.year]
-                    var list = await holidays.holidays(today.year)
-                    let next = await holidays.holidays(today.year + 1)
-                    if !next.isEmpty {
-                        years.append(today.year + 1)
-                        list += next
-                    }
-                    let kids = snapshot?.kids ?? []
-                    let family = await schoolDirectory.family(
-                        kids: kids, publicHolidays: list.map(\.day),
-                        holidayNames: Dictionary(list.map { ($0.day, $0.name) }, uniquingKeysWith: { first, _ in first }))
-                    await send(.loaded(State.Year(today: today, kids: kids, years: years, family: family, calendar: calendar)))
-                }
+                return load(today: Day(date.now, calendar: calendar))
 
-            case let .loaded(year):
+            case let .tick(now):
+                guard case let .ready(year) = state.phase, Day(now, calendar: calendar) != year.today else { return .none }
+                return load(today: Day(now, calendar: calendar))
+
+            case var .loaded(year):
+                // A reload (a new day) keeps the year the person picked, while it still has data.
+                if case let .ready(old) = state.phase, old.picked != year.picked, year.years.contains(old.picked) {
+                    year.picked = old.picked
+                    year.months = MonthGrid.year(old.picked, calendar: calendar)
+                }
                 state.phase = .ready(year)
                 return .none
 
@@ -202,6 +197,26 @@ public struct SchoolYearFeature {
             case .delegate:
                 return .none
             }
+        }
+    }
+
+    /// The family's year as of `today`: this year always, next year when its lists are out.
+    private func load(today: Day) -> Effect<Action> {
+        .run { [calendar, scheduleStore, holidays, schoolDirectory] send in
+            let snapshot = try? await scheduleStore.load()
+            // This year always; next year when its lists are out (2026–2027 now).
+            var years = [today.year]
+            var list = await holidays.holidays(today.year)
+            let next = await holidays.holidays(today.year + 1)
+            if !next.isEmpty {
+                years.append(today.year + 1)
+                list += next
+            }
+            let kids = snapshot?.kids ?? []
+            let family = await schoolDirectory.family(
+                kids: kids, publicHolidays: list.map(\.day),
+                holidayNames: Dictionary(list.map { ($0.day, $0.name) }, uniquingKeysWith: { first, _ in first }))
+            await send(.loaded(State.Year(today: today, kids: kids, years: years, family: family, calendar: calendar)))
         }
     }
 }
