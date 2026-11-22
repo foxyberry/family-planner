@@ -1,5 +1,5 @@
 {
- "version": "68",
+ "version": "70",
  "board": "E1",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -301,21 +301,21 @@
    "kind": "text",
    "x": 1048,
    "y": 455,
-   "w": 119,
+   "w": 114,
    "h": 54,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
    "baseline": 497,
    "font": 36,
-   "text": "School"
+   "text": "Snack"
   },
   {
    "id": "panel.text.2",
    "kind": "text",
    "x": 1048,
    "y": 501,
-   "w": 139,
+   "w": 170,
    "h": 45,
    "region": "panel",
    "anchor": "stretch",
