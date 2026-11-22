@@ -317,6 +317,65 @@ public struct ItemEditorFeature {
         public var primaryTitle: String { isAdding ? L10n.tr("editor.primary.add") : L10n.tr("editor.primary.save") }
         /// The remove button of a just-once item.
         public var removeTitle: String { L10n.tr("editor.remove", original.name) }
+
+        // MARK: What the view shows (it holds no values of its own)
+
+        /// The form rows' labels (boards C3, C4, G2): For, What, Name (also the field's), When, Repeat,
+        /// Days, Runs, From, Off days, Going, Leave, Bring and Medal.
+        public var forLabel: String { strings.tr("editor.row.for") }
+        public var whatLabel: String { strings.tr("editor.row.what") }
+        public var nameLabel: String { strings.tr("editor.row.name") }
+        public var whenLabel: String { strings.tr("editor.row.when") }
+        public var repeatLabel: String { strings.tr("editor.row.repeat") }
+        public var daysLabel: String { strings.tr("editor.row.days") }
+        public var runsLabel: String { strings.tr("editor.row.runs") }
+        /// The From row's label, also board F1's title.
+        public var fromLabel: String { strings.tr("editor.row.from") }
+        public var noSchoolLabel: String { strings.tr("editor.row.no_school") }
+        public var goingLabel: String { strings.tr("going.label") }
+        public var leaveLabel: String { strings.tr("going.leave") }
+        /// The Bring row's label, also board F2's title.
+        public var bringLabel: String { strings.tr("editor.row.bring") }
+        public var medalLabel: String { strings.tr("editor.row.medal") }
+        /// Layout v45: "Once · Weekly · Monthly".
+        public var repeatTabs: [(ItemForm.Repeat, String)] {
+            [(.once, strings.tr("editor.repeat.once")), (.weekly, strings.tr("editor.repeat.weekly")),
+             (.monthly, strings.tr("editor.repeat.monthly"))]
+        }
+        /// "More" after the What row's pictures.
+        public var moreTitle: String { strings.tr("picker.more") }
+        /// The checks: Skip school holidays, and C4's star on the clock.
+        public var skipHolidaysTitle: String { strings.tr("editor.skip_holidays") }
+        public var starTitle: String { strings.tr("editor.star") }
+        /// The Bring row with nothing to bring.
+        public var nothingText: String { strings.tr("editor.row.nothing") }
+        /// Boards F1–F4: every form card's Done and Cancel.
+        public var cardDoneTitle: String { strings.tr("c5.done") }
+        public var cardCancelTitle: String { strings.tr("card.cancel") }
+        /// Board F3 Ends: its title and the picked count ("6 times").
+        public var runsCardTitle: String { strings.tr("runs.card.title") }
+        public var runsCountText: String { strings.tr("runs.count.value", form.times) }
+        /// Board F1: "Starts" before the gap after an event.
+        public var startsLabel: String { strings.tr("from.starts") }
+        /// Board F4 Off days: its title and two choices.
+        public var noSchoolCardTitle: String { strings.tr("no_school.card.title") }
+        public var noSchoolSkipTitle: String { strings.tr("no_school.pick.skip") }
+        public var noSchoolAtTitle: String { strings.tr("no_school.pick.at") }
+        /// Board C3g: the Leave row of a kid who goes by bus links to Our buses ("Uses Our buses ›").
+        /// The "›" is drawn by GlyphText at the key's "%@" (Playpen Sans has none).
+        public var usesBusesTitle: String { strings.tr("going.uses_buses", "%@") }
+        /// Boards G2 / G3: the side column's This day / All days tabs.
+        public var scopeTabs: [(Scope, String)] {
+            [(.thisDay, strings.tr("editor.scope.this_day")), (.allDays, strings.tr("editor.scope.all_days"))]
+        }
+        /// Board G5: the "Change from when?" card's words, and the tab it shows (Today until picked).
+        public var fromWhenTitle: String { strings.tr("from_when.title") }
+        public var fromWhenSave: String { strings.tr("from_when.save") }
+        public var fromWhenCancel: String { strings.tr("from_when.cancel") }
+        public var fromWhenChoice: FromWhen { fromWhen ?? .today }
+        /// Board C4: ‹ is faint (30 %) on the first page of dates; Medal is faint (45 %) without a trip.
+        public var earlierPageOpacity: Double { canPageEarlier ? 1 : 0.3 }
+        public var medalSwitchOpacity: Double { form.canSwitchMedal ? 1 : 0.45 }
         /// While editing, an event that already started keeps its start time without "That time has passed".
         public var problem: FormProblem? {
             let keptStart = !isAdding && form.date == original.date ? original.start : nil

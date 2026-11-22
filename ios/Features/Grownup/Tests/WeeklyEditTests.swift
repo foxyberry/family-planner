@@ -87,6 +87,7 @@ final class WeeklyEditTests: XCTestCase {
         XCTAssertEqual(store.state.fromWhen, .today)
         XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Wed 11 Nov", "Date"], "the day itself, not \"Next Wed\"")
         await store.send(.fromWhenPicked(.next))
+        XCTAssertEqual(store.state.fromWhenChoice, .next)
         XCTAssertEqual(store.state.splitDay, Day(year: 2026, month: 11, day: 11))
         await store.send(.fromWhenSaveTapped)
         await store.receive(\.saved)
