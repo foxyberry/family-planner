@@ -169,6 +169,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: G1c vertical gaps (month → weekday row 16, weekday row → first week 12); "+" overlap measured on the drawn circle, 44 (37 / 46 / 62 minutes per ring); a tap area is the part's drawn shape, a RoundButton's its circle (user); G1 overview points at the G1c bullet.
 - 2026-11-22: the country flags (kit 0d3) are pictures in the What "More" popover, after the item pictures, so a weekend school can wear its country's flag.
 - 2026-11-22: G1f "More" card geometry: 472 × 300 under the More slot, 4 per row (gap 24), scroll area two rows and a 44 peek, 16 above Save.
+- 2026-11-22: the country flags' picture names are their languages ("Korean" … "Vietnamese"); the plain flag is "Weekend school".
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -294,7 +295,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
   - "Swimming", Mon and Wed 15:30–16:30, after-school (sky), actSwim, skip school holidays on.
   - "Art club", Fri 15:00–16:00, actArt.
   - "Weekend school", Sat 9:00–12:00, actLanguageSchool, skip school holidays off (its breaks are not the school's).
-    - actLanguageSchool is a flag on a pole with a plain cloth. Grown-ups can swap it for a country flag through the What "More" popover (C3 / C4 / G2 / G1f): flagKR, flagJP, flagCN, flagUK, flagFR, flagIN, flagTH, flagVN (kit 0d3). The seed keeps the plain flag.
+    - actLanguageSchool is a flag on a pole with a plain cloth. Grown-ups can swap it for a country flag through the What "More" popover (C3 / C4 / G2 / G1f): flagKR, flagJP, flagCN, flagUK, flagFR, flagIN, flagTH, flagVN (kit 0d3). A flag's picture name, which a pick puts in the Name field, is its **language**: flagKR "Korean", flagJP "Japanese", flagCN "Chinese", flagUK "English", flagFR "French", flagIN "Hindi", flagTH "Thai", flagVN "Vietnamese". It is the language alone, not "{language} school", so it stays within the 14-character name limit ("Vietnamese school" is 17). The plain flag is "Weekend school". The seed keeps the plain flag.
   - Weekend activities are **every-week items, not template slots**. A weekday holiday uses the Sun template, so anything in it would also appear on holidays. A Sunday activity (e.g. church, actChurch) is added by grown-ups as an every-week item; the seed has none, on purpose.
   - On a Monday the clock shows snack 15:00–15:30, swimming 15:30–16:30, free 16:30–17:00.
 - **Kid A, just-once item**: "Birthday", the coming Saturday 14:00–16:00, for both kids, star on.
