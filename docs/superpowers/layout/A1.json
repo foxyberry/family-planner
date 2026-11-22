@@ -1,5 +1,5 @@
 {
- "version": "71",
+ "version": "73",
  "board": "A1",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -58,7 +58,7 @@
    "nextLabel": 259,
    "nextTitle": 300,
    "nextAt": 338,
-   "kidBName": 500
+   "kidBName": 456
   },
   "kidARow": {
    "pictureLeft": 928,
@@ -223,26 +223,26 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidALabel.1",
+   "id": "panel.kidALabel",
    "kind": "text",
-   "x": 1040,
-   "y": 266,
-   "w": 117,
-   "h": 45,
+   "x": 1024,
+   "y": 269,
+   "w": 94,
+   "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 301,
-   "font": 30,
+   "baseline": 297,
+   "font": 24,
    "text": "Leave in"
   },
   {
-   "id": "panel.picture.1",
+   "id": "panel.kidAWay.1",
    "kind": "picture",
    "x": 928,
-   "y": 277,
-   "w": 96,
-   "h": 96,
+   "y": 271,
+   "w": 80,
+   "h": 80,
    "region": "panel",
    "anchor": "stretch",
    "align": "start"
@@ -250,15 +250,29 @@
   {
    "id": "panel.text.1",
    "kind": "text",
-   "x": 1040,
-   "y": 289,
-   "w": 253,
-   "h": 108,
+   "x": 1024,
+   "y": 290,
+   "w": 169,
+   "h": 72,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 373,
-   "font": 72
+   "baseline": 346,
+   "font": 48
+  },
+  {
+   "id": "panel.kidAStatus",
+   "kind": "text",
+   "x": 1024,
+   "y": 352,
+   "w": 127,
+   "h": 36,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 370,
+   "font": 24,
+   "text": "On time"
   },
   {
    "id": "clock.slotPicture.3",
@@ -272,18 +286,17 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidAStatus",
+   "id": "panel.kidName.2",
    "kind": "text",
-   "x": 1040,
-   "y": 387,
-   "w": 151,
-   "h": 45,
+   "x": 928,
+   "y": 429,
+   "w": 173,
+   "h": 54,
    "region": "panel",
    "anchor": "stretch",
-   "align": "inside",
-   "baseline": 410,
-   "font": 30,
-   "text": "On time"
+   "align": "start",
+   "baseline": 456,
+   "font": 36
   },
   {
    "id": "clock.slotPicture.4",
@@ -297,23 +310,10 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidName.2",
-   "kind": "text",
-   "x": 928,
-   "y": 472,
-   "w": 173,
-   "h": 54,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start",
-   "baseline": 500,
-   "font": 36
-  },
-  {
    "id": "panel.kidRing.2",
    "kind": "picture",
    "x": 928,
-   "y": 476,
+   "y": 432,
    "w": 48,
    "h": 48,
    "region": "panel",
@@ -324,7 +324,7 @@
    "id": "panel.kidFace.2",
    "kind": "picture",
    "x": 932,
-   "y": 480,
+   "y": 436,
    "w": 41,
    "h": 41,
    "region": "panel",
@@ -343,29 +343,42 @@
    "align": "inside"
   },
   {
+   "id": "panel.kidAWay.2",
+   "kind": "picture",
+   "x": 928,
+   "y": 504,
+   "w": 80,
+   "h": 80,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
    "id": "panel.text.2",
    "kind": "text",
-   "x": 1048,
+   "x": 1024,
+   "y": 506,
+   "w": 246,
+   "h": 45,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 541,
+   "font": 30,
+   "text": "Now · Breakfast"
+  },
+  {
+   "id": "panel.text.3",
+   "kind": "text",
+   "x": 1024,
    "y": 544,
-   "w": 51,
+   "w": 159,
    "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
    "baseline": 572,
-   "font": 24,
-   "text": "Now"
-  },
-  {
-   "id": "panel.picture.2",
-   "kind": "picture",
-   "x": 928,
-   "y": 550,
-   "w": 104,
-   "h": 104,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
+   "font": 24
   },
   {
    "id": "clock.slotPicture.6",
@@ -379,18 +392,29 @@
    "align": "inside"
   },
   {
-   "id": "panel.kidName.3",
+   "id": "panel.kidAWay.3",
+   "kind": "picture",
+   "x": 928,
+   "y": 600,
+   "w": 80,
+   "h": 80,
+   "region": "panel",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "panel.text.4",
    "kind": "text",
-   "x": 1048,
-   "y": 570,
-   "w": 183,
-   "h": 54,
+   "x": 1024,
+   "y": 602,
+   "w": 163,
+   "h": 45,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 612,
-   "font": 36,
-   "text": "Breakfast"
+   "baseline": 637,
+   "font": 30,
+   "text": "Next · Play"
   },
   {
    "id": "clock.slotPicture.7",
@@ -404,56 +428,17 @@
    "align": "inside"
   },
   {
-   "id": "panel.text.3",
+   "id": "panel.text.5",
    "kind": "text",
-   "x": 1048,
-   "y": 616,
-   "w": 199,
-   "h": 45,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 651,
-   "font": 30
-  },
-  {
-   "id": "panel.kidALabel.2",
-   "kind": "text",
-   "x": 1048,
-   "y": 669,
-   "w": 56,
+   "x": 1024,
+   "y": 640,
+   "w": 111,
    "h": 36,
    "region": "panel",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 697,
-   "font": 24,
-   "text": "Next"
-  },
-  {
-   "id": "panel.picture.3",
-   "kind": "picture",
-   "x": 928,
-   "y": 676,
-   "w": 104,
-   "h": 104,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "start"
-  },
-  {
-   "id": "panel.kidName.4",
-   "kind": "text",
-   "x": 1048,
-   "y": 696,
-   "w": 79,
-   "h": 54,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 738,
-   "font": 36,
-   "text": "Play"
+   "baseline": 668,
+   "font": 24
   },
   {
    "id": "clock.slotPicture.8",
@@ -465,19 +450,6 @@
    "region": "clock",
    "anchor": "left",
    "align": "inside"
-  },
-  {
-   "id": "panel.text.4",
-   "kind": "text",
-   "x": 1048,
-   "y": 741,
-   "w": 139,
-   "h": 45,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "inside",
-   "baseline": 776,
-   "font": 30
   },
   {
    "id": "panel.button.3",
