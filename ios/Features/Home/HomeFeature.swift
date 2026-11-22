@@ -385,11 +385,17 @@ public struct HomeFeature {
                     return .run { [scheduleStore] send in
                         for kid in due {
                             // Waiting School hours go into that day's and later templates first (#255), then
-                            // the record.
-                            for routine in Set(kid.readingWaitingHours(routines)).subtracting(routines) {
-                                try? await scheduleStore.saveRoutine(routine)
+                            // the record, only when every template saved: a template left on the old slot
+                            // would no longer follow the new record and would keep the old time for good.
+                            // While the change still waits, every reader reads it by date, so a retry is safe.
+                            do {
+                                for routine in Set(kid.readingWaitingHours(routines)).subtracting(routines) {
+                                    try await scheduleStore.saveRoutine(routine)
+                                }
+                                try await scheduleStore.saveKid(kid.applyingWaitingChanges(on: today))
+                            } catch {
+                                continue
                             }
-                            try? await scheduleStore.saveKid(kid.applyingWaitingChanges(on: today))
                         }
                         await send(.reload)
                     }

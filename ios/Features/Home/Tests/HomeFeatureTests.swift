@@ -93,6 +93,27 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertNil(kids.value.first?.pendingHours)
     }
 
+    /// Review of #257: when a template save fails on the day, the record is not written, so the change
+    /// still waits (read by date) instead of leaving a template on the old slot for good.
+    func testOnItsDayAFailedTemplateSaveLeavesTheRecordWaiting() async {
+        struct SaveFailed: Error {}
+        var kidA = SeedData.kidA
+        var later = kidA.school!
+        later.end = 840
+        kidA = kidA.savingSchool(later, from: wednesday, today: tuesday)
+        let kids = LockIsolated<[Kid]>([])
+        let store = store(on: wednesday, minute: 600, snapshot: snapshot(kids: [kidA, SeedData.kidB]))
+        store.dependencies.scheduleStore.saveRoutine = { _ in throw SaveFailed() }
+        store.dependencies.scheduleStore.saveKid = { kid in kids.withValue { $0.append(kid) } }
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.reload)
+        await store.receive(\.loaded)
+        XCTAssertEqual(kids.value, [], "no record write after a failed template save")
+        XCTAssertEqual(store.state.days.first?.slots.first { $0.kind == .school }?.end, 840,
+                       "today still reads the waiting hours by date")
+    }
+
     /// Board A1 on a live bus morning: "Leave in" counts to the chosen bus and the status shows.
     /// Made-up stop and bus numbers (privacy rule).
     func testLiveBusMorningShowsTheStatus() async {
