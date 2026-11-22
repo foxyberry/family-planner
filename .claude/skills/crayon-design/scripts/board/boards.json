@@ -1,50 +1,198 @@
 {
  "_doc": "Board registry. boards: short id -> [board file name without .dc.html, layout family]. Families: home, morning, grown, grown64 (see layout-export.py REGIONS/LINES). handover: PNG name -> board, used by handover-pngs.py. Add a row here when you add a screen board.",
  "boards": {
-  "A1": ["HomePieB", "home"],
-  "A1m": ["HomeMorningMVP", "home"],
-  "A1b": ["HomeBefore", "home"],
-  "A1n": ["HomeNight", "home"],
-  "E1": ["HomeOne", "home"],
-  "E3": ["HomeWeekend", "home"],
-  "E3b": ["HomeSunday", "home"],
-  "A2": ["MorningLive", "morning"],
-  "A2t": ["MorningMVP", "morning"],
-  "A2t-w": ["MorningMVPWeekend", "morning"],
-  "A3": ["MorningGold", "morning"],
-  "A3r": ["MorningReady", "morning"],
-  "C2": ["BusSettings", "grown"],
-  "C2c": ["BusChange", "grown"],
-  "C3": ["AddWeekly", "grown"],
-  "C3g": ["AddGoing", "grown"],
-  "C3m": ["AddMonthly", "grown"],
-  "C3x": ["AddLeave", "grown"],
-  "C3k": ["AddWeeklyKeys", "grown"],
-  "C4": ["AddOnce", "grown"],
-  "C5": ["MissionEdit", "grown"],
-  "S1": ["FirstFamily", "grown"],
-  "S2": ["FirstSchool", "grown"],
-  "S2s": ["FirstSchoolSearch", "grown"],
-  "S3": ["FirstRoute", "grown"],
-  "S4": ["FirstReady", "grown"],
-  "G2": ["GrownupG2", "grown"],
-  "G2b": ["GrownupG2b", "grown"],
-  "G2m": ["GrownupG2m", "grown"],
-  "G3": ["GrownupG3", "grown"],
-  "G5": ["GrownupG5", "grown"],
-  "G0": ["GrownupG0", "home"],
-  "G1": ["GrownupG1", "grown"],
-  "G1c": ["GrownupG1c", "grown"],
-  "G1d": ["GrownupG1d", "grown"],
-  "G1e": ["GrownupG1e", "grown"],
-  "G1f": ["GrownupG1f", "grown"],
-  "G1g": ["GrownupG1g", "grown"],
-  "G4": ["GrownupG4", "grown"],
-  "G6": ["GrownupG6", "grown"],
-  "G6f": ["GrownupG6f", "grown"],
-  "G6a": ["GrownupG6a", "grown"],
-  "G7": ["GrownupG7", "grown"],
-  "G8": ["GrownupG8", "grown"]
+  "A1": [
+   "HomePieB",
+   "home"
+  ],
+  "A1m": [
+   "HomeMorningMVP",
+   "home"
+  ],
+  "A1b": [
+   "HomeBefore",
+   "home"
+  ],
+  "A1n": [
+   "HomeNight",
+   "home"
+  ],
+  "E1": [
+   "HomeOne",
+   "home"
+  ],
+  "E3": [
+   "HomeWeekend",
+   "home"
+  ],
+  "E3b": [
+   "HomeSunday",
+   "home"
+  ],
+  "A2": [
+   "MorningLive",
+   "morning"
+  ],
+  "A2t": [
+   "MorningMVP",
+   "morning"
+  ],
+  "A2t-w": [
+   "MorningMVPWeekend",
+   "morning"
+  ],
+  "A3": [
+   "MorningGold",
+   "morning"
+  ],
+  "A3r": [
+   "MorningReady",
+   "morning"
+  ],
+  "C2": [
+   "BusSettings",
+   "grown"
+  ],
+  "C2c": [
+   "BusChange",
+   "grown"
+  ],
+  "C3": [
+   "AddWeekly",
+   "grown"
+  ],
+  "C3g": [
+   "AddGoing",
+   "grown"
+  ],
+  "C3m": [
+   "AddMonthly",
+   "grown"
+  ],
+  "C3x": [
+   "AddLeave",
+   "grown"
+  ],
+  "C3k": [
+   "AddWeeklyKeys",
+   "grown"
+  ],
+  "C4": [
+   "AddOnce",
+   "grown"
+  ],
+  "C5": [
+   "MissionEdit",
+   "grown"
+  ],
+  "S1": [
+   "FirstFamily",
+   "grown"
+  ],
+  "S2": [
+   "FirstSchool",
+   "grown"
+  ],
+  "S2s": [
+   "FirstSchoolSearch",
+   "grown"
+  ],
+  "S3": [
+   "FirstRoute",
+   "grown"
+  ],
+  "S4": [
+   "FirstReady",
+   "grown"
+  ],
+  "G2": [
+   "GrownupG2",
+   "grown"
+  ],
+  "G2b": [
+   "GrownupG2b",
+   "grown"
+  ],
+  "G2m": [
+   "GrownupG2m",
+   "grown"
+  ],
+  "G3": [
+   "GrownupG3",
+   "grown"
+  ],
+  "G5": [
+   "GrownupG5",
+   "grown"
+  ],
+  "G0": [
+   "GrownupG0",
+   "home"
+  ],
+  "G1": [
+   "GrownupG1",
+   "grown"
+  ],
+  "G1c": [
+   "GrownupG1c",
+   "grown"
+  ],
+  "G1d": [
+   "GrownupG1d",
+   "grown"
+  ],
+  "G1e": [
+   "GrownupG1e",
+   "grown"
+  ],
+  "G1f": [
+   "GrownupG1f",
+   "grown"
+  ],
+  "G1g": [
+   "GrownupG1g",
+   "grown"
+  ],
+  "G4": [
+   "GrownupG4",
+   "grown"
+  ],
+  "G6": [
+   "GrownupG6",
+   "grown"
+  ],
+  "G6f": [
+   "GrownupG6f",
+   "grown"
+  ],
+  "G6a": [
+   "GrownupG6a",
+   "grown"
+  ],
+  "G7": [
+   "GrownupG7",
+   "grown"
+  ],
+  "G8": [
+   "GrownupG8",
+   "grown"
+  ],
+  "E3h": [
+   "HomeHoliday",
+   "home"
+  ],
+  "K1": [
+   "CalendarYear",
+   "morning"
+  ],
+  "K1o": [
+   "CalendarMonth",
+   "morning"
+  ],
+  "K1n": [
+   "CalendarNight",
+   "morning"
+  ]
  },
  "handover": {
   "C2-our-buses": "BusSettings",
