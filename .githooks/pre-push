@@ -4,7 +4,7 @@
 #   2. check-private-terms.sh: private words in those commits (diff, file names, message,
 #      author), in the pushed branch or tag names, and in annotated tag messages
 #   3. make lint: when a Bazel file changed (BUILD, .bzl, MODULE.bazel)
-#   4. check-kid-screens.sh, check-dependencies.sh, check-crayon-canvas.sh, check-layout-literals.sh, check-view-values.sh, check-journeys.sh and check-unattended-tests.sh: when Swift under
+#   4. check-kid-screens.sh, check-crayon-canvas.sh, check-layout-literals.sh, check-view-values.sh, check-journeys.sh and check-unattended-tests.sh: when Swift under
 #      ios/ changed (kid screens never scroll; outside data only through dependencies; every
 #      Canvas says how crayon wobble bleeds; no debug code outside DebugTools: check-debug-boundary.sh; every reducer has a journey; no test waits for Face ID);
 #      check-strings.sh when Swift under
@@ -69,7 +69,6 @@ fi
 
 if printf '%s' "$changed" | grep -Eq '^ios/.*\.swift$'; then
   "$ROOT/scripts/check-kid-screens.sh" </dev/null || status=1
-  bash "$ROOT/scripts/check-dependencies.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-crayon-canvas.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-debug-boundary.sh" </dev/null || status=1
   bash "$ROOT/scripts/check-layout-literals.sh" </dev/null || status=1

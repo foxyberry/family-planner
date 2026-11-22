@@ -44,18 +44,22 @@ enum ViewScope {
     case wholeFile(ternaries: Bool)
     case viewTypes
 
+    /// A path from its last `/ios/` on ("ios/Features/…"), so the folders above the checkout (a
+    /// `Tests` folder in the home directory, say) never change the answer; nil outside ios/.
+    static func repoPath(_ path: String) -> String? {
+        guard let ios = path.range(of: "/ios/", options: .backwards) else { return nil }
+        return "ios/" + path[ios.upperBound...]
+    }
+
     init(path: String?) {
         guard let path else {
             self = .viewTypes  // SwiftLint's own examples have no file
             return
         }
-        // Judge the path from its last `/ios/` on, so the folders above the checkout (a `Tests`
-        // folder in the home directory, say) never change the answer.
-        guard let ios = path.range(of: "/ios/", options: .backwards) else {
+        guard let file = Self.repoPath(path) else {
             self = .none
             return
         }
-        let file = "ios/" + path[ios.upperBound...]
         let skipped = ["ios/App/", "ios/DebugTools/", "ios/DesignSystem/Gallery/"]
         if skipped.contains(where: file.hasPrefix) || file.contains("/Tests/") || file.contains("/SnapshotTests/") {
             self = .none
@@ -105,8 +109,8 @@ private extension ViewValuesRule {
     }
 }
 
-private extension SyntaxProtocol {
-    /// Inside a struct or extension that declares `View` conformance.
+extension SyntaxProtocol {
+    /// Inside a struct or extension that declares `View` conformance (also used by OutsideDataRule).
     var isInsideView: Bool {
         var current = Syntax(self).parent
         while let node = current {
@@ -118,6 +122,6 @@ private extension SyntaxProtocol {
     }
 }
 
-private extension InheritanceClauseSyntax {
+extension InheritanceClauseSyntax {
     var declaresView: Bool { inheritedTypes.contains { $0.type.trimmedDescription == "View" } }
 }

@@ -160,15 +160,6 @@ test_scrolling_kid_screen_blocks_push() {
   assert test_scrolling_kid_screen_blocks_push $?
 }
 
-test_device_calendar_blocks_push() {
-  new_repo
-  push develop
-  commit_file ios/Features/HomeModel.swift 'let calendar = Calendar.current' calendar
-  push develop
-  [ "$CODE" -ne 0 ] && [[ "$ERR" == *"global read"* ]]
-  assert test_device_calendar_blocks_push $?
-}
-
 test_hard_coded_copy_blocks_push() {
   new_repo
   push develop
@@ -271,7 +262,6 @@ test_missing_gitleaks_blocks_push
 test_bazel_change_runs_lint_and_failure_blocks
 test_other_change_skips_lint
 test_scrolling_kid_screen_blocks_push
-test_device_calendar_blocks_push
 test_hard_coded_copy_blocks_push
 test_guard_change_runs_guard_tests_and_failure_blocks
 test_guard_tests_run_without_git_dir_from_a_worktree

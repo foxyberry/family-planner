@@ -4,3 +4,7 @@ import SwiftUI
 struct FixtureTestView: View {
     var body: some View { Text(name ?? "").opacity(store.isOn ? 1 : 0) }
 }
+
+enum FixtureTestReads {
+    static let calendar = Calendar.current
+}
