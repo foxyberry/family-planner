@@ -2,7 +2,7 @@
 name: pr-review-handoff
 description: Use when a change in this repo is ready for review (code, guards, docs or design spec), when sending work to the code review session, when another session's commits need a PR, when acting as the review session ("Family-planner iOS 코드 리뷰"), when a review or LGTM is posted on your PR, or before merging a PR.
 metadata:
-  version: 0.9.0
+  version: 0.9.1
   status: experimental
 ---
 
@@ -62,7 +62,8 @@ hook blocks shell expansion and checks the text for private terms.
 5. Ask for a re-review with the old and new head SHAs.
 6. Merge when all of these hold (a push after the LGTM needs a new look):
    - an "LGTM at <sha>" comment names the current head;
-   - CI is green;
+   - CI is green: every check says pass. `gh pr merge` doesn't wait for a pending check and the
+     repo has no required checks, so run `gh pr checks N --watch` first;
    - a PR that changes a screen has the user's iPad check. Ask for it in your own session: it is
      the only time a merge waits for the user (user, 2026-11-21). Any other PR merges by itself.
      When the user says the head looks right, post "iPad OK at <sha>" on the PR, quoting their words.
@@ -110,4 +111,5 @@ hook blocks shell expansion and checks the text for private terms.
 | Fixing silently | Reply on each thread with the fixing commit or the reason. |
 | Two sessions open PRs for the same commits | Check `gh pr list`; the commits' owner opens it. |
 | Merging on green CI, or after a push that followed the LGTM | Merge only at the LGTM's head SHA. |
+| Merging while a check is still pending | `gh pr checks N --watch`, then merge. |
 | PR body file written in the same batch as `gh pr create` | Write it, read it back, then create the PR. |
