@@ -6,6 +6,7 @@ import SwiftUI
 /// its origin. A slot without a rig, or with a private override picture, hops as a whole.
 /// At rest it looks exactly like `KitIcon`.
 public struct RiggedKitIcon: View {
+    @Environment(\.kitArt) private var kitArt
     private let slot: KitSlot
     private let size: CGFloat
     private let playID: Int
@@ -20,7 +21,7 @@ public struct RiggedKitIcon: View {
 
     public var body: some View {
         let rigs = KitRigs.shared
-        let usesRuns = BundledKitArt().source(for: slot) == .public
+        let usesRuns = kitArt.showsPublicDrawing(for: slot)
         if usesRuns, let rig = rigs.rig(for: slot), !rig.runs.isEmpty {
             ZStack {
                 ForEach(Array(rig.runs.enumerated()), id: \.offset) { _, run in

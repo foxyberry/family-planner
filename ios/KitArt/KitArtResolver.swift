@@ -5,6 +5,15 @@ import UIKit
 /// own drawing can replace it by swapping the resolver in the environment.
 public protocol KitArtResolving: Sendable {
     func image(for slot: KitSlot) -> Image
+    /// Whether `slot` shows its public drawing (rigs and runs exist only for those).
+    func showsPublicDrawing(for slot: KitSlot) -> Bool
+    /// Where the shown drawing ends, as a share of its box from the top (1 = the box bottom).
+    func drawnBottom(for slot: KitSlot) -> CGFloat
+}
+
+public extension KitArtResolving {
+    func showsPublicDrawing(for slot: KitSlot) -> Bool { true }
+    func drawnBottom(for slot: KitSlot) -> CGFloat { 1 }
 }
 
 /// The bundled kit pictures, preferring a local private override when one is present.
@@ -17,6 +26,8 @@ public struct BundledKitArt: KitArtResolving {
     public init(includePrivate: Bool = true) {
         self.includePrivate = includePrivate
     }
+
+    public func showsPublicDrawing(for slot: KitSlot) -> Bool { source(for: slot) == .public }
 
     /// Which catalog `image(for:)` uses for `slot`.
     public func source(for slot: KitSlot) -> Source {

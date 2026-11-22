@@ -11,6 +11,9 @@ import SwiftUI
 /// set on top at the screen's type sizes. Crayon shapes take board units (the surface scales them).
 public struct WayStrip: View {
     @Environment(\.sizing) private var sizing
+    /// The art the pictures come from (snapshots pass the public art), so a picture stands on its
+    /// stem by the drawing actually shown.
+    @Environment(\.kitArt) private var kitArt
     /// A bus on the live look: x on the board (from its minutes, in State), its picture and its
     /// words: the kid's bus has the big bubble, every other bus a tag.
     public struct LiveBus: Equatable, Sendable, Identifiable {
@@ -292,7 +295,7 @@ public struct WayStrip: View {
 
     /// A picture standing on its stem: its drawn bottom (not its box) on the stem top.
     private func picture(_ g: Geo, _ slot: KitSlot, size: CGFloat, x: CGFloat, stemFoot: CGFloat) -> some View {
-        let side = g.len(size), bottom = side * BundledKitArt().drawnBottom(for: slot)
+        let side = g.len(size), bottom = side * kitArt.drawnBottom(for: slot)
         return KitIcon(slot, size: side).frame(width: side, height: side)
             .offset(x: g.x(x) - side / 2, y: g.y(stemFoot - Self.stemLength) - bottom)
     }

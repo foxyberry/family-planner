@@ -12,6 +12,7 @@ public struct DrivingKitIcon: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.rigScale) private var rigScale
     @Environment(\.sizing) private var sizing
+    @Environment(\.kitArt) private var kitArt
 
     public init(_ slot: KitSlot, size: CGFloat) {
         self.slot = slot
@@ -33,7 +34,7 @@ public struct DrivingKitIcon: View {
     }
 
     @ViewBuilder private var picture: some View {
-        if let rig = Self.wheeledRig(for: slot) {
+        if let rig = Self.wheeledRig(for: slot, art: kitArt) {
             ZStack {
                 ForEach(Array(rig.runs.enumerated()), id: \.offset) { _, run in
                     let image = BundledKitArt.runImage(named: run.image).resizable().scaledToFit()
@@ -57,8 +58,8 @@ public struct DrivingKitIcon: View {
     static func isWheel(_ part: String) -> Bool { part.hasSuffix("wheel") }
 
     /// The public picture's rig when it has wheels (drawn run by run); nil draws the plain `KitIcon`.
-    static func wheeledRig(for slot: KitSlot) -> KitRig? {
-        guard BundledKitArt().source(for: slot) == .public, let rig = KitRigs.shared.rig(for: slot),
+    static func wheeledRig(for slot: KitSlot, art: any KitArtResolving) -> KitRig? {
+        guard art.showsPublicDrawing(for: slot), let rig = KitRigs.shared.rig(for: slot),
               rig.parts.keys.contains(where: isWheel) else { return nil }
         return rig
     }
