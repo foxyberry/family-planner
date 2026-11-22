@@ -2091,13 +2091,24 @@
         }
       }
     },
-    "home.next.in" : {
+    "home.next.in_min" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "in"
+            "value" : "in %@ min"
+          }
+        }
+      }
+    },
+    "home.now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now"
           }
         }
       }
@@ -2186,28 +2197,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not set yet"
-          }
-        }
-      }
-    },
-    "kid.next" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "next"
-          }
-        }
-      }
-    },
-    "kid.now" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "now"
           }
         }
       }

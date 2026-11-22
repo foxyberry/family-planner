@@ -2,7 +2,8 @@ import DesignSystem
 import Home
 import XCTest
 
-/// Boards A1, A1m, A1n, E1, E3: the panel's lines hold on every iPad, and nothing leaves the panel.
+/// Boards A1, A1m, A1b, A1n, E1, E3, E3b (layout v68): the panel's lines hold on every iPad, and
+/// nothing leaves the panel.
 final class HomeLayoutTests: XCTestCase {
     private let iPads = [Sizing(width: 1376, height: 1032), Sizing(width: 1366, height: 1024),
                          Sizing(width: 1180, height: 820), Sizing(width: 1133, height: 744), Sizing(width: 890, height: 626)]
@@ -10,10 +11,12 @@ final class HomeLayoutTests: XCTestCase {
     func testPanelLinesOnEveryIPad() {
         for sizing in iPads {
             let layout = HomeLayout(sizing: sizing), w = sizing.width
-            // x 928: badges, rows, now circle and the button start on the panel's left line.
+            // x 928: badges, rows, Kid B's Now and Next rows and the button start on the panel's left line.
+            let kidBTop = layout.kidBTop(after: .status)
             let lefts = [layout.kidBadge(top: layout.kidATop).minX, layout.nextRow.picture.minX,
                          layout.timeLeftRow.picture.minX, layout.leaveNextRow.picture.minX,
-                         layout.nowNext(kidBTop: layout.kidBTop(after: .status)).x, layout.button.minX]
+                         layout.kidBNowRow(kidBTop: kidBTop).picture.minX,
+                         layout.kidBNextRow(kidBTop: kidBTop).picture.minX, layout.button.minX]
             for left in lefts {
                 XCTAssertEqual(left, layout.panelLeft, accuracy: 0.01, "\(w)")
             }
@@ -23,7 +26,8 @@ final class HomeLayoutTests: XCTestCase {
             // Layout v29: the right margin is 40, the sky switch's on the left.
             XCTAssertEqual(layout.panelRight, w - 40 * sizing.s, accuracy: 0.01, "\(w)")
             // Each row's text starts 16 right of its picture (look ①).
-            for row in [layout.nextRow, layout.leaveNextRow] {
+            for row in [layout.nextRow, layout.leaveNextRow, layout.kidBNowRow(kidBTop: kidBTop),
+                        layout.kidBNextRow(kidBTop: kidBTop)] {
                 XCTAssertEqual(row.textLeft, row.picture.maxX + 16 * sizing.s, accuracy: 0.01, "\(w)")
             }
             XCTAssertEqual(layout.kidATextLeft, layout.kidAPicture.maxX + 16 * sizing.s, accuracy: 0.01, "\(w)")
@@ -35,19 +39,39 @@ final class HomeLayoutTests: XCTestCase {
         }
     }
 
-    /// "kidBRule": Kid B's name 40 below Kid A's last part, never lower than 584; the circles 48 below
-    /// the name baseline. Expected values are the v17 boards' (A1, A1m, A1n, E3), ±1.
+    /// "kidBRule": Kid B's name 40 below Kid A's last part, never lower than 584; the Now row's
+    /// picture 50 below the name baseline, the Next row 126 below it (layout v68, ±1 on the boards).
+    /// Expected values (name baseline, Now picture top, Next picture top) are the boards' A1, A1m and
+    /// A1b, A1n, E3 and E3b.
     func testKidBFollowsKidA() {
         let layout = HomeLayout(sizing: Sizing(width: 1376, height: 1032))
-        let boards: [(HomeLayout.KidAEnd, CGFloat, CGFloat)] = [
-            (.status, 464, 672), (.timeLeft, 428, 636), (.timeLeftRow, 514, 722), (.nextRow, 416, 624),
+        let boards: [(HomeLayout.KidAEnd, CGFloat, CGFloat, CGFloat)] = [
+            (.status, 464, 514, 640), (.timeLeft, 428, 479, 604), (.timeLeftRow, 514, 565, 690),
+            (.nextRow, 416, 466, 592),
         ]
-        for (end, name, circlesBottom) in boards {
+        for (end, name, nowTop, nextTop) in boards {
             let top = layout.kidBTop(after: end)
+            let now = layout.kidBNowRow(kidBTop: top), next = layout.kidBNextRow(kidBTop: top)
             XCTAssertEqual(layout.kidNameBaseline(top: top), name, accuracy: 1, "\(end)")
-            XCTAssertEqual(layout.nowNext(kidBTop: top).y + 160, circlesBottom, accuracy: 1, "\(end)")
-            XCTAssertLessThanOrEqual(circlesBottom + 33 + 12, 872, "captions stay above the button")
+            XCTAssertEqual(now.picture.minY, nowTop, accuracy: 1, "\(end)")
+            XCTAssertEqual(next.picture.minY, nextTop, accuracy: 1, "\(end)")
+            XCTAssertEqual(now.picture.size, CGSize(width: 104, height: 104), "\(end)")
+            XCTAssertEqual(next.picture.minY - now.picture.minY, 126, "\(end)")
+            // Caption / title / time line on the picture top + 21 / 62 / 100 (boards ±1).
+            XCTAssertEqual(next.labelBaseline ?? 0, nextTop + 21, accuracy: 1, "\(end)")
+            XCTAssertEqual(next.titleBaseline, nextTop + 62, accuracy: 1, "\(end)")
+            XCTAssertEqual(next.atBaseline, nextTop + 100, accuracy: 1, "\(end)")
+            // Spec: the block ends by 801 on every board, above the main button (872).
+            XCTAssertLessThanOrEqual(next.atBaseline + 11, 801, "\(end)")
         }
+        // Board A1: Now "Now" 536, "Breakfast" 576, the time line 615; Next 661 / 702 / 740.
+        let a1 = layout.kidBTop(after: .status)
+        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).labelBaseline ?? 0, 536, accuracy: 1)
+        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).titleBaseline, 576, accuracy: 1)
+        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).atBaseline, 615, accuracy: 1)
+        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).labelBaseline ?? 0, 661, accuracy: 1)
+        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).titleBaseline, 702, accuracy: 1)
+        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).atBaseline, 740, accuracy: 1)
         XCTAssertEqual(layout.kidALabelBaseline, 265)
         XCTAssertEqual(layout.kidATimeBaseline, 337)
         XCTAssertEqual(layout.kidAStatusBaseline, 374)
@@ -74,10 +98,14 @@ final class HomeLayoutTests: XCTestCase {
     /// Spec "Sizing: one scale, no floors": on every window each part is its 13" rect × s.
     func testEveryPartIsTheBoardTimesS() {
         let l = HomeLayout(sizing: .thirteenInch)
-        let board = [l.skySwitch, l.pencil, l.kidAPicture, l.nextRow.picture, l.timeLeftRow.picture, l.button, l.kidBadge(top: l.kidATop)]
+        let rects = { (l: HomeLayout) in
+            [l.skySwitch, l.pencil, l.kidAPicture, l.nextRow.picture, l.timeLeftRow.picture, l.button,
+             l.kidBadge(top: l.kidATop), l.kidBNowRow(kidBTop: l.kidBTop(after: .status)).picture,
+             l.kidBNextRow(kidBTop: l.kidBTop(after: .timeLeftRow)).picture]
+        }
+        let board = rects(l)
         for sizing in iPads {
-            let l = HomeLayout(sizing: sizing)
-            assertScaled([l.skySwitch, l.pencil, l.kidAPicture, l.nextRow.picture, l.timeLeftRow.picture, l.button, l.kidBadge(top: l.kidATop)], board, sizing)
+            assertScaled(rects(HomeLayout(sizing: sizing)), board, sizing)
         }
     }
 

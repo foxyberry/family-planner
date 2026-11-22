@@ -18,12 +18,10 @@ public struct HomeFeature {
     public enum KidABlock: Equatable, Sendable {
         /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
         case leave
-        /// The time left ("in") over the Next row; within 3 hours, outside a mission window.
-        case timeLeft(HomeModel.TimeLeft, NextRow)
         /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
         case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
-        /// E3 / E3b: the Next row only (over 3 hours away, or a mission window without an outing).
-        case next(NextRow)
+        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v68).
+        case next(NextItem)
         /// Nothing next today: the row is left out (spec E3 "No item left today").
         case nothing
     }
@@ -36,6 +34,8 @@ public struct HomeFeature {
         public var night: NightSpan? = nil
         /// Tomorrow's first outing (board A1n "Tomorrow" row); `nil` when tomorrow has none.
         public var tomorrow: Outing? = nil
+        /// Tomorrow's slots: Kid B's Next row at night goes on to the first thing after wake-up (A1n).
+        public var tomorrowSlots: [Slot] = []
         /// The kid's routine missions (C5).
         public var missions: [Mission] = []
 
@@ -43,12 +43,13 @@ public struct HomeFeature {
         public var windows: [WindowSpan] { DayPlanner.missionWindows(slots: slots, night: night) }
 
         public init(kid: Kid, dayType: DayType, slots: [Slot], night: NightSpan? = nil, tomorrow: Outing? = nil,
-                    missions: [Mission] = []) {
+                    tomorrowSlots: [Slot] = [], missions: [Mission] = []) {
             self.kid = kid
             self.dayType = dayType
             self.slots = slots
             self.night = night
             self.tomorrow = tomorrow
+            self.tomorrowSlots = tomorrowSlots
             self.missions = missions
         }
     }
@@ -209,8 +210,10 @@ public struct HomeFeature {
             guard let first = days.first else { return .nothing }
             if morningOuting != nil { return .leave }
             guard let next = HomeModel.next(first.slots, minute: minute) else { return .nothing }
-            if !showsMissions, let left = HomeModel.timeLeft(to: next, minute: minute) {
-                return next.kind == .sleep ? .bedTime(left, tomorrow: first.tomorrow.map(TomorrowRow.init)) : .timeLeft(left, next)
+            // Spec "Kid A, which row": one row only; the item it names shows once (no time left
+            // block over a second row for the same thing).
+            if !showsMissions, let left = HomeModel.bedIn(to: next, minute: minute) {
+                return .bedTime(left, tomorrow: first.tomorrow.map(TomorrowRow.init))
             }
             return .next(next)
         }
@@ -219,7 +222,6 @@ public struct HomeFeature {
         public var kidAEnd: HomeLayout.KidAEnd {
             switch kidABlock {
             case .leave: status == nil ? .timeLeft : .status
-            case .timeLeft: .timeLeftRow
             case let .bedTime(_, tomorrow): tomorrow == nil ? .timeLeft : .timeLeftRow
             case .next: .nextRow
             case .nothing: .name
@@ -227,7 +229,7 @@ public struct HomeFeature {
         }
 
         /// E1 (one kid): the Next row stays under "On time" on a leaving morning.
-        public var leaveNext: NextRow? {
+        public var leaveNext: NextItem? {
             guard days.count == 1, kidABlock == .leave, let first = days.first else { return nil }
             return HomeModel.next(first.slots, minute: minute)
         }
@@ -247,28 +249,29 @@ public struct HomeFeature {
             return HomeModel.TimeLeft(label: heading, minutes: minutes)
         }
 
-        /// The second kid's now and next pictures (boards A1, A1m); play while nothing is on now.
-        public struct KidBRow: Equatable, Sendable {
+        /// The second kid's Now row and Next row (layout v68, spec "Kid B block"); the Next row is
+        /// left out when nothing is next. Next follows the same rule as Kid A's, so it never names
+        /// what is on now.
+        public struct KidBRows: Equatable, Sendable {
             public var kid: Kid
-            public var now: KitSlot
-            public var next: KitSlot?
+            public var now: NowItem
+            public var next: NextItem?
         }
 
-        public var kidB: KidBRow? {
+        public var kidB: KidBRows? {
             guard days.count > 1 else { return nil }
-            let now = DayPlanner.now(at: minute, in: days[1].slots)
-            return KidBRow(kid: days[1].kid, now: now.current.map { KitSlot(iconName: $0.iconName) } ?? .actPlay,
-                           next: now.next.map { KitSlot(iconName: $0.iconName) })
+            let day = days[1]
+            return KidBRows(kid: day.kid, now: HomeModel.now(day.slots, minute: minute),
+                            next: HomeModel.next(day.slots, minute: minute, tomorrow: day.tomorrowSlots))
         }
 
-        /// Kid B's captions under the circles.
-        public var kidNowCaption: String { strings.tr("kid.now") }
-        public var kidNextCaption: String { strings.tr("kid.next") }
+        /// Kid B's Now row caption.
+        public var nowLabel: String { strings.tr("home.now") }
 
         /// A1 / A1m: the way picture beside "Leave in" (the bus, the car, ...).
         public var leavePicture: KitSlot? { morningOuting.map { KitSlot(iconName: $0.trip.way.moverPicture) } }
 
-        /// The caption over the Next row.
+        /// The Next row's caption (Kid A's and Kid B's).
         public var nextLabel: String { strings.tr("home.next") }
     }
 
@@ -383,6 +386,9 @@ public struct HomeFeature {
                 let items = family.resolving(snapshot.items, calendar: calendar)
                 state.days = snapshot.kids.map { kid in
                     let holidayDays = family.daysOff(kid.id)
+                    let tomorrow = DayPlanner.slots(on: today.adding(days: 1, calendar: calendar), kid: kid,
+                                                    routines: snapshot.routines, items: items,
+                                                    holidays: holidayDays, calendar: calendar)
                     return KidDay(kid: kid,
                                   dayType: DayPlanner.dayType(on: today, holidays: holidayDays, calendar: calendar),
                                   slots: DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines,
@@ -390,11 +396,8 @@ public struct HomeFeature {
                                   night: DayPlanner.nightSpan(of: DayPlanner.template(
                                       for: kid.id, on: today, routines: snapshot.routines, holidays: holidayDays,
                                       calendar: calendar)),
-                                  tomorrow: DayPlanner.nextOuting(
-                                      in: DayPlanner.slots(on: today.adding(days: 1, calendar: calendar), kid: kid,
-                                                           routines: snapshot.routines, items: items,
-                                                           holidays: holidayDays, calendar: calendar),
-                                      after: -1),
+                                  tomorrow: DayPlanner.nextOuting(in: tomorrow, after: -1),
+                                  tomorrowSlots: tomorrow,
                                   missions: snapshot.missions.filter { $0.kid == kid.id })
                 }
                 state.items = items
