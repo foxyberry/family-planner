@@ -135,8 +135,8 @@ final class ComponentSnapshotTests: XCTestCase {
                         flags: [.flagKR, .flagJP, .flagCN, .flagUK, .flagFR, .flagIN, .flagTH, .flagVN],
                         isShowingAll: true, moreTitle: "More") {}
             .frame(height: 640, alignment: .top), width: Self.rowWidth, named: "flags")
-        // Board G1f: in the 424 side card the slots wrap 4 per row, and "More" shows 3 per row and
-        // scrolls inside (two rows and a peek), so it never runs past the side column.
+        // Spec G1f: in the 424 side card the slots wrap 4 per row, 24 apart; "More" is a 472 × 300
+        // card 8 under the last row, 4 per row too, scrolling inside (two rows and a 44 peek).
         snap(PictureRow(slots: [.actPlay, .snack, .actStory, .homework, .tv, .actArt, .actMusic], selection: .constant(.actPlay),
                         all: [.actSleep, .pyjamas, .teddy, .sun, .toilet, .toothbrush, .washFace, .hairBrush, .shirt, .actBreakfast],
                         flags: [.flagKR, .flagJP], isShowingAll: true, moreTitle: "More", columns: 4) {}
