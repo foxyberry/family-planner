@@ -31,7 +31,7 @@ public struct CrayonSurface: View {
     @Environment(\.crayonScale) private var scale
 
     /// `markerColor`: the line's colour; nil takes the environment's `crayonOutline`.
-    public init(_ kind: CrayonShapeKind, fill: CrayonFill?, marker: MarkerStyle = .standard,
+    public init(_ kind: CrayonShapeKind, fill: CrayonFill?, marker: MarkerStyle = MarkerStyle.standard,
                 markerColor: Color? = nil, seed: UInt32) {
         self.kind = kind
         self.fill = fill
@@ -104,7 +104,7 @@ public struct CrayonSurface: View {
 extension View {
     /// Puts a crayon shape behind the view.
     public func crayonBackground(_ kind: CrayonShapeKind, fill: CrayonFill?, seed: UInt32,
-                                 marker: MarkerStyle = .standard) -> some View {
+                                 marker: MarkerStyle = MarkerStyle.standard) -> some View {
         background(CrayonSurface(kind, fill: fill, marker: marker, seed: seed))
     }
 }
