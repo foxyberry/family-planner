@@ -6,6 +6,8 @@
 # Owner is the short name of the session that will do it: main, review, design or harness.
 # Usage: scripts/issue.sh new <owner> <title> [area]   create one; prints its path
 #        scripts/issue.sh list [owner]                 open issues (all, or one owner's)
+#        scripts/issue.sh start <number>               mark it doing: the owner session picked it up
+#        scripts/issue.sh stop <number>                back to open (put down, not finished)
 #        scripts/issue.sh close <number>               mark it done (the file stays as a record)
 # ISSUES_DIR overrides the folder (tests).
 set -u
@@ -31,8 +33,17 @@ case "${1:-}" in
       case "$status" in done*|closed*) continue ;; esac
       owner="$(field "$f" owner)"
       [ -z "${2:-}" ] || case "$owner" in "$2"*) ;; *) continue ;; esac
-      printf '%s  [%s]  %s\n' "$(basename "$f" .md)" "$owner" "$(sed -n 's/^# //p' "$f" | head -1)"
+      mark=""; case "$status" in doing*) mark="  (doing)" ;; esac
+      printf '%s  [%s]  %s%s\n' "$(basename "$f" .md)" "$owner" "$(sed -n 's/^# //p' "$f" | head -1)" "$mark"
     done
+    ;;
+  start|stop)
+    case "${2:-}" in ''|*[!0-9]*) echo "usage: $0 $1 <number>" >&2; exit 2 ;; esac
+    file="$(ls "$dir"/"$(printf '%03d' "$((10#$2))")"-*.md 2>/dev/null | head -1)"
+    [ -n "$file" ] || { echo "issue $2: not found in $dir" >&2; exit 1; }
+    if [ "$1" = start ]; then new="doing $(date '+%Y-%m-%d %H:%M')"; else new=open; fi
+    sed -i.bak "s/^status: .*/status: $new/" "$file" && rm -f "$file.bak"
+    echo "$1: $file"
     ;;
   close)
     case "${2:-}" in ''|*[!0-9]*) echo "usage: $0 close <number>" >&2; exit 2 ;; esac

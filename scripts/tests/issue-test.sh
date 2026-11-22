@@ -19,6 +19,13 @@ check "fields are written" "$(sed -n 's/^owner: //p' "$first")|$(sed -n 's/^stat
 check "list shows both" "$(bash "$ISSUE" list | wc -l | tr -d ' ')" "2"
 check "list filters by owner" "$(bash "$ISSUE" list design | cut -c1-3)" "002"
 
+bash "$ISSUE" start 2 > /dev/null
+check "start marks it doing" "$(sed -n 's/^status: //p' "$second" | cut -d' ' -f1)" "doing"
+check "list marks a doing issue" "$(bash "$ISSUE" list design | grep -c '(doing)')" "1"
+bash "$ISSUE" stop 2 > /dev/null
+check "stop puts it back to open" "$(sed -n 's/^status: //p' "$second")" "open"
+bash "$ISSUE" start x > /dev/null 2>&1
+check "start needs a number" "$?" "2"
 bash "$ISSUE" close 1 > /dev/null
 check "close marks it done" "$(sed -n 's/^status: //p' "$first" | cut -d' ' -f1)" "done"
 check "a closed issue leaves the list" "$(bash "$ISSUE" list | cut -c1-3)" "002"
