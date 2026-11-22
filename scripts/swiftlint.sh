@@ -8,11 +8,13 @@
 # 2 min from the shared disk cache.
 #
 # A rule that replaces a regex guard keeps that guard's shrink-only pending list: files listed in
-# scripts/view-values-pending.txt are left out of `view_values` until they are fixed. Where the rule
-# looks (which paths count as view code) is in the rule itself.
+# scripts/view-values-pending.txt are left out of `view_values` until they are fixed, and a listed
+# file that is clean (no view_values hit, no check-view-values.sh hit) fails until its line goes.
+# Where the rule looks (which paths count as view code) is in the rule itself.
 #
-# Usage: scripts/swiftlint.sh             lint ios/: exit 0 clean, 2 on a violation, 1 if it
-#                                         could not run (build, config or crash; the reason is printed)
+# Usage: scripts/swiftlint.sh             lint ios/: exit 0 clean, 2 on a violation or a pending
+#                                         line for a clean file, 1 if it could not run (build,
+#                                         config or crash; the reason is printed)
 #        scripts/swiftlint.sh --self-test lint tools/swiftlint/fixtures: every `// bad` line must be
 #                                         reported and no other line
 #        scripts/swiftlint.sh --binary    print the cached binary's path (building it if needed)
@@ -98,15 +100,18 @@ if [ -n "$pending" ]; then
   cp .swiftlint.yml "$config"  # no excluded paths: lint the pending files themselves
   files=()
   while IFS= read -r rel; do [ -f "$rel" ] && files+=("$ROOT/$rel"); done <<< "$pending"
-  listed="$(lint "${files[@]}")"
-  [ $? = 1 ] && exit 1  # could not run; the reason is on stderr
+  listed=""
+  if [ ${#files[@]} -gt 0 ]; then  # bash 3.2 with set -u stops on an empty "${files[@]}"
+    listed="$(lint "${files[@]}")"
+    [ $? = 1 ] && exit 1  # could not run; the reason is on stderr
+  fi
   native="$(printf '%s\n' "$listed" | grep -E '\.swift:[0-9]+' | cut -d: -f1 | sort -u)"
   regex="$(bash scripts/check-view-values.sh --hits "$ROOT")"
   while IFS= read -r rel; do
     [ -f "$rel" ] || continue  # check-view-values.sh reports a missing file
     if ! printf '%s\n' "$native" "$regex" | grep -qxF "$rel"; then
       echo "swiftlint: pending line for a clean file: $rel (remove it from scripts/view-values-pending.txt)" >&2
-      [ "$code" = 0 ] && code=1
+      code=2  # a finding, like a violation (1 means it could not run)
     fi
   done <<< "$pending"
 fi
