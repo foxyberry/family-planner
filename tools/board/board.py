@@ -262,22 +262,53 @@ files(first: 100) { nodes { path } }
 """
 
 
-def fetch_prs(slug):
+# GitHub is shared by every session and tool on this account (5,000 GraphQL points an hour, plus
+# secondary limits on bursts). The page reloads every 15 s, so the board asks GitHub far less often
+# than it rebuilds: open and recently merged PRs at most once a minute, the merged and closed history
+# (for local branches' verdicts) every 10 minutes. A failed ask waits the same gap before the next
+# one, and the board keeps showing what it last read.
+OPEN_GAP, ENDED_GAP = 60, 600
+_github = {"open": None, "open_at": 0.0, "read_at": 0.0, "ended": None, "ended_at": 0.0, "error": ""}
+
+
+def graphql(slug, fields):
     owner, name = slug.split("/")
-    query = (f'query {{ repository(owner: "{owner}", name: "{name}") {{ '
-             f'open: pullRequests(states: OPEN, first: 40, orderBy: {{field: UPDATED_AT, direction: DESC}}) {{ nodes {{ {PR_FIELDS} }} }} '
-             f'merged: pullRequests(states: MERGED, first: 15, orderBy: {{field: UPDATED_AT, direction: DESC}}) '
-             f'{{ nodes {{ number title url headRefName mergedAt files(first: 100) {{ nodes {{ path }} }} }} }} '
-             f'allMerged: pullRequests(states: MERGED, last: 100) {{ nodes {{ number url headRefName headRefOid }} }} '
-             f'oldMerged: pullRequests(states: MERGED, first: 100) {{ nodes {{ number url headRefName headRefOid }} }} '
-             f'closed: pullRequests(states: CLOSED, last: 50) {{ nodes {{ number url headRefName headRefOid }} }} }} }}')
-    code, out, err = run(["gh", "api", "graphql", "-f", "query=" + query])
+    code, out, err = run(["gh", "api", "graphql", "-f",
+                          f'query=query {{ repository(owner: "{owner}", name: "{name}") {{ {fields} }} }}'])
     if code != 0:
         raise RuntimeError(err.strip() or "gh api graphql failed")
-    repo = json.loads(out)["data"]["repository"]
-    ended = {p["headRefName"]: ("merged", p) for p in repo["oldMerged"]["nodes"] + repo["allMerged"]["nodes"]}
-    ended.update({p["headRefName"]: ("closed", p) for p in repo["closed"]["nodes"] if p["headRefName"] not in ended})
-    return repo["open"]["nodes"], repo["merged"]["nodes"], ended
+    return json.loads(out)["data"]["repository"]
+
+
+def fetch_prs(slug):
+    """(open PRs, recently merged PRs, {branch: (merged|closed, pr)}), from GitHub at most every
+    OPEN_GAP / ENDED_GAP seconds and otherwise from the last answer. Raises only when nothing was
+    ever read; a later failure keeps the last answer and leaves its message in _github["error"]."""
+    t = time.time()
+    _github["error"] = ""
+    if t - _github["open_at"] > OPEN_GAP:
+        _github["open_at"] = t
+        try:
+            repo = graphql(slug, f'open: pullRequests(states: OPEN, first: 40, orderBy: {{field: UPDATED_AT, direction: DESC}}) {{ nodes {{ {PR_FIELDS} }} }} '
+                                 f'merged: pullRequests(states: MERGED, first: 15, orderBy: {{field: UPDATED_AT, direction: DESC}}) '
+                                 f'{{ nodes {{ number title url headRefName mergedAt files(first: 100) {{ nodes {{ path }} }} }} }}')
+            _github["open"], _github["read_at"] = (repo["open"]["nodes"], repo["merged"]["nodes"]), t
+        except Exception as e:
+            _github["error"] = str(e)
+    if t - _github["ended_at"] > ENDED_GAP:
+        _github["ended_at"] = t
+        try:
+            repo = graphql(slug, 'allMerged: pullRequests(states: MERGED, last: 100) { nodes { number url headRefName headRefOid } } '
+                                 'oldMerged: pullRequests(states: MERGED, first: 100) { nodes { number url headRefName headRefOid } } '
+                                 'closed: pullRequests(states: CLOSED, last: 50) { nodes { number url headRefName headRefOid } }')
+            ended = {p["headRefName"]: ("merged", p) for p in repo["oldMerged"]["nodes"] + repo["allMerged"]["nodes"]}
+            ended.update({p["headRefName"]: ("closed", p) for p in repo["closed"]["nodes"] if p["headRefName"] not in ended})
+            _github["ended"] = ended
+        except Exception as e:
+            _github["error"] = _github["error"] or str(e)
+    if _github["open"] is None:
+        raise RuntimeError(_github["error"] or "GitHub not read yet")
+    return _github["open"][0], _github["open"][1], _github["ended"] or {}
 
 
 def category(title, files):
@@ -677,6 +708,9 @@ def build():
     error, open_prs, merged, ended = None, [], [], {}
     try:
         open_prs, merged, ended = fetch_prs(slug)
+        if _github["error"]:  # shown with the last answer still on the board
+            age = int(time.time() - _github["read_at"])
+            error = f'GitHub을 읽지 못해 {age}초 전 내용을 보여줍니다: {_github["error"]}'
     except Exception as e:  # keep the local half of the board when GitHub can't be read
         error = str(e)
 

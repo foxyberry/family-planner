@@ -7,7 +7,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 BOARD="$HERE/../../tools/board/board.py"
 
 python3 -I - "$BOARD" <<'EOF'
-import importlib.util, sys
+import importlib.util, json, sys
 
 spec = importlib.util.spec_from_file_location("board", sys.argv[1])
 board = importlib.util.module_from_spec(spec)
@@ -99,6 +99,43 @@ for args, want in [(("2026-11-21T03:00:00Z", "2026-11-21T02:00:00Z"), True),
     else:
         failed += 1
         print(f"FAIL is_waiting{args}: want {want}")
+# GitHub is asked at most once a minute for open PRs and every 10 minutes for the history; a failure
+# keeps the last answer and waits the same gap.
+calls, clock, fail = [], [1000.0], [False]
+def fake_run(cmd):
+    calls.append("ended" if "allMerged" in cmd[-1] else "open")
+    if fail[0]:
+        return 1, "", "rate limit"
+    data = {"open": {"nodes": [{"number": 1}]}, "merged": {"nodes": []}, "allMerged": {"nodes": []},
+            "oldMerged": {"nodes": [{"headRefName": "feature/a"}]}, "closed": {"nodes": []}}
+    return 0, json.dumps({"data": {"repository": data}}), ""
+board.run = fake_run
+board.time = type("T", (), {"time": staticmethod(lambda: clock[0])})
+def step(seconds, want_calls, name, failing=False):
+    global passed, failed
+    clock[0] += seconds
+    fail[0] = failing
+    calls.clear()
+    try:
+        result = board.fetch_prs("o/r")
+    except RuntimeError:
+        result = None
+    if calls == want_calls and result is not None and result[0] == [{"number": 1}]:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL fetch_prs {name}: calls {calls}, result {result}")
+step(0, ["open", "ended"], "first build asks both")
+step(15, [], "a reload 15 s later asks nothing")
+step(50, ["open"], "after a minute only the open PRs")
+step(61, ["open"], "a failure keeps the last answer", failing=True)
+if board._github["error"] == "rate limit":
+    passed += 1
+else:
+    failed += 1
+    print("FAIL fetch_prs: the failure message is kept")
+step(15, [], "a failure waits the gap too")
+step(600, ["open", "ended"], "after 10 minutes the history again")
 print(f"board: {passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 EOF
