@@ -2,7 +2,7 @@
 name: pr-review-handoff
 description: Use when a change in this repo is ready for review (code, guards, docs or design spec), when sending work to the code review session, when another session's commits need a PR, when acting as the review session ("Family-planner iOS 코드 리뷰"), when a review or LGTM is posted on your PR, or before merging a PR.
 metadata:
-  version: 0.9.2
+  version: 0.9.3
   status: experimental
 ---
 
@@ -62,13 +62,15 @@ hook blocks shell expansion and checks the text for private terms.
 5. Ask for a re-review with the old and new head SHAs.
 6. Merge when all of these hold (a push after the LGTM needs a new look):
    - an "LGTM at <sha>" comment names the current head;
-   - CI is green: every check says pass. develop requires guard-tests and secret-scan, for admins
-     too; still run `gh pr checks N --watch` first so the merge doesn't fail;
-   - a PR that changes a screen has the user's iPad check. Ask for it in your own session: it is
-     the only time a merge waits for the user (user, 2026-11-21). Any other PR merges by itself.
-     When the user says the head looks right, post "iPad OK at <sha>" on the PR, quoting their words.
-     Describe what was checked on the family's iPad without copying any value from its screen
-     (numbers, names, stops are private; the term hook only knows listed ones).
+   - CI is green: every check says pass. develop and main both require guard-tests and
+     secret-scan, for admins too; still run `gh pr checks N --watch` first so the merge doesn't fail;
+   - a PR that changes a screen has its iPad check. A connected iPad always comes first; a size
+     with no iPad connected is checked on its simulator (`make run SIM_DEVICE="iPad Pro 11-inch (M5)"`,
+     `"iPad mini (A17 Pro)"`). Ask the user in your own session: it is the only time a merge waits
+     for the user (user, 2026-11-21); when the user is away, check it yourself with WDA, look only.
+     Any other PR merges by itself. Then post "iPad OK at <sha>" on the PR, quoting the user's words
+     when they checked. Describe what was checked on the family's iPad without copying any value
+     from its screen (numbers, names, stops are private; the term hook only knows listed ones).
      Like the LGTM it covers one head, so a later push needs a new check (`make board` reads it).
 7. Bind every PR you open to the app's PR monitor with Auto-fix on (`ccd_pr` get_status, bind_pr,
    set_monitor). Your session then wakes on review comments, CI failures and conflicts.
