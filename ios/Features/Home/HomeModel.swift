@@ -36,19 +36,19 @@ public struct NowItem: Equatable, Sendable {
     }
 }
 
-/// Board A1n "Tomorrow" row (layout v73): tomorrow's first outing in the row shape, "Tomorrow ·
-/// School" over "leave 7:25 am" (the caption comes from State).
-public struct TomorrowRow: Equatable, Sendable {
-    public var iconName: String
-    public var title: String
-    public var line: String
-    /// The row's picture (an unknown name shows play).
-    public var picture: KitSlot { KitSlot(iconName: iconName) }
+/// Spec "Kid A, which row" (layout v74; boards A1n, A1z): Kid A's Tomorrow row, for the next day
+/// with a plan: its first outing ("leave {h:mm}"), else its first thing after the opening Sleep
+/// ("at {h:mm}"). `inDays` is 1 for tomorrow; a later day (nothing planned before it) is named by
+/// its weekday.
+public struct AheadRow: Equatable, Sendable {
+    public var item: NextItem
+    public var inDays: Int
+    public var weekday: Weekday
 
-    public init(_ outing: Outing) {
-        iconName = outing.slot.iconName
-        title = outing.slot.title
-        line = L10n.tr("home.tomorrow.leave_at", TimeText.withPeriod(outing.leave))
+    public init(item: NextItem, inDays: Int, weekday: Weekday) {
+        self.item = item
+        self.inDays = inDays
+        self.weekday = weekday
     }
 }
 
@@ -109,21 +109,19 @@ public enum HomeModel {
             .map { item($0, in: tomorrow, minutesAway: $0.start + 1440 - minute) }
     }
 
-    /// Board A1z (layout v73): after bedtime (today's last Sleep has started and runs to midnight)
-    /// Kid A's one row is the next day's first thing, its opening Sleep skipped, with "leave {h:mm}"
-    /// when it is an outing, else "at {h:mm}". After midnight `next` gives the ordinary Next row.
-    public static func tomorrow(_ slots: [Slot], minute: Int, tomorrow: [Slot]) -> NextItem? {
-        guard let current = DayPlanner.now(at: minute, in: slots).current, current.kind == .sleep,
-              current.end == 1440 else { return nil }
-        let wake = tomorrow.first { $0.start == 0 && $0.kind == .sleep }?.end ?? 0
-        guard let slot = tomorrow.first(where: { $0.start >= wake && shows($0, in: tomorrow) }) else { return nil }
-        let line = if let trip = slot.trip {
-            L10n.tr("home.tomorrow.leave_at", TimeText.withPeriod(slot.start - trip.leaveBefore))
-        } else {
-            L10n.tr("home.next.at", TimeText.withPeriod(slot.start))
+    /// Spec "Kid A, which row" (layout v74): what a day's Tomorrow row names: the day's first outing
+    /// with its leave time (the same `Outing.leave` as the Leave row), else its first thing after the
+    /// opening Sleep with its start; nil for a day with nothing to name.
+    public static func dayAhead(_ slots: [Slot]) -> NextItem? {
+        if let outing = DayPlanner.nextOuting(in: slots, after: -1) {
+            let slot = outing.slot
+            return NextItem(iconName: slot.iconName, title: slot.title, start: slot.start, end: end(of: slot, in: slots),
+                            kind: slot.kind, showsStar: slot.showsStar,
+                            line: L10n.tr("home.tomorrow.leave_at", TimeText.withPeriod(outing.leave)))
         }
-        return NextItem(iconName: slot.iconName, title: slot.title, start: slot.start, end: end(of: slot, in: tomorrow),
-                        kind: slot.kind, showsStar: slot.showsStar, line: line)
+        let wake = slots.first { $0.start == 0 && $0.kind == .sleep }?.end ?? 0
+        guard let slot = slots.first(where: { $0.start >= wake && shows($0, in: slots) }) else { return nil }
+        return item(slot, in: slots, line: L10n.tr("home.next.at", TimeText.withPeriod(slot.start)))
     }
 
     /// The Next row's time line (spec "The row", user 2026-11-22): "in {n} min" while the start is
@@ -178,9 +176,12 @@ public enum HomeModel {
     }
 
     private static func item(_ slot: Slot, in slots: [Slot], minutesAway: Int) -> NextItem {
+        item(slot, in: slots, line: nextLine(start: slot.start, minutesAway: minutesAway))
+    }
+
+    private static func item(_ slot: Slot, in slots: [Slot], line: String) -> NextItem {
         NextItem(iconName: slot.iconName, title: slot.title, start: slot.start, end: end(of: slot, in: slots),
-                 kind: slot.kind, showsStar: slot.showsStar,
-                 line: nextLine(start: slot.start, minutesAway: minutesAway))
+                 kind: slot.kind, showsStar: slot.showsStar, line: line)
     }
 
     /// A template slot that starts where an item ends, with a piece of the same slot just before

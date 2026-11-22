@@ -33,7 +33,7 @@ public struct HomeView: View {
                 }
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
-                // Board G0 (layout v73): the school calendar (K1), no lock, left of the pencil.
+                // Board G0 (layout v74): the school calendar (K1), no lock, left of the pencil.
                 RoundButton(picture: .calendar) {
                     store.send(.calendarTapped)
                 }
@@ -175,7 +175,7 @@ public struct HomeView: View {
                 }
             }
         case let .bedTime(left, tomorrow):
-            // Board A1n (layout v73): the moon (56) on an 80 night plate.
+            // Board A1n (layout v74): the moon (56) on an 80 night plate.
             KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 56.0 / 80.0) {
                 KitIcon(.actSleep, size: layout.kidAPicture.width)
             }
@@ -183,17 +183,13 @@ public struct HomeView: View {
             timeLeft(left, layout: layout)
             if let tomorrow {
                 // The Tomorrow row, 104 below the Bed row.
-                NextRow(picture: tomorrow.picture, caption: store.tomorrowLabel, title: tomorrow.title,
-                        line: tomorrow.line, look: store.look)
-                    .place(topLeft: layout.timeLeftRow.picture.origin)
+                aheadRow(tomorrow, at: layout.timeLeftRow)
             }
         case let .next(next):
             nextRow(next, at: layout.nextRow)
-        case let .tomorrow(next):
-            // Board A1z: the next day's first thing, captioned "Tomorrow", on a night plate.
-            NextRow(picture: next.picture, caption: store.tomorrowLabel, title: next.title, line: next.line,
-                    showsStar: next.showsStar, look: store.look)
-                .place(topLeft: layout.nextRow.picture.origin)
+        case let .tomorrow(row):
+            // Board A1z: the next day's first outing or first thing.
+            aheadRow(row, at: layout.nextRow)
         case .nothing:
             EmptyView()
         }
@@ -205,6 +201,13 @@ public struct HomeView: View {
             .place(left: layout.kidATextLeft, baseline: layout.kidALabelBaseline)
         TimeLeft(left.text, isLate: left.isLate, look: store.look, compact: true)
             .place(left: layout.kidATextLeft, baseline: layout.kidATimeBaseline)
+    }
+
+    /// Boards A1n, A1z: the Tomorrow row ("Tomorrow · School" / "leave 7:25 am").
+    private func aheadRow(_ row: AheadRow, at place: HomeLayout.RowPlace) -> some View {
+        NextRow(picture: row.item.picture, caption: store.state.aheadCaption(row), title: row.item.title,
+                line: row.item.line, showsStar: row.item.showsStar, look: store.look)
+            .place(topLeft: place.picture.origin)
     }
 
     /// The Next row (the `NextRow` part): the picture (104), then "Next", its title and the time line.

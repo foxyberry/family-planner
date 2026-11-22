@@ -386,7 +386,7 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .weekday])
     }
 
-    /// Board A1z (layout v73): after Kid A's bedtime (Sleep has started) the block shows one row for
+    /// Board A1z (layout v74): after Kid A's bedtime (Sleep has started) the block shows one row for
     /// the next day's first thing, its opening Sleep skipped. Before midnight: "Tomorrow", the title
     /// and "at {h:mm}" (Breakfast is no outing). Tuesday 10 Nov 2026, 9:15 pm; Sleep from 8:00 pm.
     func testAfterBedtimeKidAShowsTomorrowsFirstThing() async {
@@ -396,9 +396,11 @@ final class HomeFeatureTests: XCTestCase {
         guard case let .tomorrow(row) = store.state.kidABlock else {
             return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
         }
-        XCTAssertEqual(row.title, "Breakfast")
-        XCTAssertEqual(row.line, "at 6:30 am")
-        XCTAssertEqual(store.state.tomorrowLabel, "Tomorrow")
+        // Spec v74 (board A1z): the next day's first outing, School by bus (7:30, leave 5 min before).
+        XCTAssertEqual(row.item.title, "School")
+        XCTAssertEqual(row.item.line, "leave 7:25 am")
+        XCTAssertEqual(row.inDays, 1)
+        XCTAssertEqual(store.state.aheadCaption(row), "Tomorrow")
         XCTAssertEqual(store.state.kidAEnd, .nextRow, "Kid B hangs below it as on E3 (A1z: 452)")
         XCTAssertEqual(store.state.look, .night)
         // Just before Sleep the Bed row still shows (board A1n).
@@ -427,8 +429,66 @@ final class HomeFeatureTests: XCTestCase {
         guard case let .tomorrow(row) = store.state.kidABlock else {
             return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
         }
-        XCTAssertEqual(row.title, "School")
-        XCTAssertEqual(row.line, "leave 6:55 am")
+        XCTAssertEqual(row.item.title, "School")
+        XCTAssertEqual(row.item.line, "leave 6:55 am")
+    }
+
+    /// Spec v74: with no outing on the next day the row names its first thing after the opening
+    /// Sleep (Saturday 14 Nov, 9:30 pm, to Sunday: Breakfast at 7:30 am, no outing).
+    func testTomorrowWithoutAnOutingNamesItsFirstThing() async {
+        let store = store(on: saturday, minute: 1290)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .tomorrow(row) = store.state.kidABlock else {
+            return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
+        }
+        XCTAssertEqual(row.item.title, "Breakfast")
+        XCTAssertEqual(row.item.line, "at 7:30 am")
+    }
+
+    /// Spec v74: whenever today has nothing left (a day that does not end in Sleep, an empty day) Kid A
+    /// shows the Tomorrow row too; with nothing at all in the next 14 days, the name only (A1z
+    /// without the row).
+    func testNothingLeftTodayShowsTheNextDayWithAPlan() async {
+        // Tuesday 9:15 pm on a template that ends in Play (no Sleep): tomorrow's School.
+        var playLate = snapshot()
+        let blocks = [
+            RoutineBlock(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 0, end: 420, isLocked: false, trip: nil),
+            RoutineBlock(title: "School", iconName: "wolfie", kind: .school, start: 420, end: 900, isLocked: true,
+                         trip: Trip(way: .bus, leaveBefore: 5)),
+            RoutineBlock(title: "Play", iconName: "blocks", kind: .play, start: 900, end: 1440, isLocked: false, trip: nil),
+        ]
+        playLate.routines.removeAll { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }
+        playLate.routines.append(Routine(kid: SeedData.kidA.id, dayType: .weekday, from: SeedData.templatesFrom, blocks: blocks))
+        let late = store(on: tuesday, minute: 1275, snapshot: playLate)
+        await late.send(.task)
+        await late.receive(\.loaded)
+        guard case let .tomorrow(row) = late.state.kidABlock else { return XCTFail("\(late.state.kidABlock)") }
+        XCTAssertEqual(row.item.title, "School")
+        XCTAssertEqual(row.inDays, 1)
+
+        // Only a Saturday template and no items: on Tuesday the next plan is Saturday, 4 days on.
+        var weekendOnly = snapshot()
+        weekendOnly.items = []
+        weekendOnly.routines.removeAll { $0.kid == SeedData.kidA.id && $0.dayType != .saturday }
+        let empty = store(on: tuesday, minute: 600, snapshot: weekendOnly)
+        await empty.send(.task)
+        await empty.receive(\.loaded)
+        guard case let .tomorrow(saturdayRow) = empty.state.kidABlock else { return XCTFail("\(empty.state.kidABlock)") }
+        XCTAssertEqual(saturdayRow.inDays, 4)
+        XCTAssertEqual(saturdayRow.item.title, "Breakfast")
+        XCTAssertEqual(empty.state.aheadCaption(saturdayRow), "Saturday")
+        XCTAssertEqual(empty.state.kidAEnd, .nextRow)
+
+        // Nothing in the next 14 days: the name only.
+        var nothing = snapshot()
+        nothing.items = []
+        nothing.routines.removeAll { $0.kid == SeedData.kidA.id }
+        let bare = store(on: tuesday, minute: 600, snapshot: nothing)
+        await bare.send(.task)
+        await bare.receive(\.loaded)
+        XCTAssertEqual(bare.state.kidABlock, .nothing)
+        XCTAssertEqual(bare.state.kidAEnd, .name)
     }
 
     /// Board A1z: after midnight the day is the new one, so the row is the ordinary Next row ("Next",
@@ -579,8 +639,8 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(left.label, "Bed in")
         // Layout v73: "Tomorrow · School" over "leave 7:25 am" (School 7:30, 5 min by bus).
         XCTAssertEqual(evening.state.tomorrowLabel, "Tomorrow")
-        XCTAssertEqual(tomorrow?.title, "School")
-        XCTAssertEqual(tomorrow?.line, "leave 7:25 am")
+        XCTAssertEqual(tomorrow?.item.title, "School")
+        XCTAssertEqual(tomorrow?.item.line, "leave 7:25 am")
     }
 
     /// E1: one kid keeps the Next row under "Leave in" on a leaving morning.

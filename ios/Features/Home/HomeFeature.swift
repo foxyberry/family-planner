@@ -20,15 +20,15 @@ public struct HomeFeature {
         /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
         case leave
         /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
-        case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
-        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v73).
+        case bedTime(HomeModel.TimeLeft, tomorrow: AheadRow?)
+        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v74).
         /// After midnight, while the night's Sleep goes on, A1z's row is this one too.
         case next(NextItem)
-        /// A1z: after bedtime (Sleep has started), one row for the next day's first thing, its opening
-        /// Sleep skipped: "Tomorrow", its title, "leave {h:mm}" for an outing, else "at {h:mm}".
-        case tomorrow(NextItem)
-        /// Nothing next today or tomorrow (a day with no plan): the row is left out (spec E3 "No item
-        /// left today"). No board draws it.
+        /// A1z: after bedtime (Sleep has started), or whenever today has nothing left, one row for the
+        /// next day with a plan: its first outing ("leave {h:mm}"), else its first thing ("at {h:mm}").
+        case tomorrow(AheadRow)
+        /// A1z: without the row, nothing at all in the next 14 days, so Kid A shows the name only
+        /// (spec "Night", layout v74).
         case nothing
     }
 
@@ -38,8 +38,9 @@ public struct HomeFeature {
         public var slots: [Slot]
         /// From the template's evening routine to wake-up (board A1n); `nil` keeps the day look.
         public var night: NightSpan? = nil
-        /// Tomorrow's first outing (board A1n "Tomorrow" row); `nil` when tomorrow has none.
-        public var tomorrow: Outing? = nil
+        /// The Tomorrow row (boards A1n, A1z): the next day with a plan within 14 days; `nil` when
+        /// nothing is planned in them.
+        public var ahead: AheadRow? = nil
         /// Tomorrow's slots: Kid B's Next row at night goes on to the first thing after wake-up (A1n).
         public var tomorrowSlots: [Slot] = []
         /// The kid's routine missions (C5).
@@ -48,13 +49,13 @@ public struct HomeFeature {
         /// Spec "Mission windows": the day's stretches for missions.
         public var windows: [WindowSpan] { DayPlanner.missionWindows(slots: slots, night: night) }
 
-        public init(kid: Kid, dayType: DayType, slots: [Slot], night: NightSpan? = nil, tomorrow: Outing? = nil,
+        public init(kid: Kid, dayType: DayType, slots: [Slot], night: NightSpan? = nil, ahead: AheadRow? = nil,
                     tomorrowSlots: [Slot] = [], missions: [Mission] = []) {
             self.kid = kid
             self.dayType = dayType
             self.slots = slots
             self.night = night
-            self.tomorrow = tomorrow
+            self.ahead = ahead
             self.tomorrowSlots = tomorrowSlots
             self.missions = missions
         }
@@ -225,14 +226,13 @@ public struct HomeFeature {
             guard let first = days.first else { return .nothing }
             if morningOuting != nil { return .leave }
             guard let next = HomeModel.next(first.slots, minute: minute) else {
-                // Board A1z: after bedtime the next day's first thing.
-                return HomeModel.tomorrow(first.slots, minute: minute, tomorrow: first.tomorrowSlots).map(KidABlock.tomorrow)
-                    ?? .nothing
+                // Board A1z: nothing left today (after bedtime, or a day with no more plan): the next day.
+                return first.ahead.map(KidABlock.tomorrow) ?? .nothing
             }
             // Spec "Kid A, which row": one row only; the item it names shows once (no time left
             // block over a second row for the same thing).
             if !showsMissions, let left = HomeModel.bedIn(to: next, minute: minute) {
-                return .bedTime(left, tomorrow: first.tomorrow.map(TomorrowRow.init))
+                return .bedTime(left, tomorrow: first.ahead)
             }
             return .next(next)
         }
@@ -297,6 +297,12 @@ public struct HomeFeature {
 
         /// Board A1z: the caption of Kid A's row for the next day, before midnight.
         public var tomorrowLabel: String { strings.tr("home.tomorrow") }
+
+        /// The Tomorrow row's caption: "Tomorrow", or the weekday of a later day when nothing is
+        /// planned before it.
+        public func aheadCaption(_ row: AheadRow) -> String {
+            row.inDays == 1 ? tomorrowLabel : DayText.name(row.weekday)
+        }
     }
 
     public enum Action: Equatable {
@@ -311,7 +317,7 @@ public struct HomeFeature {
         case clockHoldCompleted
         /// Board G0: the pencil; the app opens the grown-up lock.
         case pencilTapped
-        /// Board G0 (layout v73): the calendar button; the app opens the school calendar (K1), no lock.
+        /// Board G0 (layout v74): the calendar button; the app opens the school calendar (K1), no lock.
         case calendarTapped
         /// The kid tapped the day/night switch (board 0g).
         case skySwitchTapped
@@ -442,7 +448,8 @@ public struct HomeFeature {
                                   night: DayPlanner.nightSpan(of: DayPlanner.template(
                                       for: kid.id, on: today, routines: routines, holidays: holidayDays,
                                       calendar: calendar)),
-                                  tomorrow: DayPlanner.nextOuting(in: tomorrow, after: -1),
+                                  ahead: aheadRow(kid: kid, today: today, tomorrow: tomorrow, routines: routines,
+                                                  items: items, holidays: holidayDays),
                                   tomorrowSlots: tomorrow,
                                   missions: snapshot.missions.filter { $0.kid == kid.id })
                 }
@@ -506,6 +513,20 @@ public struct HomeFeature {
                 return .none
             }
         }
+    }
+
+    /// Spec "Kid A, which row" (layout v74): the first of the next 14 days with something to name.
+    private func aheadRow(kid: Kid, today: Day, tomorrow: [Slot], routines: [Routine], items: [ScheduleItem],
+                          holidays: Set<Day>) -> AheadRow? {
+        for offset in 1...14 {
+            let day = today.adding(days: offset, calendar: calendar)
+            let slots = offset == 1 ? tomorrow : DayPlanner.slots(on: day, kid: kid, routines: routines, items: items,
+                                                                  holidays: holidays, calendar: calendar)
+            if let item = HomeModel.dayAhead(slots) {
+                return AheadRow(item: item, inDays: offset, weekday: day.weekday(calendar))
+            }
+        }
+        return nil
     }
 
     private func minute(of date: Date) -> Int {

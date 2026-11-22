@@ -38,7 +38,7 @@ public struct HomeLayout: Equatable, Sendable {
         return CGRect(x: sizing.x(1336) - side, y: sizing.y(36), width: side, height: side)
     }
 
-    /// Board G0 (layout v73): the calendar `RoundButton` 96, 16 left of the pencil (1128–1224, y 36–132).
+    /// Board G0 (layout v74): the calendar `RoundButton` 96, 16 left of the pencil (1128–1224, y 36–132).
     public var calendarButton: CGRect {
         let side = sizing.kidCornerControl
         return CGRect(x: pencil.minX - 16 * s - side, y: sizing.y(36), width: side, height: side)
@@ -107,7 +107,7 @@ public struct HomeLayout: Equatable, Sendable {
     /// The last part of Kid A's block, whose bottom Kid B's block hangs from (board units).
     /// ux-states: home, Kid A block end
     public enum KidAEnd: Equatable, Sendable, CaseIterable {
-        /// Only the name (nothing next today): the name box ends at 250.
+        /// A1z: without the row, only the name (nothing in the next 14 days); the name box ends at 250.
         case name
         /// E3 / E3b / A1z: the row's picture (or A1z's Tomorrow row's) ends at 351.
         case nextRow

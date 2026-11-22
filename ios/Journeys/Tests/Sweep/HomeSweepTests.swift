@@ -115,7 +115,7 @@ final class HomeSweepTests: XCTestCase {
         case .leave: "leave"
         case .bedTime: "bedTime"
         case let .next(item): "next(\(item.title))"
-        case let .tomorrow(item): "tomorrow(\(item.title))"
+        case let .tomorrow(row): "tomorrow(\(row.item.title))"
         case .nothing: "nothing"
         }
         return [block, "\(home.kidAEnd)", home.leaveNext?.title ?? "-",

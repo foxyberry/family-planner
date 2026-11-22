@@ -39,7 +39,7 @@ final class ScreenSnapshotTests: XCTestCase {
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
     }
 
-    /// Board E3h (layout v73): home on a public holiday, the weekday red with the holiday's name
+    /// Board E3h (layout v74): home on a public holiday, the weekday red with the holiday's name
     /// under it and the panel 32 lower (Monday 9 Nov 2026, Deepavali observed, 10 am).
     func testHomeOnAPublicHoliday() async throws {
         var data = sample
@@ -51,7 +51,7 @@ final class ScreenSnapshotTests: XCTestCase {
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
     }
 
-    /// Board A1z (layout v73): home after Kid A's bedtime (Tuesday 9:15 pm): one row for the next
+    /// Board A1z (layout v74): home after Kid A's bedtime (Tuesday 9:15 pm): one row for the next
     /// day's first thing, "Tomorrow" / Breakfast / "at 6:30 am", on a night plate.
     func testHomeAfterBedtime() async throws {
         var data = sample
