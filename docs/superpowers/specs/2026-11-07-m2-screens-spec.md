@@ -171,6 +171,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-22: G1f "More" card geometry: 472 × 300 under the More slot, 4 per row (gap 24), scroll area two rows and a 44 peek, 16 above Save.
 - 2026-11-22: the country flags' picture names are their languages ("Korean" … "Vietnamese"); the plain flag is "Weekend school".
 - 2026-11-22: from the 13" walkthrough: the free-paper "+" is the same RoundButton 56 (drawn 44) as the edge "+"; G1f's times row (176 × 80 fields) shows once a picture is picked.
+- 2026-11-22: the slice card bullets match G1: 472 wide, one times row with two TimeField 176 × 80 (no Starts / Ends labels).
 - 2026-11-21: S2 / G4 Terms (user): a school our data knows shows "MOE terms" or "Own terms · {n} breaks" as read-only text (no check); only an unknown or typed school asks, and only it can switch MOE terms in Settings (layout v63).
 
 Markers used below:
@@ -1098,10 +1099,9 @@ Every-week and just-once items sit on top of the template on the real clock; on 
 - Right column (columns 9–12):
   - Day-type tabs: each as wide as its label + 16 on each side, gap 8, label on one line ("Mon–Fri" never wraps in the 382 column). Each day type has its own template, so Saturday and Sunday can hold their own morning (weekend school, church).
   - These are the only day types. **A weekday school holiday uses the Sun template**, so editing Sun also changes holidays. Under the tabs, the caption "Sun is also used on school holidays." (caption, `softText`) shows while Sun is selected.
-  - Slice card 382 × 440:
+  - Slice card 472 wide (inside 424), its height hugging its content (the Fill rule):
     - picture 64 + name (head)
-    - "Starts" `TimeField` 170
-    - "Ends" `TimeField` 170. The field being dragged is outlined in `pickBlue`.
+    - one times row "[start] → [end]": two `TimeField` 176 × 80 and the arrow 40, gap 16, with no Starts / Ends labels. The field being dragged is outlined in `pickBlue`.
     - **One card for everything on the clock** (user, 2026-11-21): a day slice (wake, meals, shower, sleep), an item (swimming, a just-once event) and School all open this same card, with the same action in the same place under the times (body bold, `lateText`): on **This day** "Skip this day" (School too, in one tap); on **All days** "Remove" (a day slice becomes free time; an every-week or every-month item asks first with the shared ConfirmCard "Remove {Name} every week?" or "Remove {Name} every month?" / "Remove" · "Keep", centred over the dim, then its series ends from that day; on **School** "Remove" opens G7 with "At home" picked, so where the kid goes changes the one way it always does, school record included). A **just-once item** has one date, so its card has no This day / All days tabs and one action, "Remove" (ConfirmCard "Remove {Name}?"). Remove and Skip wait for Save like every change on the clock: the confirm only guards the tap, and Undo brings the slice back until Save. Items and School add **"Details ›"** (body, `link`) under it, which opens E5 / G2 (items) or G4 (School) for days, runs, Bring and the rest. Free time has neither action. A skipped slice shows only "Bring back" (G1g).
   - Hint caption: "Drag a dot to move a time. Tap a slice to edit it." (The "+" explains itself on the clock.)
   - "Changes start tomorrow." (caption)
