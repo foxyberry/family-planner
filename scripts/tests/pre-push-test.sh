@@ -202,6 +202,46 @@ test_guard_tests_run_without_git_dir_from_a_worktree() {
   assert test_guard_tests_run_without_git_dir_from_a_worktree $?
 }
 
+stub_swiftlint() { # exit code for later pushes; the stub logs its arguments
+  printf '#!/bin/bash\necho "swiftlint.sh $*" >> "%s"\nexit "${STUB_SWIFTLINT_EXIT:-0}"\n' "$LOG" > "$REPO/scripts/swiftlint.sh"
+  git -C "$REPO" add scripts/swiftlint.sh && git -C "$REPO" commit -q -m "swiftlint stub"
+  STUB_SWIFTLINT_EXIT=0 git -C "$REPO" push -q origin develop 2>/dev/null
+  export STUB_SWIFTLINT_EXIT="$1"
+}
+
+test_swift_change_runs_swiftlint_and_failure_blocks() {
+  new_repo
+  stub_swiftlint 2
+  : > "$LOG"
+  commit_file ios/Features/Home/AView.swift 'struct A {}' "feat: a"
+  push develop
+  [ "$CODE" -ne 0 ] && grep -qx 'swiftlint.sh ' "$LOG" && ! grep -q -- '--self-test' "$LOG"
+  assert test_swift_change_runs_swiftlint_and_failure_blocks $?
+  unset STUB_SWIFTLINT_EXIT
+}
+
+test_rule_change_runs_the_self_test() {
+  new_repo
+  stub_swiftlint 0
+  : > "$LOG"
+  commit_file tools/swiftlint/NewRule.swift 'struct NewRule {}' "build: rule"
+  push develop
+  [ "$CODE" -eq 0 ] && grep -qx 'swiftlint.sh --self-test' "$LOG" && grep -qx 'swiftlint.sh ' "$LOG"
+  assert test_rule_change_runs_the_self_test $?
+  unset STUB_SWIFTLINT_EXIT
+}
+
+test_other_change_skips_swiftlint() {
+  new_repo
+  stub_swiftlint 2
+  : > "$LOG"
+  commit_file docs/notes.md 'notes' "docs: notes"
+  push develop
+  [ "$CODE" -eq 0 ] && ! grep -q 'swiftlint.sh' "$LOG"
+  assert test_other_change_skips_swiftlint $?
+  unset STUB_SWIFTLINT_EXIT
+}
+
 test_blocks_term_in_tag_message() {
   new_repo
   push develop
@@ -235,6 +275,9 @@ test_device_calendar_blocks_push
 test_hard_coded_copy_blocks_push
 test_guard_change_runs_guard_tests_and_failure_blocks
 test_guard_tests_run_without_git_dir_from_a_worktree
+test_swift_change_runs_swiftlint_and_failure_blocks
+test_rule_change_runs_the_self_test
+test_other_change_skips_swiftlint
 test_blocks_term_in_tag_message
 test_branch_delete_passes
 
