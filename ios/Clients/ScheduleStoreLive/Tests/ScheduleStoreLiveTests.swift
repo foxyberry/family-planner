@@ -84,6 +84,20 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(kids, [kidA, SeedData.kidB])
     }
 
+    /// G4 (spec G5 "What Settings shows meanwhile"): a waiting hours change is kept with the kid,
+    /// apart from today's record, across an app restart.
+    func testAKidsWaitingHoursChangeIsKept() async throws {
+        let store = try await seeded()
+        var later = try XCTUnwrap(SeedData.kidA.school)
+        later.start = 510
+        later.end = 840
+        let kidA = SeedData.kidA.savingSchool(later, from: Day(year: 2026, month: 11, day: 16), today: monday)
+        try await store.saveKid(kidA)
+        let kids = try await self.store().load().kids
+        XCTAssertEqual(kids.first?.pendingHours, PendingHours(school: later, from: Day(year: 2026, month: 11, day: 16)))
+        XCTAssertEqual(kids.first?.school, SeedData.kidA.school, "today's hours stay the record")
+    }
+
     /// G6f "Add a child": a kid not stored yet is added after the others.
     func testSaveKidAddsANewKidLast() async throws {
         let store = try await seeded()

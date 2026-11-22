@@ -75,7 +75,7 @@ extension ItemForm {
                 dayItems.removeAll { $0.id == draftID }
                 if showsDraft { dayItems.append(item(id: draftID, today: today)) }
             }
-            rows = DayPlanner.slots(on: day, kid: kid, routines: routines, items: dayItems,
+            rows = DayPlanner.slots(on: day, kid: kid, routines: kid.readingWaitingHours(routines), items: dayItems,
                                     holidays: family.daysOff(kid.id), calendar: calendar)
                 .filter { $0.kind != .sleep }
                 .map { slot in

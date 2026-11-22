@@ -215,6 +215,9 @@ public struct ChangeSchoolFeature {
             } else {
                 kid.pendingSchool = PendingSchool(school: school, from: day)
             }
+            // The old school's waiting hours from the move's day on would never come (they wrote no
+            // template, so nothing else goes).
+            if let waiting = kid.pendingHours, waiting.from >= day { kid.pendingHours = nil }
             let first = (0..<7).map { day.adding(days: $0, calendar: calendar) }
                 .first { $0.weekday(calendar) != .saturday && $0.weekday(calendar) != .sunday } ?? day
             let routine = DayPlanner.template(for: kid.id, on: first, routines: routines, holidays: [], calendar: calendar)

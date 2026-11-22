@@ -376,28 +376,37 @@ public struct HomeFeature {
                     state.days = []
                     return .none
                 }
-                // G7: a school change whose day has come becomes the kid's school, then the day reloads.
-                let due = snapshot.kids.filter { $0.applyingPendingSchool(on: today) != $0 }
+                // G7 / G4: a school move or hours change whose day has come becomes the record, then the day reloads.
+                let due = snapshot.kids.filter { $0.applyingWaitingChanges(on: today) != $0 }
                 if !due.isEmpty, state.pendingSchoolsAppliedOn != today {
                     // Once a day, so a failed save cannot reload for ever.
                     state.pendingSchoolsAppliedOn = today
+                    let routines = snapshot.routines
                     return .run { [scheduleStore] send in
-                        for kid in due { try? await scheduleStore.saveKid(kid.applyingPendingSchool(on: today)) }
+                        for kid in due {
+                            // Waiting School hours go into that day's and later templates first (#255), then
+                            // the record.
+                            for routine in Set(kid.readingWaitingHours(routines)).subtracting(routines) {
+                                try? await scheduleStore.saveRoutine(routine)
+                            }
+                            try? await scheduleStore.saveKid(kid.applyingWaitingChanges(on: today))
+                        }
                         await send(.reload)
                     }
                 }
                 let items = family.resolving(snapshot.items, calendar: calendar)
                 state.days = snapshot.kids.map { kid in
                     let holidayDays = family.daysOff(kid.id)
+                    let routines = kid.readingWaitingHours(snapshot.routines)
                     let tomorrow = DayPlanner.slots(on: today.adding(days: 1, calendar: calendar), kid: kid,
-                                                    routines: snapshot.routines, items: items,
+                                                    routines: routines, items: items,
                                                     holidays: holidayDays, calendar: calendar)
                     return KidDay(kid: kid,
                                   dayType: DayPlanner.dayType(on: today, holidays: holidayDays, calendar: calendar),
-                                  slots: DayPlanner.slots(on: today, kid: kid, routines: snapshot.routines,
+                                  slots: DayPlanner.slots(on: today, kid: kid, routines: routines,
                                                           items: items, holidays: holidayDays, calendar: calendar),
                                   night: DayPlanner.nightSpan(of: DayPlanner.template(
-                                      for: kid.id, on: today, routines: snapshot.routines, holidays: holidayDays,
+                                      for: kid.id, on: today, routines: routines, holidays: holidayDays,
                                       calendar: calendar)),
                                   tomorrow: DayPlanner.nextOuting(in: tomorrow, after: -1),
                                   tomorrowSlots: tomorrow,

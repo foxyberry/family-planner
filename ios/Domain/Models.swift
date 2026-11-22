@@ -108,6 +108,9 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
     public var face: String
     /// G7 "Change school": the next school and the day it starts, until that day comes.
     public var pendingSchool: PendingSchool?
+    /// G4 "All days" from a later day (spec G5 "What Settings shows meanwhile"): the school's record
+    /// as it will be from that day. One per kid's school; `school` keeps today's hours until then.
+    public var pendingHours: PendingHours?
 
     public init(id: UUID, name: String, colorIndex: Int, age: Int, schoolYear: String?, school: School?,
                 face: String = "kidGirl") {
@@ -120,7 +123,7 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
         self.face = face
     }
 
-    private enum CodingKeys: String, CodingKey { case id, name, colorIndex, age, schoolYear, school, face, pendingSchool }
+    private enum CodingKeys: String, CodingKey { case id, name, colorIndex, age, schoolYear, school, face, pendingSchool, pendingHours }
 
     /// Kids stored before `face` existed get the seed's choice: Kid B's colour → boy face, else girl.
     public init(from decoder: Decoder) throws {
@@ -133,15 +136,138 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
         school = try c.decodeIfPresent(School.self, forKey: .school)
         face = try c.decodeIfPresent(String.self, forKey: .face) ?? (colorIndex == 1 ? "kidBoy" : "kidGirl")
         pendingSchool = try c.decodeIfPresent(PendingSchool.self, forKey: .pendingSchool)
+        pendingHours = try c.decodeIfPresent(PendingHours.self, forKey: .pendingHours)
     }
 
-    /// The kid on `day`: a pending school whose start has come is the kid's school from then on.
-    public func applyingPendingSchool(on day: Day) -> Kid {
-        guard let pending = pendingSchool, pending.from <= day else { return self }
+    /// The kid on `day`: a pending school whose start has come is the kid's school from then on (a
+    /// waiting hours change of the old school goes with it); waiting hours whose day has come are the
+    /// school's record.
+    public func applyingWaitingChanges(on day: Day) -> Kid {
         var kid = self
-        kid.school = pending.school
-        kid.pendingSchool = nil
+        if let pending = pendingSchool, pending.from <= day {
+            kid.school = pending.school
+            kid.pendingSchool = nil
+            kid.pendingHours = nil
+        }
+        if let hours = kid.pendingHours, hours.from <= day {
+            kid.school = hours.school
+            kid.pendingHours = nil
+        }
         return kid
+    }
+
+    /// A School "All days" save from `from` (G4, G1; spec G5 "What Settings shows meanwhile"): from a
+    /// later day it waits as the one pending hours change (replacing any other), with the medal it
+    /// sets (nil leaves the template's); from today it is the record at once and drops a waiting change.
+    public func savingSchool(_ school: School, from: Day, today: Day, medal: Bool? = nil) -> Kid {
+        var kid = self
+        if from > today {
+            kid.pendingHours = PendingHours(school: school, from: from, medal: medal)
+        } else {
+            kid.school = school
+            kid.pendingHours = nil
+        }
+        return kid
+    }
+
+    /// The waiting hours change that applies on `day`: from its day on, until a school move starts
+    /// (the next place's templates are its own).
+    public func waitingHours(on day: Day) -> PendingHours? {
+        guard let waiting = pendingHours, waiting.from <= day else { return nil }
+        if let move = pendingSchool?.from, move <= day { return nil }
+        return waiting
+    }
+
+    /// The kid's templates as each date reads them (spec #255: templates read School from the record
+    /// that applies on their date). While a change waits from D, every template used from D on (until
+    /// a school move), a day's own one included, whose School follows the record (sits on its hours)
+    /// shows School on the waiting hours and medal. A School a day set for itself (a late start) stays.
+    /// Stored templates never hold the waiting values, so a cancel returns every day to the record.
+    /// Home writes this into the store on D (`applyingWaitingChanges` after).
+    public func readingWaitingHours(_ routines: [Routine]) -> [Routine] {
+        guard let waiting = pendingHours, let school else { return routines }
+        let move = pendingSchool?.from
+        if let move, move <= waiting.from { return routines }
+        let series = routines.filter { $0.kid == id && $0.onlyOn == nil }
+        var result = routines
+        // The version in use on D, from D (unless one starts on D already).
+        for type in Set(series.map(\.dayType)) {
+            let ofType = series.filter { $0.dayType == type }
+            guard !ofType.contains(where: { $0.from == waiting.from }),
+                  var inUse = ofType.filter({ $0.from < waiting.from }).max(by: { $0.from < $1.from }),
+                  inUse.blocks.contains(where: { $0.kind == .school }) else { continue }
+            inUse.from = waiting.from
+            result.append(inUse)
+        }
+        return result.map { routine in
+            let date = routine.onlyOn ?? routine.from
+            guard routine.kid == id, date >= waiting.from, move.map({ date < $0 }) ?? true,
+                  school.isSlot(of: routine.blocks) else { return routine }
+            var placed = routine
+            placed.blocks = waiting.placing(routine.blocks)
+            return placed
+        }
+    }
+
+    /// What a template saved for `day` stores (a version from it, or that day's own one): while a
+    /// change waits there, a School on the waiting hours goes back to the record's slot with `stored`'s
+    /// medal (the stored template the edit began on), so no template copies the waiting values.
+    public func storingSchool(_ blocks: [RoutineBlock], on day: Day, stored: [RoutineBlock]) -> [RoutineBlock] {
+        guard let waiting = waitingHours(on: day), let school, waiting.school.isSlot(of: blocks) else { return blocks }
+        var kept = TemplateEdit.movingSchool(blocks, to: school)
+        let medal = stored.first { $0.kind == .school }?.trip?.medal
+        if let index = kept.firstIndex(where: { $0.kind == .school }) { kept[index].trip?.medal = medal }
+        return kept
+    }
+
+    /// A School save from today (G4, G1 All days; the record goes from `old` to `school` now): every
+    /// later template, a day's own one from today on included, whose School follows the old record
+    /// moves to the new hours (and `medal` when the save sets it), so "from today" reaches them.
+    public func followingSchool(_ routines: [Routine], from today: Day, old: School, medal: Bool? = nil) -> [Routine] {
+        guard let school else { return [] }
+        return routines.compactMap { routine in
+            let later = routine.onlyOn.map { $0 >= today } ?? (routine.from > today)
+            guard routine.kid == id, later, old.isSlot(of: routine.blocks) else { return nil }
+            var moved = routine
+            moved.blocks = PendingHours(school: school, from: today, medal: medal).placing(routine.blocks)
+            return moved == routine ? nil : moved
+        }
+    }
+}
+
+extension School {
+    /// School's slice on a template: Arrive by (or the start) to the end.
+    public var slot: (start: Int, end: Int) { (arriveBy ?? start, end) }
+
+    /// Whether the template's School slice sits on these hours (it follows this record).
+    func isSlot(of blocks: [RoutineBlock]) -> Bool {
+        guard let block = blocks.first(where: { $0.kind == .school }) else { return false }
+        return block.start == slot.start && block.end == slot.end
+    }
+}
+
+/// Spec G5 "What Settings shows meanwhile" (and #255): a School All days change from a later day,
+/// the whole G4 record, kept apart from the record until its day. Nothing of it is in the stored
+/// templates until then (`Kid.readingWaitingHours`).
+public struct PendingHours: Hashable, Codable, Sendable {
+    public var school: School
+    public var from: Day
+    /// The medal School wins from that day, when the change sets it; nil keeps the template's.
+    public var medal: Bool?
+
+    public init(school: School, from: Day, medal: Bool? = nil) {
+        self.school = school
+        self.from = from
+        self.medal = medal
+    }
+
+    /// A template's blocks with School on these hours (its neighbours following, as a G4 save moves
+    /// them) and this medal.
+    public func placing(_ blocks: [RoutineBlock]) -> [RoutineBlock] {
+        guard blocks.contains(where: { $0.kind == .school }) else { return blocks }
+        var placed = TemplateEdit.movingSchool(blocks, to: school)
+        if let medal, let index = placed.firstIndex(where: { $0.kind == .school }) { placed[index].trip?.medal = medal }
+        return placed
     }
 }
 

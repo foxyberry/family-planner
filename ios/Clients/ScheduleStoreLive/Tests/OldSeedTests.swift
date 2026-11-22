@@ -50,11 +50,11 @@ final class OldSeedTests: XCTestCase {
     }
 
     /// Writes records straight into the store file, as an older build of the app left them.
-    private func writeStore(seedVersion: Int?, routinePayload: String) throws {
+    private func writeStore(seedVersion: Int?, routinePayload: String, kidPayload: String? = nil) throws {
         let url = directory.appendingPathComponent(ScheduleStore.liveFileName)
         let container = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
         let context = ModelContext(container)
-        let kid = try JSONEncoder().encode(SeedData.kidA)
+        let kid = try kidPayload.map { Data($0.utf8) } ?? JSONEncoder().encode(SeedData.kidA)
         context.insert(StoredRecord(key: "kid:\(SeedData.kidA.id)", group: "kid", order: 0, payload: kid))
         context.insert(StoredRecord(key: "routine:old", group: "routine", order: 0, payload: Data(routinePayload.utf8)))
         let pottery = ScheduleItem(id: UUID(), title: "Pottery", iconName: "actArt", audience: .kid(SeedData.kidA.id),
@@ -90,5 +90,18 @@ final class OldSeedTests: XCTestCase {
         let snapshot = try await ScheduleStore.live(directory: directory).load()
         XCTAssertEqual(snapshot.items.map(\.title), ["Pottery"])
         XCTAssertEqual(snapshot.routines, [SeedData.routines[0]])
+    }
+
+    /// A kid as an older build stored them, before faces, school moves and waiting hours: it loads
+    /// with nothing waiting.
+    func testAKidStoredBeforeWaitingHoursLoadsWithNoneWaiting() async throws {
+        let routine = String(decoding: try JSONEncoder().encode(SeedData.routines[0]), as: UTF8.self)
+        let kid = #"{"id":"\#(SeedData.kidA.id)","name":"Kid A","colorIndex":0,"age":8,"schoolYear":"Year 3","#
+            + #""school":{"name":"Example Primary School","days":[2,3,4,5,6],"start":450,"end":900}}"#
+        try writeStore(seedVersion: 3, routinePayload: routine, kidPayload: kid)
+        let kids = try await ScheduleStore.live(directory: directory).load().kids
+        XCTAssertEqual(kids, [SeedData.kidA])
+        XCTAssertNil(kids.first?.pendingHours)
+        XCTAssertNil(kids.first?.pendingSchool)
     }
 }

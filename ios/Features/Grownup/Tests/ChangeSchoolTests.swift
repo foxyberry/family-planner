@@ -59,6 +59,33 @@ final class ChangeSchoolTests: XCTestCase {
         XCTAssertEqual(school?.end, 810)
     }
 
+    /// A waiting hours change of the old school: a move after its day keeps it (it comes first); a move
+    /// on or before its day cuts it off. It wrote no template, so the move writes only its own.
+    func testAMoveBeforeAWaitingHoursChangeDropsIt() async {
+        let waitingDay = Day(year: 2026, month: 11, day: 18)
+        var later = SeedData.kidA.school!
+        later.end = 840
+        let kidA = SeedData.kidA.savingSchool(later, from: waitingDay, today: tuesday)
+        func move(on day: Day) async -> (kid: Kid?, routines: [Routine]) {
+            let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+            let store = store(kids: [kidA, SeedData.kidB], savedKids: kids, savedRoutines: routines)
+            await store.send(.task)
+            await store.receive(\.loaded)
+            await store.send(.picked(riverside))
+            await store.send(.datePicked(day.date(calendar: F.calendar)))
+            await store.send(.saveTapped)
+            await store.receive(\.saved)
+            return (kids.value.last, routines.value)
+        }
+        let after = await move(on: Day(year: 2027, month: 1, day: 4))
+        XCTAssertEqual(after.kid?.pendingHours?.from, waitingDay)
+        let before = await move(on: Day(year: 2026, month: 11, day: 16))
+        XCTAssertNil(before.kid?.pendingHours)
+        XCTAssertEqual(before.routines.map(\.from), [Day(year: 2026, month: 11, day: 16)], "only the move's version")
+        let sameDay = await move(on: waitingDay)
+        XCTAssertNil(sameDay.kid?.pendingHours, "on its day the move wins")
+    }
+
     /// Board G7: picking a school opens the "Starts on" card; its Cancel goes back to the search.
     func testPickingOpensTheCardAndCancelClosesIt() async {
         let store = store(savedKids: .init([]), savedRoutines: .init([]))
@@ -137,8 +164,8 @@ final class ChangeSchoolTests: XCTestCase {
         var kidA = SeedData.kidA
         let day = Day(year: 2027, month: 1, day: 4)
         kidA.pendingSchool = PendingSchool(school: School(entry: riverside), from: day)
-        XCTAssertEqual(kidA.applyingPendingSchool(on: Day(year: 2027, month: 1, day: 3)), kidA)
-        let after = kidA.applyingPendingSchool(on: day)
+        XCTAssertEqual(kidA.applyingWaitingChanges(on: Day(year: 2027, month: 1, day: 3)), kidA)
+        let after = kidA.applyingWaitingChanges(on: day)
         XCTAssertEqual(after.school?.name, "Riverside Primary")
         XCTAssertNil(after.pendingSchool)
     }
