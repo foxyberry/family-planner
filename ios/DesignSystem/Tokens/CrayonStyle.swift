@@ -57,6 +57,10 @@ public enum CrayonStyle {
         static let dayPicker: UInt32 = 2901
         /// The school calendar's month cards (K1); each card adds its index.
         static let month: UInt32 = 3001
+        /// Home's mission rows and next card (spec A1 "Next things"); each kid colour adds its index.
+        static let nextThing: UInt32 = 3101
+        /// Home's kid chips (spec A1 "Kid chips").
+        static let kidChip: UInt32 = 3201
         /// The kid card's face discs (S1 / G6f), the seed they always had.
         static let kidCardFace: UInt32 = 1650
         /// The side column's remove button (G2 "Remove every week"), the seed it always had.

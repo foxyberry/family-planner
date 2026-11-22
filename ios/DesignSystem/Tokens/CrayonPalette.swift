@@ -59,6 +59,12 @@ public enum CrayonPalette {
     public static let onTimeText = RGB(hex: 0x17744D)
     public static let lateText = RGB(hex: 0xC62F35)
     public static let link = RGB(hex: 0x2F6FD0)
+    /// Home's later rows (spec A1 "Next things", 2026-11-22): titles a step softer than ink, 4.7 : 1 on paper.
+    public static let laterText = RGB(hex: 0x6F6980)
+    /// Home: the hatch behind a mission row shared by two or more kids (the faces say whose).
+    public static let sand = RGB(hex: 0xE3D5B8)
+    /// Home: a kid chip that is not picked.
+    public static let chip = RGB(hex: 0xEFE9DD)
     // Night
     public static let night = RGB(hex: 0x22213A)
     // Spec "Night mapping" (2026-11-09, board 0a2): every day token has one night token, and

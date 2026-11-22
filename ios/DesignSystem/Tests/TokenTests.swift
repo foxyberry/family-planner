@@ -28,6 +28,7 @@ final class TokenTests: XCTestCase {
         for (name, color) in [
             ("ink", CrayonPalette.ink), ("softText", CrayonPalette.softText),
             ("onTimeText", CrayonPalette.onTimeText), ("lateText", CrayonPalette.lateText),
+            ("laterText", CrayonPalette.laterText),
         ] {
             let ratio = Contrast.ratio(color, paper)
             XCTAssertGreaterThanOrEqual(ratio, 4.5, "\(name) on paper is \(ratio)")
