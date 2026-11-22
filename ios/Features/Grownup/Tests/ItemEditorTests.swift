@@ -5,6 +5,7 @@ import Foundation
 import Grownup
 import HolidayProvider
 import KitArt
+import Localization
 import ScheduleStore
 import SchoolDirectory
 import XCTest
@@ -291,8 +292,10 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.dateChips.map(\.day), store.state.visibleDates)
         XCTAssertEqual(store.state.dateChips.map(\.isOn), [true, false, false, false, false])
         XCTAssertFalse(store.state.canPageEarlier)
+        XCTAssertEqual(store.state.earlierPageOpacity, 0.3, "‹ is faint on the first page")
         await store.send(.datePageTapped(1))
         XCTAssertTrue(store.state.canPageEarlier)
+        XCTAssertEqual(store.state.earlierPageOpacity, 1)
         XCTAssertEqual(store.state.dateChips.map(\.isOn), [false, false, false, false, false])
     }
 
@@ -400,9 +403,13 @@ final class ItemEditorTests: XCTestCase {
         let store = store(mode: .add(kidA))
         await store.send(.task)
         await store.receive(\.loaded)
+        XCTAssertEqual(store.state.medalSwitchOpacity, 0.45, "faint without a trip")
         await store.send(.medalToggled)
         XCTAssertFalse(store.state.form.medalIsOn)
         await store.send(.goingTapped(.car))
+        XCTAssertEqual(store.state.medalSwitchOpacity, 1)
+        XCTAssertEqual([store.state.form.leaveText, store.state.form.leaveCaption].map { $0 != nil }, [true, true],
+                       "a trip's Leave row has its minutes and caption")
         await store.send(.medalToggled)
         XCTAssertTrue(store.state.form.medalIsOn)
     }
@@ -430,6 +437,7 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.runsEndTapped)
         await store.send(.runsEndKindPicked(.count))
         await store.send(.runsTimesStepped(-2))
+        XCTAssertEqual(store.state.runsCountText, "8 times")
         await store.send(.cardDoneTapped)
         XCTAssertEqual(store.state.runsEndText, "After 8 times")
         await fill(store)
@@ -536,5 +544,42 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.everyTitle, "Every 14th")
         await store.send(.runsStartPicked(Day(year: 2026, month: 12, day: 12).date(calendar: F.calendar)))
         XCTAssertEqual(store.state.form.monthlyRule, .dayOfMonth(12))
+    }
+
+    /// Views hold no values: the rows' labels, the tabs, the checks and every card's words come
+    /// from State, through the injected localizer.
+    func testTheWordsComeFromState() {
+        let now = F.monday.date(minute: 600, calendar: F.calendar)
+        let state = ItemEditorFeature.State(mode: .add(kidA), repeats: .weekly, now: now, calendar: F.calendar)
+        XCTAssertEqual(state.repeatTabs.map(\.0), [.once, .weekly, .monthly])
+        XCTAssertEqual(state.scopeTabs.map(\.0), [.thisDay, .allDays])
+        XCTAssertEqual(state.fromWhenChoice, .today, "the card shows Today until it opens")
+        func words(_ state: ItemEditorFeature.State) -> [String] {
+            [state.forLabel, state.whatLabel, state.nameLabel, state.whenLabel, state.repeatLabel, state.daysLabel,
+             state.runsLabel, state.fromLabel, state.noSchoolLabel, state.goingLabel, state.leaveLabel,
+             state.bringLabel, state.medalLabel, state.moreTitle, state.skipHolidaysTitle, state.starTitle,
+             state.nothingText, state.cardDoneTitle, state.cardCancelTitle, state.runsCardTitle, state.runsCountText,
+             state.startsLabel, state.noSchoolCardTitle, state.noSchoolSkipTitle, state.noSchoolAtTitle,
+             state.usesBusesTitle, state.fromWhenTitle, state.fromWhenSave, state.fromWhenCancel]
+                + state.repeatTabs.map(\.1) + state.scopeTabs.map(\.1)
+        }
+        XCTAssertEqual(words(state),
+                       ["For", "What", "Name", "When", "Repeat", "Days", "Runs", "From", "Off days", "Going", "Leave",
+                        "Bring", "Medal", "More", "Skip school holidays", "A star on the clock that day", "Nothing",
+                        "Done", "Cancel", "Ends", "\(state.form.times) times", "Starts", "Off days", "Skip",
+                        "At a set time", "Uses Our buses %@", "Change from when?", "Save", "Cancel", "Once", "Weekly",
+                        "Monthly", "This day", "All days"])
+        let keys = withDependencies { $0.localizer = .keys } operation: {
+            ItemEditorFeature.State(mode: .add(kidA), repeats: .weekly, now: now, calendar: F.calendar)
+        }
+        XCTAssertEqual(words(keys),
+                       ["editor.row.for", "editor.row.what", "editor.row.name", "editor.row.when", "editor.row.repeat",
+                        "editor.row.days", "editor.row.runs", "editor.row.from", "editor.row.no_school", "going.label",
+                        "going.leave", "editor.row.bring", "editor.row.medal", "picker.more", "editor.skip_holidays",
+                        "editor.star", "editor.row.nothing", "c5.done", "card.cancel", "runs.card.title",
+                        "runs.count.value|\(keys.form.times)", "from.starts", "no_school.card.title",
+                        "no_school.pick.skip", "no_school.pick.at", "going.uses_buses|%@", "from_when.title",
+                        "from_when.save", "from_when.cancel", "editor.repeat.once", "editor.repeat.weekly",
+                        "editor.repeat.monthly", "editor.scope.this_day", "editor.scope.all_days"])
     }
 }

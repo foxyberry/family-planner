@@ -3,7 +3,6 @@ import CrayonKit
 import DesignSystem
 import Domain
 import KitArt
-import Strings
 import SwiftUI
 
 /// G1 · The day on the clock (boards G1, G1c, G1d, G1e): a kid's day and its items on a real date,
@@ -31,8 +30,8 @@ public struct OurDayView: View {
                 CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.leaveCancelled) }
                 // Board G1d: the shared ConfirmCard, its line's arrow drawn inline (design session, 2026-11-14).
-                ConfirmCard(title: L10n.tr("day.unsaved.title"), message: store.unsavedLine, messageGlyph: .arrowRight,
-                            cancel: L10n.tr("day.unsaved.cancel"), confirm: L10n.tr("day.unsaved.save"),
+                ConfirmCard(title: store.unsavedTitle, message: store.unsavedLine, messageGlyph: .arrowRight,
+                            cancel: store.unsavedCancel, confirm: store.unsavedSave,
                             isDestructive: false, onCancel: { store.send(.leaveCancelled) },
                             onConfirm: { store.send(.unsavedSaveTapped) })
             }
@@ -47,11 +46,11 @@ public struct OurDayView: View {
             if store.fromWhen != nil {
                 CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.fromWhenCancelTapped) }
-                FromWhenCard(title: L10n.tr("from_when.title"), tabs: store.fromWhenTabs,
-                             selection: Binding(get: { store.fromWhen ?? .today }, set: { store.send(.fromWhenPicked($0)) }),
+                FromWhenCard(title: store.fromWhenTitle, tabs: store.fromWhenTabs,
+                             selection: Binding(get: { store.fromWhenChoice }, set: { store.send(.fromWhenPicked($0)) }),
                              dateChoice: ItemEditorFeature.FromWhen.date, dateLabel: store.fromWhenDateLabel,
                              date: Binding(get: { store.fromWhenDateValue }, set: { store.send(.fromWhenDatePicked($0)) }),
-                             caption: nil, save: L10n.tr("from_when.save"), cancel: L10n.tr("from_when.cancel"),
+                             caption: nil, save: store.fromWhenSave, cancel: store.fromWhenCancel,
                              onSave: { store.send(.fromWhenSaveTapped) }, onCancel: { store.send(.fromWhenCancelTapped) })
             }
         }
@@ -86,7 +85,7 @@ public struct OurDayView: View {
                 ZStack(alignment: .topTrailing) {
                     Color.clear.contentShape(Rectangle()).onTapGesture { store.send(.pickerClosed) }
                     DayPickerCard(month: store.pickerMonth, weekdays: store.pickerWeekdays, weeks: store.pickerWeeks,
-                                  today: L10n.tr("day.picker.today"), onPage: { store.send(.pickerPageTapped($0)) },
+                                  today: store.pickerTodayTitle, onPage: { store.send(.pickerPageTapped($0)) },
                                   onPick: { store.send(.pickerChipTapped($0)) }, onToday: { store.send(.pickerTodayTapped) })
                         .padding(.top, sizing(72 + Spacing.s))
                 }
@@ -96,7 +95,7 @@ public struct OurDayView: View {
 
     private func saveButton(_ layout: GrownupLayout) -> some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
-            InkButton(L10n.tr("day.save")) { store.send(.saveTapped) }
+            InkButton(store.saveTitle) { store.send(.saveTapped) }
                 .frame(width: layout.side.width)
             if let error = store.saveError {
                 Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
@@ -110,11 +109,11 @@ public struct OurDayView: View {
         HStack(spacing: sizing(Spacing.s)) {
             RoundButton(glyph: .undo) { store.send(.undoTapped) }
                 .size(72)
-                .opacity(store.canUndo ? 1 : 0.45)
+                .opacity(store.undoOpacity)
                 .disabled(!store.canUndo)
             RoundButton(glyph: .redo) { store.send(.redoTapped) }
                 .size(72)
-                .opacity(store.canRedo ? 1 : 0.45)
+                .opacity(store.redoOpacity)
                 .disabled(!store.canRedo)
         }
         .padding(.bottom, sizing(Spacing.s))
@@ -160,7 +159,7 @@ public struct OurDayView: View {
             }
             .frame(width: layout.form.width, height: layout.form.height)
             ScrollColumn {
-                addLink(L10n.tr("list.add")) { store.send(.addTapped) }
+                addLink(store.addTitle) { store.send(.addTapped) }
             }
             .frame(width: layout.side.width, height: layout.form.height, alignment: .topLeading)
         }
@@ -182,16 +181,16 @@ public struct OurDayView: View {
 
     private var header: some View {
         // Board G1: the kid tabs after the title; List · Settings at the right end.
-        GrownupHeader(title: L10n.tr("day.title"), caption: store.headerCaption,
+        GrownupHeader(title: store.title, caption: store.headerCaption,
                       onBack: { store.send(.backTapped) }) {
             CrayonTabs(selection: Binding(get: { store.kid }, set: { store.send(.kidTabTapped($0)) }),
                        items: store.kids.map { ($0.id, $0.name, KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex)) })
         } trailing: {
             HStack(spacing: sizing(Spacing.sm)) {
                 CrayonTabs(selection: Binding(get: { store.showsList }, set: { _ in store.send(.listTapped) }),
-                           items: [(true, L10n.tr("day.list"), nil)])
+                           items: [(true, store.listTitle, nil)])
                 Button { store.send(.settingsTapped) } label: {
-                    Text(L10n.tr("day.settings")).crayonType(.body).foregroundStyle(CrayonColor.ink)
+                    Text(store.settingsTitle).crayonType(.body).foregroundStyle(CrayonColor.ink)
                         .padding(.horizontal, sizing(Spacing.m))
                         .frame(height: sizing(72))
                         .partBackground(.capsule, fill: CrayonStyle.paper, seed: 73)
@@ -226,13 +225,15 @@ public struct OurDayView: View {
                            selection: Binding(get: { slice.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.newSlicePicturePicked(slot.rawValue)) } }),
                            all: OurDayFeature.pictures, flags: ItemEditorFeature.State.flags, isShowingAll: slice.isPickingMore,
-                           moreTitle: L10n.tr("picker.more"), columns: 4) {
+                           moreTitle: store.moreTitle, columns: 4) {
                     store.send(.newSliceMoreTapped)
                 }
                 .zIndex(1)
-                CrayonField(L10n.tr("day.new.name"), text: Binding(get: { slice.name },
+                CrayonField(store.newNameLabel, text: Binding(get: { slice.name },
                                                                    set: { store.send(.newSliceNameChanged($0)) }))
-                if slice.isOnClock { timesRow }
+                if slice.isOnClock, let start = store.startLabel, let end = store.endLabel {
+                    timesRow(start: start, end: end)
+                }
             }
         } else if let title = store.selectedTitle, store.isSelectedSkipped {
             // Board G1g: the picture faded, the name, the times (soft) and "Bring back"; no scope tabs.
@@ -241,9 +242,9 @@ public struct OurDayView: View {
                     if let picture = store.selectedPicture { KitIcon(picture, size: sizing(64)).opacity(0.35) }
                     Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
-                softTimes
+                if let start = store.startLabel, let end = store.endLabel { softTimes(start: start, end: end) }
                 Button { store.send(.bringBackTapped) } label: {
-                    Text(L10n.tr("day.bring_back")).crayonType(.body).bold().foregroundStyle(CrayonColor.link)
+                    Text(store.bringBackTitle).crayonType(.body).bold().foregroundStyle(CrayonColor.link)
                 }
                 .buttonStyle(.plain)
             }
@@ -256,7 +257,9 @@ public struct OurDayView: View {
                 }
                 // Spec "Edit scope": This day / All days under the title (not for a just-once item).
                 if store.showsScopeTabs { scopeTabs }
-                if store.timesAreEditable { timesRow } else { softTimes }
+                if let start = store.startLabel, let end = store.endLabel {
+                    if store.timesAreEditable { timesRow(start: start, end: end) } else { softTimes(start: start, end: end) }
+                }
                 if let message = store.message {
                     Text(message).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -280,19 +283,18 @@ public struct OurDayView: View {
 
     /// "5:00 pm → 6:30 pm" (soft), for a skipped slice or one whose times follow another event; the
     /// arrow is a part, the font has none.
-    private var softTimes: some View {
+    private func softTimes(start: String, end: String) -> some View {
         HStack(spacing: sizing(Spacing.xs)) {
-            Text(store.startLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+            Text(start).crayonType(.body).foregroundStyle(CrayonColor.softText)
             MarkerIcon(.arrowRight, size: sizing(28), color: CrayonColor.softText)
-            Text(store.endLabel ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+            Text(end).crayonType(.body).foregroundStyle(CrayonColor.softText)
         }
     }
 
     /// Layout v42 fill rule: alone on their row, the two tabs share the slice card's width (2 × 206, gap 12).
     private var scopeTabs: some View {
         CrayonTabs(selection: Binding(get: { store.shownScope }, set: { store.send(.scopeTapped($0)) }),
-                   items: [(EditScope.thisDay, L10n.tr("day.scope.this"), nil),
-                           (.allDays, L10n.tr("day.scope.all"), nil)], fills: true, spacing: Spacing.sm)
+                   items: store.scopeTabs.map { ($0.0, $0.1, nil) }, fills: true, spacing: Spacing.sm)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -301,23 +303,23 @@ public struct OurDayView: View {
 
     /// Layout v43: one times row "[start] → [end]", two fields 176 × 80 and a 40 arrow, gap 16, all
     /// × s: it fits the 424 inside of the card on every screen, since everything scales together.
-    private var timesRow: some View {
+    private func timesRow(start: String, end: String) -> some View {
         HStack(spacing: sizing.pairGap) {
-            startField
+            startField(start)
             MarkerIcon(.arrowRight, size: sizing.joiner, color: CrayonColor.softText)
-            endField
+            endField(end)
         }
         .fixedSize()
     }
 
-    private var startField: some View {
-        TimeField(label: store.startLabel ?? "",
+    private func startField(_ label: String) -> some View {
+        TimeField(label: label,
                   time: Binding(get: { store.startDate }, set: { store.send(.startPicked($0)) }),
                   width: sizing.timeFieldWidth, isActive: store.isStartDragged)
     }
 
-    private var endField: some View {
-        TimeField(label: store.endLabel ?? "",
+    private func endField(_ label: String) -> some View {
+        TimeField(label: label,
                   time: Binding(get: { store.endDate }, set: { store.send(.endPicked($0)) }),
                   width: sizing.timeFieldWidth, isActive: store.isEndDragged)
     }

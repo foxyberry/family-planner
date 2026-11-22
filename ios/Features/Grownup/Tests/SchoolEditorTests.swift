@@ -3,6 +3,7 @@ import Domain
 import Foundation
 import Grownup
 import HolidayProvider
+import Localization
 import ScheduleStore
 import XCTest
 
@@ -119,8 +120,11 @@ final class SchoolEditorTests: XCTestCase {
         let store = store(savedKids: kids, savedRoutines: routines)
         await store.send(.task)
         await store.receive(\.loaded)
+        XCTAssertTrue(store.state.isDayOn(.friday))
         await store.send(.dayToggled(.friday))
         XCTAssertEqual(store.state.everyTitle, "Mon · Tue · Wed · Thu")
+        XCTAssertFalse(store.state.isDayOn(.friday), "the Days row's Fri chip is off")
+        XCTAssertTrue(store.state.isDayOn(.monday))
         await store.send(.arriveByPicked(tuesday.date(minute: 440, calendar: F.calendar)))
         XCTAssertEqual(store.state.latest, 450, "Latest keeps the 10-minute grace")
         await store.send(.medalToggled)
@@ -577,5 +581,30 @@ final class SchoolEditorTests: XCTestCase {
         await store.send(.cancelChangeTapped)
         XCTAssertFalse(store.state.isConfirmingCancel)
         XCTAssertTrue(kids.value.isEmpty)
+    }
+
+    /// Views hold no values: the rows' labels, the scope tabs, Save and the Bring card's words come
+    /// from State, through the injected localizer; before the kid loads no Days chip is on.
+    func testTheWordsComeFromState() {
+        let state = SchoolEditorFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
+        XCTAssertEqual(state.scopeTabs.map(\.0), [.thisDay, .allDays])
+        XCTAssertEqual(state.scopeTabs.map(\.1) + [state.saveTitle, state.schoolLabel, state.whenLabel, state.daysLabel,
+                        state.arriveByRowLabel, state.latestWord, state.termsLabel, state.goingLabel,
+                        state.bringLabel, state.medalLabel, state.nothingText, state.bringDoneTitle,
+                        state.bringCancelTitle, state.bringMoreTitle],
+                       ["This day", "All days", "Save changes", "School", "When", "Days", "Arrive", "latest", "Terms",
+                        "Going", "Bring", "Medal", "Nothing", "Done", "Cancel", "More"])
+        XCTAssertFalse(Weekday.allCases.contains { state.isDayOn($0) })
+        let keys = withDependencies { $0.localizer = .keys } operation: {
+            SchoolEditorFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
+        }
+        XCTAssertEqual(keys.scopeTabs.map(\.1) + [keys.saveTitle, keys.schoolLabel, keys.whenLabel, keys.daysLabel,
+                       keys.arriveByRowLabel, keys.latestWord, keys.termsLabel, keys.goingLabel,
+                       keys.bringLabel, keys.medalLabel, keys.nothingText, keys.bringDoneTitle,
+                       keys.bringCancelTitle, keys.bringMoreTitle],
+                       ["editor.scope.this_day", "editor.scope.all_days", "editor.primary.save", "settings.school",
+                        "editor.row.when", "editor.row.days", "s2.arrive_by", "s2.latest", "settings.terms",
+                        "going.label", "editor.row.bring", "editor.row.medal", "editor.row.nothing", "c5.done",
+                        "card.cancel", "picker.more"])
     }
 }

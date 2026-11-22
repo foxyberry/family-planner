@@ -8,4 +8,4 @@ ios/Features/Grownup/OurDayView.swift 7
 ios/Features/Grownup/SchoolEditorView.swift 3
 ios/Features/Grownup/SettingsView.swift 4
 ios/Features/Missions/MissionsView.swift 2
-ios/Features/Setup/SetupView.swift 6
+ios/Features/Setup/SetupView.swift 5

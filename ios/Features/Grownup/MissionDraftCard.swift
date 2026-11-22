@@ -49,10 +49,8 @@ struct MissionDraftCard: View {
                         .buttonStyle(.plain)
                     }
                     Spacer()
-                    InkButton(saveTitle, action: onSave)
+                    InkButton(saveTitle, isEnabled: draft.canSave, action: onSave)
                         .frame(width: sizing(240))
-                        .opacity(draft.canSave ? 1 : 0.4)
-                        .disabled(!draft.canSave)
                 }
             }
         }

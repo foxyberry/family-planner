@@ -28,6 +28,9 @@ final class ComponentSnapshotTests: XCTestCase {
 
     func testInkButton() { snap(InkButton("Missions") {}) }
 
+    /// Off: a Save with nothing to save yet, at 40 % (as S1–S4's Next and the mission card's Save).
+    func testInkButtonDisabled() { snap(InkButton("Save", isEnabled: false) {}) }
+
     /// Spec "Night mapping": a night control (board A1n's Diary button).
     func testInkButtonNight() {
         snap(InkButton("Diary", arrow: true, look: .night) {}

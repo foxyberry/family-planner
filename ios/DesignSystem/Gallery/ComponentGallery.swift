@@ -46,6 +46,8 @@ public struct ComponentGallery: View {
                 }
                 section("0b · Controls") {
                     InkButton("Missions") {}
+                    // Off (a Save with nothing to save yet): 40 %, no taps.
+                    InkButton("Save", isEnabled: false) {}
                     HStack(spacing: Spacing.m) {
                         RoundButton(glyph: .chevronLeft) {}
                         RoundButton(glyph: .plus) {}

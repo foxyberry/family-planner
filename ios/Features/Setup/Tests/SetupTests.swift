@@ -3,6 +3,8 @@ import BusClient
 import ComposableArchitecture
 import Domain
 import Grownup
+import KitArt
+import Localization
 import ParentAuthClient
 import SchoolDirectory
 import ScheduleStore
@@ -84,12 +86,15 @@ final class SetupTests: XCTestCase {
         await store.send(.schoolTabTapped(kidB))
         await store.send(.goesToTapped(.school))
         await store.send(.schoolPicked(school))
+        XCTAssertEqual(store.state.markedKidTabs, [], "S2's tabs have no hurry dots")
         await store.send(.nextTapped)
         XCTAssertEqual(store.state.step, .gettingThere)
         XCTAssertEqual(store.state.stepText, "Step 3 of 4")
         XCTAssertEqual(store.state.unfinishedGoingTabs, [first, kidB])
+        XCTAssertEqual(store.state.markedKidTabs, [first, kidB])
         await store.send(.wayPicked(.car))
         XCTAssertEqual(store.state.unfinishedGoingTabs, [kidB], "the car route is finished")
+        XCTAssertEqual(store.state.markedKidTabs, [kidB])
         XCTAssertFalse(store.state.canGoNext)
         await store.send(.stopSearch(.textChanged("exam")))
         await store.send(.kidTabTapped(kidB))
@@ -149,9 +154,14 @@ final class SetupTests: XCTestCase {
         await store.send(.addKidTapped)
         XCTAssertTrue(store.state.canRemoveKids)
         await store.send(.nameChanged(first, "Kid A"))
+        XCTAssertNil(store.state.removeConfirmTitle)
         await store.send(.removeKidTapped(first))
         XCTAssertEqual(store.state.removeConfirm, first, "a card with a name asks first")
+        XCTAssertEqual(store.state.removeConfirmTitle, "Remove Kid A?")
+        XCTAssertEqual(store.state.kids.map { store.state.cardLayer($0.id) }, [1, 0], "the asking card is on top")
         await store.send(.removeCancelled)
+        XCTAssertNil(store.state.removeConfirmTitle)
+        XCTAssertEqual(store.state.kids.map { store.state.cardLayer($0.id) }, [0, 0])
         XCTAssertEqual(store.state.kids.count, 2)
         await store.send(.removeKidTapped(first))
         await store.send(.removeConfirmed)
@@ -305,7 +315,10 @@ final class SetupTests: XCTestCase {
         await store.send(.ageChanged(first, "3"))
         await store.send(.faceTapped(first, "kidGirl"))
         await store.send(.nextTapped)
+        await store.send(.goesToTapped(.school))
+        XCTAssertEqual(store.state.schoolLabel, "School")
         await store.send(.goesToTapped(.preschool))
+        XCTAssertEqual(store.state.schoolLabel, "Preschool", "the field's label follows the place")
         await store.send(.schoolTextChanged("Example Preschool"))
         XCTAssertTrue(store.state.tabKid?.school.matches.isEmpty ?? false, "no list for preschools")
         XCTAssertNil(store.state.tabKid?.school.termsRow)
@@ -570,5 +583,56 @@ final class SetupTests: XCTestCase {
         await store.send(.nextTapped)
         await store.receive(\.delegate.finished)
         XCTAssertEqual(saved.value.first?.busPlans, [])
+    }
+
+    /// Views hold no values: every step's words come from State, through the injected localizer.
+    func testTheWordsComeFromState() {
+        let state = SetupFeature.State(firstKid: first, calendar: calendar)
+        XCTAssertEqual([state.saveErrorText, state.replaceTitle, state.replaceMessage, state.replaceCancel,
+                        state.replaceAccept, state.familySideTitle, state.familySideBody, state.addKidTitle,
+                        state.oneChildCaption, state.removeKeepTitle, state.removeAcceptTitle, state.goesLabel,
+                        state.daysLabel, state.hoursLabel, state.arriveByLabel, state.latestWord,
+                        state.dataSourcesTitle, state.notListedTitle, state.medalsTitle, state.goingLabel,
+                        state.stopLabel, state.busesLabel, state.noBusesCaption, state.walkLabel, state.walkCaption,
+                        state.leaveLabel, state.summaryTitle],
+                       ["Couldn't save. Try again.", "Start over with this setup?", "The family on this iPad is replaced.",
+                        "Cancel", "Replace", "This iPad is for the whole family.",
+                        "Names, ages and colours show on every screen.", "Add a child",
+                        "One child? Every screen shows just one panel.", "Keep", "Remove", "Goes to", "Days", "Hours",
+                        "Arrive", "latest", "Data sources", "Not in the list? Type the name",
+                        "Medals come from these times", "Going", "Stop", "Buses", "Pick the stop first", "Walk",
+                        "door to the stop", "Leave", "You're set up"])
+        XCTAssertEqual(state.medalRows.map(\.slot), [.medalGold, .medalSilver, .medalBronze])
+        XCTAssertEqual(state.medalRows.map(\.name), ["Gold", "Silver", "Bronze"])
+        XCTAssertEqual(state.medalRows.map(\.caption),
+                       [state.medalCaptions.gold, state.medalCaptions.silver, state.medalCaptions.bronze])
+        let keys = withDependencies { $0.localizer = .keys } operation: {
+            SetupFeature.State(firstKid: first, calendar: calendar)
+        }
+        XCTAssertEqual([keys.saveErrorText, keys.replaceTitle, keys.replaceMessage, keys.replaceCancel,
+                        keys.replaceAccept, keys.familySideTitle, keys.familySideBody, keys.addKidTitle,
+                        keys.oneChildCaption, keys.removeKeepTitle, keys.removeAcceptTitle, keys.goesLabel,
+                        keys.schoolLabel, keys.daysLabel, keys.hoursLabel, keys.arriveByLabel, keys.latestWord,
+                        keys.dataSourcesTitle, keys.notListedTitle, keys.medalsTitle, keys.goingLabel,
+                        keys.stopLabel, keys.busesLabel, keys.noBusesCaption, keys.walkLabel, keys.walkCaption,
+                        keys.leaveLabel, keys.summaryTitle] + keys.medalRows.map(\.name),
+                       ["editor.save_error", "setup.replace.title", "setup.replace.message", "setup.replace.cancel",
+                        "setup.replace.accept", "s1.side.title", "s1.side.body", "s1.add", "s1.one_child",
+                        "s1.remove.keep", "s1.remove", "s2.goes", "s2.school", "s2.days", "s2.hours", "s2.arrive_by",
+                        "s2.latest", "hub.data_sources", "s2.school.not_listed", "s2.medals.title", "going.label",
+                        "c2.stop", "s3.buses", "c2.buses.none", "c2.walk", "s3.walk.caption", "going.leave",
+                        "s4.side.title", "s2.medal.gold", "s2.medal.silver", "s2.medal.bronze"])
+    }
+
+    /// Board S4's kids line: each face, and "Kid A ·" before the last kid's plain name.
+    func testTheSummaryNamesEveryKid() async {
+        let store = store()
+        await family(store)
+        XCTAssertEqual(store.state.summaryKids.map(\.text), ["Kid A ·", "Kid B"])
+        XCTAssertEqual(store.state.summaryKids.map(\.face), ["kidGirl", "kidGirl"])
+        XCTAssertEqual(store.state.summaryKids.map(\.colorIndex), [0, 1])
+        await store.send(.addKidTapped)
+        XCTAssertEqual(store.state.summaryKids.map(\.text), ["Kid A ·", "Kid B ·", "Child 3"])
+        XCTAssertEqual(store.state.summaryKids.last?.face, "", "no face picked yet")
     }
 }

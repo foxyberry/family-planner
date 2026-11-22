@@ -4,7 +4,6 @@ import DesignSystem
 import Domain
 import KitArt
 import ScheduleStore
-import Strings
 import SwiftUI
 
 /// Add to the day / edit an item (boards C3, C4, C3k, G2).
@@ -102,34 +101,32 @@ public struct ItemEditorView: View {
     /// Layout v56: rows 24 apart between drawn edges (C3 180 / 264 / 364 / 456 / 548 / 632 / 718).
     private var form: some View {
         VStack(alignment: .leading, spacing: sizing.formRowGap) {
-            row(L10n.tr("editor.row.for")) { audienceTabs }
+            row(store.forLabel) { audienceTabs }
             // Board C3: five pictures and "More", which opens every picture, 6 per row.
-            row(L10n.tr("editor.row.what")) {
+            row(store.whatLabel) {
                 PictureRow(slots: store.whatRow.compactMap(KitSlot.init(rawValue:)),
                            selection: Binding(get: { store.form.iconName.flatMap(KitSlot.init(rawValue:)) },
                                               set: { if let slot = $0 { store.send(.picturePicked(slot.rawValue)) } }),
                            all: ItemEditorFeature.State.pictures, flags: ItemEditorFeature.State.flags,
                            isShowingAll: store.isPickingMorePictures,
-                           moreTitle: L10n.tr("picker.more")) {
+                           moreTitle: store.moreTitle) {
                     store.send(.morePicturesTapped)
                 }
             }
             .zIndex(1)
             // Board C3: the name field fills the control column (232 … 842).
-            row(L10n.tr("editor.row.name"), problem: .name, isActive: isNameFocused) {
-                CrayonField(L10n.tr("editor.row.name"), text: $store.form.name).frame(maxWidth: .infinity)
+            row(store.nameLabel, problem: .name, isActive: isNameFocused) {
+                CrayonField(store.nameLabel, text: $store.form.name).frame(maxWidth: .infinity)
                     .onPreferenceChange(FieldFocusKey.self) { focused in
                         Task { @MainActor in isNameFocused = focused }
                     }
             }
-            row(L10n.tr("editor.row.when"), problem: .when) { whenRow }
+            row(store.whenLabel, problem: .when) { whenRow }
             if !store.isEditingWeekly {
-                row(L10n.tr("editor.row.repeat")) {
+                row(store.repeatLabel) {
                     // Layout v45: "Once · Weekly · Monthly", 3 × 180, gap 12.
                     CrayonTabs(selection: Binding(get: { store.form.repeats }, set: { store.send(.repeatChanged($0)) }),
-                               items: [(ItemForm.Repeat.once, L10n.tr("editor.repeat.once"), nil),
-                                       (.weekly, L10n.tr("editor.repeat.weekly"), nil),
-                                       (.monthly, L10n.tr("editor.repeat.monthly"), nil)],
+                               items: store.repeatTabs.map { ($0.0, $0.1, nil) },
                                widths: Array(repeating: 180, count: 3), spacing: Spacing.sm)
                 }
             }
@@ -209,7 +206,7 @@ public struct ItemEditorView: View {
     }
 
     @ViewBuilder private var weeklyRows: some View {
-        row(L10n.tr("editor.row.days"), problem: .days) {
+        row(store.daysLabel, problem: .days) {
             if store.form.repeats == .monthly {
                 // Board G2m: the Days row holds the rule tabs, made from the series' start.
                 monthlyRuleTabs
@@ -223,7 +220,7 @@ public struct ItemEditorView: View {
             }
         }
         // Board G2: Runs, "{start}" → "End of term", then Skip school holidays.
-        row(L10n.tr("editor.row.runs")) {
+        row(store.runsLabel) {
             HStack(spacing: sizing(Spacing.s)) {
                 DateField(label: store.runsStartText,
                           date: Binding(get: { store.runsStart }, set: { store.send(.runsStartPicked($0)) }))
@@ -233,7 +230,7 @@ public struct ItemEditorView: View {
         }
         if store.showsSkipHolidays {
             row("") {
-                checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
+                checkbox(store.skipHolidaysTitle, isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
             }
         }
         eventRows
@@ -242,14 +239,14 @@ public struct ItemEditorView: View {
     /// A form row's card (boards F1–F4): Done keeps the changes, Cancel or a tap outside puts them back.
     private func formCard(_ title: String, width: CGFloat, height: CGFloat = 420,
                           @ViewBuilder content: () -> some View) -> some View {
-        FormCard(title: title, size: CGSize(width: width, height: height), done: L10n.tr("c5.done"),
-                 cancel: L10n.tr("card.cancel"), onDone: { store.send(.cardDoneTapped) },
+        FormCard(title: title, size: CGSize(width: width, height: height), done: store.cardDoneTitle,
+                 cancel: store.cardCancelTitle, onDone: { store.send(.cardDoneTapped) },
                  onCancel: { store.send(.cardClosed) }, content: content)
     }
 
     /// Board F3 Ends: End of this term (with its date), on a date, after a number of times, or no end.
     private var runsEndCard: some View {
-        formCard(L10n.tr("runs.card.title"), width: 560) {
+        formCard(store.runsCardTitle, width: 560) {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(store.runsEndRows, id: \.kind) { row in
                     PickRow(row.title, caption: row.caption, isPicked: row.isPicked) {
@@ -272,7 +269,7 @@ public struct ItemEditorView: View {
             HStack(spacing: sizing(Spacing.m)) {
                 RoundButton(glyph: .minus) { store.send(.runsTimesStepped(-1)) }
                     .size(64)
-                Text(L10n.tr("runs.count.value", store.form.times)).crayonType(.body, bold: true)
+                Text(store.runsCountText).crayonType(.body, bold: true)
                     .foregroundStyle(CrayonColor.ink).frame(width: sizing(140))
                 RoundButton(glyph: .plus) { store.send(.runsTimesStepped(1)) }
                     .size(64)
@@ -287,7 +284,7 @@ public struct ItemEditorView: View {
         dateStrip
         row("") {
             // Board C4 (v20): the check, then the star it adds to the clock (40), then the words.
-            checkbox(L10n.tr("editor.star"), isOn: store.form.showsStar, picture: .star) { store.form.showsStar.toggle() }
+            checkbox(store.starTitle, isOn: store.form.showsStar, picture: .star) { store.form.showsStar.toggle() }
         }
         eventRows
     }
@@ -299,7 +296,7 @@ public struct ItemEditorView: View {
         row("") { monthlyRuleTabs }
         if store.showsSkipHolidays {
             row("") {
-                checkbox(L10n.tr("editor.skip_holidays"), isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
+                checkbox(store.skipHolidaysTitle, isOn: store.form.skipsHolidays) { store.form.skipsHolidays.toggle() }
             }
         }
         eventRows
@@ -319,7 +316,7 @@ public struct ItemEditorView: View {
             FormLabelColumn {
                 RoundButton(glyph: .chevronLeft) { store.send(.datePageTapped(-1)) }
                     .size(64)
-                    .opacity(store.canPageEarlier ? 1 : 0.3)
+                    .opacity(store.earlierPageOpacity)
             }
             HStack(spacing: sizing(Spacing.sm)) {
                 ForEach(store.dateChips, id: \.day) { chip in
@@ -336,16 +333,16 @@ public struct ItemEditorView: View {
     /// Spec "Event form rows for 6b" (board G2b): From, then Going / Leave when From is Home (C3g),
     /// then Bring and Medal; one line each on a 96 pitch, "›" at 790.
     @ViewBuilder private var eventRows: some View {
-        linkRow(L10n.tr("editor.row.from"), action: .fromRowTapped) {
+        linkRow(store.fromLabel, action: .fromRowTapped) {
             Text(store.fromText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
         }
         if store.showsNoSchool {
-            linkRow(L10n.tr("editor.row.no_school"), action: .noSchoolRowTapped) {
+            linkRow(store.noSchoolLabel, action: .noSchoolRowTapped) {
                 Text(store.noSchoolText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
             }
         }
         if store.showsGoing { goingRows }
-        linkRow(L10n.tr("editor.row.bring"), action: .bringRowTapped) {
+        linkRow(store.bringLabel, action: .bringRowTapped) {
             if let first = store.form.bring.first, let text = store.form.bringText {
                 HStack(spacing: sizing(Spacing.sm)) {
                     KitIcon(KitSlot(iconName: first.picture), size: sizing(48))
@@ -355,17 +352,17 @@ public struct ItemEditorView: View {
                 nothing
             }
         }
-        row(L10n.tr("editor.row.medal")) {
+        row(store.medalLabel) {
             Button { store.send(.medalToggled) } label: { CrayonSwitch(isOn: store.form.medalIsOn) }
                 .buttonStyle(.plain)
-                .opacity(store.form.canSwitchMedal ? 1 : 0.45)
+                .opacity(store.medalSwitchOpacity)
                 .disabled(!store.form.canSwitchMedal)
                 .frame(height: sizing(72))
         }
     }
 
     private var nothing: some View {
-        Text(L10n.tr("editor.row.nothing")).crayonType(.body).foregroundStyle(CrayonColor.softText)
+        Text(store.nothingText).crayonType(.body).foregroundStyle(CrayonColor.softText)
     }
 
     /// A one-line row that opens a card or a page: the value, then "›" at the row's end (814 … 842).
@@ -391,12 +388,12 @@ public struct ItemEditorView: View {
 
     /// Board F1 From: Home or an event to follow; after an event, "Starts − {n} min after +".
     private var fromCard: some View {
-        formCard(L10n.tr("editor.row.from"), width: 640) {
+        formCard(store.fromLabel, width: 640) {
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 ChoiceCircles(store.fromCircles) { store.send(.fromPicked($0)) }
                 if store.form.after != nil {
                     HStack(spacing: sizing(Spacing.m)) {
-                        Text(L10n.tr("from.starts")).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
+                        Text(store.startsLabel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
                             .frame(width: sizing(140), alignment: .leading)
                         RoundButton(glyph: .minus) { store.send(.fromGapStepped(-1)) }
                             .size(64)
@@ -413,12 +410,12 @@ public struct ItemEditorView: View {
     /// Board F4 No school days (an item after School): Skip, or at a set time from Home with its own
     /// end and Going.
     private var noSchoolCard: some View {
-        formCard(L10n.tr("no_school.card.title"), width: 640, height: 560) {
+        formCard(store.noSchoolCardTitle, width: 640, height: 560) {
             VStack(alignment: .leading, spacing: 0) {
-                PickRow(L10n.tr("no_school.pick.skip"), isPicked: store.form.noSchoolStart == nil) {
+                PickRow(store.noSchoolSkipTitle, isPicked: store.form.noSchoolStart == nil) {
                     store.send(.noSchoolSetTime(false))
                 }
-                PickRow(L10n.tr("no_school.pick.at"), isPicked: store.form.noSchoolStart != nil) {
+                PickRow(store.noSchoolAtTitle, isPicked: store.form.noSchoolStart != nil) {
                     store.send(.noSchoolSetTime(true))
                 }
                 if store.form.noSchoolStart != nil {
@@ -443,7 +440,7 @@ public struct ItemEditorView: View {
 
     /// Board F2 Bring: up to four things in one row and "More", which opens every object picture.
     private var bringCard: some View {
-        formCard(L10n.tr("editor.row.bring"), width: 640) {
+        formCard(store.bringLabel, width: 640) {
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 ChoiceCircles(store.bringRow) { store.send(.bringCircleTapped($0)) }
                 if store.isPickingMoreBring {
@@ -458,23 +455,23 @@ public struct ItemEditorView: View {
 
     /// Board C3g: how the kid goes, and when they leave (Walk, Car, Taxi) or "Uses Our buses ›".
     @ViewBuilder private var goingRows: some View {
-        row(L10n.tr("going.label")) {
+        row(store.goingLabel) {
             ChoiceCircles(store.goingChoices) { id in store.send(.goingTapped(Domain.Way(rawValue: id))) }
         }
         if let trip = store.form.trip {
-            row(L10n.tr("going.leave")) {
+            row(store.leaveLabel) {
                 if trip.way == .bus {
                     Button { store.send(.busesRowTapped) } label: {
-                        GlyphText(L10n.tr("going.uses_buses"), glyph: .chevronRight, type: .body, color: CrayonColor.link)
+                        GlyphText(store.usesBusesTitle, glyph: .chevronRight, type: .body, color: CrayonColor.link)
                     }
                     .buttonStyle(.plain)
-                } else {
+                } else if let leave = store.form.leaveText, let caption = store.form.leaveCaption {
                     HStack(spacing: sizing(Spacing.m)) {
                         RoundButton(glyph: .minus) { store.send(.leaveStepped(-1)) }
-                        Text(store.form.leaveText ?? "").crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
+                        Text(leave).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                             .frame(width: sizing(112))
                         RoundButton(glyph: .plus) { store.send(.leaveStepped(1)) }
-                        Text(store.form.leaveCaption ?? "").crayonType(.body).foregroundStyle(CrayonColor.softText)
+                        Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText)
                     }
                 }
             }
@@ -501,12 +498,13 @@ public struct ItemEditorView: View {
                 // Boards G2 / G3: This day / All days at the top of the side column.
                 // Layout v42 fill rule: the two tabs share the side column (2 × 230, gap 12).
                 CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
-                           items: [(ItemEditorFeature.Scope.thisDay, L10n.tr("editor.scope.this_day"), nil),
-                                   (.allDays, L10n.tr("editor.scope.all_days"), nil)],
+                           items: store.scopeTabs.map { ($0.0, $0.1, nil) },
                            fills: true, spacing: Spacing.sm)
             }
             if store.isThisDay {
-                Text(store.thisDayTitle ?? "").crayonType(.head).foregroundStyle(CrayonColor.ink)
+                if let title = store.thisDayTitle {
+                    Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                }
                 Button { store.send(.skipRowTapped) } label: {
                     Text(store.skipTitle).crayonType(.body).foregroundStyle(CrayonColor.ink)
                         .frame(maxWidth: .infinity, minHeight: sizing(88))
@@ -523,11 +521,11 @@ public struct ItemEditorView: View {
     /// Board G5 "Change from when?": a small card over the form (560 wide).
     /// Board G5, the shared DesignSystem card.
     private var fromWhenCard: some View {
-        FromWhenCard(title: L10n.tr("from_when.title"), tabs: store.fromWhenTabs,
-                     selection: Binding(get: { store.fromWhen ?? .today }, set: { store.send(.fromWhenPicked($0)) }),
+        FromWhenCard(title: store.fromWhenTitle, tabs: store.fromWhenTabs,
+                     selection: Binding(get: { store.fromWhenChoice }, set: { store.send(.fromWhenPicked($0)) }),
                      dateChoice: ItemEditorFeature.FromWhen.date, dateLabel: store.fromWhenDateLabel,
                      date: Binding(get: { store.fromWhenDateValue }, set: { store.send(.fromWhenDatePicked($0)) }),
-                     caption: store.fromWhenCaption, save: L10n.tr("from_when.save"), cancel: L10n.tr("from_when.cancel"),
+                     caption: store.fromWhenCaption, save: store.fromWhenSave, cancel: store.fromWhenCancel,
                      onSave: { store.send(.fromWhenSaveTapped) }, onCancel: { store.send(.fromWhenCancelTapped) })
     }
 
