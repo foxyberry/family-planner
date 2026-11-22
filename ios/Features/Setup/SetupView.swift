@@ -50,10 +50,8 @@ public struct SetupView: View {
             }
         } primaryAction: { grown in
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
-                InkButton(store.primaryTitle, arrow: true) { store.send(.nextTapped) }
+                InkButton(store.primaryTitle, arrow: true, isEnabled: store.canGoNext) { store.send(.nextTapped) }
                     .frame(width: grown.side.width)
-                    .opacity(store.canGoNext ? 1 : 0.4)
-                    .disabled(!store.canGoNext)
                 if store.saveFailed {
                     Text(L10n.tr("editor.save_error")).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                 }

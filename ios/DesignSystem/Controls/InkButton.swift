@@ -4,24 +4,27 @@ import SwiftUI
 /// The one primary action on a screen: black marker fill, white text, 96 tall, corner 26 at every
 /// width (board art `rr(6, 6, w − 12, h − 12, 26)`). At night (spec
 /// "Night mapping") it is a night control: the same shape with a `nightControl` fill, a chalk
-/// marker outline and `nightText` label and arrow.
+/// marker outline and `nightText` label and arrow. Off (`isEnabled: false`, a Save with nothing to
+/// save yet) it draws at 40 % and takes no taps.
 public struct InkButton: View {
     private let title: String
     private let arrow: Bool
     private let look: KidLook
     private let height: CGFloat
+    private let isEnabled: Bool
     private let action: () -> Void
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sizing) private var sizing
 
     /// `arrow`: a marker arrow 32 after the label, gap 12 ("Missions →"). `height`: the board height,
-    /// 80 on form cards.
+    /// 80 on form cards. `isEnabled`: the caller's State says whether the action can run now.
     public init(_ title: String, arrow: Bool = false, look: KidLook = .day, height: CGFloat = 96,
-                action: @escaping () -> Void) {
+                isEnabled: Bool = true, action: @escaping () -> Void) {
         self.title = title
         self.arrow = arrow
         self.look = look
         self.height = height
+        self.isEnabled = isEnabled
         self.action = action
     }
 
@@ -42,7 +45,13 @@ public struct InkButton: View {
                 .modifier(Surface(isNight: isNight))
         }
         .buttonStyle(.plain)
+        // Off: the whole button at 40 % (the dimmed Save on S1–S4 and the mission card).
+        .opacity(isEnabled ? 1 : Self.offOpacity)
+        .disabled(!isEnabled)
     }
+
+    /// The off look's opacity.
+    static let offOpacity = 0.4
 
     private struct Surface: ViewModifier {
         let isNight: Bool
