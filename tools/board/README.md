@@ -15,7 +15,7 @@ What it shows:
 - **Lanes**: review waiting, fixing, re-review waiting, user check (the iPad check for screen PRs),
   merge waiting, and recently merged. Each card has its category (from the conventional title and
   the paths it touches), the session that opened it, CI, open threads, and LGTM state.
-- **Sessions and issues**: one card per issue owner (main, review, design, harness), two to a row.
+- **Sessions and issues**: one card per issue owner, two to a row: main and design, then review and harness.
   Each card shows its newest session's state, what it has in hand (issues it marked `doing` with
   `scripts/issue.sh start`, and its open PRs), its last status (three lines), then its issues
   waiting: three, and the rest behind "N건 더 보기". An owner with issues but no session gets a card

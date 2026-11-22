@@ -929,7 +929,7 @@ def build():
     # state, what it has in hand (doing issues, open PRs), its last status, then its issues waiting
     # (scripts/issue.sh). An owner with issues but no session (an empty or unknown owner) gets a card
     # too. Older or side sessions that own no issues stay off the board (the app's sidebar has them).
-    rank = {"main": 0, "review": 1, "design": 2, "harness": 3}
+    rank = {"main": 0, "design": 1, "review": 2, "harness": 3}  # two to a row: main · design, review · harness (user)
     by_owner = {}
     for i in issues:
         if is_open(i):
