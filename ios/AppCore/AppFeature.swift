@@ -432,6 +432,14 @@ public struct AppFeature {
                                                                           calendar: calendar)))
                 return .none
 
+            case let .path(.element(id: id, action: .settings(.waitingHoursRowTapped))):
+                guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
+                // Spec G5 "What Settings shows meanwhile": G4 on the waiting hours, with "Cancel this change".
+                state.path.append(.schoolEditor(SchoolEditorFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
+                                                                          nowMinute: Day.minute(of: date.now, calendar: calendar),
+                                                                          editsWaiting: true, calendar: calendar)))
+                return .none
+
             case let .path(.element(id: id, action: .settings(.changeSchoolRowTapped))):
                 guard case let .settings(settings) = state.path[id: id], let kid = settings.selectedKid else { return .none }
                 state.path.append(.changeSchool(ChangeSchoolFeature.State(kid: kid, today: Day(date.now, calendar: calendar),

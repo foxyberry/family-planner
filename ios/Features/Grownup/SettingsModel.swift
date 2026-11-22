@@ -26,6 +26,8 @@ public enum SettingsLink: Equatable, Sendable {
     case school
     /// A kid with no school yet (at home): G7 to pick a place (spec "adding a place later").
     case changeSchool
+    /// A waiting hours change: G4 on the waiting hours, with "Cancel this change".
+    case waitingHours
 }
 
 /// A titled block of a kid's Settings tab.
@@ -52,13 +54,13 @@ public enum SettingsModel {
             var rows = [
                 SettingsRow(key: L10n.tr("settings.school"), picture: "actSchool", value: school.name, // copy-ok: a KitSlot name
                             link: .school),
-                SettingsRow(key: L10n.tr("settings.hours"),
-                            value: L10n.tr("settings.hours.value",
-                                           school.days == Weekday.schoolDays ? L10n.tr("settings.hours.weekdays")
-                                               : DayText.chips(school.days),
-                                           TimeText.hours(school.start, school.end)),
-                            link: .school),
+                SettingsRow(key: L10n.tr("settings.hours"), value: hours(school), link: .school),
             ]
+            // Spec G5 "What Settings shows meanwhile": today's hours, then the waiting change under them.
+            if let waiting = kid.pendingHours {
+                rows.append(SettingsRow(key: L10n.tr("settings.pending.from", DayText.dayMonth(waiting.from, calendar: calendar)),
+                                        value: hours(waiting.school), link: .waitingHours))
+            }
             if let terms = terms(schoolYear, today: today, dayCalendar: calendar) {
                 rows.append(SettingsRow(key: L10n.tr("settings.terms"), value: terms, link: .school))
             }
@@ -85,6 +87,13 @@ public enum SettingsModel {
                         value: L10n.tr("settings.missions.morning", own), link: .missions),
         ]))
         return sections
+    }
+
+    /// The Hours row's value: "Mon–Fri · 7:30 am – 3:00 pm", or the days as chips.
+    static func hours(_ school: School) -> String {
+        L10n.tr("settings.hours.value",
+                school.days == Weekday.schoolDays ? L10n.tr("settings.hours.weekdays") : DayText.chips(school.days),
+                TimeText.hours(school.start, school.end))
     }
 
     /// Boards G4/G6/G7 (v61): "Bus 12 · 34 · 56 · leave 7:05": the kid's buses in pill order, each

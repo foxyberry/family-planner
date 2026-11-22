@@ -126,6 +126,25 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(SettingsModel.going(trip: nil, plan: nil, school: school).text, "Not set yet")
     }
 
+    /// Spec G5 "What Settings shows meanwhile": Hours shows today's hours and, while a change waits,
+    /// "From {d Mon}" with the new hours under it, which opens G4 on the waiting change.
+    func testTheHoursRowShowsTodaysHoursAndTheWaitingChange() {
+        var later = SeedData.kidA.school!
+        later.start = 510
+        later.end = 840
+        let today = Day(year: 2026, month: 11, day: 10)
+        let kid = SeedData.kidA.savingSchool(later, from: Day(year: 2026, month: 11, day: 18), today: today)
+        let rows = SettingsModel.sections(kid: kid, missions: [], busPlan: nil, schoolYear: .none, today: today,
+                                          calendar: Fixture.calendar)[1].rows
+        XCTAssertEqual(rows.map(\.key), ["School", "Hours", "From 18 Nov"])
+        XCTAssertEqual(rows[1].value, "Mon–Fri · 7:30 am – 3:00 pm", "today's hours")
+        XCTAssertEqual(rows[2].value, "Mon–Fri · 8:30 am – 2:00 pm")
+        XCTAssertEqual(rows[2].link, .waitingHours)
+        let none = SettingsModel.sections(kid: SeedData.kidA, missions: [], busPlan: nil, schoolYear: .none,
+                                          today: today, calendar: Fixture.calendar)[1].rows
+        XCTAssertEqual(none.map(\.key), ["School", "Hours"], "nothing waits")
+    }
+
     /// Board G6 foot: "School lists · 9 Nov" over Data sources.
     func testTheFootNamesTheListsDay() async {
         let store = store()

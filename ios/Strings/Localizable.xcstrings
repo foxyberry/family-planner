@@ -4434,6 +4434,50 @@
         }
       }
     },
+    "school_edit.cancel_change" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel this change"
+          }
+        }
+      }
+    },
+    "school_edit.cancel_change.confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel change"
+          }
+        }
+      }
+    },
+    "school_edit.cancel_change.keep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep"
+          }
+        }
+      }
+    },
+    "school_edit.cancel_change.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel the change from %@?"
+          }
+        }
+      }
+    },
     "school_edit.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4441,6 +4485,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Edit School"
+          }
+        }
+      }
+    },
+    "school_edit.waiting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From %1$@ · %2$@"
           }
         }
       }

@@ -3,4 +3,3 @@
 DataSourcesFeature
 ItemEditorFeature
 MissionEditorFeature
-SchoolEditorFeature
