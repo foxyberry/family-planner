@@ -3,7 +3,8 @@ name: SwiftLint
 # This repo's SwiftLint native rules (tools/swiftlint) on a Linux runner: the rules' self-tests,
 # view_values over ios/ and the UX state check (scripts/swiftlint.sh, scripts/ux-states.sh). Runs
 # only when Swift under ios/, the rules or what they read change. Experimental (local issue 004):
-# measuring a cold and a cached run before it becomes a required check.
+# measuring a cold and a cached run before it becomes a required check. Cold (no cache, 2026-11-22):
+# SwiftLint and swift-syntax build in 7 min 13 s, the checks take 6 s, the job about 8 min.
 on:
   pull_request:
     paths:
