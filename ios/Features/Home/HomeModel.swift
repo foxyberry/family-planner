@@ -107,6 +107,23 @@ public enum HomeModel {
             .map { item($0, in: tomorrow, minutesAway: $0.start + 1440 - minute) }
     }
 
+    /// Board A1z (layout v72): after bedtime (today's last Sleep has started and runs to midnight)
+    /// Kid A's one row is the next day's first thing, its opening Sleep skipped, with "leave {h:mm}"
+    /// when it is an outing, else "at {h:mm}". After midnight `next` gives the ordinary Next row.
+    public static func tomorrow(_ slots: [Slot], minute: Int, tomorrow: [Slot]) -> NextItem? {
+        guard let current = DayPlanner.now(at: minute, in: slots).current, current.kind == .sleep,
+              current.end == 1440 else { return nil }
+        let wake = tomorrow.first { $0.start == 0 && $0.kind == .sleep }?.end ?? 0
+        guard let slot = tomorrow.first(where: { $0.start >= wake && shows($0, in: tomorrow) }) else { return nil }
+        let line = if let trip = slot.trip {
+            L10n.tr("home.tomorrow.leave_at", TimeText.withPeriod(slot.start - trip.leaveBefore))
+        } else {
+            L10n.tr("home.next.at", TimeText.withPeriod(slot.start))
+        }
+        return NextItem(iconName: slot.iconName, title: slot.title, start: slot.start, end: end(of: slot, in: tomorrow),
+                        kind: slot.kind, showsStar: slot.showsStar, line: line)
+    }
+
     /// The Next row's time line (spec "The row", user 2026-11-22): "in {n} min" while the start is
     /// 60 minutes or less away, else "at {h:mm am/pm}". Never "1h 20m" (that stays for Leave and Bed).
     public static func nextLine(start: Int, minutesAway: Int) -> String {

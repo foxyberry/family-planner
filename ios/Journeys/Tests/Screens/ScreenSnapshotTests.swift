@@ -51,6 +51,17 @@ final class ScreenSnapshotTests: XCTestCase {
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
     }
 
+    /// Board A1z (layout v72): home after Kid A's bedtime (Tuesday 9:15 pm): one row for the next
+    /// day's first thing, "Tomorrow" / Breakfast / "at 6:30 am", on a night plate.
+    func testHomeAfterBedtime() async throws {
+        var data = sample
+        data.now = "2026-11-10T21:15"
+        let world = World(data)
+        let store = world.store()
+        await opened(store)
+        snap(store.state, world, size: Self.sizes[0].size, named: "13")
+    }
+
     /// Board K1: the school calendar's year, opened from home (Kid A's year-end break, Deepavali,
     /// Christmas inside the break, today the 10th).
     func testSchoolYear() async throws {

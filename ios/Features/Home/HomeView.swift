@@ -186,6 +186,11 @@ public struct HomeView: View {
             }
         case let .next(next):
             nextRow(next, at: layout.nextRow)
+        case let .tomorrow(next):
+            // Board A1z: the next day's first thing, captioned "Tomorrow", on a night plate.
+            NextRow(picture: next.picture, caption: store.tomorrowLabel, title: next.title, line: next.line,
+                    showsStar: next.showsStar, look: store.look)
+                .place(topLeft: layout.nextRow.picture.origin)
         case .nothing:
             EmptyView()
         }

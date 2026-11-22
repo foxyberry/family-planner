@@ -57,6 +57,15 @@ final class HomeLayoutTests: XCTestCase {
             (.status, 500, 550, 676), (.timeLeft, 464, 515, 640), (.timeLeftRow, 550, 601, 726),
             (.nextRow, 452, 502, 628),
         ]
+        // Board A1z (layout v72): Kid A's Tomorrow row ends where E3's Next row does.
+        let a1z = layout.kidBTop(after: .nextRow)
+        XCTAssertEqual(layout.kidNameBaseline(top: a1z), 452, accuracy: 1)
+        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1z).picture.minY, 502, accuracy: 1)
+        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1z).picture.minY, 628, accuracy: 1)
+        XCTAssertEqual(layout.nextRow.picture, CGRect(x: 928, y: 274, width: 104, height: 104), "A1z: the Tomorrow row")
+        XCTAssertEqual(layout.nextRow.labelBaseline ?? 0, 295, accuracy: 1)
+        XCTAssertEqual(layout.nextRow.titleBaseline, 336, accuracy: 1)
+        XCTAssertEqual(layout.nextRow.atBaseline, 374, accuracy: 1)
         for (end, name, nowTop, nextTop) in boards {
             let top = layout.kidBTop(after: end)
             let now = layout.kidBNowRow(kidBTop: top), next = layout.kidBNextRow(kidBTop: top)

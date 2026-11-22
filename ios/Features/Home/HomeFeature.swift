@@ -22,8 +22,13 @@ public struct HomeFeature {
         /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
         case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
         /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v71).
+        /// After midnight, while the night's Sleep goes on, A1z's row is this one too.
         case next(NextItem)
-        /// Nothing next today: the row is left out (spec E3 "No item left today").
+        /// A1z: after bedtime (Sleep has started), one row for the next day's first thing, its opening
+        /// Sleep skipped: "Tomorrow", its title, "leave {h:mm}" for an outing, else "at {h:mm}".
+        case tomorrow(NextItem)
+        /// Nothing next today or tomorrow (a day with no plan): the row is left out (spec E3 "No item
+        /// left today"). No board draws it.
         case nothing
     }
 
@@ -219,7 +224,11 @@ public struct HomeFeature {
         public var kidABlock: KidABlock {
             guard let first = days.first else { return .nothing }
             if morningOuting != nil { return .leave }
-            guard let next = HomeModel.next(first.slots, minute: minute) else { return .nothing }
+            guard let next = HomeModel.next(first.slots, minute: minute) else {
+                // Board A1z: after bedtime the next day's first thing.
+                return HomeModel.tomorrow(first.slots, minute: minute, tomorrow: first.tomorrowSlots).map(KidABlock.tomorrow)
+                    ?? .nothing
+            }
             // Spec "Kid A, which row": one row only; the item it names shows once (no time left
             // block over a second row for the same thing).
             if !showsMissions, let left = HomeModel.bedIn(to: next, minute: minute) {
@@ -233,7 +242,7 @@ public struct HomeFeature {
             switch kidABlock {
             case .leave: status == nil ? .timeLeft : .status
             case let .bedTime(_, tomorrow): tomorrow == nil ? .timeLeft : .timeLeftRow
-            case .next: .nextRow
+            case .next, .tomorrow: .nextRow
             case .nothing: .name
             }
         }
@@ -285,6 +294,9 @@ public struct HomeFeature {
 
         /// The Next row's caption (Kid A's and Kid B's).
         public var nextLabel: String { strings.tr("home.next") }
+
+        /// Board A1z: the caption of Kid A's row for the next day, before midnight.
+        public var tomorrowLabel: String { strings.tr("home.tomorrow") }
     }
 
     public enum Action: Equatable {

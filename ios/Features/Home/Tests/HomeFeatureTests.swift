@@ -386,6 +386,68 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .weekday])
     }
 
+    /// Board A1z (layout v72): after Kid A's bedtime (Sleep has started) the block shows one row for
+    /// the next day's first thing, its opening Sleep skipped. Before midnight: "Tomorrow", the title
+    /// and "at {h:mm}" (Breakfast is no outing). Tuesday 10 Nov 2026, 9:15 pm; Sleep from 8:00 pm.
+    func testAfterBedtimeKidAShowsTomorrowsFirstThing() async {
+        let store = store(on: tuesday, minute: 1275)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .tomorrow(row) = store.state.kidABlock else {
+            return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
+        }
+        XCTAssertEqual(row.title, "Breakfast")
+        XCTAssertEqual(row.line, "at 6:30 am")
+        XCTAssertEqual(store.state.tomorrowLabel, "Tomorrow")
+        XCTAssertEqual(store.state.kidAEnd, .nextRow, "Kid B hangs below it as on E3 (A1z: 452)")
+        XCTAssertEqual(store.state.look, .night)
+        // Just before Sleep the Bed row still shows (board A1n).
+        let evening = self.store(on: tuesday, minute: 1185)
+        await evening.send(.task)
+        await evening.receive(\.loaded)
+        guard case .bedTime = evening.state.kidABlock else { return XCTFail("expected the Bed row before 8:00 pm") }
+    }
+
+    /// Board A1z: when the next day starts with an outing, its line is "leave {h:mm}" (School by bus,
+    /// leave 5 min before 7:00 am).
+    func testTomorrowsOutingSaysWhenToLeave() async {
+        var snapshot = snapshot()
+        let blocks = [
+            RoutineBlock(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 0, end: 420, isLocked: false, trip: nil),
+            RoutineBlock(title: "School", iconName: "wolfie", kind: .school, start: 420, end: 900, isLocked: true,
+                         trip: Trip(way: .bus, leaveBefore: 5)),
+            RoutineBlock(title: "Play", iconName: "blocks", kind: .play, start: 900, end: 1200, isLocked: false, trip: nil),
+            RoutineBlock(title: "Sleep", iconName: "actSleep", kind: .sleep, start: 1200, end: 1440, isLocked: false, trip: nil),
+        ]
+        snapshot.routines.removeAll { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }
+        snapshot.routines.append(Routine(kid: SeedData.kidA.id, dayType: .weekday, from: SeedData.templatesFrom, blocks: blocks))
+        let store = store(on: tuesday, minute: 1275, snapshot: snapshot)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .tomorrow(row) = store.state.kidABlock else {
+            return XCTFail("expected the Tomorrow row, got \(store.state.kidABlock)")
+        }
+        XCTAssertEqual(row.title, "School")
+        XCTAssertEqual(row.line, "leave 6:55 am")
+    }
+
+    /// Board A1z: after midnight the day is the new one, so the row is the ordinary Next row ("Next",
+    /// "at 6:30 am" more than an hour ahead, "in {n} min" within the hour). Wednesday 11 Nov, 0:30 am.
+    func testAfterMidnightTheRowIsTheOrdinaryNextRow() async {
+        let store = store(on: wednesday, minute: 30)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        guard case let .next(next) = store.state.kidABlock else { return XCTFail("expected the Next row") }
+        XCTAssertEqual(next.title, "Breakfast")
+        XCTAssertEqual(next.line, "at 6:30 am")
+        XCTAssertEqual(store.state.nextLabel, "Next")
+        let soon = self.store(on: wednesday, minute: 345)
+        await soon.send(.task)
+        await soon.receive(\.loaded)
+        guard case let .next(row) = soon.state.kidABlock else { return XCTFail("expected the Next row") }
+        XCTAssertEqual(row.line, "in 45 min")
+    }
+
     /// Spec "Picture rigs": a tap plays the slot once; taps during the 1.2 s play are ignored.
     /// Every tapped picture plays at once; a picture still playing does not restart.
     func testEveryTappedPicturePlays() async {

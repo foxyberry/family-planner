@@ -2179,6 +2179,17 @@
         }
       }
     },
+    "home.tomorrow.leave_at" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "leave %@"
+          }
+        }
+      }
+    },
     "hub.about.age.home" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -111,7 +111,7 @@ public struct HomeLayout: Equatable, Sendable {
     public enum KidAEnd: Equatable, Sendable, CaseIterable {
         /// Only the name (nothing next today): the name box ends at 250.
         case name
-        /// E3 / E3b: the Next row's time line ends at 384.
+        /// E3 / E3b / A1z: the Next row's (or A1z's Tomorrow row's) time line ends at 384.
         case nextRow
         /// A1m: the time-left box ends at 396.
         case timeLeft
