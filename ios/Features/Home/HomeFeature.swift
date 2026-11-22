@@ -21,7 +21,7 @@ public struct HomeFeature {
         case leave
         /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
         case bedTime(HomeModel.TimeLeft, tomorrow: TomorrowRow?)
-        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v71).
+        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v73).
         /// After midnight, while the night's Sleep goes on, A1z's row is this one too.
         case next(NextItem)
         /// A1z: after bedtime (Sleep has started), one row for the next day's first thing, its opening
@@ -311,7 +311,7 @@ public struct HomeFeature {
         case clockHoldCompleted
         /// Board G0: the pencil; the app opens the grown-up lock.
         case pencilTapped
-        /// Board G0 (layout v71): the calendar button; the app opens the school calendar (K1), no lock.
+        /// Board G0 (layout v73): the calendar button; the app opens the school calendar (K1), no lock.
         case calendarTapped
         /// The kid tapped the day/night switch (board 0g).
         case skySwitchTapped

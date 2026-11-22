@@ -2,7 +2,7 @@ import DesignSystem
 import Home
 import XCTest
 
-/// Boards A1, A1m, A1b, A1n, E3, E3b, E3h and E1 (layout v71): the panel's lines hold on every iPad, and
+/// Boards A1, A1m, A1b, A1n, E3, E3b, E3h and E1 (layout v73): the panel's lines hold on every iPad, and
 /// nothing leaves the panel.
 final class HomeLayoutTests: XCTestCase {
     private let iPads = [Sizing(width: 1376, height: 1032), Sizing(width: 1366, height: 1024),
@@ -47,73 +47,72 @@ final class HomeLayoutTests: XCTestCase {
         }
     }
 
-    /// "kidBRule": Kid B's name 40 below Kid A's last part, never lower than 620; the Now row's
-    /// picture 50 below the name baseline, the Next row 126 below it (layout v71, ±1 on the boards).
-    /// Expected values (name baseline, Now picture top, Next picture top) are the boards' A1, A1m and
-    /// A1b, A1n, E3 and E3b.
+    /// "kidBRule" (layout v73): Kid B's name box 40 below Kid A's last box, never lower than 620; the
+    /// Now row's picture 48 below the name baseline, the Next row 96 below it. Expected values (name
+    /// baseline, Now picture top, Next picture top) are the v73 boards' (±1 from text boxes rounding).
     func testKidBFollowsKidA() {
         let layout = HomeLayout(sizing: Sizing(width: 1376, height: 1032))
-        let boards: [(HomeLayout.KidAEnd, CGFloat, CGFloat, CGFloat)] = [
-            (.status, 500, 550, 676), (.timeLeft, 464, 515, 640), (.timeLeftRow, 550, 601, 726),
-            (.nextRow, 452, 502, 628),
+        let boards: [(HomeLayout.KidAEnd, String, CGFloat, CGFloat, CGFloat)] = [
+            (.status, "A1, G0", 456, 504, 600), (.timeLeft, "A1m, A1b", 429, 477, 573),
+            (.timeLeftRow, "A1n", 522, 570, 666), (.nextRow, "E3, E3b, A1z", 418, 466, 562),
         ]
-        // Board A1z (layout v72): Kid A's Tomorrow row ends where E3's Next row does.
-        let a1z = layout.kidBTop(after: .nextRow)
-        XCTAssertEqual(layout.kidNameBaseline(top: a1z), 452, accuracy: 1)
-        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1z).picture.minY, 502, accuracy: 1)
-        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1z).picture.minY, 628, accuracy: 1)
-        XCTAssertEqual(layout.nextRow.picture, CGRect(x: 928, y: 274, width: 104, height: 104), "A1z: the Tomorrow row")
-        XCTAssertEqual(layout.nextRow.labelBaseline ?? 0, 295, accuracy: 1)
-        XCTAssertEqual(layout.nextRow.titleBaseline, 336, accuracy: 1)
-        XCTAssertEqual(layout.nextRow.atBaseline, 374, accuracy: 1)
-        for (end, name, nowTop, nextTop) in boards {
+        for (end, board, name, nowTop, nextTop) in boards {
             let top = layout.kidBTop(after: end)
             let now = layout.kidBNowRow(kidBTop: top), next = layout.kidBNextRow(kidBTop: top)
-            XCTAssertEqual(layout.kidNameBaseline(top: top), name, accuracy: 1, "\(end)")
-            XCTAssertEqual(now.picture.minY, nowTop, accuracy: 1, "\(end)")
-            XCTAssertEqual(next.picture.minY, nextTop, accuracy: 1, "\(end)")
-            XCTAssertEqual(now.picture.size, CGSize(width: 104, height: 104), "\(end)")
-            XCTAssertEqual(next.picture.minY - now.picture.minY, 126, "\(end)")
-            // Caption / title / time line on the picture top + 21 / 62 / 100 (boards ±1).
-            XCTAssertEqual(next.labelBaseline ?? 0, nextTop + 21, accuracy: 1, "\(end)")
-            XCTAssertEqual(next.titleBaseline, nextTop + 62, accuracy: 1, "\(end)")
-            XCTAssertEqual(next.atBaseline, nextTop + 100, accuracy: 1, "\(end)")
-            // Spec: the block ends by 837 on every board, above the main button (872).
-            XCTAssertLessThanOrEqual(next.atBaseline + 11, 837, "\(end)")
+            XCTAssertEqual(layout.kidNameBaseline(top: top), name, accuracy: 1, board)
+            XCTAssertEqual(now.picture.minY, nowTop, accuracy: 1, board)
+            XCTAssertEqual(next.picture.minY, nextTop, accuracy: 1, board)
+            XCTAssertEqual(now.picture.size, CGSize(width: 80, height: 80), board)
+            XCTAssertEqual(next.picture.minY - now.picture.minY, 96, board)
+            // "{caption} · {title}" and the time line on the picture top + 37 / + 68.
+            XCTAssertEqual(next.titleBaseline, nextTop + 37, accuracy: 1, board)
+            XCTAssertEqual(next.atBaseline, nextTop + 68, accuracy: 1, board)
+            // Spec: the block ends by 746 on every board, above the main button (872).
+            XCTAssertLessThanOrEqual(next.picture.maxY, 746 + 1, board)
         }
-        // Board A1: Now "Now" 572, "Breakfast" 612, the time line 651; Next 697 / 738 / 776.
+        // Board A1: Kid B's Now "Now · Play" 541 and its time line 572; Next 637 / 668.
         let a1 = layout.kidBTop(after: .status)
-        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).labelBaseline ?? 0, 572, accuracy: 1)
-        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).titleBaseline, 612, accuracy: 1)
-        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).atBaseline, 651, accuracy: 1)
-        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).labelBaseline ?? 0, 697, accuracy: 1)
-        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).titleBaseline, 738, accuracy: 1)
-        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).atBaseline, 776, accuracy: 1)
-        XCTAssertEqual(layout.kidALabelBaseline, 301)
-        XCTAssertEqual(layout.kidATimeBaseline, 373)
-        XCTAssertEqual(layout.kidAStatusBaseline, 410)
-        XCTAssertEqual(layout.timeLeftRow.picture, CGRect(x: 928, y: 403, width: 80, height: 80))
+        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).titleBaseline, 541, accuracy: 1)
+        XCTAssertEqual(layout.kidBNowRow(kidBTop: a1).atBaseline, 572, accuracy: 1)
+        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).titleBaseline, 637, accuracy: 1)
+        XCTAssertEqual(layout.kidBNextRow(kidBTop: a1).atBaseline, 668, accuracy: 1)
+        // Board A1 Leave shape at 271: "Leave in" 297, the time left 346, "On time" 370.
+        XCTAssertEqual(layout.kidAPicture, CGRect(x: 928, y: 271, width: 80, height: 80))
+        XCTAssertEqual(layout.kidATextLeft, 1024)
+        XCTAssertEqual(layout.kidALabelBaseline, 297)
+        XCTAssertEqual(layout.kidATimeBaseline, 346)
+        XCTAssertEqual(layout.kidAStatusBaseline, 370)
+        // Board A1n: the Tomorrow row 104 below the Bed row (375), "Tomorrow · School" 412, the line 443.
+        XCTAssertEqual(layout.timeLeftRow.picture, CGRect(x: 928, y: 375, width: 80, height: 80))
         XCTAssertEqual(layout.timeLeftRow.textLeft, 1024)
-        XCTAssertEqual(layout.timeLeftRow.titleBaseline, 440)
-        XCTAssertEqual(layout.timeLeftRow.atBaseline, 471)
+        XCTAssertEqual(layout.timeLeftRow.titleBaseline, 412)
+        XCTAssertEqual(layout.timeLeftRow.atBaseline, 443)
+        // Board E1: the Next row 37 below "On time"'s box (388): 425, title 462, line 493.
+        XCTAssertEqual(layout.leaveNextRow.picture, CGRect(x: 928, y: 425, width: 80, height: 80))
+        XCTAssertEqual(layout.leaveNextRow.titleBaseline, 462)
+        XCTAssertEqual(layout.leaveNextRow.atBaseline, 493)
+        // Boards E3, E3b and A1z: Kid A's row at 271, title 308, line 339.
+        XCTAssertEqual(layout.nextRow.picture, CGRect(x: 928, y: 271, width: 80, height: 80))
+        XCTAssertEqual(layout.nextRow.titleBaseline, 308)
+        XCTAssertEqual(layout.nextRow.atBaseline, 339)
     }
 
-    /// Board E3h (layout v71): the holiday's name 32 below the weekday (168 / 200) pushes Kid A's
-    /// block down by 32; Kid B follows it (name 483, Now 534, Next 659, ±1 on the board).
+    /// Board E3h (layouts v71, v73): the holiday's name 32 below the weekday (168 / 200) pushes Kid A's
+    /// block down by 32 (row 302, title 339, line 371); Kid B follows it (name 449, Now 497, Next
+    /// 593; ±1 on the board).
     func testTheHolidayNameLinePushesThePanelDown() {
         let plain = HomeLayout(sizing: .thirteenInch), holiday = HomeLayout(sizing: .thirteenInch, dayNote: true)
         XCTAssertEqual(holiday.weekdayBaseline, 168)
         XCTAssertEqual(holiday.dayNoteBaseline, 200)
         XCTAssertEqual(holiday.kidBadge(top: holiday.kidATop).minY, 231, accuracy: 1, "board: ring 230")
         XCTAssertEqual(holiday.kidNameBaseline(top: holiday.kidATop), 254, accuracy: 1)
-        XCTAssertEqual(holiday.nextRow.picture, CGRect(x: 928, y: 306, width: 104, height: 104), "board: 305 ±1")
-        XCTAssertEqual(holiday.nextRow.labelBaseline ?? 0, 326, accuracy: 1)
-        XCTAssertEqual(holiday.nextRow.titleBaseline, 367, accuracy: 1)
-        XCTAssertEqual(holiday.nextRow.atBaseline, 405, accuracy: 1)
+        XCTAssertEqual(holiday.nextRow.picture.minY, 302, accuracy: 1)
+        XCTAssertEqual(holiday.nextRow.titleBaseline, 339, accuracy: 1)
+        XCTAssertEqual(holiday.nextRow.atBaseline, 371, accuracy: 1)
         let top = holiday.kidBTop(after: .nextRow)
-        XCTAssertEqual(holiday.kidNameBaseline(top: top), 483, accuracy: 1)
-        XCTAssertEqual(holiday.kidBNowRow(kidBTop: top).picture.minY, 534, accuracy: 1)
-        XCTAssertEqual(holiday.kidBNextRow(kidBTop: top).picture.minY, 659, accuracy: 1)
+        XCTAssertEqual(holiday.kidNameBaseline(top: top), 449, accuracy: 1)
+        XCTAssertEqual(holiday.kidBNowRow(kidBTop: top).picture.minY, 497, accuracy: 1)
+        XCTAssertEqual(holiday.kidBNextRow(kidBTop: top).picture.minY, 593, accuracy: 1)
         // Every Kid A part moves by exactly the name line; the buttons and the main button stay.
         XCTAssertEqual(holiday.kidAPicture.minY - plain.kidAPicture.minY, 32)
         XCTAssertEqual(holiday.timeLeftRow.picture.minY - plain.timeLeftRow.picture.minY, 32)
@@ -122,18 +121,17 @@ final class HomeLayoutTests: XCTestCase {
         XCTAssertEqual(holiday.calendarButton, plain.calendarButton)
     }
 
-    /// No board draws the name line over the longer blocks (A1, A1n). Kid B keeps its 40 gap, and
+    /// No board draws the name line over the longer blocks (A1, A1n). Kid B keeps its 40 gap and
     /// every block ends above the main button's top (872). The A1n evening with a name line (a public
-    /// holiday's bed time with a Tomorrow row) ends at 869, past the spec's 837.
+    /// holiday's bed time with a Tomorrow row) ends at 778, past the spec's 746.
     func testEveryBlockEndsAboveTheMainButtonWithTheNameLine() {
         let holiday = HomeLayout(sizing: .thirteenInch, dayNote: true)
         for end in HomeLayout.KidAEnd.allCases {
-            let top = holiday.kidBTop(after: end)
-            let next = holiday.kidBNextRow(kidBTop: top)
-            XCTAssertLessThan(next.atBaseline + 11, holiday.button.minY, "\(end)")
+            let next = holiday.kidBNextRow(kidBTop: holiday.kidBTop(after: end))
+            XCTAssertLessThan(next.picture.maxY, holiday.button.minY, "\(end)")
         }
         let evening = holiday.kidBNextRow(kidBTop: holiday.kidBTop(after: .timeLeftRow))
-        XCTAssertEqual(evening.atBaseline + 11, 869, accuracy: 1)
+        XCTAssertEqual(evening.picture.maxY, 778, accuracy: 1)
     }
 
     func testThirteenInchIsTheBoard() {
@@ -143,15 +141,6 @@ final class HomeLayoutTests: XCTestCase {
         XCTAssertEqual(layout.weekdayBaseline, 168)
         XCTAssertEqual(layout.kidBadge(top: layout.kidATop), CGRect(x: 928, y: 199, width: 48, height: 48))
         XCTAssertEqual(layout.kidNameBaseline(top: layout.kidATop), 223)
-        XCTAssertEqual(layout.kidAPicture, CGRect(x: 928, y: 277, width: 96, height: 96))
-        XCTAssertEqual(layout.nextRow.picture, CGRect(x: 928, y: 274, width: 104, height: 104))
-        XCTAssertEqual(layout.nextRow.labelBaseline, 295)
-        XCTAssertEqual(layout.nextRow.titleBaseline, 336)
-        XCTAssertEqual(layout.nextRow.atBaseline, 374)
-        XCTAssertEqual(layout.leaveNextRow.picture.minY, 471)
-        XCTAssertEqual(layout.leaveNextRow.labelBaseline ?? 0, 493, accuracy: 1)
-        XCTAssertEqual(layout.leaveNextRow.titleBaseline, 533)
-        XCTAssertEqual(layout.leaveNextRow.atBaseline, 572, accuracy: 1)
         XCTAssertEqual(layout.button, CGRect(x: 928, y: 872, width: 408, height: 96), "layout v29")
         XCTAssertEqual(layout.pencil, CGRect(x: 1240, y: 36, width: 96, height: 96), "as tall as the sky switch")
         XCTAssertEqual(layout.calendarButton, CGRect(x: 1128, y: 36, width: 96, height: 96), "16 left of the pencil")

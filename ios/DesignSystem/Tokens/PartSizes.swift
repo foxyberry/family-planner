@@ -53,7 +53,7 @@ public extension Sizing {
     /// Pencil and sky switch: 96 tall.
     var kidCornerControl: CGFloat { 96 * s }
     /// `TimeLeft` compact: 72.
-    var timeLeftCompact: CGFloat { 72 * s }
+    var timeLeftCompact: CGFloat { 48 * s }
 }
 
 public extension EnvironmentValues {

@@ -25,7 +25,7 @@ final class OneScaleTests: XCTestCase {
          ("one-line row", sizing.oneLineRow, 48), ("two-line row", sizing.twoLineRow, 72),
          ("text padding", sizing.textPadding, 24), ("small card", sizing.smallCardInset, 24),
          ("pair gap", sizing.pairGap, 16), ("joiner", sizing.joiner, 40), ("mission", sizing.missionCircle, 112),
-         ("kid corner", sizing.kidCornerControl, 96), ("time left", sizing.timeLeftCompact, 72),
+         ("kid corner", sizing.kidCornerControl, 96), ("time left", sizing.timeLeftCompact, 48),
          ("inset", sizing.inset, 6), ("pick ring", sizing.pickRing, 4), ("row gap", sizing.formRowGap, 24),
          ("card gap", sizing.cardGap, 28), ("caption gap", sizing.captionGap, 2),
          ("card padding", sizing.cardPadding.leading, 38), ("card padding right", sizing.cardPadding.trailing, 32),

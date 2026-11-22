@@ -33,7 +33,7 @@ public struct HomeView: View {
                 }
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
-                // Board G0 (layout v71): the school calendar (K1), no lock, left of the pencil.
+                // Board G0 (layout v73): the school calendar (K1), no lock, left of the pencil.
                 RoundButton(picture: .calendar) {
                     store.send(.calendarTapped)
                 }
@@ -130,7 +130,7 @@ public struct HomeView: View {
             if let kidB = store.kidB {
                 let top = layout.kidBTop(after: store.kidAEnd)
                 kidHeader(kidB.kid, top: top, layout: layout)
-                // Layout v68: a Now row and a Next row in the Next shape, 126 apart.
+                // Layout v73: a Now row and a Next row in the row shape, 96 apart.
                 NextRow(picture: kidB.now.picture, caption: store.nowLabel, title: kidB.now.title,
                         line: kidB.now.line, showsStar: kidB.now.showsStar, look: store.look)
                     .place(topLeft: layout.kidBNowRow(kidBTop: top).picture.origin)
@@ -158,13 +158,13 @@ public struct HomeView: View {
         }
     }
 
-    /// Kid A, look ① (spec "Home panel lines", layout v68): one row under the name, the picture on
+    /// Kid A (spec "Home panel lines", layout v73): one row under the name, the picture on
     /// the left and the words stacked to its right. Leave (A1), bed time (A1n), or the Next row (E3).
     @ViewBuilder private func kidABlock(layout: HomeLayout) -> some View {
         switch store.kidABlock {
         case .leave:
             if let picture = store.leavePicture, let left = store.leaveTimeLeft {
-                KitPlate(look: store.look, size: layout.kidAPicture.width) {
+                KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 56.0 / 80.0) {
                     KitIcon(picture, size: layout.kidAPicture.width)
                 }
                 .place(layout.kidAPicture)
@@ -175,14 +175,17 @@ public struct HomeView: View {
                 }
             }
         case let .bedTime(left, tomorrow):
-            // Board A1n: the moon (64) on a 96 plate.
-            KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 64.0 / 96.0) {
+            // Board A1n (layout v73): the moon (56) on an 80 night plate.
+            KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 56.0 / 80.0) {
                 KitIcon(.actSleep, size: layout.kidAPicture.width)
             }
             .place(layout.kidAPicture)
             timeLeft(left, layout: layout)
             if let tomorrow {
-                smallRow(picture: tomorrow.picture, title: tomorrow.title, line: tomorrow.line, layout: layout)
+                // The Tomorrow row, 104 below the Bed row.
+                NextRow(picture: tomorrow.picture, caption: store.tomorrowLabel, title: tomorrow.title,
+                        line: tomorrow.line, look: store.look)
+                    .place(topLeft: layout.timeLeftRow.picture.origin)
             }
         case let .next(next):
             nextRow(next, at: layout.nextRow)
@@ -196,26 +199,12 @@ public struct HomeView: View {
         }
     }
 
-    /// "Leave in" / "Bed in" (body, soft) over the time left (72), right of the picture.
+    /// "Leave in" / "Bed in" (caption, soft) over the time left (48), right of the picture (layout v73).
     @ViewBuilder private func timeLeft(_ left: HomeModel.TimeLeft, layout: HomeLayout) -> some View {
-        Text(left.label).crayonType(.body).foregroundStyle(store.look.softText).lineLimit(1)
+        Text(left.label).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
             .place(left: layout.kidATextLeft, baseline: layout.kidALabelBaseline)
         TimeLeft(left.text, isLate: left.isLate, look: store.look, compact: true)
             .place(left: layout.kidATextLeft, baseline: layout.kidATimeBaseline)
-    }
-
-    /// A1n: the Tomorrow row under the time left: a 56 picture on an 80 plate, its title (body bold)
-    /// over its line (caption).
-    @ViewBuilder private func smallRow(picture: KitSlot, title: String, line: String, layout: HomeLayout) -> some View {
-        let place = layout.timeLeftRow
-        KitPlate(look: store.look, size: place.picture.width, nightPicture: 56.0 / 80.0) {
-            KitIcon(picture, size: place.picture.width)
-        }
-        .place(place.picture)
-        Text(title).crayonType(.body, bold: true).foregroundStyle(store.look.ink).lineLimit(1)
-            .place(left: place.textLeft, baseline: place.titleBaseline)
-        Text(line).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
-            .place(left: place.textLeft, baseline: place.atBaseline)
     }
 
     /// The Next row (the `NextRow` part): the picture (104), then "Next", its title and the time line.

@@ -394,6 +394,8 @@ final class ComponentSnapshotTests: XCTestCase {
             VStack(alignment: .leading, spacing: 22) {
                 NextRow(picture: .actSleep, caption: "Now", title: "Sleep", line: "until 7:00 am", look: .night)
                 NextRow(picture: .actBreakfast, caption: "Next", title: "Breakfast", line: "at 7:00 am", look: .night)
+                // Board A1z / A1n: the next day's first thing.
+                NextRow(picture: .actSchool, caption: "Tomorrow", title: "School", line: "leave 7:25 am", look: .night)
             }
             .padding(Spacing.s)
             .background(CrayonColor.night)

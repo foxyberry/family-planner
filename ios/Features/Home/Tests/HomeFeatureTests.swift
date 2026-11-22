@@ -386,7 +386,7 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.days.map(\.dayType), [.sunday, .weekday])
     }
 
-    /// Board A1z (layout v72): after Kid A's bedtime (Sleep has started) the block shows one row for
+    /// Board A1z (layout v73): after Kid A's bedtime (Sleep has started) the block shows one row for
     /// the next day's first thing, its opening Sleep skipped. Before midnight: "Tomorrow", the title
     /// and "at {h:mm}" (Breakfast is no outing). Tuesday 10 Nov 2026, 9:15 pm; Sleep from 8:00 pm.
     func testAfterBedtimeKidAShowsTomorrowsFirstThing() async {
@@ -577,8 +577,10 @@ final class HomeFeatureTests: XCTestCase {
             return XCTFail("\(evening.state.kidABlock)")
         }
         XCTAssertEqual(left.label, "Bed in")
-        XCTAssertEqual(tomorrow?.title, "Tomorrow")
-        XCTAssertEqual(tomorrow?.line.hasPrefix("School, leave "), true)
+        // Layout v73: "Tomorrow · School" over "leave 7:25 am" (School 7:30, 5 min by bus).
+        XCTAssertEqual(evening.state.tomorrowLabel, "Tomorrow")
+        XCTAssertEqual(tomorrow?.title, "School")
+        XCTAssertEqual(tomorrow?.line, "leave 7:25 am")
     }
 
     /// E1: one kid keeps the Next row under "Leave in" on a leaving morning.

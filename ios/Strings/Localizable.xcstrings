@@ -2168,17 +2168,6 @@
         }
       }
     },
-    "home.tomorrow.leave" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@, leave %2$@"
-          }
-        }
-      }
-    },
     "home.tomorrow.leave_at" : {
       "extractionState" : "manual",
       "localizations" : {

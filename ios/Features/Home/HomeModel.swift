@@ -36,17 +36,19 @@ public struct NowItem: Equatable, Sendable {
     }
 }
 
-/// Board A1n "Tomorrow" row: tomorrow's first outing, "Tomorrow" over "School, leave 7:25 am".
+/// Board A1n "Tomorrow" row (layout v73): tomorrow's first outing in the row shape, "Tomorrow ·
+/// School" over "leave 7:25 am" (the caption comes from State).
 public struct TomorrowRow: Equatable, Sendable {
     public var iconName: String
-    public var title: String { L10n.tr("home.tomorrow") }
+    public var title: String
     public var line: String
     /// The row's picture (an unknown name shows play).
     public var picture: KitSlot { KitSlot(iconName: iconName) }
 
     public init(_ outing: Outing) {
         iconName = outing.slot.iconName
-        line = L10n.tr("home.tomorrow.leave", outing.slot.title, TimeText.withPeriod(outing.leave))
+        title = outing.slot.title
+        line = L10n.tr("home.tomorrow.leave_at", TimeText.withPeriod(outing.leave))
     }
 }
 
@@ -107,7 +109,7 @@ public enum HomeModel {
             .map { item($0, in: tomorrow, minutesAway: $0.start + 1440 - minute) }
     }
 
-    /// Board A1z (layout v72): after bedtime (today's last Sleep has started and runs to midnight)
+    /// Board A1z (layout v73): after bedtime (today's last Sleep has started and runs to midnight)
     /// Kid A's one row is the next day's first thing, its opening Sleep skipped, with "leave {h:mm}"
     /// when it is an outing, else "at {h:mm}". After midnight `next` gives the ordinary Next row.
     public static func tomorrow(_ slots: [Slot], minute: Int, tomorrow: [Slot]) -> NextItem? {
