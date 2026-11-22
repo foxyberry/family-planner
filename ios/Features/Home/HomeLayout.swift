@@ -67,10 +67,12 @@ public struct HomeLayout: Equatable, Sendable {
         public let atBaseline: CGFloat
     }
 
+    /// The lines come from the `NextRow` part itself, so the layout tests check what it draws.
     private func row(top: CGFloat) -> RowPlace {
-        RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: 104 * s, height: 104 * s),
-                 textLeft: sizing.x(1048), labelBaseline: sizing.y(top + 21),
-                 titleBaseline: sizing.y(top + 62), atBaseline: sizing.y(top + 100))
+        let side = NextRow.pictureSide * s
+        return RowPlace(picture: CGRect(x: panelLeft, y: sizing.y(top), width: side, height: side),
+                        textLeft: sizing.x(928 + NextRow.textLeft), labelBaseline: sizing.y(top + NextRow.captionBaseline),
+                        titleBaseline: sizing.y(top + NextRow.titleBaseline), atBaseline: sizing.y(top + NextRow.lineBaseline))
     }
 
     /// E3 / E3b: the Next row at 238.

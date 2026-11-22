@@ -129,6 +129,10 @@ final class HomeModelTests: XCTestCase {
         // 45 minutes away across midnight still counts down.
         XCTAssertEqual(HomeModel.next(tonight, minute: 1425, tomorrow: [slot("Sleep", .sleep, 0, 30), slot("Milk", .morning, 30, 60)])?.line,
                        "in 45 min")
+        // The Now row's "until" and the Next row read the same tomorrow (a Saturday wake-up at 7:30).
+        let saturday = [slot("Sleep", .sleep, 0, 450), slot("Breakfast", .morning, 450, 510)]
+        XCTAssertEqual(HomeModel.now(tonight, minute: 1180, tomorrow: saturday).line, "until 7:30 am")
+        XCTAssertEqual(HomeModel.next(tonight, minute: 1180, tomorrow: saturday)?.line, "at 7:30 am")
         // Without tomorrow's day (Kid A) nothing is next once Sleep has started.
         XCTAssertNil(HomeModel.next(tonight, minute: 1180))
     }

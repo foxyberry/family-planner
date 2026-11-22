@@ -29,12 +29,13 @@ public struct NextRow: View {
 
     /// The row's box on the board: the panel's width (928–1336) and the picture's height.
     public static let boardSize = CGSize(width: 408, height: 104)
-    static let pictureSide: CGFloat = 104
+    /// The lines below, in board points from the row's top-left; screen layouts place the row from them.
+    public static let pictureSide: CGFloat = 104
     /// Text left: the picture plus the 16 gap.
-    static let textLeft: CGFloat = 120
-    static let captionBaseline: CGFloat = 21
-    static let titleBaseline: CGFloat = 62
-    static let lineBaseline: CGFloat = 100
+    public static let textLeft: CGFloat = 120
+    public static let captionBaseline: CGFloat = 21
+    public static let titleBaseline: CGFloat = 62
+    public static let lineBaseline: CGFloat = 100
 
     public var body: some View {
         let side = sizing(Self.pictureSide)

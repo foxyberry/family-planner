@@ -103,15 +103,17 @@ public enum HomeModel {
     }
 
     /// Kid B's Now row (spec "Kid B block"): the slot on now "until" its end; with nothing on now (or
-    /// free time) the play picture and "Free time" until the next slot starts (spec "States").
-    public static func now(_ slots: [Slot], minute: Int) -> NowItem {
+    /// free time) the play picture and "Free time" until the next slot starts (spec "States"). With
+    /// `tomorrow`, a slot running past midnight ends at tomorrow's wake-up (the Next row's day).
+    public static func now(_ slots: [Slot], minute: Int, tomorrow: [Slot] = []) -> NowItem {
         let now = DayPlanner.now(at: minute, in: slots)
         let until = { (minute: Int) in L10n.tr("home.hub.until", TimeText.withPeriod(minute)) }
+        let nextDay = tomorrow.isEmpty ? slots : tomorrow
         if let current = now.current, current.kind != .free {
             return NowItem(picture: KitSlot(iconName: current.iconName), title: current.title,
-                           line: until(end(of: current, in: slots)), showsStar: current.showsStar)
+                           line: until(end(of: current, in: nextDay)), showsStar: current.showsStar)
         }
-        let freeUntil = now.current.map { end(of: $0, in: slots) } ?? now.next?.start
+        let freeUntil = now.current.map { end(of: $0, in: nextDay) } ?? now.next?.start
         return NowItem(picture: .actPlay, title: L10n.tr("home.hub.free"), line: freeUntil.map(until), showsStar: false)
     }
 

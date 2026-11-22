@@ -261,7 +261,7 @@ public struct HomeFeature {
         public var kidB: KidBRows? {
             guard days.count > 1 else { return nil }
             let day = days[1]
-            return KidBRows(kid: day.kid, now: HomeModel.now(day.slots, minute: minute),
+            return KidBRows(kid: day.kid, now: HomeModel.now(day.slots, minute: minute, tomorrow: day.tomorrowSlots),
                             next: HomeModel.next(day.slots, minute: minute, tomorrow: day.tomorrowSlots))
         }
 
