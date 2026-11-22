@@ -37,8 +37,6 @@ public struct ResultListCard: View {
 
     /// Board values (× s on screen).
     public static let rowHeight: CGFloat = 72
-    /// S2s with the keyboard up (design session 2026-11-15): one line, "{name} · {caption}".
-    public static let compactRowHeight: CGFloat = 48
     private static let padding: CGFloat = 12
 
     private let rows: [Row]

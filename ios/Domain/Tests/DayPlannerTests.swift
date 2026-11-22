@@ -42,13 +42,6 @@ final class DayPlannerTests: XCTestCase {
         XCTAssertEqual(DayType.allCases, [.weekday, .saturday, .sunday])
     }
 
-    func testIsDayOffOnWeekendAndHoliday() {
-        XCTAssertFalse(DayPlanner.isDayOff(on: F.monday, holidays: [], calendar: F.calendar))
-        XCTAssertTrue(DayPlanner.isDayOff(on: F.monday, holidays: [F.monday], calendar: F.calendar))
-        XCTAssertTrue(DayPlanner.isDayOff(on: F.saturday, holidays: [], calendar: F.calendar))
-        XCTAssertTrue(DayPlanner.isDayOff(on: F.sunday, holidays: [], calendar: F.calendar))
-    }
-
     func testNewestTemplateOnOrBeforeTheDay() {
         let first = Routine(kid: F.kidA.id, dayType: .weekday, from: F.templatesFrom,
                             blocks: [F.block("Old", .play, 600, 700)])

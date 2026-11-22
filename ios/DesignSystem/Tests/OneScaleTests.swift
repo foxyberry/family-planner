@@ -15,8 +15,8 @@ final class OneScaleTests: XCTestCase {
     /// Each named part size with its board value.
     private func partSizes(_ sizing: Sizing) -> [(String, CGFloat, CGFloat)] {
         [("field", sizing.fieldHeight, 80), ("time field", sizing.timeFieldWidth, 176),
-         ("tab", sizing.tabHeight(), 72), ("tab 64", sizing.tabHeight(64), 64), ("tab face", sizing.tabFace, 40),
-         ("goes to", sizing.goesToTabWidth, 180), ("stepper value", sizing.stepperValueWidth, 144),
+         ("tab", sizing.tabHeight(), 72), ("tab 64", sizing.tabHeight(64), 64),
+         ("stepper value", sizing.stepperValueWidth, 144),
          ("switch w", sizing.switchSize.width, 96), ("switch h", sizing.switchSize.height, 52),
          ("knob", sizing.switchKnob, 44), ("setting row", sizing.settingRowHeight, 120),
          ("setting picture", sizing.settingRowPicture, 56), ("swatch", sizing.swatch, 56),

@@ -6,10 +6,7 @@ public struct GridMetrics: Equatable, Sendable {
     public static let margin: CGFloat = 64
     public static let gutter: CGFloat = 24
     public static let columns = 12
-    public static let headerTop: CGFloat = 48
-    public static let headerBottom: CGFloat = 128
     public static let contentTop: CGFloat = 176
-    public static let contentBottomInset: CGFloat = 64
 
     public let width: CGFloat
     /// This screen's margin and gutter (board 64 and 24).

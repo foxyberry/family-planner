@@ -26,11 +26,6 @@ public enum DayPlanner {
         }
     }
 
-    /// A weekend or a holiday: the home screen's day-off layout (board E3).
-    public static func isDayOff(on day: Day, holidays: Set<Day>, calendar: Calendar) -> Bool {
-        dayType(on: day, holidays: holidays, calendar: calendar) != .weekday
-    }
-
     /// The kid's template for `day`: the newest one of that day type that starts on or before it.
     public static func template(for kid: Kid.ID, on day: Day, routines: [Routine], holidays: Set<Day>,
                                 calendar: Calendar) -> Routine? {

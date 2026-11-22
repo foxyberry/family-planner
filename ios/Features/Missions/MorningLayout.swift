@@ -56,11 +56,6 @@ public struct MorningLayout: Equatable, Sendable {
     public func circleRect(_ index: Int) -> CGRect {
         CGRect(x: columnLeft + pitch * CGFloat(index), y: sizing.y(612), width: circle, height: circle)
     }
-    /// The caption label: one pitch wide, centred under its circle, top at 732.
-    public func captionRect(_ index: Int) -> CGRect {
-        let circle = circleRect(index)
-        return CGRect(x: circle.midX - pitch / 2, y: sizing.y(732), width: pitch, height: sizing.y(800) - sizing.y(732))
-    }
 
     // MARK: Done view (board A3r): the medal 200 on the circle row, the words 40 to its right
 
