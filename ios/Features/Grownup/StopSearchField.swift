@@ -23,7 +23,7 @@ public struct StopSearchField: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: sizing.captionGap) {
-            CrayonField(L10n.tr("c2.stop.placeholder"),
+            CrayonField(store.placeholder,
                         text: Binding(get: { store.text }, set: { store.send(.textChanged($0)) }))
                 .frame(width: sizing(400))
                 // A pick closes the keyboard, as on S2, so the field never sends back the text typed
@@ -44,7 +44,7 @@ public struct StopSearchField: View {
     /// Stops matching the typed name: the shared result card, the name over road and code.
     private var matches: some View {
         ResultListCard(rows: store.matches.map { stop in
-            .init(id: stop.code, title: stop.name, caption: L10n.tr("c2.stop.match", stop.road, stop.code)) {
+            .init(id: stop.code, title: stop.name, caption: store.state.matchCaption(stop)) {
                 store.send(.stopPicked(stop))
             }
         }, visibleRows: visibleRows, seed: 55, width: listWidth)

@@ -12,6 +12,12 @@ public struct DataSourcesFeature {
         public var strings = Localizer.injected
         public var sources: [DataSource] = []
 
+        /// The screen's words: title, the intro, each source's licence link, and the closing note.
+        public var title: String { strings.tr("sources.title") }
+        public var intro: String { strings.tr("sources.intro") }
+        public var licenceTitle: String { strings.tr("sources.licence") }
+        public var noEndorsement: String { strings.tr("sources.no_endorsement") }
+
         public init() {}
     }
 

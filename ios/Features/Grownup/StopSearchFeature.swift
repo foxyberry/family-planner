@@ -27,6 +27,11 @@ public struct StopSearchFeature {
             text = stop
         }
 
+        /// The field's placeholder.
+        public var placeholder: String { L10n.tr("c2.stop.placeholder") }
+        /// A result row's caption: the stop's road and code.
+        public func matchCaption(_ stop: BusStop) -> String { L10n.tr("c2.stop.match", stop.road, stop.code) }
+
         /// The result list is open while there are matches (layout v14 veils the screen meanwhile).
         public var isListOpen: Bool { !matches.isEmpty }
 
