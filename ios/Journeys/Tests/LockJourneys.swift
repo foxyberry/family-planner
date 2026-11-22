@@ -5,9 +5,9 @@ import Grownup
 import JourneyWorld
 import XCTest
 
-/// The grown-up lock (board C0): hold the clock 2 s, then Face ID, then Our day; after 2 minutes
-/// without a touch the grown-up screens close again. The hold itself is a UI test; here it arrives
-/// as the home's `clockHoldCompleted`.
+/// The grown-up lock (board C0): hold the clock 2 s, then Face ID, then Our day; the grown-up screens
+/// stay open until "←" or the app goes to the background (spec C0 "Relocking": no idle timer). The
+/// hold itself is a UI test; here it arrives as the home's `clockHoldCompleted`.
 @MainActor
 final class LockJourneys: XCTestCase {
     /// The home with the sample family loaded, as a kid sees it.
@@ -68,20 +68,24 @@ final class LockJourneys: XCTestCase {
         XCTAssertEqual(store.state.path.count, 1)
     }
 
-    /// Two minutes without a touch close the grown-up screens; the last 30 seconds count down.
-    func testTwoIdleMinutesCloseTheGrownupScreens() async {
+    /// Minutes without a touch leave Our day open; the app going to the background closes it, and
+    /// the next hold asks Face ID again.
+    func testGrownupScreensCloseOnlyWhenTheAppLeaves() async {
         let (world, store) = await home(.standard)
+        await store.send(.scenePhaseChanged(.active))
         await store.send(.home(.clockHoldCompleted))
         await store.receive(\.parentAuthResponse)
         XCTAssertEqual(store.state.path.count, 1)
 
-        for _ in 0..<89 { await store.send(.tick(world.now)) }
-        XCTAssertNil(store.state.relockCaption, "no countdown before 90 s")
-        await store.send(.tick(world.now))
-        XCTAssertNotNil(store.state.relockCaption, "the countdown shows from 90 s")
+        for _ in 0..<180 { await store.send(.tick(world.now)) }
+        XCTAssertEqual(store.state.path.count, 1, "still open after 3 minutes without a touch")
+
+        await store.send(.scenePhaseChanged(.background))
+        XCTAssertTrue(store.state.path.isEmpty, "back on the home")
+        await store.send(.scenePhaseChanged(.active))
+        await store.send(.home(.clockHoldCompleted))
+        XCTAssertEqual(store.state.lock, .scanning, "Face ID again")
+        await store.receive(\.parentAuthResponse)
         XCTAssertEqual(store.state.path.count, 1)
-        for _ in 0..<30 { await store.send(.tick(world.now)) }
-        XCTAssertTrue(store.state.path.isEmpty, "back on the home after 120 s")
-        XCTAssertNil(store.state.relockCaption)
     }
 }

@@ -165,7 +165,7 @@ public struct ComponentGallery: View {
                     NextRow(picture: .cake, caption: "Next", title: "Birthday", line: "in 45 min", showsStar: true)
                     ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",
                                 isDestructive: false, onCancel: {}, onConfirm: {})
-                    FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Next Mon"), (2, "Date")],
+                    FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Tomorrow"), (2, "Date")],
                                  selection: .constant(0), dateChoice: 2, dateLabel: "17 Nov", date: .constant(Date(timeIntervalSince1970: 1_800_000_000)),
                                  caption: nil, save: "Save", cancel: "Cancel", onSave: {}, onCancel: {})
                 }

@@ -2,7 +2,7 @@ import DesignSystem
 import Home
 import XCTest
 
-/// Boards A1, A1m, A1b, A1n, E1, E3, E3b (layout v68): the panel's lines hold on every iPad, and
+/// Boards A1, A1m, A1b, A1n, E3, E3b and E1 (layouts v68 to v70): the panel's lines hold on every iPad, and
 /// nothing leaves the panel.
 final class HomeLayoutTests: XCTestCase {
     private let iPads = [Sizing(width: 1376, height: 1032), Sizing(width: 1366, height: 1024),

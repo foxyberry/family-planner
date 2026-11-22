@@ -365,19 +365,21 @@ public struct OurDayFeature {
         /// G5 asks from when only when there are All days changes; its date applies only to them.
         public var needsFromWhen: Bool { edit.hasAllDaysChange }
 
-        /// Board G5's tabs: "Today", "Next Sat" (the next day of this day's type), "Date".
+        /// Board G5's tabs: "Today", the next day of this day's type ("Tomorrow" or "Sat 14 Nov"; none
+        /// within 14 days hides it), "Date".
         public var fromWhenTabs: [(ItemEditorFeature.FromWhen, String)] {
-            [(.today, L10n.tr("from_when.today")),
-             (.next, L10n.tr("from_when.next", nextOfType.map { DayText.shortName($0.weekday(calendar)) } ?? "")),
-             (.date, L10n.tr("from_when.date"))]
+            FromWhenTabs.tabs(next: nextOfType, today: today, calendar: calendar)
         }
 
-        /// The first day after today that uses this day's template type.
+        /// The first day after today, within 14 days, that uses this day's template type.
         var nextOfType: Day? {
-            (1...14).map { today.adding(days: $0, calendar: calendar) }.first {
+            FromWhenTabs.nextDay(after: today, calendar: calendar) {
                 DayPlanner.dayType(on: $0, holidays: family.daysOff(kid), calendar: calendar) == dayType
             }
         }
+
+        /// The day "Details ›" opens G2 on (its G5 starts there): the clock's day; none from the List.
+        public var editorDay: Day? { showsList ? nil : day }
 
         /// Where an All days template starts: G5's choice, never before today.
         public var allDaysFrom: Day {
@@ -862,8 +864,10 @@ public struct OurDayFeature {
                 guard !state.isSaving else { return .none }
                 // Spec "Edit scope": All days changes ask from when first (board G5).
                 if state.needsFromWhen, state.fromWhen == nil {
-                    state.fromWhen = .today
-                    state.fromWhenDate = state.today
+                    // Spec G5: it opens on the day on the clock (never before today).
+                    let opening = FromWhenTabs.opening(shown: state.day, next: state.nextOfType, today: state.today)
+                    state.fromWhen = opening.choice
+                    state.fromWhenDate = opening.date
                     return .none
                 }
                 return save(&state)

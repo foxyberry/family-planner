@@ -78,7 +78,7 @@ public struct ChangeSchoolView: View {
                              dateChoice: ChangeSchoolFeature.StartsOn.date, dateLabel: form.startLabel,
                              date: Binding(get: { form.dateValue }, set: { store.send(.datePicked($0)) }),
                              caption: form.startsOnCaption, save: form.saveTitle,
-                             cancel: form.cardCancelTitle, tabWidths: [184, 130],
+                             cancel: form.cardCancelTitle, board: .startsOn,
                              onSave: { store.send(.saveTapped) }, onCancel: { store.send(.cardCancelled) })
                 if let error = form.saveError {
                     Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)

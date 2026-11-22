@@ -34,7 +34,7 @@ public struct AgentRefusal: Error, Equatable, Sendable {
 public enum AgentContract {
     /// `ls`: the focused screen and its contract fields.
     public static func ls(_ state: AppFeature.State) -> AgentScreen {
-        let app: [String: AgentValue] = ["relockCaption": text(state.relockCaption)]
+        let app: [String: AgentValue] = [:]
         if let setup = state.setup {
             return AgentScreen(screen: "setup", stack: ["setup"], fields: fields(setup), app: app)
         }

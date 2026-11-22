@@ -494,13 +494,22 @@ final class ComponentSnapshotTests: XCTestCase {
         .frame(height: 480), width: 720, named: "from")
     }
 
-    /// Board G5: the From when card with Date picked (its field) and the caption.
+    /// Board G5 (layout v69): the From when card with Date picked (its field) and the caption; the
+    /// 232 middle tab picked with a long date (bold, round ends, no "…"); no middle tab (two tabs).
     func testFromWhenCard() {
-        snap(FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Next Mon"), (2, "Date")],
-                          selection: .constant(2), dateChoice: 2, dateLabel: "17 Nov",
-                          date: .constant(Date(timeIntervalSince1970: 1_800_000_000)),
+        let date = Date(timeIntervalSince1970: 1_800_000_000)
+        snap(FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Tomorrow"), (2, "Date")],
+                          selection: .constant(2), dateChoice: 2, dateLabel: "17 Nov", date: .constant(date),
                           caption: "17 Nov was changed and no longer fits. It'll be removed.",
-                          save: "Save", cancel: "Cancel", onSave: {}, onCancel: {}), width: 620)
+                          save: "Save", cancel: "Cancel", onSave: {}, onCancel: {}), width: 700)
+        snap(FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Wed 30 Nov"), (2, "Date")],
+                          selection: .constant(1), dateChoice: 2, dateLabel: "30 Nov", date: .constant(date),
+                          caption: nil, save: "Save", cancel: "Cancel", onSave: {}, onCancel: {}),
+             width: 700, named: "middle")
+        snap(FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (2, "Date")],
+                          selection: .constant(0), dateChoice: 2, dateLabel: "30 Nov", date: .constant(date),
+                          caption: nil, save: "Save", cancel: "Cancel", onSave: {}, onCancel: {}),
+             width: 700, named: "noMiddle")
     }
 
     /// Board G1: the day button on today and on another day.
@@ -547,7 +556,7 @@ final class ComponentSnapshotTests: XCTestCase {
         }
     }
 
-    /// Board 0f: the shared grown-up header (Back, title, optional tabs, "Grown-ups only" or the countdown).
+    /// Board 0f: the shared grown-up header (Back, title, optional tabs, "Grown-ups only").
     func testGrownupHeader() {
         let width = Self.grid.span(12)
         snap(GrownupHeader(title: "Our kids", caption: "Grown-ups only", onBack: {}) {
@@ -555,8 +564,8 @@ final class ComponentSnapshotTests: XCTestCase {
         }, width: width, named: "tabs")
         snap(GrownupHeader(title: "Edit Swimming", caption: "Grown-ups only · behind the parent lock", onBack: {}),
              width: width, named: "caption")
-        snap(GrownupHeader(title: "Edit Saturday language school and lunch with grandparents", caption: "Grown-ups only", onBack: {})
-            .environment(\.relockCaption, "Locks in 0:12"), width: width, named: "countdownLongTitle")
+        snap(GrownupHeader(title: "Edit Saturday language school and lunch with grandparents", caption: "Grown-ups only", onBack: {}),
+             width: width, named: "longTitle")
     }
 
     // MARK: - Helpers

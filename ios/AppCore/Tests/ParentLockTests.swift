@@ -11,7 +11,8 @@ import ParentAuthClient
 import Setup
 import XCTest
 
-/// Board C0: hold the clock, unlock with Face ID only, and lock again after 2 idle minutes.
+/// Board C0: hold the clock, unlock with Face ID only; grown-up screens stay open until "←" or the
+/// app goes to the background (spec C0 "Relocking": no idle timer).
 @MainActor
 final class ParentLockTests: XCTestCase {
     private let start = Date(timeIntervalSince1970: 1_800_000_000)
@@ -19,7 +20,6 @@ final class ParentLockTests: XCTestCase {
     private func unlockedState() -> AppFeature.State {
         var state = AppFeature.State()
         state.path.append(.settings(SettingsFeature.State()))
-        state.grownupIdleSeconds = 0
         return state
     }
 
@@ -39,7 +39,6 @@ final class ParentLockTests: XCTestCase {
         }
         await store.receive(\.parentAuthResponse, .success) {
             $0.lock = nil
-            $0.grownupIdleSeconds = 0
             $0.path[id: 0] = .settings(SettingsFeature.State())
         }
         XCTAssertEqual(reason.value, "Open grown-up screens")
@@ -97,7 +96,6 @@ final class ParentLockTests: XCTestCase {
         await store.receive(\.parentAuthResponse, .notAvailable) { $0.lock = .notAvailable(touchID: false) }
         await store.send(.lockPrimaryTapped) {
             $0.lock = nil
-            $0.grownupIdleSeconds = 0
             $0.path[id: 0] = .settings(SettingsFeature.State())
         }
     }
@@ -123,70 +121,52 @@ final class ParentLockTests: XCTestCase {
         await store.send(.lockCancelTapped) { $0.lock = nil }
     }
 
-    func testCountdownCaptionInLast30Seconds() async {
+    /// Spec C0 "Relocking" (user, 2026-11-22): no idle timer. Minutes of ticks (or a time-machine
+    /// jump) leave an open form open, with its unsaved change, and the header keeps "Grown-ups only".
+    func testGrownupScreensStayOpenWithoutATouch() async {
         var state = unlockedState()
-        state.grownupIdleSeconds = 88
+        state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: start,
+                                                          calendar: Calendar(identifier: .gregorian))))
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
             $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
-        await store.send(.tick(start))
-        XCTAssertNil(store.state.relockCaption)
-        await store.send(.tick(start))
-        XCTAssertEqual(store.state.relockCaption, "Locks in 0:30")
-        for _ in 0..<10 { await store.send(.tick(start)) }
-        XCTAssertEqual(store.state.relockCaption, "Locks in 0:20")
-        await store.send(.grownupTouched)
-        XCTAssertNil(store.state.relockCaption)
-        XCTAssertEqual(store.state.grownupIdleSeconds, 0)
-    }
-
-    /// The developer time machine moves the clock by days; only real seconds count towards the relock.
-    func testClockJumpDoesNotRelock() async {
-        let store = TestStore(initialState: unlockedState()) {
-            AppFeature()
-        } withDependencies: {
-            $0.calendar = Calendar(identifier: .gregorian)
-        }
-        store.exhaustivity = .off
+        await store.send(\.path[id: 1].editor.binding, .set(\.form.name, "Pottery"))
+        for second in 0..<300 { await store.send(.tick(start.addingTimeInterval(Double(second)))) }
         await store.send(.tick(start.addingTimeInterval(3 * 86_400)))
-        XCTAssertEqual(store.state.path.count, 1)
-        XCTAssertNil(store.state.relockCaption)
-        XCTAssertEqual(store.state.grownupIdleSeconds, 1)
+        XCTAssertEqual(store.state.path.count, 2, "still open after 5 minutes")
+        guard case let .editor(editor)? = store.state.path.last else { return XCTFail("the form closed") }
+        XCTAssertEqual(editor.form.name, "Pottery", "the unsaved change is kept")
     }
 
-    func testIdleTwoMinutesRelocksAndDropsUnsavedForm() async {
+    /// Backgrounding still relocks at once: the open form closes, its unsaved change is dropped, and
+    /// the next way in asks Face ID again.
+    func testBackgroundRelocksAndDropsUnsavedForm() async {
         var state = unlockedState()
-        state.grownupIdleSeconds = 118
-        state.path.append(.dataSources(DataSourcesFeature.State()))   // stands in for an open form
+        state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: start,
+                                                          calendar: Calendar(identifier: .gregorian))))
         let store = TestStore(initialState: state) {
             AppFeature()
-        } withDependencies: {
-            $0.calendar = Calendar(identifier: .gregorian)
+        } withDependencies: { [start] in
+            $0.date.now = start
+            $0.parentAuth.authenticate = { _ in .cancelled }
         }
         store.exhaustivity = .off
-        await store.send(.tick(start))
-        XCTAssertEqual(store.state.path.count, 2)
-        await store.send(.tick(start))
-        XCTAssertTrue(store.state.path.isEmpty)
-        XCTAssertNil(store.state.grownupIdleSeconds)
-        XCTAssertNil(store.state.relockCaption)
-    }
-
-    func testBackgroundRelocks() async {
-        let store = TestStore(initialState: unlockedState()) {
-            AppFeature()
-        }
-        store.exhaustivity = .off
+        await store.send(\.path[id: 1].editor.binding, .set(\.form.name, "Pottery"))
         await store.send(.scenePhaseChanged(.background))
         XCTAssertTrue(store.state.path.isEmpty)
-        XCTAssertNil(store.state.grownupIdleSeconds)
+        XCTAssertFalse(store.state.hasGrownupScreens)
+        await store.send(.scenePhaseChanged(.active))
+        await store.send(.home(.clockHoldCompleted))
+        XCTAssertEqual(store.state.lock, .scanning, "Face ID again")
+        await store.receive(\.parentAuthResponse)
+        XCTAssertTrue(store.state.path.isEmpty, "cancelled: still home, the form is gone")
     }
 
-    /// S4 lock off: the hold opens grown-up screens with no Face ID, there is no
-    /// app-switcher cover, and the 2-minute return home still applies.
+    /// S4 lock off: the hold opens grown-up screens with no Face ID, there is no app-switcher cover,
+    /// and backgrounding still returns home.
     func testLockOffOpensAfterTheHoldOnly() async {
         let asked = LockIsolated(false)
         let store = TestStore(initialState: AppFeature.State()) {
@@ -210,8 +190,9 @@ final class ParentLockTests: XCTestCase {
         await store.send(.scenePhaseChanged(.inactive))
         XCTAssertFalse(store.state.coversGrownupScreens)
         await store.send(.scenePhaseChanged(.active))
-        for second in 0..<AppFeature.idleLimit { await store.send(.tick(start.addingTimeInterval(Double(second)))) }
-        XCTAssertFalse(store.state.hasGrownupScreens, "still back home after 2 idle minutes")
+        XCTAssertTrue(store.state.hasGrownupScreens)
+        await store.send(.scenePhaseChanged(.background))
+        XCTAssertFalse(store.state.hasGrownupScreens, "back home when the app leaves")
     }
 
     /// The lock is read again when setup finishes, and a grown-up link opens without Face ID while
@@ -303,33 +284,5 @@ final class ParentLockTests: XCTestCase {
         XCTAssertTrue(store.state.coversGrownupScreens, "still covered while the snapshot is taken")
         await store.send(.scenePhaseChanged(.active))
         XCTAssertFalse(store.state.coversGrownupScreens)
-    }
-
-    func testWorkingInAGrownupScreenCountsAsActivity() async {
-        var state = unlockedState()
-        state.path.append(.editor(ItemEditorFeature.State(mode: .add(.both), now: start,
-                                                          calendar: Calendar(identifier: .gregorian))))
-        state.grownupIdleSeconds = 110
-        state.relockCaption = "Locks in 0:10"
-        let store = TestStore(initialState: state) {
-            AppFeature()
-        }
-        store.exhaustivity = .off
-        // Typing never reaches the touch gesture (the keyboard is another window); the reducer sees it.
-        await store.send(\.path[id: 1].editor.binding, .set(\.form.name, "Pottery"))
-        XCTAssertEqual(store.state.grownupIdleSeconds, 0)
-        XCTAssertNil(store.state.relockCaption)
-    }
-
-    func testIdleTimerIgnoredOnHome() async {
-        let store = TestStore(initialState: AppFeature.State()) {
-            AppFeature()
-        } withDependencies: {
-            $0.calendar = Calendar(identifier: .gregorian)
-        }
-        store.exhaustivity = .off
-        await store.send(.tick(start.addingTimeInterval(500)))
-        XCTAssertNil(store.state.relockCaption)
-        XCTAssertNil(store.state.grownupIdleSeconds)
     }
 }

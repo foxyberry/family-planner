@@ -36,7 +36,7 @@ public struct AppFeature {
         case changeSchool(ChangeSchoolFeature)
         case dataSources(DataSourcesFeature)
         /// A2 · Morning, pushed over home (user, 2026-11-09: push, not a cover). A kid screen: the
-        /// grown-up rules (idle lock, app-switcher cover) skip it.
+        /// grown-up rules (relock on backgrounding, app-switcher cover) skip it.
         case missions(MissionsFeature)
     }
 
@@ -67,12 +67,6 @@ public struct AppFeature {
         public var home = HomeFeature.State()
         /// The grown-up lock over the home screen (board C0), `nil` when it is closed.
         public var lock: LockOverlay.State?
-        /// Real seconds since a grown-up last touched a grown-up screen (`nil` on the home screen);
-        /// grown-up screens close at 120. Counted in 1-second ticks, not from the date, so a clock
-        /// change (or the developer time machine) never closes them early.
-        public var grownupIdleSeconds: Int?
-        /// "Locks in 0:30" during the last 30 seconds, shown instead of "Grown-ups only".
-        public var relockCaption: String?
         /// Spec "Keyboard": the docked keyboard's top in window points while it is up (the one
         /// injected decision every screen reads), and its animation time.
         public var keyboardTop: CGFloat?
@@ -87,7 +81,7 @@ public struct AppFeature {
         /// First-run setup (S1–S4) instead of the home, while the iPad has no family.
         public var setup: SetupFeature.State?
         /// S4 "Grown-up lock". Off: the 2 s hold is the only gate, no Face ID and no
-        /// app-switcher cover; the 2-minute return home stays.
+        /// app-switcher cover; backgrounding still returns home.
         public var grownupLock = true
 
         public init() {}
@@ -166,7 +160,6 @@ public struct AppFeature {
         case parentAuthResponse(ParentAuthOutcome)
         case lockPrimaryTapped
         case lockCancelTapped
-        case grownupTouched
         case path(StackActionOf<Path>)
         case home(HomeFeature.Action)
         /// A screen deep link (`familyplanner://missions`).
@@ -185,24 +178,10 @@ public struct AppFeature {
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.uuid) var uuid
 
-    /// Grown-up screens close after this many seconds without a touch.
-    static let idleLimit = 120
-    /// The countdown caption shows for this many seconds before they close.
-    static let countdown = 30
-
     public init() {}
 
     public var body: some ReducerOf<Self> {
         Scope(state: \.home, action: \.home) { HomeFeature() }
-        // Working in a grown-up screen (typing, picking, saving) keeps it open: the keyboard is a separate
-        // window, so the touch gesture never sees typing.
-        Reduce { state, action in
-            if case .path(.element) = action, state.hasGrownupScreens {
-                state.grownupIdleSeconds = 0
-                state.relockCaption = nil
-            }
-            return .none
-        }
         Reduce { state, action in
             switch action {
             case .appDelegate(.didFinishLaunching):
@@ -216,6 +195,8 @@ public struct AppFeature {
                 } else if state.hasGrownupScreens {
                     state.coverUntilActive = true
                 }
+                // Spec C0 "Relocking": grown-up screens stay open until "←" or the app goes to the
+                // background (no idle timer); then they close at once, unsaved forms and all.
                 if phase == .background { relock(&state) }
                 return .none
 
@@ -270,20 +251,6 @@ public struct AppFeature {
             case let .tick(now):
                 state.now = now
                 state.deviceIsDark = deviceLook.isDark()
-                if state.hasGrownupScreens, let seconds = state.grownupIdleSeconds {
-                    let idle = seconds + 1
-                    state.grownupIdleSeconds = idle
-                    if idle >= Self.idleLimit {
-                        relock(&state)
-                    } else if idle >= Self.idleLimit - Self.countdown {
-                        // With the lock off nothing locks: the screens only go home.
-                        let left = Self.idleLimit - idle
-                        state.relockCaption = state.grownupLock ? L10n.tr("relock.countdown", left)
-                            : L10n.tr("relock.countdown.home", left)
-                    } else {
-                        state.relockCaption = nil
-                    }
-                }
                 return .send(.home(.tick(now)))
 
             case let .linkOpened(link):
@@ -333,8 +300,6 @@ public struct AppFeature {
 
             case .path(.element(id: _, action: .ourDay(.delegate(.finished)))):
                 state.path.removeAll()
-                state.grownupIdleSeconds = nil
-                state.relockCaption = nil
                 return .none
 
             case let .path(.element(id: _, action: .ourDay(.delegate(.openSettings(kid))))):
@@ -351,7 +316,9 @@ public struct AppFeature {
                       let item = day.items.first(where: { $0.id == itemID }) else { return .none }
                 // Every week and every month edit as a series (This day / All days).
                 let mode: ItemEditorFeature.Mode = item.isRepeating ? .editWeekly(item) : .editOnce(item)
-                state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar)))
+                // Spec G5: from the clock it opens on the day shown there; from the List on none.
+                state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar,
+                                                                  shownDay: day.editorDay)))
                 return .none
 
             case .home(.missionsTapped):
@@ -422,11 +389,6 @@ public struct AppFeature {
                 state.lock = nil
                 state.pendingBoard = nil
                 state.opensGrownupOnHomeLoad = false
-                return .none
-
-            case .grownupTouched:
-                state.grownupIdleSeconds = 0
-                state.relockCaption = nil
                 return .none
 
             case .path(.element(id: _, action: .settings(.delegate(.addChild)))):
@@ -623,7 +585,6 @@ public struct AppFeature {
         // The first frame already in the iPad's own look, not a second later.
         state.deviceIsDark = deviceLook.isDark()
         state.lock = nil
-        state.grownupIdleSeconds = 0
         guard let kid = state.home.days.first?.kid.id else {
             // Not loaded yet: wait for the home rather than open Settings in place of Our day.
             if state.hasFamily == true {
@@ -643,8 +604,6 @@ public struct AppFeature {
     private func relock(_ state: inout State) {
         // Grown-up screens close; a morning screen on its own stays (it is a kid screen).
         if state.hasGrownupScreens { state.path.removeAll() }
-        state.grownupIdleSeconds = nil
-        state.relockCaption = nil
         state.lock = nil
         state.pendingBoard = nil
         // A grown-up open still waiting for the home never survives a relock (it passed the old gate).

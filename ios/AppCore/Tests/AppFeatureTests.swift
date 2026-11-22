@@ -81,7 +81,6 @@ final class AppFeatureTests: XCTestCase {
         state.path.append(.ourDay(OurDayFeature.State(kid: SeedData.kidA.id, today: Day(year: 2026, month: 11, day: 10),
                                                       calendar: Calendar(identifier: .gregorian))))
         state.path.append(.settings(SettingsFeature.State(kid: SeedData.kidA.id)))
-        state.grownupIdleSeconds = 0
         let store = TestStore(initialState: state) {
             AppFeature()
         } withDependencies: {
@@ -92,7 +91,6 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.path.count, 1)
         await store.send(\.path[id: 0].ourDay.delegate.finished)
         XCTAssertTrue(store.state.path.isEmpty)
-        XCTAssertNil(store.state.grownupIdleSeconds)
     }
 
     func testOurDayOpensSettingsAndTheEditor() async {
@@ -115,7 +113,39 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertEqual(editor.mode, .add(.kid(SeedData.kidB.id)))
     }
 
-    /// "Missions →" opens A2-MVP over home (not a grown-up screen: no relock); finishing closes it.
+    /// Spec G5: "Details ›" on G1 opens G2 on the day on the clock; the List opens it on no day
+    /// (its "Change from when?" then starts on Today).
+    func testOurDayOpensAnItemOnTheDayBeingLookedAt() async {
+        let later = Day(year: 2026, month: 11, day: 18)
+        let swim = ScheduleItem(id: UUID(), title: "Swimming", iconName: "actSwim", audience: .kid(SeedData.kidA.id),
+                                start: 930, end: 990,
+                                recurrence: .weekly([.wednesday], from: Day(year: 2026, month: 11, day: 1), until: nil),
+                                skippedDays: [], skipsHolidays: true, showsStar: false)
+        var ourDay = OurDayFeature.State(kid: SeedData.kidA.id, today: Day(year: 2026, month: 11, day: 10),
+                                         calendar: Calendar(identifier: .gregorian))
+        ourDay.day = later
+        ourDay.items = [swim]
+        var state = AppFeature.State()
+        state.path.append(.ourDay(ourDay))
+        let store = TestStore(initialState: state) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(\.path[id: 0].ourDay.delegate.openItem, swim.id)
+        guard case let .editor(editor) = store.state.path.last else { return XCTFail("no editor") }
+        XCTAssertEqual(editor.shownDay, later)
+        await store.send(\.path[id: 1].editor.delegate.finished)
+        XCTAssertEqual(store.state.path.count, 1)
+        await store.send(\.path[id: 0].ourDay.listTapped)
+        await store.send(\.path[id: 0].ourDay.delegate.openItem, swim.id)
+        guard case let .editor(fromList) = store.state.path.last else { return XCTFail("no editor") }
+        XCTAssertNil(fromList.shownDay, "from the List")
+    }
+
+    /// "Missions →" opens A2-MVP over home (a kid screen, not a grown-up one); finishing closes it.
     func testMissionsOpenOverHomeAndClose() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()

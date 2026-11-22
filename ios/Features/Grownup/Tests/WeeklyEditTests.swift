@@ -12,14 +12,16 @@ import XCTest
 final class WeeklyEditTests: XCTestCase {
     private typealias F = Fixture
     private let swim = F.weekly()   // Kid A, Mon · Wed 3:30–4:30
+    /// Not a public holiday (9 Nov 2026 is Deepavali observed).
+    private let tuesday = Day(year: 2026, month: 11, day: 10)
 
-    private func store(_ item: ScheduleItem? = nil, minute: Int = 600, on day: Day = F.monday,
+    private func store(_ item: ScheduleItem? = nil, minute: Int = 600, on day: Day = F.monday, shownDay: Day? = nil,
                        saved: LockIsolated<[[ScheduleItem]]> = .init([])) -> TestStoreOf<ItemEditorFeature> {
         let item = item ?? swim
         let now = day.date(minute: minute, calendar: F.calendar)
         let snapshot = F.snapshot(items: [item])
         let store = TestStore(initialState: ItemEditorFeature.State(mode: .editWeekly(item), now: now,
-                                                                    calendar: F.calendar)) {
+                                                                    calendar: F.calendar, shownDay: shownDay)) {
             ItemEditorFeature()
         } withDependencies: {
             $0.calendar = F.calendar
@@ -82,7 +84,7 @@ final class WeeklyEditTests: XCTestCase {
         await store.send(.binding(.set(\.form.end, 1020)))
         await store.send(.saveTapped)
         XCTAssertEqual(store.state.fromWhen, .today)
-        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Next Wed", "Date"])
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Wed 11 Nov", "Date"], "the day itself, not \"Next Wed\"")
         await store.send(.fromWhenPicked(.next))
         XCTAssertEqual(store.state.splitDay, Day(year: 2026, month: 11, day: 11))
         await store.send(.fromWhenSaveTapped)
@@ -95,6 +97,67 @@ final class WeeklyEditTests: XCTestCase {
         XCTAssertEqual(items.last?.end, 1020)
         XCTAssertEqual(items.last?.recurrence, .weekly([.monday, .wednesday], from: Day(year: 2026, month: 11, day: 11),
                                                        until: nil))
+    }
+
+    /// Board G5 (layout v69): the next day of the series is tomorrow, so the middle tab says so.
+    func testFromWhenNamesTomorrow() async {
+        let store = store(on: tuesday)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.binding(.set(\.form.end, 1020)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Tomorrow", "Date"])
+        XCTAssertEqual(store.state.fromWhen, .today, "opened from the List: Today")
+    }
+
+    /// Spec G5: G2 opened from G1 on a later day opens the card with that day picked: the middle
+    /// tab when it is that day, else Date with that date; Save splits the series there.
+    func testFromWhenOpensOnTheDayBeingLookedAt() async {
+        let saved = LockIsolated<[[ScheduleItem]]>([])
+        let later = store(on: tuesday, shownDay: Day(year: 2026, month: 11, day: 18), saved: saved)
+        await later.send(.task)
+        await later.receive(\.loaded)
+        await later.send(.scopeTapped(.allDays))
+        await later.send(.binding(.set(\.form.end, 1020)))
+        await later.send(.saveTapped)
+        XCTAssertEqual(later.state.fromWhen, .date)
+        XCTAssertEqual(later.state.fromWhenDateLabel, "18 Nov")
+        XCTAssertEqual(later.state.splitDay, Day(year: 2026, month: 11, day: 18))
+        await later.send(.fromWhenSaveTapped)
+        await later.receive(\.saved)
+        XCTAssertEqual(saved.value.last?.last?.recurrence,
+                       .weekly([.monday, .wednesday], from: Day(year: 2026, month: 11, day: 18), until: nil))
+
+        let next = store(on: tuesday, shownDay: Day(year: 2026, month: 11, day: 11))
+        await next.send(.task)
+        await next.receive(\.loaded)
+        await next.send(.scopeTapped(.allDays))
+        await next.send(.binding(.set(\.form.end, 1020)))
+        await next.send(.saveTapped)
+        XCTAssertEqual(next.state.fromWhen, .next, "the middle tab is that day")
+
+        let today = store(on: tuesday, shownDay: tuesday)
+        await today.send(.task)
+        await today.receive(\.loaded)
+        await today.send(.scopeTapped(.allDays))
+        await today.send(.binding(.set(\.form.end, 1020)))
+        await today.send(.saveTapped)
+        XCTAssertEqual(today.state.fromWhen, .today)
+    }
+
+    /// Spec G5: a series with no day in the next 14 days has no middle tab (every month on the 30th,
+    /// seen on 10 Nov).
+    func testNoDayInTwoWeeksHidesTheMiddleTab() async {
+        var monthly = swim
+        monthly.recurrence = .monthly(.dayOfMonth(30), from: Day(year: 2026, month: 10, day: 30), until: nil)
+        let store = store(monthly, on: tuesday)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.binding(.set(\.form.end, 1020)))
+        await store.send(.saveTapped)
+        XCTAssertEqual(store.state.fromWhenTabs.map(\.0), [.today, .date])
     }
 
     func testFromWhenListsChangedDaysThatNoLongerFit() async {
