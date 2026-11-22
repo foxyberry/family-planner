@@ -155,7 +155,7 @@ Board ids refer to the design canvas. Screen details live in `2026-11-07-m2-scre
 | drawings | Auto-rig a kid's drawing so it can play like a kit picture (plan in section 5) | D3 + new review step |
 | delight | Tag kit layers with part names so rigs are derived, not hand-listed (plan in section 5) | kit.js |
 | **school calendar** | Import from photo / PDF / text / link (on-device reading; Apple Intelligence or a manual fallback) | C7 |
-| **school calendar** | Phase 2 of the school calendar (user, 2026-11-22; phase 1 is the read-only year view opened from the kid home): open a kid's calendar from Settings → School → Terms, and edit own terms and preschool closures there (international schools, preschools). Family events (birthdays, appointments) and Google Calendar sync of the kids' appointments go on top of it later. | calendar boards |
+| **school calendar** | Phase 2 of the school calendar (user, 2026-11-22; phase 1 is the read-only year view opened from the kid home): open a kid's calendar from Settings → School → Terms, and edit own terms and preschool closures there (international schools, preschools). Family events (birthdays, appointments) and Google Calendar sync of the kids' appointments go on top of it later. Sync is the first time the kids' appointments leave the iPad, so it gets its own privacy note when designed. | calendar boards |
 | **evening and screens** | Evening routine missions, video time plan, iPad Screen Time hand-off | B1, EV backlog |
 | **rewards** | Puzzle album, sticker book, league level-up celebration | RW backlog |
 | **language** | Korean UI (String Catalog first, then translation), per-kid language | — |

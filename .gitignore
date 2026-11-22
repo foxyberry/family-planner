@@ -18,6 +18,7 @@ docs/private/
 docs/superpowers/specs/*
 !docs/superpowers/specs/2026-11-07-m2-screens-spec.md
 !docs/superpowers/specs/2026-11-08-product-backlog.md
+!docs/superpowers/specs/2026-11-22-school-calendar-design.md
 .private-terms
 LocalConfig.*
 *.local.json
