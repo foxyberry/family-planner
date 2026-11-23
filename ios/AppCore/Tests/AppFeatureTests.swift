@@ -65,14 +65,11 @@ final class AppFeatureTests: XCTestCase {
         await store.receive(\.home.tick, fixedDate) {
             $0.home.minute = self.minuteOfFixedDate
             $0.home.idleSeconds = 1   // the idle wink counts in these ticks
-            $0.home.now = self.fixedDate
-            $0.home.secondsSinceRefresh = 1   // live bus times count the same ticks
         }
         await clock.advance(by: .seconds(1))
         await store.receive(\.tick, fixedDate)
         await store.receive(\.home.tick, fixedDate) {
             $0.home.idleSeconds = 2
-            $0.home.secondsSinceRefresh = 2
         }
         await task.cancel()
     }
@@ -203,6 +200,20 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertTrue(store.state.path.isEmpty)
     }
 
+    /// Spec A1 "Mission rows": a mission row opens A2 on its kid.
+    func testAMissionRowOpensMissionsOnItsKid() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.date.now = fixedDate
+            $0.calendar = Calendar(identifier: .gregorian)
+        }
+        store.exhaustivity = .off
+        await store.send(.home(.missionRowTapped(SeedData.kidB.id)))
+        guard case let .missions(missions)? = store.state.path.first else { return XCTFail("missions not open") }
+        XCTAssertEqual(missions.chosen, SeedData.kidB.id)
+    }
+
     /// Spec K1: the calendar button opens the school calendar over home with no lock (a kid screen,
     /// as A2); "‹" closes it. While it is open the grown-up rules skip it: no cover, no relock on
     /// backgrounding, the window keeps the home's look (not the iPad's dark mode).
@@ -270,7 +281,6 @@ final class AppFeatureTests: XCTestCase {
         }
         store.exhaustivity = .off
         XCTAssertEqual(store.state.home.strings, .keys)
-        XCTAssertEqual(store.state.home.nextLabel, "home.next")
         await store.send(.home(.missionsTapped))
         guard case let .missions(missions)? = store.state.path.first else { return XCTFail("missions not open") }
         XCTAssertEqual(missions.strings, .keys)

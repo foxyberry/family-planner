@@ -21,10 +21,9 @@ public struct HomeView: View {
     }
 
     public var body: some View {
-        KidFullScreen(look: store.look, wipeFrom: store.isSkyAnimating ? skySwitchCentre : nil) {
-            // Boards A1 / A1m / E1 (docs/superpowers/layout), board × s: every part placed from
-            // HomeLayout; the panel's parts all start on 928 and end on 1336 (layout v29).
-            let layout = HomeLayout(sizing: sizing, dayNote: store.hasDayNote)
+        KidFullScreen(look: store.look, wipeFrom: HomeLayout(sizing: sizing).skyWipe(store.isSkyAnimating)) {
+            // Boards A1 / A1k / E1 (layout v75), board × s: every part placed from HomeLayout.
+            let layout = HomeLayout(sizing: sizing)
             ZStack(alignment: .topLeading) {
                 clockArea
                     .position(layout.clockCentre)
@@ -33,7 +32,7 @@ public struct HomeView: View {
                 }
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
-                // Board G0 (layout v74): the school calendar (K1), no lock, left of the pencil.
+                // Board G0 (layout v75): the school calendar (K1), no lock, left of the pencil.
                 RoundButton(picture: .calendar) {
                     store.send(.calendarTapped)
                 }
@@ -57,14 +56,6 @@ public struct HomeView: View {
         .sensoryFeedback(.success, trigger: holdCompleted)
     }
 
-    private var firstDay: HomeFeature.KidDay? { store.days.first }
-
-    /// The night wipe starts from the sky switch's centre (board 0g).
-    private var skySwitchCentre: CGPoint {
-        let frame = HomeLayout(sizing: sizing).skySwitch
-        return CGPoint(x: frame.midX, y: frame.midY)
-    }
-
     // MARK: Clock
 
     /// Where a press began, in the clock's own space (its centre at R s, R s). It watches from the
@@ -83,7 +74,7 @@ public struct HomeView: View {
     }
 
     private var clockArea: some View {
-        PieClock(sectors: store.clockSectors, now: store.clockHand, hub: store.clockHub,
+        PieClock(sectors: store.clockSectors, now: store.clockHand, hub: store.clockHub, rim: store.clockRim,
                         holdProgress: holdProgress, look: store.look,
                         motion: PieClock.Motion(slotStart: store.currentSlotStart, hour: store.hour,
                                                 winks: store.winks),
@@ -110,110 +101,33 @@ public struct HomeView: View {
             }
     }
 
-    // MARK: Right panel (928–1336, × s)
+    // MARK: Right panel (928–1336, × s), bottom up (spec A1 "Next things", "Kid chips")
 
     @ViewBuilder private func panel(_ layout: HomeLayout) -> some View {
-        if let first = firstDay {
-            if let heading = store.dayHeading {
-                // Spec "Hub text" (board E3h): red on a public holiday, with its name (or a school
-                // break's) as a caption under it.
-                Text(heading).crayonType(.head).foregroundStyle(store.look.text(late: store.isPublicHoliday))
-                    .lineLimit(1)
-                    .place(left: layout.panelLeft, baseline: layout.weekdayBaseline)
+        ForEach(Array(store.laterRows.enumerated()), id: \.element.id) { index, thing in
+            row(thing, size: .row).place(layout.row(index, of: store.laterRowKinds))
+        }
+        if let card = store.nextCard {
+            row(card, size: .card).place(layout.card)
+        }
+        ForEach(Array(store.chips.enumerated()), id: \.element.id) { index, chip in
+            KidChip(face: chip.face, picture: chip.picture, name: chip.name, isPicked: chip.isPicked, look: store.look) {
+                store.send(.kidChipTapped(chip.id))
             }
-            if let note = store.dayNote {
-                Text(note).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
-                    .place(left: layout.panelLeft, baseline: layout.dayNoteBaseline)
-            }
-            kidHeader(first.kid, top: layout.kidATop, layout: layout)
-            kidABlock(layout: layout)
-            if let kidB = store.kidB {
-                let top = layout.kidBTop(after: store.kidAEnd)
-                kidHeader(kidB.kid, top: top, layout: layout)
-                // Layout v73: a Now row and a Next row in the row shape, 96 apart.
-                NextRow(picture: kidB.now.picture, caption: store.nowLabel, title: kidB.now.title,
-                        line: kidB.now.line, showsStar: kidB.now.showsStar, look: store.look)
-                    .place(topLeft: layout.kidBNowRow(kidBTop: top).picture.origin)
-                if let next = kidB.next {
-                    nextRow(next, at: layout.kidBNextRow(kidBTop: top))
-                }
-            } else if let next = store.leaveNext {
-                nextRow(next, at: layout.leaveNextRow)
-            }
-            if store.showsMissions {
-                InkButton(store.missionsTitle, arrow: true, look: store.look) { store.send(.missionsTapped) }
-                    .place(layout.button)
-            }
+            .place(layout.chip(index, of: store.chips.count))
         }
     }
 
-    private func kidHeader(_ kid: Kid, top: CGFloat, layout: HomeLayout) -> some View {
-        ZStack(alignment: .topLeading) {
-            KidFace(KidFace.Badge(face: kid.face, colorIndex: kid.colorIndex),
-                    size: layout.kidBadge(top: top).width)
-                .place(layout.kidBadge(top: top))
-            Text(kid.name).crayonType(.head).foregroundStyle(store.look.ink).lineLimit(1)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .place(layout.kidName(top: top))
+    /// One family row or the next card; a mission row opens A2 for its kid.
+    @ViewBuilder private func row(_ thing: NextThing, size: NextThingRow.Size) -> some View {
+        let part = NextThingRow(time: store.state.timeCell(thing), picture: thing.picture, title: thing.title,
+                                faces: store.state.faces(thing), hatch: store.state.hatch(thing), size: size,
+                                faded: store.state.isFaded(thing), look: store.look)
+        if let kid = thing.missionKids.first {
+            Button { store.send(.missionRowTapped(kid)) } label: { part }
+                .buttonStyle(.plain)
+        } else {
+            part.allowsHitTesting(false)
         }
-    }
-
-    /// Kid A (spec "Home panel lines", layout v73): one row under the name, the picture on
-    /// the left and the words stacked to its right. Leave (A1), bed time (A1n), or the Next row (E3).
-    @ViewBuilder private func kidABlock(layout: HomeLayout) -> some View {
-        switch store.kidABlock {
-        case .leave:
-            if let picture = store.leavePicture, let left = store.leaveTimeLeft {
-                KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 56.0 / 80.0) {
-                    KitIcon(picture, size: layout.kidAPicture.width)
-                }
-                .place(layout.kidAPicture)
-                timeLeft(left, layout: layout)
-                if let status = store.status {
-                    StatusDot(status.text, tone: status.tone, compact: true)
-                        .place(left: layout.kidATextLeft, baseline: layout.kidAStatusBaseline)
-                }
-            }
-        case let .bedTime(left, tomorrow):
-            // Board A1n (layout v74): the moon (56) on an 80 night plate.
-            KitPlate(look: store.look, size: layout.kidAPicture.width, nightPicture: 56.0 / 80.0) {
-                KitIcon(.actSleep, size: layout.kidAPicture.width)
-            }
-            .place(layout.kidAPicture)
-            timeLeft(left, layout: layout)
-            if let tomorrow {
-                // The Tomorrow row, 104 below the Bed row.
-                aheadRow(tomorrow, at: layout.timeLeftRow)
-            }
-        case let .next(next):
-            nextRow(next, at: layout.nextRow)
-        case let .tomorrow(row):
-            // Board A1z: the next day's first outing or first thing.
-            aheadRow(row, at: layout.nextRow)
-        case .nothing:
-            EmptyView()
-        }
-    }
-
-    /// "Leave in" / "Bed in" (caption, soft) over the time left (48), right of the picture (layout v73).
-    @ViewBuilder private func timeLeft(_ left: HomeModel.TimeLeft, layout: HomeLayout) -> some View {
-        Text(left.label).crayonType(.caption).foregroundStyle(store.look.softText).lineLimit(1)
-            .place(left: layout.kidATextLeft, baseline: layout.kidALabelBaseline)
-        TimeLeft(left.text, isLate: left.isLate, look: store.look, compact: true)
-            .place(left: layout.kidATextLeft, baseline: layout.kidATimeBaseline)
-    }
-
-    /// Boards A1n, A1z: the Tomorrow row ("Tomorrow · School" / "leave 7:25 am").
-    private func aheadRow(_ row: AheadRow, at place: HomeLayout.RowPlace) -> some View {
-        NextRow(picture: row.item.picture, caption: store.state.aheadCaption(row), title: row.item.title,
-                line: row.item.line, showsStar: row.item.showsStar, look: store.look)
-            .place(topLeft: place.picture.origin)
-    }
-
-    /// The Next row (the `NextRow` part): the picture (104), then "Next", its title and the time line.
-    private func nextRow(_ item: NextItem, at place: HomeLayout.RowPlace) -> some View {
-        NextRow(picture: item.picture, caption: store.nextLabel, title: item.title, line: item.line,
-                showsStar: item.showsStar, look: store.look)
-            .place(topLeft: place.picture.origin)
     }
 }

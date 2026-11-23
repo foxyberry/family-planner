@@ -345,7 +345,7 @@ final class ComponentSnapshotTests: XCTestCase {
     ]
 
     func testPieClockSeedDay() {
-        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30 pm"))
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "3:45", period: "pm", holiday: nil), rim: 0)
             .padding(110))
     }
 
@@ -362,34 +362,22 @@ final class ComponentSnapshotTests: XCTestCase {
             ClockSector(start: 1155, end: 1200, style: .evening, iconName: "actShower", isCurrent: false, showsStar: false, priority: 0),
             ClockSector(start: 1200, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
         ]
-        snap(PieClock(sectors: day, now: 1000, hub: .init(title: "Free time", subtitle: "until 5:00 pm")).padding(110))
+        snap(PieClock(sectors: day, now: 1000, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "4:40", period: "pm", holiday: nil), rim: 0).padding(110))
     }
 
     func testPieClockEmpty() {
-        snap(PieClock(sectors: [], now: nil, hub: .init(title: "Nothing planned", subtitle: nil)).padding(110))
+        snap(PieClock(sectors: [], now: nil, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "4:40", period: "pm", holiday: nil), rim: 0).padding(110))
     }
 
-    func testHubLongTitle() {
+    /// Spec A1 "Hub" on a public holiday: the weekday red, the name under the time, no face; the hold ring.
+    func testHubPublicHoliday() {
         snap(PieClock(sectors: Self.seedDay, now: 945,
-                      hub: .init(title: "Swimming with the whole class", subtitle: "until 4:30 pm"), holdProgress: 0.6)
+                      hub: .init(face: KidFace.Badge(face: "kidBoy", colorIndex: 1), weekday: "Monday", time: "3:45",
+                                 period: "pm", holiday: "A very long holiday name"),
+                      rim: 1, holdProgress: 0.6)
             .padding(110))
     }
 
-    /// Board E3 at 9:15: "Weekend school" on two lines at head 36, "until" inside the hub.
-    func testHubTwoLineTitle() {
-        snap(PieClock(sectors: Self.seedDay, now: 555, hub: .init(title: "Weekend school",
-                                                                  subtitle: "until 12:00 pm"))
-            .padding(110))
-    }
-
-    func testHubLongSingleWord() {
-        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(title: "Supercalifragilistic", subtitle: "until 4:30 pm"))
-            .padding(110))
-    }
-
-    /// Layout v68 "Next shape": Kid A's Next row and Kid B's Now and Next rows (126 apart on the
-    /// boards); a just-once star; a long title ending with "…" inside the panel; no time line; the
-    /// night plates (board A1n).
     /// Spec A1 "Next things" (layout v75): the time cell and dots, later rows, mission rows and the next
     /// card, by day and at night.
     func testNextThings() {
@@ -450,23 +438,6 @@ final class ComponentSnapshotTests: XCTestCase {
             }
             .padding(Spacing.s).background(CrayonColor.night)
         }, width: 456)
-    }
-
-    func testNextRow() {
-        snap(VStack(alignment: .leading, spacing: 22) {
-            NextRow(picture: .actPlay, caption: "Now", title: "Play", line: "until 4:00 pm")
-            NextRow(picture: .cake, caption: "Next", title: "Birthday", line: "in 45 min", showsStar: true)
-            NextRow(picture: .actSwim, caption: "Next", title: "Swimming with the whole class", line: "at 3:30 pm")
-            NextRow(picture: .actPlay, caption: "Now", title: "Free time", line: nil)
-            VStack(alignment: .leading, spacing: 22) {
-                NextRow(picture: .actSleep, caption: "Now", title: "Sleep", line: "until 7:00 am", look: .night)
-                NextRow(picture: .actBreakfast, caption: "Next", title: "Breakfast", line: "at 7:00 am", look: .night)
-                // Board A1z / A1n: the next day's first thing.
-                NextRow(picture: .actSchool, caption: "Tomorrow", title: "School", line: "leave 7:25 am", look: .night)
-            }
-            .padding(Spacing.s)
-            .background(CrayonColor.night)
-        })
     }
 
     /// Boards C3/C4: day preview rows, plain and the new item on its card.
@@ -726,8 +697,9 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Board A1n at 7:40 pm: lit paper face, chalk ticks and numbers on the night page.
     func testPieClockNight() {
         // The clock alone on the night page (KidFullScreen now lays out a whole board).
-        snap(PieClock(sectors: Self.seedDay, now: 1180, hub: .init(title: "Shower", subtitle: "until 8:00 pm"),
-                      look: .night)
+        snap(PieClock(sectors: Self.seedDay, now: 1180, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday",
+                                 time: "7:40", period: "pm", holiday: nil),
+                      rim: 0, look: .night)
             .padding(110)
             .frame(width: 964, height: 964)
             .background(KidLook.night.page))

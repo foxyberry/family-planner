@@ -175,7 +175,8 @@ public struct ComponentGallery: View {
                                     showsStar: false, priority: 1),
                         ClockSector(start: 1230, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false,
                                     showsStar: false, priority: 0),
-                    ], now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30 pm"))
+                    ], now: 945, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday",
+                                           time: "3:45", period: "pm", holiday: nil), rim: 0)
                     .scaleEffect(0.5)
                     .frame(width: 480, height: 480)
                     // A1 (layout v75): the family's next things and the kid chips.
@@ -192,9 +193,6 @@ public struct ComponentGallery: View {
                                 isPicked: false, look: .day) {}
                     }
                     .frame(width: 408)
-                    NextRow(picture: .actPlay, caption: "Now", title: "Play", line: "until 4:00 pm")
-                    NextRow(picture: .cake, caption: "Next", title: "Birthday", line: "in 45 min", showsStar: true)
-                    NextRow(picture: .actSchool, caption: "Tomorrow", title: "School", line: "leave 7:25 am", look: .night)
                     ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",
                                 isDestructive: false, onCancel: {}, onConfirm: {})
                     FromWhenCard(title: "Change from when?", tabs: [(0, "Today"), (1, "Tomorrow"), (2, "Date")],

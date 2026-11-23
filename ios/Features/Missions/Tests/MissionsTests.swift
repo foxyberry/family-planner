@@ -26,14 +26,16 @@ final class MissionsTests: XCTestCase {
     private func store(on day: Day, minute: Int, missions: [Mission] = SeedData.missions, items: [ScheduleItem]? = nil,
                        saved: LockIsolated<[MissionDay]> = LockIsolated([]),
                        arrivals: [BusArrival]? = nil, services: [String] = ["1"], rides: [String: Int] = [:],
-                       changes: [BusChange] = []) -> TestStoreOf<MissionsFeature> {
+                       changes: [BusChange] = [], chosen: Kid.ID? = nil) -> TestStoreOf<MissionsFeature> {
         // Made-up stop and bus numbers (privacy rule).
         let plans = arrivals == nil ? [] : [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: services,
                                                     rides: rides, changes: changes)]
         let snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines,
                                         items: items ?? SeedData.items(today: tuesday, calendar: calendar), missions: missions,
                                         busPlans: plans)
-        let store = TestStore(initialState: MissionsFeature.State()) {
+        var initial = MissionsFeature.State()
+        initial.chosen = chosen
+        let store = TestStore(initialState: initial) {
             MissionsFeature()
         } withDependencies: { [calendar] in
             $0.calendar = calendar
@@ -98,6 +100,14 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(way?.moverX, 60) // 33 min to leave: 30 or more sits at x 60
         XCTAssertEqual(store.state.rows.map(\.total), [6, 3])
         XCTAssertEqual(store.state.state(caption: 0), "0 of 6 done")
+    }
+
+    /// Spec A1 "Mission rows": opened from Kid B's row, A2 stays on Kid B after it loads.
+    func testOpenedOnAKidStaysOnThatKid() async {
+        let store = store(on: tuesday, minute: 412, chosen: SeedData.kidB.id)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.chosen, SeedData.kidB.id)
     }
 
     /// Board A2-MVP-w, Saturday 8:00 am: weekend school by car, "Home" on the stem, no stops.

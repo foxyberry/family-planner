@@ -26,7 +26,8 @@ public enum TimeText {
             : "\(withPeriod(start))–\(withPeriod(end))"
     }
 
-    private static func period(_ minute: Int) -> String {
+    /// "am" or "pm" for a minute of the day (home's time cell and hub draw it smaller than the time).
+    public static func period(_ minute: Int) -> String {
         (minute / 60) % 24 < 12 ? L10n.tr("time.am") : L10n.tr("time.pm")
     }
 

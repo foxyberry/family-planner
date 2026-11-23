@@ -1,5 +1,4 @@
 import AppSettings
-import BusClient
 import ComposableArchitecture
 import DesignSystem
 import Domain
@@ -11,27 +10,10 @@ import ScheduleStore
 import SchoolDirectory
 import Strings
 
-/// The kids' home screen: each kid's slots for today and the time now (boards A1, E1, E3).
+/// The kids' home screen (spec A1, layout v75): the picked kid's 24-hour clock and the family's next
+/// things, nearest at the bottom over the kid chips (boards A1, A1m, A1b, A1n, A1z, A1k, E1, E3).
 @Reducer
 public struct HomeFeature {
-    /// Kid A's block on the right panel (spec "Now and next on home").
-    /// ux-states: home, Kid A block
-    public enum KidABlock: Equatable, Sendable {
-        /// A1 / A1m / E1: "Leave in" with the way picture and the minutes to the leave time.
-        case leave
-        /// A1n: "Bed in" and the time left, then tomorrow's outing (no Next row: it would be Sleep).
-        case bedTime(HomeModel.TimeLeft, tomorrow: AheadRow?)
-        /// E3 / E3b: the one Next row ("in 45 min" within the hour, else "at 2:00 pm"; layout v74).
-        /// After midnight, while the night's Sleep goes on, A1z's row is this one too.
-        case next(NextItem)
-        /// A1z: after bedtime (Sleep has started), or whenever today has nothing left, one row for the
-        /// next day with a plan: its first outing ("leave {h:mm}"), else its first thing ("at {h:mm}").
-        case tomorrow(AheadRow)
-        /// A1z: without the row, nothing at all in the next 14 days, so Kid A shows the name only
-        /// (spec "Night", layout v74).
-        case nothing
-    }
-
     public struct KidDay: Equatable, Sendable {
         public var kid: Kid
         public var dayType: DayType
@@ -59,12 +41,6 @@ public struct HomeFeature {
             self.tomorrowSlots = tomorrowSlots
             self.missions = missions
         }
-    }
-
-    /// The open window of the first kid who has missions in it, and the part the label names.
-    struct OpenWindow: Equatable {
-        var day: KidDay
-        var part: MissionWindow
     }
 
     @ObservableState
@@ -109,203 +85,133 @@ public struct HomeFeature {
         /// What the kid screens show: the sky switch's choice, else the plan.
         public var look: KidLook { skyOverride ?? plannedLook }
 
-        /// Board 0g2 new slot: the current slot's start; when it changes, its picture hops.
-        public var currentSlotStart: Int? {
-            DayPlanner.now(at: minute, in: days.first?.slots ?? []).current?.start
-        }
-
         /// Board 0g2 on the hour: the hand's disc pulses when this changes.
         public var hour: Int { minute / 60 }
 
-        /// Spec "Hub text" (layout v71, board E3h): today is a public holiday; the weekday turns red.
+        /// Spec A1 "Hub": today is a public holiday; the weekday turns red and its name sits under the time.
         public var isPublicHoliday = false
         /// Today's public holiday's name ("Deepavali"), from the bundled list.
         public var holidayName: String?
-        /// The name of Kid A's (the clock kid's) school break today ("June holidays").
-        public var breakName: String?
-
-        /// The right panel's first line (spec "Hub text"): always the full weekday.
-        public var dayHeading: String? { dayName }
-
-        /// The caption under the weekday (spec "Hub text", board E3h): the public holiday's name, else
-        /// on a weekday (spec E3 "Weekday school holiday") the name of Kid A's school break. The only
-        /// holiday sign on the kid screen; nil leaves the line out.
-        public var dayNote: String? {
-            if isPublicHoliday { return holidayName }
-            guard let weekday, Weekday.schoolDays.contains(weekday) else { return nil }
-            return breakName
-        }
-
-        /// The name line pushes the rest of the panel down by its 32 (`HomeLayout(dayNote:)`).
-        public var hasDayNote: Bool { dayNote != nil }
 
         /// Every kid's items today, for the missions and Bring of their outings.
         public var items: [ScheduleItem] = []
 
-        /// Spec "Mission windows": the first kid whose open window has missions, and the first part
-        /// with missions in it (the morning runs from wake-up to the first leave, or noon).
-        var openWindow: OpenWindow? {
-            for day in days {
-                guard let span = DayPlanner.window(at: minute, in: day.windows) else { continue }
-                let list = DayPlanner.missions(in: span, routine: day.missions, items: items, weekday: weekday ?? .monday,
-                                               schoolBring: day.kid.school?.bring ?? [])
-                if let part = list.first?.window { return OpenWindow(day: day, part: part) }
+        /// Spec A1 "Next things": the family's next things, nearest first (worked out on every load
+        /// and tick with the app's calendar).
+        public var things: [NextThing] = []
+
+        /// Spec A1 "Kid chips": the kid a chip tap picked; the clock goes back to the next card's kid
+        /// 10 s after the last touch, and at once when the next card's kid changes.
+        public var tappedKid: Kid.ID?
+        /// The next card's kid when the chip was tapped.
+        public var tappedCardKid: Kid.ID?
+
+        /// Spec A1 "Mission rows" (design, 2026-11-23): each outing has its own list, its Bring (School's
+        /// own Bring, or the item's), and on the day's first outing the kid's morning routine missions
+        /// too. An outing whose list is not empty is a mission row.
+        func missionOutings(_ day: KidDay) -> [Slot] {
+            let outings = day.slots.filter { $0.trip != nil }
+            let routine = day.missions.contains { $0.days.contains(weekday ?? .monday) }
+            return outings.enumerated().compactMap { index, slot in
+                let bring: [ItemMission] = switch slot.source {
+                case .routine: slot.kind == .school ? day.kid.school?.bring ?? [] : []
+                case let .weekly(id), let .once(id): items.first { $0.id == id }?.bring ?? []
+                }
+                return !bring.isEmpty || (index == 0 && routine) ? slot : nil
             }
-            return nil
-        }
-
-        /// Home offers the missions button while a kid's open window has missions.
-        public var showsMissions: Bool { openWindow != nil }
-
-        /// The button's label (spec "Home button label per window"): "Missions", "Before Swimming"; a
-        /// name too long for one line falls back to "Missions".
-        public var missionsTitle: String {
-            guard let open = openWindow else { return strings.tr("home.missions") }
-            let label: String
-            switch open.part {
-            case let .before(event): label = strings.tr("home.missions.before", title(of: event, in: open.day))
-            case .morning, .evening: return strings.tr("home.missions")
-            }
-            return label.count <= Self.longestMissionsTitle ? label : strings.tr("home.missions")
-        }
-
-        /// The most characters that fit the 382 button with its arrow in head type.
-        static let longestMissionsTitle = 16
-
-        private func title(of event: EventRef, in day: KidDay) -> String {
-            day.slots.first { EventRef($0) == event }?.title ?? ""
-        }
-
-        /// Kid A's outing that the open window leads to, when it starts within 3 hours.
-        public var morningOuting: Outing? {
-            guard let first = days.first, let outing = DayPlanner.window(at: minute, in: first.windows)?.outing,
-                  outing.slot.start - minute <= 180 else { return nil }
-            return outing
-        }
-
-        /// "Leave in" (spec A1m, v132): the countdown runs to the outing's leave time.
-        public var outingHeading: String? { morningOuting.map { _ in strings.tr("missions.leave_in") } }
-
-        /// Minutes until Kid A leaves: to the chosen bus with live times, else to start − leave before.
-        public var minutesToLeave: Int? {
-            guard let outing = morningOuting else { return nil }
-            if let leaveIn = live?.leaveIn { return max(leaveIn, 0) }
-            return max(outing.leave - minute, 0)
-        }
-
-        /// Kid A's bus route (C2) and the last good live answer (spec "A2 live look", A1 line).
-        public var busPlan: BusPlan?
-        public var arrivals: [BusArrival]?
-        public var arrivalsAt: Date?
-        public var now: Date?
-        public var secondsSinceRefresh = 0
-
-        /// Live numbers for Kid A's bus outing while the answer is under 2 minutes old.
-        public var live: LiveMorning? {
-            guard let outing = morningOuting, outing.trip.way == .bus, let busPlan, !busPlan.routes.isEmpty,
-                  let arrivals, let arrivalsAt,
-                  let now, now.timeIntervalSince(arrivalsAt) < 120 else { return nil }
-            return LiveMorning(arrivals: arrivals, plan: busPlan, minute: minute, start: outing.slot.start)
-        }
-
-        /// The status under the minutes, only with live times: "On time", "Leave now!", "Ask a grown-up".
-        public var status: (text: String, tone: StatusDot.Tone)? {
-            switch live?.status {
-            case .onTime?: (strings.tr("missions.status.on_time"), .onTime)
-            case .leaveNow?: (strings.tr("missions.status.leave_now"), .hurry)
-            case .askGrownup?: (strings.tr("missions.status.ask"), .quiet)
-            case nil: nil
-            }
-        }
-
-        /// Live times are fetched only for Kid A's next bus outing in an open window.
-        /// A bus morning with a route that has buses: an empty route never calls LTA.
-        var wantsLive: Bool { morningOuting?.trip.way == .bus && !(busPlan?.routes.isEmpty ?? true) }
-
-        public var kidABlock: KidABlock {
-            guard let first = days.first else { return .nothing }
-            if morningOuting != nil { return .leave }
-            guard let next = HomeModel.next(first.slots, minute: minute) else {
-                // Board A1z: nothing left today (after bedtime, or a day with no more plan): the next day.
-                return first.ahead.map(KidABlock.tomorrow) ?? .nothing
-            }
-            // Spec "Kid A, which row": one row only; the item it names shows once (no time left
-            // block over a second row for the same thing).
-            if !showsMissions, let left = HomeModel.bedIn(to: next, minute: minute) {
-                return .bedTime(left, tomorrow: first.ahead)
-            }
-            return .next(next)
-        }
-
-        /// The last part of Kid A's block; Kid B's block hangs 40 below it (layout v17).
-        public var kidAEnd: HomeLayout.KidAEnd {
-            switch kidABlock {
-            case .leave: status == nil ? .timeLeft : .status
-            case let .bedTime(_, tomorrow): tomorrow == nil ? .timeLeft : .timeLeftRow
-            case .next, .tomorrow: .nextRow
-            case .nothing: .name
-            }
-        }
-
-        /// E1 (one kid): the Next row stays under "On time" on a leaving morning and names the next
-        /// thing other than the outing's item (a Breakfast before leaving stays), so the item shows
-        /// once (layout v70).
-        public var leaveNext: NextItem? {
-            guard days.count == 1, kidABlock == .leave, let first = days.first else { return nil }
-            return HomeModel.next(first.slots, minute: minute, skipping: morningOuting?.slot)
         }
 
         // MARK: What the view shows (it holds no values of its own)
 
-        /// Kid A's slots, drawn on the clock (none before the family loads).
-        public var clockSlots: [Slot] { days.first?.slots ?? [] }
+        /// The nearest thing: the next card, 24 above the chips.
+        public var nextCard: NextThing? { things.first }
+        /// The later things that fit above the card (spec A1 "Items": the farthest drop off the top).
+        public var laterRows: [NextThing] {
+            let later = Array(things.dropFirst())
+            return Array(later.prefix(HomeLayout.rowsThatFit(later.map(\.isMission))))
+        }
+
+        /// Which later rows are mission rows (taller), nearest first: `HomeLayout.row(_:of:)` places them.
+        public var laterRowKinds: [Bool] { laterRows.map(\.isMission) }
+
+        /// Whose day the clock shows: the tapped kid, else the next card's first kid, else the first kid.
+        public var clockKid: Kid.ID? { tappedKid ?? nextCard?.kids.first ?? days.first?.kid.id }
+        public var clockDay: KidDay? { days.first { $0.kid.id == clockKid } ?? days.first }
+
+        /// The clock kid's slots, drawn on the clock (none before the family loads).
+        public var clockSlots: [Slot] { clockDay?.slots ?? [] }
         public var clockSectors: [ClockSector] { HomeModel.sectors(clockSlots, minute: minute) }
-        public var clockHub: PieClock.Hub { HomeModel.hub(clockSlots, minute: minute) }
         /// The hand, only when there is a day to point into.
         public var clockHand: Int? { clockSlots.isEmpty ? nil : minute }
-
-        /// A1 / A1m: "Leave in" over the minutes to leave, while Kid A's outing is near.
-        public var leaveTimeLeft: HomeModel.TimeLeft? {
-            guard let heading = outingHeading, let minutes = minutesToLeave else { return nil }
-            return HomeModel.TimeLeft(label: heading, minutes: minutes)
+        /// The rim in the clock kid's colour.
+        public var clockRim: Int? { clockDay?.kid.colorIndex }
+        /// Spec A1 "Hub": the clock kid's face, the full weekday and the time; on a public holiday the
+        /// weekday is red with the holiday's name under the time, and no face.
+        public var clockHub: PieClock.Hub {
+            PieClock.Hub(face: isPublicHoliday ? nil : clockDay.map { KidFace.Badge(face: $0.kid.face, colorIndex: $0.kid.colorIndex) },
+                         weekday: dayName ?? "", time: TimeText.clock(minute), period: TimeText.period(minute),
+                         holiday: isPublicHoliday ? holidayName : nil)
         }
 
-        /// The second kid's Now row and Next row (layout v68, spec "Kid B block"); the Next row is
-        /// left out when nothing is next. Next follows the same rule as Kid A's, so it never names
-        /// what is on now.
-        public struct KidBRows: Equatable, Sendable {
-            public var kid: Kid
-            public var now: NowItem
-            public var next: NextItem?
+        /// Board 0g2 new slot: the clock kid's current slot's start; when it changes, its picture hops.
+        public var currentSlotStart: Int? { DayPlanner.now(at: minute, in: clockSlots).current?.start }
+
+        /// One kid chip (spec A1 "Kid chips").
+        public struct Chip: Equatable, Identifiable, Sendable {
+            public var id: Kid.ID
+            public var face: KidFace.Badge
+            /// What the kid is doing now (the play picture with nothing planned now).
+            public var picture: KitSlot
+            /// Only with one kid (board E1).
+            public var name: String?
+            public var isPicked: Bool
         }
 
-        public var kidB: KidBRows? {
-            guard days.count > 1 else { return nil }
-            let day = days[1]
-            return KidBRows(kid: day.kid, now: HomeModel.now(day.slots, minute: minute, tomorrow: day.tomorrowSlots),
-                            next: HomeModel.next(day.slots, minute: minute, tomorrow: day.tomorrowSlots))
-        }
-
-        /// Kid B's Now row caption.
-        public var nowLabel: String { strings.tr("home.now") }
-
-        /// A1 / A1m: the way picture beside "Leave in" (the bus, the car, ...).
-        public var leavePicture: KitSlot? { morningOuting.map { KitSlot(iconName: $0.trip.way.moverPicture) } }
-
-        /// The Next row's caption (Kid A's and Kid B's).
-        public var nextLabel: String { strings.tr("home.next") }
-
-        /// Board A1z: the caption of Kid A's row for the next day, before midnight.
-        public var tomorrowLabel: String { strings.tr("home.tomorrow") }
-
-        /// The Tomorrow row's caption (spec #261): "Tomorrow"; 2–6 days away the weekday ("Saturday");
-        /// 7 or more the short date ("Tue 1 Dec"), so a weekday never reads as this week's.
-        public func aheadCaption(_ row: AheadRow) -> String {
-            switch row.inDays {
-            case ...1: tomorrowLabel
-            case 2...6: DayText.name(row.weekday)
-            default: DayText.short(row.day, weekday: row.weekday)
+        public var chips: [Chip] {
+            days.map { day in
+                let current = DayPlanner.now(at: minute, in: day.slots).current
+                let picture = current.flatMap { $0.kind == .free ? nil : KitSlot(iconName: $0.iconName) } ?? .actPlay
+                return Chip(id: day.kid.id, face: KidFace.Badge(face: day.kid.face, colorIndex: day.kid.colorIndex),
+                            picture: picture, name: days.count == 1 ? day.kid.name : nil,
+                            isPicked: day.kid.id == clockKid)
             }
+        }
+
+        /// Spec A1 "The time cell": within 60 minutes "{n} min" over the dots (one red per 10 minutes
+        /// left, rounded up); later today the clock time; another day "Tomorrow" / the weekday (2–6
+        /// days) / "Tue 1 Dec" (7 and more) over the time.
+        public func timeCell(_ thing: NextThing) -> TimeCellContent {
+            guard thing.inDays == 0 else {
+                let label = switch thing.inDays {
+                case ...1: strings.tr("home.tomorrow")
+                case 2...6: DayText.name(thing.weekday)
+                default: DayText.short(thing.day, weekday: thing.weekday)
+                }
+                return .day(label: label, time: TimeText.withPeriod(thing.act))
+            }
+            let left = max(thing.act - minute, 0)
+            guard left <= 60 else { return .at(time: TimeText.clock(thing.act), period: TimeText.period(thing.act)) }
+            return .soon(number: "\(left)", unit: strings.tr("home.min"), dots: (left + 9) / 10)
+        }
+
+        /// The kids' faces under a row's title, in family order.
+        public func faces(_ thing: NextThing) -> [KidFace.Badge] {
+            thing.kids.compactMap { id in
+                days.first { $0.kid.id == id }.map { KidFace.Badge(face: $0.kid.face, colorIndex: $0.kid.colorIndex) }
+            }
+        }
+
+        /// A mission row's hatch: the kid's colour, or the shared one for an outing of two or more kids.
+        public func hatch(_ thing: NextThing) -> NextThingRow.Hatch? {
+            guard thing.isMission else { return nil }
+            guard thing.kids.count == 1, let kid = days.first(where: { $0.kid.id == thing.kids[0] }) else { return .shared }
+            return .kid(kid.kid.colorIndex)
+        }
+
+        /// For 10 s after a chip tap the other kids' rows drop to 30 %.
+        public func isFaded(_ thing: NextThing) -> Bool {
+            guard let tappedKid else { return false }
+            return !thing.kids.contains(tappedKid)
         }
     }
 
@@ -321,7 +227,7 @@ public struct HomeFeature {
         case clockHoldCompleted
         /// Board G0: the pencil; the app opens the grown-up lock.
         case pencilTapped
-        /// Board G0 (layout v74): the calendar button; the app opens the school calendar (K1), no lock.
+        /// Board G0 (layout v75): the calendar button; the app opens the school calendar (K1), no lock.
         case calendarTapped
         /// The kid tapped the day/night switch (board 0g).
         case skySwitchTapped
@@ -331,11 +237,17 @@ public struct HomeFeature {
         /// The kid tapped the drawn slot that starts at this minute.
         case slotTapped(Int)
         case playEnded(Int)
-        /// "Missions →" in a mission window; the app opens the missions screen.
+        /// Opens the missions screen (the driver's "missionsTapped"); the app opens A2.
         case missionsTapped
-        case refresh
-        case arrivalsLoaded([BusArrival]?, at: Date)
+        /// Spec A1 "Mission rows": a mission row or card for this kid; the app opens A2 for that kid.
+        case missionRowTapped(Kid.ID)
+        /// Spec A1 "Kid chips": the clock turns to this kid's day and the others' rows fade for 10 s.
+        case kidChipTapped(Kid.ID)
+        /// 10 s passed after the last touch: back to the family view.
+        case chipTimeUp
     }
+
+    private enum ChipID: Hashable { case timer }
 
     @Dependency(\.calendar) var calendar
     @Dependency(\.date) var date
@@ -343,7 +255,6 @@ public struct HomeFeature {
     @Dependency(\.scheduleStore) var scheduleStore
     @Dependency(\.holidays) var holidays
     @Dependency(\.schoolDirectory) var schoolDirectory
-    @Dependency(\.bus) var bus
 
     public init() {}
 
@@ -358,6 +269,23 @@ public struct HomeFeature {
                 state.minute = minute(of: now)
                 return .send(.reload)
 
+            case let .kidChipTapped(kid):
+                state.idleSeconds = 0
+                // One kid (board E1): the chip does nothing.
+                guard state.days.count > 1 else { return .none }
+                state.tappedKid = kid
+                state.tappedCardKid = state.nextCard?.kids.first
+                return chipTimer
+
+            case .chipTimeUp:
+                state.tappedKid = nil
+                state.tappedCardKid = nil
+                return .none
+
+            case .missionRowTapped:
+                state.idleSeconds = 0
+                return .none
+
             case let .tick(now):
                 state.idleSeconds += 1
                 if state.idleSeconds >= 20 {
@@ -366,34 +294,17 @@ public struct HomeFeature {
                 }
                 let day = Day(now, calendar: calendar)
                 let planned = state.plannedLook
-                state.minute = minute(of: now)
-                state.now = now
-                state.secondsSinceRefresh += 1
-                // Live times every 30 s on a bus morning (the tick comes every second from the root).
-                let refresh: Effect<Action> = state.wantsLive && state.secondsSinceRefresh >= 30 ? .send(.refresh) : .none
+                let newMinute = self.minute(of: now)
                 // The next planned change (evening routine, wake-up) clears the switch's choice.
+                let changed = newMinute != state.minute
+                state.minute = newMinute
                 if state.plannedLook != planned { state.skyOverride = nil }
+                let follow: Effect<Action> = changed ? listChanged(&state) : .none
                 // Before the first load `.task` sets the day; only a real day change reloads.
-                guard let today = state.today, day != today else { return refresh }
+                guard let today = state.today, day != today else { return follow }
                 state.today = day
                 state.weekday = day.weekday(calendar)
-                return .merge(refresh, .send(.reload))
-
-            case .refresh:
-                state.secondsSinceRefresh = 0
-                // S4 "Live bus times" off: no LTA call; home shows the timetable look.
-                guard state.wantsLive, let plan = state.busPlan else { return .none }
-                return .run { [bus, date] send in
-                    let arrivals = try? await bus.arrivals(plan.stop)
-                    await send(.arrivalsLoaded(arrivals, at: date.now))
-                }
-
-            case let .arrivalsLoaded(arrivals, at):
-                guard let arrivals else { return .none }
-                state.arrivals = arrivals
-                state.arrivalsAt = at
-                state.now = at
-                return .none
+                return .merge(follow, .send(.reload))
 
             case .reload:
                 guard let year = state.today?.year else { return .none }
@@ -409,9 +320,9 @@ public struct HomeFeature {
             case let .loaded(snapshot, family):
                 guard let snapshot, let today = state.today else {
                     state.days = []
+                    state.things = []
                     state.isPublicHoliday = false
                     state.holidayName = nil
-                    state.breakName = nil
                     return .none
                 }
                 // G7 / G4: a school move or hours change whose day has come becomes the record, then the day reloads.
@@ -460,11 +371,7 @@ public struct HomeFeature {
                 state.items = items
                 state.isPublicHoliday = family.publicHolidays.contains(today)
                 state.holidayName = family.holidayName(on: today)
-                state.breakName = snapshot.kids.first.flatMap { family.breakName($0.id, on: today) }
-                state.busPlan = snapshot.kids.first.flatMap { kid in
-                    snapshot.busPlans.route(kid: kid.id)?.graced(by: kid)
-                }
-                return state.wantsLive ? .send(.refresh) : .none
+                return listChanged(&state)
 
             case let .clockPressed(start):
                 state.heldSlotStart = start
@@ -497,7 +404,8 @@ public struct HomeFeature {
 
             case .touched:
                 state.idleSeconds = 0
-                return .none
+                // A touch while a chip is picked restarts its 10 s.
+                return state.tappedKid == nil ? .none : chipTimer
 
             case let .slotTapped(start):
                 state.idleSeconds = 0
@@ -517,6 +425,30 @@ public struct HomeFeature {
                 return .none
             }
         }
+    }
+
+    /// Spec A1 "Kid chips": back to the family view 10 s after the last touch.
+    private var chipTimer: Effect<Action> {
+        .run { [clock] send in
+            try await clock.sleep(for: .seconds(10))
+            await send(.chipTimeUp)
+        }
+        .cancellable(id: ChipID.timer, cancelInFlight: true)
+    }
+
+    /// Works the family's next things out again; a tapped chip lets go at once when the next card's
+    /// kid changes (spec A1 "Pie clock").
+    private func listChanged(_ state: inout State) -> Effect<Action> {
+        guard let today = state.today else { return .none }
+        let days = state.days.map { day in
+            HomeNext.KidDay(kid: day.kid.id, today: day.slots, tomorrow: day.tomorrowSlots, ahead: day.ahead,
+                            missionOutings: state.missionOutings(day))
+        }
+        state.things = HomeNext.things(days, minute: state.minute, today: today, calendar: calendar)
+        guard state.tappedKid != nil, state.nextCard?.kids.first != state.tappedCardKid else { return .none }
+        state.tappedKid = nil
+        state.tappedCardKid = nil
+        return .cancel(id: ChipID.timer)
     }
 
     /// Spec "Kid A, which row" (layout v74): the first of the next 14 days with something to name.

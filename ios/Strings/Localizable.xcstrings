@@ -2058,17 +2058,6 @@
         }
       }
     },
-    "home.hub.nothing" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing planned"
-          }
-        }
-      }
-    },
     "home.hub.until" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2080,35 +2069,13 @@
         }
       }
     },
-    "home.missions" : {
+    "home.min" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Missions"
-          }
-        }
-      }
-    },
-    "home.missions.before" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Before %@"
-          }
-        }
-      }
-    },
-    "home.next" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next"
+            "value" : "min"
           }
         }
       }
@@ -2120,39 +2087,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "at %@"
-          }
-        }
-      }
-    },
-    "home.next.bed_in" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bed in"
-          }
-        }
-      }
-    },
-    "home.next.in_min" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "in %@ min"
-          }
-        }
-      }
-    },
-    "home.now" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Now"
           }
         }
       }

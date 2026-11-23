@@ -109,17 +109,11 @@ final class HomeSweepTests: XCTestCase {
         }
     }
 
-    /// Kid A's block case, its end, E1's Next row, Kid B's Now and Next (titles, or "-").
+    /// The clock kid, the next card and the later rows' titles (with their kids' count).
     private static func describe(_ home: HomeFeature.State) -> [String] {
-        let block: String = switch home.kidABlock {
-        case .leave: "leave"
-        case .bedTime: "bedTime"
-        case let .next(item): "next(\(item.title))"
-        case let .tomorrow(row): "tomorrow(\(row.item.title))"
-        case .nothing: "nothing"
-        }
-        return [block, "\(home.kidAEnd)", home.leaveNext?.title ?? "-",
-                home.kidB?.now.title ?? "-", home.kidB?.next?.title ?? "-"]
+        let card = home.nextCard.map { "\($0.title)×\($0.kids.count)\($0.isMission ? "!" : "")" } ?? "-"
+        let rows = home.laterRows.map { "\($0.title)×\($0.kids.count)" }.joined(separator: ",")
+        return [home.clockDay?.kid.name ?? "-", card, rows.isEmpty ? "-" : rows]
     }
 
     /// Frames at a quarter size, 8 to a row, each with its label above.
