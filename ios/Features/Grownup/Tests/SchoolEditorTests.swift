@@ -654,4 +654,36 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(kids.value.last?.school?.lists?.wayHome, .bus)
         XCTAssertEqual(kids.value.last?.school?.lists?.homeAfter, 5)
     }
+
+    /// #289 review: on This day the Before and Back rows are off and their edits go back to the record's.
+    func testThisDayTurnsTheListRowsOff() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("walk"))
+        await store.send(.backDoneTapped)
+        await store.send(.scopeTapped(.thisDay))
+        XCTAssertFalse(store.state.listRowsEnabled)
+        XCTAssertEqual(store.state.lists.wayHome, .none, "the All-days edit goes back")
+        await store.send(.backRowTapped)
+        XCTAssertFalse(store.state.isBackOpen, "the row is off")
+    }
+
+    /// #289 review: an item after School on some days leaves Back on School; one on every school day ends
+    /// the chain itself.
+    func testBackStaysUnlessAFollowerRunsEverySchoolDay() {
+        var state = SchoolEditorFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
+        state.school = SeedData.kidA.school
+        var swim = SeedData.items(today: tuesday, calendar: F.calendar)[0]
+        swim.after = .school
+        swim.audience = .kid(SeedData.kidA.id)
+        swim.recurrence = .weekly([.monday], from: tuesday, until: nil)
+        state.items = [swim]
+        XCTAssertTrue(state.showsBack, "Monday only")
+        swim.recurrence = .weekly(Weekday.schoolDays, from: tuesday, until: nil)
+        state.items = [swim]
+        XCTAssertFalse(state.showsBack)
+    }
 }

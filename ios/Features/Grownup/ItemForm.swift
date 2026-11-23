@@ -51,6 +51,12 @@ public struct ItemForm: Equatable, Sendable {
     /// The item's lists and way home (issue 024): the Before and Back rows edit them.
     public var lists = EventLists()
 
+    /// Lists and Bring belong to outings (a trip, or after an event): an item that stopped being one
+    /// keeps none (#289 review: its Before and Back rows are hidden).
+    var isOuting: Bool { trip != nil || after != nil }
+    var outingLists: EventLists { isOuting ? lists : EventLists() }
+    var outingBring: [ItemMission] { isOuting ? bring : [] }
+
     /// Board F2: a bundle on or off the before list (each bundle belongs to one kid).
     public mutating func toggleBundle(_ id: MissionBundle.ID) {
         if let index = lists.before.firstIndex(of: id) { lists.before.remove(at: index) } else { lists.before.append(id) }
@@ -500,23 +506,23 @@ public struct ItemForm: Equatable, Sendable {
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .weekly(days, from: max(date, today), until: until), skippedDays: [],
                                 skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
-                                bring: bring,
+                                bring: outingBring,
                                 runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool,
-                                lists: lists)
+                                lists: outingLists)
         case .monthly:
             // Board C3m: the picked date is the first one.
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .monthly(monthlyRule, from: max(date, today), until: until),
                                 skippedDays: [], skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
-                                bring: bring,
+                                bring: outingBring,
                                 runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool,
-                                lists: lists)
+                                lists: outingLists)
         case .once:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .once(date), skippedDays: [], skipsHolidays: false,
                                 showsStar: showsStar, trip: trip, after: after,
-                                bring: bring,
-                                afterGap: after == nil ? 0 : afterGap, lists: lists)
+                                bring: outingBring,
+                                afterGap: after == nil ? 0 : afterGap, lists: outingLists)
         }
     }
 

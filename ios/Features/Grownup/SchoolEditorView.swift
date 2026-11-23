@@ -227,15 +227,18 @@ public struct SchoolEditorView: View {
                     Text(store.nothingText).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 }
             }
+            // Before and Back follow All days: off on This day (#289 review).
+            .offLook(store.listRowsEnabled)
             if store.showsBack {
                 linkRow(store.backLabel, action: .backRowTapped) {
                     if let text = store.backText {
                         if let picture = store.backPicture { KitIcon(picture, size: sizing(48)) }
                         Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
                     } else {
-                        Text(store.nothingText).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                        Text(store.backNoneText).crayonType(.body).foregroundStyle(CrayonColor.softText)
                     }
                 }
+                .offLook(store.listRowsEnabled)
             }
             ListRow(leading: store.medalLabel, minHeight: sizing.fieldHeight) {
                 Button { store.send(.medalToggled) } label: {

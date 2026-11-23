@@ -38,11 +38,15 @@ extension ItemEditorFeature.State {
     /// Before is shown on outings only: an item with a trip, or one linked after another event.
     public var showsBefore: Bool { form.trip != nil || form.after != nil }
 
-    /// Back is only on the last event of a chain: no other item follows this one.
+    /// Back is only on an outing that ends its chain: no other item follows it on every day it runs
+    /// (a follower on some days leaves the rest to this one).
     public var showsBack: Bool {
+        guard showsBefore else { return false }
         guard let id = editingItem?.id else { return true }
-        return !(snapshot?.items ?? []).contains { $0.after == .item(id) }
+        return !(snapshot?.items ?? []).contains { $0.after == .item(id) && form.days.isSubset(of: $0.weeklyDays) }
     }
+    /// The Back row with no way home (spec: "None").
+    public var backNoneText: String { strings.tr("going.none") }
 
     /// The Before row's value (spec): the picked bundles' names, then the Bring names; nil is "Nothing".
     public var beforeText: String? {

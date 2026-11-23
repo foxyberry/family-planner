@@ -614,4 +614,36 @@ final class ItemEditorTests: XCTestCase {
         await store.send(.cardClosed)
         XCTAssertEqual(store.state.form.lists.wayHome, .pickup, "a tap outside puts it back")
     }
+
+    /// #289 review: an item at home (no trip, not after an event) has no Before or Back, and saves no lists.
+    func testAnItemAtHomeHasNoListsToSave() async {
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let store = store(mode: .add(kidA), saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.goingTapped(.car))
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("pickup"))
+        await store.send(.cardDoneTapped)
+        await store.send(.goingTapped(nil))
+        XCTAssertFalse(store.state.showsBefore)
+        XCTAssertFalse(store.state.showsBack)
+        XCTAssertEqual(store.state.form.item(id: UUID(), today: F.monday).lists, EventLists())
+    }
+
+    /// #289 review: This day has no Before or Back; a change made on All days goes back when This day is
+    /// picked, so a This-day save drops nothing silently.
+    func testThisDayPutsTheListsBack() async {
+        let swim = SeedData.items(today: F.monday, calendar: F.calendar)[0]
+        let store = store(mode: .editWeekly(swim), items: [swim])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("pickup"))
+        await store.send(.cardDoneTapped)
+        XCTAssertEqual(store.state.form.lists.wayHome, .pickup)
+        await store.send(.scopeTapped(.thisDay))
+        XCTAssertEqual(store.state.form.lists, swim.lists)
+    }
 }

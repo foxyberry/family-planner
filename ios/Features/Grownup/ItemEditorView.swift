@@ -365,7 +365,7 @@ public struct ItemEditorView: View {
                         Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
                     }
                 } else {
-                    nothing
+                    Text(store.backNoneText).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 }
             }
         }

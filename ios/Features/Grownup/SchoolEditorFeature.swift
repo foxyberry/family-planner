@@ -256,8 +256,14 @@ public struct SchoolEditorFeature {
         public var bundleChips: [BundleChip] {
             bundles.filter { $0.kid == kid }.map { .init(id: $0.id, name: $0.name, isOn: lists.before.contains($0.id)) }
         }
-        /// Back is on School only while no item follows it for this kid (it is then the chain's end).
-        public var showsBack: Bool { !items.contains { $0.after == .school && $0.audience.includes(kid) } }
+        /// Back is on School unless an item follows it for this kid on every school day (then that item
+        /// ends the chain; a follower on some days leaves the rest to School).
+        public var showsBack: Bool {
+            let days = school?.days ?? []
+            return !items.contains { $0.after == .school && $0.audience.includes(kid) && days.isSubset(of: $0.weeklyDays) }
+        }
+        /// Before and Back follow All days: on This day their rows are off.
+        public var listRowsEnabled: Bool { !isThisDay }
         public var backChoices: [ChoiceCircles.Choice] { BackCopy.choices(lists.wayHome, strings: strings) }
         public var showsTakes: Bool { lists.wayHome != .none }
         /// Board F7's "Takes" stepper; nil for None.
@@ -269,6 +275,8 @@ public struct SchoolEditorFeature {
         public var homeAfterText: String { strings.tr("c2.minutes", lists.homeAfter) }
         public var homeAfterEnds: StepEnds { StepRange.homeAfter.ends(lists.homeAfter) }
         public var backText: String? { BackCopy.text(lists, strings: strings) }
+        /// The Back row with no way home (spec: "None").
+        public var backNoneText: String { strings.tr("going.none") }
         public var backPicture: KitSlot? { BackCopy.picture(lists) }
 
         /// Changes the school's lists in place.
@@ -566,6 +574,13 @@ public struct SchoolEditorFeature {
 
             case let .scopeTapped(scope):
                 state.editScope = scope
+                // This day saves only the day's hours: Before and Back go back to the record's and their
+                // rows are off (#289 review).
+                if scope == .thisDay {
+                    let original = state.original
+                    state.school?.lists = original?.lists
+                    state.school?.bring = original?.bring
+                }
                 return .none
 
             case .moeTermsToggled:
@@ -573,6 +588,7 @@ public struct SchoolEditorFeature {
                 return .none
 
             case .bringRowTapped:
+                guard state.listRowsEnabled else { return .none }
                 state.bringWas = state.bring
                 state.listsWas = state.school?.lists
                 state.isPickingMoreBring = false
@@ -585,6 +601,7 @@ public struct SchoolEditorFeature {
                 return .none
 
             case .backRowTapped:
+                guard state.listRowsEnabled else { return .none }
                 state.listsWas = state.school?.lists
                 state.isBackOpen = true
                 return .none

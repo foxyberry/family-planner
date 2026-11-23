@@ -31,7 +31,7 @@ public struct EventLists: Hashable, Codable, Sendable {
         self.afterBundles = afterBundles
         self.afterMissions = afterMissions
         self.wayHome = wayHome
-        self.homeAfter = StepRange.leave.clamp(homeAfter / 5 * 5)
+        self.homeAfter = StepRange.homeAfter.clamp(homeAfter / 5 * 5)
     }
 
     private enum CodingKeys: String, CodingKey { case before, afterBundles, afterMissions, wayHome, homeAfter }

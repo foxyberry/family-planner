@@ -800,6 +800,12 @@ public struct ItemEditorFeature {
 
             case let .scopeTapped(scope):
                 state.editScope = scope
+                // Lists and Bring are the series' (This day has no Before or Back rows): they go back to
+                // the item's, so nothing set on All days is dropped by a This-day save (#289 review).
+                if scope == .thisDay {
+                    state.form.lists = state.original.lists
+                    state.form.bring = state.original.bring
+                }
                 return .none
 
             case let .goingTapped(way):

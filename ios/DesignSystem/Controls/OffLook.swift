@@ -12,7 +12,7 @@ extension View {
     /// Draws the off look when `isEnabled` is false: the control at 40 % as one picture, disabled
     /// (UI tests read it) and taking no taps. Without `compositingGroup` each layer fades on its own,
     /// and a switch's track shows through its knob.
-    func offLook(_ isEnabled: Bool) -> some View {
+    public func offLook(_ isEnabled: Bool) -> some View {
         compositingGroup()
             .opacity(isEnabled ? 1 : OffLook.opacity)
             .disabled(!isEnabled)
