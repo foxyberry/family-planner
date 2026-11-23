@@ -29,8 +29,11 @@ public struct PillToggle: View {
 
     /// The pill's width on `sizing`: worked out on the board, × s.
     public static func width(_ title: String, then: String?, sizing: Sizing) -> CGFloat {
-        guard let then else { return sizing(size.width) }
         let board = Sizing.thirteenInch
+        // A name longer than the 180 pill (a bundle, board F2) widens it to its bold words.
+        guard let then else {
+            return sizing(max(size.width, CrayonType.head.width(title, sizing: board, bold: true) + textMargin))
+        }
         let words = CrayonType.head.width(title, sizing: board, bold: true) + CrayonType.head.width(then, sizing: board, bold: true)
         return sizing(words + 2 * Spacing.xs + arrow + textMargin)
     }

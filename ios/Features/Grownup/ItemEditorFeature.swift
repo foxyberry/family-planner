@@ -31,7 +31,7 @@ public struct ItemEditorFeature {
     /// A form row's card (boards F1–F4), with the form as it was when it opened: Done keeps the
     /// changes, Cancel or a tap outside puts the form back.
     public struct Card: Equatable, Sendable {
-        public enum Kind: Equatable, Sendable { case from, bring, runsEnd, noSchool }
+        public enum Kind: Equatable, Sendable { case from, before, back, runsEnd, noSchool }
         public var kind: Kind
         public var was: ItemForm
     }
@@ -142,6 +142,8 @@ public struct ItemEditorFeature {
 
         /// The Bring card shows the whole kit ("More").
         public var isPickingMoreBring = false
+        /// Board F2k: the kid whose bundles the Before card shows (an event for more than one kid).
+        public var beforeKid: Kid.ID?
 
         /// The From card's choices (Home, then events this item can follow).
         public var fromChoices: [ItemForm.FromChoice] {
@@ -335,7 +337,6 @@ public struct ItemEditorFeature {
         public var goingLabel: String { strings.tr("going.label") }
         public var leaveLabel: String { strings.tr("going.leave") }
         /// The Bring row's label, also board F2's title.
-        public var bringLabel: String { strings.tr("editor.row.bring") }
         public var medalLabel: String { strings.tr("editor.row.medal") }
         /// Layout v45: "Once · Weekly · Monthly".
         public var repeatTabs: [(ItemForm.Repeat, String)] {
@@ -615,7 +616,14 @@ public struct ItemEditorFeature {
         /// Event rows (spec "Event form rows for 6b"): From, Bring, Medal.
         case fromRowTapped
         case fromPicked(String)
-        case bringRowTapped
+        /// Board F2: the Before row opens its card (bundles and Bring).
+        case beforeRowTapped
+        case beforeKidPicked(Kid.ID)
+        case bundleToggled(MissionBundle.ID)
+        /// Board F7: the Back row opens its card (the way home and its minutes).
+        case backRowTapped
+        case wayHomePicked(String)
+        case homeAfterStepped(Int)
         case bringToggled(KitSlot)
         /// A circle on the Bring row: a thing toggles, "More" opens every picture.
         case bringCircleTapped(String)
@@ -900,9 +908,30 @@ public struct ItemEditorFeature {
                 }
                 return .none
 
-            case .bringRowTapped:
-                state.card = Card(kind: .bring, was: state.form)
+            case .beforeRowTapped:
+                state.card = Card(kind: .before, was: state.form)
                 state.isPickingMoreBring = false
+                state.beforeKid = state.listKids.first?.id
+                return .none
+
+            case let .beforeKidPicked(kid):
+                state.beforeKid = kid
+                return .none
+
+            case let .bundleToggled(id):
+                state.form.toggleBundle(id)
+                return .none
+
+            case .backRowTapped:
+                state.card = Card(kind: .back, was: state.form)
+                return .none
+
+            case let .wayHomePicked(id):
+                if let way = WayHome(rawValue: id) { state.form.setWayHome(way) }
+                return .none
+
+            case let .homeAfterStepped(step):
+                state.form.stepHomeAfter(step)
                 return .none
 
             case let .bringToggled(slot):

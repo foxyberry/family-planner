@@ -620,6 +620,30 @@ final class ComponentSnapshotTests: XCTestCase {
         .frame(height: 480), width: 720, named: "from")
     }
 
+    /// Issue 024 boards F2k and F7 (layout v77): the Before card with kid tabs, bundle pills and Bring;
+    /// the Back card with Pickup picked and its "Takes" stepper.
+    func testBeforeAndBackCards() {
+        let kidA = KidFace.Badge(face: "kidGirl", colorIndex: 0), kidB = KidFace.Badge(face: "kidBoy", colorIndex: 1)
+        snap(BeforeCard(title: "Before", kidTabs: [(0, "Kid A", kidA), (1, "Kid B", kidB)], kid: .constant(0),
+                        bundlesCaption: "Bundles",
+                        chips: [BundleChip(id: UUID(), name: "Morning routine", isOn: true),
+                                BundleChip(id: UUID(), name: "Swim day", isOn: false)],
+                        bringCaption: "Bring", done: "Done", cancel: "Cancel", onToggle: { _ in }, onDone: {}, onCancel: {}) {
+            ChoiceCircles([.init(id: "swimsuit", picture: .swimsuit, caption: "Swimsuit", isPicked: true),
+                           .init(id: "waterBottle", picture: .waterBottle, caption: "Water bottle", isPicked: false),
+                           .init(id: "more", picture: nil, caption: "", isPicked: false, word: "More")]) { _ in }
+        }
+        .frame(height: 640), width: 720, named: "before")
+        snap(BackCard(title: "Back",
+                      choices: [.init(id: "pickup", picture: .car, caption: "Pickup", isPicked: true),
+                                .init(id: "bus", picture: .busDouble, caption: "Bus", isPicked: false),
+                                .init(id: "walk", picture: .shoe, caption: "Walk", isPicked: false),
+                                .init(id: "none", picture: nil, caption: "None", isPicked: false)],
+                      takes: .init(label: "Takes", value: "20 min", canMinus: true, canPlus: true), done: "Done",
+                      cancel: "Cancel", onPick: { _ in }, onStep: { _ in }, onDone: {}, onCancel: {})
+            .frame(height: 540), width: 720, named: "back")
+    }
+
     /// Board G5 (layout v69): the From when card with Date picked (its field) and the caption; the
     /// 232 middle tab picked with a long date (bold, round ends, no "…"); no middle tab (two tabs).
     func testFromWhenCard() {

@@ -24,6 +24,6 @@ enum Fixture {
     }
 
     static func snapshot(items: [ScheduleItem]) -> ScheduleSnapshot {
-        ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: items)
+        ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: items, missions: SeedData.missions)
     }
 }

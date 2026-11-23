@@ -171,7 +171,7 @@ final class ScreenSnapshotTests: XCTestCase {
         let editor = store.state.path.ids[0]
         await store.send(.path(.element(id: editor, action: .editor(.task))))
         await store.receive(\.path[id: editor].editor.loaded)
-        await store.send(.path(.element(id: editor, action: .editor(.bringRowTapped))))
+        await store.send(.path(.element(id: editor, action: .editor(.beforeRowTapped))))
         snap(store.state, world, size: Self.sizes[1].size, named: "mini")
     }
 

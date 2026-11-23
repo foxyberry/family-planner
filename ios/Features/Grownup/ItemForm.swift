@@ -48,8 +48,22 @@ public struct ItemForm: Equatable, Sendable {
     public var after: EventRef?
     /// "Bring", up to `ItemMission.most`.
     public var bring: [ItemMission] = []
-    /// The item's lists and way home (issue 024): kept through an edit until the form has their rows.
+    /// The item's lists and way home (issue 024): the Before and Back rows edit them.
     public var lists = EventLists()
+
+    /// Board F2: a bundle on or off the before list (each bundle belongs to one kid).
+    public mutating func toggleBundle(_ id: MissionBundle.ID) {
+        if let index = lists.before.firstIndex(of: id) { lists.before.remove(at: index) } else { lists.before.append(id) }
+    }
+
+    /// Board F7: how the kid comes home; None keeps the minutes for a later pick.
+    public mutating func setWayHome(_ way: WayHome) { lists.wayHome = way }
+
+    /// Board F7 "Takes": −/+ 5 minutes, 0–90.
+    public mutating func stepHomeAfter(_ step: Int) {
+        lists.homeAfter = StepRange.homeAfter.clamp(lists.homeAfter + 5 * step)
+    }
+    public var homeAfterEnds: StepEnds { StepRange.homeAfter.ends(lists.homeAfter) }
     /// Runs (board G2): how an every-week item's run ends; `date` is its start.
     public var runsEnd: RunsEndKind = .none
     public var untilDate: Day

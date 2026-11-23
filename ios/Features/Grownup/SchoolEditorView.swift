@@ -71,6 +71,7 @@ public struct SchoolEditorView: View {
         }
         .overlay {
             if store.isBringOpen { bringCard }
+            if store.isBackOpen { backCard }
             if store.isAskingFromWhen {
                 CrayonColor.dim.fullBleed()
                     .onTapGesture { store.send(.fromWhenCancelTapped) }
@@ -97,11 +98,13 @@ public struct SchoolEditorView: View {
                      onSave: { store.send(.fromWhenSaveTapped) }, onCancel: { store.send(.fromWhenCancelTapped) })
     }
 
-    /// Board F2 over G4: School's things to bring, up to four; "More" shows the whole kit.
+    /// Board F2 over G4 (issue 024): Before, the kid's bundles, then School's things to bring (up to
+    /// four; "More" shows the whole kit).
     private var bringCard: some View {
-        FormCard(title: store.bringLabel, size: CGSize(width: 640, height: 420), done: store.bringDoneTitle,
-                 cancel: store.bringCancelTitle, onDone: { store.send(.bringDoneTapped) },
-                 onCancel: { store.send(.bringClosed) }) {
+        BeforeCard<Kid.ID, _>(title: store.beforeLabel, kidTabs: [], kid: nil, bundlesCaption: store.bundlesCaption,
+                              chips: store.bundleChips, bringCaption: store.bringLabel, done: store.bringDoneTitle,
+                              cancel: store.bringCancelTitle, onToggle: { store.send(.bundleToggled($0)) },
+                              onDone: { store.send(.bringDoneTapped) }, onCancel: { store.send(.bringClosed) }) {
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 ScrollView {
                     IconPicker(picked: store.bringPicked, slots: store.bringSlots, columns: 5) { store.send(.bringToggled($0)) }
@@ -113,6 +116,14 @@ public struct SchoolEditorView: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    /// Board F7 over G4: how the kid comes home from School, and how long it takes.
+    private var backCard: some View {
+        BackCard(title: store.backLabel, choices: store.backChoices, takes: store.backTakes, done: store.bringDoneTitle,
+                 cancel: store.bringCancelTitle, onPick: { store.send(.wayHomePicked($0)) },
+                 onStep: { store.send(.homeAfterStepped($0)) }, onDone: { store.send(.backDoneTapped) },
+                 onCancel: { store.send(.backClosed) })
     }
 
     private func linkRow(_ label: String, action: SchoolEditorFeature.Action, @ViewBuilder value: () -> some View)
@@ -208,12 +219,22 @@ public struct SchoolEditorView: View {
                 if let picture = store.goingPicture { KitIcon(KitSlot(iconName: picture), size: sizing(48)) }
                 Text(store.goingText).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
             }
-            linkRow(store.bringLabel, action: .bringRowTapped) {
-                if let picture = store.bringFirstPicture, let text = store.bringText {
-                    KitIcon(KitSlot(iconName: picture), size: sizing(48))
+            linkRow(store.beforeLabel, action: .bringRowTapped) {
+                if let text = store.beforeText {
+                    if let picture = store.bringFirstPicture { KitIcon(KitSlot(iconName: picture), size: sizing(48)) }
                     Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 } else {
                     Text(store.nothingText).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                }
+            }
+            if store.showsBack {
+                linkRow(store.backLabel, action: .backRowTapped) {
+                    if let text = store.backText {
+                        if let picture = store.backPicture { KitIcon(picture, size: sizing(48)) }
+                        Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                    } else {
+                        Text(store.nothingText).crayonType(.body).foregroundStyle(CrayonColor.softText)
+                    }
                 }
             }
             ListRow(leading: store.medalLabel, minHeight: sizing.fieldHeight) {

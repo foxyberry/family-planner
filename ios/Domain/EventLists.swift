@@ -22,16 +22,19 @@ public struct EventLists: Hashable, Codable, Sendable {
     /// Things to do back home, shared by every kid on the event.
     public var afterMissions: [ItemMission]
     public var wayHome: WayHome
+    /// The way home's minutes ("Takes", board F7): 0–90 in steps of 5. A pickup leaves at end − this.
+    public var homeAfter: Int
 
     public init(before: [MissionBundle.ID] = [], afterBundles: [MissionBundle.ID] = [],
-                afterMissions: [ItemMission] = [], wayHome: WayHome = .none) {
+                afterMissions: [ItemMission] = [], wayHome: WayHome = .none, homeAfter: Int = 0) {
         self.before = before
         self.afterBundles = afterBundles
         self.afterMissions = afterMissions
         self.wayHome = wayHome
+        self.homeAfter = StepRange.leave.clamp(homeAfter / 5 * 5)
     }
 
-    private enum CodingKeys: String, CodingKey { case before, afterBundles, afterMissions, wayHome }
+    private enum CodingKeys: String, CodingKey { case before, afterBundles, afterMissions, wayHome, homeAfter }
 
     /// Any part missing (a later field) loads empty.
     public init(from decoder: Decoder) throws {
@@ -39,7 +42,8 @@ public struct EventLists: Hashable, Codable, Sendable {
         self.init(before: try c.decodeIfPresent([MissionBundle.ID].self, forKey: .before) ?? [],
                   afterBundles: try c.decodeIfPresent([MissionBundle.ID].self, forKey: .afterBundles) ?? [],
                   afterMissions: try c.decodeIfPresent([ItemMission].self, forKey: .afterMissions) ?? [],
-                  wayHome: try c.decodeIfPresent(WayHome.self, forKey: .wayHome) ?? .none)
+                  wayHome: try c.decodeIfPresent(WayHome.self, forKey: .wayHome) ?? .none,
+                  homeAfter: try c.decodeIfPresent(Int.self, forKey: .homeAfter) ?? 0)
     }
 }
 

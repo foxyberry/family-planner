@@ -56,7 +56,8 @@ public struct ItemEditorView: View {
             if let card = store.card {
                 switch card.kind {
                 case .from: fromCard
-                case .bring: bringCard
+                case .before: beforeCard
+                case .back: backCard
                 case .runsEnd: runsEndCard
                 case .noSchool: noSchoolCard
                 }
@@ -342,14 +343,30 @@ public struct ItemEditorView: View {
             }
         }
         if store.showsGoing { goingRows }
-        linkRow(store.bringLabel, action: .bringRowTapped) {
-            if let first = store.form.bring.first, let text = store.form.bringText {
-                HStack(spacing: sizing(Spacing.sm)) {
-                    KitIcon(KitSlot(iconName: first.picture), size: sizing(48))
-                    Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+        // Issue 024 (board G2b, layout v77): Before (bundles and Bring) on outings, Back (the way home)
+        // on the last event of a chain, 70 apart, then Medal.
+        if store.showsBefore {
+            linkRow(store.beforeLabel, action: .beforeRowTapped) {
+                if let text = store.beforeText {
+                    HStack(spacing: sizing(Spacing.sm)) {
+                        if let picture = store.beforePicture { KitIcon(picture, size: sizing(48)) }
+                        Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                    }
+                } else {
+                    nothing
                 }
-            } else {
-                nothing
+            }
+        }
+        if store.showsBack {
+            linkRow(store.backLabel, action: .backRowTapped) {
+                if let text = store.backText {
+                    HStack(spacing: sizing(Spacing.sm)) {
+                        if let picture = store.backPicture { KitIcon(picture, size: sizing(48)) }
+                        Text(text).crayonType(.body).foregroundStyle(CrayonColor.ink).lineLimit(1)
+                    }
+                } else {
+                    nothing
+                }
             }
         }
         row(store.medalLabel) {
@@ -441,9 +458,13 @@ public struct ItemEditorView: View {
         }
     }
 
-    /// Board F2 Bring: up to four things in one row and "More", which opens every object picture.
-    private var bringCard: some View {
-        formCard(store.bringLabel, width: 640) {
+    /// Board F2 / F2k Before: the kid's bundles and Bring (four things and "More").
+    private var beforeCard: some View {
+        BeforeCard(title: store.beforeLabel, kidTabs: store.beforeKidTabs,
+                   kid: store.beforeKidShown.map { kid in Binding(get: { kid }, set: { store.send(.beforeKidPicked($0)) }) },
+                   bundlesCaption: store.bundlesCaption, chips: store.bundleChips, bringCaption: store.bringCaption,
+                   done: store.cardDoneTitle, cancel: store.cardCancelTitle, onToggle: { store.send(.bundleToggled($0)) },
+                   onDone: { store.send(.cardDoneTapped) }, onCancel: { store.send(.cardClosed) }) {
             VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
                 ChoiceCircles(store.bringRow) { store.send(.bringCircleTapped($0)) }
                 if store.isPickingMoreBring {
@@ -454,6 +475,14 @@ public struct ItemEditorView: View {
                 }
             }
         }
+    }
+
+    /// Board F7 Back: the way home and how long it takes.
+    private var backCard: some View {
+        BackCard(title: store.backLabel, choices: store.backChoices, takes: store.backTakes, done: store.cardDoneTitle,
+                 cancel: store.cardCancelTitle, onPick: { store.send(.wayHomePicked($0)) },
+                 onStep: { store.send(.homeAfterStepped($0)) }, onDone: { store.send(.cardDoneTapped) },
+                 onCancel: { store.send(.cardClosed) })
     }
 
     /// Board C3g: how the kid goes, and when they leave (Walk, Car, Taxi) or "Uses Our buses ›".
