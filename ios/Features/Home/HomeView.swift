@@ -112,7 +112,7 @@ public struct HomeView: View {
         }
         ForEach(Array(store.chips.enumerated()), id: \.element.id) { index, chip in
             KidChip(face: chip.face, picture: chip.picture, name: chip.name, isPicked: chip.isPicked,
-                    compact: store.chipsAreCompact, look: store.look) {
+                    fit: store.chipFit, look: store.look) {
                 store.send(.kidChipTapped(chip.id))
             }
             .place(layout.chip(index, of: store.chips.count))

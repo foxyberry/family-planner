@@ -311,7 +311,7 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.chips.map(\.id), SeedData.kids.map(\.id))
         XCTAssertEqual(store.state.chips.filter(\.isPicked).map(\.id), [store.state.clockKid].compactMap { $0 })
         XCTAssertTrue(store.state.chips.allSatisfy { $0.name == nil }, "two kids: no names on the chips")
-        XCTAssertFalse(store.state.chipsAreCompact, "two kids: the full chips")
+        XCTAssertEqual(store.state.chipFit, .regular, "two kids: the full chips")
         let swimming = things.first { $0.title == "Swimming" }
         XCTAssertEqual(swimming?.kids, [SeedData.kidA.id])
         XCTAssertEqual(swimming.map { store.state.timeCell($0) }, .at(time: "3:20", period: "pm"), "leave 10 before 3:30")
@@ -343,15 +343,20 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertTrue(store.state.things.allSatisfy { !store.state.isFaded($0) })
     }
 
-    /// Three kids or more: compact chips (design answer, 2026-11-23).
-    func testThreeKidsHaveCompactChips() {
-        var kidC = SeedData.kidB
-        kidC.id = UUID()
-        kidC.colorIndex = 2
+    /// Chip fit by the number of kids (design answer, 2026-11-23): three compact, four the face alone.
+    func testChipsFitThreeAndFourKids() {
+        let extra = (2...3).map { index in
+            var kid = SeedData.kidB
+            kid.id = UUID()
+            kid.colorIndex = index
+            return kid
+        }
         var state = HomeFeature.State()
-        state.days = [SeedData.kidA, SeedData.kidB, kidC].map { HomeFeature.KidDay(kid: $0, dayType: .weekday, slots: []) }
-        XCTAssertTrue(state.chipsAreCompact)
-        XCTAssertEqual(state.chips.count, 3)
+        state.days = ([SeedData.kidA, SeedData.kidB] + extra.prefix(1)).map { HomeFeature.KidDay(kid: $0, dayType: .weekday, slots: []) }
+        XCTAssertEqual(state.chipFit, .compact)
+        state.days = ([SeedData.kidA, SeedData.kidB] + extra).map { HomeFeature.KidDay(kid: $0, dayType: .weekday, slots: []) }
+        XCTAssertEqual(state.chipFit, .faceOnly)
+        XCTAssertEqual(state.chips.count, 4)
     }
 
     /// One kid (board E1): one chip with the name; a tap does nothing.

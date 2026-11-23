@@ -168,8 +168,14 @@ public struct HomeFeature {
             public var isPicked: Bool
         }
 
-        /// Three kids or more: compact chips (design answer, 2026-11-23).
-        public var chipsAreCompact: Bool { days.count >= 3 }
+        /// The chips' fit by the number of kids (design answer, 2026-11-23): three compact, four the face alone.
+        public var chipFit: KidChip.Fit {
+            switch days.count {
+            case ...2: .regular
+            case 3: .compact
+            default: .faceOnly
+            }
+        }
 
         public var chips: [Chip] {
             days.map { day in
