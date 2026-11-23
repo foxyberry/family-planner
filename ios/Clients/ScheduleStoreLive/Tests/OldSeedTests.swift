@@ -50,7 +50,8 @@ final class OldSeedTests: XCTestCase {
     }
 
     /// Writes records straight into the store file, as an older build of the app left them.
-    private func writeStore(seedVersion: Int?, routinePayload: String, kidPayload: String? = nil) throws {
+    private func writeStore(seedVersion: Int?, routinePayload: String, kidPayload: String? = nil,
+                            missions: [Mission] = []) throws {
         let url = directory.appendingPathComponent(ScheduleStore.liveFileName)
         let container = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
         let context = ModelContext(container)
@@ -62,6 +63,10 @@ final class OldSeedTests: XCTestCase {
                                    skippedDays: [], skipsHolidays: true, showsStar: false)
         context.insert(StoredRecord(key: "item:\(pottery.id)", group: "item", order: 0,
                                     payload: try JSONEncoder().encode(pottery)))
+        for mission in missions {
+            context.insert(StoredRecord(key: "mission:\(mission.id)", group: "mission", order: mission.order,
+                                        payload: try JSONEncoder().encode(mission)))
+        }
         if let seedVersion {
             context.insert(StoredRecord(key: "meta:seeded", group: "meta", order: 0,
                                         payload: try JSONEncoder().encode(seedVersion)))
@@ -103,5 +108,19 @@ final class OldSeedTests: XCTestCase {
         XCTAssertEqual(kids, [SeedData.kidA])
         XCTAssertNil(kids.first?.pendingHours)
         XCTAssertNil(kids.first?.pendingSchool)
+    }
+
+    /// Issue 024: missions stored one by one before bundles become each kid's Morning routine, once,
+    /// and read back the same (`missions` is the Morning routines).
+    func testOldMissionsBecomeEachKidsMorningRoutine() async throws {
+        let routine = String(decoding: try JSONEncoder().encode(SeedData.routines[0]), as: UTF8.self)
+        try writeStore(seedVersion: 3, routinePayload: routine, missions: SeedData.missions)
+        let snapshot = try await ScheduleStore.live(directory: directory).load()
+        XCTAssertEqual(Set(snapshot.missions), Set(SeedData.missions))
+        XCTAssertEqual(Set(snapshot.bundles.map(\.kid)), [SeedData.kidA.id, SeedData.kidB.id])
+        XCTAssertTrue(snapshot.bundles.allSatisfy(\.isMorning))
+        XCTAssertEqual(snapshot.bundles.first { $0.kid == SeedData.kidA.id }?.name, "Morning routine")
+        let again = try await ScheduleStore.live(directory: directory).load()
+        XCTAssertEqual(again.bundles.count, 2, "moved once, never doubled")
     }
 }

@@ -74,6 +74,9 @@ private final class Database: Sendable {
                 // Per-day mission marks from before mission windows (2026-11-09) were development data
                 // only: they are dropped, not moved (user decision).
                 try Records(context: ModelContext(container!)).dropOldMissionDays()
+                // Issue 024: missions are kept in bundles; a store from before keeps its missions as each
+                // kid's Morning routine.
+                try Records(context: ModelContext(container!)).moveMissionsIntoBundles()
             }
             return try body(Records(context: ModelContext(container!)))
         }
@@ -101,8 +104,8 @@ private struct Records {
         for item in family.items {
             try insert("item:\(item.id)", group: "item", order: 0, item)
         }
-        for mission in family.missions {
-            try insert("mission:\(mission.id)", group: "mission", order: mission.order, mission)
+        for (index, bundle) in family.bundles.enumerated() {
+            try insert(Self.bundleKey(bundle.id), group: "bundle", order: index, bundle)
         }
         for plan in family.busPlans {
             try insert(Self.planKey(plan), group: "busPlan", order: 0, plan)
@@ -112,7 +115,7 @@ private struct Records {
 
     func snapshot() throws -> ScheduleSnapshot {
         ScheduleSnapshot(kids: try values("kid"), routines: try values("routine"), items: try values("item"),
-                         missions: try values("mission"), busPlans: try values("busPlan"))
+                         bundles: try values("bundle"), busPlans: try values("busPlan"))
     }
 
     /// Replaces the kid's record in place (keeping its order); a new kid (G6f "Add a child") goes
@@ -155,17 +158,36 @@ private struct Records {
         try context.save()
     }
 
+    /// The kid's Morning routine takes `missions` (kept in place, or added after the other bundles).
     func put(_ missions: [Mission], of kid: Kid.ID) throws {
-        for old in try fetch("mission") {
-            if let mission = try? decoder.decode(Mission.self, from: old.payload), mission.kid == kid {
-                context.delete(old)
-            }
-        }
-        for mission in missions {
-            try insert("mission:\(mission.id)", group: "mission", order: mission.order, mission)
-        }
+        let key = Self.bundleKey(MissionBundle.morningID(for: kid))
+        let existing = try fetch("bundle")
+        let old = existing.first { $0.key == key }
+        var bundle = old.flatMap { try? decoder.decode(MissionBundle.self, from: $0.payload) }
+            ?? MissionBundle.morning(kid: kid, missions: [])
+        bundle.missions = missions.sorted { $0.order < $1.order }
+        let order = old?.order ?? existing.count
+        if let old { context.delete(old) }
+        try insert(key, group: "bundle", order: order, bundle)
         try context.save()
     }
+
+    /// Missions stored one by one (before issue 024) become each kid's Morning routine, once; a kid
+    /// that already has one keeps it.
+    func moveMissionsIntoBundles() throws {
+        let old = try fetch("mission")
+        guard !old.isEmpty else { return }
+        let missions = old.compactMap { try? decoder.decode(Mission.self, from: $0.payload) }
+        let existing = try fetch("bundle")
+        for (index, bundle) in MissionBundle.mornings(from: missions).enumerated()
+        where !existing.contains(where: { $0.key == Self.bundleKey(bundle.id) }) {
+            try insert(Self.bundleKey(bundle.id), group: "bundle", order: existing.count + index, bundle)
+        }
+        for record in old { context.delete(record) }
+        try context.save()
+    }
+
+    static func bundleKey(_ id: UUID) -> String { "bundle:\(id)" }
 
     func windowMissions(kid: Kid.ID, date: Day, window: MissionWindow) throws -> WindowMissions {
         let key = Self.windowKey(kid: kid, date: date, window: window)

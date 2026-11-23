@@ -153,7 +153,7 @@ public final class World: Sendable {
         }
         values.scheduleStore.delete = { id in family.withValue { $0.items.removeAll { $0.id == id } } }
         values.scheduleStore.saveMissions = { kid, missions in
-            family.withValue { $0.missions.removeAll { $0.kid == kid }; $0.missions += missions }
+            family.withValue { $0.setMissions(missions, of: kid) }
         }
         // A2's marks and slides, kept like the store keeps them.
         let marks = marks, slides = slides
