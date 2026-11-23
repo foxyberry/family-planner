@@ -1,5 +1,5 @@
 {
- "version": "76",
+ "version": "77",
  "board": "A1p",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -351,17 +351,6 @@
    "align": "inside"
   },
   {
-   "id": "panel.rowButton",
-   "kind": "button",
-   "x": 916,
-   "y": 465,
-   "w": 420,
-   "h": 81,
-   "region": "panel",
-   "anchor": "stretch",
-   "align": "end"
-  },
-  {
    "id": "clock.slotPicture.15",
    "kind": "picture",
    "x": 154,
@@ -411,9 +400,9 @@
   {
    "id": "panel.rowTime.1",
    "kind": "text",
-   "x": 939,
+   "x": 943,
    "y": 578,
-   "w": 101,
+   "w": 97,
    "h": 36,
    "region": "panel",
    "anchor": "stretch",

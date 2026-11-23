@@ -35,11 +35,11 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
   - A `Mission` keeps today's shape `{ id, name, picture, order }` and its **days** (Library bag: Thursdays).
   - Seed bundles per kid: "Morning routine" (today's morning missions). "Evening routine" stays later.
 - **Event lists** only on **outings**. An outing is an item with a trip, or an item linked into a chain that starts with one; template slot, every-week and just-once items all count, and School is included. Items that are not outings carry no lists (user, 2026-11-22: a day with no outing has no event to get ready for, so it has no missions).
-  - **before**: `{ bundles: [bundleId], bring: [KitSlot ≤ 4] }`. The Bring row stays as built (up to 4).
+  - **before**: `{ bundles: [bundleId], bring: [KitSlot ≤ 4] }`. Bring is the picker inside the Before card, as built (up to 4).
   - **after**: `{ bundles: [bundleId], items: [Mission] }`. Optional; things to do back home.
   - Both are empty by default. Seed: School's before = Morning routine bundle + Backpack.
 - **Link** (`From`, as built). The **before** list of the chain's first event shows the Bring of every event linked after it, each picture once. Swimming after school puts the swimsuit on School's list, because the kid packs it in the morning. A linked event still has its own list, which opens from its own row.
-- **Way home** (designer's call, replacing a bare pickup switch): a row on the event, `wayHome: pickup | bus | walk | none`, default none.
+- **Way home** (designer's call, replacing a bare pickup switch; the form row is labelled "Back"): a row on the event, `wayHome: pickup | bus | walk | none`, default none.
   - It belongs to the **last** event of a chain, because the kid comes home only after it. A linked event with no trip of its own (Swimming after School) has it.
   - `homeAfter` (built) is its minutes.
   - Only **pickup** makes a home row. Pickup leave = end − `homeAfter`.
@@ -74,8 +74,11 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 - **Pickup rows**: never tappable, never hatched. The time cell and dots work as for any row; the dots help a grown-up too.
 - **Moments are not drawn on the clock.** The clock shows what each time is for; moments live in the list only.
 
+## Build order
+- First: bundles, before lists, Back (way home) and the pickup row. **Later** (user, 2026-11-23): the after list, its back-home row and A2h; the model keeps an empty `after` so no second migration is needed. Before that step, decide what fills A2h's top area (a candidate: the rest of the evening as pictures).
+
 ## Scope
-- Before, After and Way home follow the form's **This day / All days** like Bring does today (`EventException` gains them).
+- Before, After and Back follow the form's **This day / All days** like Bring did (`EventException` gains them).
 
 ## A2 (the list screen)
 - **A2 follows the opened event** (designer's call):
@@ -88,7 +91,7 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 ## Screens touched
 - **G2 / G4 / C3 / C4 (event forms):**
   - the Bring row becomes **Before**, opening a card with bundle chips and the Bring picker;
-  - new rows **After** (same card, without the slide) and **Pickup** (a switch);
+  - new rows **After** (bundles and the event's own missions) and **Back**, the way home (`ChoiceCircles`: Pickup, Bus, Walk, None, with its minutes);
   - G4 (School) gets the same rows.
 - **C5:** becomes the bundle editor. It keeps the mission editor, `Days` and the 8-per-kid cap per bundle.
 - **Home A1 / E1 / E3 / A1n:** the row rules above.
@@ -99,11 +102,7 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 - Storage of bundles next to missions.
 - The exact migration code.
 - How the form's Before card lays out its bundle chips: follow `ChoiceCircles` / `DayChip` patterns, then board it.
-- Boards to draw before the build:
-  - G2 Before / After / Pickup rows and their card;
-  - C5 as bundles;
-  - A1 with pickup and back-home rows;
-  - A2 opened from an after list.
+- Boards (drawn): G2b and G4 rows, cards F2 / F2k / F6 / F7, C5 as bundles, A2h opened from a back-home list (layout v77); A1p with the moment rows (v76). The kit `pickup` picture comes with the next art batch.
 
 ## To check on the iPad
 - Do kids tell the three moments apart by picture alone?
