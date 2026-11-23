@@ -7,18 +7,32 @@ public struct ScheduleSnapshot: Equatable, Sendable {
     public var kids: [Kid]
     public var routines: [Routine]
     public var items: [ScheduleItem]
-    /// Every kid's morning missions (spec "MVP data"), in no particular order; sort by `order`.
-    public var missions: [Mission]
+    /// Every kid's mission bundles (spec "Morning data", issue 024): the stored form of missions.
+    public var bundles: [MissionBundle]
     /// Each kid's bus route (C2 "Our buses", plan A). Stop codes and bus numbers stay on the iPad.
     public var busPlans: [BusPlan]
 
+    /// Every kid's Morning routine missions, in no particular order (sort by `order`): what C5, A2 and
+    /// Setup read until they move to bundles.
+    public var missions: [Mission] { bundles.filter(\.isMorning).flatMap(\.missions) }
+
+    /// The kid's Morning routine takes `missions` (as `saveMissions` does in a store).
+    public mutating func setMissions(_ missions: [Mission], of kid: Kid.ID) {
+        if let index = bundles.firstIndex(where: { $0.id == MissionBundle.morningID(for: kid) }) {
+            bundles[index].missions = missions.sorted { $0.order < $1.order }
+        } else {
+            bundles.append(MissionBundle.morning(kid: kid, missions: missions))
+        }
+    }
+
+    /// `missions` become each kid's Morning routine; `bundles`, when given, are kept as they are.
     public init(kids: [Kid], routines: [Routine], items: [ScheduleItem], missions: [Mission] = [],
-                busPlans: [BusPlan] = []) {
+                bundles: [MissionBundle]? = nil, busPlans: [BusPlan] = []) {
         self.busPlans = busPlans
         self.kids = kids
         self.routines = routines
         self.items = items
-        self.missions = missions
+        self.bundles = bundles ?? MissionBundle.mornings(from: missions)
     }
 }
 
