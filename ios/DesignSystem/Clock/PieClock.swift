@@ -243,7 +243,7 @@ public struct PieClock: View {
             if let name = hub.holiday {
                 hubLine(Text(name).font(Font(FontRegistrar.font(size: 24 * k, weight: .medium)))
                             .foregroundStyle(CrayonColor.softText),
-                        size: 24, baseline: 580)
+                        size: 24, baseline: 580, width: Self.lineWidth)
             }
         }
         .frame(width: 2 * hubR, height: 2 * hubR)
@@ -252,12 +252,13 @@ public struct PieClock: View {
     }
 
     /// One centred line whose baseline sits at `baseline` on the board (hub centre y 528); `size` is
-    /// the line's largest type (board), which sets its ascender. A long line ends with "…" (176 wide).
-    private func hubLine(_ text: some View, size: CGFloat, baseline: CGFloat) -> some View {
+    /// the line's largest type (board), which sets its ascender. A long line ends with "…".
+    /// `width`: the line's room (board); the weekday and the time keep their full width.
+    private func hubLine(_ text: some View, size: CGFloat, baseline: CGFloat, width: CGFloat = 2 * hubRadius) -> some View {
         let font = FontRegistrar.font(size: size * k, weight: .bold)
         let top = hubR + (baseline - 528) * k - font.ascender
         return text.lineLimit(1).truncationMode(.tail).monospacedDigit()
-            .frame(maxWidth: Self.lineWidth * k)
+            .frame(maxWidth: width * k)
             .position(x: hubR, y: top + font.lineHeight / 2)
     }
 
