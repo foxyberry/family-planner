@@ -447,4 +447,13 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(ItemForm.label(for: "tv"), "TV")
     }
 
+
+    /// Issue 024: an item's lists and way home survive an edit in the form (it has no rows for them yet).
+    func testAnEditKeepsTheItemsLists() {
+        var item = SeedData.items(today: F.monday, calendar: F.calendar)[0]
+        item.lists = EventLists(before: [MissionBundle.morningID(for: SeedData.kidA.id)], wayHome: .pickup)
+        var form = ItemForm(item: item)
+        form.name = "Swimming club"
+        XCTAssertEqual(form.item(id: item.id, today: F.monday).lists, item.lists)
+    }
 }

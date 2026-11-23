@@ -105,7 +105,10 @@ final class OldSeedTests: XCTestCase {
             + #""school":{"name":"Example Primary School","days":[2,3,4,5,6],"start":450,"end":900}}"#
         try writeStore(seedVersion: 3, routinePayload: routine, kidPayload: kid)
         let kids = try await ScheduleStore.live(directory: directory).load().kids
-        XCTAssertEqual(kids, [SeedData.kidA])
+        // The seed's School carries the Morning routine (issue 024); a kid stored before has no lists.
+        var stored = SeedData.kidA
+        stored.school?.lists = nil
+        XCTAssertEqual(kids, [stored])
         XCTAssertNil(kids.first?.pendingHours)
         XCTAssertNil(kids.first?.pendingSchool)
     }
@@ -141,5 +144,16 @@ final class OldSeedTests: XCTestCase {
         XCTAssertEqual(snapshot.bundles.filter { $0.kid == SeedData.kidA.id }.count, 1)
         XCTAssertEqual(Set(snapshot.missions.filter { $0.kid == SeedData.kidB.id }),
                        Set(SeedData.missions.filter { $0.kid == SeedData.kidB.id }), "Kid B's still move")
+    }
+
+    /// Issue 024 (design answer, 2026-11-23): converting a store's missions also puts each such kid's
+    /// Morning routine on School's before list.
+    func testConvertedMissionsGoOnSchoolsBeforeList() async throws {
+        let routine = String(decoding: try JSONEncoder().encode(SeedData.routines[0]), as: UTF8.self)
+        let kid = #"{"id":"\#(SeedData.kidA.id)","name":"Kid A","colorIndex":0,"age":8,"schoolYear":"Year 3","#
+            + #""school":{"name":"Example Primary School","days":[2,3,4,5,6],"start":450,"end":900}}"#
+        try writeStore(seedVersion: 3, routinePayload: routine, kidPayload: kid, missions: SeedData.missions)
+        let snapshot = try await ScheduleStore.live(directory: directory).load()
+        XCTAssertEqual(snapshot.kids.first?.school?.lists?.before, [MissionBundle.morningID(for: SeedData.kidA.id)])
     }
 }

@@ -73,7 +73,10 @@ public enum DayPlanner {
                 ? Slot(title: L10n.tr("home.hub.free"), iconName: "", kind: .free, start: block.start, end: block.end,
                        source: .routine, showsStar: false)
                 : Slot(title: block.title, iconName: block.iconName, kind: block.kind, start: block.start,
-                       end: block.end, source: .routine, showsStar: false, trip: block.trip)))
+                       end: block.end, source: .routine, showsStar: false, trip: block.trip,
+                       // School's lists and Bring live on the school record (issue 024, board G4).
+                       lists: block.kind == .school ? kid.school?.lists ?? EventLists() : block.lists,
+                       bring: block.kind == .school ? kid.school?.bring ?? [] : [])))
         }
         let occurring = items.filter { occurs($0, on: day, kid: kid.id, holidays: holidays, calendar: calendar) }
             .map { $0.on(day) }
@@ -86,7 +89,7 @@ public enum DayPlanner {
                                Slot(title: item.title, iconName: item.iconName, kind: item.kind, start: start,
                                     end: start + item.end - item.start, source: source,
                                     showsStar: item.showsStar && !item.isRepeating, trip: item.trip,
-                                    after: item.after)))
+                                    after: item.after, lists: item.lists, bring: item.bring)))
         }
         candidates.sort { ($0.priority, $0.slot.start) > ($1.priority, $1.slot.start) }
 

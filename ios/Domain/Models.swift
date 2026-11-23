@@ -39,6 +39,8 @@ public struct School: Hashable, Codable, Sendable {
     public var dayHours: [SchoolDayHours]?
     /// School's own Bring (board G4, F2): checked in the window before leaving for school.
     public var bring: [ItemMission]?
+    /// School's lists and way home (issue 024), kept with its Bring; nil (stored before) is none.
+    public var lists: EventLists?
 
     public init(name: String, days: Set<Weekday>, start: Int, end: Int, directoryID: String? = nil,
                 usesMoeTerms: Bool? = nil, arriveBy: Int? = nil, latest: Int? = nil, kind: SchoolKind? = nil,
@@ -487,11 +489,15 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
     public var afterGap: Int
     /// An item after School on a day without School: nil skips it, a plan keeps it at a set time.
     public var noSchool: NoSchoolPlan?
+    /// An outing's lists and way home (issue 024).
+    public var lists: EventLists
 
     public init(id: UUID, title: String, iconName: String, audience: Audience, start: Int, end: Int,
                 recurrence: Recurrence, skippedDays: Set<Day>, skipsHolidays: Bool, showsStar: Bool,
                 trip: Trip? = nil, after: EventRef? = nil, bring: [ItemMission] = [], runsEnd: RunsEnd? = nil,
-                dayChanges: [DayChange] = [], afterGap: Int = 0, noSchool: NoSchoolPlan? = nil) {
+                dayChanges: [DayChange] = [], afterGap: Int = 0, noSchool: NoSchoolPlan? = nil,
+                lists: EventLists = EventLists()) {
+        self.lists = lists
         self.runsEnd = runsEnd
         self.dayChanges = dayChanges
         self.afterGap = min(max(afterGap / 5 * 5, 0), 60)
@@ -534,7 +540,7 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id, title, iconName, audience, start, end, recurrence, skippedDays, skipsHolidays, showsStar, trip, after,
-             bring, runsEnd, dayChanges, afterGap, noSchool
+             bring, runsEnd, dayChanges, afterGap, noSchool, lists
     }
 
     /// Items stored before Bring existed load with none. The dropped event missions (2026-11-14,
@@ -555,7 +561,8 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
                   runsEnd: try c.decodeIfPresent(RunsEnd.self, forKey: .runsEnd),
                   dayChanges: try c.decodeIfPresent([DayChange].self, forKey: .dayChanges) ?? [],
                   afterGap: try c.decodeIfPresent(Int.self, forKey: .afterGap) ?? 0,
-                  noSchool: try c.decodeIfPresent(NoSchoolPlan.self, forKey: .noSchool))
+                  noSchool: try c.decodeIfPresent(NoSchoolPlan.self, forKey: .noSchool),
+                  lists: try c.decodeIfPresent(EventLists.self, forKey: .lists) ?? EventLists())
     }
 }
 
@@ -578,11 +585,14 @@ public struct RoutineBlock: Hashable, Codable, Sendable {
     /// Board G1g: skipped on this day's own template. It stays on the editor clock, faded, and is
     /// free time everywhere else (home, the hub, missions).
     public var isSkipped: Bool
+    /// An outing's lists and way home (issue 024). School's live on the school record instead.
+    public var lists: EventLists
 
     public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, isLocked: Bool = false,
-                trip: Trip? = nil, isSkipped: Bool = false) {
+                trip: Trip? = nil, isSkipped: Bool = false, lists: EventLists = EventLists()) {
         self.trip = trip
         self.isSkipped = isSkipped
+        self.lists = lists
         self.title = title
         self.iconName = iconName
         self.kind = kind
@@ -591,7 +601,7 @@ public struct RoutineBlock: Hashable, Codable, Sendable {
         self.isLocked = isLocked
     }
 
-    private enum CodingKeys: String, CodingKey { case title, iconName, kind, start, end, isLocked, trip, isSkipped }
+    private enum CodingKeys: String, CodingKey { case title, iconName, kind, start, end, isLocked, trip, isSkipped, lists }
 
     /// Templates saved before G1g have no `isSkipped`.
     public init(from decoder: Decoder) throws {
@@ -600,7 +610,8 @@ public struct RoutineBlock: Hashable, Codable, Sendable {
                   kind: try c.decode(SlotKind.self, forKey: .kind), start: try c.decode(Int.self, forKey: .start),
                   end: try c.decode(Int.self, forKey: .end), isLocked: try c.decode(Bool.self, forKey: .isLocked),
                   trip: try c.decodeIfPresent(Trip.self, forKey: .trip),
-                  isSkipped: try c.decodeIfPresent(Bool.self, forKey: .isSkipped) ?? false)
+                  isSkipped: try c.decodeIfPresent(Bool.self, forKey: .isSkipped) ?? false,
+                  lists: try c.decodeIfPresent(EventLists.self, forKey: .lists) ?? EventLists())
     }
 }
 
@@ -646,11 +657,17 @@ public struct Slot: Hashable, Sendable {
     public var trip: Trip?
     /// The event this slot follows ("From: After {event}"); it starts when that one ends.
     public var after: EventRef?
+    /// Its lists and way home (issue 024), and its own Bring (School's from the school record).
+    public var lists: EventLists
+    public var bring: [ItemMission]
 
     public init(title: String, iconName: String, kind: SlotKind, start: Int, end: Int, source: Source,
-                showsStar: Bool, trip: Trip? = nil, after: EventRef? = nil) {
+                showsStar: Bool, trip: Trip? = nil, after: EventRef? = nil, lists: EventLists = EventLists(),
+                bring: [ItemMission] = []) {
         self.trip = trip
         self.after = after
+        self.lists = lists
+        self.bring = bring
         self.title = title
         self.iconName = iconName
         self.kind = kind

@@ -186,6 +186,21 @@ private struct Records {
         where !existing.contains(where: { $0.key == Self.bundleKey(bundle.id) }) {
             try insert(Self.bundleKey(bundle.id), group: "bundle", order: existing.count + index, bundle)
         }
+        // The design's answer (2026-11-23): each such kid's Morning routine goes on School's before list
+        // and the first outing of their weekend templates, so the mornings work as before.
+        let kidsWithMissions = Set(missions.map(\.kid))
+        let routineRecords = try fetch("routine")
+        for record in try fetch("kid") {
+            guard let kid = try? decoder.decode(Kid.self, from: record.payload), kidsWithMissions.contains(kid.id) else { continue }
+            let theirs = routineRecords.compactMap { record in
+                (try? decoder.decode(Routine.self, from: record.payload)).map { (record, $0) }
+            }.filter { $0.1.kid == kid.id }
+            let attached = MissionBundle.attachingMorning(to: kid, routines: theirs.map(\.1))
+            record.payload = try encoder.encode(attached.kid)
+            for ((routineRecord, before), after) in zip(theirs, attached.routines) where before != after {
+                routineRecord.payload = try encoder.encode(after)
+            }
+        }
         for record in old { context.delete(record) }
         try context.save()
     }

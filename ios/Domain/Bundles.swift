@@ -39,3 +39,30 @@ public struct MissionBundle: Identifiable, Hashable, Codable, Sendable {
         return kids.map { morning(kid: $0, missions: missions) }
     }
 }
+
+extension MissionBundle {
+    /// Where a kid's Morning routine goes when missions become bundles (design answer, 2026-11-23),
+    /// so nothing stops working: School's before list, and the first outing of each Saturday and Sunday
+    /// template. A list that already has bundles is left alone; every-week and just-once items get
+    /// theirs from the grown-ups in the forms.
+    public static func attachingMorning(to kid: Kid, routines: [Routine]) -> (kid: Kid, routines: [Routine]) {
+        let morning = morningID(for: kid.id)
+        var kid = kid
+        if var school = kid.school, school.lists?.before.isEmpty ?? true {
+            var lists = school.lists ?? EventLists()
+            lists.before = [morning]
+            school.lists = lists
+            kid.school = school
+        }
+        let routines = routines.map { routine -> Routine in
+            guard routine.kid == kid.id, routine.dayType != .weekday,
+                  let first = routine.blocks.indices.filter({ routine.blocks[$0].trip != nil })
+                      .min(by: { routine.blocks[$0].start < routine.blocks[$1].start }),
+                  routine.blocks[first].lists.before.isEmpty else { return routine }
+            var routine = routine
+            routine.blocks[first].lists.before = [morning]
+            return routine
+        }
+        return (kid, routines)
+    }
+}
