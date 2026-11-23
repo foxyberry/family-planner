@@ -48,6 +48,8 @@ public struct ItemForm: Equatable, Sendable {
     public var after: EventRef?
     /// "Bring", up to `ItemMission.most`.
     public var bring: [ItemMission] = []
+    /// The item's lists and way home (issue 024): kept through an edit until the form has their rows.
+    public var lists = EventLists()
     /// Runs (board G2): how an every-week item's run ends; `date` is its start.
     public var runsEnd: RunsEndKind = .none
     public var untilDate: Day
@@ -130,6 +132,7 @@ public struct ItemForm: Equatable, Sendable {
             if let until { untilDate = until }
         }
         bring = item.bring
+        lists = item.lists
     }
 
     /// Board C3m: the rule the first date gives ("2nd Sat" from Sat 14 Nov, or "Day 14").
@@ -484,20 +487,22 @@ public struct ItemForm: Equatable, Sendable {
                                 end: end, recurrence: .weekly(days, from: max(date, today), until: until), skippedDays: [],
                                 skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
                                 bring: bring,
-                                runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool)
+                                runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool,
+                                lists: lists)
         case .monthly:
             // Board C3m: the picked date is the first one.
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .monthly(monthlyRule, from: max(date, today), until: until),
                                 skippedDays: [], skipsHolidays: skipsHolidays, showsStar: false, trip: trip, after: after,
                                 bring: bring,
-                                runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool)
+                                runsEnd: storedRunsEnd, afterGap: after == nil ? 0 : afterGap, noSchool: noSchool,
+                                lists: lists)
         case .once:
             return ScheduleItem(id: id, title: trimmed, iconName: iconName ?? "actPlay", audience: audience, start: start,
                                 end: end, recurrence: .once(date), skippedDays: [], skipsHolidays: false,
                                 showsStar: showsStar, trip: trip, after: after,
                                 bring: bring,
-                                afterGap: after == nil ? 0 : afterGap)
+                                afterGap: after == nil ? 0 : afterGap, lists: lists)
         }
     }
 

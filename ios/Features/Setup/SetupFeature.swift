@@ -135,11 +135,14 @@ public struct SetupFeature {
 
         /// Everything "Start" writes: kids, starter templates and missions, and bus plans.
         public func family(from: Day, id: () -> UUID) -> ScheduleSnapshot {
-            let kids = kids.map(\.kid)
             let entries = self.kids
-            let routines = kids.flatMap { kid in
-                StarterDays.routines(for: kid, trip: kid.school == nil ? nil : entries[id: kid.id]?.going.trip, from: from)
+            // Issue 024: each kid's Morning routine is on School's before list and the weekend's first outing.
+            let made = self.kids.map(\.kid).map { kid in
+                MissionBundle.attachingMorning(to: kid, routines: StarterDays.routines(
+                    for: kid, trip: kid.school == nil ? nil : entries[id: kid.id]?.going.trip, from: from))
             }
+            let kids = made.map(\.kid)
+            let routines = made.flatMap(\.routines)
             let missions = kids.flatMap { StarterDays.missions(for: $0, id: id) }
             let plans = entries.filter(\.goesOut).compactMap { $0.busPlan }
             return ScheduleSnapshot(kids: kids, routines: routines, items: [], missions: missions, busPlans: plans)

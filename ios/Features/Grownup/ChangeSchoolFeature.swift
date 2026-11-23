@@ -140,16 +140,22 @@ public struct ChangeSchoolFeature {
             Day(year: 2026, month: 1, day: 1).date(minute: minute, calendar: calendar)
         }
 
-        /// The new place: the picked school, the typed preschool, or nil for at home.
+        /// The new place: the picked school, the typed preschool, or nil for at home. It keeps the kid's
+        /// lists and way home (issue 024: the morning routine goes on at the new place).
         public var newSchool: School? {
+            var school: School
             switch place {
-            case .school: return picked.map(School.init(entry:))
+            case .school:
+                guard let entry = picked else { return nil }
+                school = School(entry: entry)
             case .preschool:
                 guard canContinuePreschool else { return nil }
-                return School(name: preschoolName.trimmingCharacters(in: .whitespaces), days: Weekday.schoolDays,
-                              start: dropOff, end: pickUp, arriveBy: dropOff, kind: .preschool)
+                school = School(name: preschoolName.trimmingCharacters(in: .whitespaces), days: Weekday.schoolDays,
+                                start: dropOff, end: pickUp, arriveBy: dropOff, kind: .preschool)
             case .home: return nil
             }
+            school.lists = stored.school?.lists
+            return school
         }
         /// The card's title: the new place's name, or "At home".
         public var cardTitle: String { newSchool?.name ?? homeName }

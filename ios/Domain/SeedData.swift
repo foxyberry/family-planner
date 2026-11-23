@@ -4,11 +4,11 @@ import Foundation
 /// starts empty and runs first-run setup). Public repo: fake names, a made-up school and ordinary
 /// example times, never a real timetable.
 public enum SeedData {
-    public static let kidA = Kid(
+    public static let kidA = MissionBundle.attachingMorning(to: Kid(
         id: UUID(uuidString: "5EED0000-0000-4000-8000-00000000000A")!, name: "Kid A", colorIndex: 0, age: 8,
         schoolYear: "Year 3",
         school: School(name: "Example Primary School", days: Weekday.schoolDays, start: 450, end: 900),
-        face: "kidGirl")
+        face: "kidGirl"), routines: []).kid
 
     public static let kidB = Kid(
         id: UUID(uuidString: "5EED0000-0000-4000-8000-00000000000B")!, name: "Kid B", colorIndex: 1, age: 4,
