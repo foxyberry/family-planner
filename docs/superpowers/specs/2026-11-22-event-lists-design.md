@@ -37,7 +37,7 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 - **Event lists** only on **outings**. An outing is an item with a trip, or an item linked into a chain that starts with one; template slot, every-week and just-once items all count, and School is included. Items that are not outings carry no lists (user, 2026-11-22: a day with no outing has no event to get ready for, so it has no missions).
   - **before**: `{ bundles: [bundleId], bring: [KitSlot ≤ 4] }`. Bring is the picker inside the Before card, as built (up to 4).
   - **after**: `{ bundles: [bundleId], items: [Mission] }`. Optional; things to do back home.
-  - Both are empty by default. Seed: School's before = Morning routine bundle (no Bring; "Pack my bag" is a mission).
+  - Both are empty by default. Seed: School's before = Morning routine bundle (no Bring; "Pack bag" is a mission).
 - **Link** (`From`, as built). The **before** list of the chain's first event shows the Bring of every event linked after it, each picture once. Swimming after school puts the swimsuit on School's list, because the kid packs it in the morning. A linked event still has its own list, which opens from its own row.
 - **Way home** (designer's call, replacing a bare pickup switch; the form row is labelled "Back"): a row on the event, `wayHome: pickup | bus | walk | none`, default none.
   - It belongs to the **last** event of a chain, because the kid comes home only after it. A linked event with no trip of its own (Swimming after School) has it.
