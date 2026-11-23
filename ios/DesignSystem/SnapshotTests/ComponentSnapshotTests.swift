@@ -423,18 +423,18 @@ final class ComponentSnapshotTests: XCTestCase {
         let kidC = KidFace.Badge(face: "kidGirl", colorIndex: 2)
         snap(VStack(spacing: Spacing.m) {
             HStack(spacing: 12) {
-                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: true, look: .day) {}
-                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: false, look: .day) {}
+                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: true, compact: false, look: .day) {}
+                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: false, compact: false, look: .day) {}
             }
             HStack(spacing: 12) {
-                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: false, look: .day) {}
-                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: true, look: .day) {}
-                KidChip(face: kidC, picture: .actPlay, name: nil, isPicked: false, look: .day) {}
+                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: false, compact: true, look: .day) {}
+                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: true, compact: true, look: .day) {}
+                KidChip(face: kidC, picture: .actPlay, name: nil, isPicked: false, compact: true, look: .day) {}
             }
-            KidChip(face: kidA, picture: .actSchool, name: "Kid A", isPicked: true, look: .day) {}
+            KidChip(face: kidA, picture: .actSchool, name: "Kid A", isPicked: true, compact: false, look: .day) {}
             HStack(spacing: 12) {
-                KidChip(face: kidA, picture: .actSleep, name: nil, isPicked: true, look: .night) {}
-                KidChip(face: kidB, picture: .actSleep, name: nil, isPicked: false, look: .night) {}
+                KidChip(face: kidA, picture: .actSleep, name: nil, isPicked: true, compact: false, look: .night) {}
+                KidChip(face: kidB, picture: .actSleep, name: nil, isPicked: false, compact: false, look: .night) {}
             }
             .padding(Spacing.s).background(CrayonColor.night)
         }, width: 456)

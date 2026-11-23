@@ -168,6 +168,9 @@ public struct HomeFeature {
             public var isPicked: Bool
         }
 
+        /// Three kids or more: compact chips (design answer, 2026-11-23).
+        public var chipsAreCompact: Bool { days.count >= 3 }
+
         public var chips: [Chip] {
             days.map { day in
                 let current = DayPlanner.now(at: minute, in: day.slots).current

@@ -311,6 +311,7 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(store.state.chips.map(\.id), SeedData.kids.map(\.id))
         XCTAssertEqual(store.state.chips.filter(\.isPicked).map(\.id), [store.state.clockKid].compactMap { $0 })
         XCTAssertTrue(store.state.chips.allSatisfy { $0.name == nil }, "two kids: no names on the chips")
+        XCTAssertFalse(store.state.chipsAreCompact, "two kids: the full chips")
         let swimming = things.first { $0.title == "Swimming" }
         XCTAssertEqual(swimming?.kids, [SeedData.kidA.id])
         XCTAssertEqual(swimming.map { store.state.timeCell($0) }, .at(time: "3:20", period: "pm"), "leave 10 before 3:30")
@@ -340,6 +341,17 @@ final class HomeFeatureTests: XCTestCase {
         await store.receive(\.chipTimeUp)
         XCTAssertNil(store.state.tappedKid)
         XCTAssertTrue(store.state.things.allSatisfy { !store.state.isFaded($0) })
+    }
+
+    /// Three kids or more: compact chips (design answer, 2026-11-23).
+    func testThreeKidsHaveCompactChips() {
+        var kidC = SeedData.kidB
+        kidC.id = UUID()
+        kidC.colorIndex = 2
+        var state = HomeFeature.State()
+        state.days = [SeedData.kidA, SeedData.kidB, kidC].map { HomeFeature.KidDay(kid: $0, dayType: .weekday, slots: []) }
+        XCTAssertTrue(state.chipsAreCompact)
+        XCTAssertEqual(state.chips.count, 3)
     }
 
     /// One kid (board E1): one chip with the name; a tap does nothing.
