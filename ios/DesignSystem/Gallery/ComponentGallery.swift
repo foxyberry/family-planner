@@ -228,6 +228,13 @@ public struct ComponentGallery: View {
                     }
                 }
                 section("F1–F4 · Form cards") {
+                    // Issue 024 (F7): the way home card.
+                    BackCard(title: "Back",
+                             choices: [.init(id: "pickup", picture: .car, caption: "Pickup", isPicked: true),
+                                       .init(id: "none", picture: nil, caption: "None", isPicked: false)],
+                             takes: .init(label: "Takes", value: "20 min", canMinus: true, canPlus: true), done: "Done",
+                             cancel: "Cancel", onPick: { _ in }, onStep: { _ in }, onDone: {}, onCancel: {})
+                        .frame(height: 540)
                     VStack(alignment: .leading, spacing: Spacing.s) {
                         PickRow("End of this term", caption: "Fri 20 Nov", isPicked: true) {}
                         PickRow("No end", isPicked: false) {}

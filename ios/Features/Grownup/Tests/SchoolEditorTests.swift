@@ -58,7 +58,7 @@ final class SchoolEditorTests: XCTestCase {
         } withDependencies: {
             $0.calendar = F.calendar
             $0.holidays.holidays = { year in holidays.filter { $0.day.year == year } }
-            $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: routines, items: []) }
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: routines, items: [], missions: SeedData.missions) }
             $0.scheduleStore.saveKid = { kid in savedKids.withValue { $0.append(kid) } }
             $0.scheduleStore.saveRoutine = { routine in savedRoutines.withValue { $0.append(routine) } }
             $0.schoolDirectory.calendar = { _, _ in .none }
@@ -69,7 +69,7 @@ final class SchoolEditorTests: XCTestCase {
         return store
     }
 
-    /// Spec G4 Terms (layout v63): a school the list knows shows its terms as text, with no MOE
+    /// Spec G4 Terms: a school the list knows shows its terms as text, with no MOE
     /// switch; a school typed by hand, or one whose terms the list doesn't know, keeps the switch.
     func testTheMoeSwitchShowsOnlyForASchoolTheListDoesNotKnow() async {
         let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
@@ -608,21 +608,82 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(state.scopeTabs.map(\.0), [.thisDay, .allDays])
         XCTAssertEqual(state.scopeTabs.map(\.1) + [state.saveTitle, state.schoolLabel, state.whenLabel, state.daysLabel,
                         state.arriveByRowLabel, state.latestWord, state.termsLabel, state.goingLabel,
-                        state.bringLabel, state.medalLabel, state.nothingText, state.bringDoneTitle,
+                        state.bringLabel, state.beforeLabel, state.backLabel, state.bundlesCaption, state.takesLabel,
+                        state.medalLabel, state.nothingText, state.bringDoneTitle,
                         state.bringCancelTitle, state.bringMoreTitle],
                        ["This day", "All days", "Save changes", "School", "When", "Days", "Arrive", "latest", "Terms",
-                        "Going", "Bring", "Medal", "Nothing", "Done", "Cancel", "More"])
+                        "Going", "Bring", "Before", "Back", "Bundles", "Takes", "Medal", "Nothing", "Done", "Cancel", "More"])
         XCTAssertFalse(Weekday.allCases.contains { state.isDayOn($0) })
         let keys = withDependencies { $0.localizer = .keys } operation: {
             SchoolEditorFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
         }
         XCTAssertEqual(keys.scopeTabs.map(\.1) + [keys.saveTitle, keys.schoolLabel, keys.whenLabel, keys.daysLabel,
                        keys.arriveByRowLabel, keys.latestWord, keys.termsLabel, keys.goingLabel,
-                       keys.bringLabel, keys.medalLabel, keys.nothingText, keys.bringDoneTitle,
+                       keys.bringLabel, keys.beforeLabel, keys.backLabel, keys.bundlesCaption, keys.takesLabel,
+                       keys.medalLabel, keys.nothingText, keys.bringDoneTitle,
                        keys.bringCancelTitle, keys.bringMoreTitle],
                        ["editor.scope.this_day", "editor.scope.all_days", "editor.primary.save", "settings.school",
                         "editor.row.when", "editor.row.days", "s2.arrive_by", "s2.latest", "settings.terms",
-                        "going.label", "editor.row.bring", "editor.row.medal", "editor.row.nothing", "c5.done",
+                        "going.label", "before.bring", "editor.row.before", "editor.row.back", "before.bundles",
+                        "back.takes", "editor.row.medal", "editor.row.nothing", "c5.done",
                         "card.cancel", "picker.more"])
+    }
+
+    /// Issue 024 (board G4, F2, F7): School's Before card picks the kid's bundles with its Bring; Back
+    /// picks the way home; Cancel puts the lists back; Save keeps them on the school record.
+    func testBeforeAndBackOnSchool() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        let morning = MissionBundle.morningID(for: SeedData.kidA.id)
+        XCTAssertEqual(store.state.beforeText, "Morning routine", "the seed's School")
+        XCTAssertTrue(store.state.showsBack, "nothing follows School")
+        await store.send(.bringRowTapped)
+        await store.send(.bundleToggled(morning))
+        await store.send(.bringClosed)
+        XCTAssertEqual(store.state.lists.before, [morning], "Cancel puts the bundle back")
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("bus"))
+        await store.send(.homeAfterStepped(1))
+        await store.send(.backDoneTapped)
+        XCTAssertEqual(store.state.backText, "Bus · 5 min")
+        await store.send(.saveTapped)
+        await store.send(.fromWhenSaveTapped)
+        await store.receive(\.saved)
+        XCTAssertEqual(kids.value.last?.school?.lists?.wayHome, .bus)
+        XCTAssertEqual(kids.value.last?.school?.lists?.homeAfter, 5)
+    }
+
+    /// #289 review: on This day the Before and Back rows are off and their edits go back to the record's.
+    func testThisDayTurnsTheListRowsOff() async {
+        let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
+        let store = store(savedKids: kids, savedRoutines: routines)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("walk"))
+        await store.send(.backDoneTapped)
+        await store.send(.scopeTapped(.thisDay))
+        XCTAssertFalse(store.state.listRowsEnabled)
+        XCTAssertEqual(store.state.lists.wayHome, .none, "the All-days edit goes back")
+        await store.send(.backRowTapped)
+        XCTAssertFalse(store.state.isBackOpen, "the row is off")
+    }
+
+    /// #289 review: an item after School on some days leaves Back on School; one on every school day ends
+    /// the chain itself.
+    func testBackStaysUnlessAFollowerRunsEverySchoolDay() {
+        var state = SchoolEditorFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)
+        state.school = SeedData.kidA.school
+        var swim = SeedData.items(today: tuesday, calendar: F.calendar)[0]
+        swim.after = .school
+        swim.audience = .kid(SeedData.kidA.id)
+        swim.recurrence = .weekly([.monday], from: tuesday, until: nil)
+        state.items = [swim]
+        XCTAssertTrue(state.showsBack, "Monday only")
+        swim.recurrence = .weekly(Weekday.schoolDays, from: tuesday, until: nil)
+        state.items = [swim]
+        XCTAssertFalse(state.showsBack)
     }
 }

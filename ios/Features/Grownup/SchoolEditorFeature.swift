@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import Domain
 import Foundation
 import HolidayProvider
@@ -49,10 +50,18 @@ public struct SchoolEditorFeature {
         /// The school's year, for the Terms row (MOE calendar or its own dates).
         public var schoolYear: SchoolCalendar = .none
         /// The school list says whether this school follows MOE terms (a known MOE school, or one
-        /// with its own term dates): then the Terms row is text only (spec G4 Terms, layout v63).
+        /// with its own term dates): then the Terms row is text only (spec G4 Terms).
         public var termsKnown = false
         /// Board F2 over G4: the Bring card is open, and the bring list when it opened (Cancel puts it back).
         public var bringWas: [ItemMission]?
+        /// Issue 024: the school's lists when the Before or Back card opened (Cancel puts them back).
+        public var listsWas: EventLists?
+        /// Board F7 over G4: the Back card is open.
+        public var isBackOpen = false
+        /// The kid's bundles (the Before card's chips) and the family's items (an item after School
+        /// moves Back to it).
+        public var bundles: [MissionBundle] = []
+        public var items: [ScheduleItem] = []
         public var isPickingMoreBring = false
         public var stored: Kid?
         public var school: School?
@@ -231,8 +240,51 @@ public struct SchoolEditorFeature {
         public var latestWord: String { strings.tr("s2.latest") }
         public var termsLabel: String { strings.tr("settings.terms") }
         public var goingLabel: String { strings.tr("going.label") }
-        /// The Bring row's label, also the F2 card's title.
-        public var bringLabel: String { strings.tr("editor.row.bring") }
+        /// The Bring caption on the Before card (board F2).
+        public var bringLabel: String { strings.tr("before.bring") }
+        /// Issue 024 (board G4, layout v77): Before (bundles and Bring) and Back (the way home).
+        public var beforeLabel: String { strings.tr("editor.row.before") }
+        public var backLabel: String { strings.tr("editor.row.back") }
+        public var bundlesCaption: String { strings.tr("before.bundles") }
+        public var takesLabel: String { strings.tr("back.takes") }
+        public var lists: EventLists { school?.lists ?? EventLists() }
+        /// The Before row's value: the picked bundles' names, then the Bring names; nil is "Nothing".
+        public var beforeText: String? {
+            let names = bundles.filter { lists.before.contains($0.id) }.map(\.name) + bring.map(\.name)
+            return names.isEmpty ? nil : names.joined(separator: " · ")
+        }
+        public var bundleChips: [BundleChip] {
+            bundles.filter { $0.kid == kid }.map { .init(id: $0.id, name: $0.name, isOn: lists.before.contains($0.id)) }
+        }
+        /// Back is on School unless an item follows it for this kid on every school day (then that item
+        /// ends the chain; a follower on some days leaves the rest to School).
+        public var showsBack: Bool {
+            let days = school?.days ?? []
+            return !items.contains { $0.after == .school && $0.audience.includes(kid) && days.isSubset(of: $0.weeklyDays) }
+        }
+        /// Before and Back follow All days: on This day their rows are off.
+        public var listRowsEnabled: Bool { !isThisDay }
+        public var backChoices: [ChoiceCircles.Choice] { BackCopy.choices(lists.wayHome, strings: strings) }
+        public var showsTakes: Bool { lists.wayHome != .none }
+        /// Board F7's "Takes" stepper; nil for None.
+        public var backTakes: BackCard.Stepper? {
+            guard showsTakes else { return nil }
+            return BackCard.Stepper(label: takesLabel, value: homeAfterText, canMinus: homeAfterEnds.canLower,
+                                    canPlus: homeAfterEnds.canRaise)
+        }
+        public var homeAfterText: String { strings.tr("c2.minutes", lists.homeAfter) }
+        public var homeAfterEnds: StepEnds { StepRange.homeAfter.ends(lists.homeAfter) }
+        public var backText: String? { BackCopy.text(lists, strings: strings) }
+        /// The Back row with no way home (spec: "None").
+        public var backNoneText: String { strings.tr("going.none") }
+        public var backPicture: KitSlot? { BackCopy.picture(lists) }
+
+        /// Changes the school's lists in place.
+        mutating func editLists(_ change: (inout EventLists) -> Void) {
+            var value = lists
+            change(&value)
+            school?.lists = value
+        }
         public var medalLabel: String { strings.tr("editor.row.medal") }
         /// The Bring row with nothing to bring.
         public var nothingText: String { strings.tr("editor.row.nothing") }
@@ -366,6 +418,12 @@ public struct SchoolEditorFeature {
         case bringMoreTapped
         case bringDoneTapped
         case bringClosed
+        case bundleToggled(MissionBundle.ID)
+        case backRowTapped
+        case wayHomePicked(String)
+        case homeAfterStepped(Int)
+        case backDoneTapped
+        case backClosed
         /// "School ›": G7 change school.
         case changeSchoolTapped
         /// "Going ›": Our buses for this kid (spec: the S3 trip screen, opened from here).
@@ -438,6 +496,8 @@ public struct SchoolEditorFeature {
             case let .loaded(snapshot):
                 state.stored = snapshot?.kids.first { $0.id == state.kid }
                 state.routines = snapshot?.routines ?? []
+                state.bundles = snapshot?.bundles ?? []
+                state.items = snapshot?.items ?? []
                 state.busPlan = snapshot?.busPlans.route(kid: state.kid)
                 state.startForm()
                 return .none
@@ -514,6 +574,13 @@ public struct SchoolEditorFeature {
 
             case let .scopeTapped(scope):
                 state.editScope = scope
+                // This day saves only the day's hours: Before and Back go back to the record's and their
+                // rows are off (#289 review).
+                if scope == .thisDay {
+                    let original = state.original
+                    state.school?.lists = original?.lists
+                    state.school?.bring = original?.bring
+                }
                 return .none
 
             case .moeTermsToggled:
@@ -521,8 +588,42 @@ public struct SchoolEditorFeature {
                 return .none
 
             case .bringRowTapped:
+                guard state.listRowsEnabled else { return .none }
                 state.bringWas = state.bring
+                state.listsWas = state.school?.lists
                 state.isPickingMoreBring = false
+                return .none
+
+            case let .bundleToggled(id):
+                state.editLists { lists in
+                    if let index = lists.before.firstIndex(of: id) { lists.before.remove(at: index) } else { lists.before.append(id) }
+                }
+                return .none
+
+            case .backRowTapped:
+                guard state.listRowsEnabled else { return .none }
+                state.listsWas = state.school?.lists
+                state.isBackOpen = true
+                return .none
+
+            case let .wayHomePicked(id):
+                if let way = WayHome(rawValue: id) { state.editLists { $0.wayHome = way } }
+                return .none
+
+            case let .homeAfterStepped(step):
+                state.editLists { $0.homeAfter = StepRange.homeAfter.clamp($0.homeAfter + 5 * step) }
+                return .none
+
+            case .backDoneTapped:
+                state.isBackOpen = false
+                state.listsWas = nil
+                return .none
+
+            case .backClosed:
+                let was = state.listsWas
+                state.school?.lists = was
+                state.isBackOpen = false
+                state.listsWas = nil
                 return .none
 
             case let .bringToggled(slot):
@@ -541,11 +642,15 @@ public struct SchoolEditorFeature {
 
             case .bringDoneTapped:
                 state.bringWas = nil
+                state.listsWas = nil
                 return .none
 
             case .bringClosed:
                 if let was = state.bringWas { state.school?.bring = was.isEmpty ? nil : was }
+                let was = state.listsWas
+                state.school?.lists = was
                 state.bringWas = nil
+                state.listsWas = nil
                 return .none
 
             case .goingTapped:

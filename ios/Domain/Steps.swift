@@ -21,6 +21,8 @@ public struct StepRange: Equatable, Sendable {
     public static let leave = StepRange(0...90)
     /// Starts after the event it follows (item form): 0–60 minutes.
     public static let afterGap = StepRange(0...60)
+    /// The way home's minutes ("Takes", board F7): 0–90.
+    public static let homeAfter = StepRange(0...90)
     /// Runs for {n} times (item form): 1–40.
     public static let times = StepRange(1...40)
 

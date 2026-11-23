@@ -382,12 +382,12 @@ final class ItemEditorTests: XCTestCase {
         let store = store(mode: .add(kidA))
         await store.send(.task)
         await store.receive(\.loaded)
-        await store.send(.bringRowTapped)
+        await store.send(.beforeRowTapped)
         await store.send(.bringToggled(.backpack))
         await store.send(.bringToggled(.waterBottle))
         await store.send(.cardDoneTapped)
         XCTAssertEqual(store.state.form.bringText, "Backpack · Water bottle")
-        await store.send(.bringRowTapped)
+        await store.send(.beforeRowTapped)
         await store.send(.bringCircleTapped("more"))
         XCTAssertGreaterThan(store.state.bringSlots.count, 3)
         XCTAssertFalse(store.state.bringSlots.contains(.debugLadybug), "object pictures only")
@@ -511,7 +511,7 @@ final class ItemEditorTests: XCTestCase {
         let store = store(mode: .add(kidA))
         await store.send(.task)
         await store.receive(\.loaded)
-        await store.send(.bringRowTapped)
+        await store.send(.beforeRowTapped)
         XCTAssertEqual(store.state.bringRow.map(\.caption), ["Backpack", "Lunch box", "Water bottle", "Shoes", ""])
         XCTAssertEqual(store.state.bringRow.last?.word, "More")
         await store.send(.bringCircleTapped("backpack"))
@@ -555,7 +555,8 @@ final class ItemEditorTests: XCTestCase {
         func words(_ state: ItemEditorFeature.State) -> [String] {
             [state.forLabel, state.whatLabel, state.nameLabel, state.whenLabel, state.repeatLabel, state.daysLabel,
              state.runsLabel, state.fromLabel, state.noSchoolLabel, state.goingLabel, state.leaveLabel,
-             state.bringLabel, state.medalLabel, state.moreTitle, state.skipHolidaysTitle, state.starTitle,
+             state.beforeLabel, state.backLabel, state.bundlesCaption, state.bringCaption, state.takesLabel,
+             state.medalLabel, state.moreTitle, state.skipHolidaysTitle, state.starTitle,
              state.nothingText, state.cardDoneTitle, state.cardCancelTitle, state.runsCardTitle, state.runsCountText,
              state.startsLabel, state.noSchoolCardTitle, state.noSchoolSkipTitle, state.noSchoolAtTitle,
              state.usesBusesTitle, state.fromWhenTitle, state.fromWhenSave, state.fromWhenCancel]
@@ -563,7 +564,7 @@ final class ItemEditorTests: XCTestCase {
         }
         XCTAssertEqual(words(state),
                        ["For", "What", "Name", "When", "Repeat", "Days", "Runs", "From", "Off days", "Going", "Leave",
-                        "Bring", "Medal", "More", "Skip school holidays", "A star on the clock that day", "Nothing",
+                        "Before", "Back", "Bundles", "Bring", "Takes", "Medal", "More", "Skip school holidays", "A star on the clock that day", "Nothing",
                         "Done", "Cancel", "Ends", "\(state.form.times) times", "Starts", "Off days", "Skip",
                         "At a set time", "Uses Our buses %@", "Change from when?", "Save", "Cancel", "Once", "Weekly",
                         "Monthly", "This day", "All days"])
@@ -573,11 +574,76 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(words(keys),
                        ["editor.row.for", "editor.row.what", "editor.row.name", "editor.row.when", "editor.row.repeat",
                         "editor.row.days", "editor.row.runs", "editor.row.from", "editor.row.no_school", "going.label",
-                        "going.leave", "editor.row.bring", "editor.row.medal", "picker.more", "editor.skip_holidays",
+                        "going.leave", "editor.row.before", "editor.row.back", "before.bundles", "before.bring", "back.takes",
+                        "editor.row.medal", "picker.more", "editor.skip_holidays",
                         "editor.star", "editor.row.nothing", "c5.done", "card.cancel", "runs.card.title",
                         "runs.count.value|\(keys.form.times)", "from.starts", "no_school.card.title",
                         "no_school.pick.skip", "no_school.pick.at", "going.uses_buses|%@", "from_when.title",
                         "from_when.save", "from_when.cancel", "editor.repeat.once", "editor.repeat.weekly",
                         "editor.repeat.monthly", "editor.scope.this_day", "editor.scope.all_days"])
+    }
+
+    /// Issue 024 (boards F2, F7): the Before card picks the kid's bundles; the Back card picks the way home
+    /// and its minutes; the rows say what was picked; a tap outside puts the form back.
+    func testBeforeAndBackCards() async {
+        let store = store(mode: .add(kidA))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.goingTapped(.car))
+        XCTAssertTrue(store.state.showsBefore, "an outing")
+        XCTAssertTrue(store.state.showsBack, "a new item ends its chain")
+        await store.send(.beforeRowTapped)
+        XCTAssertTrue(store.state.beforeKidTabs.isEmpty, "one kid: no tabs")
+        let morning = MissionBundle.morningID(for: SeedData.kidA.id)
+        XCTAssertEqual(store.state.bundleChips.map(\.id), [morning])
+        await store.send(.bundleToggled(morning))
+        await store.send(.bringToggled(.swimsuit))
+        await store.send(.cardDoneTapped)
+        XCTAssertEqual(store.state.form.lists.before, [morning])
+        XCTAssertEqual(store.state.beforeText, "Morning routine · Swimsuit")
+        await store.send(.backRowTapped)
+        XCTAssertNil(store.state.backText, "None")
+        XCTAssertFalse(store.state.showsTakes)
+        await store.send(.wayHomePicked("pickup"))
+        await store.send(.homeAfterStepped(1))
+        await store.send(.homeAfterStepped(1))
+        await store.send(.cardDoneTapped)
+        XCTAssertEqual(store.state.backText, "Pickup · 10 min")
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("walk"))
+        await store.send(.cardClosed)
+        XCTAssertEqual(store.state.form.lists.wayHome, .pickup, "a tap outside puts it back")
+    }
+
+    /// #289 review: an item at home (no trip, not after an event) has no Before or Back, and saves no lists.
+    func testAnItemAtHomeHasNoListsToSave() async {
+        let saved = LockIsolated<[ScheduleItem]>([])
+        let store = store(mode: .add(kidA), saved: saved)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.goingTapped(.car))
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("pickup"))
+        await store.send(.cardDoneTapped)
+        await store.send(.goingTapped(nil))
+        XCTAssertFalse(store.state.showsBefore)
+        XCTAssertFalse(store.state.showsBack)
+        XCTAssertEqual(store.state.form.item(id: UUID(), today: F.monday).lists, EventLists())
+    }
+
+    /// #289 review: This day has no Before or Back; a change made on All days goes back when This day is
+    /// picked, so a This-day save drops nothing silently.
+    func testThisDayPutsTheListsBack() async {
+        let swim = SeedData.items(today: F.monday, calendar: F.calendar)[0]
+        let store = store(mode: .editWeekly(swim), items: [swim])
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.send(.scopeTapped(.allDays))
+        await store.send(.backRowTapped)
+        await store.send(.wayHomePicked("pickup"))
+        await store.send(.cardDoneTapped)
+        XCTAssertEqual(store.state.form.lists.wayHome, .pickup)
+        await store.send(.scopeTapped(.thisDay))
+        XCTAssertEqual(store.state.form.lists, swim.lists)
     }
 }

@@ -4,9 +4,11 @@ import SwiftUI
 /// A form row's card (boards F1–F4): centred over a dim layer, a head title, the row's choices 16
 /// below, then Done (`InkButton` 200 × 80) and Cancel (body bold, soft) at the bottom left. A tap on
 /// the dim layer is Cancel. Padding 40 at the sides, 36 at the top; the card is at least `size` (a
-/// board size, × s) and grows with its content (Bring's "More").
-public struct FormCard<Content: View>: View {
+/// board size, × s) and grows with its content (Bring's "More"). An `accessory` sits right of the
+/// title on its line (board F2k: the kid tabs).
+public struct FormCard<Content: View, Accessory: View>: View {
     private let title: String
+    private let accessory: Accessory
     private let size: CGSize
     private let done: String
     private let cancel: String
@@ -16,8 +18,10 @@ public struct FormCard<Content: View>: View {
     @Environment(\.sizing) private var sizing
 
     public init(title: String, size: CGSize, done: String, cancel: String, onDone: @escaping () -> Void,
-                onCancel: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+                onCancel: @escaping () -> Void, @ViewBuilder accessory: () -> Accessory,
+                @ViewBuilder content: () -> Content) {
         self.title = title
+        self.accessory = accessory()
         self.size = size
         self.done = done
         self.cancel = cancel
@@ -34,7 +38,11 @@ public struct FormCard<Content: View>: View {
             // Layout v43: the card hugs its content, centred; the buttons sit 8 under it.
             VStack(alignment: .leading, spacing: sizing(Spacing.xs)) {
                 VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
-                    Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                    HStack(spacing: sizing(Spacing.m)) {
+                        Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink)
+                        Spacer(minLength: 0)
+                        accessory
+                    }
                     content
                 }
                 HStack(spacing: sizing(Spacing.l)) {
@@ -53,6 +61,15 @@ public struct FormCard<Content: View>: View {
             .fixedSize(horizontal: false, vertical: true)
             .partBackground(.roundedRect(cornerRadius: 24), fill: CrayonStyle.paper, seed: CrayonStyle.Seed.formCard, tap: .frame)
         }
+    }
+}
+
+extension FormCard where Accessory == EmptyView {
+    /// A card with the title alone on its line.
+    public init(title: String, size: CGSize, done: String, cancel: String, onDone: @escaping () -> Void,
+                onCancel: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+        self.init(title: title, size: size, done: done, cancel: cancel, onDone: onDone, onCancel: onCancel,
+                  accessory: { EmptyView() }, content: content)
     }
 }
 
