@@ -20,6 +20,7 @@ docs/superpowers/specs/*
 !docs/superpowers/specs/2026-11-08-product-backlog.md
 !docs/superpowers/specs/2026-11-22-school-calendar-design.md
 !docs/superpowers/specs/2026-11-22-home-redesign-design.md
+!docs/superpowers/specs/2026-11-22-event-lists-design.md
 .private-terms
 LocalConfig.*
 *.local.json
