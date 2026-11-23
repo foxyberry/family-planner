@@ -87,7 +87,8 @@ public enum HomeNext {
 
     private static func entries(_ day: KidDay, minute: Int, today: Day, calendar: Calendar) -> [NextThing] {
         let current = DayPlanner.now(at: minute, in: day.today).current
-        let asleep = current?.kind == .sleep && minute >= 720
+        // Asleep for the night: the sleep slot that runs to midnight (an afternoon nap is not the night).
+        let asleep = current?.kind == .sleep && current?.end == 1440
         let left = asleep ? [] : day.today.filter { $0.start > minute && shows($0, in: day.today) }
         if !left.isEmpty {
             return left.map { thing($0, kid: day.kid, inDays: 0, on: today, missions: day.missionOutings, calendar: calendar) }

@@ -110,8 +110,9 @@ public struct HomeFeature {
         /// own Bring, or the item's), and on the day's first outing the kid's morning routine missions
         /// too. An outing whose list is not empty is a mission row.
         func missionOutings(_ day: KidDay) -> [Slot] {
+            guard let weekday else { return [] }
             let outings = day.slots.filter { $0.trip != nil }
-            let routine = day.missions.contains { $0.days.contains(weekday ?? .monday) }
+            let routine = day.missions.contains { $0.days.contains(weekday) }
             return outings.enumerated().compactMap { index, slot in
                 let bring: [ItemMission] = switch slot.source {
                 case .routine: slot.kind == .school ? day.kid.school?.bring ?? [] : []

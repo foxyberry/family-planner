@@ -69,6 +69,16 @@ final class HomeNextTests: XCTestCase {
         XCTAssertEqual(things.first?.weekday, .wednesday)
     }
 
+    /// An afternoon nap is not the night: during it, today's later things stay (#282 review).
+    func testANapKeepsTodaysThings() {
+        let things = HomeNext.things([
+            day(kidB, [slot("Nap", .sleep, 780, 900), slot("Snack", .play, 900, 930), slot("Sleep", .sleep, 1230, 1440)],
+                tomorrow: [slot("Sleep", .sleep, 0, 420), slot("Breakfast", .morning, 420, 450)]),
+        ], minute: 840, today: tuesday, calendar: calendar)
+        XCTAssertEqual(things.first?.title, "Snack")
+        XCTAssertEqual(things.first?.inDays, 0)
+    }
+
     /// Spec A1 "Mission rows": an outing with something to check is a mission row for that kid.
     func testTheMissionOutingIsMarked() {
         let school = slot("School", .school, 450, 900, trip: Trip(way: .bus, leaveBefore: 5))
