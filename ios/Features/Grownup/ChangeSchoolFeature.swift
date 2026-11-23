@@ -140,8 +140,9 @@ public struct ChangeSchoolFeature {
             Day(year: 2026, month: 1, day: 1).date(minute: minute, calendar: calendar)
         }
 
-        /// The new place: the picked school, the typed preschool, or nil for at home. It keeps the kid's
-        /// lists and way home (issue 024: the morning routine goes on at the new place).
+        /// The new place: the picked school, the typed preschool, or nil for at home. It keeps the old
+        /// place's lists, way home and Bring (issue 024: the morning routine goes on at the new place); a
+        /// kid who was at home gets their Morning routine on its before list.
         public var newSchool: School? {
             var school: School
             switch place {
@@ -154,7 +155,10 @@ public struct ChangeSchoolFeature {
                                 start: dropOff, end: pickUp, arriveBy: dropOff, kind: .preschool)
             case .home: return nil
             }
-            school.lists = stored.school?.lists
+            school.bring = stored.school?.bring
+            var kid = stored
+            kid.school = school
+            school.lists = stored.school?.lists ?? MissionBundle.attachingMorning(to: kid, routines: []).kid.school?.lists
             return school
         }
         /// The card's title: the new place's name, or "At home".

@@ -52,6 +52,9 @@ final class ChangeSchoolTests: XCTestCase {
         XCTAssertEqual(kids.value.last?.school?.name, SeedData.kidA.school?.name, "the old school until the day")
         XCTAssertEqual(kids.value.last?.pendingSchool?.school?.name, "Riverside Primary")
         XCTAssertEqual(kids.value.last?.pendingSchool?.from, january)
+        // Issue 024: the new school keeps the old one's lists (the Morning routine) and Bring.
+        XCTAssertEqual(kids.value.last?.pendingSchool?.school?.lists, SeedData.kidA.school?.lists)
+        XCTAssertEqual(kids.value.last?.pendingSchool?.school?.bring, SeedData.kidA.school?.bring)
         // From that day the weekday template uses the new hours (Arrive by 7:45, ends 1:30).
         let school = routines.value.last?.blocks.first { $0.kind == .school }
         XCTAssertEqual(routines.value.last?.from, january)
@@ -238,6 +241,8 @@ final class ChangeSchoolTests: XCTestCase {
         await store.receive(\.saved)
         await store.receive(\.delegate.openBuses)
         let pending = kids.value.last?.pendingSchool
+        // Issue 024: a kid who was at home gets their Morning routine on the new place's before list.
+        XCTAssertEqual(pending?.school?.lists?.before, [MissionBundle.morningID(for: SeedData.kidB.id)])
         XCTAssertEqual(pending?.from, start)
         XCTAssertEqual(pending?.school?.kind, .preschool)
         XCTAssertEqual(pending?.school?.start, 510)

@@ -86,5 +86,6 @@ final class EventListsTests: XCTestCase {
         XCTAssertEqual(SeedData.kidA.school?.lists?.before, [morning], "the seed has it too")
         let again = MissionBundle.attachingMorning(to: attached.kid, routines: attached.routines)
         XCTAssertEqual(again.kid, attached.kid)
+        XCTAssertEqual(again.routines, attached.routines)
     }
 }
