@@ -74,6 +74,9 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 - **Pickup rows**: never tappable, never hatched. The time cell and dots work as for any row; the dots help a grown-up too.
 - **Moments are not drawn on the clock.** The clock shows what each time is for; moments live in the list only.
 
+## Build order
+- First: bundles, before lists, Back (way home) and the pickup row. **Later** (user, 2026-11-23): the after list, its back-home row and A2h; the model keeps an empty `after` so no second migration is needed. Before that step, decide what fills A2h's top area (a candidate: the rest of the evening as pictures).
+
 ## Scope
 - Before, After and Way home follow the form's **This day / All days** like Bring does today (`EventException` gains them).
 
