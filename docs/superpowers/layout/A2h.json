@@ -110,7 +110,7 @@
    "id": "strip.picture",
    "kind": "picture",
    "x": 568,
-   "y": 206,
+   "y": 226,
    "w": 240,
    "h": 240,
    "region": "strip",
@@ -118,7 +118,7 @@
    "align": "inside",
    "stripLocal": {
     "x": 504,
-    "y": 30
+    "y": 50
    }
   },
   {
@@ -229,44 +229,44 @@
   {
    "id": "missions.caption.1",
    "kind": "text",
-   "x": 463,
+   "x": 460,
    "y": 729,
-   "w": 82,
+   "w": 87,
    "h": 36,
    "region": "missions",
    "anchor": "stretch",
    "align": "inside",
    "baseline": 757,
    "font": 24,
-   "text": "shower"
+   "text": "Shower"
   },
   {
    "id": "missions.caption.2",
    "kind": "text",
-   "x": 624,
+   "x": 598,
    "y": 729,
-   "w": 62,
-   "h": 36,
+   "w": 63,
+   "h": 67,
    "region": "missions",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 757,
+   "baseline": 788,
    "font": 24,
-   "text": "towel"
+   "text": "Hang towel"
   },
   {
    "id": "missions.caption.3",
    "kind": "text",
-   "x": 753,
+   "x": 749,
    "y": 729,
    "w": 103,
-   "h": 36,
+   "h": 67,
    "region": "missions",
    "anchor": "stretch",
    "align": "inside",
-   "baseline": 757,
+   "baseline": 788,
    "font": 24,
-   "text": "swimsuit"
+   "text": "Hang swimsuit"
   }
  ]
 }
