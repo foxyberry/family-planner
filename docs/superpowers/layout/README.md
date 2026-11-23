@@ -7,7 +7,7 @@ One JSON file per board, measured in Chrome from the canvas boards (v135). Board
 - `lines`: lines that belong to this family of screens (home / morning / grown-up).
 - `regions`: each region's left and right edge and its anchor (`left`, `right`, `stretch`), following the spec's "Sizing formulas".
 - `elements[]`: `id` (stable part name, `region.part[.n]`), `kind`, `x y w h`, `region`, `anchor` (the region's), `align` inside the region (`start` = on the region's left line, `end` = on its right line, `fill` = both, `inside` = placed by its own value), `baseline` + `font` for text, `stripLocal` (x/y in the 1248 × 340 strip frame) for strip parts, `text` only when it is a plain label.
-- Text boxes are the glyph run (Range box), so `x` is where the letters start; use `baseline` for vertical placement. Part boxes are the board boxes; treat them as the visible edge (the crayon line runs on the box edge; ignore any fixed inset in the board art).
+- Text boxes are the glyph run (Range box), so `x` is where the letters start; use `baseline` for vertical placement. Part boxes are the board boxes; treat them as the visible edge (the crayon line runs on the box edge; ignore any fixed inset in the board art). Exception: K1 month cards and the open month (K1o) draw their outline on the box itself (inset 0), so six-row months fit.
 
 ## Global lines (every screen)
 - Status band y 0–24, empty. Margins: left 64, right 1312. Header band 48–128: ← button (64, 48, 80 × 80), title left 168, all header text on baseline 107; header right group ends at 1312.
