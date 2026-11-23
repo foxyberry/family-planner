@@ -87,8 +87,9 @@ public struct ComponentGallery: View {
                             .formLines(KidCard.lines(GrownupLayout(sizing: Sizing(width: 1376, height: 1032)), words: Self.kidWords))
                     }
                     .frame(width: 800)
-                    // C2 / C2c / S3: a minutes stepper.
-                    MinutesStepper(value: "10 min", caption: "to the stop", minus: {}, plus: {})
+                    // C2 / C2c / S3: a minutes stepper; at a limit its − or + takes the off look.
+                    MinutesStepper(value: "10 min", caption: "to the stop", canMinus: true, canPlus: true, minus: {}, plus: {})
+                    MinutesStepper(value: "0 min", caption: "to the stop", canMinus: false, canPlus: true, minus: {}, plus: {})
                     CrayonTabs(selection: $tab, items: [(0, "Kid A", KidFace.Badge(face: "kidGirl", colorIndex: 0)), (1, "Kid B", KidFace.Badge(face: "kidBoy", colorIndex: 1)), (2, "Family", nil)])
                     HStack(spacing: Spacing.s) {
                         DayChip("M", isOn: $monday)

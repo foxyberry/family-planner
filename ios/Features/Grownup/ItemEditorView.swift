@@ -267,11 +267,11 @@ public struct ItemEditorView: View {
         case .count:
             HStack(spacing: sizing(Spacing.m)) {
                 RoundButton(glyph: .minus) { store.send(.runsTimesStepped(-1)) }
-                    .size(64)
+                    .size(64).enabled(store.form.timesEnds.canLower)
                 Text(store.runsCountText).crayonType(.body, bold: true)
                     .foregroundStyle(CrayonColor.ink).frame(width: sizing(140))
                 RoundButton(glyph: .plus) { store.send(.runsTimesStepped(1)) }
-                    .size(64)
+                    .size(64).enabled(store.form.timesEnds.canRaise)
             }
             .padding(.vertical, sizing(Spacing.xs))
         case .term, .none:
@@ -399,11 +399,11 @@ public struct ItemEditorView: View {
                         Text(store.startsLabel).crayonType(.body, bold: true).foregroundStyle(CrayonColor.softText)
                             .frame(width: sizing(140), alignment: .leading)
                         RoundButton(glyph: .minus) { store.send(.fromGapStepped(-1)) }
-                            .size(64)
+                            .size(64).enabled(store.form.gapEnds.canLower)
                         Text(store.gapText).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                             .frame(width: sizing(200))
                         RoundButton(glyph: .plus) { store.send(.fromGapStepped(1)) }
-                            .size(64)
+                            .size(64).enabled(store.form.gapEnds.canRaise)
                     }
                 }
             }
@@ -471,9 +471,11 @@ public struct ItemEditorView: View {
                 } else if let leave = store.form.leaveText, let caption = store.form.leaveCaption {
                     HStack(spacing: sizing(Spacing.m)) {
                         RoundButton(glyph: .minus) { store.send(.leaveStepped(-1)) }
+                            .enabled(store.form.leaveEnds.canLower)
                         Text(leave).crayonType(.body, bold: true).foregroundStyle(CrayonColor.ink)
                             .frame(width: sizing(112))
                         RoundButton(glyph: .plus) { store.send(.leaveStepped(1)) }
+                            .enabled(store.form.leaveEnds.canRaise)
                         Text(caption).crayonType(.body).foregroundStyle(CrayonColor.softText)
                     }
                 }

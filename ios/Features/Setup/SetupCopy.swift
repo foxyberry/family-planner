@@ -170,18 +170,23 @@ extension SetupFeature.State {
     // MARK: S3
 
     public var walkText: String { L10n.tr("c2.minutes", goingKid?.going.walk ?? 0) }
+    /// Which of the Walk and Leave −/+ can still be pressed.
+    public var walkEnds: StepEnds { StepRange.walk.ends(goingKid?.going.walk ?? 0) }
+    public var leaveEnds: StepEnds { StepRange.leave.ends(goingKid?.going.leaveBefore ?? 0) }
     /// Spec "Several buses": one Ride row per picked bus in pill order ("on 12"), the label "Ride" on
     /// the first only; before a bus is picked, one Ride row for what the ride covers.
     public var rideRows: [RideRow] {
         guard let going = goingKid?.going else { return [] }
         guard !going.services.isEmpty else {
             return [RideRow(service: nil, label: L10n.tr("c2.ride"), minutes: going.ride,
-                            text: L10n.tr("c2.minutes", going.ride), caption: L10n.tr("s3.ride.caption"))]
+                            text: L10n.tr("c2.minutes", going.ride), caption: L10n.tr("s3.ride.caption"),
+                            ends: StepRange.ride.ends(going.ride))]
         }
         return going.services.enumerated().map { index, service in
             let minutes = going.ride(on: service)
             return RideRow(service: service, label: index == 0 ? L10n.tr("c2.ride") : "", minutes: minutes,
-                           text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service))
+                           text: L10n.tr("c2.minutes", minutes), caption: L10n.tr("c2.ride.on", service),
+                           ends: StepRange.ride.ends(minutes))
         }
     }
     /// Spec "Several buses" (v61): each bus that changes is one more pill in the Buses row, as on C2.
@@ -325,6 +330,7 @@ public struct RideRow: Equatable, Identifiable, Sendable {
     public var minutes: Int
     public var text: String
     public var caption: String
+    public var ends: StepEnds
     public var id: String { service ?? "" }
 }
 

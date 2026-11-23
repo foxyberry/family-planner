@@ -73,6 +73,9 @@ public struct ChangeBusesFeature {
         public var saveTitle: String { strings.tr("c2c.save") }
         public var changeText: String { strings.tr("c2.minutes", change) }
         public var ride2Text: String { strings.tr("c2.minutes", ride2) }
+        /// Which of the Change and Ride 2 −/+ can still be pressed.
+        public var changeEnds: StepEnds { StepRange.change.ends(change) }
+        public var ride2Ends: StepEnds { StepRange.ride.ends(ride2) }
         public var ride2Caption: String { thenBus.map { strings.tr("c2.ride.on", $0) } ?? "" }
 
         /// The buses at our stop, one pill each; the picked ones are on.
@@ -246,16 +249,16 @@ public struct ChangeBusesFeature {
                 return .none
 
             case let .ride1Changed(service, minutes):
-                let value = min(max(minutes, 0), 90)
+                let value = StepRange.ride.clamp(minutes)
                 if let service { state.rides1[service] = value } else { state.ride1 = value }
                 return .none
 
             case let .changeChanged(value):
-                state.change = min(max(value, 0), 30)
+                state.change = StepRange.change.clamp(value)
                 return .none
 
             case let .ride2Changed(value):
-                state.ride2 = min(max(value, 0), 90)
+                state.ride2 = StepRange.ride.clamp(value)
                 return .none
 
             case .saveTapped:

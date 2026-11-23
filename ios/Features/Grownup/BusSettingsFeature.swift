@@ -50,6 +50,9 @@ public struct BusSettingsFeature {
         public var doneTitle: String { strings.tr("c2.done") }
         public var walkText: String { strings.tr("c2.minutes", walk) }
         public var graceText: String { strings.tr("c2.minutes", lateGrace) }
+        /// Which of the Walk and Late grace −/+ can still be pressed.
+        public var walkEnds: StepEnds { StepRange.walk.ends(walk) }
+        public var graceEnds: StepEnds { StepRange.lateGrace.ends(lateGrace) }
 
         /// One Ride row per picked bus, in pill order ("on 12"); the label "Ride" on the first only.
         /// With no bus picked, one Ride row ("stop to school") sets the ride a new pick starts with.
@@ -59,7 +62,17 @@ public struct BusSettingsFeature {
             public var minutes: Int
             public var text: String
             public var caption: String
+            public var ends: StepEnds
             public var id: String { service ?? "" }
+
+            public init(service: String?, label: String, minutes: Int, text: String, caption: String) {
+                self.service = service
+                self.label = label
+                self.minutes = minutes
+                self.text = text
+                self.caption = caption
+                ends = StepRange.ride.ends(minutes)
+            }
         }
 
         public var rideRows: [RideRow] {
@@ -194,16 +207,16 @@ public struct BusSettingsFeature {
                 return save(state)
 
             case let .walkChanged(value):
-                state.walk = min(max(value, 0), 60)
+                state.walk = StepRange.walk.clamp(value)
                 return save(state)
 
             case let .rideChanged(service, minutes):
-                let value = min(max(minutes, 0), 90)
+                let value = StepRange.ride.clamp(minutes)
                 if let service { state.rides[service] = value } else { state.ride = value }
                 return save(state)
 
             case let .graceChanged(value):
-                state.lateGrace = min(max(value, 0), 30)
+                state.lateGrace = StepRange.lateGrace.clamp(value)
                 guard var kid = state.storedKid, let arriveBy = kid.school?.arriveBy else { return save(state) }
                 kid.school?.latest = arriveBy + state.lateGrace
                 state.storedKid = kid

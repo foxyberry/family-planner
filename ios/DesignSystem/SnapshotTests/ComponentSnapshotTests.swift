@@ -457,7 +457,13 @@ final class ComponentSnapshotTests: XCTestCase {
 
     /// Boards C2 / C2c / S3: − 72, the value in 144, + 72, the caption 16 after.
     func testMinutesStepper() {
-        snap(MinutesStepper(value: "10 min", caption: "to the stop", minus: {}, plus: {}), width: 560)
+        snap(MinutesStepper(value: "10 min", caption: "to the stop", canMinus: true, canPlus: true, minus: {}, plus: {}),
+             width: 560)
+        // At a limit (design 2026-11-22): − off at the lowest value, + off at the highest, 40 % each.
+        snap(VStack(alignment: .leading, spacing: Spacing.s) {
+            MinutesStepper(value: "0 min", caption: "to the stop", canMinus: false, canPlus: true, minus: {}, plus: {})
+            MinutesStepper(value: "90 min", caption: "on 12", canMinus: true, canPlus: false, minus: {}, plus: {})
+        }, width: 560, named: "limits")
     }
 
     /// S4 switch list: the switch on and off, the off look, and a row with a warning caption.

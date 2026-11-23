@@ -485,15 +485,15 @@ private struct GoingStep: View {
                     }
                     .drawnRow()
                     stepper(store.walkLabel, text: store.walkText, caption: store.walkCaption,
-                            value: going.walk) { store.send(.walkChanged($0)) }
+                            value: going.walk, ends: store.walkEnds) { store.send(.walkChanged($0)) }
                     ForEach(store.rideRows) { ride in
-                        stepper(ride.label, text: ride.text, caption: ride.caption, value: ride.minutes) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
+                        stepper(ride.label, text: ride.text, caption: ride.caption, value: ride.minutes, ends: ride.ends) { store.send(.rideChanged(service: ride.service, minutes: $0)) }
                     }
                     // Board S3 (v61, y 801): "+ A bus that changes…" → C2c, back to S3.
                     row("") { PlusLink(store.changeLink) { store.send(.changeLinkTapped) } }
                 } else {
                     stepper(store.leaveLabel, text: store.leaveText, caption: store.leaveCaptionText,
-                            step: 5, value: going.leaveBefore) { store.send(.leaveChanged($0)) }
+                            step: 5, value: going.leaveBefore, ends: store.leaveEnds) { store.send(.leaveChanged($0)) }
                 }
             }
         }
@@ -505,11 +505,11 @@ private struct GoingStep: View {
                  control: control)
     }
 
-    private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int,
+    private func stepper(_ label: String, text: String, caption: String, step: Int = 1, value: Int, ends: StepEnds,
                          change: @escaping (Int) -> Void) -> some View {
         // Board S3: the shared stepper on the control line, laid out by its drawn box.
         row(label) {
-            MinutesStepper(value: text, caption: caption,
+            MinutesStepper(value: text, caption: caption, canMinus: ends.canLower, canPlus: ends.canRaise,
                            minus: { change(value - step) }, plus: { change(value + step) })
         }
         .drawnRow()

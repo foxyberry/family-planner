@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import CrayonKit
 import DesignSystem
+import Domain
 import SwiftUI
 
 /// C2c · A bus that changes (board C2c, v61): From, First bus, Then, Ride 1 (one per first bus),
@@ -91,14 +92,16 @@ public struct ChangeBusesView: View {
             }
             .captionedRow(hasCaption: store.thenHasProblem)
             ForEach(store.ride1Rows) { row in
-                stepper(row.label, text: row.text, caption: row.caption, value: row.minutes) {
+                stepper(row.label, text: row.text, caption: row.caption, value: row.minutes, ends: row.ends) {
                     store.send(.ride1Changed(service: row.service, minutes: $0))
                 }
             }
-            stepper(store.changeLabel, text: store.changeText, caption: store.changeCaption, value: store.change) {
+            stepper(store.changeLabel, text: store.changeText, caption: store.changeCaption, value: store.change,
+                    ends: store.changeEnds) {
                 store.send(.changeChanged($0))
             }
-            stepper(store.ride2Label, text: store.ride2Text, caption: store.ride2Caption, value: store.ride2) {
+            stepper(store.ride2Label, text: store.ride2Text, caption: store.ride2Caption, value: store.ride2,
+                    ends: store.ride2Ends) {
                 store.send(.ride2Changed($0))
             }
         }
@@ -141,10 +144,10 @@ public struct ChangeBusesView: View {
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func stepper(_ label: String, text: String, caption: String, value: Int,
+    private func stepper(_ label: String, text: String, caption: String, value: Int, ends: StepEnds,
                          change: @escaping (Int) -> Void) -> some View {
         ListRow(leading: label, minHeight: MinutesStepper.rowHeight(sizing)) {
-            MinutesStepper(value: text, caption: caption,
+            MinutesStepper(value: text, caption: caption, canMinus: ends.canLower, canPlus: ends.canRaise,
                            minus: { change(value - 1) }, plus: { change(value + 1) })
         }
         .drawnRow()
