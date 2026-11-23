@@ -2,7 +2,7 @@
 name: tca-feature
 description: Use when adding or changing a screen, reducer, State, model or view in ios/Features or ios/AppCore, adding a new service, client, system framework, network API or persisted store under ios/Clients, deciding where a piece of logic or copy belongs, or when outside_data (SwiftLint), check-view-values.sh, check-journeys.sh or check-kid-screens.sh blocks a push.
 metadata:
-  version: 0.13.0
+  version: 0.13.1
   status: experimental
 ---
 
@@ -44,7 +44,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
    a new kid feature folder goes into `KID_DIRS` in `scripts/check-kid-screens.sh`.
 5. A new part goes into `ComponentGallery` and `ComponentSnapshotTests` first.
 6. Layout comes from the board's redlines: follow the `screen-layout` skill.
-7. Every board of a screen family (A1, A1m, A1n, E3, …) is one State case (`HomeFeature.KidABlock`)
+7. Every board of a screen family (A1, A1m, A1n, E3, …) is one State shape (`HomeNext.things`)
    with a test; capture each on the iPad at a time that hits it. A view that falls through to
    nothing is a missing case.
 8. "As on <board>" in the spec: find that board's rule (spec, backlog, motion table) before building.

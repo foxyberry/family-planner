@@ -1,3 +1,2 @@
 # View code not migrated to "views hold no values" yet (scripts/check-view-values.sh).
 # One path per line. Shrink only: remove a line when its file is clean.
-ios/Features/Home/HomeView.swift

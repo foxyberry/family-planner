@@ -75,15 +75,6 @@ final class PieClockLayoutTests: XCTestCase {
         XCTAssertNil(PieClockLayout.picture(minutes: 240, radius: 200, hub: 120))
     }
 
-    func testHubTitleStepsDownWhenTooWide() {
-        XCTAssertEqual(PieClock.hubTitleLines("Breakfast").lines, ["Breakfast"])
-        XCTAssertTrue(PieClock.hubTitleLines("Breakfast").isTitle)
-        // Board E3: "Weekend school" drops to head 36 on two lines.
-        XCTAssertEqual(PieClock.hubTitleLines("Weekend school").lines, ["Weekend", "school"])
-        XCTAssertFalse(PieClock.hubTitleLines("Weekend school").isTitle)
-        XCTAssertEqual(PieClock.hubTitleLines("Swimming with the whole class").lines.count, 2)
-    }
-
     func testEveryStyleButFreeHasAFill() {
         XCTAssertEqual(ClockSlotStyle.allCases.count, 9)
         for style in ClockSlotStyle.allCases where style != .free {
@@ -109,11 +100,4 @@ final class PieClockLayoutTests: XCTestCase {
         XCTAssertNil(PieClockLayout.sector(at: point(minute: 600, distance: 380), in: sectors, radius: r, hub: hub))
     }
 
-    /// The hub swipes left to right for a later slot (and over midnight), right to left going back.
-    func testHubSwipeDirection() {
-        XCTAssertTrue(PieClock.isForward(from: 450, to: 900))
-        XCTAssertFalse(PieClock.isForward(from: 900, to: 450))
-        XCTAssertTrue(PieClock.isForward(from: 1290, to: 0))
-        XCTAssertFalse(PieClock.isForward(from: 0, to: 1290))
-    }
 }

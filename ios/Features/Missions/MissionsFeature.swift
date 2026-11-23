@@ -584,7 +584,9 @@ public struct MissionsFeature {
                 state.busPlans = Dictionary(snapshot.kids.compactMap { kid in
                     snapshot.busPlans.route(kid: kid.id).map { (kid.id, $0.graced(by: kid)) }
                 }, uniquingKeysWith: { $1 })
-                state.chosen = nextKid(in: state)
+                // Home's mission row opens A2 on its kid (spec A1 "Mission rows"); else the next kid.
+                state.chosen = state.chosen.flatMap { id in snapshot.kids.contains { $0.id == id } ? id : nil }
+                    ?? nextKid(in: state)
                 state.page = 0
                 // Live times on open and every 30 s while the screen is open; nothing in the background.
                 return .run { [clock] send in

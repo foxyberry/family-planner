@@ -344,6 +344,15 @@ public struct AppFeature {
                 if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State(look: state.home.look))) }
                 return .none
 
+            case let .home(.missionRowTapped(kid)):
+                // Spec A1 "Mission rows": A2 for that kid.
+                if !state.isShowingMissions {
+                    var missions = MissionsFeature.State(look: state.home.look)
+                    missions.chosen = kid
+                    state.path.append(.missions(missions))
+                }
+                return .none
+
             case .home(.calendarTapped):
                 // Spec K1: a kid screen, so no lock; the home's look (board K1n at night).
                 if !state.isShowingSchoolYear { state.path.append(.schoolYear(SchoolYearFeature.State(look: state.home.look))) }
