@@ -23,6 +23,13 @@ public enum KidLook: String, Equatable, Sendable {
     /// White surfaces (the clock hub): white paper by day, moon paper at night.
     public var surface: CrayonFill { self == .day ? CrayonStyle.paper : .paper(CrayonColor.moonPaper) }
 
+    /// Home's later rows: `laterText` by day, `nightSoft` at night (spec A1 "Next things").
+    public var laterText: Color { self == .day ? CrayonPalette.laterText.color : CrayonColor.nightSoftText }
+    /// A kid chip that is not picked: `chip` by day, `nightControl` at night (spec A1 "Kid chips").
+    public var chip: Color { self == .day ? CrayonPalette.chip.color : CrayonColor.nightControl }
+    /// Outlines on kid parts: ink by day, chalk at night (the picked kid chip).
+    public var outline: Color { self == .day ? CrayonColor.ink : CrayonColor.chalk }
+
     /// A kid's colour: the same by day and night (board 00).
     public func kid(_ colorIndex: Int) -> Color { CrayonColor.kid(colorIndex) }
 

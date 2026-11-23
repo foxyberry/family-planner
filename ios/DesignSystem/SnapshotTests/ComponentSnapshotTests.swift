@@ -390,6 +390,68 @@ final class ComponentSnapshotTests: XCTestCase {
     /// Layout v68 "Next shape": Kid A's Next row and Kid B's Now and Next rows (126 apart on the
     /// boards); a just-once star; a long title ending with "…" inside the panel; no time line; the
     /// night plates (board A1n).
+    /// Spec A1 "Next things" (layout v75): the time cell and dots, later rows, mission rows and the next
+    /// card, by day and at night.
+    func testNextThings() {
+        let kidA = KidFace.Badge(face: "kidGirl", colorIndex: 0), kidB = KidFace.Badge(face: "kidBoy", colorIndex: 1)
+        snap(VStack(alignment: .leading, spacing: 16) {
+            // A1 (layout v75): later rows, a mission row, the next card, by day.
+            NextThingRow(time: .soon(number: "35", unit: "min", dots: 4), picture: .actSwim, title: "Swimming",
+                         faces: [kidA], hatch: nil, size: .row, faded: false, look: .day)
+            NextThingRow(time: .at(time: "4:30", period: "pm"), picture: .actPlay, title: "Snack", faces: [kidA, kidB], hatch: nil,
+                         size: .row, faded: false, look: .day)
+            NextThingRow(time: .day(label: "Tomorrow", time: "7:25 am"), picture: .actSchool,
+                         title: "School with a very long name", faces: [kidA], hatch: nil, size: .row, faded: false,
+                         look: .day)
+            NextThingRow(time: .soon(number: "50", unit: "min", dots: 5), picture: .actSwim, title: "Swimming",
+                         faces: [kidA], hatch: .kid(0), size: .row, faded: false, look: .day)
+            NextThingRow(time: .at(time: "4:00", period: "pm"), picture: .actPlay, title: "Play", faces: [kidB], hatch: nil, size: .row,
+                         faded: true, look: .day)
+            NextThingRow(time: .soon(number: "12", unit: "min", dots: 2), picture: .actSchool, title: "School",
+                         faces: [kidA, kidB], hatch: .shared, size: .card, faded: false, look: .day)
+        }.padding(.leading, 12), width: 480)
+        snap(VStack(alignment: .leading, spacing: 16) {
+            NextThingRow(time: .day(label: "Tomorrow", time: "7:25 am"), picture: .actSchool, title: "School",
+                         faces: [kidA], hatch: nil, size: .row, faded: false, look: .night)
+            NextThingRow(time: .at(time: "8:00", period: "pm"), picture: .actSleep, title: "Bed", faces: [kidA, kidB], hatch: nil,
+                         size: .card, faded: false, look: .night)
+            NextThingRow(time: .soon(number: "8", unit: "min", dots: 1), picture: .actSwim, title: "Swimming",
+                         faces: [kidB], hatch: .kid(1), size: .row, faded: false, look: .night)
+        }.padding(.leading, 12).padding(Spacing.s).background(CrayonColor.night), width: 480, named: "night")
+    }
+
+    /// Spec A1 "Time-left dots": none, some and all six red.
+    func testTimeDots() {
+        snap(VStack(alignment: .trailing, spacing: Spacing.s) {
+            TimeDots(red: 0, breathes: false, look: .day)
+            TimeDots(red: 3, breathes: false, look: .day)
+            TimeDots(red: 6, breathes: false, look: .day)
+        })
+    }
+
+    /// Spec A1 "Kid chips": two kids (Kid A picked), three kids, one kid with the name, and night.
+    func testKidChips() {
+        let kidA = KidFace.Badge(face: "kidGirl", colorIndex: 0), kidB = KidFace.Badge(face: "kidBoy", colorIndex: 1)
+        let kidC = KidFace.Badge(face: "kidGirl", colorIndex: 2)
+        snap(VStack(spacing: Spacing.m) {
+            HStack(spacing: 12) {
+                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: true, look: .day) {}
+                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: false, look: .day) {}
+            }
+            HStack(spacing: 12) {
+                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: false, look: .day) {}
+                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: true, look: .day) {}
+                KidChip(face: kidC, picture: .actPlay, name: nil, isPicked: false, look: .day) {}
+            }
+            KidChip(face: kidA, picture: .actSchool, name: "Kid A", isPicked: true, look: .day) {}
+            HStack(spacing: 12) {
+                KidChip(face: kidA, picture: .actSleep, name: nil, isPicked: true, look: .night) {}
+                KidChip(face: kidB, picture: .actSleep, name: nil, isPicked: false, look: .night) {}
+            }
+            .padding(Spacing.s).background(CrayonColor.night)
+        }, width: 456)
+    }
+
     func testNextRow() {
         snap(VStack(alignment: .leading, spacing: 22) {
             NextRow(picture: .actPlay, caption: "Now", title: "Play", line: "until 4:00 pm")

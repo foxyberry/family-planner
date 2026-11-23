@@ -178,6 +178,20 @@ public struct ComponentGallery: View {
                     ], now: 945, hub: .init(title: "Swimming", subtitle: "until 4:30 pm"))
                     .scaleEffect(0.5)
                     .frame(width: 480, height: 480)
+                    // A1 (layout v75): the family's next things and the kid chips.
+                    NextThingRow(time: .soon(number: "35", unit: "min", dots: 4), picture: .actSwim, title: "Swimming",
+                                 faces: [KidFace.Badge(face: "kidGirl", colorIndex: 0)], hatch: .kid(0), size: .row,
+                                 faded: false, look: .day)
+                    NextThingRow(time: .soon(number: "12", unit: "min", dots: 2), picture: .actSchool, title: "School",
+                                 faces: [KidFace.Badge(face: "kidGirl", colorIndex: 0), KidFace.Badge(face: "kidBoy", colorIndex: 1)],
+                                 hatch: .shared, size: .card, faded: false, look: .day)
+                    HStack(spacing: 12) {
+                        KidChip(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), picture: .actSchool, name: nil,
+                                isPicked: true, look: .day) {}
+                        KidChip(face: KidFace.Badge(face: "kidBoy", colorIndex: 1), picture: .actPlay, name: nil,
+                                isPicked: false, look: .day) {}
+                    }
+                    .frame(width: 408)
                     NextRow(picture: .actPlay, caption: "Now", title: "Play", line: "until 4:00 pm")
                     NextRow(picture: .cake, caption: "Next", title: "Birthday", line: "in 45 min", showsStar: true)
                     NextRow(picture: .actSchool, caption: "Tomorrow", title: "School", line: "leave 7:25 am", look: .night)
