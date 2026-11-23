@@ -123,4 +123,23 @@ final class OldSeedTests: XCTestCase {
         let again = try await ScheduleStore.live(directory: directory).load()
         XCTAssertEqual(again.bundles.count, 2, "moved once, never doubled")
     }
+
+    /// A kid that already has a Morning routine keeps it; old mission records are still cleared.
+    func testAKidsExistingMorningRoutineIsKept() async throws {
+        let routine = String(decoding: try JSONEncoder().encode(SeedData.routines[0]), as: UTF8.self)
+        try writeStore(seedVersion: 3, routinePayload: routine, missions: SeedData.missions)
+        let url = directory.appendingPathComponent(ScheduleStore.liveFileName)
+        let container = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
+        let context = ModelContext(container)
+        let kept = MissionBundle(id: MissionBundle.morningID(for: SeedData.kidA.id), kid: SeedData.kidA.id,
+                                 name: "Kept", missions: [])
+        context.insert(StoredRecord(key: "bundle:\(kept.id)", group: "bundle", order: 0,
+                                    payload: try JSONEncoder().encode(kept)))
+        try context.save()
+        let snapshot = try await ScheduleStore.live(directory: directory).load()
+        XCTAssertEqual(snapshot.bundles.first { $0.kid == SeedData.kidA.id }?.name, "Kept")
+        XCTAssertEqual(snapshot.bundles.filter { $0.kid == SeedData.kidA.id }.count, 1)
+        XCTAssertEqual(Set(snapshot.missions.filter { $0.kid == SeedData.kidB.id }),
+                       Set(SeedData.missions.filter { $0.kid == SeedData.kidB.id }), "Kid B's still move")
+    }
 }

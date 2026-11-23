@@ -70,13 +70,16 @@ private final class Database: Sendable {
             if container == nil {
                 try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
                                                         withIntermediateDirectories: true)
-                container = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
+                let opened = try ModelContainer(for: StoredRecord.self, configurations: ModelConfiguration(url: url))
                 // Per-day mission marks from before mission windows (2026-11-09) were development data
                 // only: they are dropped, not moved (user decision).
-                try Records(context: ModelContext(container!)).dropOldMissionDays()
+                try Records(context: ModelContext(opened)).dropOldMissionDays()
                 // Issue 024: missions are kept in bundles; a store from before keeps its missions as each
                 // kid's Morning routine.
-                try Records(context: ModelContext(container!)).moveMissionsIntoBundles()
+                try Records(context: ModelContext(opened)).moveMissionsIntoBundles()
+                // Kept only once both moves are done: a move that throws is tried again on the next call,
+                // never skipped for the rest of the process (#285 review).
+                container = opened
             }
             return try body(Records(context: ModelContext(container!)))
         }
