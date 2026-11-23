@@ -88,7 +88,7 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 ## Screens touched
 - **G2 / G4 / C3 / C4 (event forms):**
   - the Bring row becomes **Before**, opening a card with bundle chips and the Bring picker;
-  - new rows **After** (same card, without the slide) and **Pickup** (a switch);
+  - new rows **After** (bundles and the event's own missions) and **Back**, the way home (`ChoiceCircles`: Pickup, Bus, Walk, None, with its minutes);
   - G4 (School) gets the same rows.
 - **C5:** becomes the bundle editor. It keeps the mission editor, `Days` and the 8-per-kid cap per bundle.
 - **Home A1 / E1 / E3 / A1n:** the row rules above.
@@ -99,11 +99,7 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 - Storage of bundles next to missions.
 - The exact migration code.
 - How the form's Before card lays out its bundle chips: follow `ChoiceCircles` / `DayChip` patterns, then board it.
-- Boards to draw before the build:
-  - G2 Before / After / Pickup rows and their card;
-  - C5 as bundles;
-  - A1 with pickup and back-home rows;
-  - A2 opened from an after list.
+- Boards (drawn): G2b and G4 rows, cards F2 / F2k / F6 / F7, C5 as bundles, A2h opened from a back-home list (layout v77); A1p with the moment rows (v76). The kit `pickup` picture comes with the next art batch.
 
 ## To check on the iPad
 - Do kids tell the three moments apart by picture alone?

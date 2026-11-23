@@ -212,6 +212,10 @@
   "A1p": [
    "HomeMoments",
    "home"
+  ],
+  "A2h": [
+   "MorningAfter",
+   "morning"
   ]
  },
  "handover": {
@@ -222,9 +226,7 @@
   "C3g-add-going-row": "AddGoing",
   "C3k-keyboard-open": "AddWeeklyKeys",
   "C4-add-just-once": "AddOnce",
-  "C5-morning-missions": "MissionEdit",
   "F1-from-card": "CardF1",
-  "F2-bring-card": "CardF2",
   "F3-ends-card": "CardF3",
   "F4-no-school-card": "CardF4",
   "F5-missions-subpage": "CardF5",
@@ -246,6 +248,12 @@
   "S2-school": "FirstSchool",
   "S2s-school-search": "FirstSchoolSearch",
   "S3-getting-there": "FirstRoute",
-  "S4-almost-done": "FirstReady"
+  "S4-almost-done": "FirstReady",
+  "F2-before-card": "CardF2",
+  "F2k-before-card-two-kids": "CardF2k",
+  "F6-after-card": "CardF6",
+  "F7-back-card": "CardF7",
+  "A2h-back-home-list": "MorningAfter",
+  "C5-routines-bundles": "MissionEdit"
  }
 }

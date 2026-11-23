@@ -1,0 +1,272 @@
+{
+ "version": "77",
+ "board": "A2h",
+ "family": "morning",
+ "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
+ "global": {
+  "width": 1376,
+  "height": 1032,
+  "statusBand": [
+   0,
+   24
+  ],
+  "margin": 64,
+  "right": 1312,
+  "gutter": 24,
+  "column": 82,
+  "columnLefts": [
+   64,
+   170,
+   276,
+   382,
+   488,
+   594,
+   700,
+   806,
+   912,
+   1018,
+   1124,
+   1230
+  ],
+  "headerTop": 48,
+  "headerBottom": 128,
+  "headerBaseline": 107,
+  "contentTop": 176,
+  "contentBottom": 968
+ },
+ "lines": {
+  "kidsLeft": 64,
+  "kidTextLeft": 172,
+  "missionsLeft": 448,
+  "right": 1312,
+  "stripTop": 176,
+  "stripBottom": 516,
+  "kidsTop": 536,
+  "missionsTop": 548,
+  "circleTop": 612,
+  "captionTop": 732,
+  "bottomControlTop": 872,
+  "baselines": {
+   "header": 107,
+   "missionsName": 584,
+   "captions": 757
+  }
+ },
+ "regions": {
+  "header": {
+   "left": 64,
+   "right": 1312,
+   "anchor": "stretch"
+  },
+  "strip": {
+   "left": 64,
+   "right": 1312,
+   "anchor": "stretch"
+  },
+  "kids": {
+   "left": 64,
+   "right": 418,
+   "anchor": "left"
+  },
+  "missions": {
+   "left": 448,
+   "right": 1312,
+   "anchor": "stretch"
+  },
+  "bottom": {
+   "left": 448,
+   "right": 1312,
+   "anchor": "stretch"
+  }
+ },
+ "elements": [
+  {
+   "id": "header.back",
+   "kind": "back",
+   "x": 64,
+   "y": 48,
+   "w": 80,
+   "h": 80,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "start",
+   "text": "Back to today"
+  },
+  {
+   "id": "header.title",
+   "kind": "title",
+   "x": 168,
+   "y": 51,
+   "w": 515,
+   "h": 72,
+   "region": "header",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 107,
+   "font": 48,
+   "text": "Back from Swimming"
+  },
+  {
+   "id": "strip.picture",
+   "kind": "picture",
+   "x": 568,
+   "y": 206,
+   "w": 240,
+   "h": 240,
+   "region": "strip",
+   "anchor": "stretch",
+   "align": "inside",
+   "stripLocal": {
+    "x": 504,
+    "y": 30
+   }
+  },
+  {
+   "id": "kids.row",
+   "kind": "row",
+   "x": 64,
+   "y": 536,
+   "w": 340,
+   "h": 100,
+   "region": "kids",
+   "anchor": "left",
+   "align": "start"
+  },
+  {
+   "id": "kids.band",
+   "kind": "picture",
+   "x": 64,
+   "y": 536,
+   "w": 354,
+   "h": 100,
+   "region": "kids",
+   "anchor": "left",
+   "align": "fill"
+  },
+  {
+   "id": "missions.name",
+   "kind": "text",
+   "x": 448,
+   "y": 542,
+   "w": 123,
+   "h": 54,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "start",
+   "baseline": 584,
+   "font": 36
+  },
+  {
+   "id": "kids.ring",
+   "kind": "ring",
+   "x": 80,
+   "y": 548,
+   "w": 76,
+   "h": 76,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside"
+  },
+  {
+   "id": "kids.rowText.1",
+   "kind": "text",
+   "x": 172,
+   "y": 548,
+   "w": 103,
+   "h": 45,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 583,
+   "font": 30
+  },
+  {
+   "id": "kids.rowText.2",
+   "kind": "text",
+   "x": 172,
+   "y": 586,
+   "w": 127,
+   "h": 36,
+   "region": "kids",
+   "anchor": "left",
+   "align": "inside",
+   "baseline": 614,
+   "font": 24
+  },
+  {
+   "id": "missions.circle.1",
+   "kind": "circle",
+   "x": 448,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "start"
+  },
+  {
+   "id": "missions.circle.2",
+   "kind": "circle",
+   "x": 598,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "missions.circle.3",
+   "kind": "circle",
+   "x": 749,
+   "y": 612,
+   "w": 112,
+   "h": 112,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside"
+  },
+  {
+   "id": "missions.caption.1",
+   "kind": "text",
+   "x": 463,
+   "y": 729,
+   "w": 82,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "shower"
+  },
+  {
+   "id": "missions.caption.2",
+   "kind": "text",
+   "x": 624,
+   "y": 729,
+   "w": 62,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "towel"
+  },
+  {
+   "id": "missions.caption.3",
+   "kind": "text",
+   "x": 753,
+   "y": 729,
+   "w": 103,
+   "h": 36,
+   "region": "missions",
+   "anchor": "stretch",
+   "align": "inside",
+   "baseline": 757,
+   "font": 24,
+   "text": "swimsuit"
+  }
+ ]
+}
