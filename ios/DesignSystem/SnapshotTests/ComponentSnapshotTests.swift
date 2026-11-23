@@ -423,18 +423,29 @@ final class ComponentSnapshotTests: XCTestCase {
         let kidC = KidFace.Badge(face: "kidGirl", colorIndex: 2)
         snap(VStack(spacing: Spacing.m) {
             HStack(spacing: 12) {
-                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: true, look: .day) {}
-                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: false, look: .day) {}
+                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: true, fit: .regular, look: .day) {}
+                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: false, fit: .regular, look: .day) {}
             }
             HStack(spacing: 12) {
-                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: false, look: .day) {}
-                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: true, look: .day) {}
-                KidChip(face: kidC, picture: .actPlay, name: nil, isPicked: false, look: .day) {}
+                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: false, fit: .compact, look: .day) {}
+                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: true, fit: .compact, look: .day) {}
+                KidChip(face: kidC, picture: .actPlay, name: nil, isPicked: false, fit: .compact, look: .day) {}
             }
-            KidChip(face: kidA, picture: .actSchool, name: "Kid A", isPicked: true, look: .day) {}
+            // Four kids: the face alone, in 93-wide chips.
             HStack(spacing: 12) {
-                KidChip(face: kidA, picture: .actSleep, name: nil, isPicked: true, look: .night) {}
-                KidChip(face: kidB, picture: .actSleep, name: nil, isPicked: false, look: .night) {}
+                KidChip(face: kidA, picture: .actSchool, name: nil, isPicked: true, fit: .faceOnly, look: .day) {}
+                    .frame(width: 93)
+                KidChip(face: kidB, picture: .actPlay, name: nil, isPicked: false, fit: .faceOnly, look: .day) {}
+                    .frame(width: 93)
+                KidChip(face: kidC, picture: .actPlay, name: nil, isPicked: false, fit: .faceOnly, look: .day) {}
+                    .frame(width: 93)
+                KidChip(face: kidA, picture: .actPlay, name: nil, isPicked: false, fit: .faceOnly, look: .day) {}
+                    .frame(width: 93)
+            }
+            KidChip(face: kidA, picture: .actSchool, name: "Kid A", isPicked: true, fit: .regular, look: .day) {}
+            HStack(spacing: 12) {
+                KidChip(face: kidA, picture: .actSleep, name: nil, isPicked: true, fit: .regular, look: .night) {}
+                KidChip(face: kidB, picture: .actSleep, name: nil, isPicked: false, fit: .regular, look: .night) {}
             }
             .padding(Spacing.s).background(CrayonColor.night)
         }, width: 456)

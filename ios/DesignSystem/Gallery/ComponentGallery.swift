@@ -188,9 +188,9 @@ public struct ComponentGallery: View {
                                  hatch: .shared, size: .card, faded: false, look: .day)
                     HStack(spacing: 12) {
                         KidChip(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), picture: .actSchool, name: nil,
-                                isPicked: true, look: .day) {}
+                                isPicked: true, fit: .regular, look: .day) {}
                         KidChip(face: KidFace.Badge(face: "kidBoy", colorIndex: 1), picture: .actPlay, name: nil,
-                                isPicked: false, look: .day) {}
+                                isPicked: false, fit: .regular, look: .day) {}
                     }
                     .frame(width: 408)
                     ConfirmCard(title: "Leave without adding?", message: nil, cancel: "Keep editing", confirm: "Leave",

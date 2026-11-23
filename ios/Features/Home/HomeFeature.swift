@@ -168,6 +168,15 @@ public struct HomeFeature {
             public var isPicked: Bool
         }
 
+        /// The chips' fit by the number of kids (design answer, 2026-11-23): three compact, four the face alone.
+        public var chipFit: KidChip.Fit {
+            switch days.count {
+            case ...2: .regular
+            case 3: .compact
+            default: .faceOnly
+            }
+        }
+
         public var chips: [Chip] {
             days.map { day in
                 let current = DayPlanner.now(at: minute, in: day.slots).current

@@ -232,39 +232,55 @@ public struct NextThingRow: View {
 /// One kid chip at the bottom of home (spec A1 "Kid chips"): 96 tall, radius 48, the kid's face 56 and
 /// the picture of what the kid is doing now 60; with one kid the chip also shows the name. The picked
 /// chip is the kid's colour at 40 % with a 4 ink outline (night: chalk); the others `chip`.
+/// Chip sizes by the number of kids (design answer, 2026-11-23): one or two kids face 56 and picture
+/// 60, 10 apart; three kids face 46 and picture 46, 8 apart (100 wide, 8 inside the drawn 116); four
+/// kids the face 56 alone, centred (choosing who comes first; the clock and list say what is on now).
 public struct KidChip: View {
+    public enum Fit: Equatable, Sendable {
+        case regular, compact, faceOnly
+    }
+
     public static let height: CGFloat = 96
     public static let face: CGFloat = 56
     public static let picture: CGFloat = 60
+    public static let gap: CGFloat = 10
+    public static let compactSide: CGFloat = 46
+    public static let compactGap: CGFloat = 8
 
     private let face: KidFace.Badge
     private let picture: KitSlot
     private let name: String?
     private let isPicked: Bool
+    private let fit: Fit
     private let look: KidLook
     private let action: () -> Void
     @Environment(\.sizing) private var sizing
 
-    /// `name`: only with one kid (board E1).
-    public init(face: KidFace.Badge, picture: KitSlot, name: String?, isPicked: Bool, look: KidLook,
+    /// `name`: only with one kid (board E1). `fit`: from the number of kids.
+    public init(face: KidFace.Badge, picture: KitSlot, name: String?, isPicked: Bool, fit: Fit, look: KidLook,
                 action: @escaping () -> Void) {
         self.face = face
         self.picture = picture
         self.name = name
         self.isPicked = isPicked
+        self.fit = fit
         self.look = look
         self.action = action
     }
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: sizing(name == nil ? 4 : Spacing.s)) {
-                KidFace(face, size: sizing(Self.face))
+            let compact = fit == .compact
+            let side = compact ? Self.compactSide : Self.face
+            HStack(spacing: sizing(name != nil ? Spacing.s : compact ? Self.compactGap : Self.gap)) {
+                KidFace(face, size: sizing(side))
                 if let name {
                     Text(name).crayonType(.body, bold: true).foregroundStyle(look.ink).lineLimit(1)
                 }
-                KitPlate(look: look, size: sizing(Self.picture), nightPicture: 44.0 / 60.0) {
-                    KitIcon(picture, size: sizing(Self.picture))
+                if fit != .faceOnly {
+                    KitPlate(look: look, size: sizing(compact ? Self.compactSide : Self.picture), nightPicture: 44.0 / 60.0) {
+                        KitIcon(picture, size: sizing(compact ? Self.compactSide : Self.picture))
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
