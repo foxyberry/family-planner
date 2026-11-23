@@ -268,13 +268,12 @@ public struct KidChip: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background {
-                CrayonSurface(.capsule,
-                              fill: .paper(isPicked ? look.kid(face.colorIndex).opacity(0.4) : look.chip),
-                              marker: MarkerStyle(width: 4, roughness: 0.8, bowing: 0.8),
-                              markerColor: isPicked ? look.outline : .clear,
-                              seed: CrayonStyle.Seed.kidChip + UInt32(max(0, face.colorIndex)))
-            }
+            // Spec "Crayon part inset": drawn one art inset inside the frame, and taps only on the drawn
+            // capsule (touch rule 1).
+            .partBackground(.capsule, fill: .paper(isPicked ? look.kid(face.colorIndex).opacity(0.4) : look.chip),
+                            seed: CrayonStyle.Seed.kidChip + UInt32(max(0, face.colorIndex)),
+                            marker: MarkerStyle(width: 4, roughness: 0.8, bowing: 0.8),
+                            markerColor: isPicked ? look.outline : .clear, tap: .drawn)
         }
         .buttonStyle(.plain)
         .frame(height: sizing(Self.height))
