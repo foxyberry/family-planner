@@ -44,7 +44,7 @@ LINES = {
           'rows': {'gap': 16, 'timeCell': [928, 1040], 'picture': [1052, 56], 'titleLeft': 1120, 'title': 30, 'faces': 32, 'faceOverlap': 8, 'missionBleedLeft': 12, 'missionPadding': [12, 10]},
           'timeLeftDots': {'count': 6, 'minutesEach': 10, 'size': 11, 'gap': 5}},
  'grown': {'margin': 40, 'formLeft': 40, 'formRight': 840, 'labelLeft': 78, 'controlLeft': 192, 'rightEdge': 808, 'sideLeft': 864, 'sideWidth': 472, 'right': 1336, 'headerTop': 44, 'headerBottom': 124, 'formTop': 148, 'formBottom': 968},
- 'calendar': {'margin': 40, 'right': 1336, 'headerTop': 36, 'cardsTop': 148, 'card': [312, 268], 'cardGap': [16, 12], 'columns': 4, 'cardNumeral': 24, 'cardWeekday': 24, 'cardToday': [38, 28], 'open': {'x': 258, 'y': 160, 'w': 860, 'h': 800, 'numeral': 32, 'cell': [104, 96], 'today': 70}},
+ 'calendar': {'margin': 40, 'right': 1336, 'headerTop': 36, 'cardsTop': 148, 'card': [312, 268], 'cardGap': [16, 12], 'columns': 4, 'cardNumeral': 24, 'cardWeekday': 24, 'cardToday': [38, 28], 'open': {'x': 68, 'y': 160, 'w': 1240, 'h': 800, 'names': {'x': 908, 'w': 360, 'gap': 24, 'swatch': [48, 36], 'date': 24, 'name': 24}, 'numeral': 32, 'cell': [104, 96], 'today': 70}},
  'grown64': {'note': 'superseded board (C1 -> G6, C6 -> G1), kept on the old 64 grid', 'formLeft': 64, 'formRight': 882, 'labelLeft': 104, 'controlLeft': 232, 'sideLeft': 930, 'right': 1312, 'formTop': 176, 'formBottom': 968},
 }
 def region(fam, e):
