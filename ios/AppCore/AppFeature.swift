@@ -333,7 +333,7 @@ public struct AppFeature {
             case let .path(.element(id: id, action: .ourDay(.delegate(.openItem(itemID))))):
                 guard case let .ourDay(day) = state.path[id: id],
                       let item = day.items.first(where: { $0.id == itemID }) else { return .none }
-                // Every week and every month edit as a series (This day / All days).
+                // Every week and every month edit as a series (This day / Every time).
                 let mode: ItemEditorFeature.Mode = item.isRepeating ? .editWeekly(item) : .editOnce(item)
                 // Spec G5: from the clock it opens on the day shown there; from the List on none.
                 state.path.append(.editor(ItemEditorFeature.State(mode: mode, now: date.now, calendar: calendar,
@@ -543,7 +543,7 @@ public struct AppFeature {
                 return .merge(reloadSchoolEditor(state), reloadSettings(state), reloadOurDay(state), .send(.home(.reload)))
 
             case let .path(.element(id: _, action: .ourDay(.delegate(.removeSchool(kid))))):
-                // Spec G1 "One card": School's Remove on All days is G7 with "At home" picked.
+                // Spec G1 "One card": School's Remove on Every time is G7 with "At home" picked.
                 state.path.append(.changeSchool(ChangeSchoolFeature.State(kid: kid, today: Day(date.now, calendar: calendar),
                                                                           calendar: calendar, opensAt: .home)))
                 return .none

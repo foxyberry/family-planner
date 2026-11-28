@@ -539,7 +539,7 @@ public struct ItemEditorView: View {
     private var weeklySide: some View {
         VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
             if store.showsScopeTabs {
-                // Boards G2 / G3: This day / All days at the top of the side column.
+                // Boards G2 / G3: This day / Every time at the top of the side column.
                 // Layout v42 fill rule: the two tabs share the side column (2 × 230, gap 12).
                 CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
                            items: store.scopeTabs.map { ($0.0, $0.1, nil) },

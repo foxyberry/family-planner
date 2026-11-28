@@ -74,7 +74,7 @@ public struct School: Hashable, Codable, Sendable {
                   latest: start + Self.defaultGrace)
     }
 
-    /// The School slice moved on the clock (layout v37, All days): the slice starts at Arrive by (or
+    /// The School slice moved on the clock (layout v37, Every time): the slice starts at Arrive by (or
     /// the start without one) and ends at the end. Arrive by and the start move with the slice's
     /// start, Latest keeps its grace, and the end follows the slice's end. Per-weekday hours from the
     /// school website no longer apply once the grown-up set their own.
@@ -110,7 +110,7 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
     public var face: String
     /// G7 "Change school": the next school and the day it starts, until that day comes.
     public var pendingSchool: PendingSchool?
-    /// G4 "All days" from a later day (spec G5 "What Settings shows meanwhile"): the school's record
+    /// G4 "Every time" from a later day (spec G5 "What Settings shows meanwhile"): the school's record
     /// as it will be from that day. One per kid's school; `school` keeps today's hours until then.
     public var pendingHours: PendingHours?
 
@@ -158,7 +158,7 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
         return kid
     }
 
-    /// A School "All days" save from `from` (G4, G1; spec G5 "What Settings shows meanwhile"): from a
+    /// A School "Every time" save from `from` (G4, G1; spec G5 "What Settings shows meanwhile"): from a
     /// later day it waits as the one pending hours change (replacing any other), with the medal it
     /// sets (nil leaves the template's); from today it is the record at once and drops a waiting change.
     public func savingSchool(_ school: School, from: Day, today: Day, medal: Bool? = nil) -> Kid {
@@ -222,7 +222,7 @@ public struct Kid: Identifiable, Hashable, Codable, Sendable {
         return kept
     }
 
-    /// A School save from today (G4, G1 All days; the record goes from `old` to `school` now): every
+    /// A School save from today (G4, G1 Every time; the record goes from `old` to `school` now): every
     /// later template, a day's own one from today on included, whose School follows the old record
     /// moves to the new hours (and `medal` when the save sets it), so "from today" reaches them.
     public func followingSchool(_ routines: [Routine], from today: Day, old: School, medal: Bool? = nil) -> [Routine] {
@@ -248,7 +248,7 @@ extension School {
     }
 }
 
-/// Spec G5 "What Settings shows meanwhile" (and #255): a School All days change from a later day,
+/// Spec G5 "What Settings shows meanwhile" (and #255): a School Every time change from a later day,
 /// the whole G4 record, kept apart from the record until its day. Nothing of it is in the stored
 /// templates until then (`Kid.readingWaitingHours`).
 public struct PendingHours: Hashable, Codable, Sendable {
@@ -519,7 +519,7 @@ public struct ScheduleItem: Identifiable, Hashable, Codable, Sendable {
 
     public var isWeekly: Bool { if case .weekly = recurrence { true } else { false } }
     public var isMonthly: Bool { if case .monthly = recurrence { true } else { false } }
-    /// Every week or every month: edits with This day / All days, drawn below just-once items.
+    /// Every week or every month: edits with This day / Every time, drawn below just-once items.
     public var isRepeating: Bool { recurrence.range != nil }
 
     /// The weekdays of an every-week item (none for a just-once item).

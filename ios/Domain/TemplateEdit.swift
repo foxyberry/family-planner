@@ -150,7 +150,7 @@ public struct TemplateEdit: Equatable, Sendable {
         return keep
     }
 
-    /// "Remove" on All days: blank paper over the same span, joined with free time right before or
+    /// "Remove" on Every time: blank paper over the same span, joined with free time right before or
     /// after it, so the day can lose slices. School too (after its ConfirmCard). Returns the free
     /// slice's index.
     @discardableResult
@@ -229,7 +229,7 @@ public struct TemplateEdit: Equatable, Sendable {
     }
 
     /// A change to an every-week series from a date on: a new or removed series, or new times on
-    /// All days.
+    /// Every time.
     public var hasSeriesChange: Bool {
         let saved = savedItems
         return items.contains { item in
@@ -245,7 +245,7 @@ public struct TemplateEdit: Equatable, Sendable {
     /// Something to write as the day's own template.
     public var hasThisDayTemplateChange: Bool { changes.contains { $0.scope == .thisDay } && isTemplateChanged }
 
-    /// The day type's template (`base`) with only the All days changes: what an All days save
+    /// The day type's template (`base`) with only the Every time changes: what an Every time save
     /// writes from G5's date. Skips are never in it.
     public func seriesBlocks(from base: [RoutineBlock]) -> [RoutineBlock] {
         replaying(on: base, scopes: [.allDays])
@@ -500,7 +500,7 @@ public extension TemplateEdit {
         }
     }
 
-    /// A new item's scope tab (spec "Tapping +"): just once (This day) or every week (All days),
+    /// A new item's scope tab (spec "Tapping +"): just once (This day) or every week (Every time),
     /// one change for Undo.
     mutating func setNewItemScope(_ id: ScheduleItem.ID, _ scope: EditScope) {
         guard let item = item(id), item.isNew, item.newScope != scope else { return }

@@ -115,7 +115,7 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(Set(snapshot.items), Set(SeedData.items(today: monday, calendar: calendar)))
     }
 
-    /// G1 "This day" and "All days" on the same date are two records: neither replaces the other.
+    /// G1 "This day" and "Every time" on the same date are two records: neither replaces the other.
     func testADaysOwnTemplateKeepsItsOwnRecord() async throws {
         let kid = SeedData.kidA.id, day = Day(year: 2026, month: 11, day: 10)
         let block = RoutineBlock(title: "Play", iconName: "actPlay", kind: .play, start: 0, end: 1440)

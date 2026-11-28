@@ -133,7 +133,7 @@ final class TemplateEditTests: XCTestCase {
         XCTAssertFalse(edit.isChanged)
     }
 
-    /// Spec G1 "One card": Remove on All days makes School free time too (after its ConfirmCard).
+    /// Spec G1 "One card": Remove on Every time makes School free time too (after its ConfirmCard).
     func testTheSchoolBlockCanBeMadeFree() {
         var edit = edit
         edit.makeFree(edit.blocks.firstIndex { $0.kind == .school }!)

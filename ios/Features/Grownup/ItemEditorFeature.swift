@@ -365,7 +365,7 @@ public struct ItemEditorFeature {
         /// Board C3g: the Leave row of a kid who goes by bus links to Our buses ("Uses Our buses ›").
         /// The "›" is drawn by GlyphText at the key's "%@" (Playpen Sans has none).
         public var usesBusesTitle: String { strings.tr("going.uses_buses", "%@") }
-        /// Boards G2 / G3: the side column's This day / All days tabs.
+        /// Boards G2 / G3: the side column's This day / Every time tabs.
         public var scopeTabs: [(Scope, String)] {
             [(.thisDay, strings.tr("editor.scope.this_day")), (.allDays, strings.tr("editor.scope.all_days"))]
         }
@@ -657,7 +657,7 @@ public struct ItemEditorFeature {
         case noSchoolStartPicked(Date)
         case noSchoolEndPicked(Date)
         case noSchoolGoingTapped(Domain.Way?)
-        /// Boards G2 / G3: the This day / All days tabs.
+        /// Boards G2 / G3: the This day / Every time tabs.
         case scopeTapped(Scope)
         /// Board G5: the choice, the date, Save and Cancel.
         case fromWhenPicked(FromWhen)
@@ -773,7 +773,7 @@ public struct ItemEditorFeature {
                 }
                 if state.showsScopeTabs, let weekly = state.weeklyItem {
                     guard state.editScope == .thisDay, let day = state.thisDay else {
-                        // All days asks from when first (board G5), on the day carried from G1 as This day
+                        // Every time asks from when first (board G5), on the day carried from G1 as This day
                         // moved it (spec G5, #250); from the List none, so Today.
                         let opening = FromWhenTabs.opening(shown: state.carriedDay, next: state.nextDay, today: state.today)
                         state.fromWhen = opening.choice
@@ -813,7 +813,7 @@ public struct ItemEditorFeature {
             case let .scopeTapped(scope):
                 state.editScope = scope
                 // Lists and Bring are the series' (This day has no Before or Back rows): they go back to
-                // the item's, so nothing set on All days is dropped by a This-day save (#289 review).
+                // the item's, so nothing set on Every time is dropped by a This-day save (#289 review).
                 if scope == .thisDay {
                     state.form.lists = state.original.lists
                     state.form.bring = state.original.bring
