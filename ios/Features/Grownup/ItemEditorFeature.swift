@@ -126,7 +126,7 @@ public struct ItemEditorFeature {
         public var weeklyItem: ScheduleItem?
         /// The date "Skip this day" skipped, while it can still be brought back.
         public var skippedDay: Day?
-        /// Board G3 / G2 tabs; an every-week item opens on All days wherever it is opened from (G1's
+        /// Board G3 / G2 tabs; an every-week item opens on Every time wherever it is opened from (G1's
         /// Details on either tab, the List, Settings), as School does (specs #293, #298); This day
         /// stays one tap away.
         public var editScope: Scope = .allDays

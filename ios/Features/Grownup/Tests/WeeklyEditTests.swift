@@ -38,7 +38,7 @@ final class WeeklyEditTests: XCTestCase {
         return store
     }
 
-    /// Spec #293: "Details ›" opens on All days, whichever tab G1 was on; This day is one tap away.
+    /// Specs #293, #298: the editor opens on Every time from every entry; This day is one tap away.
     func testAllDaysIsTheDefaultAndThisDaySkipSavesAtOnce() async {
         let saved = LockIsolated<[[ScheduleItem]]>([])
         let store = store(saved: saved)
