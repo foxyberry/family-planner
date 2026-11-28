@@ -71,6 +71,13 @@ final class SchoolEditorTests: XCTestCase {
 
     /// Spec G4 Terms: a school the list knows shows its terms as text, with no MOE
     /// switch; a school typed by hand, or one whose terms the list doesn't know, keeps the switch.
+    /// Spec #293: "Details ›" opens School (G4) on All days, whichever tab G1 was on.
+    func testDetailsOpensOnAllDays() {
+        let store = store(savedKids: .init([]), savedRoutines: .init([]), shownDay: Day(year: 2026, month: 11, day: 10))
+        XCTAssertEqual(store.state.editScope, .allDays)
+        XCTAssertFalse(store.state.isThisDay)
+    }
+
     func testTheMoeSwitchShowsOnlyForASchoolTheListDoesNotKnow() async {
         let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
         func entry(_ follows: Bool?) -> SchoolEntry {

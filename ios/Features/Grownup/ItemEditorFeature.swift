@@ -126,8 +126,9 @@ public struct ItemEditorFeature {
         public var weeklyItem: ScheduleItem?
         /// The date "Skip this day" skipped, while it can still be brought back.
         public var skippedDay: Day?
-        /// Board G3 / G2 tabs; an every-week item opens on This day.
-        public var editScope: Scope = .thisDay
+        /// Board G3 / G2 tabs; an every-week item opens on All days, whichever tab G1 was on (spec
+        /// #293: "Details ›" is for the item itself; This day stays one tap away).
+        public var editScope: Scope = .allDays
         /// Board G5: the "Change from when?" card is open, with its choice and date.
         public var fromWhen: FromWhen?
         public var fromWhenDate: Day

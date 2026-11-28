@@ -38,9 +38,14 @@ final class WeeklyEditTests: XCTestCase {
         return store
     }
 
-    func testThisDayIsTheDefaultAndSkipSavesAtOnce() async {
+    /// Spec #293: "Details ›" opens on All days, whichever tab G1 was on; This day is one tap away.
+    func testAllDaysIsTheDefaultAndThisDaySkipSavesAtOnce() async {
         let saved = LockIsolated<[[ScheduleItem]]>([])
         let store = store(saved: saved)
+        XCTAssertTrue(store.state.showsScopeTabs)
+        XCTAssertEqual(store.state.editScope, .allDays)
+        XCTAssertFalse(store.state.isThisDay)
+        await store.send(.scopeTapped(.thisDay))
         XCTAssertTrue(store.state.isThisDay)
         XCTAssertEqual(store.state.thisDayTitle, "Mon 9 Nov only")
         XCTAssertEqual(store.state.skipTitle, "Skip this day")
@@ -67,6 +72,7 @@ final class WeeklyEditTests: XCTestCase {
         let store = store(saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
+        await store.send(.scopeTapped(.thisDay))
         await store.send(.binding(.set(\.form.end, 1020)))
         await store.send(.saveTapped)
         await store.receive(\.saved)
@@ -314,6 +320,7 @@ final class WeeklyEditTests: XCTestCase {
         let store = store(on: tuesday, shownDay: wed18, saved: saved)
         await store.send(.task)
         await store.receive(\.loaded)
+        await store.send(.scopeTapped(.thisDay))
         await store.send(.binding(.set(\.form.end, 1020)))
         await store.send(.saveTapped)
         await store.receive(\.saved)
