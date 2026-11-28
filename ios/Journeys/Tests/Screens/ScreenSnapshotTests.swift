@@ -51,6 +51,22 @@ final class ScreenSnapshotTests: XCTestCase {
         for (name, size) in Self.sizes { snap(store.state, world, size: size, named: name) }
     }
 
+    /// Board A1p (layout v81): Kid A's School comes back by pickup 20 minutes before it ends, so a
+    /// grown-up row (the pickup picture, Kid A's face, no "›") sits in the list at 2:40 pm.
+    func testHomeWithAPickup() async throws {
+        let world = World(sample)
+        world.family.withValue { family in
+            guard let index = family.kids.firstIndex(where: { $0.id == SeedData.kidA.id }) else { return }
+            var lists = family.kids[index].school?.lists ?? EventLists()
+            lists.wayHome = .pickup
+            lists.homeAfter = 20
+            family.kids[index].school?.lists = lists
+        }
+        let store = world.store()
+        await opened(store)
+        snap(store.state, world, size: Self.sizes[0].size, named: "13")
+    }
+
     /// Board A1z (layout v81): home after Kid A's bedtime (Tuesday 9:15 pm): tomorrow's first things,
     /// "Tomorrow" over the time, on night plates.
     func testHomeAfterBedtime() async throws {
