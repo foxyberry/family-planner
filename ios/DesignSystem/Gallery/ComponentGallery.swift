@@ -298,6 +298,14 @@ public struct ComponentGallery: View {
                         DrivingKitIcon(.shoe, size: 96)
                     }
                 }
+                section("C5 · Routines") {
+                    VStack(spacing: 16) {
+                        BundleButton("Morning routine", isPicked: true) {}
+                        BundleButton("Swim day", isPicked: false) {}
+                        AddRow("New bundle") {}
+                    }
+                    .frame(width: 472)
+                }
                 section("K1 · School calendar") {
                     CrayonTabs(selection: .constant(2026), items: [(2026, "2026", nil), (2027, "2027", nil)],
                                itemSize: CGSize(width: 150, height: 72), spacing: 12, neutral: true)

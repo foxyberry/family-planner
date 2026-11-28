@@ -121,6 +121,15 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(CalendarLegend(items: Self.legend).frame(width: 856, alignment: .leading), width: 856 + 2 * Spacing.m)
     }
 
+    /// Board C5 (issue 024): a picked bundle on the sky hatch with a bold name, another on paper.
+    func testBundleButtons() {
+        snap(VStack(spacing: 16) {
+            BundleButton("Morning routine", isPicked: true) {}
+            BundleButton("Swim day", isPicked: false) {}
+            AddRow("New bundle") {}
+        }.frame(width: 472, alignment: .leading), width: 472 + 2 * Spacing.m)
+    }
+
     static let letters = ["M", "T", "W", "T", "F", "S", "S"]
 
     static let cellMarks: [CalendarCell.Mark] = [

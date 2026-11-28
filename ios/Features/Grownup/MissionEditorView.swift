@@ -6,8 +6,8 @@ import KitArt
 import Strings
 import SwiftUI
 
-/// C5 · Morning missions (board C5): the kid's missions in circle order, drag ≡ to reorder, tap a
-/// row to rename it or change its picture.
+/// C5 · Routines (board C5, issue 024): the kid's bundles in the side column; the card edits the
+/// picked one: its name, then its missions in circle order (drag ≡ to reorder, tap a row to change it).
 public struct MissionEditorView: View {
     @Environment(\.sizing) private var sizing
     @Bindable var store: StoreOf<MissionEditorFeature>
@@ -34,12 +34,20 @@ public struct MissionEditorView: View {
                 }
             } primaryAction: { layout in
                 VStack(alignment: .trailing, spacing: sizing(Spacing.xs)) {
+                    bundleFoot.frame(width: layout.side.width)
                     InkButton(store.doneTitle) { store.send(.doneTapped) }
                         .frame(width: layout.side.width)
                     if let error = store.saveError {
                         Text(error).crayonType(.caption).foregroundStyle(CrayonColor.lateText)
                     }
                 }
+            }
+            if let confirm = store.state.removeBundleConfirm {
+                CrayonColor.dim.fullBleed()
+                    .onTapGesture { store.send(.removeBundleCancelled) }
+                ConfirmCard(title: confirm.title, message: confirm.message, cancel: store.keepLabel,
+                            confirm: store.removeLabel, isDestructive: true,
+                            onCancel: { store.send(.removeBundleCancelled) }, onConfirm: { store.send(.removeBundleConfirmed) })
             }
             if let draft = store.draft {
                 CrayonColor.dim.fullBleed()
@@ -72,22 +80,22 @@ public struct MissionEditorView: View {
 
     private var list: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Board C5: the Name row first (label 78, field 192–802), then the missions.
+            if store.bundle != nil {
+                HStack(spacing: 0) {
+                    FormLabel(store.nameLabel)
+                    CrayonField(store.nameLabel, text: Binding(get: { store.bundleName },
+                                                               set: { store.send(.bundleNameChanged($0)) }))
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(.bottom, sizing(Spacing.m))
+            }
             // Layout v21: no divider lines inside cards; the rows are separated by space only.
             ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, mission in
                 row(mission, index: index)
             }
             if store.canAdd {
-                Button { store.send(.addTapped) } label: {
-                    HStack(spacing: sizing(Spacing.s)) {
-                        MarkerIcon(.plus, size: sizing(28), color: CrayonColor.link)
-                            .frame(width: sizing(56), height: sizing(56))
-                            .crayonBackground(.circle, fill: nil, seed: 1801)
-                        Text(store.addTitle).crayonType(.body).foregroundStyle(CrayonColor.link)
-                    }
-                    .frame(height: sizing(72))
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                AddRow(store.addTitle) { store.send(.addTapped) }
             } else {
                 Text(store.mostCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: sizing(72))
@@ -122,6 +130,27 @@ public struct MissionEditorView: View {
         }
     }
 
-    /// Board C5's side column: empty since (plain screens); "Ready by" comes with N2.
-    private var side: some View { EmptyView() }
+    /// Board C5's side column: the kid's bundles (472 × 88, 16 apart) and "New bundle"; at its foot
+    /// "Used by {events}" and "Remove {bundle}".
+    private var side: some View {
+        VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
+            ForEach(store.state.bundleRows, id: \.id) { row in
+                BundleButton(row.name, isPicked: row.isPicked) { store.send(.bundleTapped(row.id)) }
+            }
+            AddRow(store.newBundleTitle, seed: 1802) { store.send(.newBundleTapped) }
+        }
+    }
+
+    /// Board C5: above "Done", "Used by {events}" and "Remove {bundle}".
+    @ViewBuilder private var bundleFoot: some View {
+        if let used = store.usedByCaption {
+            Text(used).crayonType(.caption).foregroundStyle(CrayonColor.softText)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        if let remove = store.removeBundleTitle {
+            RemoveButton(remove) { store.send(.removeBundleTapped) }
+                .padding(.bottom, sizing(Spacing.m))
+        }
+    }
 }
