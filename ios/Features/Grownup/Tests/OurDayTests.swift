@@ -126,7 +126,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertGreaterThan(store.state.haptics.bumps, 0)
     }
 
-    /// Layout v37: School's start moves; on All days it moves School's hours with it.
+    /// Layout v37: School's start moves; on Every time it moves School's hours with it.
     func testMovingSchoolForAllDaysMovesItsHours() async {
         let savedKids = LockIsolated<[Kid]>([])
         let store = await loaded(savedKids: savedKids)
@@ -142,7 +142,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(savedKids.value.last?.school?.end, 900)
     }
 
-    /// Spec G5 "What Settings shows meanwhile", #255: School moved on All days from a later day keeps
+    /// Spec G5 "What Settings shows meanwhile", #255: School moved on Every time from a later day keeps
     /// today's hours; the new ones wait for that day on the kid, and the version saved from it keeps
     /// today's School (the date reads the waiting hours).
     func testMovingSchoolFromALaterDayWaits() async {
@@ -167,7 +167,7 @@ final class OurDayTests: XCTestCase {
                                            calendar: F.calendar)?.blocks.first { $0.kind == .school }?.start, 480)
     }
 
-    /// A design answer to #255: School moved on All days from today reaches a later version that
+    /// A design answer to #255: School moved on Every time from today reaches a later version that
     /// follows the old record (its other edit stays).
     func testMovingSchoolFromTodayReachesLaterVersions() async {
         var later = SeedData.routines.first { $0.kid == SeedData.kidA.id && $0.dayType == .weekday }!
@@ -190,7 +190,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(moved?.blocks.first { $0.kind == .dinner }?.start, 1125, "its own edit stays")
     }
 
-    /// School moved on All days from a day after a waiting change starts from the record that applies
+    /// School moved on Every time from a day after a waiting change starts from the record that applies
     /// then (the waiting one: its days stay), and replaces the waiting change from that day.
     func testMovingSchoolAfterTheWaitingDayStartsFromTheWaitingRecord() async {
         let wednesday = Day(year: 2026, month: 11, day: 11), thursday = Day(year: 2026, month: 11, day: 12)
@@ -235,7 +235,7 @@ final class OurDayTests: XCTestCase {
     }
 
     /// #255 S1: while a change waits from Wed, Thu's clock shows the waiting School; another slice saved
-    /// on All days from Thu keeps today's School in the store, so a cancel leaves Thu on today's hours
+    /// on Every time from Thu keeps today's School in the store, so a cancel leaves Thu on today's hours
     /// with the other edit.
     func testAnotherEditAfterTheWaitingDayStoresTodaysSchool() async {
         let wednesday = Day(year: 2026, month: 11, day: 11), thursday = Day(year: 2026, month: 11, day: 12)
@@ -346,7 +346,7 @@ final class OurDayTests: XCTestCase {
     }
 
     /// Spec "Tapping +" on free paper: the first hour, an every-week item on the day's weekday on
-    /// All days (from G5's date). A typed name sticks; Undo takes the new item back, card and all.
+    /// Every time (from G5's date). A typed name sticks; Undo takes the new item back, card and all.
     func testFreePaperPlusOnAllDaysIsAnEveryWeekItem() async throws {
         let writes = Writes()
         let store = await loaded(writes: writes)
@@ -384,7 +384,7 @@ final class OurDayTests: XCTestCase {
                        .weekly([.tuesday], from: Day(year: 2026, month: 11, day: 11), until: nil))
     }
 
-    /// A new item picked again before Save still follows its tabs: All days makes it every week.
+    /// A new item picked again before Save still follows its tabs: Every time makes it every week.
     func testANewItemFollowsItsTabsUntilSave() async throws {
         let writes = Writes()
         let store = await loaded(writes: writes)
@@ -466,7 +466,7 @@ final class OurDayTests: XCTestCase {
         await store.receive(\.delegate.removeSchool)
     }
 
-    /// Review case B (PR 174): Skip Play on This day and Remove Dinner on All days; each is saved by
+    /// Review case B (PR 174): Skip Play on This day and Remove Dinner on Every time; each is saved by
     /// its own scope. With G5 on tomorrow (Wed), this day keeps Dinner and has Play skipped.
     func testASkipAndARemoveSaveByTheirOwnScopes() async throws {
         let writes = Writes()
@@ -487,7 +487,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertFalse(series.blocks.contains(where: \.isSkipped))
         let own = try XCTUnwrap(writes.routines.value.first { $0.onlyOn == tuesday })
         XCTAssertEqual(own.blocks.first { $0.title == "Play" }?.isSkipped, true)
-        XCTAssertTrue(own.blocks.contains { $0.title == "Dinner" }, "the All days change starts Wednesday")
+        XCTAssertTrue(own.blocks.contains { $0.title == "Dinner" }, "the Every time change starts Wednesday")
         XCTAssertTrue(store.state.edit.blocks.contains { $0.title == "Dinner" })
         XCTAssertEqual(store.state.edit.blocks.first { $0.title == "Play" }?.isSkipped, true)
     }
@@ -530,7 +530,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(count.value, 1)
     }
 
-    /// Spec G1 "One card": Remove on All days makes a day slice free time at once (no confirm); the
+    /// Spec G1 "One card": Remove on Every time makes a day slice free time at once (no confirm); the
     /// free paper has neither action.
     func testRemoveADaySliceOnAllDays() async throws {
         let store = await loaded()
@@ -551,7 +551,7 @@ final class OurDayTests: XCTestCase {
     }
 
     /// Board G1g: a slice skipped this day stays faded with "Skipped / this day"; Bring back undoes it;
-    /// This day saves the skip, All days never does.
+    /// This day saves the skip, Every time never does.
     func testSkipThisDayAndBringBack() async throws {
         let saved = LockIsolated<[Routine]>([])
         let store = await loaded(saved: saved)
@@ -573,7 +573,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(saved.value.last?.onlyOn, tuesday)
         XCTAssertEqual(saved.value.last?.blocks.first { $0.start == play.start }?.isSkipped, true)
         XCTAssertTrue(store.state.isSelectedSkipped, "the clock shows the saved day: Play skipped")
-        // All days never offers a skip.
+        // Every time never offers a skip.
         await store.send(.scopeTapped(.allDays))
         await store.send(.sliceTapped(start: store.state.edit.blocks.first { $0.title == "Dinner" }!.start))
         XCTAssertEqual(store.state.sliceAction, .remove)
@@ -617,7 +617,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.day, tuesday)
     }
 
-    /// Spec "Edit scope": a drag saves for this day only unless All days is picked.
+    /// Spec "Edit scope": a drag saves for this day only unless Every time is picked.
     func testSaveThisDayKeepsOtherDays() async {
         let saved = LockIsolated<[Routine]>([])
         let store = await loaded(saved: saved)
@@ -686,7 +686,7 @@ final class OurDayTests: XCTestCase {
         await store.send(.knobReleased(0))
         await store.send(.scopeTapped(.thisDay))
         await store.send(.saveTapped)
-        XCTAssertEqual(store.state.fromWhen, .today, "an All days drag asks from when (board G5), whatever tab shows")
+        XCTAssertEqual(store.state.fromWhen, .today, "an Every time drag asks from when (board G5), whatever tab shows")
         XCTAssertEqual(store.state.fromWhenTabs.map(\.1), ["Today", "Tomorrow", "Date"], "never \"Next Wed\"")
         await store.send(.fromWhenPicked(.next))
         await store.send(.fromWhenSaveTapped)
@@ -731,7 +731,7 @@ final class OurDayTests: XCTestCase {
     private let swimID = UUID(uuidString: "00000000-0000-0000-0000-00000000C001")!
     private var swim: ScheduleItem { F.weekly(days: [.tuesday], start: 1020, end: 1080, id: swimID) }
 
-    /// An every-week item opens the same card: Skip this day on This day; on All days Remove asks
+    /// An every-week item opens the same card: Skip this day on This day; on Every time Remove asks
     /// first, takes it off the clock until Undo, and Save ends the series from G5's date.
     func testAnEveryWeekItemSkipsOrEndsItsSeries() async throws {
         let writes = Writes()
@@ -760,7 +760,7 @@ final class OurDayTests: XCTestCase {
         await store.send(.removeConfirmed)
         XCTAssertNil(store.state.sectors.first { $0.iconName == "actSwim" })
         XCTAssertEqual(store.state.selectedBlock?.title, "Play", "the slice underneath is picked")
-        XCTAssertEqual(store.state.unsavedLine, "Swimming 5:00 pm %@ 6:00 pm, all days")
+        XCTAssertEqual(store.state.unsavedLine, "Swimming 5:00 pm %@ 6:00 pm, every time")
         await store.send(.undoTapped)
         XCTAssertNotNil(store.state.sectors.first { $0.iconName == "actSwim" }, "Undo brings it back")
         await store.send(.redoTapped)
@@ -806,7 +806,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertTrue(store.state.items.isEmpty)
     }
 
-    /// School: Skip this day in one tap; Remove on All days opens G7 with At home picked (spec G1
+    /// School: Skip this day in one tap; Remove on Every time opens G7 with At home picked (spec G1
     /// "One card", e39b24d), never a template-only removal.
     func testSchoolSkipsInOneTapAndRemoveOpensG7() async throws {
         let store = await loaded()
@@ -963,7 +963,7 @@ final class OurDayTests: XCTestCase {
                         state.newNameLabel, state.bringBackTitle] + state.scopeTabs.map(\.1),
                        ["Our day", "List", "Settings", "Save", "Add", "Save the changes?", "Cancel", "Save",
                         "Change from when?", "Save", "Cancel", "Today", "More", "Name", "Bring back",
-                        "This day", "All days"])
+                        "This day", "Every time"])
         XCTAssertEqual([state.canUndo, state.canRedo], [false, false], "nothing to take back or put back")
         let keys = withDependencies { $0.localizer = .keys } operation: {
             OurDayFeature.State(kid: SeedData.kidA.id, today: tuesday, calendar: F.calendar)

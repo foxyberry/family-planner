@@ -30,7 +30,7 @@ public struct SchoolEditorView: View {
                 .frame(width: layout.form.width, height: layout.form.height)
                 ScrollColumn {
                     VStack(alignment: .leading, spacing: sizing(Spacing.s)) {
-                        // Boards G2 / G4: This day / All days fill the side column.
+                        // Boards G2 / G4: This day / Every time fill the side column.
                         CrayonTabs(selection: Binding(get: { store.editScope }, set: { store.send(.scopeTapped($0)) }),
                                    items: store.scopeTabs.map { ($0.0, $0.1, nil) },
                                    fills: true, spacing: Spacing.sm)
@@ -88,7 +88,7 @@ public struct SchoolEditorView: View {
         .task { await store.send(.task).finish() }
     }
 
-    /// Board G5 over G4: an All days save asks from when (the shared DesignSystem card).
+    /// Board G5 over G4: an Every time save asks from when (the shared DesignSystem card).
     private var fromWhenCard: some View {
         FromWhenCard(title: store.fromWhenTitle, tabs: store.fromWhenTabs,
                      selection: Binding(get: { store.fromWhenChoice }, set: { store.send(.fromWhenPicked($0)) }),
@@ -227,7 +227,7 @@ public struct SchoolEditorView: View {
                     Text(store.nothingText).crayonType(.body).foregroundStyle(CrayonColor.softText)
                 }
             }
-            // Before and Back follow All days: off on This day (#289 review).
+            // Before and Back follow Every time: off on This day (#289 review).
             .offLook(store.listRowsEnabled)
             if store.showsBack {
                 linkRow(store.backLabel, action: .backRowTapped) {

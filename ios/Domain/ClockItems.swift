@@ -1,10 +1,10 @@
 import Foundation
 
-/// "This day" or "All days" (spec "Edit scope"): every change on the G1 clock carries the scope it
+/// "This day" or "Every time" (spec "Edit scope"): every change on the G1 clock carries the scope it
 /// was made in, and Save writes each change by its own scope.
 public enum EditScope: Hashable, Sendable { case thisDay, allDays }
 
-/// A change to the day template, kept with its scope so Save can write the All days ones onto the
+/// A change to the day template, kept with its scope so Save can write the Every time ones onto the
 /// day type's template (from G5's date) and the This day ones as the day's own template.
 public struct TemplateChange: Equatable, Sendable {
     public enum Kind: Equatable, Sendable {
@@ -35,7 +35,7 @@ public struct ClockItem: Equatable, Sendable, Identifiable {
     public var iconName: String
     public var start: Int
     public var end: Int
-    /// Every week or every month (This day / All days); false for a just-once item.
+    /// Every week or every month (This day / Every time); false for a just-once item.
     public var isRepeating: Bool
     /// Every month: its Remove asks "every month".
     public var isMonthly: Bool
@@ -43,7 +43,7 @@ public struct ClockItem: Equatable, Sendable, Identifiable {
     public var isAnchored: Bool
     /// "Skip this day" (This day): faded on the clock, "Bring back" on its card.
     public var isSkipped: Bool
-    /// "Remove" (All days, or a just-once item): off the clock until Undo.
+    /// "Remove" (Every time, or a just-once item): off the clock until Undo.
     public var isRemoved: Bool
     /// Added on the clock ("+") and not saved yet.
     public var isNew: Bool
@@ -66,7 +66,7 @@ public struct ClockItem: Equatable, Sendable, Identifiable {
         self.isNew = isNew
     }
 
-    /// A new item's scope is its kind: just once on This day, every week on All days.
+    /// A new item's scope is its kind: just once on This day, every week on Every time.
     public var newScope: EditScope { isRepeating ? .allDays : .thisDay }
 
     /// The slice colour an item has (as `ScheduleItem.kind`).
@@ -179,10 +179,10 @@ public enum ClockSave {
 
     /// - `items`: the clock's items now; `saved`: as they were at the last save (or load).
     /// - Each change is written by the scope it was made in: new times by `retimeScope` (This day
-    ///   keeps them for `day`, All days from `from`), a skip is this day, a remove ends the series
+    ///   keeps them for `day`, Every time from `from`), a skip is this day, a remove ends the series
     ///   from `from` (a just-once item is deleted), an add is a just-once item on `day` or, when
-    ///   added on All days, an every-week item on `day`'s weekday from `from`. `from` is G5's date,
-    ///   asked only when there are All days changes.
+    ///   added on Every time, an every-week item on `day`'s weekday from `from`. `from` is G5's date,
+    ///   asked only when there are Every time changes.
     public static func writes(items: [ClockItem], saved: [ClockItem], originals: [ScheduleItem], kid: Kid.ID,
                               day: Day, from: Day, calendar: Calendar, newID: () -> UUID) -> Writes {
         var writes = Writes()

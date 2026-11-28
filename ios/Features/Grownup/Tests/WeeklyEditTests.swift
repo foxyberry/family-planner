@@ -7,7 +7,7 @@ import ScheduleStore
 import SchoolDirectory
 import XCTest
 
-/// Boards G2, G3, G5: This day (skip or change one day), All days (from when?), stop the series.
+/// Boards G2, G3, G5: This day (skip or change one day), Every time (from when?), stop the series.
 @MainActor
 final class WeeklyEditTests: XCTestCase {
     private typealias F = Fixture

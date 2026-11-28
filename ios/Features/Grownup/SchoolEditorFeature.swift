@@ -10,7 +10,7 @@ import SchoolDirectory
 import Strings
 
 /// G4 · Edit School (spec "G4"): School's hours, days, Arrive by and Latest, Terms, how
-/// the kid goes, Bring and the medal. **All days** asks G5 "Change from when?" (spec G5), then writes
+/// the kid goes, Bring and the medal. **Every time** asks G5 "Change from when?" (spec G5), then writes
 /// the school record and a new weekday template from today with School's slice on the new times; from a
 /// later day it stores the kid's one waiting change instead (spec G5 "What Settings shows meanwhile",
 /// #255), which templates read from its day and Home writes in on that day. Its "From {d Mon} ·
@@ -19,7 +19,7 @@ import Strings
 /// start, an early dismissal).
 @Reducer
 public struct SchoolEditorFeature {
-    /// "This day" or "All days" (spec "Edit scope").
+    /// "This day" or "Every time" (spec "Edit scope").
     public enum Scope: Hashable, Sendable { case thisDay, allDays }
 
     @ObservableState
@@ -191,7 +191,7 @@ public struct SchoolEditorFeature {
         /// The tab the card shows; Today until it opens.
         public var fromWhenChoice: FromWhenTabs.Choice { fromWhen ?? .today }
         public var isAskingFromWhen: Bool { fromWhen != nil }
-        /// Where the All days change starts: G5's choice, never before today.
+        /// Where the Every time change starts: G5's choice, never before today.
         public var splitDay: Day {
             switch fromWhen {
             case .next?: nextDay ?? today
@@ -226,7 +226,7 @@ public struct SchoolEditorFeature {
 
         // MARK: What the view shows (it holds no values of its own)
 
-        /// Boards G2 / G4: the side column's This day / All days tabs.
+        /// Boards G2 / G4: the side column's This day / Every time tabs.
         public var scopeTabs: [(Scope, String)] {
             [(.thisDay, strings.tr("editor.scope.this_day")), (.allDays, strings.tr("editor.scope.all_days"))]
         }
@@ -262,7 +262,7 @@ public struct SchoolEditorFeature {
             let days = school?.days ?? []
             return !items.contains { $0.after == .school && $0.audience.includes(kid) && days.isSubset(of: $0.weeklyDays) }
         }
-        /// Before and Back follow All days: on This day their rows are off.
+        /// Before and Back follow Every time: on This day their rows are off.
         public var listRowsEnabled: Bool { !isThisDay }
         public var backChoices: [ChoiceCircles.Choice] { BackCopy.choices(lists.wayHome, strings: strings) }
         public var showsTakes: Bool { lists.wayHome != .none }
@@ -684,7 +684,7 @@ public struct SchoolEditorFeature {
             case .saveTapped:
                 guard state.canSave, state.stored != nil else { return .none }
                 if state.editScope == .allDays {
-                    // Spec G5: All days asks from when first, on the day carried from G1 as This day moved
+                    // Spec G5: Every time asks from when first, on the day carried from G1 as This day moved
                     // it (#250); from the List or Settings none, so Today.
                     let opening = FromWhenTabs.opening(shown: state.carriedDay, next: state.nextDay, today: state.today)
                     state.fromWhen = opening.choice

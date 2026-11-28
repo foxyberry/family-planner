@@ -104,8 +104,8 @@ public struct ItemEditorFeature {
         /// so a weekend school can wear its country's flag.
         public static let flags: [KitSlot] = [.flagKR, .flagJP, .flagCN, .flagUK, .flagFR, .flagIN, .flagTH, .flagVN]
 
-        /// Board C3 "What" row: the picked picture first, then the pictures this kid's items use most,
-        /// then the kit's list; five slots (the sixth is "More").
+        /// Board C3 "What" row: the pictures this kid's items use most, topped up from the kit, in the
+        /// kit's order; a picked one outside them takes the last slot. Five slots (the sixth is "More").
         public var whatRow: [String] {
             let items = (snapshot?.items ?? []).filter { item in
                 switch form.audience {
@@ -367,7 +367,7 @@ public struct ItemEditorFeature {
         /// Board C3g: the Leave row of a kid who goes by bus links to Our buses ("Uses Our buses ›").
         /// The "›" is drawn by GlyphText at the key's "%@" (Playpen Sans has none).
         public var usesBusesTitle: String { strings.tr("going.uses_buses", "%@") }
-        /// Boards G2 / G3: the side column's This day / All days tabs.
+        /// Boards G2 / G3: the side column's This day / Every time tabs.
         public var scopeTabs: [(Scope, String)] {
             [(.thisDay, strings.tr("editor.scope.this_day")), (.allDays, strings.tr("editor.scope.all_days"))]
         }
@@ -395,6 +395,18 @@ public struct ItemEditorFeature {
         /// Save can always be tapped (it explains a problem instead), except while it saves.
         public var canSave: Bool { !isSaving }
         public var hasChanges: Bool { form != original }
+
+        /// The For row only adds (boards C3, C4). Editing (G2, G3, G2m) keeps the item's kids: their
+        /// faces sit after the header title (design answer 2026-11-28; user: a For row on an edit
+        /// offered kids the item could not fit).
+        public var showsForRow: Bool { isAdding }
+
+        /// The faces after an edit's header title, in the family's order; none while adding.
+        public var headerFaces: [KidFace.Badge] {
+            guard !isAdding else { return [] }
+            return (snapshot?.kids ?? []).filter { form.audience.includes($0.id) }
+                .map { KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex) }
+        }
 
         /// A tab per kid, and "Both" once there are two or more kids.
         public var audienceTabs: [AudienceTab] {
@@ -647,7 +659,7 @@ public struct ItemEditorFeature {
         case noSchoolStartPicked(Date)
         case noSchoolEndPicked(Date)
         case noSchoolGoingTapped(Domain.Way?)
-        /// Boards G2 / G3: the This day / All days tabs.
+        /// Boards G2 / G3: the This day / Every time tabs.
         case scopeTapped(Scope)
         /// Board G5: the choice, the date, Save and Cancel.
         case fromWhenPicked(FromWhen)
@@ -763,7 +775,7 @@ public struct ItemEditorFeature {
                 }
                 if state.showsScopeTabs, let weekly = state.weeklyItem {
                     guard state.editScope == .thisDay, let day = state.thisDay else {
-                        // All days asks from when first (board G5), on the day carried from G1 as This day
+                        // Every time asks from when first (board G5), on the day carried from G1 as This day
                         // moved it (spec G5, #250); from the List none, so Today.
                         let opening = FromWhenTabs.opening(shown: state.carriedDay, next: state.nextDay, today: state.today)
                         state.fromWhen = opening.choice
@@ -803,7 +815,7 @@ public struct ItemEditorFeature {
             case let .scopeTapped(scope):
                 state.editScope = scope
                 // Lists and Bring are the series' (This day has no Before or Back rows): they go back to
-                // the item's, so nothing set on All days is dropped by a This-day save (#289 review).
+                // the item's, so nothing set on Every time is dropped by a This-day save (#289 review).
                 if scope == .thisDay {
                     state.form.lists = state.original.lists
                     state.form.bring = state.original.bring
