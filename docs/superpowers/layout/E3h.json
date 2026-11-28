@@ -1,5 +1,5 @@
 {
- "version": "78",
+ "version": "81",
  "board": "E3h",
  "family": "home",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -44,26 +44,22 @@
    0,
    900
   ],
-  "hubRadius": 104,
-  "rim": {
-   "width": 12,
-   "colour": "picked kid"
-  },
+  "hubRadius": 142,
   "hub": {
    "face": [
     424,
-    440,
+    436,
     48
    ],
    "weekdayBaseline": 524,
-   "timeBaseline": 574,
+   "timeBaseline": 578,
    "withNameLine": {
     "weekday": 494,
-    "time": 544,
-    "name": 580
+    "time": 548,
+    "name": 586
    },
    "weekday": 28,
-   "time": 44,
+   "time": 48,
    "ampm": 24
   },
   "panelLeft": 928,

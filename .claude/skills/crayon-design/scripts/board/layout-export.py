@@ -36,8 +36,8 @@ REGIONS = {
 LINES = {
  'morning': {'kidsLeft': 64, 'kidTextLeft': 172, 'missionsLeft': 448, 'right': 1312, 'stripTop': 176, 'stripBottom': 516, 'kidsTop': 536, 'missionsTop': 548,
              'circleTop': 612, 'captionTop': 732, 'bottomControlTop': 872, 'baselines': {'header': 107, 'missionsName': 584, 'captions': 757}},
- 'home': {'clockCentre': [448, 528], 'clockRadius': 372, 'clockArea': [0, 900], 'hubRadius': 104, 'rim': {'width': 12, 'colour': 'picked kid'},
-          'hub': {'face': [424, 440, 48], 'weekdayBaseline': 524, 'timeBaseline': 574, 'withNameLine': {'weekday': 494, 'time': 544, 'name': 580}, 'weekday': 28, 'time': 44, 'ampm': 24},
+ 'home': {'clockCentre': [448, 528], 'clockRadius': 372, 'clockArea': [0, 900], 'hubRadius': 142,
+          'hub': {'face': [424, 436, 48], 'weekdayBaseline': 524, 'timeBaseline': 578, 'withNameLine': {'weekday': 494, 'time': 548, 'name': 586}, 'weekday': 28, 'time': 48, 'ampm': 24},
           'panelLeft': 928, 'right': 1336, 'topButtons': [36, 132], 'panelBottom': 968, 'order': 'bottom-up: kid chips at the bottom, the next card above them, later rows climb above it',
           'kidChips': {'top': 872, 'height': 96, 'gap': 12, 'face': 56, 'picture': 60},
           'nextCard': {'gapAboveChips': 24, 'bleedLeft': 12, 'width': 420, 'paddingLeft': 12, 'paddingRight': 10, 'paddingY': 16, 'gap': 8, 'time': 36, 'picture': 72, 'title': 36, 'faces': 36},
