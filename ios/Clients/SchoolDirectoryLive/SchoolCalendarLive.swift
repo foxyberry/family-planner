@@ -98,6 +98,7 @@ extension OtherFile.School {
         let closed = ranges.flatMap { BundledSchools.days(from: $0.start, to: $0.end, calendar: calendar) }
         let breaks = BundledSchools.named(ranges.map { ($0.name, $0.start, $0.end) }, calendar: calendar)
         return SchoolCalendar(terms: terms.sorted { $0.start < $1.start }, closed: Set(closed), breaks: breaks)
+            .withTermGaps(calendar: calendar)
     }
 }
 
