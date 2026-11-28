@@ -567,7 +567,7 @@ final class ItemEditorTests: XCTestCase {
                         "Before", "Back", "Bundles", "Bring", "Takes", "Medal", "More", "Skip school holidays", "A star on the clock that day", "Nothing",
                         "Done", "Cancel", "Ends", "\(state.form.times) times", "Starts", "Off days", "Skip",
                         "At a set time", "Uses Our buses %@", "Change from when?", "Save", "Cancel", "Once", "Weekly",
-                        "Monthly", "This day", "All days"])
+                        "Monthly", "This day", "Every time"])
         let keys = withDependencies { $0.localizer = .keys } operation: {
             ItemEditorFeature.State(mode: .add(kidA), repeats: .weekly, now: now, calendar: F.calendar)
         }
@@ -631,7 +631,7 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.form.item(id: UUID(), today: F.monday).lists, EventLists())
     }
 
-    /// #289 review: This day has no Before or Back; a change made on All days goes back when This day is
+    /// #289 review: This day has no Before or Back; a change made on Every time goes back when This day is
     /// picked, so a This-day save drops nothing silently.
     func testThisDayPutsTheListsBack() async {
         let swim = SeedData.items(today: F.monday, calendar: F.calendar)[0]

@@ -2,7 +2,7 @@ import Domain
 import Foundation
 import XCTest
 
-/// Spec G5 "What Settings shows meanwhile": a School All days change from a later day waits beside
+/// Spec G5 "What Settings shows meanwhile": a School Every time change from a later day waits beside
 /// the record (one per kid's school) until its day, like the waiting school move.
 final class WaitingHoursTests: XCTestCase {
     private typealias F = Fixture

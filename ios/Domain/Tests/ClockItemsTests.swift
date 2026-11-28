@@ -114,7 +114,7 @@ final class ClockItemsTests: XCTestCase {
         XCTAssertNotNil(edit.item(newID))
     }
 
-    /// Each template change keeps its scope: the All days ones replay onto the day type's template
+    /// Each template change keeps its scope: the Every time ones replay onto the day type's template
     /// (never a skip), the This day ones onto the day's own.
     func testTemplateChangesReplayByScope() {
         var clock = edit([])
@@ -130,7 +130,7 @@ final class ClockItemsTests: XCTestCase {
         XCTAssertFalse(series.contains(where: \.isSkipped), "a skip is never every day")
         let day = clock.replaying(on: clock.savedBlocks, scopes: [.thisDay])
         XCTAssertEqual(day.first { $0.title == "Play" }?.isSkipped, true)
-        XCTAssertEqual(day.first { $0.title == "Dinner" }?.end, 1155, "the All days changes are not in it")
+        XCTAssertEqual(day.first { $0.title == "Dinner" }?.end, 1155, "the Every time changes are not in it")
         clock.undo()
         clock.undo()
         XCTAssertFalse(clock.hasAllDaysChange, "Undo takes the scoped changes back too")
@@ -188,7 +188,7 @@ final class ClockItemsTests: XCTestCase {
     }
 
     /// Spec "Tapping +": a clock add is a just-once item on This day, an every-week item on the day's
-    /// weekday on All days, never a template change.
+    /// weekday on Every time, never a template change.
     func testSaveAddsAJustOnceOrAnEveryWeekItem() {
         let once = ClockItem(id: newID, title: "Piano", iconName: "actPiano", start: 1155, end: 1185, isRepeating: false,
                              isNew: true)
@@ -202,7 +202,7 @@ final class ClockItemsTests: XCTestCase {
                        .weekly([.tuesday], from: F.thursday, until: nil))
     }
 
-    /// New times by the scope they were changed in: This day keeps them for the day; All days
+    /// New times by the scope they were changed in: This day keeps them for the day; Every time
     /// splits the series from the date.
     func testSaveMovesTimesThisDayOrFromADate() {
         let original = series(id: swimID, days: [.tuesday])

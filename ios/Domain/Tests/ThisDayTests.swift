@@ -1,7 +1,7 @@
 import Domain
 import XCTest
 
-/// Spec "Repeats, dates and changes": This day (a day changed on its own) and All days ("Change from
+/// Spec "Repeats, dates and changes": This day (a day changed on its own) and Every time ("Change from
 /// when?" splits the series; changed days that no longer fit are dropped).
 final class ThisDayTests: XCTestCase {
     private let calendar: Calendar = {

@@ -1019,7 +1019,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All days"
+            "value" : "Every time"
           }
         }
       }
@@ -1635,7 +1635,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All days"
+            "value" : "Every time"
           }
         }
       }
