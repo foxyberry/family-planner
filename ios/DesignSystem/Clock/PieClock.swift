@@ -6,7 +6,7 @@ import SwiftUI
 /// The 24-hour crayon pie clock (board A1). The view's frame is the disc (radius 372 × s); hour labels,
 /// the moon and the sun sit outside it, so give the clock room around its frame.
 public struct PieClock: View {
-    /// Spec A1 "Hub" (layout v75): whose clock, which day, what time. The picked kid's face 48 (top
+    /// Spec A1 "Hub" (layout v78): whose clock, which day, what time. The picked kid's face 48 (top
     /// 440), the weekday (28 bold, baseline 524) and the time ("6:52" 44 bold + "am" 24 soft, baseline
     /// 574). On a public holiday the weekday is red, the holiday's name sits under the time and the
     /// face is left out: weekday 494, time 544, name 580.

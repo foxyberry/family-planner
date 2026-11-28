@@ -2,7 +2,7 @@ import Domain
 import Foundation
 import KitArt
 
-/// One row in home's next list (spec A1 "Next things", layout v75): one thing for one or more kids.
+/// One row in home's next list (spec A1 "Next things", layout v78): one thing for one or more kids.
 public struct NextThing: Equatable, Sendable, Identifiable {
     /// The same thing for every kid who does it ("item:{id}" or "slot:{kind}:{title}:{start}:{end}"),
     /// with its day.

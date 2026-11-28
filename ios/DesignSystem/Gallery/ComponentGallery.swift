@@ -179,7 +179,7 @@ public struct ComponentGallery: View {
                                            time: "3:45", period: "pm", holiday: nil), rim: 0)
                     .scaleEffect(0.5)
                     .frame(width: 480, height: 480)
-                    // A1 (layout v75): the family's next things and the kid chips.
+                    // A1 (layout v78): the family's next things and the kid chips.
                     NextThingRow(time: .soon(number: "35", unit: "min", dots: 4), picture: .actSwim, title: "Swimming",
                                  faces: [KidFace.Badge(face: "kidGirl", colorIndex: 0)], hatch: .kid(0), size: .row,
                                  faded: false, look: .day)

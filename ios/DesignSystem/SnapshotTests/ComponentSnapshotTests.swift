@@ -378,12 +378,12 @@ final class ComponentSnapshotTests: XCTestCase {
             .padding(110))
     }
 
-    /// Spec A1 "Next things" (layout v75): the time cell and dots, later rows, mission rows and the next
+    /// Spec A1 "Next things" (layout v78): the time cell and dots, later rows, mission rows and the next
     /// card, by day and at night.
     func testNextThings() {
         let kidA = KidFace.Badge(face: "kidGirl", colorIndex: 0), kidB = KidFace.Badge(face: "kidBoy", colorIndex: 1)
         snap(VStack(alignment: .leading, spacing: 16) {
-            // A1 (layout v75): later rows, a mission row, the next card, by day.
+            // A1 (layout v78): later rows, a mission row, the next card, by day.
             NextThingRow(time: .soon(number: "35", unit: "min", dots: 4), picture: .actSwim, title: "Swimming",
                          faces: [kidA], hatch: nil, size: .row, faded: false, look: .day)
             NextThingRow(time: .at(time: "4:30", period: "pm"), picture: .actPlay, title: "Snack", faces: [kidA, kidB], hatch: nil,

@@ -295,7 +295,7 @@ final class HomeFeatureTests: XCTestCase {
         }
     }
 
-    // MARK: Spec A1 (layout v75): the family's next things, the clock kid and the chips
+    // MARK: Spec A1 (layout v78): the family's next things, the clock kid and the chips
 
     /// The list is the family's next things nearest first; the card is the first, the clock opens on
     /// its kid, and the chips show each kid with what they do now.

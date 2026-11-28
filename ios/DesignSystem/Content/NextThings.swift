@@ -2,7 +2,7 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-// Home's right panel parts (spec A1 "Next things" and "Kid chips", layout v75, 2026-11-22): the time
+// Home's right panel parts (spec A1 "Next things" and "Kid chips", layout v78, 2026-11-22): the time
 // cell with its time-left dots, one family row (or the larger next card) and the kid chips. Every
 // size is a board value × s; the words come from the caller's State.
 
@@ -137,7 +137,7 @@ public struct NextThingRow: View {
     public static let chevronInset: CGFloat = 10
     public static let chevronSide: CGFloat = 32
     public static let chevronLine: CGFloat = 6.5
-    /// Heights (layout v75): a later row 69, a mission row 81, the next card 112.
+    /// Heights (layout v78): a later row 69, a mission row 81, the next card 112.
     public static func height(size: Size, isMission: Bool) -> CGFloat {
         switch size {
         case .row: isMission ? 81 : 69

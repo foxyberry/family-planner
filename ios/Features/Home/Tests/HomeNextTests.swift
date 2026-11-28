@@ -3,7 +3,7 @@ import Foundation
 import Home
 import XCTest
 
-/// Spec A1 "Next things" (layout v75): the family's next things in time order.
+/// Spec A1 "Next things" (layout v78): the family's next things in time order.
 final class HomeNextTests: XCTestCase {
     private let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)

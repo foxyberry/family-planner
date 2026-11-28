@@ -22,7 +22,7 @@ public struct HomeView: View {
 
     public var body: some View {
         KidFullScreen(look: store.look, wipeFrom: HomeLayout(sizing: sizing).skyWipe(store.isSkyAnimating)) {
-            // Boards A1 / A1k / E1 (layout v75), board × s: every part placed from HomeLayout.
+            // Boards A1 / A1k / E1 (layout v78), board × s: every part placed from HomeLayout.
             let layout = HomeLayout(sizing: sizing)
             ZStack(alignment: .topLeading) {
                 clockArea
@@ -32,7 +32,7 @@ public struct HomeView: View {
                 }
                 .place(topLeft: layout.skySwitch.origin)
                 panel(layout)
-                // Board G0 (layout v75): the school calendar (K1), no lock, left of the pencil.
+                // Board G0 (layout v78): the school calendar (K1), no lock, left of the pencil.
                 RoundButton(picture: .calendar) {
                     store.send(.calendarTapped)
                 }
