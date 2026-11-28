@@ -15,7 +15,7 @@ public extension KitSlot {
              .busSinglePax1, .busSinglePax2, .busSinglePax3, .busDoublePax1, .busDoublePax2, .busDoublePax3,
              .busMiniPax1, .busMiniPax2, .busMiniPax3, .medalGold, .medalSilver, .medalBronze, .star, .crown,
              .doctor, .home, .feelVeryHappy, .feelHappy, .feelOK, .feelSad, .feelVerySad, .energyLots,
-             .energyGood, .energyTired, .energyNone, .skyDay, .skyDusk, .skyNight, .pencil, .calendar, .debugLadybug:
+             .energyGood, .energyTired, .energyNone, .skyDay, .skyDusk, .skyNight, .pencil, .calendar, .pickup, .debugLadybug:
             false
         }
     }
