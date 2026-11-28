@@ -53,7 +53,7 @@ for bid, name in MAP.items():
         o.append(f'<div style="position:absolute;left:{cx-R}px;top:{cy-R}px;width:{2*R}px;height:{2*R}px;border-radius:50%;outline:2px dashed {CYAN}"></div>')
         o.append(vline(cx, f'clock centre {cx}', color=CYAN, dash=True)); o.append(hline(cy, f'clock centre {cy}', color=CYAN, left=0, right=900))
         o.append(vline(928, '928 panel', top=90)); o.append(vline(1336, '1336 panel right', top=90))
-        h = ln.get('hubRadius', 104)
+        h = ln.get('hubRadius', 142)
         o.append(f'<div style="position:absolute;left:{cx-h}px;top:{cy-h}px;width:{2*h}px;height:{2*h}px;border-radius:50%;outline:2px dashed {CYAN}"></div>')
         rows = ln.get('rows', {})
         for x, lab in [(rows.get('timeCell', [0, 1040])[1], 'time right 1040'), (rows.get('picture', [1052])[0], 'picture 1052'), (rows.get('titleLeft', 1120), 'title 1120')]: o.append(vline(x, lab, top=140, dash=True))

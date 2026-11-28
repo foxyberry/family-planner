@@ -23,7 +23,7 @@ A screen-only UX review of the home's main button found that it changed by itsel
 - Research behind 5: children's visual schedules use two parts, now and next; ambient displays need one primary item; family calendars (Skylight, Hearth) tell people apart by colour, not columns.
 
 ## Decisions (user unless marked as the designer's call)
-- **Clock:** shows the picked kid's day. A kid-colour rim and the kid's face in the hub say whose clock it is. The hub shrinks to r 104 and holds only the face, the weekday and the time; the weekday leaves the right panel.
+- **Clock:** shows the picked kid's day. The kid's face in the hub says whose clock it is (the kid-colour rim was dropped on 2026-11-28, user: the face is enough). The hub is r 142, the same share of the clock as G1's, and holds only the face, the weekday and the time (it was r 104 until 2026-11-28); the weekday leaves the right panel.
 - **List order:** the right panel stacks from the bottom up. Kid chips sit at the bottom (where the main button was), the nearest thing is a larger card right above them, and later things climb above it. Weight sits low, and "soon" sits near the hand.
 - **Chips:** they pick the clock. A tap also fades the other kids' rows for 10 s, so a kid sees "now" (the chip) and "my next" (the strong rows). With one kid there is one chip, with the kid's name.
 - **Time cell:** the left column of every row is a time cell. Within an hour it shows "{n} min" over six dots, one dot per 10 minutes, red for the time left. The dots go out from the right, and only the last one on the card breathes. Past an hour it shows the clock time; another day shows the day label.

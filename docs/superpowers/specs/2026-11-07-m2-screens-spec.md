@@ -203,6 +203,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-28: the product backlog is retired (local issue 052): the goal moves to this spec's head; sync, automatic rigs and the reference time zone move to their own design notes; open items are local issues; build-status history stays in git.
 - 2026-11-28: the slice card's "Details ›" opens G2 / G4 on All days (user feedback on the iPad: Going could not be found from Details on This day).
 - 2026-11-28: the scope tab "All days" is renamed **"Every time"** (user: on an every-Saturday item "All days" read as "every day"). The heading under the tabs still names the days ("Every Saturday"). The G1 card's 206 tabs draw a 24 crayon cap so the label fits.
+- 2026-11-28: home hub back to r 142 (G1's share of R), time 48; the kid-colour rim is gone, the face in the hub says whose clock it is (user). Layout v81.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -377,7 +378,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 ### Pie clock: one kid's day
 - The clock shows **the picked kid's day** (the kid chips below pick it). It opens on the kid of the next card (the most urgent thing); a kid picked by a tap goes back to that kid after 10 s without a touch, and at once when the next card's kid changes.
 - Disc radius R = 372 (diameter 744), centre (448, 528).
-- **Rim**: a 12 pt crayon ring in the picked kid's colour on the disc edge, a 2.5 pt marker ring 7 outside it.
+- **Edge**: the disc's 4.5 pt marker outline only; no kid-colour rim (user, 2026-11-28: the face in the hub already says whose clock it is).
 - **Angle**: 0:00 at the top (12 o'clock position), clockwise, 15° per hour. angle(h) = h × 15° measured from straight up; x = cx + r·sin, y = cy − r·cos. Noon is at the bottom.
 - **Hour ticks**: every hour, a marker line from r 378 to r 392, 3 pt.
 - **Hour labels**: 24 labels around the rim, reading 12, 1 … 11, 12, 1 … 11 (12-hour numbers on a 24-hour face).
@@ -403,16 +404,16 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 
   - Snack and play share the green; sky is kept for after-school every-week items. Free time has no colour (paper).
   - Text is never placed on these fills, so contrast rules do not apply to them.
-- **Slot pictures**: each slot's kit picture (`KitIcon`) at the slot's middle angle, between the hub (r 112) and the rim (r R − 8).
+- **Slot pictures**: each slot's kit picture (`KitIcon`) at the slot's middle angle, between the hub (r 150) and the rim (r R − 8).
   - Size by slot length: ≥ 3 h → 104; 1–3 h → 84; 30–60 min → 56; under 30 min → no picture.
   - Radius: 0.68R (about 253) for 104 and 84; 0.8R (about 298) for 56.
-- **Hub**: white disc r **104** (by night `moonPaper`), 4 pt marker outline, on top of the slots.
-- **Hand**: the "lollipop" in `handRed` #E5484D: line 9 pt from r 106 to r 312 at the current time's angle; disc r 24 at r 336, crayon-filled red with a 4 pt outline. Moves once a minute (`TimelineView(.everyMinute)` / `@Dependency(\.date)`).
-- Art: `pie-clock.js` (crayon-design skill) draws the disc with `hub` and `rim` in its config.
+- **Hub**: white disc r **142** (the same share of R as G1's hub, 130 / 340; user, 2026-11-28) (by night `moonPaper`), 4 pt marker outline, on top of the slots.
+- **Hand**: the "lollipop" in `handRed` #E5484D: line 9 pt from r 144 to r 312 at the current time's angle; disc r 24 at r 336, crayon-filled red with a 4 pt outline. Moves once a minute (`TimelineView(.everyMinute)` / `@Dependency(\.date)`).
+- Art: `pie-clock.js` (crayon-design skill) draws the disc with `hub` (142) in its config.
 
 ### Hub: whose clock, which day, what time
-- Three parts, centred on x 448: the picked kid's face 48 (top at y 440), the weekday (28 bold, baseline 524) and the time ("6:52" 44 bold + "am" 24 `softText`, baseline 574). The weekday is the full name.
-- **Public holiday**: the weekday is red (`lateText`; at night `nightLate`), the holiday's name sits under the time (24 `softText`), and the face is left out to make room: weekday 494 / time 544 / name 580. A name that does not fit the hub (about 176 wide at that line) ends with "…".
+- Three parts, centred on x 448: the picked kid's face 48 (top at y 436), the weekday (28 bold, baseline 524) and the time ("6:52" 48 bold + "am" 24 `softText`, baseline 578). The weekday is the full name.
+- **Public holiday**: the weekday is red (`lateText`; at night `nightLate`), the holiday's name sits under the time (24 `softText`), and the face is left out to make room: weekday 494 / time 548 / name 586. A name that does not fit the hub (about 250 wide at that line) ends with "…".
 - School holidays have no words in the hub: they show as the holiday scene (below) when every school kid is off.
 - **No schedule at all** for the picked kid: the disc is plain paper with ticks and labels; the hub keeps face, weekday and time.
 
