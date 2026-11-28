@@ -1,5 +1,5 @@
 {
- "version": "61",
+ "version": "79",
  "board": "G2m",
  "family": "grown",
  "unit": "pt at 1376 x 1032 (board = full screen; y 0 = top of the glass)",
@@ -146,7 +146,7 @@
    "region": "side",
    "anchor": "right",
    "align": "end",
-   "text": "All days"
+   "text": "Every time"
   },
   {
    "id": "main.label.for",
@@ -481,7 +481,7 @@
    "kind": "text",
    "x": 252,
    "y": 731,
-   "w": 290,
+   "w": 291,
    "h": 45,
    "region": "main",
    "anchor": "left",
