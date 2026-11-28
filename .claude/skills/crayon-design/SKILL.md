@@ -2,7 +2,7 @@
 name: crayon-design
 description: The design standard for this crayon iPad family planner. Use before choosing or changing any size, padding, gap, type size, touch target, colour pair, contrast or copy on a board, in the M2 spec, in layout JSON / redlines (layout vN) or in ios/DesignSystem. Also use when another session asks a design question ("board or app?", "does this fit on the mini?"), when a screen looks cramped, clipped, truncated or overlapping, when an app screen and its board disagree, for the night look, scaling or kid vs grown-up rules, and before handing a board over. Use it even for one button or label. It says which general design skills to load for each job and which of their advice this app overrides. Not for reducers, TCA wiring, Bazel or git.
 metadata:
-  version: 0.2.0
+  version: 0.2.1
   status: experimental
 ---
 
@@ -100,7 +100,8 @@ changes app code only. After a board change, the design session does these steps
 `scripts/board/` (its README covers setup):
 1. Re-export the layout JSON and redlines, and bump the layout version with a README line.
 2. Add a change-log line to the spec.
-3. Tell the building session.
+3. Before the PR, look at the changed screen's night and public-holiday boards at 13" (s = 1): they show what the day board hides.
+4. Tell the building session.
 
 The app's layout tests read the JSON, so a board changed without a re-export is a silent fork.
 Other sessions report board problems; they don't edit layout JSON.
@@ -114,6 +115,8 @@ Other sessions report board problems; they don't edit layout JSON.
 | The `Spacing.m` (24) token where the spec says the 16 token | Use the token the spec names |
 | A minimum width from a rounded guess | `measure-text.swift` |
 | A number written into this skill | The number goes in the spec; the skill names the section |
+| Night ink (light) on a light surface, e.g. the hub's moon-paper disc | Words on a light surface stay dark ink by day and by night; night ink is for the dark ground |
+| A width limit the spec gives one line applied to the whole block | Apply it to that line only |
 
 ## Public repo
 This repo is public. Boards, specs, layout JSON, captures and this skill use Kid A / Kid B and
