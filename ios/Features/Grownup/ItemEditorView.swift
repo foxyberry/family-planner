@@ -27,7 +27,9 @@ public struct ItemEditorView: View {
                 HStack(alignment: .top, spacing: layout.gap) {
                     // Exactly the card's inner width, so no row can widen the card past 64 … 882.
                     PaperCard(seed: 31) {
-                        ScrollColumn(scrollTarget: store.scrollTarget) {
+                        // The rows lay out their drawn box: an edit's first row (What, whose circles
+                        // draw to their frame) reaches one inset above the column and draws there.
+                        ScrollColumn(scrollTarget: store.scrollTarget, bleed: sizing.drawnBleed) {
                             form
                                 .frame(width: layout.editorRowsWidth, alignment: .leading)
                         }
