@@ -78,7 +78,7 @@ Design session, 2026-11-22, with the user. Local issue 024. It reverses the 2026
 - First: bundles, before lists, Back (way home) and the pickup row. **Later** (user, 2026-11-23): the after list, its back-home row and A2h; the model keeps an empty `after` so no second migration is needed. Before that step, decide what fills A2h's top area (a candidate: the rest of the evening as pictures).
 
 ## Scope
-- Before, After and Back follow the form's **This day / All days** like Bring did (`EventException` gains them).
+- Before, After and Back follow the form's **This day / Every time** like Bring did (`EventException` gains them).
 
 ## A2 (the list screen)
 - **A2 follows the opened event** (designer's call):
