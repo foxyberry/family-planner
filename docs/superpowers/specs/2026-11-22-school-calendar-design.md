@@ -14,7 +14,7 @@ behind Settings → School → Terms. It replaces local issue 014 (G6 had no hol
 - Goal: one read-only year view where each kid's school days off and the public holidays are easy to
   see, with any month opened larger.
 - Goal: kids can open it too, without the lock (nothing on it changes the plan).
-- Non-goal (phase 2, backlog Later): opening a kid's calendar from Settings → School → Terms, editing
+- Non-goal (phase 2, Later, local issue 045): opening a kid's calendar from Settings → School → Terms, editing
   own terms and preschool closures, family events (birthdays, appointments), Google Calendar sync
   (its own privacy note: the first time kids' appointments leave the iPad).
 - Anti-goal: a second calendar app. No events, no editing, no sentences on screen.

@@ -5,7 +5,7 @@ when CI is green (user's go-ahead for this run). Every branch ends with a retro 
 
 Sources: spec `docs/superpowers/specs/2026-11-07-m2-screens-spec.md` (Shared rules › "Layout
 contract", "Sizing formulas"), redlines `docs/superpowers/layout/<board>.json` (layout v4), the
-backlog `docs/superpowers/specs/2026-11-08-product-backlog.md` (build order).
+backlog (build order; retired 2026-11-28, its history is in git).
 
 ## How every screen is built and checked (layout contract)
 
