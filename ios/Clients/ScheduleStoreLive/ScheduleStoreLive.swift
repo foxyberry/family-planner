@@ -269,6 +269,7 @@ private struct Records {
         case .morning: "morning"
         case let .before(event): "before-" + eventKey(event)
         case .evening: "evening"
+        case let .blockBefore(kind, title): "before-block-\(kind.rawValue)-\(title)"
         }
     }
 

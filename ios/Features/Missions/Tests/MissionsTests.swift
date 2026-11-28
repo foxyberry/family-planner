@@ -26,7 +26,7 @@ final class MissionsTests: XCTestCase {
     private func store(on day: Day, minute: Int, missions: [Mission] = SeedData.missions, items: [ScheduleItem]? = nil,
                        saved: LockIsolated<[MissionDay]> = LockIsolated([]),
                        arrivals: [BusArrival]? = nil, services: [String] = ["1"], rides: [String: Int] = [:],
-                       changes: [BusChange] = [], chosen: Kid.ID? = nil) -> TestStoreOf<MissionsFeature> {
+                       changes: [BusChange] = [], chosen: Kid.ID? = nil, opened: ListRef? = nil) -> TestStoreOf<MissionsFeature> {
         // Made-up stop and bus numbers (privacy rule).
         let plans = arrivals == nil ? [] : [BusPlan(kid: SeedData.kidA.id, stop: "00000", services: services,
                                                     rides: rides, changes: changes)]
@@ -35,6 +35,7 @@ final class MissionsTests: XCTestCase {
                                         busPlans: plans)
         var initial = MissionsFeature.State()
         initial.chosen = chosen
+        initial.opened = opened
         let store = TestStore(initialState: initial) {
             MissionsFeature()
         } withDependencies: { [calendar] in
@@ -42,14 +43,14 @@ final class MissionsTests: XCTestCase {
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.continuousClock = TestClock()
             $0.scheduleStore.load = { snapshot }
-            // The store keeps each window's missions and the outing's slide; `saved` holds the morning
-            // window's and the slide joined back into one day per kid, for the assertions.
+            // The store keeps each list's marks and the outing's slide; `saved` holds the event list's
+            // marks and the slide joined back into one day per kid, for the assertions.
             $0.scheduleStore.windowMissions = { kid, date, window in
                 WindowMissions(kid: kid, date: date, window: window,
-                               done: window == .morning ? saved.value.first { $0.kid == kid && $0.date == date }?.done ?? [] : [])
+                               done: window == .morning ? [] : saved.value.first { $0.kid == kid && $0.date == date }?.done ?? [])
             }
             $0.scheduleStore.saveWindowMissions = { marks in
-                guard marks.window == .morning else { return }
+                guard marks.window != .morning else { return }
                 saved.withValue { list in
                     var day = list.first { $0.kid == marks.kid && $0.date == marks.date }
                         ?? MissionDay(kid: marks.kid, date: marks.date)
@@ -98,7 +99,7 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(way?.showsStops, true)
         XCTAssertEqual(store.state.header?.minutes, "33 min")
         XCTAssertEqual(way?.moverX, 60) // 33 min to leave: 30 or more sits at x 60
-        XCTAssertEqual(store.state.rows.map(\.total), [6, 3])
+        XCTAssertEqual(store.state.rows.map(\.total), [6, 0], "Kid B has no outing today, so no list (issue 024)")
         XCTAssertEqual(store.state.state(caption: 0), "0 of 6 done")
     }
 
@@ -173,7 +174,7 @@ final class MissionsTests: XCTestCase {
         await store.send(.task)
         await store.receive(\.loaded)
         await store.send(.kidTapped(kidB)) { $0.chosen = self.kidB }
-        XCTAssertEqual(store.state.circles.count, 3)
+        XCTAssertEqual(store.state.circles.count, 0, "Kid B has no outing today, so no list (issue 024)")
     }
 
     /// Spec "Whose outing": the strip shows the family's next outing whichever kid is chosen; Kid B
@@ -446,6 +447,38 @@ final class MissionsTests: XCTestCase {
         XCTAssertEqual(keys.slideDoneTitle, "missions.ready")
     }
 
+    /// Spec "Event lists", A2 "Opened from a row": A2 opens on that event's list, and the kid column
+    /// holds only that event's kids.
+    func testOpenedFromARowShowsThatEventsKids() async {
+        let store = store(on: tuesday, minute: 412, opened: .event(.school))
+        store.exhaustivity = .off
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.listSlots[kidA]?.kind, .school)
+        XCTAssertEqual(store.state.kids.map(\.id), [kidA], "Kid B has no School today")
+        XCTAssertEqual(store.state.rows.map(\.total), [6])
+        await store.send(.backTapped)
+    }
+
+    /// Issue 024: today's marks from the old morning window move once to the kid's first list (School),
+    /// and the morning record is emptied, so an untick sticks.
+    func testMorningMarksMoveOnceToTheFirstList() async {
+        let saves = LockIsolated<[WindowMissions]>([])
+        let store = store(on: tuesday, minute: 412)
+        store.exhaustivity = .off
+        let packed = id("301")
+        store.dependencies.scheduleStore.windowMissions = { [kidA] kid, date, window in
+            WindowMissions(kid: kid, date: date, window: window, done: window == .morning && kid == kidA ? [packed] : [])
+        }
+        store.dependencies.scheduleStore.saveWindowMissions = { marks in saves.withValue { $0.append(marks) } }
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.rows.first?.done, 1)
+        await store.finish(timeout: .seconds(1))
+        XCTAssertTrue(saves.value.contains { $0.window == .before(.school) && $0.done == [packed] })
+        XCTAssertTrue(saves.value.contains { $0.window == .morning && $0.done.isEmpty })
+    }
+
     /// Spec "Mission windows": after school, Kid A's list is swimming's Bring checks; the slide
     /// belongs to swimming.
     func testAfterSchoolTheListIsTheNextOutingsBring() async {
@@ -462,8 +495,7 @@ final class MissionsTests: XCTestCase {
         await store.receive(\.loaded)
         XCTAssertEqual(store.state.list(of: kidA).map(\.name), ["Goggles", "Towel"])
         XCTAssertEqual(store.state.outingEvent(of: kidA), .item(id("101")))
-        XCTAssertEqual(store.state.list(of: kidB).count, SeedData.missions.filter { $0.kid == kidB }.count,
-                       "Kid B, at home, keeps her morning list")
+        XCTAssertEqual(store.state.list(of: kidB), [], "Kid B, at home with no outing, has no list (issue 024)")
     }
 }
 

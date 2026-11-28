@@ -6,6 +6,17 @@ public enum WayHome: String, Codable, CaseIterable, Sendable {
     case none, pickup, bus, walk
 }
 
+/// Which event's lists a row, a screen or a done mark means (issue 024): an item or School by its
+/// event; a template outing, which has no id, by its kind and title (a same-day retime keeps them).
+public enum ListRef: Hashable, Codable, Sendable {
+    case event(EventRef)
+    case block(SlotKind, String)
+
+    public init(_ slot: Slot) {
+        if let event = EventRef(slot) { self = .event(event) } else { self = .block(slot.kind, slot.title) }
+    }
+}
+
 /// Which of an outing's two lists.
 public enum ListKind: String, Codable, Sendable {
     case before, after
