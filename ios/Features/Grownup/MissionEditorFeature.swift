@@ -327,6 +327,9 @@ public struct MissionEditorFeature {
     /// ends on "Swi" (#316 review).
     private func saveBundle(_ bundle: MissionBundle) -> Effect<Action> {
         .run { [scheduleStore] send in
+            // A save a newer one cancelled before it started writes nothing (#316 review); TCA drops
+            // the CancellationError.
+            try Task.checkCancellation()
             do { try await scheduleStore.saveBundle(bundle) } catch { await send(.saveFailed) }
         }
         .cancellable(id: SaveID(bundle: bundle.id), cancelInFlight: true)
