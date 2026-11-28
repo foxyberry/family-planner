@@ -133,7 +133,7 @@ public extension DayPlanner {
                 for thing in own + ([event] + span.linked).compactMap(item).flatMap(\.bring) {
                     add(part, thing.id, thing.name, thing.picture)
                 }
-            case .evening:
+            case .evening, .blockBefore:
                 continue
             }
         }

@@ -88,4 +88,22 @@ final class EventListsTests: XCTestCase {
         XCTAssertEqual(again.kid, attached.kid)
         XCTAssertEqual(again.routines, attached.routines)
     }
+
+    /// A list's reference and where its done marks are kept: an item or School by its event (its old
+    /// `.before` record), a template outing by its kind and title, which a retime keeps.
+    func testListRefsAndTheirMarkRecords() {
+        let id = UUID()
+        let weekly = slot("Swimming", 900, 960, source: .weekly(id))
+        XCTAssertEqual(ListRef(weekly, in: [weekly]), .event(.item(id)))
+        XCTAssertEqual(MissionWindow.before(ListRef(weekly, in: [weekly])), .before(.item(id)))
+        let block = slot("Playground", 600, 700, source: .routine)
+        let moved = slot("Playground", 630, 730, source: .routine)
+        XCTAssertEqual(ListRef(block, in: [block]), .block(.afterSchool, "Playground", start: nil))
+        XCTAssertEqual(ListRef(block, in: [block]), ListRef(moved, in: [moved]), "a retime keeps the same list")
+        XCTAssertEqual(MissionWindow.before(ListRef(block, in: [block])), .blockBefore(.afterSchool, "Playground", start: nil))
+        // Two such slots on one day are told apart by their starts (design, 2026-11-28).
+        let later = slot("Playground", 900, 960, source: .routine)
+        XCTAssertEqual(ListRef(block, in: [block, later]), .block(.afterSchool, "Playground", start: 600))
+        XCTAssertEqual(ListRef(later, in: [block, later]), .block(.afterSchool, "Playground", start: 900))
+    }
 }

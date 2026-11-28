@@ -98,9 +98,15 @@ public struct MissionsFeature {
         public var missions: [Mission] = []
         public var slots: [Kid.ID: [Slot]] = [:]
         public var items: [ScheduleItem] = []
-        /// Each kid's mission window when the screen opened (spec "Mission windows"): the open one,
-        /// else the morning. It stays while the screen is open, so leaving does not empty the list.
+        /// Each kid's list when the screen opened (spec "Event lists", A2): the opened event's before
+        /// list, or else the kid's nearest one whose time has not passed. It stays while the screen is
+        /// open, so leaving does not empty the list.
         public var spans: [Kid.ID: WindowSpan] = [:]
+        /// The event each kid's list belongs to.
+        public var listSlots: [Kid.ID: Slot] = [:]
+        /// The event a home row opened (spec A2 "Opened from a row"); nil opens each kid's nearest list.
+        public var opened: ListRef?
+        public var bundles: [MissionBundle] = []
         public var days: [Kid.ID: MissionDay] = [:]
         public var chosen: Kid.ID?
         public var page = 0
@@ -124,10 +130,10 @@ public struct MissionsFeature {
         /// The kid's circles in their window: the routine's missions for today, then the outing's
         /// "before" missions and Bring, or the "after" missions of what just ended.
         public func list(of kid: Kid.ID) -> [WindowMission] {
-            guard let span = spans[kid] else { return [] }
-            return DayPlanner.missions(in: span, routine: missions.filter { $0.kid == kid }, items: items,
-                                       weekday: weekday ?? .monday,
-                                       schoolBring: kids.first { $0.id == kid }?.school?.bring ?? [])
+            guard let span = spans[kid], let part = span.parts.first, let slot = listSlots[kid] else { return [] }
+            return EventListRules.before(kid: kid, slot: slot, in: slots[kid] ?? [], bundles: bundles,
+                                         weekday: weekday ?? .monday)
+                .map { WindowMission(window: part, id: $0.id, name: $0.name, picture: $0.picture) }
         }
 
         /// The event of the outing the kid's window leads to, which the slide belongs to (nil: the
@@ -136,13 +142,28 @@ public struct MissionsFeature {
             spans[kid]?.outing.flatMap { EventRef($0.slot) }
         }
 
-        /// Each kid's window at `minute`: the open one, else the day's morning.
-        static func spans(_ slots: [Kid.ID: [Slot]], nights: [Kid.ID: NightSpan?], minute: Int) -> [Kid.ID: WindowSpan] {
+        /// Each kid's events today whose before list is not empty, in time order.
+        static func listEvents(kid: Kid.ID, slots: [Slot], bundles: [MissionBundle], weekday: Weekday) -> [Slot] {
+            slots.filter { !EventListRules.before(kid: kid, slot: $0, in: slots, bundles: bundles, weekday: weekday).isEmpty }
+                .sorted { $0.start < $1.start }
+        }
+
+        /// Each kid's list event: the opened one when the kid has it (a kid without it is left out),
+        /// else the nearest whose leave time (start, with no trip) is still ahead.
+        static func listSlots(_ slots: [Kid.ID: [Slot]], bundles: [MissionBundle], weekday: Weekday, minute: Int,
+                              opened: ListRef?) -> [Kid.ID: Slot] {
             Dictionary(uniqueKeysWithValues: slots.compactMap { kid, slots in
-                let spans = DayPlanner.missionWindows(slots: slots, night: nights[kid] ?? nil)
-                let span = DayPlanner.window(at: minute, in: spans) ?? spans.first { $0.parts.first == .morning }
-                return span.map { (kid, $0) }
+                let events = listEvents(kid: kid, slots: slots, bundles: bundles, weekday: weekday)
+                let slot: Slot? = if let opened { events.first { ListRef($0, in: slots) == opened } }
+                    else { events.first { event in (event.trip.map { event.start - $0.leaveBefore } ?? event.start) > minute } }
+                return slot.map { (kid, $0) }
             })
+        }
+
+        /// A kid's list as a span: the list's record, and the outing whose slide it carries.
+        static func span(for slot: Slot, in slots: [Slot]) -> WindowSpan {
+            WindowSpan(start: 0, end: slot.start, parts: [MissionWindow.before(ListRef(slot, in: slots))],
+                       outing: slot.trip.map { Outing(slot: slot, trip: $0) })
         }
 
         public func day(of kid: Kid.ID) -> MissionDay {
@@ -511,19 +532,22 @@ public struct MissionsFeature {
                 state.minute = Day.minute(of: now, calendar: calendar)
                 state.now = now
                 return .merge(
-                    .run { [scheduleStore, holidays, schoolDirectory, calendar, minute = state.minute] send in
+                    .run { [scheduleStore, holidays, schoolDirectory, calendar, minute = state.minute,
+                            opened = state.opened, weekday = state.weekday ?? .monday] send in
                         let snapshot = try? await scheduleStore.load()
                         let family = await schoolDirectory.family(
                             kids: snapshot?.kids ?? [], publicHolidays: await holidays.holidays(today.year).map(\.day))
-                        let spans = snapshot.map {
-                            State.spans(Self.slots($0, today: today, family: family, calendar: calendar),
-                                        nights: Self.nights($0, today: today, family: family, calendar: calendar),
-                                        minute: minute)
+                        let lists = snapshot.map {
+                            State.listSlots(Self.slots($0, today: today, family: family, calendar: calendar),
+                                            bundles: $0.bundles, weekday: weekday, minute: minute, opened: opened)
                         } ?? [:]
                         var marks: [WindowMissions] = []
                         var slides: [OutingSlide] = []
                         for kid in snapshot?.kids ?? [] {
-                            for part in spans[kid.id]?.parts ?? [.morning] {
+                            // The list's own record, and today's old morning record (moved once below).
+                            let daySlots = snapshot.map { Self.slots($0, today: today, family: family, calendar: calendar)[kid.id] ?? [] } ?? []
+                            let parts = (lists[kid.id].map { [MissionWindow.before(ListRef($0, in: daySlots))] } ?? []) + [.morning]
+                            for part in parts {
                                 if let window = try? await scheduleStore.windowMissions(kid.id, today, part) {
                                     marks.append(window)
                                 }
@@ -566,14 +590,28 @@ public struct MissionsFeature {
                 state.missions = snapshot.missions
                 state.items = family.resolving(snapshot.items, calendar: calendar)
                 state.slots = Self.slots(snapshot, today: today, family: family, calendar: calendar)
-                state.spans = State.spans(state.slots,
-                                          nights: Self.nights(snapshot, today: today, family: family, calendar: calendar),
-                                          minute: state.minute)
-                // The screen's day: the window's missions (each part's marks) and its outing's slide.
+                state.bundles = snapshot.bundles
+                state.listSlots = State.listSlots(state.slots, bundles: snapshot.bundles, weekday: state.weekday ?? .monday,
+                                                  minute: state.minute, opened: state.opened)
+                state.spans = Dictionary(uniqueKeysWithValues: state.listSlots.map { kid, slot in
+                    (kid, State.span(for: slot, in: state.slots[kid] ?? []))
+                })
+                // Opened from a row: only that event's kids (spec A2 "the kid column").
+                if state.opened != nil { state.kids = snapshot.kids.filter { state.listSlots[$0.id] != nil } }
+                // Issue 024: today's done marks from the old morning window move once to the kid's first
+                // list of the day, when that list has none yet; the morning record is then emptied.
+                var moved: [Kid.ID] = []
                 state.days = Dictionary(uniqueKeysWithValues: snapshot.kids.map { kid in
-                    let parts = state.spans[kid.id]?.parts ?? [.morning]
-                    let done = marks.filter { $0.kid == kid.id && parts.contains($0.window) }
+                    let parts = state.spans[kid.id]?.parts ?? []
+                    var done = marks.filter { $0.kid == kid.id && parts.contains($0.window) }
                         .reduce(into: Set<Mission.ID>()) { $0.formUnion($1.done) }
+                    let morning = marks.first { $0.kid == kid.id && $0.window == .morning }?.done ?? []
+                    let first = State.listEvents(kid: kid.id, slots: state.slots[kid.id] ?? [], bundles: snapshot.bundles,
+                                                 weekday: state.weekday ?? .monday).first
+                    if done.isEmpty, !morning.isEmpty, let slot = state.listSlots[kid.id], slot == first {
+                        done = morning
+                        moved.append(kid.id)
+                    }
                     let outing = state.outingEvent(of: kid.id)
                     let slide = slides.first { $0.kid == kid.id && $0.outing == outing }
                     return (kid.id, MissionDay(kid: kid.id, date: today, done: done, ready: slide?.ready ?? false,
@@ -585,15 +623,27 @@ public struct MissionsFeature {
                     snapshot.busPlans.route(kid: kid.id).map { (kid.id, $0.graced(by: kid)) }
                 }, uniquingKeysWith: { $1 })
                 // Home's mission row opens A2 on its kid (spec A1 "Mission rows"); else the next kid.
-                state.chosen = state.chosen.flatMap { id in snapshot.kids.contains { $0.id == id } ? id : nil }
+                state.chosen = state.chosen.flatMap { id in state.kids.contains { $0.id == id } ? id : nil }
                     ?? nextKid(in: state)
                 state.page = 0
+                // The list's record first; the morning record is emptied only once that save worked, so a
+                // failed save keeps the old marks to move next time and a later untick sticks.
+                let migrations = moved.map { kid -> Effect<Action> in
+                    let day = state.day(of: kid)
+                    let marks = listMarks(day, in: state)
+                    return .run { [scheduleStore] _ in
+                        do {
+                            for window in marks { try await scheduleStore.saveWindowMissions(window) }
+                            try await scheduleStore.saveWindowMissions(WindowMissions(kid: kid, date: day.date, window: .morning))
+                        } catch {}
+                    }
+                }
                 // Live times on open and every 30 s while the screen is open; nothing in the background.
-                return .run { [clock] send in
+                return .merge(migrations + [.run { [clock] send in
                     await send(.refresh)
                     for await _ in clock.timer(interval: .seconds(30)) { await send(.refresh) }
                 }
-                .cancellable(id: CancelID.refresh, cancelInFlight: true)
+                .cancellable(id: CancelID.refresh, cancelInFlight: true)])
 
             case let .kidTapped(kid):
                 // Tapping a ready kid's row shows their done view again (undo is on the slide).
@@ -693,17 +743,21 @@ public struct MissionsFeature {
     /// Splits the screen's day into its records: each window part's done missions, and the slide of
     /// the outing the window leads to (the window's own slide when it leads to none).
     private func save(_ day: MissionDay, in state: State) -> Effect<Action> {
-        let list = state.list(of: day.kid)
-        let parts = state.spans[day.kid]?.parts ?? [.morning]
-        let marks = parts.map { part in
-            WindowMissions(kid: day.kid, date: day.date, window: part,
-                           done: Set(list.filter { $0.window == part && day.done.contains($0.id) }.map(\.id)))
-        }
+        let marks = listMarks(day, in: state)
         let slide = OutingSlide(kid: day.kid, date: day.date, outing: state.outingEvent(of: day.kid), ready: day.ready,
                                 readyAt: day.readyAt, medal: day.medal)
         return .run { [scheduleStore] _ in
             for window in marks { try? await scheduleStore.saveWindowMissions(window) }
             try? await scheduleStore.saveSlide(slide)
+        }
+    }
+
+    /// The kid's list record with the day's done missions in it.
+    private func listMarks(_ day: MissionDay, in state: State) -> [WindowMissions] {
+        let list = state.list(of: day.kid)
+        return (state.spans[day.kid]?.parts ?? []).map { part in
+            WindowMissions(kid: day.kid, date: day.date, window: part,
+                           done: Set(list.filter { $0.window == part && day.done.contains($0.id) }.map(\.id)))
         }
     }
 
