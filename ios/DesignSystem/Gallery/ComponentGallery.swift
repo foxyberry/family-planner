@@ -320,7 +320,10 @@ public struct ComponentGallery: View {
                         MonthCard(title: "November", weekdays: ["M", "T", "W", "T", "F", "S", "S"],
                                   weeks: Self.november, size: .card)
                         MonthCard(title: "November 2026", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-                                  weeks: Self.november, size: .open)
+                                  weeks: Self.november, size: .open, names: [
+                                      .init(swatch: .init(number: "8", isHoliday: true), date: "Sun 8 – Mon 9", name: "Deepavali"),
+                                      .init(swatch: .init(number: "", kids: [0]), date: "21 Nov – 31 Dec", name: "End-of-year holidays"),
+                                  ], more: { "+\($0) more" })
                     }
                 }
                 section("G1 · Edit clock parts") {

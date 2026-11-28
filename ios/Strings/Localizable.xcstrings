@@ -716,6 +716,28 @@
         }
       }
     },
+    "calendar.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ more"
+          }
+        }
+      }
+    },
+    "calendar.preschool_closed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preschool closed"
+          }
+        }
+      }
+    },
     "calendar.public_holiday" : {
       "extractionState" : "manual",
       "localizations" : {

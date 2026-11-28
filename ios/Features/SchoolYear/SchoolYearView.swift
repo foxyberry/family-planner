@@ -51,14 +51,16 @@ public struct SchoolYearView: View {
         }
     }
 
-    /// Board K1o: the dim layer (a tap on it closes), the month 860 × 800 and its "×".
+    /// Board K1o (layout v82): the dim layer (a tap on it closes), the month 1200 × 800 with its days
+    /// off named on the right, and its "×".
     @ViewBuilder private func openMonth(_ month: SchoolYearFeature.State.Month, weekdays: [String],
                                         layout: SchoolYearLayout) -> some View {
         CrayonColor.dim
             .fullBleed()
             .contentShape(Rectangle())
             .onTapGesture { store.send(.dimTapped) }
-        MonthCard(title: month.title, weekdays: weekdays, weeks: month.weeks, size: .open, seed: 12)
+        MonthCard(title: month.title, weekdays: weekdays, weeks: month.weeks, size: .open, seed: 12,
+                  names: month.names, more: { store.state.moreNames($0) })
             // The card takes its own taps, so only a tap outside it closes the month.
             .onTapGesture {}
             .place(topLeft: layout.openCard.origin)

@@ -341,14 +341,24 @@ public struct AppFeature {
                 return .none
 
             case .home(.missionsTapped):
-                if !state.isShowingMissions { state.path.append(.missions(MissionsFeature.State(look: state.home.look))) }
+                // Spec #310: with no row tapped, A2 opens as the hatched row would, else on today's nearest
+                // list; with none, its "nothing to do" look.
+                if !state.isShowingMissions {
+                    var missions = MissionsFeature.State(look: state.home.look)
+                    if let (kid, list) = state.home.defaultList {
+                        missions.chosen = kid
+                        missions.opened = list
+                    }
+                    state.path.append(.missions(missions))
+                }
                 return .none
 
-            case let .home(.missionRowTapped(kid)):
-                // Spec A1 "Mission rows": A2 for that kid.
+            case let .home(.missionRowTapped(kid, list)):
+                // Spec A2 "Opened from a row": that event's list, on that kid.
                 if !state.isShowingMissions {
                     var missions = MissionsFeature.State(look: state.home.look)
                     missions.chosen = kid
+                    missions.opened = list
                     state.path.append(.missions(missions))
                 }
                 return .none
@@ -364,7 +374,8 @@ public struct AppFeature {
 
             case let .path(.element(id: id, action: .missions(.delegate(.finished)))):
                 state.path.pop(from: id)
-                return .none
+                // The lists may have changed: home checks them again for its highlight.
+                return .send(.home(.reload))
 
             case .home(.clockHoldCompleted), .home(.pencilTapped):
                 return unlock(&state)
