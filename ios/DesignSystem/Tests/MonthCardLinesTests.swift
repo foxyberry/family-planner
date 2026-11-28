@@ -1,7 +1,7 @@
 import DesignSystem
 import XCTest
 
-/// Boards K1 and K1o (layout v74): the lines inside a month card. On a card the name is 20 in with
+/// Boards K1 and K1o (layout v82): the lines inside a month card. On a card the name is 20 in with
 /// its baseline 43 down (board: card top 148, "January" baseline 191), the weekday row on 76 (224),
 /// the first cell row from 82 (numerals on 254) on a 30 pitch and 40 across, the seven columns centred (18 in,
 /// 18 to spare on the right of 312). Open: 40 in, title baseline 80 (240 − 160), weekdays on 140
@@ -47,7 +47,11 @@ final class MonthCardLinesTests: XCTestCase {
 
     func testOpenLines() {
         let open = MonthCard.Size.open
-        XCTAssertEqual(open.board, CGSize(width: 860, height: 800))
+        // Layout v82: 1200 wide, the names column 840 in (board x 928), 320 wide, from the weekday row's
+        // top to 40 above the bottom; the grid ends before it.
+        XCTAssertEqual(open.board, CGSize(width: 1200, height: 800))
+        XCTAssertEqual(open.names, CGRect(x: 840, y: 112, width: 320, height: 648))
+        XCTAssertLessThan(open.gridOrigin.x + 6 * open.pitch.width + open.cell.board.width, open.names.minX)
         XCTAssertEqual(open.titleLeft, 40)
         XCTAssertEqual(open.titleBaseline, 80)
         XCTAssertEqual(open.weekdayBaseline, 140)

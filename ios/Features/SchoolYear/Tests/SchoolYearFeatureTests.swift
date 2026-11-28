@@ -8,7 +8,7 @@ import SchoolDirectory
 import SchoolYear
 import XCTest
 
-/// Spec K1 · School calendar (boards K1, K1o, K1n; layout v74). Today is Tuesday 10 Nov 2026 in
+/// Spec K1 · School calendar (boards K1, K1o, K1n; layout v82). Today is Tuesday 10 Nov 2026 in
 /// Singapore, no holiday. Holidays and breaks come from the bundled 2026–2027 lists: Hari Raya Puasa
 /// 21 Mar inside the March holidays (14–22 Mar), Labour Day 1 May, Deepavali 8 Nov and its observed
 /// day 9 Nov, the year-end break from 21 Nov, Christmas 25 Dec inside it.
@@ -178,6 +178,28 @@ final class SchoolYearFeatureTests: XCTestCase {
         XCTAssertEqual(mark(screen, Day(year: 2027, month: 11, day: 10))?.isToday, false, "today is in 2026")
         await store.send(.yearTapped(2030))
         XCTAssertEqual(store.state.screen?.pickedYear, 2027, "a year without a tab is ignored")
+    }
+
+    /// Spec K1 "Names of the days off" (layout v82): the open month names its days off by date: two
+    /// holiday days with one name as one item without "(observed)", a break by its range and name, the
+    /// same break of two kids as one item in both colours; the year's cards have no names.
+    func testTheOpenMonthNamesItsDaysOff() async throws {
+        let store = store(kids: kids(bothAtSchool: true))
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.screen?.months[10].names, [], "cards have no names")
+        await store.send(.monthTapped(11)) { $0.openMonth = 11 }
+        let november = try XCTUnwrap(store.state.screen?.open?.names)
+        let both = [SeedData.kidA.colorIndex, SeedData.kidB.colorIndex]
+        XCTAssertEqual(november, [
+            DayOffNames.Item(swatch: CalendarCell.Mark(number: "8", isHoliday: true), date: "Sun 8 – Mon 9", name: "Deepavali"),
+            DayOffNames.Item(swatch: CalendarCell.Mark(number: "", kids: both), date: "21 Nov – 31 Dec",
+                             name: "End-of-year holidays"),
+        ])
+        await store.send(.monthTapped(12)) { $0.openMonth = 12 }
+        let december = try XCTUnwrap(store.state.screen?.open?.names)
+        XCTAssertEqual(december.map(\.name), ["End-of-year holidays", "Christmas Day"], "a break that began before stays, by its start")
+        XCTAssertEqual(store.state.moreNames(3), "+3 more")
     }
 
     /// Review of #259: open past midnight, the calendar moves today's pill to the new day (the root's

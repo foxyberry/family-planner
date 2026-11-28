@@ -121,6 +121,20 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(CalendarLegend(items: Self.legend).frame(width: 856, alignment: .leading), width: 856 + 2 * Spacing.m)
     }
 
+    /// Board K1o (layout v82): the days-off names, one item per day off with its swatch, a long name
+    /// on two lines; the column cut by height with "+n more" on its last line.
+    func testDayOffNames() {
+        let items: [DayOffNames.Item] = [
+            .init(swatch: .init(number: "8", isHoliday: true), date: "Sun 8 – Mon 9", name: "Deepavali"),
+            .init(swatch: .init(number: "", kids: [0]), date: "21 Nov – 31 Dec", name: "End-of-year holidays"),
+            .init(swatch: .init(number: "", kids: [1]), date: "Fri 13", name: "Teachers' day off for the preschool staff"),
+            .init(swatch: .init(number: "", kids: [0, 1]), date: "Mon 30", name: "School holidays"),
+        ]
+        snap(DayOffNames(items: items, more: { "+\($0) more" }).frame(width: 320, height: 648), width: 320 + 2 * Spacing.m)
+        snap(DayOffNames(items: items + items, more: { "+\($0) more" }).frame(width: 320, height: 420),
+             width: 320 + 2 * Spacing.m, named: "more")
+    }
+
     static let letters = ["M", "T", "W", "T", "F", "S", "S"]
 
     static let cellMarks: [CalendarCell.Mark] = [
