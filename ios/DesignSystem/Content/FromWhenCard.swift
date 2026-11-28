@@ -7,7 +7,7 @@ import SwiftUI
 public struct FromWhenCard<Choice: Hashable>: View {
     /// The board the card follows.
     public enum Board: Sendable {
-        /// G5 (layout v69, spec G5 "The card"): 620 wide, padding 38 (`ConfirmCard`'s overlay padding);
+        /// G5 (layout v80, spec G5 "The card"): 620 wide, padding 38 (`ConfirmCard`'s overlay padding);
         /// tabs "Today" 150, the middle tab 232, "Date" 130 (the first, middle and last of the tabs
         /// given), gap 12; the `ConfirmCard` Save row (InkButton 240 × 72, Cancel body bold, 40 apart).
         case changeFromWhen

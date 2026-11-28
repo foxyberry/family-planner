@@ -353,7 +353,7 @@ public struct ItemEditorView: View {
             }
         }
         if store.showsGoing { goingRows }
-        // Issue 024 (board G2b, layout v77): Before (bundles and Bring) on outings, Back (the way home)
+        // Issue 024 (board G2b, layout v79): Before (bundles and Bring) on outings, Back (the way home)
         // on the last event of a chain, 70 apart, then Medal.
         if store.showsBefore {
             linkRow(store.beforeLabel, action: .beforeRowTapped) {

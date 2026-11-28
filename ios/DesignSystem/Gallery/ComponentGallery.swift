@@ -176,10 +176,10 @@ public struct ComponentGallery: View {
                         ClockSector(start: 1230, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false,
                                     showsStar: false, priority: 0),
                     ], now: 945, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday",
-                                           time: "3:45", period: "pm", holiday: nil), rim: 0)
+                                           time: "3:45", period: "pm", holiday: nil))
                     .scaleEffect(0.5)
                     .frame(width: 480, height: 480)
-                    // A1 (layout v75): the family's next things and the kid chips.
+                    // A1 (layout v81): the family's next things and the kid chips.
                     NextThingRow(time: .soon(number: "35", unit: "min", dots: 4), picture: .actSwim, title: "Swimming",
                                  faces: [KidFace.Badge(face: "kidGirl", colorIndex: 0)], hatch: .kid(0), size: .row,
                                  faded: false, look: .day)

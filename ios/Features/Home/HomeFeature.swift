@@ -10,7 +10,7 @@ import ScheduleStore
 import SchoolDirectory
 import Strings
 
-/// The kids' home screen (spec A1, layout v75): the picked kid's 24-hour clock and the family's next
+/// The kids' home screen (spec A1, layout v81): the picked kid's 24-hour clock and the family's next
 /// things, nearest at the bottom over the kid chips (boards A1, A1m, A1b, A1n, A1z, A1k, E1, E3).
 @Reducer
 public struct HomeFeature {
@@ -144,8 +144,6 @@ public struct HomeFeature {
         public var clockSectors: [ClockSector] { HomeModel.sectors(clockSlots, minute: minute) }
         /// The hand, only when there is a day to point into.
         public var clockHand: Int? { clockSlots.isEmpty ? nil : minute }
-        /// The rim in the clock kid's colour.
-        public var clockRim: Int? { clockDay?.kid.colorIndex }
         /// Spec A1 "Hub": the clock kid's face, the full weekday and the time; on a public holiday the
         /// weekday is red with the holiday's name under the time, and no face.
         public var clockHub: PieClock.Hub {
@@ -237,7 +235,7 @@ public struct HomeFeature {
         case clockHoldCompleted
         /// Board G0: the pencil; the app opens the grown-up lock.
         case pencilTapped
-        /// Board G0 (layout v75): the calendar button; the app opens the school calendar (K1), no lock.
+        /// Board G0 (layout v81): the calendar button; the app opens the school calendar (K1), no lock.
         case calendarTapped
         /// The kid tapped the day/night switch (board 0g).
         case skySwitchTapped

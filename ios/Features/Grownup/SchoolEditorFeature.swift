@@ -242,7 +242,7 @@ public struct SchoolEditorFeature {
         public var goingLabel: String { strings.tr("going.label") }
         /// The Bring caption on the Before card (board F2).
         public var bringLabel: String { strings.tr("before.bring") }
-        /// Issue 024 (board G4, layout v77): Before (bundles and Bring) and Back (the way home).
+        /// Issue 024 (board G4, layout v79): Before (bundles and Bring) and Back (the way home).
         public var beforeLabel: String { strings.tr("editor.row.before") }
         public var backLabel: String { strings.tr("editor.row.back") }
         public var bundlesCaption: String { strings.tr("before.bundles") }

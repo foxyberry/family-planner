@@ -4,7 +4,7 @@ import Foundation
 import Home
 import XCTest
 
-/// Spec A1 "Right panel numbers" (layout v75): the panel's parts on the 13" board and × s elsewhere.
+/// Spec A1 "Right panel numbers" (layout v81): the panel's parts on the 13" board and × s elsewhere.
 final class HomeLayoutTests: XCTestCase {
     private let board = Sizing(width: 1376, height: 1032)
 
