@@ -34,7 +34,7 @@ public struct HomeLayout: Equatable, Sendable {
         return CGRect(x: sizing.x(1336) - side, y: sizing.y(36), width: side, height: side)
     }
 
-    /// Board G0 (layout v75): the calendar `RoundButton` 96, 16 left of the pencil (1128–1224, y 36–132).
+    /// Board G0 (layout v81): the calendar `RoundButton` 96, 16 left of the pencil (1128–1224, y 36–132).
     public var calendarButton: CGRect {
         let side = sizing.kidCornerControl
         return CGRect(x: pencil.minX - 16 * s - side, y: sizing.y(36), width: side, height: side)

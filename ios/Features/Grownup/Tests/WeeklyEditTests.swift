@@ -107,7 +107,7 @@ final class WeeklyEditTests: XCTestCase {
                                                        until: nil))
     }
 
-    /// Board G5 (layout v69): the next day of the series is tomorrow, so the middle tab says so.
+    /// Board G5 (layout v80): the next day of the series is tomorrow, so the middle tab says so.
     func testFromWhenNamesTomorrow() async {
         let store = store(on: tuesday)
         await store.send(.task)

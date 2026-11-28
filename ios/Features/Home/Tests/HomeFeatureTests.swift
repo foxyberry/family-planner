@@ -295,7 +295,7 @@ final class HomeFeatureTests: XCTestCase {
         }
     }
 
-    // MARK: Spec A1 (layout v75): the family's next things, the clock kid and the chips
+    // MARK: Spec A1 (layout v81): the family's next things, the clock kid and the chips
 
     /// The list is the family's next things nearest first; the card is the first, the clock opens on
     /// its kid, and the chips show each kid with what they do now.
@@ -328,7 +328,8 @@ final class HomeFeatureTests: XCTestCase {
         let other = SeedData.kids.map(\.id).first { $0 != store.state.clockKid }!
         await store.send(.kidChipTapped(other))
         XCTAssertEqual(store.state.clockKid, other)
-        XCTAssertEqual(store.state.clockRim, SeedData.kids.first { $0.id == other }?.colorIndex)
+        let face = SeedData.kids.first { $0.id == other }.map { KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex) }
+        XCTAssertEqual(store.state.clockHub.face, face, "the hub's face says whose clock it is")
         let theirs = store.state.things.filter { $0.kids.contains(other) }
         let others = store.state.things.filter { !$0.kids.contains(other) }
         XCTAssertTrue(theirs.allSatisfy { !store.state.isFaded($0) })

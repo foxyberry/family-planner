@@ -2,7 +2,7 @@ import Domain
 import Foundation
 import Strings
 
-/// Board G5 "Change from when?" (spec G5 and "Edit scope", layout v69), for G1 (Our day), G2 (the
+/// Board G5 "Change from when?" (spec G5 and "Edit scope", layout v80), for G1 (Our day), G2 (the
 /// item editor) and G4 (Edit School): the middle tab names the changed series' next day itself
 /// ("Tomorrow", or its short date "Wed 18 Nov"; never "Next Wed", which reads as next week), is hidden
 /// when the series has no day in the next 14 days, and the card opens on the day being looked at.

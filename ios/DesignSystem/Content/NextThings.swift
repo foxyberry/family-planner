@@ -2,7 +2,7 @@ import CrayonKit
 import KitArt
 import SwiftUI
 
-// Home's right panel parts (spec A1 "Next things" and "Kid chips", layout v75, 2026-11-22): the time
+// Home's right panel parts (spec A1 "Next things" and "Kid chips", layout v81, 2026-11-22): the time
 // cell with its time-left dots, one family row (or the larger next card) and the kid chips. Every
 // size is a board value × s; the words come from the caller's State.
 

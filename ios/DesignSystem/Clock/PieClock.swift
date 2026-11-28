@@ -6,10 +6,10 @@ import SwiftUI
 /// The 24-hour crayon pie clock (board A1). The view's frame is the disc (radius 372 × s); hour labels,
 /// the moon and the sun sit outside it, so give the clock room around its frame.
 public struct PieClock: View {
-    /// Spec A1 "Hub" (layout v75): whose clock, which day, what time. The picked kid's face 48 (top
-    /// 440), the weekday (28 bold, baseline 524) and the time ("6:52" 44 bold + "am" 24 soft, baseline
-    /// 574). On a public holiday the weekday is red, the holiday's name sits under the time and the
-    /// face is left out: weekday 494, time 544, name 580.
+    /// Spec A1 "Hub" (layout v81): whose clock, which day, what time. The picked kid's face 48 (top
+    /// 436), the weekday (28 bold, baseline 524) and the time ("6:52" 48 bold + "am" 24 soft, baseline
+    /// 578). On a public holiday the weekday is red, the holiday's name sits under the time and the
+    /// face is left out: weekday 494, time 548, name 586.
     public struct Hub: Equatable, Sendable {
         public var face: KidFace.Badge?
         public var weekday: String
@@ -28,14 +28,13 @@ public struct PieClock: View {
     }
 
     public static let radius: CGFloat = 372
-    /// Layout v75: the hub shrinks to r 104 and holds only the face, the weekday and the time.
-    static let hubRadius: CGFloat = 104
+    /// Layout v81: the hub is r 142, the same share of the disc as G1's (130 / 340); it holds the face,
+    /// the weekday and the time. Slot pictures start at r 150, the hand at r 144.
+    static let hubRadius: CGFloat = 142
 
     private let sectors: [ClockSector]
     private let now: Int?
     private let hub: Hub
-    /// The picked kid's colour index: the rim (spec A1 "Rim"); nil draws no rim.
-    private let rim: Int?
     private let holdProgress: Double
     private let look: KidLook
     private let motion: Motion
@@ -62,10 +61,8 @@ public struct PieClock: View {
     /// `look` night (board A1n): a lit paper face under the slots, chalk ticks and hour numbers.
     /// `plays`: a play id per drawn sector start; when one changes, that slot's picture plays its rig
     /// (spec "Picture rigs") at `rigScale`.
-    /// `rim`: the picked kid's colour index for the rim ring.
-    public init(sectors: [ClockSector], now: Int?, hub: Hub, rim: Int?, holdProgress: Double = 0, look: KidLook = .day,
+    public init(sectors: [ClockSector], now: Int?, hub: Hub, holdProgress: Double = 0, look: KidLook = .day,
                 motion: Motion = Motion(), plays: [Int: Int] = [:], rigScale: Double = KitRigs.shared.scale) {
-        self.rim = rim
         self.plays = plays
         self.rigScale = rigScale
         self.sectors = PieClockLayout.drawable(sectors)
@@ -113,7 +110,6 @@ public struct PieClock: View {
                 }
             }
             CrayonSurface(.circle, fill: nil, marker: MarkerStyle(width: 4.5, roughness: 1.2, bowing: 1.4), seed: 3000)
-            if let rim { rimRing(rim) }
             ticks
             labels
             pictures
@@ -210,40 +206,26 @@ public struct PieClock: View {
         .allowsHitTesting(false)
     }
 
-    /// Spec A1 "Rim": a 12 crayon ring in the picked kid's colour on the disc's edge, and a 2.5 marker
-    /// ring 7 outside it.
-    private func rimRing(_ colorIndex: Int) -> some View {
-        ZStack {
-            CrayonSurface(.circle, fill: nil, marker: MarkerStyle(width: 12, roughness: 1.0, bowing: 1.0),
-                          markerColor: look.kid(colorIndex), seed: 3004)
-                .frame(width: 2 * r - 12 * k, height: 2 * r - 12 * k)
-            CrayonSurface(.circle, fill: nil, marker: MarkerStyle(width: 2.5, roughness: 1.2, bowing: 1.4),
-                          markerColor: look.tick, seed: 3005)
-                .frame(width: 2 * (r + 7 * k), height: 2 * (r + 7 * k))
-        }
-        .allowsHitTesting(false)
-    }
-
     /// The hub is a light surface by day and night (white, moon paper), so its words stay dark.
     private var hubDisc: some View {
         let holiday = hub.holiday != nil
         return ZStack {
             if let face = hub.face, !holiday {
-                KidFace(face, size: 48 * k).position(x: hubR, y: hubR + (440 + 24 - 528) * k)
+                KidFace(face, size: 48 * k).position(x: hubR, y: hubR + (436 + 24 - 528) * k)
             }
             hubLine(Text(hub.weekday).font(Font(FontRegistrar.font(size: 28 * k, weight: .bold)))
                         .foregroundStyle(holiday ? look.late : CrayonColor.ink),
                     size: 28, baseline: holiday ? 494 : 524)
             hubLine(HStack(alignment: .firstTextBaseline, spacing: 6 * k) {
-                        Text(hub.time).font(Font(FontRegistrar.font(size: 44 * k, weight: .bold))).foregroundStyle(CrayonColor.ink)
+                        Text(hub.time).font(Font(FontRegistrar.font(size: 48 * k, weight: .bold))).foregroundStyle(CrayonColor.ink)
                         Text(hub.period).font(Font(FontRegistrar.font(size: 24 * k, weight: .bold)))
                             .foregroundStyle(CrayonColor.softText)
                     },
-                    size: 44, baseline: holiday ? 544 : 574)
+                    size: 48, baseline: holiday ? 548 : 578)
             if let name = hub.holiday {
                 hubLine(Text(name).font(Font(FontRegistrar.font(size: 24 * k, weight: .medium)))
                             .foregroundStyle(CrayonColor.softText),
-                        size: 24, baseline: 580, width: Self.lineWidth)
+                        size: 24, baseline: 586, width: Self.lineWidth)
             }
         }
         .frame(width: 2 * hubR, height: 2 * hubR)
@@ -262,8 +244,8 @@ public struct PieClock: View {
             .position(x: hubR, y: top + font.lineHeight / 2)
     }
 
-    /// Spec A1 "Hub": a name that does not fit the hub (about 176 wide at its line) ends with "…".
-    static let lineWidth: CGFloat = 176
+    /// Spec A1 "Hub": a name that does not fit the hub (about 250 wide at its line) ends with "…".
+    static let lineWidth: CGFloat = 250
 
     /// The start of the drawn slot under a tap at `location` in the clock's own frame (drawn at
     /// scale `s`), if any.

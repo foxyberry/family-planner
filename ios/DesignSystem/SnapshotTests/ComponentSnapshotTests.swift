@@ -345,7 +345,7 @@ final class ComponentSnapshotTests: XCTestCase {
     ]
 
     func testPieClockSeedDay() {
-        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "3:45", period: "pm", holiday: nil), rim: 0)
+        snap(PieClock(sectors: Self.seedDay, now: 945, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "3:45", period: "pm", holiday: nil))
             .padding(110))
     }
 
@@ -362,28 +362,27 @@ final class ComponentSnapshotTests: XCTestCase {
             ClockSector(start: 1155, end: 1200, style: .evening, iconName: "actShower", isCurrent: false, showsStar: false, priority: 0),
             ClockSector(start: 1200, end: 1440, style: .sleep, iconName: "actSleep", isCurrent: false, showsStar: false, priority: 0),
         ]
-        snap(PieClock(sectors: day, now: 1000, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "4:40", period: "pm", holiday: nil), rim: 0).padding(110))
+        snap(PieClock(sectors: day, now: 1000, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "4:40", period: "pm", holiday: nil)).padding(110))
     }
 
     func testPieClockEmpty() {
-        snap(PieClock(sectors: [], now: nil, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "4:40", period: "pm", holiday: nil), rim: 0).padding(110))
+        snap(PieClock(sectors: [], now: nil, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday", time: "4:40", period: "pm", holiday: nil)).padding(110))
     }
 
     /// Spec A1 "Hub" on a public holiday: the weekday red, the name under the time, no face; the hold ring.
     func testHubPublicHoliday() {
         snap(PieClock(sectors: Self.seedDay, now: 945,
                       hub: .init(face: KidFace.Badge(face: "kidBoy", colorIndex: 1), weekday: "Monday", time: "3:45",
-                                 period: "pm", holiday: "A very long holiday name"),
-                      rim: 1, holdProgress: 0.6)
+                                 period: "pm", holiday: "A very long holiday name"), holdProgress: 0.6)
             .padding(110))
     }
 
-    /// Spec A1 "Next things" (layout v75): the time cell and dots, later rows, mission rows and the next
+    /// Spec A1 "Next things" (layout v81): the time cell and dots, later rows, mission rows and the next
     /// card, by day and at night.
     func testNextThings() {
         let kidA = KidFace.Badge(face: "kidGirl", colorIndex: 0), kidB = KidFace.Badge(face: "kidBoy", colorIndex: 1)
         snap(VStack(alignment: .leading, spacing: 16) {
-            // A1 (layout v75): later rows, a mission row, the next card, by day.
+            // A1 (layout v81): later rows, a mission row, the next card, by day.
             NextThingRow(time: .soon(number: "35", unit: "min", dots: 4), picture: .actSwim, title: "Swimming",
                          faces: [kidA], hatch: nil, size: .row, faded: false, look: .day)
             NextThingRow(time: .at(time: "4:30", period: "pm"), picture: .actPlay, title: "Snack", faces: [kidA, kidB], hatch: nil,
@@ -644,7 +643,7 @@ final class ComponentSnapshotTests: XCTestCase {
             .frame(height: 540), width: 720, named: "back")
     }
 
-    /// Board G5 (layout v69): the From when card with Date picked (its field) and the caption; the
+    /// Board G5 (layout v80): the From when card with Date picked (its field) and the caption; the
     /// 232 middle tab picked with a long date (bold, round ends, no "…"); no middle tab (two tabs).
     func testFromWhenCard() {
         let date = Date(timeIntervalSince1970: 1_800_000_000)
@@ -733,8 +732,7 @@ final class ComponentSnapshotTests: XCTestCase {
     func testPieClockNight() {
         // The clock alone on the night page (KidFullScreen now lays out a whole board).
         snap(PieClock(sectors: Self.seedDay, now: 1180, hub: .init(face: KidFace.Badge(face: "kidGirl", colorIndex: 0), weekday: "Tuesday",
-                                 time: "7:40", period: "pm", holiday: nil),
-                      rim: 0, look: .night)
+                                 time: "7:40", period: "pm", holiday: nil), look: .night)
             .padding(110)
             .frame(width: 964, height: 964)
             .background(KidLook.night.page))

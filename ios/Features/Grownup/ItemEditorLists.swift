@@ -5,7 +5,7 @@ import KitArt
 import Localization
 import Strings
 
-// Spec "Event form rows" (issue 024, boards G2b, F2, F2k, F7, layout v77): the Before row (bundles and
+// Spec "Event form rows" (issue 024, boards G2b, F2, F2k, F7, layout v79): the Before row (bundles and
 // Bring) and the Back row (the way home), with their cards. Every word and choice comes from here.
 extension ItemEditorFeature.State {
     public var beforeLabel: String { strings.tr("editor.row.before") }

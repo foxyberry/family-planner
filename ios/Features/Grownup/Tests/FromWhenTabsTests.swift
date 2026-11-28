@@ -3,7 +3,7 @@ import Foundation
 import Grownup
 import XCTest
 
-/// Board G5 (layout v69): the middle tab names the day ("Tomorrow" or "Wed 18 Nov", never
+/// Board G5 (layout v80): the middle tab names the day ("Tomorrow" or "Wed 18 Nov", never
 /// "Next Wed"), is hidden without a day in the next 14 days, and the card opens on the day shown.
 final class FromWhenTabsTests: XCTestCase {
     private typealias F = Fixture

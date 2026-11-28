@@ -636,7 +636,7 @@ final class OurDayTests: XCTestCase {
         XCTAssertEqual(store.state.edit.blocks.first { $0.title == "Dinner" }?.end, 1155)
     }
 
-    /// Spec G5 (layout v69): on a later day G1's card opens with that day picked, on Date unless it
+    /// Spec G5 (layout v80): on a later day G1's card opens with that day picked, on Date unless it
     /// is the middle tab's day; Save writes the template from that day.
     func testFromWhenOpensOnTheDayBeingLookedAt() async {
         let saved = LockIsolated<[Routine]>([])
