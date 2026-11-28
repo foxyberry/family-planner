@@ -526,8 +526,9 @@ public struct ItemForm: Equatable, Sendable {
         }
     }
 
-    /// Board C3 "What" row: `count` pictures, the picked one first, then the ones used
-    /// most (ties keep the kit's order), then the rest of the kit's list. Never repeats a picture.
+    /// Board C3 "What" row: `count` pictures in the kit's order, the most used ones (ties keep the
+    /// kit's order) topped up from the kit; a picked one outside them takes the last slot. Never
+    /// repeats a picture.
     public static func rowPictures(picked: String?, used: [String], all: [String], count: Int = 5) -> [String] {
         // Design answer (2026-11-28, user: the order changed every time): the kid's most used pictures
         // (a tie keeps the kit's order), topped up from the kit, shown in the kit's order; the picked one

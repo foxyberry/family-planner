@@ -251,7 +251,7 @@ final class ItemFormTests: XCTestCase {
         XCTAssertEqual(form.gapEnds, StepEnds(canLower: true, canRaise: false))
     }
 
-    /// Board C3 "What": the picked picture first, then the most used, then the kit's order.
+    /// Board C3 "What": the most used pictures in the kit's order; a picked one outside them takes the last slot.
     func testRowPicturesKeepTheKitOrder() {
         let all = ["actSwim", "actArt", "actMusic", "actPiano", "actDance", "actFootball", "cake"]
         XCTAssertEqual(ItemForm.rowPictures(picked: nil, used: [], all: all),
