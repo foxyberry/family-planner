@@ -37,6 +37,8 @@ extension ScheduleStore {
             delete: { id in try database.run { try $0.delete(id) } },
             saveRoutine: { routine in try database.run { try $0.put(routine) } },
             saveMissions: { kid, missions in try database.run { try $0.put(missions, of: kid) } },
+            saveBundle: { bundle in try database.run { try $0.put(bundle) } },
+            deleteBundle: { id in try database.run { try $0.deleteBundle(id) } },
             windowMissions: { kid, date, window in
                 try database.run { try $0.windowMissions(kid: kid, date: date, window: window) }
             },
@@ -172,6 +174,23 @@ private struct Records {
         let order = old?.order ?? existing.count
         if let old { context.delete(old) }
         try insert(key, group: "bundle", order: order, bundle)
+        try context.save()
+    }
+
+    /// Saves `bundle` in its place, or after the other bundles when it is new (C5).
+    func put(_ bundle: MissionBundle) throws {
+        let key = Self.bundleKey(bundle.id)
+        let existing = try fetch("bundle")
+        let old = existing.first { $0.key == key }
+        let order = old?.order ?? existing.count
+        if let old { context.delete(old) }
+        try insert(key, group: "bundle", order: order, bundle)
+        try context.save()
+    }
+
+    /// Removes a bundle (C5); an event that picks it skips the missing id.
+    func deleteBundle(_ id: MissionBundle.ID) throws {
+        for record in try fetch("bundle") where record.key == Self.bundleKey(id) { context.delete(record) }
         try context.save()
     }
 
