@@ -75,6 +75,17 @@ public enum MissionWindow: Hashable, Codable, Sendable {
     case morning
     case before(EventRef)
     case evening
+    /// A template outing's before list (it has no event id; issue 024).
+    case blockBefore(SlotKind, String)
+
+    /// Where a before list's done marks are kept (issue 024): an event's is its old `.before` record,
+    /// so marks saved before lists moved to events still read.
+    public static func before(_ list: ListRef) -> MissionWindow {
+        switch list {
+        case let .event(event): .before(event)
+        case let .block(kind, title): .blockBefore(kind, title)
+        }
+    }
 }
 
 /// The missions a kid has done in one window of one date (spec "Slide to go and done state").

@@ -88,4 +88,18 @@ final class EventListsTests: XCTestCase {
         XCTAssertEqual(again.kid, attached.kid)
         XCTAssertEqual(again.routines, attached.routines)
     }
+
+    /// A list's reference and where its done marks are kept: an item or School by its event (its old
+    /// `.before` record), a template outing by its kind and title, which a retime keeps.
+    func testListRefsAndTheirMarkRecords() {
+        let id = UUID()
+        let weekly = slot("Swimming", 900, 960, source: .weekly(id))
+        XCTAssertEqual(ListRef(weekly), .event(.item(id)))
+        XCTAssertEqual(MissionWindow.before(ListRef(weekly)), .before(.item(id)))
+        let block = slot("Playground", 600, 700, source: .routine)
+        let moved = slot("Playground", 630, 730, source: .routine)
+        XCTAssertEqual(ListRef(block), .block(.afterSchool, "Playground"))
+        XCTAssertEqual(ListRef(block), ListRef(moved), "a retime keeps the same list")
+        XCTAssertEqual(MissionWindow.before(ListRef(block)), .blockBefore(.afterSchool, "Playground"))
+    }
 }
