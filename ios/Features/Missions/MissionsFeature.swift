@@ -626,11 +626,17 @@ public struct MissionsFeature {
                 state.chosen = state.chosen.flatMap { id in state.kids.contains { $0.id == id } ? id : nil }
                     ?? nextKid(in: state)
                 state.page = 0
-                let migrations = moved.map { kid in
+                // The list's record first; the morning record is emptied only once that save worked, so a
+                // failed save keeps the old marks to move next time and a later untick sticks.
+                let migrations = moved.map { kid -> Effect<Action> in
                     let day = state.day(of: kid)
-                    return save(day, in: state).merge(with: .run { [scheduleStore] _ in
-                        try? await scheduleStore.saveWindowMissions(WindowMissions(kid: kid, date: day.date, window: .morning))
-                    })
+                    let marks = listMarks(day, in: state)
+                    return .run { [scheduleStore] _ in
+                        do {
+                            for window in marks { try await scheduleStore.saveWindowMissions(window) }
+                            try await scheduleStore.saveWindowMissions(WindowMissions(kid: kid, date: day.date, window: .morning))
+                        } catch {}
+                    }
                 }
                 // Live times on open and every 30 s while the screen is open; nothing in the background.
                 return .merge(migrations + [.run { [clock] send in
@@ -737,17 +743,21 @@ public struct MissionsFeature {
     /// Splits the screen's day into its records: each window part's done missions, and the slide of
     /// the outing the window leads to (the window's own slide when it leads to none).
     private func save(_ day: MissionDay, in state: State) -> Effect<Action> {
-        let list = state.list(of: day.kid)
-        let parts = state.spans[day.kid]?.parts ?? []
-        let marks = parts.map { part in
-            WindowMissions(kid: day.kid, date: day.date, window: part,
-                           done: Set(list.filter { $0.window == part && day.done.contains($0.id) }.map(\.id)))
-        }
+        let marks = listMarks(day, in: state)
         let slide = OutingSlide(kid: day.kid, date: day.date, outing: state.outingEvent(of: day.kid), ready: day.ready,
                                 readyAt: day.readyAt, medal: day.medal)
         return .run { [scheduleStore] _ in
             for window in marks { try? await scheduleStore.saveWindowMissions(window) }
             try? await scheduleStore.saveSlide(slide)
+        }
+    }
+
+    /// The kid's list record with the day's done missions in it.
+    private func listMarks(_ day: MissionDay, in state: State) -> [WindowMissions] {
+        let list = state.list(of: day.kid)
+        return (state.spans[day.kid]?.parts ?? []).map { part in
+            WindowMissions(kid: day.kid, date: day.date, window: part,
+                           done: Set(list.filter { $0.window == part && day.done.contains($0.id) }.map(\.id)))
         }
     }
 

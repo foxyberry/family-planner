@@ -477,6 +477,28 @@ final class MissionsTests: XCTestCase {
         await store.finish(timeout: .seconds(1))
         XCTAssertTrue(saves.value.contains { $0.window == .before(.school) && $0.done == [packed] })
         XCTAssertTrue(saves.value.contains { $0.window == .morning && $0.done.isEmpty })
+        let list = saves.value.firstIndex { $0.window == .before(.school) }, morning = saves.value.firstIndex { $0.window == .morning }
+        XCTAssertLessThan(list ?? .max, morning ?? .min, "the list is saved before the morning record is emptied")
+    }
+
+    /// #312 review: when the list's record cannot be saved, the morning record is left as it is, so the
+    /// marks move next time instead of being lost.
+    func testAFailedMoveKeepsTheMorningMarks() async {
+        let saves = LockIsolated<[WindowMissions]>([])
+        let store = store(on: tuesday, minute: 412)
+        store.exhaustivity = .off
+        let packed = id("301")
+        store.dependencies.scheduleStore.windowMissions = { [kidA] kid, date, window in
+            WindowMissions(kid: kid, date: date, window: window, done: window == .morning && kid == kidA ? [packed] : [])
+        }
+        store.dependencies.scheduleStore.saveWindowMissions = { marks in
+            if marks.window != .morning { throw CocoaError(.fileWriteUnknown) }
+            saves.withValue { $0.append(marks) }
+        }
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.finish(timeout: .seconds(1))
+        XCTAssertFalse(saves.value.contains { $0.window == .morning }, "the morning record is not emptied")
     }
 
     /// Spec "Mission windows": after school, Kid A's list is swimming's Bring checks; the slide
