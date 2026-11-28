@@ -94,12 +94,13 @@ public struct ItemEditorView: View {
     }
 
     private var header: some View {
-        // An edit names its kids by their faces after the title (KidFace 40, 8 apart).
+        // Boards G2, G2m, G3: an edit names its kids by their faces after the title (KidFace 48, 24 after the
+        // title, 8 apart, in family order).
         GrownupHeader(title: store.title, caption: store.headerCaption,
                       onBack: { store.send(.backTapped) }) {
             HStack(spacing: sizing(Spacing.xs)) {
                 ForEach(Array(store.headerFaces.enumerated()), id: \.offset) { _, badge in
-                    KidFace(badge, size: sizing(KidFace.medium))
+                    KidFace(badge, size: sizing(KidFace.large))
                 }
             }
         }
