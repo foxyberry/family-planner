@@ -252,15 +252,20 @@ final class ItemFormTests: XCTestCase {
     }
 
     /// Board C3 "What": the picked picture first, then the most used, then the kit's order.
-    func testRowPicturesPutPickedThenMostUsed() {
+    func testRowPicturesKeepTheKitOrder() {
         let all = ["actSwim", "actArt", "actMusic", "actPiano", "actDance", "actFootball", "cake"]
         XCTAssertEqual(ItemForm.rowPictures(picked: nil, used: [], all: all),
                        ["actSwim", "actArt", "actMusic", "actPiano", "actDance"])
+        // The most used ones are in, shown in the kit's order; a picked one outside them takes the last slot.
         XCTAssertEqual(ItemForm.rowPictures(picked: "cake", used: ["actFootball", "actFootball", "actPiano"], all: all),
-                       ["cake", "actFootball", "actPiano", "actSwim", "actArt"])
-        // A picture outside the kit's list (a template slot) is not offered; no picture twice.
-        XCTAssertEqual(ItemForm.rowPictures(picked: "actPiano", used: ["school", "actPiano"], all: all),
-                       ["actPiano", "actSwim", "actArt", "actMusic", "actDance"])
+                       ["actSwim", "actArt", "actMusic", "actPiano", "cake"])
+        XCTAssertEqual(ItemForm.rowPictures(picked: "actFootball", used: ["actFootball", "actFootball", "actPiano"], all: all),
+                       ["actSwim", "actArt", "actMusic", "actPiano", "actFootball"])
+        // Picking one in the row does not move it; a picture outside the kit's list is not offered.
+        XCTAssertEqual(ItemForm.rowPictures(picked: "actArt", used: ["school", "actPiano"], all: all),
+                       ["actSwim", "actArt", "actMusic", "actPiano", "actDance"])
+        XCTAssertEqual(ItemForm.rowPictures(picked: nil, used: ["actFootball", "actFootball", "actPiano"], all: all),
+                       ["actSwim", "actArt", "actMusic", "actPiano", "actFootball"])
     }
 
     // MARK: Event form rows (spec "Event form rows for 6b")

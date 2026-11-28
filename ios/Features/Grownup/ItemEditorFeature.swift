@@ -104,8 +104,8 @@ public struct ItemEditorFeature {
         /// so a weekend school can wear its country's flag.
         public static let flags: [KitSlot] = [.flagKR, .flagJP, .flagCN, .flagUK, .flagFR, .flagIN, .flagTH, .flagVN]
 
-        /// Board C3 "What" row: the picked picture first, then the pictures this kid's items use most,
-        /// then the kit's list; five slots (the sixth is "More").
+        /// Board C3 "What" row: the pictures this kid's items use most, topped up from the kit, in the
+        /// kit's order; a picked one outside them takes the last slot. Five slots (the sixth is "More").
         public var whatRow: [String] {
             let items = (snapshot?.items ?? []).filter { item in
                 switch form.audience {
@@ -393,6 +393,18 @@ public struct ItemEditorFeature {
         /// Save can always be tapped (it explains a problem instead), except while it saves.
         public var canSave: Bool { !isSaving }
         public var hasChanges: Bool { form != original }
+
+        /// The For row only adds (boards C3, C4). Editing (G2, G3, G2m) keeps the item's kids: their
+        /// faces sit after the header title (design answer 2026-11-28; user: a For row on an edit
+        /// offered kids the item could not fit).
+        public var showsForRow: Bool { isAdding }
+
+        /// The faces after an edit's header title, in the family's order; none while adding.
+        public var headerFaces: [KidFace.Badge] {
+            guard !isAdding else { return [] }
+            return (snapshot?.kids ?? []).filter { form.audience.includes($0.id) }
+                .map { KidFace.Badge(face: $0.face, colorIndex: $0.colorIndex) }
+        }
 
         /// A tab per kid, and "Both" once there are two or more kids.
         public var audienceTabs: [AudienceTab] {

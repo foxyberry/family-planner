@@ -58,8 +58,9 @@ public struct PictureRow: View {
             ForEach(Array(slots.enumerated()), id: \.element) { index, slot in
                 let isOn = slot == selection
                 Button { selection = slot } label: {
-                    // Boards C3/C4: 88 paper circles with an ink outline; the picked one gets a 104
-                    // blue ring around it.
+                    // Boards C3/C4/G2: 88 slots, the paper circle drawn 76; the picked one gets the
+                    // pick-blue ring `pickRing` outside the drawn circle (84), inside the slot (as
+                    // IconPicker and ChoiceCircles; user, 2026-11-28: the 104 ring looked too big).
                     KitIcon(slot, size: d * 64 / 88)
                         .frame(width: d, height: d)
                         .background(
@@ -69,9 +70,9 @@ public struct PictureRow: View {
                         )
                         .overlay {
                             if isOn {
-                                CrayonSurface(.circle, fill: nil, markerColor: CrayonColor.link,
-                                              seed: CrayonStyle.Seed.iconPicker + 500 + UInt32(index))
-                                    .frame(width: d * 104 / 88, height: d * 104 / 88)
+                                Circle().stroke(CrayonColor.pickBlue, lineWidth: sizing(5))
+                                    .frame(width: IconPicker.ringSize(cell: d, sizing: sizing),
+                                           height: IconPicker.ringSize(cell: d, sizing: sizing))
                             }
                         }
                 }
