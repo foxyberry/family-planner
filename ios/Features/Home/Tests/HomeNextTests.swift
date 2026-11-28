@@ -49,6 +49,45 @@ final class HomeNextTests: XCTestCase {
         XCTAssertEqual(things[2].kids, [kidB])
     }
 
+    /// Spec A1 "Moments" (board A1p): an event whose way home is pickup adds a grown-up row at end −
+    /// homeAfter, titled with the event's name, with the pickup picture; never a mission row. Two kids
+    /// on the same event share it; it leaves when its time passes, even while the event is on.
+    func testAPickupRowAtEndMinusHomeAfter() {
+        let item = UUID()
+        var swim = slot("Swimming", .afterSchool, 930, 990, source: .weekly(item), trip: Trip(way: .car, leaveBefore: 15))
+        swim.lists = EventLists(wayHome: .pickup, homeAfter: 20)
+        let things = HomeNext.things([day(kidA, [swim]), day(kidB, [swim])], minute: 600, today: tuesday,
+                                     calendar: calendar)
+        XCTAssertEqual(things.map(\.title), ["Swimming", "Swimming"])
+        XCTAssertEqual(things.map(\.act), [915, 970], "leave 930 − 15; pickup 990 − 20")
+        XCTAssertEqual(things[1].iconName, "pickup")
+        XCTAssertTrue(things[1].isPickup)
+        XCTAssertFalse(things[1].isMission)
+        XCTAssertEqual(things[1].kids, [kidA, kidB])
+        XCTAssertFalse(things[0].isPickup)
+
+        let during = HomeNext.things([day(kidA, [swim])], minute: 950, today: tuesday, calendar: calendar)
+        XCTAssertEqual(during.map(\.isPickup), [true], "the event is on; its pickup is still ahead")
+        XCTAssertEqual(HomeNext.things([day(kidA, [swim])], minute: 975, today: tuesday, calendar: calendar), [],
+                       "past the pickup time")
+    }
+
+    /// The pickup belongs to the chain's last event: a pickup set on an event that another follows
+    /// makes no row, and the follower's own pickup does.
+    func testAPickupOnlyAtTheChainsEnd() {
+        let schoolID = UUID(), swimID = UUID()
+        var school = slot("School", .school, 480, 900, source: .weekly(schoolID), trip: Trip(way: .bus, leaveBefore: 30))
+        school.lists = EventLists(wayHome: .pickup, homeAfter: 20)
+        var swim = slot("Swimming", .afterSchool, 900, 960, source: .weekly(swimID))
+        swim.after = .item(schoolID)
+        let none = HomeNext.things([day(kidA, [school, swim])], minute: 400, today: tuesday, calendar: calendar)
+        XCTAssertFalse(none.contains { $0.isPickup })
+        swim.lists = EventLists(wayHome: .pickup, homeAfter: 15)
+        let one = HomeNext.things([day(kidA, [school, swim])], minute: 400, today: tuesday, calendar: calendar)
+        XCTAssertEqual(one.filter(\.isPickup).map(\.act), [945])
+        XCTAssertEqual(one.filter(\.isPickup).map(\.title), ["Swimming"])
+    }
+
     /// A template slot that only resumes after an item is left out.
     func testASlotThatOnlyResumesIsLeftOut() {
         let things = HomeNext.things([
