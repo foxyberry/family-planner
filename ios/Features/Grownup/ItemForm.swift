@@ -526,12 +526,15 @@ public struct ItemForm: Equatable, Sendable {
         }
     }
 
-    /// Board C3 "What" row: `count` pictures, the picked one first, then the ones used
-    /// most (ties keep the kit's order), then the rest of the kit's list. Never repeats a picture.
+    /// Board C3 "What" row: `count` pictures in the kit's order, the most used ones (ties keep the
+    /// kit's order) topped up from the kit; a picked one outside them takes the last slot. Never
+    /// repeats a picture.
     public static func rowPictures(picked: String?, used: [String], all: [String], count: Int = 5) -> [String] {
+        // Design answer (2026-11-28, user: the order changed every time): the kid's most used pictures
+        // (a tie keeps the kit's order), topped up from the kit, shown in the kit's order; the picked one
+        // keeps its place, and one not among them takes the last slot (next to "More").
         var row: [String] = []
         func add(_ name: String) { if !row.contains(name), row.count < count { row.append(name) } }
-        if let picked { add(picked) }
         let counts = Dictionary(used.map { ($0, 1) }, uniquingKeysWith: +)
         let order = Dictionary(all.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
         let byUse = counts.keys.filter { order[$0] != nil }.sorted {
@@ -540,6 +543,8 @@ public struct ItemForm: Equatable, Sendable {
         }
         byUse.forEach(add)
         all.forEach(add)
+        row.sort { order[$0, default: Int.max] < order[$1, default: Int.max] }
+        if let picked, !row.contains(picked), !row.isEmpty { row[row.count - 1] = picked }
         return row
     }
 }

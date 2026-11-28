@@ -27,7 +27,9 @@ public struct ItemEditorView: View {
                 HStack(alignment: .top, spacing: layout.gap) {
                     // Exactly the card's inner width, so no row can widen the card past 64 … 882.
                     PaperCard(seed: 31) {
-                        ScrollColumn(scrollTarget: store.scrollTarget) {
+                        // The rows lay out their drawn box: an edit's first row (What, whose circles
+                        // draw to their frame) reaches one inset above the column and draws there.
+                        ScrollColumn(scrollTarget: store.scrollTarget, bleed: sizing.drawnBleed) {
                             form
                                 .frame(width: layout.editorRowsWidth, alignment: .leading)
                         }
@@ -92,8 +94,16 @@ public struct ItemEditorView: View {
     }
 
     private var header: some View {
+        // Boards G2, G2m, G3: an edit names its kids by their faces after the title (KidFace 48, 24 after the
+        // title, 8 apart, in family order).
         GrownupHeader(title: store.title, caption: store.headerCaption,
-                      onBack: { store.send(.backTapped) })
+                      onBack: { store.send(.backTapped) }) {
+            HStack(spacing: sizing(Spacing.xs)) {
+                ForEach(Array(store.headerFaces.enumerated()), id: \.offset) { _, badge in
+                    KidFace(badge, size: sizing(KidFace.large))
+                }
+            }
+        }
     }
 
     // MARK: Form
@@ -101,7 +111,7 @@ public struct ItemEditorView: View {
     /// Layout v56: rows 24 apart between drawn edges (C3 180 / 264 / 364 / 456 / 548 / 632 / 718).
     private var form: some View {
         VStack(alignment: .leading, spacing: sizing.formRowGap) {
-            row(store.forLabel) { audienceTabs }
+            if store.showsForRow { row(store.forLabel) { audienceTabs } }
             // Board C3: five pictures and "More", which opens every picture, 6 per row.
             row(store.whatLabel) {
                 PictureRow(slots: store.whatRow.compactMap(KitSlot.init(rawValue:)),
