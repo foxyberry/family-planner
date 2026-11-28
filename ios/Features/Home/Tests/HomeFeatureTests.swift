@@ -37,6 +37,7 @@ final class HomeFeatureTests: XCTestCase {
             $0.calendar = calendar
             $0.date.now = day.date(minute: minute, calendar: calendar)
             $0.scheduleStore.load = { snapshot }
+            $0.scheduleStore.windowMissions = { kid, date, window in WindowMissions(kid: kid, date: date, window: window) }
             $0.holidays.holidays = { _ in holidays }
             $0.schoolDirectory.calendar = { _, _ in SchoolCalendar(closed: schoolClosed.union(breaks.keys), breaks: breaks) }
         }
@@ -380,6 +381,34 @@ final class HomeFeatureTests: XCTestCase {
         XCTAssertEqual(school.flatMap { store.state.hatch($0) }, .kid(SeedData.kidA.colorIndex))
         let later = store.state.things.first { !$0.isMission }
         XCTAssertNil(later.flatMap { store.state.hatch($0) })
+    }
+
+    /// Spec A1 "Highlight" (issue 024): only the nearest row with a list some kid has not finished is
+    /// hatched; once its list is done, the next one is. A2 opened with no row (spec #310) opens as the
+    /// hatched row would, else on the clock kid's nearest list. A row carries its event's list.
+    func testOnlyTheNearestUnfinishedListIsHatched() async {
+        var items = SeedData.items(today: tuesday, calendar: calendar)
+        let index = items.firstIndex { $0.title == "Swimming" }!
+        items[index].bring = [ItemMission(id: UUID(), name: "Goggles", picture: "actSwim")]
+        let snapshot = ScheduleSnapshot(kids: SeedData.kids, routines: SeedData.routines, items: items,
+                                        missions: SeedData.missions)
+        let store = store(on: wednesday, minute: 400, snapshot: snapshot)
+        await store.send(.task)
+        await store.receive(\.loaded)
+        await store.receive(\.listsChecked)
+        let kidA = SeedData.kidA.id
+        let school = try? XCTUnwrap(store.state.things.first { $0.title == "School" && $0.inDays == 0 })
+        let swimming = try? XCTUnwrap(store.state.things.first { $0.title == "Swimming" && $0.inDays == 0 })
+        XCTAssertEqual(school?.list, .event(.school))
+        XCTAssertEqual(store.state.hatchedThing?.id, school?.id)
+        XCTAssertNil(swimming.flatMap { store.state.hatch($0) }, "a later list is not hatched")
+        XCTAssertEqual(store.state.defaultList?.kid, kidA)
+        XCTAssertEqual(store.state.defaultList?.list, .event(.school))
+
+        await store.send(.listsChecked([HomeFeature.KidList(kid: kidA, list: .event(.school))]))
+        XCTAssertEqual(store.state.hatchedThing?.id, swimming?.id, "School's list is done: Swimming's is next")
+        XCTAssertNil(school.flatMap { store.state.hatch($0) })
+        XCTAssertEqual(store.state.defaultList?.list, swimming?.list)
     }
 
     /// Design 2026-11-23: an afternoon outing with a Bring list is a mission row too; one without stays plain.

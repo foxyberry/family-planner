@@ -23,9 +23,11 @@ public struct NextThing: Equatable, Sendable, Identifiable {
     /// A pickup moment (spec A1 "Moments", board A1p): a grown-up leaves to fetch the kids. Never
     /// tappable, never hatched.
     public var isPickup: Bool
+    /// The event's list a mission row opens on A2 (spec "Event lists").
+    public var list: ListRef?
 
     public init(id: String, kids: [Kid.ID], title: String, iconName: String, act: Int, inDays: Int, day: Day,
-                weekday: Weekday, missionKids: [Kid.ID] = [], isPickup: Bool = false) {
+                weekday: Weekday, missionKids: [Kid.ID] = [], isPickup: Bool = false, list: ListRef? = nil) {
         self.id = id
         self.kids = kids
         self.title = title
@@ -36,6 +38,7 @@ public struct NextThing: Equatable, Sendable, Identifiable {
         self.weekday = weekday
         self.missionKids = missionKids
         self.isPickup = isPickup
+        self.list = list
     }
 
     public var picture: KitSlot { KitSlot(iconName: iconName) }
@@ -75,6 +78,7 @@ public enum HomeNext {
                 if let index = rows.firstIndex(where: { $0.id == thing.id }) {
                     rows[index].kids.append(day.kid)
                     rows[index].missionKids += thing.missionKids
+                    rows[index].list = rows[index].list ?? thing.list
                 } else {
                     rows.append(thing)
                 }
@@ -97,7 +101,8 @@ public enum HomeNext {
         let pickups = asleep ? [] : pickupThings(day.today, kid: day.kid, after: minute, inDays: 0, on: today,
                                                 calendar: calendar)
         if !left.isEmpty || !pickups.isEmpty {
-            return left.map { thing($0, kid: day.kid, inDays: 0, on: today, missions: day.missionOutings, calendar: calendar) }
+            return left.map { thing($0, kid: day.kid, inDays: 0, on: today, missions: day.missionOutings, in: day.today,
+                                    calendar: calendar) }
                 + pickups
         }
         let tomorrow = today.adding(days: 1, calendar: calendar)
@@ -115,15 +120,16 @@ public enum HomeNext {
     }
 
     private static func thing(_ slot: Slot, kid: Kid.ID, inDays: Int, on day: Day, missions: [Slot],
-                              calendar: Calendar) -> NextThing {
+                              in slots: [Slot] = [], calendar: Calendar) -> NextThing {
         let key = switch slot.source {
         case let .weekly(id), let .once(id): "item:\(id):\(slot.start)"
         case .routine: "slot:\(slot.kind.rawValue):\(slot.title):\(slot.start):\(slot.end)"
         }
         let act = slot.trip.map { slot.start - $0.leaveBefore } ?? slot.start
+        let isMission = missions.contains(slot)
         return NextThing(id: "\(key):\(inDays)", kids: [kid], title: slot.title, iconName: slot.iconName, act: act,
                          inDays: inDays, day: day, weekday: day.weekday(calendar),
-                         missionKids: missions.contains(slot) ? [kid] : [])
+                         missionKids: isMission ? [kid] : [], list: isMission ? ListRef(slot, in: slots) : nil)
     }
 
     /// Spec A1 "Moments": a pickup row for each event that ends its chain with way home pickup, at

@@ -124,8 +124,8 @@ public struct HomeView: View {
         let part = NextThingRow(time: store.state.timeCell(thing), picture: thing.picture, title: thing.title,
                                 faces: store.state.faces(thing), hatch: store.state.hatch(thing), size: size,
                                 faded: store.state.isFaded(thing), look: store.look)
-        if let kid = thing.missionKids.first {
-            Button { store.send(.missionRowTapped(kid)) } label: { part }
+        if let kid = store.state.familyOrder(thing.missionKids).first, let list = thing.list {
+            Button { store.send(.missionRowTapped(kid, list)) } label: { part }
                 .buttonStyle(.plain)
         } else {
             part.allowsHitTesting(false)
