@@ -637,15 +637,34 @@ const ITEMS = {
     S('M125.9 71.6L141.5 56.1L183.9 98.5L168.4 114.1Z', '#B9B4C4', 45),
     S('M141.5 56.1L164.1 33.5L175.4 33.5L206.5 64.6L206.5 75.9L183.9 98.5Z', '#F7A1B5', 45),
   ],
-  // School calendar way in (K1, layout v71): a placeholder until the design session's crayon picture
-  // comes with the next art batch. A wall calendar page: red top band, two rings, a grid of days with
-  // one sky day off and one red holiday.
+  // School calendar way in (K1, layout v71; final, user 2026-11-28): a wall calendar page, red top band,
+  // two rings, a grid of days with one sky day off and one red holiday.
   calendar: [
     S(rr(34, 56, 172, 156, 20), K.white, 0),
     S(rr(34, 56, 172, 48, 20), '#E5484D', -40),
     Ln('M82 38V70', 10), Ln('M158 38V70', 10),
     S(rr(58, 122, 28, 24, 6), K.sky, -40), S(rr(106, 122, 28, 24, 6), '#E2D9C6', 40), S(rr(154, 122, 28, 24, 6), '#E2D9C6', 40),
     S(rr(58, 164, 28, 24, 6), '#E2D9C6', 40), S(rr(106, 164, 28, 24, 6), '#F7A8A8', 40), S(rr(154, 164, 28, 24, 6), '#E2D9C6', 40),
+  ],
+  // Pickup (issue 024): a grown-up waves beside the family car; the grown-up is the big face, so the row reads
+  // "a grown-up goes" and not "leave by car" (the car alone is the way picture).
+  pickup: [
+    S('M14 224C14 160 32 114 64 114C96 114 114 160 114 224Z', K.mint, 40),
+    S('M98 148L110 100L128 104L116 152Z', K.mint, 40, 3.5),
+    S(circ(120, 92, 13), '#F6C89A', 0, 3.5),
+    S(circ(64, 82, 40), '#F6C89A', -35),
+    Ln('M50 124L64 142L78 124', 4),
+    S('M24 82C22 48 42 34 64 34C88 34 106 48 104 82C96 64 80 58 64 60C48 58 32 64 24 82Z', '#3A3640', 40),
+    ...eye(50, 88, 14), ...eye(78, 88, 14),
+    smile(64, 106, 20),
+    S('M128.4 198.4C118.8 198.4 114.0 192.4 114.0 182.8C114.0 170.8 120.0 162.4 133.2 160.0C136.8 136.0 152.4 118.0 172.8 118.0C194.4 118.0 208.8 134.8 213.6 160.0C223.2 162.4 228.0 172.0 228.0 182.8C228.0 192.4 223.2 198.4 213.6 198.4Z', K.blue, -40),
+    S('M142.8 158.8C146.4 143.2 154.8 131.2 168.0 127.6L168.0 158.8Z', K.sky, 40),
+    S('M174.0 127.6C190.8 128.8 202.8 142.0 207.6 158.8L174.0 158.8Z', K.sky, 40),
+    S(circ(220.8, 172.0, 4), K.yellow, 0, 3),
+    B(circ(141.6, 199.6, 15)),
+    B(circ(200.4, 199.6, 15)),
+    S(circ(141.6, 199.6, 5.5), K.white, 0, 3),
+    S(circ(200.4, 199.6, 5.5), K.white, 0, 3),
   ],
   // Developer tools: a friendly ladybug for the debug bubble. The white plate keeps it readable on a dark or orange circle.
   debugLadybug: [

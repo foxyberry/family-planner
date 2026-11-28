@@ -76,7 +76,7 @@ extension ItemEditorFeature.State {
 enum BackCopy {
     static func choices(_ way: WayHome, strings: Localizer) -> [ChoiceCircles.Choice] {
         [
-            ChoiceCircles.Choice(id: WayHome.pickup.rawValue, picture: .car, caption: strings.tr("back.pickup"),
+            ChoiceCircles.Choice(id: WayHome.pickup.rawValue, picture: .pickup, caption: strings.tr("back.pickup"),
                                  isPicked: way == .pickup),
             ChoiceCircles.Choice(id: WayHome.bus.rawValue, picture: .busDouble, caption: strings.tr("going.bus"),
                                  isPicked: way == .bus),
