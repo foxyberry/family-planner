@@ -672,6 +672,17 @@
         }
       }
     },
+    "calendar.term_gap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "School holidays"
+          }
+        }
+      }
+    },
     "calendar.today" : {
       "extractionState" : "manual",
       "localizations" : {

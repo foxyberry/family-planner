@@ -1,4 +1,5 @@
 import Foundation
+import Strings
 
 /// A school's year (spec "Repeats, dates and changes"): its terms and the weekdays it is closed
 /// (vacations, school holidays, public holidays and days off in lieu, from the MOE calendar or the
@@ -31,6 +32,24 @@ public struct SchoolCalendar: Equatable, Sendable {
         self.closed = closed
         self.breaks = breaks
         self.isMoe = isMoe
+    }
+
+    /// A school's own year with the days between its terms as holidays: a school's list names its
+    /// mid-term breaks but often not the long ones between terms (user, 2026-11-28: the winter break
+    /// between Term 1 and Term 2 was missing). A named break keeps its name; before the first term and
+    /// after the last nothing is known, so nothing is added there.
+    public func withTermGaps(calendar: Calendar) -> SchoolCalendar {
+        var filled = self
+        let sorted = terms.sorted { $0.start < $1.start }
+        for (term, next) in zip(sorted, sorted.dropFirst()) {
+            var day = term.end.adding(days: 1, calendar: calendar)
+            while day < next.start {
+                filled.closed.insert(day)
+                if filled.breaks[day] == nil { filled.breaks[day] = L10n.tr("calendar.term_gap") }
+                day = day.adding(days: 1, calendar: calendar)
+            }
+        }
+        return filled
     }
 
     /// The term `day` is in, or the next one when `day` is in a break.
