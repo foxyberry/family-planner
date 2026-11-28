@@ -206,6 +206,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-28: edit screens (G2, G2m, G3, G5) drop the For row and show the item's kids after the title; the What row keeps the kit order (picked stays in place, a More pick takes the last slot) (user feedback on the iPad). Every pick ring is 84 (`pickRing`), inside the 88 slot.
 - 2026-11-28: G2 opens on Every time from every entry (List and Settings too, as G4 already does), not only from "Details ›" (#297 build question).
 - 2026-11-28: home hub back to r 142 (G1's share of R), time 48; the kid-colour rim is gone, the face in the hub says whose clock it is (user). Layout v81.
+- 2026-11-28: the hub's public-holiday name drops "(observed)" (a day in lieu shows the holiday's own name); the data keeps MOM's wording (user).
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -415,7 +416,7 @@ How far apart things sit, in board points (every value × s on screen). Every ga
 
 ### Hub: whose clock, which day, what time
 - Three parts, centred on x 448: the picked kid's face 48 (top at y 436), the weekday (28 bold, baseline 524) and the time ("6:52" 48 bold + "am" 24 `softText`, baseline 578). The weekday is the full name.
-- **Public holiday**: the weekday is red (`lateText`; at night `nightLate`), the holiday's name sits under the time (24 `softText`), and the face is left out to make room: weekday 494 / time 548 / name 586. A name that does not fit the hub (about 250 wide at that line) ends with "…".
+- **Public holiday**: the weekday is red (`lateText`; at night `nightLate`), the holiday's name sits under the time (24 `softText`), and the face is left out to make room: weekday 494 / time 548 / name 586. The name drops a trailing "(observed)": the Monday in lieu shows the holiday's own name ("Deepavali"); the bundled list keeps MOM's wording, only the screen drops it (user, 2026-11-28). A name that does not fit the hub (about 250 wide at that line) ends with "…".
 - School holidays have no words in the hub: they show as the holiday scene (below) when every school kid is off.
 - **No schedule at all** for the picked kid: the disc is plain paper with ticks and labels; the hub keeps face, weekday and time.
 
