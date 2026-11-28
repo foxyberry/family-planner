@@ -47,7 +47,7 @@ final class ItemEditorTests: XCTestCase {
     }
 
     /// Spec C3 "What" (N15): "More" offers the country flags after the pictures, in kit order, and a
-    /// picked flag becomes the item's picture, first in the row.
+    /// picked flag becomes the item's picture, in the row's last slot (next to "More").
     func testMoreOffersTheCountryFlags() async {
         XCTAssertEqual(ItemEditorFeature.State.flags, KitSlot.allCases.filter { $0.rawValue.hasPrefix("flag") })
         XCTAssertTrue(Set(ItemEditorFeature.State.flags).isDisjoint(with: ItemEditorFeature.State.pictures))
@@ -59,7 +59,7 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(store.state.form.iconName, "flagJP")
         XCTAssertEqual(store.state.form.name, "Japanese", "a flag is named by its language (spec seed data)")
         XCTAssertFalse(store.state.isPickingMorePictures)
-        XCTAssertEqual(store.state.whatRow.first, "flagJP")
+        XCTAssertEqual(store.state.whatRow.last, "flagJP")
     }
 
     func testAddWeeklySavesAndFinishes() async {
@@ -231,6 +231,30 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertEqual(oneKid.audienceTabs.map(\.title), ["Kid A"])
     }
 
+    /// Design answer (2026-11-28): only adding asks who it is for; an edit shows its kids' faces
+    /// after the title instead.
+    func testEditsShowTheirKidsInTheHeaderNotAForRow() async {
+        let adding = store(mode: .add(kidA))
+        await adding.send(.task)
+        await adding.receive(\.loaded)
+        XCTAssertTrue(adding.state.showsForRow)
+        XCTAssertEqual(adding.state.headerFaces, [])
+
+        let swim = F.weekly()
+        let editing = store(mode: .editWeekly(swim), items: [swim])
+        await editing.send(.task)
+        await editing.receive(\.loaded)
+        XCTAssertFalse(editing.state.showsForRow)
+        XCTAssertEqual(editing.state.headerFaces, [.init(face: "kidGirl", colorIndex: 0)])
+
+        let party = F.once("Party", on: Day(year: 2026, month: 11, day: 14))
+        let both = store(mode: .editOnce(party), items: [party])
+        await both.send(.task)
+        await both.receive(\.loaded)
+        XCTAssertFalse(both.state.showsForRow)
+        XCTAssertEqual(both.state.headerFaces, [.init(face: "kidGirl", colorIndex: 0), .init(face: "kidBoy", colorIndex: 1)])
+    }
+
     func testAudienceTapSetsWhoItIsFor() async {
         let store = store(mode: .add(kidA), saveError: true)
         await fill(store)
@@ -343,13 +367,15 @@ final class ItemEditorTests: XCTestCase {
         XCTAssertNotNil(store.state.preview)
     }
 
-    /// "More" opens every picture; picking one closes it and puts it first in the row.
-    func testMorePicturesPickFirstInTheRow() async {
+    /// "More" opens every picture; picking one closes it and puts it in the row's last slot, the
+    /// others staying where they were (design answer 2026-11-28).
+    func testMorePicturesPickTakesTheLastSlot() async {
         let store = store(mode: .add(.kid(SeedData.kidA.id)))
         store.exhaustivity = .off
         await store.send(.morePicturesTapped) { $0.isPickingMorePictures = true }
+        let before = store.state.whatRow
         await store.send(.picturePicked("cake")) { $0.isPickingMorePictures = false }
-        XCTAssertEqual(store.state.whatRow.first, "cake")
+        XCTAssertEqual(store.state.whatRow, Array(before.dropLast()) + ["cake"])
         XCTAssertEqual(store.state.whatRow.count, 5)
     }
 
