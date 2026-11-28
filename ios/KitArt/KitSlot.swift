@@ -31,8 +31,10 @@ public enum KitSlot: String, CaseIterable, Sendable {
     case skyDay, skyDusk, skyNight
     // Grown-up mode way in (G0)
     case pencil
-    // School calendar way in (K1; a placeholder picture until the next art batch)
+    // School calendar way in (K1; final, user 2026-11-28)
     case calendar
+    // A grown-up goes to fetch a kid (issue 024: the home pickup row, the Back card's Pickup)
+    case pickup
     // Developer tools (debug builds)
     case debugLadybug
 }

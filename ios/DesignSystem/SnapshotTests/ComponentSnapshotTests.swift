@@ -635,7 +635,7 @@ final class ComponentSnapshotTests: XCTestCase {
         }
         .frame(height: 640), width: 720, named: "before")
         snap(BackCard(title: "Back",
-                      choices: [.init(id: "pickup", picture: .car, caption: "Pickup", isPicked: true),
+                      choices: [.init(id: "pickup", picture: .pickup, caption: "Pickup", isPicked: true),
                                 .init(id: "bus", picture: .busDouble, caption: "Bus", isPicked: false),
                                 .init(id: "walk", picture: .shoe, caption: "Walk", isPicked: false),
                                 .init(id: "none", picture: nil, caption: "None", isPicked: false)],
