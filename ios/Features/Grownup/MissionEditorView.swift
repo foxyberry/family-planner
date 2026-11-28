@@ -96,7 +96,7 @@ public struct MissionEditorView: View {
             }
             if store.canAdd {
                 AddRow(store.addTitle) { store.send(.addTapped) }
-            } else {
+            } else if store.bundle != nil {
                 Text(store.mostCaption).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                     .frame(height: sizing(72))
             }

@@ -72,6 +72,9 @@ final class MissionEditorTests: XCTestCase {
         XCTAssertEqual(store.state.usedByCaption, "Not used yet")
         await store.send(.bundleNameChanged("Swimming day bag!"))
         XCTAssertEqual(store.state.bundleName, "Swimming day b", "14 at most")
+        await store.send(.bundleNameChanged(" "))
+        XCTAssertEqual(store.state.bundleName, " ", "the field keeps what is typed")
+        await store.send(.bundleNameChanged("Swimming day b"))
         await store.send(.removeBundleTapped)
         XCTAssertFalse(store.state.confirmsBundleRemove, "an unused bundle goes at once")
         XCTAssertEqual(store.state.bundleRows.map(\.name), ["Morning routine"])
@@ -82,7 +85,9 @@ final class MissionEditorTests: XCTestCase {
         await store.send(.removeBundleCancelled)
         XCTAssertEqual(store.state.bundleRows.count, 1)
         await store.finish(timeout: .seconds(1))
-        XCTAssertEqual(saved.value.map(\.name), ["New bundle", "Swimming day b"])
+        XCTAssertFalse(saved.value.contains { $0.name.trimmingCharacters(in: .whitespaces).isEmpty },
+                       "an empty name is never saved")
+        XCTAssertEqual(saved.value.last { $0.name != "New bundle" }?.name, "Swimming day b")
         XCTAssertEqual(deleted.value.count, 1)
     }
 

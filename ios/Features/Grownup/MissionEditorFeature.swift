@@ -71,7 +71,8 @@ public struct MissionEditorFeature {
             var names: [String] = []
             func add(_ name: String) { if !names.contains(name) { names.append(name) } }
             func uses(_ lists: EventLists?) -> Bool { lists.map { $0.before.contains(id) || $0.afterBundles.contains(id) } ?? false }
-            if uses(kid?.school?.lists) { add(strings.tr("from.school")) }
+            // The school record, and a school change still waiting for its day (#316 review).
+            if uses(kid?.school?.lists) || uses(kid?.pendingSchool?.school?.lists) { add(strings.tr("from.school")) }
             for routine in routines where routine.kid == selectedKid {
                 for block in routine.blocks where uses(block.lists) { add(block.title) }
             }
@@ -100,7 +101,7 @@ public struct MissionEditorFeature {
                     strings.tr("c5.bundle.lose", usedBy(bundle.id).joined(separator: ", ")))
         }
 
-        public var canAdd: Bool { rows.count < Mission.most }
+        public var canAdd: Bool { bundle != nil && rows.count < Mission.most }
 
         /// "+ Add a mission (6 of 8)".
         public var addTitle: String { strings.tr("c5.add", rows.count, Mission.most) }
@@ -211,6 +212,8 @@ public struct MissionEditorFeature {
                       let index = state.bundles.firstIndex(where: { $0.id == bundle.id }) else { return .none }
                 bundle.name = String(name.prefix(State.longestBundleName))
                 state.bundles[index] = bundle
+                // As a mission's: an empty name is not saved (the field keeps it while typing).
+                guard !bundle.name.trimmingCharacters(in: .whitespaces).isEmpty else { return .none }
                 return saveBundle(bundle)
 
             case .removeBundleTapped:
@@ -320,11 +323,16 @@ public struct MissionEditorFeature {
         return saveBundle(bundle)
     }
 
+    /// One save at a time per bundle: a newer one cancels the one in flight, so typing "Swim" never
+    /// ends on "Swi" (#316 review).
     private func saveBundle(_ bundle: MissionBundle) -> Effect<Action> {
         .run { [scheduleStore] send in
             do { try await scheduleStore.saveBundle(bundle) } catch { await send(.saveFailed) }
         }
+        .cancellable(id: SaveID(bundle: bundle.id), cancelInFlight: true)
     }
+
+    private struct SaveID: Hashable { let bundle: MissionBundle.ID }
 
     /// Removes the picked bundle; the card goes to the kid's first bundle left.
     private func removeBundle(_ state: inout State) -> Effect<Action> {
