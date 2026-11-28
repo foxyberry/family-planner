@@ -20,9 +20,12 @@ public struct NextThing: Equatable, Sendable, Identifiable {
     /// The kids for whom this outing has something to check before leaving (their open mission
     /// window leads to it): the row becomes a mission row.
     public var missionKids: [Kid.ID]
+    /// A pickup moment (spec A1 "Moments", board A1p): a grown-up leaves to fetch the kids. Never
+    /// tappable, never hatched.
+    public var isPickup: Bool
 
     public init(id: String, kids: [Kid.ID], title: String, iconName: String, act: Int, inDays: Int, day: Day,
-                weekday: Weekday, missionKids: [Kid.ID] = []) {
+                weekday: Weekday, missionKids: [Kid.ID] = [], isPickup: Bool = false) {
         self.id = id
         self.kids = kids
         self.title = title
@@ -32,6 +35,7 @@ public struct NextThing: Equatable, Sendable, Identifiable {
         self.day = day
         self.weekday = weekday
         self.missionKids = missionKids
+        self.isPickup = isPickup
     }
 
     public var picture: KitSlot { KitSlot(iconName: iconName) }
@@ -90,14 +94,18 @@ public enum HomeNext {
         // Asleep for the night: the sleep slot that runs to midnight (an afternoon nap is not the night).
         let asleep = current?.kind == .sleep && current?.end == 1440
         let left = asleep ? [] : day.today.filter { $0.start > minute && shows($0, in: day.today) }
-        if !left.isEmpty {
+        let pickups = asleep ? [] : pickupThings(day.today, kid: day.kid, after: minute, inDays: 0, on: today,
+                                                calendar: calendar)
+        if !left.isEmpty || !pickups.isEmpty {
             return left.map { thing($0, kid: day.kid, inDays: 0, on: today, missions: day.missionOutings, calendar: calendar) }
+                + pickups
         }
         let tomorrow = today.adding(days: 1, calendar: calendar)
         let wake = day.tomorrow.first { $0.start == 0 && $0.kind == .sleep }?.end ?? 0
         let first = day.tomorrow.filter { $0.start >= wake && shows($0, in: day.tomorrow) }
         if !first.isEmpty {
             return first.map { thing($0, kid: day.kid, inDays: 1, on: tomorrow, missions: [], calendar: calendar) }
+                + pickupThings(day.tomorrow, kid: day.kid, after: wake, inDays: 1, on: tomorrow, calendar: calendar)
         }
         guard let ahead = day.ahead else { return [] }
         let item = ahead.item
@@ -116,6 +124,22 @@ public enum HomeNext {
         return NextThing(id: "\(key):\(inDays)", kids: [kid], title: slot.title, iconName: slot.iconName, act: act,
                          inDays: inDays, day: day, weekday: day.weekday(calendar),
                          missionKids: missions.contains(slot) ? [kid] : [])
+    }
+
+    /// Spec A1 "Moments": a pickup row for each event that ends its chain with way home pickup, at
+    /// end − `homeAfter`, while that time is still ahead. Its title is the event's name, its picture
+    /// `pickup`. The same event for two kids is one row ("pickup:" + the event's key).
+    private static func pickupThings(_ slots: [Slot], kid: Kid.ID, after minute: Int, inDays: Int, on day: Day,
+                                     calendar: Calendar) -> [NextThing] {
+        slots.filter { $0.lists.wayHome == .pickup && EventListRules.chainEnd(of: $0, in: slots) == $0 }
+            .compactMap { slot in
+                let leave = slot.end - slot.lists.homeAfter
+                guard leave > minute else { return nil }
+                let event = thing(slot, kid: kid, inDays: inDays, on: day, missions: [], calendar: calendar)
+                return NextThing(id: "pickup:" + event.id, kids: [kid], title: slot.title,
+                                 iconName: KitSlot.pickup.rawValue, act: leave, inDays: inDays, day: day,
+                                 weekday: event.weekday, isPickup: true)
+            }
     }
 
     /// A slot the list can name: not free time, not a template slot that only resumes after an item.
