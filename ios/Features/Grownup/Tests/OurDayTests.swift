@@ -760,7 +760,7 @@ final class OurDayTests: XCTestCase {
         await store.send(.removeConfirmed)
         XCTAssertNil(store.state.sectors.first { $0.iconName == "actSwim" })
         XCTAssertEqual(store.state.selectedBlock?.title, "Play", "the slice underneath is picked")
-        XCTAssertEqual(store.state.unsavedLine, "Swimming 5:00 pm %@ 6:00 pm, all days")
+        XCTAssertEqual(store.state.unsavedLine, "Swimming 5:00 pm %@ 6:00 pm, every time")
         await store.send(.undoTapped)
         XCTAssertNotNil(store.state.sectors.first { $0.iconName == "actSwim" }, "Undo brings it back")
         await store.send(.redoTapped)
