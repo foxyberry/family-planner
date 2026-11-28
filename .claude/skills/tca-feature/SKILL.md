@@ -47,7 +47,7 @@ reference time zone, the time machine and tests can replace any of it in one pla
 7. Every board of a screen family (A1, A1m, A1n, E3, …) is one State shape (`HomeNext.things`)
    with a test; capture each on the iPad at a time that hits it. A view that falls through to
    nothing is a missing case.
-8. "As on <board>" in the spec: find that board's rule (spec, backlog, motion table) before building.
+8. "As on <board>" in the spec: find that board's rule (spec, design notes, motion table) before building.
 
 ## State shape (views hold no values)
 a. `init` builds a complete, renderable State: defaults known up front are initial values, never

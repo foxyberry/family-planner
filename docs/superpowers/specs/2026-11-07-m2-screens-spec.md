@@ -3,6 +3,8 @@
 Boards: A1, E1, E3, C0, C3, C4, C3k, G0–G8 (design canvas, page "v3 · Crayon").
 Public-safe: children are **Kid A** (older, school) and **Kid B** (toddler, at home). No school, stop, route or bus numbers appear here. Times in examples are seed values, not real ones.
 
+**Goal** (the user's words): *See today's schedule on this iPad, and do today's missions.* **No MVP stage** (user, 2026-11-08): one build plan, in order; nothing is designed or built twice as a cut-down version first. "Later" means not planned yet; open work lives in local issues, and Later designs in their own notes (multi-iPad sync, automatic rigs, reference time zone). The bus needs the network; without live times the morning screen shows its timetable look, so everything else works offline.
+
 ## Change log
 This file is the only copy: the design session edits it on its own branch (PR into develop) and the building session reads it. Each change is dated; the newest is last.
 - 2026-11-07: first version.
@@ -198,6 +200,7 @@ This file is the only copy: the design session edits it on its own branch (PR in
 - 2026-11-23: issue 024 boards (layout v77): G2b / G4 rows Before, After, Back; cards F2 Before (F2k with kid tabs), F6 After, F7 Back with a "Takes" minutes stepper; C5 "Routines" with the bundle list in the side column and a Name row; A2h back-home list. The way-home row is labelled "Back" (designer's call: "Way home" does not fit the 120 label column).
 - 2026-11-23: the after list (After row, back-home row, A2h) moves to a later step (user); pickup and the before list build first. A1p shows the pickup row only.
 - 2026-11-23: issue 024 rules from the build questions: migration puts the Morning routine bundle on School and the Sat / Sun first outing; after-list missions are shared by the event's kids, done per kid.
+- 2026-11-28: the product backlog is retired (local issue 052): the goal moves to this spec's head; sync, automatic rigs and the reference time zone move to their own design notes; open items are local issues; build-status history stays in git.
 
 Markers used below:
 - **[board]**: drawn on the canvas, implement as written.
@@ -553,7 +556,7 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - **Same first bus**: a direct bus and a bus that changes (or two buses that change) may start with the same bus (34 and 34 → 33). One live arrival of 34 is then one trip, timed by the faster of the two, with one tag.
   - **Settings value** (G4, G6, G7): "Bus 12 · 34 · 56 · leave 7:05": the buses in pill order, a bus that changes named by its first buses (plain text has no "→"), each number once; the leave time uses the fastest trip.
   - S3 sets the same buses as C2, with the same "+ A bus that changes…" link.
-- **Pick the stop on a map** (later, user 2026-11-09; backlog N11) [proposed]:
+- **Pick the stop on a map** (later, user 2026-11-09; local issue 033) [proposed]:
   - Entry: a map `RoundButton` 64 at the right end of the Stop field row (S3, C2, C2c "Change"), ending on the 808 line; the field stretches up to 20 before it.
   - The screen: a full-screen grown-up sheet "Find your stop" with "←" and a search field at the top ("Search a place or stop"). The map (MapKit, standard style, the crayon paper tint only on the frame) fills the rest; a side card 382 wide on the right shows the picked stop.
   - **At first** the map centres on the school of this kid (lat/lng from the school data) at about 1.5 km across, so no location permission is needed. A "Near me" button (RoundButton 64, bottom right of the map) asks for location only when tapped. The app never stores where the map was.
@@ -568,7 +571,7 @@ The same screen with live bus arrivals: same fixed regions, same kids-and-missio
   - **No bus links the two stops** (the picked bus does not call at the get-off stop after the boarding stop, in either direction): the Get off row shows "Bus {n} doesn't stop there after {boarding stop}." (caption `hurry`) and, from BusRoutes, the buses that do link them as pills to switch to; if none, a link "Change buses on the way…" (→ C2c). Save stays on; the Ride row falls back to the plain stepper with no source caption.
   - Medals and "Leave in" use the same numbers: leave = bus at the stop − walk; arrive = bus + ride + walk at the end ≤ arrive-by.
   - Data check before building: confirm the BusRoutes field names (ServiceNo, Direction, StopSequence, BusStopCode, Distance in km from the route start) in the official DataMall guide, and test MKDirections transit ETA in Singapore (it may return no result even where the Maps app has transit), so the ride never depends on it.
-- **School data delivery and refresh** (user, 2026-11-09; later, backlog N14, with CloudKit) [sketch SK5]:
+- **School data delivery and refresh** (user, 2026-11-09; later, local issue 036, with CloudKit) [sketch SK5]:
   - **Bundled**: every public list ships in the app (MOE schools, calendar, hours, the ECDA preschool list; files that cannot sit in the public repo come in through `make private`), so S2 search works offline from the first run.
   - **Fetched**: the newest version of every list (public and private, including the international list) is published to the CloudKit public database from the private data repo, independent of app releases. The app reads a small **manifest** first (per file: dataVersion, schemaVersion, sha256, size) and downloads only files that are newer **and** whose schemaVersion it can read; otherwise it keeps what it has. Publishing can keep an older schema alongside a new one so older apps still get updates.
   - **Refresh row** ("School lists"): `RoundButton` 56 with a refresh glyph + title (body bold) over a status caption. On S2 at the bottom of the side column above Next, and in C9 "This iPad". States: Idle "Updated {d Mon yyyy}"; Checking "Checking for new lists…" (arrow turns; Reduce Motion: still); Getting "Getting new lists · {n} of {m}"; Done (check picture, `onTimeText`) "Up to date · {date}", back to Idle after 3 s; Offline (`hurry`) "No internet. Using {date} lists."; Failed (`hurry`) "Couldn't update. Tap to retry." A list this app version can't read is skipped quietly ("Up to date for this app version"). The row never blocks Next. Tap = check now; the app also checks at most once a day on its own.
@@ -663,7 +666,7 @@ At the end of the C3 / C4 / G2 form (the card scrolls, as C3g), one line each, o
 - **Data sources**: a grown-up screen with the data.gov.sg and OneMap attribution, opened from a "Data sources" link under the S2 school caption and from a caption link "Data sources" at the foot of G6 Settings, next to the action area.
 - **Row labels** on S2 and S3 (and every grown-up form) are caption bold (24, the app ships Playpen medium and bold only) `softText` on one line in the label column (**Grown-up form layout**).
 - **Debug only**: "Load sample family" (confirm copy in "Seed data in M2"); links familyplanner://s1 … s4 open a setup step (s2–s4 prefilled with the sample family, no unlock, nothing saved unless Start is tapped; over an existing family Start asks first: "Start over with this setup? The family on this iPad is replaced." with "Replace" (`lateText`) / "Cancel").
-- Joining a family from another iPad (sync, backlog) comes later. The "Start a new family / Join" choice is not shown yet.
+- Joining a family from another iPad (sync; design note 2026-11-28-multi-ipad-sync-design.md) comes later. The "Start a new family / Join" choice is not shown yet.
 
 ### S1 · Family [board S1]
 - Title "Hello! Who's in the family?".
@@ -794,7 +797,7 @@ A read-only year of each kid's school days off and the public holidays, opened f
 - From the bundled school data (`SchoolCalendar` / `FamilyCalendar`): each kid's own school or preschool calendar and the public holidays. A kid at home has no school days off; only public holidays show for them.
 - 3–4 kids: the cell splits into that many diagonal bands.
 - Night: the night mapping (board K1n) with the colours above.
-- Phase 2 (backlog Later): open from Settings → School → Terms, edit own terms and closures, family events, Google Calendar sync.
+- Phase 2 (Later, local issue 045): open from Settings → School → Terms, edit own terms and closures, family events, Google Calendar sync.
 
 ## Sky switch: the kid's day/night switch (new 2026-11-08) [board 0g; on every kid home: A1, A1m, A1n, E1, E3, E3b]
 - On every kid home screen (A1, E1, E3, E3b): top-left of the clock area at x 40, y 36, 160 × 96. That is clear of the hour labels and is a ≥ 96 pt target.
@@ -1126,7 +1129,7 @@ Edits a kid's day on the clock: the **day template** (wake-up, routines, school 
 - **Save**: This day changes save for that date; All days changes ask **G5 "Change from when?"** first. Leaving with unsaved changes asks first with G1d ("Save the changes?", Save · Cancel).
 
 ## C7 · School calendar: add from a photo or PDF (new 2026-11-08) [board, later]
-Backlog DA-1; not in M2. Opened from the Terms row in G4 / G6.
+Later (local issue 044); not in M2. Opened from the Terms row in G4 / G6.
 - Left card:
   - "Found in {file name}" (head).
   - "Read on this iPad. Tick what to add; tap a row to fix it." (caption).

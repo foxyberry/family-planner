@@ -65,7 +65,7 @@ final class KitRigTests: XCTestCase {
         XCTAssertEqual(top.offset.height, -14, accuracy: 0.001)
     }
 
-    /// Backlog N1a: on the map and the way strip, every bus turns two wheel parts.
+    /// Bus crowding (spec A2 map): on the map and the way strip, every bus turns two wheel parts.
     func testEveryBusHasTwoWheelParts() throws {
         for slot in [KitSlot.busDouble, .busSingle, .busMini, .busShuttle] {
             let rig = try XCTUnwrap(KitRigs.shared.rig(for: slot), "\(slot)")

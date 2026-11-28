@@ -17,10 +17,12 @@ docs/private/
 # tracked (copy them by name, never with a wildcard). Add a new tracked copy here by name.
 docs/superpowers/specs/*
 !docs/superpowers/specs/2026-11-07-m2-screens-spec.md
-!docs/superpowers/specs/2026-11-08-product-backlog.md
 !docs/superpowers/specs/2026-11-22-school-calendar-design.md
 !docs/superpowers/specs/2026-11-22-home-redesign-design.md
 !docs/superpowers/specs/2026-11-22-event-lists-design.md
+!docs/superpowers/specs/2026-11-28-multi-ipad-sync-design.md
+!docs/superpowers/specs/2026-11-28-auto-rig-design.md
+!docs/superpowers/specs/2026-11-28-reference-time-zone-design.md
 .private-terms
 LocalConfig.*
 *.local.json

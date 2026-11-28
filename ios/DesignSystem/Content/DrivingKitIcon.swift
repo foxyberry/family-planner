@@ -1,7 +1,7 @@
 import KitArt
 import SwiftUI
 
-/// A vehicle on its way (backlog N1a, the A2 map; way strip "It rocks as on A2"): the whole
+/// A vehicle on its way (bus crowding, the A2 map; way strip "It rocks as on A2"): the whole
 /// picture rocks on a 0.9 s loop (1°, 2 pt). A rigged vehicle also plays its tap rig over and
 /// over (the bus body bobs, as on board 0g3, at the rig scale) and its wheel runs turn all the
 /// time about their centres (360° every 0.9 s, linear). Vehicles without a rig (car, taxi, shoe)

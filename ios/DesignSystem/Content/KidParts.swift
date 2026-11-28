@@ -81,7 +81,7 @@ public struct KidBand: View {
     }
 }
 
-/// One mission (board 0c2, backlog N2): a 112 crayon circle in the kid's fill (Kid A sky, Kid B
+/// One mission (board 0c2, spec A2): a 112 crayon circle in the kid's fill (Kid A sky, Kid B
 /// apricot) with the mission's picture, its name under it (bold for the one to do now), and a blue
 /// check badge when done.
 public struct MissionCircle: View {

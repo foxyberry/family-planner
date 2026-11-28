@@ -2,7 +2,7 @@
 # when a screen uses one, or make art removes it, delete its line. The design session decides which
 # stay (2026-11-22).
 
-# Bus fullness: kept, planned (backlog N1a, A2 crowding).
+# Bus fullness: kept, planned (A2 crowding, local issue 026).
 busDoublePax1
 busDoublePax2
 busDoublePax3
