@@ -75,6 +75,14 @@ final class FamilyCalendarTests: XCTestCase {
         XCTAssertEqual(year.daysOff(kidA), [march16, raya, labourDay], "days off are unchanged")
     }
 
+    /// User, 2026-11-28: the day off in lieu of a Sunday holiday reads as the holiday itself, without
+    /// the list's "(observed)".
+    func testAnObservedHolidayReadsAsItsName() {
+        let monday = Day(year: 2026, month: 6, day: 1)
+        let year = FamilyCalendar(publicHolidays: [monday], holidayNames: [monday: "Vesak Day (observed)"])
+        XCTAssertEqual(year.holidayName(on: monday), "Vesak Day")
+    }
+
     func testASchoolCalendarsTermEnd() {
         let year = SchoolCalendar(terms: [term4], closed: [monday])
         XCTAssertEqual(year.termEnd(from: Day(year: 2026, month: 10, day: 1)), term4.end)
