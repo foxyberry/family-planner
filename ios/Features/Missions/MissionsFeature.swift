@@ -154,15 +154,15 @@ public struct MissionsFeature {
                               opened: ListRef?) -> [Kid.ID: Slot] {
             Dictionary(uniqueKeysWithValues: slots.compactMap { kid, slots in
                 let events = listEvents(kid: kid, slots: slots, bundles: bundles, weekday: weekday)
-                let slot: Slot? = if let opened { events.first { ListRef($0) == opened } }
+                let slot: Slot? = if let opened { events.first { ListRef($0, in: slots) == opened } }
                     else { events.first { event in (event.trip.map { event.start - $0.leaveBefore } ?? event.start) > minute } }
                 return slot.map { (kid, $0) }
             })
         }
 
         /// A kid's list as a span: the list's record, and the outing whose slide it carries.
-        static func span(for slot: Slot) -> WindowSpan {
-            WindowSpan(start: 0, end: slot.start, parts: [MissionWindow.before(ListRef(slot))],
+        static func span(for slot: Slot, in slots: [Slot]) -> WindowSpan {
+            WindowSpan(start: 0, end: slot.start, parts: [MissionWindow.before(ListRef(slot, in: slots))],
                        outing: slot.trip.map { Outing(slot: slot, trip: $0) })
         }
 
@@ -545,7 +545,8 @@ public struct MissionsFeature {
                         var slides: [OutingSlide] = []
                         for kid in snapshot?.kids ?? [] {
                             // The list's own record, and today's old morning record (moved once below).
-                            let parts = (lists[kid.id].map { [MissionWindow.before(ListRef($0))] } ?? []) + [.morning]
+                            let daySlots = snapshot.map { Self.slots($0, today: today, family: family, calendar: calendar)[kid.id] ?? [] } ?? []
+                            let parts = (lists[kid.id].map { [MissionWindow.before(ListRef($0, in: daySlots))] } ?? []) + [.morning]
                             for part in parts {
                                 if let window = try? await scheduleStore.windowMissions(kid.id, today, part) {
                                     marks.append(window)
@@ -592,7 +593,9 @@ public struct MissionsFeature {
                 state.bundles = snapshot.bundles
                 state.listSlots = State.listSlots(state.slots, bundles: snapshot.bundles, weekday: state.weekday ?? .monday,
                                                   minute: state.minute, opened: state.opened)
-                state.spans = state.listSlots.mapValues(State.span(for:))
+                state.spans = Dictionary(uniqueKeysWithValues: state.listSlots.map { kid, slot in
+                    (kid, State.span(for: slot, in: state.slots[kid] ?? []))
+                })
                 // Opened from a row: only that event's kids (spec A2 "the kid column").
                 if state.opened != nil { state.kids = snapshot.kids.filter { state.listSlots[$0.id] != nil } }
                 // Issue 024: today's done marks from the old morning window move once to the kid's first
