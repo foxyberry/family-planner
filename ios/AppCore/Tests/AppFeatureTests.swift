@@ -200,7 +200,7 @@ final class AppFeatureTests: XCTestCase {
         XCTAssertTrue(store.state.path.isEmpty)
     }
 
-    /// Spec A1 "Mission rows": a mission row opens A2 on its kid.
+    /// Spec A2 "Opened from a row": a mission row opens A2 on its kid and its event's list.
     func testAMissionRowOpensMissionsOnItsKid() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()
@@ -209,9 +209,10 @@ final class AppFeatureTests: XCTestCase {
             $0.calendar = Calendar(identifier: .gregorian)
         }
         store.exhaustivity = .off
-        await store.send(.home(.missionRowTapped(SeedData.kidB.id)))
+        await store.send(.home(.missionRowTapped(SeedData.kidB.id, .event(.school))))
         guard case let .missions(missions)? = store.state.path.first else { return XCTFail("missions not open") }
         XCTAssertEqual(missions.chosen, SeedData.kidB.id)
+        XCTAssertEqual(missions.opened, .event(.school))
     }
 
     /// Spec K1: the calendar button opens the school calendar over home with no lock (a kid screen,

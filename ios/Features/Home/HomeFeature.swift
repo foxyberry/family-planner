@@ -43,6 +43,17 @@ public struct HomeFeature {
         }
     }
 
+    /// One kid's list of one event today.
+    public struct KidList: Hashable, Sendable {
+        public var kid: Kid.ID
+        public var list: ListRef
+
+        public init(kid: Kid.ID, list: ListRef) {
+            self.kid = kid
+            self.list = list
+        }
+    }
+
     @ObservableState
     public struct State: Equatable {
         public var today: Day?
@@ -95,6 +106,10 @@ public struct HomeFeature {
 
         /// Every kid's items today, for the missions and Bring of their outings.
         public var items: [ScheduleItem] = []
+        /// The family's bundles (spec "Event lists"): what a kid's before list holds.
+        public var bundles: [MissionBundle] = []
+        /// Today's lists every item of which a kid has ticked (spec A1 "Highlight": unfinished lists only).
+        public var finishedLists: Set<KidList> = []
 
         /// Spec A1 "Next things": the family's next things, nearest first (worked out on every load
         /// and tick with the app's calendar).
@@ -106,20 +121,48 @@ public struct HomeFeature {
         /// The next card's kid when the chip was tapped.
         public var tappedCardKid: Kid.ID?
 
-        /// Spec A1 "Mission rows" (design, 2026-11-23): each outing has its own list, its Bring (School's
-        /// own Bring, or the item's), and on the day's first outing the kid's morning routine missions
-        /// too. An outing whose list is not empty is a mission row.
+        /// Spec A1 "Tappable rows" (issue 024): an event whose before list is not empty for the kid
+        /// today is a mission row (a linked event with no trip of its own too).
         func missionOutings(_ day: KidDay) -> [Slot] {
             guard let weekday else { return [] }
-            let outings = day.slots.filter { $0.trip != nil }
-            let routine = day.missions.contains { $0.days.contains(weekday) }
-            return outings.enumerated().compactMap { index, slot in
-                let bring: [ItemMission] = switch slot.source {
-                case .routine: slot.kind == .school ? day.kid.school?.bring ?? [] : []
-                case let .weekly(id), let .once(id): items.first { $0.id == id }?.bring ?? []
-                }
-                return !bring.isEmpty || (index == 0 && routine) ? slot : nil
+            return day.slots.filter {
+                !EventListRules.before(kid: day.kid.id, slot: $0, in: day.slots, bundles: bundles, weekday: weekday).isEmpty
             }
+        }
+
+        /// A kid's before list today: its entries' ids.
+        func listEntries(_ kid: Kid.ID, _ list: ListRef) -> [UUID] {
+            guard let weekday, let day = days.first(where: { $0.kid.id == kid }),
+                  let slot = day.slots.first(where: { ListRef($0, in: day.slots) == list }) else { return [] }
+            return EventListRules.before(kid: kid, slot: slot, in: day.slots, bundles: bundles, weekday: weekday).map(\.id)
+        }
+
+        /// Spec A1 "Highlight": the nearest row today with a list some kid on it has not finished.
+        public var hatchedThing: NextThing? {
+            things.first { thing in
+                thing.inDays == 0 && thing.list.map { list in
+                    thing.missionKids.contains { !finishedLists.contains(KidList(kid: $0, list: list)) }
+                } ?? false
+            }
+        }
+
+        /// What A2 opens with no row tapped (spec #310): the hatched row as if tapped, on its first kid
+        /// in family order; else today's nearest list of the clock's kid, else of any kid; else none.
+        public var defaultList: (kid: Kid.ID, list: ListRef)? {
+            if let thing = hatchedThing, let list = thing.list, let kid = familyOrder(thing.missionKids).first {
+                return (kid, list)
+            }
+            let today = things.filter { $0.inDays == 0 && $0.list != nil }
+            if let kid = clockKid, let thing = today.first(where: { $0.missionKids.contains(kid) }), let list = thing.list {
+                return (kid, list)
+            }
+            guard let thing = today.first, let list = thing.list, let kid = familyOrder(thing.missionKids).first else { return nil }
+            return (kid, list)
+        }
+
+        /// `kids` in the family's order.
+        public func familyOrder(_ kids: [Kid.ID]) -> [Kid.ID] {
+            days.map(\.kid.id).filter(kids.contains)
         }
 
         // MARK: What the view shows (it holds no values of its own)
@@ -211,7 +254,7 @@ public struct HomeFeature {
 
         /// A mission row's hatch: the kid's colour, or the shared one for an outing of two or more kids.
         public func hatch(_ thing: NextThing) -> NextThingRow.Hatch? {
-            guard thing.isMission else { return nil }
+            guard thing.isMission, thing.id == hatchedThing?.id else { return nil }
             guard thing.kids.count == 1, let kid = days.first(where: { $0.kid.id == thing.kids[0] }) else { return .shared }
             return .kid(kid.kid.colorIndex)
         }
@@ -248,7 +291,9 @@ public struct HomeFeature {
         /// Opens the missions screen (the driver's "missionsTapped"); the app opens A2.
         case missionsTapped
         /// Spec A1 "Mission rows": a mission row or card for this kid; the app opens A2 for that kid.
-        case missionRowTapped(Kid.ID)
+        case missionRowTapped(Kid.ID, ListRef)
+        /// Today's lists checked against their done marks.
+        case listsChecked(Set<KidList>)
         /// Spec A1 "Kid chips": the clock turns to this kid's day and the others' rows fade for 10 s.
         case kidChipTapped(Kid.ID)
         /// 10 s passed after the last touch: back to the family view.
@@ -292,6 +337,10 @@ public struct HomeFeature {
 
             case .missionRowTapped:
                 state.idleSeconds = 0
+                return .none
+
+            case let .listsChecked(finished):
+                state.finishedLists = finished
                 return .none
 
             case let .tick(now):
@@ -377,9 +426,10 @@ public struct HomeFeature {
                                   missions: snapshot.missions.filter { $0.kid == kid.id })
                 }
                 state.items = items
+                state.bundles = snapshot.bundles
                 state.isPublicHoliday = family.publicHolidays.contains(today)
                 state.holidayName = family.holidayName(on: today)
-                return listChanged(&state)
+                return .merge(listChanged(&state), checkLists(state))
 
             case let .clockPressed(start):
                 state.heldSlotStart = start
@@ -432,6 +482,22 @@ public struct HomeFeature {
             case .missionsTapped:
                 return .none
             }
+        }
+    }
+
+    /// Reads today's done marks of every kid's lists (spec A1 "Highlight": only unfinished lists).
+    private func checkLists(_ state: State) -> Effect<Action> {
+        guard let today = state.today else { return .none }
+        let lists = state.things.filter { $0.inDays == 0 }.flatMap { thing in
+            thing.list.map { list in thing.missionKids.map { (KidList(kid: $0, list: list), state.listEntries($0, list)) } } ?? []
+        }
+        return .run { [scheduleStore] send in
+            var finished: Set<KidList> = []
+            for (key, entries) in lists {
+                let done = (try? await scheduleStore.windowMissions(key.kid, today, .before(key.list)))?.done ?? []
+                if !entries.isEmpty, Set(entries).isSubset(of: done) { finished.insert(key) }
+            }
+            await send(.listsChecked(finished))
         }
     }
 
