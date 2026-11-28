@@ -6,7 +6,8 @@ import Localization
 import ScheduleStore
 import XCTest
 
-/// C5 · Morning missions: add up to 8, rename, remove (asks first), reorder; every change saves.
+/// C5 · Routines: a kid's bundles; add up to 8 missions, rename, remove (asks first), reorder; every
+/// change saves the bundle.
 @MainActor
 final class MissionEditorTests: XCTestCase {
     private let kidA = SeedData.kidA.id
@@ -21,7 +22,8 @@ final class MissionEditorTests: XCTestCase {
             $0.scheduleStore.load = {
                 ScheduleSnapshot(kids: SeedData.kids, routines: [], items: [], missions: SeedData.missions)
             }
-            $0.scheduleStore.saveMissions = { _, missions in saved.setValue(missions) }
+            $0.scheduleStore.saveBundle = { bundle in saved.setValue(bundle.missions) }
+            $0.scheduleStore.deleteBundle = { _ in }
         }
         store.exhaustivity = .off
         await store.send(.task)
@@ -38,6 +40,55 @@ final class MissionEditorTests: XCTestCase {
         XCTAssertEqual(store.state.addTitle, "Add a mission (6 of 8)")
         await store.send(.kidTabTapped(kidB))
         XCTAssertEqual(store.state.rows.map(\.name), ["Wake up", "Milk", "Shoes"])
+    }
+
+    /// Spec C5 (issue 024): the side column lists the kid's bundles; a new one starts as "New bundle"
+    /// with no missions, picked; its name saves at once (14 at most); "Used by" names the events that
+    /// pick it; removing a used bundle asks first, an unused one goes at once.
+    func testBundlesAddRenameAndRemove() async {
+        let saved = LockIsolated<[MissionBundle]>([])
+        let deleted = LockIsolated<[MissionBundle.ID]>([])
+        var kidA = SeedData.kidA
+        kidA.school?.lists = EventLists(before: [MissionBundle.morningID(for: SeedData.kidA.id)])
+        let kids = [kidA, SeedData.kidB]
+        let store = TestStore(initialState: MissionEditorFeature.State(kid: self.kidA)) {
+            MissionEditorFeature()
+        } withDependencies: {
+            $0.uuid = .incrementing
+            $0.scheduleStore.load = { ScheduleSnapshot(kids: kids, routines: [], items: [], missions: SeedData.missions) }
+            $0.scheduleStore.saveBundle = { bundle in saved.withValue { $0.append(bundle) } }
+            $0.scheduleStore.deleteBundle = { id in deleted.withValue { $0.append(id) } }
+        }
+        store.exhaustivity = .off
+        await store.send(.task)
+        await store.receive(\.loaded)
+        XCTAssertEqual(store.state.bundleRows.map(\.name), ["Morning routine"])
+        XCTAssertEqual(store.state.usedByCaption, "Used by School")
+
+        await store.send(.newBundleTapped)
+        XCTAssertEqual(store.state.bundleRows.map(\.name), ["Morning routine", "New bundle"])
+        XCTAssertEqual(store.state.bundleRows.map(\.isPicked), [false, true])
+        XCTAssertEqual(store.state.rows, [])
+        XCTAssertEqual(store.state.usedByCaption, "Not used yet")
+        await store.send(.bundleNameChanged("Swimming day bag!"))
+        XCTAssertEqual(store.state.bundleName, "Swimming day b", "14 at most")
+        await store.send(.bundleNameChanged(" "))
+        XCTAssertEqual(store.state.bundleName, " ", "the field keeps what is typed")
+        await store.send(.bundleNameChanged("Swimming day b"))
+        await store.send(.removeBundleTapped)
+        XCTAssertFalse(store.state.confirmsBundleRemove, "an unused bundle goes at once")
+        XCTAssertEqual(store.state.bundleRows.map(\.name), ["Morning routine"])
+
+        await store.send(.removeBundleTapped)
+        XCTAssertEqual(store.state.removeBundleConfirm?.title, "Remove Morning routine?")
+        XCTAssertEqual(store.state.removeBundleConfirm?.message, "School will lose it.")
+        await store.send(.removeBundleCancelled)
+        XCTAssertEqual(store.state.bundleRows.count, 1)
+        await store.finish(timeout: .seconds(1))
+        XCTAssertFalse(saved.value.contains { $0.name.trimmingCharacters(in: .whitespaces).isEmpty },
+                       "an empty name is never saved")
+        XCTAssertEqual(saved.value.last { $0.name != "New bundle" }?.name, "Swimming day b")
+        XCTAssertEqual(deleted.value.count, 1)
     }
 
     /// A new mission starts as a star with no name; Save stays off until it has one. At 8 the add
@@ -117,7 +168,7 @@ final class MissionEditorTests: XCTestCase {
         await store.finish(timeout: .seconds(1))
         XCTAssertEqual(saved.value.first?.id, id("306"))
         // Kid B's missions are untouched.
-        XCTAssertEqual(store.state.missions.filter { $0.kid == self.kidB }.count, 3)
+        XCTAssertEqual(store.state.bundles.filter { $0.kid == self.kidB }.flatMap(\.missions).count, 3)
     }
 
     /// Spec C5 "days per mission": a Days row in the card, all on for a new mission; fewer days show
@@ -150,7 +201,7 @@ final class MissionEditorTests: XCTestCase {
         let state = MissionEditorFeature.State(kid: kidA)
         XCTAssertEqual([state.title, state.doneTitle, state.mostCaption, state.nameLabel, state.removeLabel,
                         state.saveTitle, state.keepLabel],
-                       ["Morning missions", "Done", "8 is the most", "Name", "Remove", "Save", "Keep"])
+                       ["Routines", "Done", "8 is the most", "Name", "Remove", "Save", "Keep"])
         let keys = withDependencies { $0.localizer = .keys } operation: { MissionEditorFeature.State(kid: kidA) }
         XCTAssertEqual([keys.title, keys.doneTitle, keys.mostCaption, keys.nameLabel, keys.removeLabel,
                         keys.saveTitle, keys.keepLabel, keys.addTitle],

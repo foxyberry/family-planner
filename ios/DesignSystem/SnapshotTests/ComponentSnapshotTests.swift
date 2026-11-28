@@ -121,6 +121,15 @@ final class ComponentSnapshotTests: XCTestCase {
         snap(CalendarLegend(items: Self.legend).frame(width: 856, alignment: .leading), width: 856 + 2 * Spacing.m)
     }
 
+    /// Board C5 (issue 024): a picked bundle on the sky hatch with a bold name, another on paper.
+    func testBundleButtons() {
+        snap(VStack(spacing: 16) {
+            BundleButton("Morning routine", isPicked: true) {}
+            BundleButton("Swim day", isPicked: false) {}
+            AddRow("New bundle") {}
+        }.frame(width: 472, alignment: .leading), width: 472 + 2 * Spacing.m)
+    }
+
     /// Board K1o (layout v82): the days-off names, one item per day off with its swatch, a long name
     /// on two lines; the column cut by height with "+n more" on its last line.
     func testDayOffNames() {

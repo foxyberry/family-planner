@@ -4,7 +4,7 @@
 ios/Features/Grownup/ChangeBusesView.swift 3
 ios/Features/Grownup/ChangeSchoolView.swift 3
 ios/Features/Grownup/ItemEditorView.swift 18
-ios/Features/Grownup/MissionEditorView.swift 5
+ios/Features/Grownup/MissionEditorView.swift 3
 ios/Features/Grownup/OurDayView.swift 7
 ios/Features/Grownup/SchoolEditorView.swift 2
 ios/Features/Grownup/SettingsView.swift 4

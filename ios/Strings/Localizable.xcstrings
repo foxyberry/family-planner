@@ -540,6 +540,28 @@
         }
       }
     },
+    "c5.bundle.lose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ will lose it."
+          }
+        }
+      }
+    },
+    "c5.bundle.remove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@"
+          }
+        }
+      }
+    },
     "c5.done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -569,6 +591,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Name"
+          }
+        }
+      }
+    },
+    "c5.new_bundle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New bundle"
+          }
+        }
+      }
+    },
+    "c5.not_used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not used yet"
           }
         }
       }
@@ -623,7 +667,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Morning missions"
+            "value" : "Routines"
+          }
+        }
+      }
+    },
+    "c5.used_by" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used by %@"
           }
         }
       }

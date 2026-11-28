@@ -243,6 +243,27 @@ final class ScheduleStoreLiveTests: XCTestCase {
         XCTAssertEqual(again.filter { $0.kid == SeedData.kidB.id }.count, 3, "Kid B untouched")
     }
 
+    /// C5 (issue 024): a new bundle is added after the others, a saved one keeps its place, and a
+    /// removed one is gone after a restart.
+    func testBundlesSaveInPlaceAndRemove() async throws {
+        let store = try await seeded()
+        let swim = MissionBundle(id: UUID(), kid: SeedData.kidA.id, name: "Swim day",
+                                 missions: [Mission(id: UUID(), kid: SeedData.kidA.id, name: "Goggles", picture: "goggles", order: 0)])
+        try await store.saveBundle(swim)
+        var bundles = try await self.store().load().bundles
+        XCTAssertEqual(bundles.last, swim)
+        var morning = try XCTUnwrap(bundles.first { $0.id == MissionBundle.morningID(for: SeedData.kidA.id) })
+        let place = bundles.firstIndex(of: morning)
+        morning.name = "Mornings"
+        try await store.saveBundle(morning)
+        bundles = try await self.store().load().bundles
+        XCTAssertEqual(bundles.firstIndex { $0.id == morning.id }, place, "a saved bundle keeps its place")
+        XCTAssertEqual(bundles.first { $0.id == morning.id }?.name, "Mornings")
+        try await store.deleteBundle(swim.id)
+        let after = try await self.store().load().bundles
+        XCTAssertFalse(after.contains { $0.id == swim.id })
+    }
+
     func testWindowMissionsRoundTripAndOldOnesAreDropped() async throws {
         let store = store()
         let empty = try await store.windowMissions(SeedData.kidA.id, monday, .morning)

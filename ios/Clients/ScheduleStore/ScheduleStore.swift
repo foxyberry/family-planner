@@ -51,6 +51,10 @@ public struct ScheduleStore: Sendable {
     public var saveRoutine: @Sendable (_ routine: Routine) async throws -> Void
     /// Replaces one kid's missions with `missions` (C5: add, rename, reorder, remove).
     public var saveMissions: @Sendable (_ kid: Kid.ID, _ missions: [Mission]) async throws -> Void
+    /// Saves a bundle (C5: name and missions), replacing the one with its id or adding it last.
+    public var saveBundle: @Sendable (_ bundle: MissionBundle) async throws -> Void
+    /// Removes a bundle (C5 "Remove {bundle}"); events that pick it simply lose it.
+    public var deleteBundle: @Sendable (_ id: MissionBundle.ID) async throws -> Void
     /// The missions a kid has done in one window of a date; empty when there are none yet.
     public var windowMissions: @Sendable (_ kid: Kid.ID, _ date: Day, _ window: MissionWindow) async throws
         -> WindowMissions
@@ -79,7 +83,7 @@ extension ScheduleStore: TestDependencyKey {
         let kids = LockIsolated(SeedData.kids)
         let items = LockIsolated<[ScheduleItem]?>(nil)
         let routines = LockIsolated(SeedData.routines)
-        let missions = LockIsolated(SeedData.missions)
+        let bundles = LockIsolated(MissionBundle.mornings(from: SeedData.missions))
         let windows = LockIsolated<[WindowMissions]>([])
         let slides = LockIsolated<[OutingSlide]>([])
         let plans = LockIsolated<[BusPlan]>([])
@@ -93,7 +97,7 @@ extension ScheduleStore: TestDependencyKey {
         }
         return Self(
             load: { ScheduleSnapshot(kids: kids.value, routines: routines.value, items: seeded(),
-                                     missions: missions.value, busPlans: plans.value) },
+                                     bundles: bundles.value, busPlans: plans.value) },
             save: { item in
                 _ = seeded()
                 items.withValue { $0?.removeAll { $0.id == item.id }; $0?.append(item) }
@@ -116,11 +120,18 @@ extension ScheduleStore: TestDependencyKey {
                 }
             },
             saveMissions: { kid, new in
-                missions.withValue { list in
-                    list.removeAll { $0.kid == kid }
-                    list += new
+                bundles.withValue { list in
+                    var snapshot = ScheduleSnapshot(kids: [], routines: [], items: [], bundles: list)
+                    snapshot.setMissions(new, of: kid)
+                    list = snapshot.bundles
                 }
             },
+            saveBundle: { bundle in
+                bundles.withValue { list in
+                    if let index = list.firstIndex(where: { $0.id == bundle.id }) { list[index] = bundle } else { list.append(bundle) }
+                }
+            },
+            deleteBundle: { id in bundles.withValue { $0.removeAll { $0.id == id } } },
             windowMissions: { kid, date, window in
                 windows.value.first { $0.kid == kid && $0.date == date && $0.window == window }
                     ?? WindowMissions(kid: kid, date: date, window: window)
@@ -157,7 +168,7 @@ extension ScheduleStore: TestDependencyKey {
                 kids.setValue(family.kids)
                 routines.setValue(family.routines)
                 items.setValue(family.items)
-                missions.setValue(family.missions)
+                bundles.setValue(family.bundles)
                 plans.setValue(family.busPlans)
                 windows.setValue([])
                 slides.setValue([])

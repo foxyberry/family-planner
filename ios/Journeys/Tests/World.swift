@@ -152,6 +152,16 @@ public final class World: Sendable {
             }
         }
         values.scheduleStore.delete = { id in family.withValue { $0.items.removeAll { $0.id == id } } }
+        values.scheduleStore.saveBundle = { bundle in
+            family.withValue { snapshot in
+                if let index = snapshot.bundles.firstIndex(where: { $0.id == bundle.id }) {
+                    snapshot.bundles[index] = bundle
+                } else {
+                    snapshot.bundles.append(bundle)
+                }
+            }
+        }
+        values.scheduleStore.deleteBundle = { id in family.withValue { $0.bundles.removeAll { $0.id == id } } }
         values.scheduleStore.saveMissions = { kid, missions in
             family.withValue { $0.setMissions(missions, of: kid) }
         }
