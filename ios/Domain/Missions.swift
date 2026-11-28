@@ -76,14 +76,14 @@ public enum MissionWindow: Hashable, Codable, Sendable {
     case before(EventRef)
     case evening
     /// A template outing's before list (it has no event id; issue 024).
-    case blockBefore(SlotKind, String)
+    case blockBefore(SlotKind, String, start: Int?)
 
     /// Where a before list's done marks are kept (issue 024): an event's is its old `.before` record,
     /// so marks saved before lists moved to events still read.
     public static func before(_ list: ListRef) -> MissionWindow {
         switch list {
         case let .event(event): .before(event)
-        case let .block(kind, title): .blockBefore(kind, title)
+        case let .block(kind, title, start): .blockBefore(kind, title, start: start)
         }
     }
 }

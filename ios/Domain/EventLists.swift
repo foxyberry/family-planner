@@ -6,14 +6,21 @@ public enum WayHome: String, Codable, CaseIterable, Sendable {
     case none, pickup, bus, walk
 }
 
-/// Which event's lists a row, a screen or a done mark means (issue 024): an item or School by its
-/// event; a template outing, which has no id, by its kind and title (a same-day retime keeps them).
+/// Which event's lists a row, a screen or a done mark means (issue 024; spec "Event lists", done
+/// key): an item or School by its event; a template outing, which has no id, by its kind and title,
+/// so a same-day retime keeps its marks, with its start only when the day has two such slots.
 public enum ListRef: Hashable, Codable, Sendable {
     case event(EventRef)
-    case block(SlotKind, String)
+    case block(SlotKind, String, start: Int?)
 
-    public init(_ slot: Slot) {
-        if let event = EventRef(slot) { self = .event(event) } else { self = .block(slot.kind, slot.title) }
+    /// `slot`'s list among the day's `slots`.
+    public init(_ slot: Slot, in slots: [Slot]) {
+        if let event = EventRef(slot) {
+            self = .event(event)
+        } else {
+            let twin = slots.contains { $0 != slot && $0.source == .routine && $0.kind == slot.kind && $0.title == slot.title }
+            self = .block(slot.kind, slot.title, start: twin ? slot.start : nil)
+        }
     }
 }
 
