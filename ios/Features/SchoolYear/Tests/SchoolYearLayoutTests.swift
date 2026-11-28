@@ -2,7 +2,7 @@ import DesignSystem
 import SchoolYear
 import XCTest
 
-/// Boards K1 and K1o (layout v74): the school calendar's parts at s = 1, and the board × s on every
+/// Boards K1 and K1o (layout v82): the school calendar's parts at s = 1, and the board × s on every
 /// iPad (spec "Sizing: one scale, no floors").
 final class SchoolYearLayoutTests: XCTestCase {
     private let iPads = [Sizing(width: 1366, height: 1024), Sizing(width: 1180, height: 820),
@@ -20,8 +20,12 @@ final class SchoolYearLayoutTests: XCTestCase {
         XCTAssertEqual(layout.card(3).maxX, 1336, "the right margin is 40")
         XCTAssertEqual(layout.card(4).minY, 148 + 268 + 12)
         XCTAssertEqual(layout.card(11).maxY, 976)
-        XCTAssertEqual(layout.openCard, CGRect(x: 258, y: 160, width: 860, height: 800))
-        XCTAssertEqual(layout.openClose, CGRect(x: 1006, y: 184, width: 72, height: 72))
+        // Layout v82: the open month 1200 × 800 at (88, 160); its names column at x 928 (840 in), 320
+        // wide, ends 40 inside the card's right edge.
+        XCTAssertEqual(layout.openCard, CGRect(x: 88, y: 160, width: 1200, height: 800))
+        XCTAssertEqual(layout.openClose, CGRect(x: 1176, y: 184, width: 72, height: 72))
+        XCTAssertEqual(layout.openCard.minX + MonthCard.Size.open.names.minX, 928)
+        XCTAssertEqual(layout.openCard.maxX - (layout.openCard.minX + MonthCard.Size.open.names.maxX), 40)
         // The tabs end before the legend starts.
         let tabsRight = layout.tabs.x + 2 * SchoolYearLayout.tabSize.width + SchoolYearLayout.tabGap
         XCTAssertLessThan(tabsRight, layout.legend.minX)

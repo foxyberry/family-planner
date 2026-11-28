@@ -1,7 +1,7 @@
 import CoreGraphics
 import DesignSystem
 
-/// Boards K1, K1o and K1n (docs/superpowers/layout, v71; spec K1 "Layout"), every board value × s
+/// Boards K1, K1o and K1n (docs/superpowers/layout, v82; spec K1 "Layout"), every board value × s
 /// (spec "Sizing: one scale, no floors"). The K1 files were exported under the morning family's
 /// region names, so these come from their element boxes and the spec, not their `lines`.
 public struct SchoolYearLayout: Equatable, Sendable {
@@ -32,8 +32,8 @@ public struct SchoolYearLayout: Equatable, Sendable {
 
     // MARK: The open month (board K1o)
 
-    /// 860 × 800, centred across the board, from y 160.
-    public var openCard: CGRect { sizing.rect((1376 - 860) / 2, 160, 860, 800) }
+    /// Layout v82: 1200 × 800 at (88, 160), the grid on the left and the days-off names on the right.
+    public var openCard: CGRect { sizing.rect(88, 160, 1200, 800) }
     /// Its "×", `RoundButton` 72, 40 in from the card's right and 24 down.
-    public var openClose: CGRect { sizing.rect((1376 + 860) / 2 - 40 - 72, 160 + 24, 72, 72) }
+    public var openClose: CGRect { sizing.rect(88 + 1200 - 40 - 72, 160 + 24, 72, 72) }
 }

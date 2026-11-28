@@ -8,7 +8,7 @@ import ScheduleStore
 import SchoolDirectory
 import Strings
 
-/// K1 · School calendar (spec K1, boards K1, K1o, K1n; layout v74): a read-only year of each kid's
+/// K1 · School calendar (spec K1, boards K1, K1o, K1n; layout v82): a read-only year of each kid's
 /// school days off and the public holidays, opened from the calendar button on the kid home without
 /// the lock. Twelve month cards; a tapped card opens over the year.
 @Reducer
@@ -47,8 +47,11 @@ public struct SchoolYearFeature {
             public var picked: Int
             public var family: FamilyCalendar
             public var months: [MonthGrid]
+            /// The app's calendar, for the open month's day-off names (their weekdays and runs of days).
+            public var calendar: Calendar
 
             public init(today: Day, kids: [Kid], years: [Int], family: FamilyCalendar, calendar: Calendar) {
+                self.calendar = calendar
                 self.today = today
                 self.kids = kids
                 self.years = years
@@ -63,6 +66,8 @@ public struct SchoolYearFeature {
             public var month: Int
             public var title: String
             public var weeks: [[CalendarCell.Mark?]]
+            /// The open month's days off by name (board K1o); empty on the year's cards.
+            public var names: [DayOffNames.Item] = []
             public var id: Int { month }
         }
 
@@ -91,7 +96,7 @@ public struct SchoolYearFeature {
             }
             let open = openMonth.flatMap { number in months.first { $0.month == number } }.map { month in
                 Month(month: month.month, title: strings.tr("calendar.month_year", month.title, "\(year.picked)"),
-                      weeks: month.weeks)
+                      weeks: month.weeks, names: names(month.month, year: year))
             }
             return Screen(tabs: year.years.map { ($0, "\($0)", nil) }, pickedYear: year.picked,
                           legend: legend(year), weekdays: DayText.mondayFirst.map(DayText.initial),
@@ -123,6 +128,66 @@ public struct SchoolYearFeature {
             items.append(CalendarLegend.Item(swatch: CalendarCell.Mark(number: "\(year.today.day)", isToday: true),
                                              label: strings.tr("calendar.today")))
             return items
+        }
+
+        /// The open month's "+n more" line (board K1o).
+        public func moreNames(_ count: Int) -> String { strings.tr("calendar.more", "\(count)") }
+
+        /// Spec K1 "Names of the days off" (layout v82): one item per day off that touches the month, by
+        /// date. Public holidays by their own name (without "(observed)"), a run of days with one name
+        /// as one item ("Sun 8 – Mon 9"); each kid's breaks by the calendar's name ("21 Nov – 31 Dec"),
+        /// a preschool's as "Preschool closed", the same break of two kids as one item in both colours.
+        func names(_ month: Int, year: Year) -> [DayOffNames.Item] {
+            let calendar = year.calendar
+            func touches(_ run: [Day]) -> Bool { run.contains { $0.year == year.picked && $0.month == month } }
+            func single(_ day: Day) -> String { "\(DayText.shortName(day.weekday(calendar))) \(day.day)" }
+            var found: [(start: Day, item: DayOffNames.Item)] = []
+            let holidays = Self.runs(year.family.publicHolidays.sorted(), calendar: calendar) {
+                year.family.holidayName(on: $0) ?? ""
+            }
+            for run in holidays where touches(run.days) {
+                guard let first = run.days.first, let last = run.days.last else { continue }
+                found.append((first, DayOffNames.Item(swatch: CalendarCell.Mark(number: "\(first.day)", isHoliday: true),
+                                                      date: first == last ? single(first) : "\(single(first)) – \(single(last))",
+                                                      name: run.name)))
+            }
+            var breaks: [(start: Day, end: Day, name: String, kids: [Int])] = []
+            for kid in year.kids {
+                let school = year.family.schools[kid.id] ?? .none
+                let preschool = kid.school?.isPreschool == true
+                for run in Self.runs(school.breaks.keys.sorted(), calendar: calendar, name: { school.breaks[$0] ?? "" })
+                    where touches(run.days) {
+                    guard let first = run.days.first, let last = run.days.last else { continue }
+                    let name = preschool ? strings.tr("calendar.preschool_closed") : run.name
+                    if let index = breaks.firstIndex(where: { $0.start == first && $0.end == last && $0.name == name }) {
+                        breaks[index].kids.append(kid.colorIndex)
+                    } else {
+                        breaks.append((first, last, name, [kid.colorIndex]))
+                    }
+                }
+            }
+            for run in breaks {
+                let date = run.start == run.end ? single(run.start)
+                    : "\(DayText.dayMonth(run.start, calendar: calendar)) – \(DayText.dayMonth(run.end, calendar: calendar))"
+                found.append((run.start, DayOffNames.Item(swatch: CalendarCell.Mark(number: "", kids: run.kids),
+                                                          date: date, name: run.name)))
+            }
+            return found.sorted { $0.start < $1.start }.map(\.item)
+        }
+
+        /// Days in a row (each the day after the last) that share a name.
+        static func runs(_ days: [Day], calendar: Calendar, name: (Day) -> String) -> [(name: String, days: [Day])] {
+            var runs: [(name: String, days: [Day])] = []
+            for day in days {
+                let label = name(day)
+                if let last = runs.last, let end = last.days.last, last.name == label,
+                   end.adding(days: 1, calendar: calendar) == day {
+                    runs[runs.count - 1].days.append(day)
+                } else {
+                    runs.append((label, [day]))
+                }
+            }
+            return runs
         }
 
         /// The numeral on the key's public-holiday swatch (board K1: "25").
