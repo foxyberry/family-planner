@@ -15,9 +15,13 @@ public struct FamilyCalendar: Equatable, Sendable {
         self.holidayNames = holidayNames
     }
 
-    /// The public holiday's name on `day`; nil on any other day (or when the list has no name).
+    /// The public holiday's name on `day`; nil on any other day (or when the list has no name). A
+    /// Monday in lieu of a Sunday holiday is "Deepavali (observed)" in the list and reads "Deepavali"
+    /// (user, 2026-11-28).
     public func holidayName(on day: Day) -> String? {
-        publicHolidays.contains(day) ? holidayNames[day] : nil
+        guard publicHolidays.contains(day), let name = holidayNames[day] else { return nil }
+        let observed = " (observed)" // copy-ok: the holiday list's own suffix, matched, never shown
+        return name.hasSuffix(observed) ? String(name.dropLast(observed.count)) : name
     }
 
     /// The name of the kid's school break on `day` ("June holidays"); nil on a school day, a public
