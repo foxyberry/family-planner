@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Board G5 "Change from when?": Today / the next day ("Tomorrow", "Wed 18 Nov") / Date tabs, a date
 /// field for Date, an optional caption (days that no longer fit), then Save and Cancel. Used by every
-/// All days save, and by G7's "Starts on".
+/// Every time save, and by G7's "Starts on".
 public struct FromWhenCard<Choice: Hashable>: View {
     /// The board the card follows.
     public enum Board: Sendable {

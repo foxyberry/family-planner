@@ -102,7 +102,7 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(store.state.latest, 490)
         await store.send(.endPicked(tuesday.date(minute: 870, calendar: F.calendar)))
         await store.send(.saveTapped)
-        XCTAssertEqual(store.state.fromWhen, .today, "All days asks from when first")
+        XCTAssertEqual(store.state.fromWhen, .today, "Every time asks from when first")
         await store.send(.fromWhenSaveTapped)
         await store.receive(\.saved)
         await store.receive(\.delegate.finished)
@@ -210,7 +210,7 @@ final class SchoolEditorTests: XCTestCase {
 
     // MARK: G5 "Change from when?" (spec G5 "Which screens and days")
 
-    /// An All days save asks G5 first and saves nothing until its Save; Cancel keeps the form.
+    /// An Every time save asks G5 first and saves nothing until its Save; Cancel keeps the form.
     /// "Tomorrow" is Wed 11 Nov, a school day; the weekday template changes from the day picked.
     func testAllDaysAsksFromWhenThenSavesFromThatDay() async {
         let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
@@ -395,7 +395,7 @@ final class SchoolEditorTests: XCTestCase {
         XCTAssertEqual(store.state.skipTitle, "Bring back this day")
     }
 
-    /// All days builds on the weekday template, never on a day's own one: a This day skip today does
+    /// Every time builds on the weekday template, never on a day's own one: a This day skip today does
     /// not reach every school day.
     func testAllDaysIsBuiltOnTheWeekdayTemplateNotTheDaysOwn() async {
         let kids = LockIsolated<[Kid]>([]), routines = LockIsolated<[Routine]>([])
@@ -611,7 +611,7 @@ final class SchoolEditorTests: XCTestCase {
                         state.bringLabel, state.beforeLabel, state.backLabel, state.bundlesCaption, state.takesLabel,
                         state.medalLabel, state.nothingText, state.bringDoneTitle,
                         state.bringCancelTitle, state.bringMoreTitle],
-                       ["This day", "All days", "Save changes", "School", "When", "Days", "Arrive", "latest", "Terms",
+                       ["This day", "Every time", "Save changes", "School", "When", "Days", "Arrive", "latest", "Terms",
                         "Going", "Bring", "Before", "Back", "Bundles", "Takes", "Medal", "Nothing", "Done", "Cancel", "More"])
         XCTAssertFalse(Weekday.allCases.contains { state.isDayOn($0) })
         let keys = withDependencies { $0.localizer = .keys } operation: {

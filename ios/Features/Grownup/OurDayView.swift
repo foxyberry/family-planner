@@ -203,7 +203,7 @@ public struct OurDayView: View {
         VStack(alignment: .leading, spacing: sizing(Spacing.m)) {
             DayButton(today: store.dayButtonToday, date: store.dayButtonDate) { store.send(.dayButtonTapped) }
             // Board G1: the slice card is a fixed 382 × 440 box (a new slice's form may grow it), its
-            // contents 24 inside (954 … 1288), so This day / All days fit and the card keeps the column.
+            // contents 24 inside (954 … 1288), so This day / Every time fit and the card keeps the column.
             // The day button stays at the top and Save at the foot; only the card scrolls between them.
             ScrollColumn {
                 PaperCard(seed: 61) { card.frame(maxWidth: .infinity, alignment: .leading) }
@@ -253,7 +253,7 @@ public struct OurDayView: View {
                     if let picture = store.selectedPicture { KitIcon(picture, size: sizing(64)) }
                     Text(title).crayonType(.head).foregroundStyle(CrayonColor.ink).lineLimit(1)
                 }
-                // Spec "Edit scope": This day / All days under the title (not for a just-once item).
+                // Spec "Edit scope": This day / Every time under the title (not for a just-once item).
                 if store.showsScopeTabs { scopeTabs }
                 if let start = store.startLabel, let end = store.endLabel {
                     if store.timesAreEditable { timesRow(start: start, end: end) } else { softTimes(start: start, end: end) }
@@ -262,7 +262,7 @@ public struct OurDayView: View {
                     Text(message).crayonType(.caption).foregroundStyle(CrayonColor.softText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                // "Skip this day" (This day) or "Remove" (All days, a just-once item), under the times.
+                // "Skip this day" (This day) or "Remove" (Every time, a just-once item), under the times.
                 if let action = store.sliceActionTitle {
                     Button { store.send(.sliceActionTapped) } label: {
                         Text(action).crayonType(.body).bold().foregroundStyle(CrayonColor.lateText)

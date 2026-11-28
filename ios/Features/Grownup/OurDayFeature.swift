@@ -36,7 +36,7 @@ public struct OurDayFeature {
         public var end: Int
         public var name: String
         public var iconName: String?
-        /// Its tabs: just once (This day) or every week (All days); the item on the clock keeps it.
+        /// Its tabs: just once (This day) or every week (Every time); the item on the clock keeps it.
         public var scope: Scope
         /// A picture was picked, so the item is on the clock (Undo takes it back).
         public var isOnClock = false
@@ -62,7 +62,7 @@ public struct OurDayFeature {
         public var bumps = 0
     }
 
-    /// "This day" or "All days" (spec "Edit scope"): each change carries the scope it was made in.
+    /// "This day" or "Every time" (spec "Edit scope"): each change carries the scope it was made in.
     public typealias Scope = EditScope
 
     /// A knob being dragged: what it moves and how far it may go (fixed when the drag starts).
@@ -74,7 +74,7 @@ public struct OurDayFeature {
     }
 
     /// The one action under the slice card's times (spec G1 "One card"): "Skip this day" on This
-    /// day, "Remove" on All days and on a just-once item.
+    /// day, "Remove" on Every time and on a just-once item.
     public enum SliceAction: Equatable, Sendable { case skip, remove }
 
     /// Board G1: the ConfirmCard before an every-week or every-month item or a just-once item is
@@ -90,9 +90,9 @@ public struct OurDayFeature {
         public var kid: Kid.ID
         /// The date on the clock (board G1's day button).
         public var day: Day
-        /// The This day / All days tabs: the scope the next change on a slice is made in.
+        /// The This day / Every time tabs: the scope the next change on a slice is made in.
         public var scope: Scope = .thisDay
-        /// Board G5 on an All days save: the card's choice while it is open, and its date.
+        /// Board G5 on an Every time save: the card's choice while it is open, and its date.
         public var fromWhen: ItemEditorFeature.FromWhen?
         public var fromWhenDate: Day
         /// Board G1c: the day picker's first date (a Monday) while it is open.
@@ -134,7 +134,7 @@ public struct OurDayFeature {
             /// "Details ›" on an item's or School's slice card (G2, G4).
             case item(ScheduleItem.ID)
             case school
-            /// School's "Remove" on All days: G7 with "At home" picked.
+            /// School's "Remove" on Every time: G7 with "At home" picked.
             case atHome
         }
 
@@ -277,7 +277,7 @@ public struct OurDayFeature {
 
         /// Board G1g: the selected slice is skipped this day (faded card, no scope tabs, "Bring back").
         public var isSelectedSkipped: Bool { selectedBlock?.isSkipped == true || selectedItem?.isSkipped == true }
-        /// A just-once item has one date, so its card has no This day / All days tabs.
+        /// A just-once item has one date, so its card has no This day / Every time tabs.
         public var showsScopeTabs: Bool { selectedItem.map { $0.isRepeating || $0.isNew } ?? true }
         /// The tab shown: a new item's own scope (its kind), else the screen's.
         public var shownScope: Scope {
@@ -288,7 +288,7 @@ public struct OurDayFeature {
         /// An item placed after another event ("after School") follows it: its times are shown, not edited.
         public var timesAreEditable: Bool { selectedItem?.isAnchored != true }
 
-        /// Spec G1 "One card": "Skip this day" on This day (School too), "Remove" on All days; a
+        /// Spec G1 "One card": "Skip this day" on This day (School too), "Remove" on Every time; a
         /// just-once item and a new item only "Remove"; free time and a skipped slice neither.
         public var sliceAction: SliceAction? {
             if let block = selectedBlock {
@@ -348,7 +348,7 @@ public struct OurDayFeature {
         public var fromWhenChoice: ItemEditorFeature.FromWhen { fromWhen ?? .today }
         /// Board G1c: the picker's Today button.
         public var pickerTodayTitle: String { strings.tr("day.picker.today") }
-        /// The slice card: This day / All days, the pictures' More, the new slice's Name and a
+        /// The slice card: This day / Every time, the pictures' More, the new slice's Name and a
         /// skipped slice's Bring back.
         public var scopeTabs: [(Scope, String)] {
             [(.thisDay, strings.tr("day.scope.this")), (.allDays, strings.tr("day.scope.all"))]
@@ -366,7 +366,7 @@ public struct OurDayFeature {
 
         // MARK: Saving
 
-        /// The day type's template the clock's day would have without its own one: where an All days
+        /// The day type's template the clock's day would have without its own one: where an Every time
         /// change goes.
         var baseBlocks: [RoutineBlock] {
             DayPlanner.template(for: kid, on: day, routines: shownRoutines.filter { $0.onlyOn == nil },
@@ -376,9 +376,9 @@ public struct OurDayFeature {
         /// The templates as each date reads them: a waiting School change from its day on (#255).
         var shownRoutines: [Routine] { kidInfo?.readingWaitingHours(routines) ?? routines }
 
-        /// What Save writes for the template, each change by its own scope: the All days changes on
+        /// What Save writes for the template, each change by its own scope: the Every time changes on
         /// the day type's template from G5's date (never before today), and, when there are This day
-        /// changes, the day's own template (with the All days changes too when they start by then).
+        /// changes, the day's own template (with the Every time changes too when they start by then).
         public var routinesToSave: [Routine] {
             // A School save from today reaches the later templates that follow the old record first.
             var routines = followingToSave
@@ -393,7 +393,7 @@ public struct OurDayFeature {
                 routines.append(Routine(kid: self.kid, dayType: dayType, from: allDaysFrom, blocks: blocks))
             }
             if edit.hasThisDayTemplateChange {
-                // All days changes reach this day only when G5's date is on or before it.
+                // Every time changes reach this day only when G5's date is on or before it.
                 let edited = allDaysFrom <= day ? edit.blocks : edit.replaying(on: edit.savedBlocks, scopes: [.thisDay])
                 let blocks = kid?.storingSchool(edited, on: day, stored: stored) ?? edited
                 routines.append(Routine.day(day, kid: self.kid, dayType: dayType, blocks: blocks))
@@ -408,7 +408,7 @@ public struct OurDayFeature {
             return kid.followingSchool(routines, from: today, old: old)
         }
 
-        /// G5 asks from when only when there are All days changes; its date applies only to them.
+        /// G5 asks from when only when there are Every time changes; its date applies only to them.
         public var needsFromWhen: Bool { edit.hasAllDaysChange }
 
         /// Board G5's tabs: "Today", the next day of this day's type ("Tomorrow" or "Sat 14 Nov"; none
@@ -427,7 +427,7 @@ public struct OurDayFeature {
         /// The day "Details ›" opens G2 on (its G5 starts there): the clock's day; none from the List.
         public var editorDay: Day? { showsList ? nil : day }
 
-        /// Where an All days template starts: G5's choice, never before today.
+        /// Where an Every time template starts: G5's choice, never before today.
         public var allDaysFrom: Day {
             switch fromWhen {
             case .next?: nextOfType ?? today
@@ -499,9 +499,9 @@ public struct OurDayFeature {
             return slices.first { $0.start == minute } ?? slices.first { $0.start <= minute && minute < $0.end }
         }
 
-        /// What an All days change does to the school record (layout v37): the School slice's new
+        /// What an Every time change does to the school record (layout v37): the School slice's new
         /// times become School's hours, from today at once, from a later day as the waiting hours change
-        /// (spec G5 "What Settings shows meanwhile"). nil when School did not move on All days. "Remove
+        /// (spec G5 "What Settings shows meanwhile"). nil when School did not move on Every time. "Remove
         /// School every week" changes only the template, never the school record.
         public var schoolToSave: Kid? {
             let base = baseBlocks
@@ -544,7 +544,7 @@ public struct OurDayFeature {
         case pickerTodayTapped
         case pickerClosed
         case scopeTapped(Scope)
-        /// Board G5 on an All days save: the choice, its date, Save and Cancel.
+        /// Board G5 on an Every time save: the choice, its date, Save and Cancel.
         case fromWhenPicked(ItemEditorFeature.FromWhen)
         case fromWhenDatePicked(Date)
         case fromWhenSaveTapped
@@ -595,7 +595,7 @@ public struct OurDayFeature {
             case add(Kid.ID, ItemForm.Repeat)
             /// Board G8: the School row opens G4.
             case openSchool
-            /// School's "Remove" on All days (spec G1 "One card"): G7 with "At home" picked, so where
+            /// School's "Remove" on Every time (spec G1 "One card"): G7 with "At home" picked, so where
             /// the kid goes changes the one way it always does.
             case removeSchool(Kid.ID)
         }
@@ -673,7 +673,7 @@ public struct OurDayFeature {
 
             case let .scopeTapped(scope):
                 // Spec "Tapping +": a new item's tabs pick its kind, just once (This day) or every
-                // week (All days), as one change; the new card's tabs act on that card only.
+                // week (Every time), as one change; the new card's tabs act on that card only.
                 if var slice = state.newSlice {
                     slice.scope = scope
                     state.newSlice = slice
@@ -912,7 +912,7 @@ public struct OurDayFeature {
 
             case .saveTapped:
                 guard !state.isSaving else { return .none }
-                // Spec "Edit scope": All days changes ask from when first (board G5).
+                // Spec "Edit scope": Every time changes ask from when first (board G5).
                 if state.needsFromWhen, state.fromWhen == nil {
                     // Spec G5: it opens on the day on the clock (never before today).
                     let opening = FromWhenTabs.opening(shown: state.day, next: state.nextOfType, today: state.today)
